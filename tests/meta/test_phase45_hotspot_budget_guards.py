@@ -36,8 +36,11 @@ _ANY_BUDGET: dict[str, _AnyBudgetEntry] = {
     "core/mqtt/message_processor.py": {
         "sanctioned_any": {
             "from typing import TYPE_CHECKING, Any, Protocol, cast": 1,
-            "parse_payload: Callable[[Any], dict[str, Any]],": 1,
-            "on_message: Callable[[str, dict[str, Any]], None] | None,": 1,
+            "type MqttPayload = dict[str, Any]": 1,
+            "parse_payload: Callable[[Any], dict[str, Any]],": 2,
+            ") -> dict[str, Any] | OperationOutcome:": 1,
+            "properties: dict[str, Any],": 1,
+            "on_message: Callable[[str, dict[str, Any]], None] | None,": 2,
         },
         "backlog_any": {},
     },

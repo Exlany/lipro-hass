@@ -12,6 +12,8 @@ Home Assistant integration for controlling Lipro Smart Home devices.
 
 Release trust signals: blocking CI + architecture/governance guards, CodeQL, SBOM/attestation/cosign-backed release pipeline, and explicit security/support fast paths.
 
+Docs fast path: start with `docs/README.md`, then follow the canonical public route to `CONTRIBUTING.md`, `docs/TROUBLESHOOTING.md`, `SUPPORT.md`, and `SECURITY.md`.
+
 ## Features
 
 - 🔌 Support for multiple Lipro device types
@@ -94,7 +96,7 @@ If `install.sh` runs in remote mode without a pinned archive/tag, it resolves th
 
 ```shell
 # Download these release assets from GitHub Releases first.
-# Replace <release-tag> with the actual tag you downloaded (for example v1.14.0):
+# Replace <release-tag> with the actual tag you downloaded (for example vX.Y.Z):
 #   - install.sh
 #   - lipro-hass-<release-tag>.zip
 #   - SHA256SUMS

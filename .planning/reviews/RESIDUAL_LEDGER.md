@@ -46,6 +46,10 @@ _None currently registered._
 
 - `Protocol seam focused-coverage gap` 已在 Phase 66 关闭：`RestTransportExecutor`、`CoordinatorProtocolService`、`LiproProtocolFacade` 与 `LiproMqttFacade` 现拥有 dedicated focused regression suites，不再主要依赖 mega-matrix tests 才能发现 seam 破坏。
 
+- `MQTT authority ambiguity` 已在 Phase 68 关闭：`custom_components/lipro/core/mqtt/topics.py` 现只保留 boundary-backed adapter 身份，`custom_components/lipro/core/protocol/boundary/mqtt_decoder.py` 继续是唯一 canonical MQTT topic/payload decode authority。
+
+- `Hotspot regrowth risk in telemetry/share/runtime/docs contracts` 已在 Phase 68 关闭：`telemetry/models.py`、`share_client_flows.py`、`diagnostics_api_ota.py`、`runtime_infra.py` 与 docs/metadata surfaces 已完成 inward split / truth sync，并由 focused guards + repo-wide gates 冻结。
+
 ## Phase 66 Residual Delta
 
 - 无新增 active residual family。
@@ -386,3 +390,9 @@ _None currently registered._
 - `anonymous_share`、diagnostics、OTA candidate 与 `select` 现都保持单一 outward roots；`manager_submission.py`、`share_client_flows.py`、`candidate_support.py` 与 `select_internal/gear.py` 均为 inward collaborators，而不是新的 public roots / compat shells。
 - 本 phase **无新增 active residual family**：收口的是既有 large-but-correct production hotspots，而不是引入新的 helper-owned authority。
 - `tests/meta/test_phase61_formal_home_budget_guards.py` 与更新后的 `.planning/reviews/FILE_MATRIX.md` 已冻结新的 no-growth / support-locality posture，防止 support seam 回流成第二正式故事。
+
+
+## Phase 68 Residual Delta
+
+- 无新增 active residual family。
+- 本 phase 显式关闭了 MQTT authority ambiguity、docs/metadata current-story drift 与 hotspot regrowth risk；后续若继续优化，只允许沿现有 formal homes / baseline / review ledgers 收口，不得重新长出第二故事线。

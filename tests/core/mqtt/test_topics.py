@@ -1,10 +1,24 @@
-"""Tests for Lipro MQTT transport."""
+"""Tests for Lipro MQTT topic helpers."""
 
 from __future__ import annotations
+
+import json
+from pathlib import Path
+from typing import cast
 
 import pytest
 
 from custom_components.lipro.core.mqtt.topics import build_topic, parse_topic
+from custom_components.lipro.core.protocol.boundary import decode_mqtt_topic_payload
+
+_FIXTURE_DIR = Path(__file__).resolve().parents[2] / "fixtures" / "protocol_boundary"
+
+
+def _load_fixture(name: str) -> dict[str, object]:
+    return cast(
+        "dict[str, object]",
+        json.loads((_FIXTURE_DIR / name).read_text(encoding="utf-8")),
+    )
 
 
 class TestBuildTopic:
@@ -27,6 +41,7 @@ class TestBuildTopic:
         with pytest.raises(ValueError, match="Invalid biz_id format"):
             build_topic("biz/invalid", "03ab5ccd7cxxxxxx")
 
+
 class TestParseTopic:
     """Tests for topic parsing."""
 
@@ -48,7 +63,6 @@ class TestParseTopic:
         assert parse_topic("invalid") is None
         assert parse_topic("only/two") is None
         assert parse_topic("") is None
-        # Wrong prefix should also return None
         assert parse_topic("Wrong_Prefix/biz/device") is None
 
     def test_parse_topic_extra_parts(self):
@@ -60,7 +74,6 @@ class TestParseTopic:
         assert parse_topic("Topic_Device_State/biz$/device") is None
         assert parse_topic("Topic_Device_State/biz/device#1") is None
 
-
     def test_parse_topic_rejects_mismatched_expected_biz(self):
         """Expected biz ID mismatch should reject the topic."""
         assert (
@@ -70,3 +83,18 @@ class TestParseTopic:
             )
             is None
         )
+
+    def test_parse_topic_matches_protocol_boundary_fixture(self) -> None:
+        fixture = _load_fixture("mqtt_topic.device_state.v1.json")
+        topic = fixture["topic"]
+        expected_biz_id = fixture["expected_biz_id"]
+
+        assert isinstance(topic, str)
+        boundary_result = decode_mqtt_topic_payload(
+            topic,
+            expected_biz_id=expected_biz_id if isinstance(expected_biz_id, str) else None,
+        )
+        assert parse_topic(
+            topic,
+            expected_biz_id=expected_biz_id if isinstance(expected_biz_id, str) else None,
+        ) == boundary_result.canonical.get("deviceId")

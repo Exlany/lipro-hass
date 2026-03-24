@@ -2,7 +2,7 @@
 
 **Purpose:** 定义允许/禁止的跨平面依赖方向，并作为 architecture guards 的语义真源。
 **Status:** Baseline reference
-**Updated:** 2026-03-20 (Phase 43 control/service/runtime boundary aligned)
+**Updated:** 2026-03-24 (Phase 68 hotspot/docs closeout aligned)
 
 ## Formal Role
 
@@ -179,3 +179,11 @@
 - `custom_components/lipro/core/api/endpoint_surface.py` 继续允许被 `rest_facade.py` inward 依赖承接 endpoint operations collaborator mechanics；runtime/control/tests/docs 不得把它讲成 public route 或第二 façade。
 - diagnostics services / tests / docs 继续只能经 `helpers.py` 与 router/public callback story 读取正式 diagnostics import truth；`feedback_handlers.py`、`command_result_handlers.py`、`capability_handlers.py` 与 `helper_support.py` 只允许由 diagnostics formal homes inward 依赖。
 - `manager_submission.py`、`share_client_flows.py`、`candidate_support.py` 与 `select_internal/gear.py` 的 inward-only posture 在 Phase 62 继续保持；命名 / discoverability 收口不得把它们提升成第二 formal root。
+
+
+## Phase 68 Hotspot / Docs Closeout Clarifications
+
+- `custom_components/lipro/core/mqtt/topics.py` 可以 lazy-import `custom_components/lipro.core.protocol.boundary` 作为 legacy topic helper import home，但它只能充当 boundary-backed adapter；topic/payload grammar authority 仍锁定在 `custom_components/lipro/core/protocol/boundary/mqtt_decoder.py`。
+- `custom_components/lipro/core/telemetry/outcomes.py` 与 `custom_components/lipro/core/telemetry/json_payloads.py` 只允许被 `custom_components/lipro/core/telemetry/models.py` inward 依赖；其他 production surfaces 不得把它们提升为第二 telemetry root。
+- `custom_components/lipro/control/runtime_access_support.py` 继续只允许由 `custom_components/lipro/control/runtime_access.py` 聚合导出；services / diagnostics / system-health / telemetry consumers 不得直连 support seam。
+- docs/metadata current-story drift 的治理回写只允许沿 `README* -> docs/README.md -> SUPPORT.md/SECURITY.md/.github/* -> planning/baseline/reviews` 的既有链路推进，不得长出 parallel docs route。

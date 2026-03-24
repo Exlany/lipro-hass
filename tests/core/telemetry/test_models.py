@@ -279,3 +279,40 @@ def test_build_operation_outcome_from_exception_reuses_failure_taxonomy() -> Non
         },
         "http_status": 504,
     }
+
+
+
+def test_build_operation_outcome_preserves_explicit_failure_summary() -> None:
+    failure_summary: FailureSummary = {
+        "failure_category": "runtime",
+        "failure_origin": "runtime.update",
+        "handling_policy": "inspect",
+        "error_type": "RuntimeError",
+    }
+
+    outcome = build_operation_outcome(
+        kind="failed",
+        reason_code="runtime_failed",
+        failure_summary=failure_summary,
+    )
+
+    assert outcome.to_dict()["failure_summary"] == failure_summary
+
+
+
+def test_build_operation_outcome_normalizes_invalid_failure_inputs() -> None:
+    outcome = build_operation_outcome(
+        kind="failed",
+        reason_code="timed_out",
+        error_type="TimeoutError",
+        failure_origin="protocol.mqtt",
+        failure_category="not-a-category",
+        handling_policy="not-a-policy",
+    )
+
+    assert outcome.to_dict()["failure_summary"] == {
+        "failure_category": "network",
+        "failure_origin": "protocol.mqtt",
+        "handling_policy": "retry",
+        "error_type": "TimeoutError",
+    }

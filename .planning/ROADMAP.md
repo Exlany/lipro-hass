@@ -18,6 +18,7 @@
 
 - ✅ **v1.15 Typed Contract Convergence, Tooling Kernel Hardening & Mypy Closure** - `Phase 67` archived on 2026-03-24; milestone audit: `.planning/v1.15-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_15_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.15-ROADMAP.md` / `.planning/milestones/v1.15-REQUIREMENTS.md`
 - ✅ **v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure** - `Phase 63 -> 66` archived on 2026-03-23; milestone audit: `.planning/v1.14-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_14_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.14-ROADMAP.md` / `.planning/milestones/v1.14-REQUIREMENTS.md`
+- 🚧 **v1.16 Master Audit Follow-Through, Hotspot Finalization & Docs Contract Hardening** - opened on 2026-03-24 from the refreshed full-repository audit, using `v1.15` archived evidence as the only formal baseline; `Phase 68` completed on 2026-03-24 with review-fed hotspot finalization, docs/release contract hardening, and repo-wide gate proof, so the milestone is now closeout-ready
 
 ## Required Phase Outputs
 
@@ -1222,6 +1223,39 @@ Plans:
 - [x] 59-01: topicize governance and public-surface megaguards by stable truth family (completed 2026-03-22)
 - [x] 59-02: split `test_device_refresh.py` by parsing, filter semantics, snapshot building, and runtime behavior concerns (completed 2026-03-22)
 - [x] 59-03: freeze localized verification topology in matrices, current-story docs, and focused guards (completed 2026-03-22)
+
+## v1.16: Master Audit Follow-Through, Hotspot Finalization & Docs Contract Hardening
+
+**Milestone Goal:** 以 `v1.15` archived evidence 与 refreshed repo-wide audit 为共同起点，把 remaining maintainability precision debt、localized compat residue 与 public docs/release contract drift 收口到一条正式 current route，并强制经过 `$gsd-review` cross-AI plan review 后再执行。
+
+> `v1.16` 是从本轮“全代码/文档/配置终极审阅”直接路由出来的新里程碑：目标不是重开架构争议，而是在已正确的单一北极星主链上，处理少数仍偏厚的 hotspots、残余 alias/cycle/duplicate-doc stories，以及 first-hop/version/release contract 的可验证漂移。Phase 68 现已完成执行与验证，当前里程碑进入 closeout-ready。
+
+**Milestone status:** `Phase 68 complete (2026-03-24)`
+**Starting baseline:** `.planning/v1.15-MILESTONE-AUDIT.md`, `.planning/reviews/V1_15_EVIDENCE_INDEX.md`, `.planning/milestones/v1.15-ROADMAP.md`, `.planning/milestones/v1.15-REQUIREMENTS.md`, `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-REMEDIATION-ROADMAP.md`, `.planning/phases/67-typed-contract-convergence-toolchain-hardening-and-mypy-closure/67-SUMMARY.md`
+**Requirements basket:** `GOV-52`, `ARC-15`, `HOT-24`, `HOT-25`, `OSS-08`, `TST-18`, `QLT-26`
+**Current route:** `Phase 68`
+**Default next command:** `$gsd-complete-milestone v1.16`
+
+### Phase 68: Repository-wide review follow-through, hotspot finalization, and docs contract hardening
+
+**Goal:** 把 refreshed repo-wide audit 发现的 remaining issues 压成一条正式修复线：继续 inward split `telemetry / mqtt / anonymous_share / diagnostics_api_ota / runtime_infra` hotspots，清理 localized compat/cycle/duplicate stories，并把 `README* / manifest / pyproject / CHANGELOG / .github/*` 的 first-hop、version 与 release-example contract 同步到同一 current truth。
+**Depends on:** Phase 67
+**Requirements**: [GOV-52, ARC-15, HOT-24, HOT-25, OSS-08, TST-18, QLT-26]
+**Success Criteria**:
+  1. `custom_components/lipro/core/telemetry/models.py`、`custom_components/lipro/core/mqtt/message_processor.py`、`custom_components/lipro/core/anonymous_share/share_client_flows.py`、`custom_components/lipro/core/api/diagnostics_api_ota.py`、`custom_components/lipro/runtime_infra.py` 与相关 tests 继续沿既有 formal seams inward decomposition；长流程、残余 alias/cycle 与 localized compat wrapper 不再制造“已重构但仍难维护”的同类问题。
+  2. `README.md`、`README_zh.md`、`custom_components/lipro/manifest.json`、`pyproject.toml`、`CHANGELOG.md`、`docs/README.md`、`.github/ISSUE_TEMPLATE/*`、`.github/workflows/*` 与相关 guards 共同承认同一 docs first-hop、same-version signal 与 same release-example truth；duplicate troubleshooting / stale tag example / beta-vs-stable drift 被删除或 machine-checkable 地锁死。
+  3. `gsd-plan-phase -> gsd-review -> gsd-plan-phase --reviews -> gsd-execute-phase` 形成单一路由；focused tests / architecture policy / file matrix / typing / verification docs 同轮更新并通过。
+**Status**: Complete (`2026-03-24`)
+**Plans**: 6/6 complete
+**Promoted closeout package**: `68-SUMMARY.md`, `68-VERIFICATION.md`, `68-VALIDATION.md`
+
+Plans:
+- [x] 68-01: split telemetry contract density and stage MQTT message processing without reopening public roots
+- [x] 68-02: thin anonymous-share and OTA query flows without broad rewrites or new outward homes
+- [x] 68-03: keep runtime infra and runtime access thin while localizing listener and projection density
+- [x] 68-04: harden docs, metadata, and public-first-hop contract into one honest current story
+- [x] 68-05: translate hotspot and docs findings into focused guards and a review-fed verification loop
+- [x] 68-06: sync governance truth after review-fed execution and prove the repo-wide quality gate stays green
 
 ## v1.15: Typed Contract Convergence, Tooling Kernel Hardening & Mypy Closure
 

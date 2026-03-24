@@ -126,6 +126,50 @@ async def test_async_handle_submit_anonymous_share_failure_returns_typed_outcome
 
 
 @pytest.mark.asyncio
+async def test_async_handle_submit_anonymous_share_preserves_auth_failure_metadata() -> None:
+    hass = cast(HomeAssistant, MagicMock())
+
+    share_manager = MagicMock()
+    share_manager.is_enabled = True
+    share_manager.pending_count = (1, 0)
+    share_manager.last_submit_outcome = build_operation_outcome(
+        kind="failed",
+        reason_code="token_invalid",
+        failure_origin="anonymous_share.refresh_install_token",
+        error_type="InstallTokenRejected",
+        failure_category="auth",
+        handling_policy="reauth",
+        http_status=401,
+    )
+    share_manager.submit_report = AsyncMock(return_value=False)
+
+    result = await async_handle_submit_anonymous_share(
+        hass,
+        service_call(hass, {}),
+        get_anonymous_share_manager=MagicMock(return_value=share_manager),
+        get_client_session=MagicMock(return_value=object()),
+        raise_service_error=MagicMock(),
+        domain="lipro",
+        attr_entry_id="entry_id",
+    )
+
+    assert result == {
+        "success": False,
+        "devices": 1,
+        "errors": 0,
+        "outcome_kind": "failed",
+        "reason_code": "token_invalid",
+        "failure_summary": {
+            "failure_category": "auth",
+            "failure_origin": "anonymous_share.refresh_install_token",
+            "handling_policy": "reauth",
+            "error_type": "InstallTokenRejected",
+        },
+        "http_status": 401,
+    }
+
+
+@pytest.mark.asyncio
 async def test_async_handle_get_anonymous_share_report_forwards_entry_id() -> None:
     hass = cast(HomeAssistant, MagicMock())
 

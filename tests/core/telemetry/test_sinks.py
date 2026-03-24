@@ -164,3 +164,37 @@ def test_developer_and_ci_sinks_keep_stable_headers() -> None:
     assert ci["summary"]["refresh_avg_latency_seconds"] == 2.25
     assert ci["summary"]["auth_refresh_success_count"] == 2
     assert ci["generated_at"] == 55.5
+
+
+
+def test_failure_summary_prefers_explicit_runtime_summary_over_protocol_and_runtime_mqtt() -> None:
+    snapshot = TelemetrySnapshot(
+        schema_version="telemetry.v1",
+        report_id="report-2",
+        generated_at=77.7,
+        entry_ref="entry_feedface",
+        protocol={
+            "telemetry": {"mqtt_last_error_type": "TimeoutError"},
+        },
+        runtime={
+            "failure_summary": {
+                "failure_category": "runtime",
+                "failure_origin": "runtime.update",
+                "handling_policy": "inspect",
+                "error_type": "RuntimeError",
+            },
+            "mqtt": {
+                "connected": False,
+                "last_transport_error": "OSError",
+            },
+        },
+    )
+
+    view = DiagnosticsTelemetrySink().build_view(snapshot)
+
+    assert view["failure_summary"] == {
+        "failure_category": "runtime",
+        "failure_origin": "runtime.update",
+        "handling_policy": "inspect",
+        "error_type": "RuntimeError",
+    }

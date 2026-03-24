@@ -158,6 +158,7 @@ def test_docs_index_route_is_consistent() -> None:
     registry = _load_governance_registry()
     issue_config = _load_yaml(_ISSUE_CONFIG)
     pyproject = tomllib.loads(_PYPROJECT.read_text(encoding="utf-8"))
+    manifest = json.loads(_MANIFEST.read_text(encoding="utf-8"))
     docs_link = next(
         link for link in issue_config["contact_links"] if "Documentation" in link["name"]
     )
@@ -166,6 +167,7 @@ def test_docs_index_route_is_consistent() -> None:
     assert registry["support"]["documentation_route"] == "docs/README.md"
     assert registry["continuity"]["drill_name"] == "maintainer-unavailable drill"
     assert pyproject["project"]["urls"]["Documentation"].endswith("/docs/README.md")
+    assert manifest["documentation"].endswith("/docs/README.md")
     assert docs_link["url"].endswith("/docs/README.md")
 
 
@@ -347,6 +349,14 @@ def test_project_urls_expose_public_entrypoints() -> None:
     assert urls["Support"].endswith("SUPPORT.md")
     assert urls["Security"].endswith("SECURITY.md")
     assert urls["Discussions"].endswith("/discussions")
+
+
+def test_package_metadata_marks_stable_release_posture() -> None:
+    pyproject = tomllib.loads(_PYPROJECT.read_text(encoding="utf-8"))
+    classifiers = pyproject["project"]["classifiers"]
+
+    assert "Development Status :: 5 - Production/Stable" in classifiers
+    assert "Development Status :: 4 - Beta" not in classifiers
 
 
 def test_runtime_dependency_bounds_are_explicit_and_manifest_aligned() -> None:

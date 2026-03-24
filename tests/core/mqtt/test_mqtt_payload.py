@@ -116,3 +116,19 @@ def test_parse_mqtt_payload_reuses_protocol_boundary_fixture_contract() -> None:
     assert isinstance(payload, dict)
     assert isinstance(canonical, dict)
     assert payload_module.parse_mqtt_payload(payload) == canonical
+
+
+
+def test_parse_mqtt_payload_keeps_boundary_parity_for_text_and_binary_forms() -> None:
+    fixture = _load_fixture("mqtt_properties.device_state.v1.json")
+    payload = fixture["payload"]
+    canonical = fixture["canonical"]
+
+    assert isinstance(payload, dict)
+    assert isinstance(canonical, dict)
+
+    payload_json = json.dumps(payload)
+    assert payload_module.parse_mqtt_payload(payload) == canonical
+    assert payload_module.parse_mqtt_payload(payload_json) == canonical
+    assert payload_module.parse_mqtt_payload(payload_json.encode("utf-8")) == canonical
+    assert payload_module.parse_mqtt_payload(memoryview(payload_json.encode("utf-8"))) == canonical

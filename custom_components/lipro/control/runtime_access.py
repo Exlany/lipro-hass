@@ -6,37 +6,35 @@ from collections.abc import Mapping
 
 from homeassistant.core import HomeAssistant
 
+from . import runtime_access_support as _support
 from .models import (
     FailureSummary,
     RuntimeCoordinatorSnapshot,
     RuntimeDiagnosticsProjection,
     empty_failure_summary,
 )
-from .runtime_access_support import (
-    _build_entry_telemetry_exporter,
-    build_runtime_entry_view,
-    find_runtime_device,
-    find_runtime_device_and_coordinator,
-    find_runtime_device_for_entry,
-    find_runtime_entry_for_coordinator,
-    get_entry_runtime_coordinator,
-    get_runtime_device_mapping,
-    has_debug_mode_runtime_entry,
-    is_debug_mode_enabled_for_entry,
-    is_developer_runtime_coordinator,
-    is_runtime_device_mapping_degraded,
-    iter_developer_runtime_coordinators,
-    iter_runtime_coordinators,
-    iter_runtime_devices_for_entry,
-    iter_runtime_entries,
-    iter_runtime_entry_coordinators,
-    iter_runtime_entry_views,
-)
 from .runtime_access_types import RuntimeCoordinatorView, RuntimeEntryPort
 
 type RuntimeTelemetryView = dict[str, object]
 
-build_entry_telemetry_exporter = _build_entry_telemetry_exporter
+build_entry_telemetry_exporter = _support.build_entry_telemetry_exporter_support
+build_runtime_entry_view = _support.build_runtime_entry_view
+find_runtime_device = _support.find_runtime_device
+find_runtime_device_and_coordinator = _support.find_runtime_device_and_coordinator
+find_runtime_device_for_entry = _support.find_runtime_device_for_entry
+find_runtime_entry_for_coordinator = _support.find_runtime_entry_for_coordinator
+get_entry_runtime_coordinator = _support.get_entry_runtime_coordinator
+get_runtime_device_mapping = _support.get_runtime_device_mapping
+has_debug_mode_runtime_entry = _support.has_debug_mode_runtime_entry
+is_debug_mode_enabled_for_entry = _support.is_debug_mode_enabled_for_entry
+is_developer_runtime_coordinator = _support.is_developer_runtime_coordinator
+is_runtime_device_mapping_degraded = _support.is_runtime_device_mapping_degraded
+iter_developer_runtime_coordinators = _support.iter_developer_runtime_coordinators
+iter_runtime_coordinators = _support.iter_runtime_coordinators
+iter_runtime_devices_for_entry = _support.iter_runtime_devices_for_entry
+iter_runtime_entries = _support.iter_runtime_entries
+iter_runtime_entry_coordinators = _support.iter_runtime_entry_coordinators
+iter_runtime_entry_views = _support.iter_runtime_entry_views
 
 
 

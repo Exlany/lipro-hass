@@ -218,6 +218,16 @@ phases:
     - 67-SUMMARY.md
     - 67-VERIFICATION.md
     - 67-VALIDATION.md
+  68-master-audit-follow-through-hotspot-finalization-and-docs-contract-hardening:
+    - 68-01-SUMMARY.md
+    - 68-02-SUMMARY.md
+    - 68-03-SUMMARY.md
+    - 68-04-SUMMARY.md
+    - 68-05-SUMMARY.md
+    - 68-06-SUMMARY.md
+    - 68-SUMMARY.md
+    - 68-VERIFICATION.md
+    - 68-VALIDATION.md
 ---
 
 # Promoted Phase Assets

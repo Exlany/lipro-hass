@@ -154,6 +154,9 @@ def test_phase_43_control_service_boundary_stays_one_way_and_explicit() -> None:
     system_health_surface_text = (
         _ROOT / "custom_components" / "lipro" / "control" / "system_health_surface.py"
     ).read_text(encoding="utf-8")
+    runtime_access_text = (
+        _ROOT / "custom_components" / "lipro" / "control" / "runtime_access.py"
+    ).read_text(encoding="utf-8")
     control_init_text = (
         _ROOT / "custom_components" / "lipro" / "control" / "__init__.py"
     ).read_text(encoding="utf-8")
@@ -197,6 +200,7 @@ def test_phase_43_control_service_boundary_stays_one_way_and_explicit() -> None:
     assert "build_entry_telemetry_exporter" in telemetry_surface_text
     assert "_build_entry_telemetry_exporter" not in telemetry_surface_text
     assert "runtime_access_support" not in telemetry_surface_text
+    assert "runtime_access_support" in runtime_access_text
     assert "get_entry_runtime_coordinator" not in telemetry_surface_text
     assert "build_runtime_snapshots" in system_health_surface_text
     assert "iter_runtime_entries" in system_health_surface_text
@@ -235,12 +239,14 @@ def test_phase_43_control_service_boundary_stays_one_way_and_explicit() -> None:
         diagnostics_text,
         telemetry_surface_text,
         system_health_surface_text,
+        control_service_registry_text,
         service_router_support_text,
         device_lookup_text,
         maintenance_text,
         runtime_infra_text,
     ):
         assert ".runtime_data" not in runtime_reader_text
+        assert "runtime_access_support" not in runtime_reader_text
 
 
 def test_phase_49_verification_matrix_tracks_topicized_runtime_and_diagnostics_proof() -> (
@@ -597,3 +603,23 @@ def test_phase_62_naming_discoverability_dependency_story_is_explicit() -> None:
     assert "Support helpers" in extras_support_text
     assert "endpoint operations collaborator" in endpoint_surface_text
     assert "support-only" in helper_support_text.lower()
+
+
+def test_phase_68_dependency_notes_keep_boundary_and_inward_helpers_local() -> None:
+    dependency_text = (_ROOT / ".planning" / "baseline" / "DEPENDENCY_MATRIX.md").read_text(
+        encoding="utf-8"
+    )
+    topics_text = (
+        _ROOT / "custom_components" / "lipro" / "core" / "mqtt" / "topics.py"
+    ).read_text(encoding="utf-8")
+    runtime_access_text = (
+        _ROOT / "custom_components" / "lipro" / "control" / "runtime_access.py"
+    ).read_text(encoding="utf-8")
+
+    assert "## Phase 68 Hotspot / Docs Closeout Clarifications" in dependency_text
+    assert "mqtt_decoder.py" in dependency_text
+    assert "boundary-backed adapter" in dependency_text
+    assert "runtime_access_support.py" in dependency_text
+    assert 'import_module("custom_components.lipro.core.protocol.boundary")' in topics_text
+    assert 'topic.split("/")' not in topics_text
+    assert "from . import runtime_access_support as _support" in runtime_access_text

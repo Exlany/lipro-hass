@@ -1,9 +1,29 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** No active milestone route — latest archived closeout pointer = `.planning/reviews/V1_15_EVIDENCE_INDEX.md`；`v1.15` 已归档，下一轮正式路线只能通过 `$gsd-new-milestone` 打开。
-**Goal:** 当前 shipped baseline 是 `v1.15`；后续路线必须从 `.planning/v1.15-MILESTONE-AUDIT.md`、`.planning/reviews/V1_15_EVIDENCE_INDEX.md` 与 `.planning/milestones/v1.15-{ROADMAP,REQUIREMENTS}.md` 的 archived evidence 出发，而不是回扫对话记忆或临时执行痕迹。
-**Default next step:** `$gsd-new-milestone`
-**Active baseline:** 当前无 active milestone route；`v1.15` 现为 latest archived baseline，`v1.14` 退为上一条 archive baseline。
+**Status:** Active milestone route = `v1.16 Master Audit Follow-Through, Hotspot Finalization & Docs Contract Hardening`；latest archived closeout pointer remains `.planning/reviews/V1_15_EVIDENCE_INDEX.md`.
+**Goal:** 以 `v1.15` archived evidence 与本轮 refreshed full-repository review 为起点，把 remaining production hotspots、docs/release contract drift、compat naming residue 与 review-to-plan gap 收口到一条正式修复线，并在同一轮把执行证据冻结进 governance truth。
+**Default next step:** `$gsd-complete-milestone v1.16`
+**Active baseline:** `v1.16` 为 current route；`v1.15` 是 latest archived baseline，`v1.14` 退为 previous archive baseline。
+
+## Current Milestone (v1.16)
+
+**Name:** `v1.16 Master Audit Follow-Through, Hotspot Finalization & Docs Contract Hardening`
+
+**Why now:** 本轮终极审阅重新确认：主链架构已基本正确，但 remaining debt 仍集中在少数“正确但偏厚”的 formal homes 与对外文档/版本契约漂移——例如 `core/telemetry/models.py`、`core/mqtt/message_processor.py`、`core/anonymous_share/share_client_flows.py`、`core/api/diagnostics_api_ota.py`、`runtime_infra.py` 等仍承载过多 decision density；与此同时，`README*` / `manifest.json` / `pyproject.toml` / `CHANGELOG.md` / `.github/*` 之间的 first-hop、version-signal、release-example 与 docs navigation 也出现了可验证的 current-story drift。Phase 68 现已把这些问题沿单一正式主链收口完毕，并把 review-fed closeout 证据写回 current story。
+
+**North-star fit:** `v1.16` 继续沿单一正式主链推进：
+
+- remaining hotspots 只允许 `keep formal home + split inward + freeze budgets`，不得新建 public root / helper-owned second story / compat shell
+- review 结论必须转成 phase plan、cross-AI review、focused guards 与 verification evidence；不允许停留在对话式意见
+- public docs / metadata / release examples 必须共同承认同一 first-hop 与 version truth；不能让 README、manifest、workflow、templates 各讲一套故事
+- 组织性限制（例如 maintainer bus factor）必须诚实记录，但不得通过伪 delegate 或虚构 support promise 来“修复”
+
+**Phase range:** `Phase 68 -> 68`
+**Current status:** `Phase 68 complete (2026-03-24)`
+**Starting baseline:** `.planning/v1.15-MILESTONE-AUDIT.md`, `.planning/reviews/V1_15_EVIDENCE_INDEX.md`, `.planning/milestones/v1.15-ROADMAP.md`, `.planning/milestones/v1.15-REQUIREMENTS.md`, `.planning/phases/58-repository-audit-refresh-and-next-wave-routing/58-REMEDIATION-ROADMAP.md`, `.planning/phases/67-typed-contract-convergence-toolchain-hardening-and-mypy-closure/67-SUMMARY.md`
+**Requirements basket:** `GOV-52`, `ARC-15`, `HOT-24`, `HOT-25`, `OSS-08`, `TST-18`, `QLT-26`
+**Primary route:** `Phase 68` 已把 refreshed repo-wide audit → PRD/context → cross-AI review → implementation/verification 串成单一 current story，并把 hotspot/docs/governance closeout 证据固化为下一步 milestone closeout 输入。
+**Default next command:** `$gsd-complete-milestone v1.16`
 
 ## Latest Archived Milestone (v1.15)
 

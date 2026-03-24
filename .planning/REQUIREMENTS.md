@@ -134,6 +134,45 @@
 - `15` 锁定 developer feedback contract、governance truth repair、contributor/install docs sync、support hotspot follow-through 与 testing/tooling gate clarification；不得因修补支持面问题而重开第二条正式主链
 - `16` 锁定 post-audit truth alignment、hotspot decomposition、type/exception tightening、residual endgame、domain/entity/OTA rationalization 与 contributor DX follow-through；不得因为收尾改进而重开第二条正式主链、第二套 protocol/runtime story 或无 gate rename campaign
 
+## Current Milestone (v1.16)
+
+> `v1.16` 以 `v1.15` archived evidence + refreshed repo-wide audit 为起点；本轮只处理 remaining maintainability precision、docs/release contract drift 与 review-to-execution gap，不重开第二故事线，不虚构组织性承诺。
+
+### Governance & Public-Contract Alignment
+
+- [x] **GOV-52**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / README* / docs index / manifest / issue templates / release runbook` 必须共同承认 `v1.16` active route、`v1.15` latest archived baseline、同一 public first-hop 与同一 version/release-example truth；stale docs-entry / stale tag example / beta-vs-stable signal drift 不得继续并存。
+
+### Architecture & Hotspot Finalization
+
+- [x] **ARC-15**: `core/telemetry/models.py`、`core/mqtt/message_processor.py`、`core/anonymous_share/share_client_flows.py`、`core/api/diagnostics_api_ota.py`、`runtime_infra.py` 与相关 collaborator families 必须继续沿既有 formal seams inward decomposition；不能新增 public root、compat shell、helper-owned second story 或 dynamic probing folklore。
+- [x] **HOT-24**: remaining long-flow / high-decision-density hotspots 必须抽回更窄的 helper / outcome / builder contracts，并清理仍会制造误导的 localized residual（如 import cycle、bool-only compat wrapper、stale alias、duplicate troubleshooting story）。
+- [x] **HOT-25**: control/platform/public adapter surfaces 必须继续保持 thin projection posture：平台壳、diagnostics/export paths 与 docs navigation 只能消费显式投影或 canonical docs home，不得重新理解 domain/runtime internals 或复制 canonical troubleshooting/release guidance。
+
+### Open-Source Maturity & Verification
+
+- [x] **OSS-08**: README / README_zh / docs navigation / changelog / release examples / manifest metadata 必须对外讲同一条 honest open-source story；允许明确记录单维护者限制，但不得用 undocumented delegate、隐式 support promise 或 stale examples 粉饰。
+- [x] **TST-18**: 本轮必须为 hotspot decomposition 与 docs contract drift 增加 focused regression/guard coverage，并通过 `$gsd-review` 把 cross-AI plan feedback 正式回灌到执行计划中；review 不得停留为一次性口头意见。
+- [x] **QLT-26**: touched scope 必须在 `uv run ruff check .`、`uv run mypy --follow-imports=silent .`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、focused pytest 与必要的 repo-wide pytest 下继续绿色，证明本轮不是 aesthetic cleanup。
+
+## Traceability for active v1.16 route
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| GOV-52 | Phase 68 | Completed |
+| ARC-15 | Phase 68 | Completed |
+| HOT-24 | Phase 68 | Completed |
+| HOT-25 | Phase 68 | Completed |
+| OSS-08 | Phase 68 | Completed |
+| TST-18 | Phase 68 | Completed |
+| QLT-26 | Phase 68 | Completed |
+
+**Coverage:**
+- v1.16 routed requirements: 7 total
+- Current mapped: 7
+- Current complete: 7
+- Current pending: 0
+- Current unmapped: 0 ✓
+
 ## Archived Milestone (v1.15)
 
 > `v1.15` 已于 `2026-03-24` 完成归档；以下 requirements / traceability 保留 `Phase 67` 的最终 fulfilled contract，归档快照见 `.planning/milestones/v1.15-REQUIREMENTS.md`，审计裁决见 `.planning/v1.15-MILESTONE-AUDIT.md`，证据索引见 `.planning/reviews/V1_15_EVIDENCE_INDEX.md`。
@@ -346,11 +385,11 @@
 | DOC-02 | Phase 16 | Complete |
 
 **Coverage:**
-- active milestone requirements: 65 total
-- mapped to phases: 65
+- active milestone requirements: 72 total
+- mapped to phases: 72
 - unmapped: 0 ✓
 
-*Last updated: 2026-03-22 after completing Phase 56 neutral-backoff closeout and promoting the current v1.9 truth*
+*Last updated: 2026-03-24 after completing Phase 68 review-fed hotspot/docs closeout and freezing the current v1.16 truth*
 
 
 ## Archived Milestone (v1.2)

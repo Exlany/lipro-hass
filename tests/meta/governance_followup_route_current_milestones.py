@@ -165,55 +165,41 @@ def test_v1_8_closeout_through_v1_15_archived_truth_are_consistent() -> None:
     assert ".planning/milestones/v1.13-ROADMAP.md" in project_text
     assert ".planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-01-PLAN.md" not in project_text
 
+    assert "## Current Milestone (v1.16)" in project_text
+    assert "**Current status:** `Phase 68 complete (2026-03-24)`" in project_text
+    assert "**Default next command:** `$gsd-complete-milestone v1.16`" in project_text
     assert "## Latest Archived Milestone (v1.15)" in project_text
     assert "**Current status:** `archived / evidence-ready (2026-03-24)`" in project_text
-    assert "**Default next command:** `$gsd-new-milestone`" in project_text
     assert "## Archived Milestone (v1.14)" in project_text
 
-    assert "## v1.14: Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure" in roadmap_text
-    assert "**Archive status:** `archived / evidence-ready (2026-03-23)`" in roadmap_text
-    assert "### Phase 63: Governance truth realignment, typed runtime access, and hidden-root closure" in roadmap_text
-    assert "### Phase 64: Telemetry typing, schedule contracts, and diagnostics hotspot slimming" in roadmap_text
-    assert "### Phase 65: Runtime-access de-reflection and anonymous-share hotspot closure" in roadmap_text
-    assert "### Phase 66: Release target fidelity, adapter-root cleanup, and focused protocol coverage hardening" in roadmap_text
-    assert "**Plans**: 5 total / 5 completed / 0 pending" in roadmap_text
-    assert "**Plans**: 3/3 complete" in roadmap_text
-    assert "63-01: align governance latest-pointer truth, latest closeout docs, and anti-drift guards" in roadmap_text
-    assert "64-03: split diagnostics API concerns inward while syncing current-story docs and file-matrix truth" in roadmap_text
+    assert "## v1.16: Master Audit Follow-Through, Hotspot Finalization & Docs Contract Hardening" in roadmap_text
+    assert "**Milestone status:** `Phase 68 complete (2026-03-24)`" in roadmap_text
+    assert "**Default next command:** `$gsd-complete-milestone v1.16`" in roadmap_text
+    assert "### Phase 68: Repository-wide review follow-through, hotspot finalization, and docs contract hardening" in roadmap_text
+    assert "**Plans**: 6/6 complete" in roadmap_text
+    assert "**Promoted closeout package**: `68-SUMMARY.md`, `68-VERIFICATION.md`, `68-VALIDATION.md`" in roadmap_text
 
     for needle in (
-        "| GOV-46 | Phase 63 | Completed |",
-        "| GOV-47 | Phase 63 | Completed |",
-        "| HOT-16 | Phase 63 | Completed |",
-        "| HOT-17 | Phase 63 | Completed |",
-        "| TST-13 | Phase 63 | Completed |",
-        "| TYP-16 | Phase 63 | Completed |",
-        "| QLT-21 | Phase 63 | Completed |",
-        "| ARC-11 | Phase 64 | Completed |",
-        "| HOT-18 | Phase 64 | Completed |",
-        "| HOT-19 | Phase 64 | Completed |",
-        "| TYP-17 | Phase 64 | Completed |",
-        "| TST-14 | Phase 64 | Completed |",
-        "| GOV-48 | Phase 64 | Completed |",
-        "| QLT-22 | Phase 64 | Completed |",
-        "| ARC-12 | Phase 65 | Completed |",
-        "| HOT-20 | Phase 65 | Completed |",
-        "| HOT-21 | Phase 65 | Completed |",
-        "| TYP-18 | Phase 65 | Completed |",
-        "| TST-15 | Phase 65 | Completed |",
-        "| GOV-49 | Phase 65 | Completed |",
-        "| QLT-23 | Phase 65 | Completed |",
-        "| GOV-50 | Phase 66 | Completed |",
-        "| OSS-07 | Phase 66 | Completed |",
-        "| ARC-13 | Phase 66 | Completed |",
-        "| HOT-22 | Phase 66 | Completed |",
-        "| TST-16 | Phase 66 | Completed |",
-        "| QLT-24 | Phase 66 | Completed |",
+        "- [x] **GOV-52**",
+        "- [x] **ARC-15**",
+        "- [x] **HOT-24**",
+        "- [x] **HOT-25**",
+        "- [x] **OSS-08**",
+        "- [x] **TST-18**",
+        "- [x] **QLT-26**",
+        "| GOV-52 | Phase 68 | Completed |",
+        "| ARC-15 | Phase 68 | Completed |",
+        "| HOT-24 | Phase 68 | Completed |",
+        "| HOT-25 | Phase 68 | Completed |",
+        "| OSS-08 | Phase 68 | Completed |",
+        "| TST-18 | Phase 68 | Completed |",
+        "| QLT-26 | Phase 68 | Completed |",
+        "- v1.16 routed requirements: 7 total",
     ):
         assert needle in requirements_text
 
-    assert "**Current milestone:** `v1.15 Typed Contract Convergence, Tooling Kernel Hardening & Mypy Closure`" in state_text
-    assert "**Current mode:** `v1.15 archived`" in state_text
-    assert "$gsd-new-milestone" in state_text
+    assert "**Current milestone:** `v1.16 Master Audit Follow-Through, Hotspot Finalization & Docs Contract Hardening`" in state_text
+    assert "**Current mode:** `Phase 68 complete`" in state_text
+    assert "$gsd-complete-milestone v1.16" in state_text
     assert ".planning/v1.15-MILESTONE-AUDIT.md" in state_text
     assert ".planning/reviews/V1_15_EVIDENCE_INDEX.md" in state_text

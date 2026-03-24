@@ -42,6 +42,18 @@ class OtaQueryResult:
     error: Exception | None = None
 
 
+@dataclass(frozen=True, slots=True)
+class _PrimaryOtaQueryResult:
+    """Primary OTA probes plus the fallback outcome signals they produced."""
+
+    rows: list[OtaInfoRow]
+    error: Exception | None
+    success: bool
+    primary_failure_recovered: bool
+    rich_v2_recovered: bool
+    rich_v2_outcome: OperationOutcome | None
+
+
 def _valid_ota_rows(rows: Sequence[object]) -> list[OtaInfoRow]:
     """Keep OTA rows that are valid mapping objects."""
     return [cast(OtaInfoRow, row) for row in rows if isinstance(row, dict)]
@@ -132,21 +144,38 @@ def _resolve_ota_query_outcome(
     rich_v2_outcome: OperationOutcome | None,
     controller_outcome: OperationOutcome | None,
 ) -> OperationOutcome:
-    if primary_failure_recovered:
-        return build_operation_outcome(
+    preferred_outcome = _first_ota_outcome(
+        build_operation_outcome(
             kind="degraded",
             reason_code="primary_endpoint_recovered",
         )
-    if rich_v2_recovered:
-        return build_operation_outcome(
+        if primary_failure_recovered
+        else None,
+        build_operation_outcome(
             kind="degraded",
             reason_code="rich_v2_recovered",
         )
-    if rich_v2_outcome is not None:
-        return rich_v2_outcome
-    if controller_outcome is not None:
-        return controller_outcome
+        if rich_v2_recovered
+        else None,
+        rich_v2_outcome,
+        controller_outcome,
+    )
+    if preferred_outcome is not None:
+        return preferred_outcome
     return build_operation_outcome(kind="success", reason_code="ota_query_complete")
+
+
+def _first_ota_outcome(*outcomes: OperationOutcome | None) -> OperationOutcome | None:
+    """Return the first non-empty OTA outcome in precedence order."""
+    for outcome in outcomes:
+        if outcome is not None:
+            return outcome
+    return None
+
+
+def _build_seen_ota_row_keys(rows: Sequence[OtaInfoRow]) -> set[OtaRowDedupeKey]:
+    """Build the dedupe-key set for already merged OTA rows."""
+    return {_ota_row_dedupe_key(row) for row in rows}
 
 
 async def _query_ota_rows(
@@ -248,41 +277,24 @@ async def _query_controller_ota_rows(
     return _valid_ota_rows(extract_data_list(controller_result)), None
 
 
-async def query_ota_info_with_outcome(
+async def _query_primary_ota_rows(
     *,
     iot_request: IotRequest,
     extract_data_list: ExtractDataList,
     is_invalid_param_error_code: InvalidParamCodeChecker,
-    to_device_type_hex: DeviceTypeHexResolver,
     lipro_api_error: type[Exception],
-    device_id: str,
-    device_type: int | str,
-    iot_name: str | None = None,
-    allow_rich_v2_fallback: bool = False,
-) -> OtaQueryResult:
-    """Query firmware OTA info while exposing one typed outcome envelope."""
-    ota_payload: RequestPayload = {
-        "deviceId": device_id,
-        "deviceType": to_device_type_hex(device_type),
-    }
-    rich_v2_payload = _build_rich_ota_v2_payload(
-        ota_payload,
-        iot_name=iot_name,
-        allow_rich_v2_fallback=allow_rich_v2_fallback,
-    )
-
+    ota_payload: RequestPayload,
+    rich_v2_payload: RequestPayload | None,
+) -> _PrimaryOtaQueryResult:
+    """Query OTA primary endpoints and collapse their local fallback state."""
     merged_rows: list[OtaInfoRow] = []
     seen_keys: set[OtaRowDedupeKey] = set()
-    v1_rows: list[OtaInfoRow] = []
-    v2_rows: list[OtaInfoRow] = []
-
     ota_error: Exception | None = None
     ota_success = False
     v1_failed = False
     v2_failed = False
     rich_v2_recovered = False
     rich_v2_outcome: OperationOutcome | None = None
-    controller_outcome: OperationOutcome | None = None
 
     v1_rows, v1_error = await _query_ota_rows(
         iot_request=iot_request,
@@ -326,17 +338,61 @@ async def query_ota_info_with_outcome(
             else:
                 ota_error = rich_v2_error
 
-    if not ota_success and ota_error is not None:
+    return _PrimaryOtaQueryResult(
+        rows=merged_rows,
+        error=ota_error,
+        success=ota_success,
+        primary_failure_recovered=(v1_failed or v2_failed) and ota_success,
+        rich_v2_recovered=rich_v2_recovered,
+        rich_v2_outcome=rich_v2_outcome,
+    )
+
+
+async def query_ota_info_with_outcome(
+    *,
+    iot_request: IotRequest,
+    extract_data_list: ExtractDataList,
+    is_invalid_param_error_code: InvalidParamCodeChecker,
+    to_device_type_hex: DeviceTypeHexResolver,
+    lipro_api_error: type[Exception],
+    device_id: str,
+    device_type: int | str,
+    iot_name: str | None = None,
+    allow_rich_v2_fallback: bool = False,
+) -> OtaQueryResult:
+    """Query firmware OTA info while exposing one typed outcome envelope."""
+    ota_payload: RequestPayload = {
+        "deviceId": device_id,
+        "deviceType": to_device_type_hex(device_type),
+    }
+    rich_v2_payload = _build_rich_ota_v2_payload(
+        ota_payload,
+        iot_name=iot_name,
+        allow_rich_v2_fallback=allow_rich_v2_fallback,
+    )
+
+    primary_result = await _query_primary_ota_rows(
+        iot_request=iot_request,
+        extract_data_list=extract_data_list,
+        is_invalid_param_error_code=is_invalid_param_error_code,
+        lipro_api_error=lipro_api_error,
+        ota_payload=ota_payload,
+        rich_v2_payload=rich_v2_payload,
+    )
+
+    if not primary_result.success and primary_result.error is not None:
         return OtaQueryResult(
             rows=[],
             outcome=_api_error_outcome(
-                ota_error,
+                primary_result.error,
                 kind="failed",
                 reason_code="primary_endpoints_failed",
             ),
-            error=ota_error,
+            error=primary_result.error,
         )
 
+    merged_rows = list(primary_result.rows)
+    seen_keys = _build_seen_ota_row_keys(merged_rows)
     controller_rows, controller_outcome = await _query_controller_ota_rows(
         iot_request=iot_request,
         extract_data_list=extract_data_list,
@@ -346,9 +402,9 @@ async def query_ota_info_with_outcome(
     _merge_ota_rows(merged_rows, seen_keys, controller_rows)
 
     outcome = _resolve_ota_query_outcome(
-        primary_failure_recovered=(v1_failed or v2_failed) and ota_success,
-        rich_v2_recovered=rich_v2_recovered,
-        rich_v2_outcome=rich_v2_outcome,
+        primary_failure_recovered=primary_result.primary_failure_recovered,
+        rich_v2_recovered=primary_result.rich_v2_recovered,
+        rich_v2_outcome=primary_result.rich_v2_outcome,
         controller_outcome=controller_outcome,
     )
     return OtaQueryResult(rows=merged_rows, outcome=outcome)

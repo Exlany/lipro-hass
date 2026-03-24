@@ -29,6 +29,7 @@ from custom_components.lipro.entry_auth import (
 )
 from custom_components.lipro.runtime_infra import (
     async_ensure_runtime_infra,
+    get_runtime_infra_lock,
     remove_device_registry_listener,
     setup_device_registry_listener,
 )
@@ -206,6 +207,32 @@ class TestInitSetupEntryBehavior(_InitRuntimeBehaviorBase):
 
         mock_setup_services.assert_awaited_once()
         mock_setup_listener.assert_called_once()
+
+    async def test_async_ensure_runtime_infra_keeps_setup_inside_shared_lock(
+        self,
+        hass,
+    ) -> None:
+        """Shared infra setup should keep service/listener wiring inside the lock."""
+        lock = get_runtime_infra_lock(hass)
+
+        assert lock is not None
+        observed: list[tuple[str, bool]] = []
+
+        async def _setup_services(hass_arg) -> None:
+            assert hass_arg is hass
+            observed.append(("services", lock.locked()))
+
+        def _setup_listener(hass_arg) -> None:
+            assert hass_arg is hass
+            observed.append(("listener", lock.locked()))
+
+        await async_ensure_runtime_infra(
+            hass,
+            setup_services=_setup_services,
+            setup_device_registry_listener=_setup_listener,
+        )
+
+        assert observed == [("services", True), ("listener", True)]
 
     def test_device_registry_listener_helpers_handle_corrupt_domain_data(
         self,

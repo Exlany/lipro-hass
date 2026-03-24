@@ -29,6 +29,8 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__package__ or __name__)
 _MQTT_PROCESSOR_ORIGIN = "mqtt.message_processor"
 
+type MqttPayload = dict[str, Any]
+
 
 class _BoundaryDecoderModule(Protocol):
     """Typed view of the lazily imported boundary module."""
@@ -109,6 +111,113 @@ class MqttMessageProcessor:
             self._invalid_topic_count,
         )
 
+    def _resolve_device_id(self, topic: str) -> str | None:
+        result = _boundary_decoder_module().decode_mqtt_topic_payload(
+            topic,
+            expected_biz_id=self._biz_id,
+        )
+        device_id = result.canonical.get("deviceId")
+        return device_id if isinstance(device_id, str) and device_id else None
+
+    def _topic_context(self, topic: str) -> tuple[str | None, str]:
+        device_id = self._resolve_device_id(topic)
+        topic_context = (
+            f"device={_redact_identifier(device_id) or '***'}"
+            if device_id
+            else f"invalid_topic_len={len(topic)}"
+        )
+        return device_id, topic_context
+
+    def _invalid_topic_outcome(self, topic: str) -> OperationOutcome:
+        self.log_invalid_topic(topic)
+        return build_operation_outcome(
+            kind="skipped",
+            reason_code="invalid_topic",
+        )
+
+    def _load_payload_mapping(
+        self,
+        raw_payload: object,
+        *,
+        device_id: str,
+    ) -> MqttPayload | OperationOutcome:
+        device_id_log = _redact_identifier(device_id) or "***"
+        if not raw_payload:
+            _LOGGER.debug("MQTT [%s]: empty payload, skipping", device_id_log)
+            return build_operation_outcome(
+                kind="skipped",
+                reason_code="empty_payload",
+            )
+
+        payload_text = decode_payload_text(raw_payload, device_id)
+        if payload_text is None:
+            return build_operation_outcome(
+                kind="skipped",
+                reason_code="payload_unavailable",
+            )
+
+        payload = json.loads(payload_text)
+        if not isinstance(payload, dict):
+            _LOGGER.debug(
+                "MQTT [%s]: unexpected payload type %s, skipping",
+                device_id_log,
+                type(payload).__name__,
+            )
+            return build_operation_outcome(
+                kind="skipped",
+                reason_code="unexpected_payload_type",
+            )
+
+        if _LOGGER.isEnabledFor(logging.DEBUG):
+            _LOGGER.debug(
+                "MQTT [%s]: %s",
+                device_id_log,
+                _format_mqtt_payload_for_log(payload)[:_MAX_MQTT_LOG_CHARS],
+            )
+        return payload
+
+    def _parse_properties(
+        self,
+        payload: MqttPayload,
+        *,
+        parse_payload: Callable[[Any], dict[str, Any]],
+        clear_last_error: Callable[[], None],
+    ) -> dict[str, Any] | OperationOutcome:
+        properties = parse_payload(payload)
+        if properties:
+            return properties
+        clear_last_error()
+        return build_operation_outcome(
+            kind="skipped",
+            reason_code="empty_properties",
+        )
+
+    def _dispatch_message(
+        self,
+        *,
+        device_id: str,
+        properties: dict[str, Any],
+        on_message: Callable[[str, dict[str, Any]], None] | None,
+        invoke_callback: Callable[..., bool],
+        clear_last_error: Callable[[], None],
+    ) -> OperationOutcome:
+        if not invoke_callback(
+            on_message,
+            "on_message",
+            device_id,
+            properties,
+        ):
+            return build_operation_outcome(
+                kind="failed",
+                reason_code="callback_failed",
+            )
+
+        clear_last_error()
+        return build_operation_outcome(
+            kind="success",
+            reason_code="processed",
+        )
+
     def process_message(
         self,
         message: aiomqtt.Message,
@@ -122,76 +231,31 @@ class MqttMessageProcessor:
         """Parse one MQTT message and forward flattened properties."""
         try:
             topic = str(message.topic)
-            topic_result = _boundary_decoder_module().decode_mqtt_topic_payload(
-                topic,
-                expected_biz_id=self._biz_id,
+            device_id = self._resolve_device_id(topic)
+            if device_id is None:
+                return self._invalid_topic_outcome(topic)
+
+            payload_or_outcome = self._load_payload_mapping(
+                message.payload,
+                device_id=device_id,
             )
-            device_id = topic_result.canonical.get("deviceId")
+            if isinstance(payload_or_outcome, OperationOutcome):
+                return payload_or_outcome
 
-            if not device_id:
-                self.log_invalid_topic(topic)
-                return build_operation_outcome(
-                    kind="skipped",
-                    reason_code="invalid_topic",
-                )
+            properties_or_outcome = self._parse_properties(
+                payload_or_outcome,
+                parse_payload=parse_payload,
+                clear_last_error=clear_last_error,
+            )
+            if isinstance(properties_or_outcome, OperationOutcome):
+                return properties_or_outcome
 
-            device_id_log = _redact_identifier(device_id) or "***"
-            if not message.payload:
-                _LOGGER.debug("MQTT [%s]: empty payload, skipping", device_id_log)
-                return build_operation_outcome(
-                    kind="skipped",
-                    reason_code="empty_payload",
-                )
-
-            payload_text = decode_payload_text(message.payload, device_id)
-            if payload_text is None:
-                return build_operation_outcome(
-                    kind="skipped",
-                    reason_code="payload_unavailable",
-                )
-
-            payload = json.loads(payload_text)
-            if not isinstance(payload, dict):
-                _LOGGER.debug(
-                    "MQTT [%s]: unexpected payload type %s, skipping",
-                    device_id_log,
-                    type(payload).__name__,
-                )
-                return build_operation_outcome(
-                    kind="skipped",
-                    reason_code="unexpected_payload_type",
-                )
-
-            if _LOGGER.isEnabledFor(logging.DEBUG):
-                _LOGGER.debug(
-                    "MQTT [%s]: %s",
-                    device_id_log,
-                    _format_mqtt_payload_for_log(payload)[:_MAX_MQTT_LOG_CHARS],
-                )
-
-            properties = parse_payload(payload)
-            if not properties:
-                clear_last_error()
-                return build_operation_outcome(
-                    kind="skipped",
-                    reason_code="empty_properties",
-                )
-
-            if not invoke_callback(
-                on_message,
-                "on_message",
-                device_id,
-                properties,
-            ):
-                return build_operation_outcome(
-                    kind="failed",
-                    reason_code="callback_failed",
-                )
-
-            clear_last_error()
-            return build_operation_outcome(
-                kind="success",
-                reason_code="processed",
+            return self._dispatch_message(
+                device_id=device_id,
+                properties=properties_or_outcome,
+                on_message=on_message,
+                invoke_callback=invoke_callback,
+                clear_last_error=clear_last_error,
             )
         except (json.JSONDecodeError, UnicodeError) as err:
             set_last_error(err)
@@ -213,16 +277,7 @@ class MqttMessageProcessor:
         ) as err:
             set_last_error(err)
             topic = str(getattr(message, "topic", "unknown"))
-            topic_result = _boundary_decoder_module().decode_mqtt_topic_payload(
-                topic,
-                expected_biz_id=self._biz_id,
-            )
-            device_id = topic_result.canonical.get("deviceId")
-            topic_context = (
-                f"device={_redact_identifier(device_id) or '***'}"
-                if device_id
-                else f"invalid_topic_len={len(topic)}"
-            )
+            _device_id, topic_context = self._topic_context(topic)
             _LOGGER.exception(
                 "Error processing MQTT message (%s, error=%s)",
                 topic_context,

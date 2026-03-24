@@ -2,7 +2,34 @@
 
 from __future__ import annotations
 
+from functools import lru_cache
+from importlib import import_module
+from typing import TYPE_CHECKING, Protocol, cast
+
 from ...const.api import MQTT_TOPIC_PREFIX
+
+if TYPE_CHECKING:
+    from custom_components.lipro.core.protocol.boundary import BoundaryDecodeResult
+
+
+class _BoundaryDecoderModule(Protocol):
+    """Typed view of the lazily imported boundary module."""
+
+    def decode_mqtt_topic_payload(
+        self,
+        payload: object,
+        *,
+        expected_biz_id: str | None = None,
+    ) -> BoundaryDecodeResult[dict[str, str]]: ...
+
+
+@lru_cache(maxsize=1)
+def _boundary_decoder_module() -> _BoundaryDecoderModule:
+    """Resolve the protocol-boundary module lazily to avoid import cycles."""
+    return cast(
+        _BoundaryDecoderModule,
+        import_module("custom_components.lipro.core.protocol.boundary"),
+    )
 
 
 def normalize_mqtt_biz_id(value: object) -> str | None:
@@ -37,24 +64,13 @@ def build_topic(biz_id: str, device_id: str) -> str:
 
 
 def parse_topic(topic: str, *, expected_biz_id: str | None = None) -> str | None:
-    """Extract device ID from MQTT topic, optionally validating biz ID."""
-    parts = topic.split("/")
-    if len(parts) != 3:
-        return None
-    if parts[0] != MQTT_TOPIC_PREFIX:
-        return None
-
-    normalized_biz_id = normalize_mqtt_biz_id(parts[1])
-    device_id = parts[2]
-    if normalized_biz_id is None:
-        return None
-    if not device_id or not all(c.isalnum() or c in "-_" for c in device_id):
-        return None
-    if expected_biz_id is not None:
-        normalized_expected = normalize_mqtt_biz_id(expected_biz_id)
-        if normalized_expected is None or normalized_biz_id != normalized_expected:
-            return None
-    return device_id
+    """Extract device ID from MQTT topic through the formal boundary authority."""
+    canonical = _boundary_decoder_module().decode_mqtt_topic_payload(
+        topic,
+        expected_biz_id=expected_biz_id,
+    ).canonical
+    device_id = canonical.get("deviceId")
+    return device_id if isinstance(device_id, str) and device_id else None
 
 
 __all__ = ["build_topic", "normalize_mqtt_biz_id", "parse_topic"]

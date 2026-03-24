@@ -366,9 +366,10 @@ def test_governance_truth_registers_v1_15_latest_archive_pointer() -> None:
     assert "## v1.15 Typed Contract Convergence, Tooling Kernel Hardening & Mypy Closure" in milestones_text
     assert ".planning/reviews/V1_15_EVIDENCE_INDEX.md" in milestones_text
     assert ".planning/reviews/V1_15_EVIDENCE_INDEX.md" in docs_text
-    assert "当前无 active milestone route" in docs_text
+    assert "当前无 active milestone route" not in docs_text
+    assert "v1.16 / Phase 68" in docs_text
     assert "V1_15_EVIDENCE_INDEX.md" in runbook_text
-    assert "$gsd-new-milestone" in project_text
-    assert "$gsd-new-milestone" in state_text
-    assert "No active milestone route" in project_text
-    assert "**Current mode:** `v1.15 archived`" in state_text
+    assert "$gsd-complete-milestone v1.16" in project_text
+    assert "$gsd-complete-milestone v1.16" in state_text
+    assert "Active milestone route = `v1.16 Master Audit Follow-Through, Hotspot Finalization & Docs Contract Hardening`" in project_text
+    assert "**Current mode:** `Phase 68 complete`" in state_text

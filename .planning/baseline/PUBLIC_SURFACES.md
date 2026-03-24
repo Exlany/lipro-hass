@@ -2,7 +2,7 @@
 
 **Purpose:** 定义各平面的 canonical public surfaces、过渡公开面与禁止作为正式入口的对象。
 **Status:** Formal baseline asset (`BASE-01` public-surface truth source)
-**Updated:** 2026-03-23 (Phase 66 release-target fidelity and active-route freshness aligned)
+**Updated:** 2026-03-24 (Phase 68 review-fed hotspot/docs closeout aligned)
 
 ## Formal Role
 
@@ -34,7 +34,7 @@
 
 - `.planning/baseline/GOVERNANCE_REGISTRY.json` 是 governance-only 的 machine-readable baseline asset：它只承载 active governance facts（版本、安装、support routing、release trust、continuity），不是 runtime / control / protocol 的 public API。
 - `.planning/MILESTONES.md`、`.planning/milestones/*.md`、`.planning/v1.12-MILESTONE-AUDIT.md`、`.planning/v1.13-MILESTONE-AUDIT.md`、`.planning/v1.14-MILESTONE-AUDIT.md`、`.planning/v1.15-MILESTONE-AUDIT.md`、`.planning/v1.6-MILESTONE-AUDIT.md` 与 `V1_12_EVIDENCE_INDEX.md` / `V1_13_EVIDENCE_INDEX.md` / `V1_14_EVIDENCE_INDEX.md` / `V1_15_EVIDENCE_INDEX.md` / `V1_6_EVIDENCE_INDEX.md` / `V1_5_EVIDENCE_INDEX.md` 继续只承担 archive / audit / handoff 身份；它们可以作为历史证据被引用，但不得回流为 current governance truth。
-- `docs/README.md` 与 `docs/MAINTAINER_RELEASE_RUNBOOK.md` 可以显式引用 `V1_15_EVIDENCE_INDEX.md` 作为 latest archive-ready closeout pointer；当前无 active route，下一轮正式路线只能在 `$gsd-new-milestone` 打开后再写入 `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md`。
+- `docs/README.md` 与 `docs/MAINTAINER_RELEASE_RUNBOOK.md` 可以显式引用 `V1_15_EVIDENCE_INDEX.md` 作为 latest archive-ready closeout pointer；当前 active route 是 `v1.16 / Phase 68`，且其 review-fed execution 已完成，下一步治理动作是 `$gsd-complete-milestone v1.16`。
 - `custom_components/lipro/control/runtime_access.py` 是 control/services 读取 runtime entry 枚举、device lookup 与 snapshot projection 的唯一正式 read-model home。
 - `custom_components/lipro/services/execution.py` 同时保持 `formal shared service execution facade` 身份；`schedule.py` 复用它的 shared executor，而不是维护第二条 auth/error 执行链。
 - `docs/README.md` 只负责解释当前可读入口与 active-vs-archive 边界，不得把 milestone snapshots 或 phase workspace assets 重新讲成对外 current source。
@@ -261,3 +261,11 @@
 - diagnostics public/import story 不变：`custom_components/lipro/control/service_router.py` 继续是 diagnostics public handler home，`helpers.py` 继续是 focused diagnostics import home，而 `feedback_handlers.py`、`command_result_handlers.py`、`capability_handlers.py` 与 `helper_support.py` 都只作为 inward collaborators / mechanics seams 存在。
 - `manager.py` / `share_client.py` / `candidate.py` / `select.py` 的 outward-home truth 不变；`manager_submission.py`、`share_client_flows.py`、`candidate_support.py` 与 `select_internal/gear.py` 继续只以 inward collaborator 身份存在。
 - public discoverability 继续保持单一路由：`README(.md/.zh)` 负责 public first hop，`docs/README.md` 负责 canonical docs map，`docs/MAINTAINER_RELEASE_RUNBOOK.md` 继续是 maintainer-only appendix。
+
+
+## Phase 68 Review-Fed Hotspot / Docs Closeout Notes
+
+- `custom_components/lipro/core/telemetry/models.py` 继续是 outward telemetry contract home；`custom_components/lipro/core/telemetry/outcomes.py` 与 `custom_components/lipro/core/telemetry/json_payloads.py` 只是 inward helper homes，分别承接 outcome semantics 与 JSON-safe payload builders，不构成新的 assurance public root。
+- `custom_components/lipro/core/mqtt/topics.py` 只保留 boundary-backed adapter 身份；`custom_components/lipro/core/protocol/boundary/mqtt_decoder.py` 继续是唯一 canonical MQTT topic/payload decode authority。
+- `custom_components/lipro/control/runtime_access.py` 继续是 control-plane 唯一 runtime read home；`custom_components/lipro/control/runtime_access_support.py` 只是 support-only helper seam。
+- `README.md` / `README_zh.md` 继续只保留 public first hop；`docs/README.md` 是 canonical docs index，maintainer continuity / release custody 仍停留在 `docs/MAINTAINER_RELEASE_RUNBOOK.md`。

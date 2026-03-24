@@ -296,3 +296,10 @@
 - 本 phase **无新增 active kill target**；release-target fidelity、adapter-root cleanup 与 focused protocol coverage hardening 都沿现有正式 home 收口，没有再造临时 delete-gated 第三故事线。
 - `custom_components/lipro/__init__.py` 的 duplicated runtime-loaded stub block 与 `sensor.py` / `select.py` 的 runtime-only dynamic import folklore 已完成退场，不再保留为 carry-forward delete gate。
 - stale release-example / active-route drift 已作为治理真相问题关闭；后续若再变更 release/docs/current-story，只允许沿现有 authority chain 更新，不得重新创造临时 cleanup backlog。
+
+
+## Phase 68 Status Update
+
+- 本 phase **无新增 active kill target**；hotspot inward split、MQTT authority 收束与 docs/metadata truth sync 都沿现有正式 home / governance chain 完成，没有制造新的 delete-gated 过渡物。
+- `custom_components/lipro/core/telemetry/outcomes.py`、`custom_components/lipro/core/telemetry/json_payloads.py` 与 `custom_components/lipro/control/runtime_access_support.py` 都只是 localized helper seams，不是未来 delete campaign 的权宜故事线。
+- docs/current-story drift 已通过 README/docs/manifest/pyproject/meta guards 同轮关闭；后续若再变更 public contract，只允许沿既有 authority chain 同步更新。

@@ -54,6 +54,21 @@ def _has_explicit_runtime_member(obj: object | None, name: str) -> bool:
     return _get_static_member(obj, name) is not _MISSING
 
 
+def _get_explicit_bool_member(obj: object | None, name: str) -> bool | None:
+    """Return one explicit bool member when present and correctly typed."""
+    value = _get_explicit_member(obj, name)
+    return value if isinstance(value, bool) else None
+
+
+def _get_explicit_mapping_member(
+    obj: object | None,
+    name: str,
+) -> Mapping[str, object] | None:
+    """Return one explicit mapping member when present and correctly typed."""
+    value = _get_explicit_member(obj, name)
+    return value if isinstance(value, Mapping) else None
+
+
 def _coerce_telemetry_json_value(value: object) -> TelemetryJsonValue | None:
     """Return one telemetry-safe JSON value when the object already matches the exporter contract."""
     if isinstance(value, (str, int, float, bool)) or value is None:
@@ -138,25 +153,33 @@ def _build_runtime_coordinator_view(
 ) -> RuntimeCoordinatorView:
     """Build the explicit runtime read-model for one coordinator."""
     update_interval = _get_explicit_member(coordinator, "update_interval")
-    last_update_success = _get_explicit_member(coordinator, "last_update_success")
+    last_update_success = _get_explicit_bool_member(coordinator, "last_update_success")
     mqtt_service = _get_explicit_member(coordinator, "mqtt_service")
-    mqtt_connected = _get_explicit_member(mqtt_service, "connected")
+    mqtt_connected = _get_explicit_bool_member(mqtt_service, "connected")
     protocol = _get_explicit_member(coordinator, "protocol")
-    devices = _get_explicit_member(coordinator, "devices")
+    devices = _get_explicit_mapping_member(coordinator, "devices")
 
     return RuntimeCoordinatorView(
         coordinator=coordinator,
         update_interval=None if update_interval is None else str(update_interval),
-        last_update_success=(
-            last_update_success if isinstance(last_update_success, bool) else False
-        ),
-        mqtt_connected=mqtt_connected if isinstance(mqtt_connected, bool) else None,
+        last_update_success=last_update_success or False,
+        mqtt_connected=mqtt_connected,
         protocol=(
             cast(ProtocolTelemetryFacadeLike, protocol) if protocol is not None else None
         ),
         runtime_telemetry_snapshot=_build_runtime_telemetry_snapshot(coordinator),
-        devices=devices if isinstance(devices, Mapping) else None,
+        devices=cast("Mapping[str, LiproDevice] | None", devices),
     )
+
+
+def _build_runtime_entry_coordinator(
+    runtime_entry: RuntimeEntryPort,
+) -> RuntimeCoordinatorView | None:
+    """Build the coordinator projection owned by one runtime entry."""
+    coordinator = runtime_entry.runtime_data
+    if coordinator is None:
+        return None
+    return _build_runtime_coordinator_view(coordinator)
 
 
 
@@ -182,21 +205,16 @@ def build_runtime_entry_view(
     if runtime_entry is None:
         return None
 
-    coordinator = runtime_entry.runtime_data
     return RuntimeEntryView(
         entry=runtime_entry,
         entry_id=runtime_entry.entry_id,
         options=runtime_entry.options,
-        coordinator=(
-            _build_runtime_coordinator_view(coordinator)
-            if coordinator is not None
-            else None
-        ),
+        coordinator=_build_runtime_entry_coordinator(runtime_entry),
     )
 
 
 
-def _build_entry_telemetry_exporter(
+def build_entry_telemetry_exporter_support(
     entry: RuntimeEntryPort | object,
 ) -> RuntimeTelemetryExporter | None:
     """Build one explicit telemetry exporter for a runtime entry when available."""
@@ -274,6 +292,15 @@ def iter_runtime_coordinators(
     ]
 
 
+def _build_runtime_entry_coordinator_pair(
+    view: RuntimeEntryView,
+) -> RuntimeEntryCoordinator | None:
+    """Return the live entry/coordinator pair for one runtime view."""
+    if view.coordinator is None:
+        return None
+    return view.entry, view.coordinator.coordinator
+
+
 
 def iter_runtime_entry_coordinators(
     hass: HomeAssistant,
@@ -283,8 +310,9 @@ def iter_runtime_entry_coordinators(
     """Return loaded runtime entry/coordinator pairs for the Lipro domain."""
     pairs: list[RuntimeEntryCoordinator] = []
     for view in iter_runtime_entry_views(hass, entry_id=entry_id):
-        if view.coordinator is not None:
-            pairs.append((view.entry, view.coordinator.coordinator))
+        pair = _build_runtime_entry_coordinator_pair(view)
+        if pair is not None:
+            pairs.append(pair)
     return pairs
 
 
@@ -304,6 +332,30 @@ def _call_runtime_device_getter(
     return device if device is not None else None
 
 
+def _find_runtime_device_in_mapping(
+    coordinator: LiproCoordinator,
+    device_id: str,
+) -> LiproDevice | None:
+    """Return one runtime device from the explicit coordinator mapping."""
+    return get_runtime_device_mapping(coordinator).get(device_id)
+
+
+def _find_runtime_device_via_explicit_getters(
+    coordinator: LiproCoordinator,
+    device_id: str,
+) -> LiproDevice | None:
+    """Return one runtime device via explicit coordinator lookup helpers."""
+    for getter_name in ("get_device", "get_device_by_id"):
+        device = _call_runtime_device_getter(
+            coordinator,
+            getter_name=getter_name,
+            device_id=device_id,
+        )
+        if device is not None:
+            return device
+    return None
+
+
 
 def get_runtime_device_mapping(
     coordinator: LiproCoordinator,
@@ -318,18 +370,10 @@ def find_runtime_device(
     device_id: str,
 ) -> LiproDevice | None:
     """Return one runtime device via mapping first, then explicit lookup helpers."""
-    mapped_device = get_runtime_device_mapping(coordinator).get(device_id)
+    mapped_device = _find_runtime_device_in_mapping(coordinator, device_id)
     if mapped_device is not None:
         return mapped_device
-    for getter_name in ("get_device", "get_device_by_id"):
-        device = _call_runtime_device_getter(
-            coordinator,
-            getter_name=getter_name,
-            device_id=device_id,
-        )
-        if device is not None:
-            return device
-    return None
+    return _find_runtime_device_via_explicit_getters(coordinator, device_id)
 
 
 

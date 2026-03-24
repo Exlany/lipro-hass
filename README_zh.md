@@ -12,6 +12,8 @@ Home Assistant 集成，用于控制 Lipro 智能家居设备。
 
 发布信任信号：阻断式 CI + 架构/治理守卫、CodeQL、SBOM/attestation/cosign 发布链，以及清晰的安全/支持快路径。
 
+文档快速入口：先看 `docs/README.md`，再按 canonical public route 进入 `CONTRIBUTING.md`、`docs/TROUBLESHOOTING.md`、`SUPPORT.md` 与 `SECURITY.md`。
+
 ## 功能特性
 
 - 🔌 支持多种 Lipro 设备类型
@@ -94,7 +96,7 @@ Home Assistant 集成，用于控制 Lipro 智能家居设备。
 
 ```shell
 # 先从 GitHub Releases 下载以下资产。
-# 请将 <release-tag> 替换为你实际下载的 tag（例如 v1.14.0）：
+# 请将 <release-tag> 替换为你实际下载的 tag（例如 vX.Y.Z）：
 #   - install.sh
 #   - lipro-hass-<release-tag>.zip
 #   - SHA256SUMS

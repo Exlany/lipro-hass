@@ -329,7 +329,7 @@ def test_phase_55_topicized_test_matrix_tracks_thin_shells_and_named_suites() ->
     ):
         assert needle in file_matrix_text
 
-    assert "当前仓库共有 `235` 个 `test_*.py` 文件" in testing_text
+    assert "当前仓库共有 `236` 个 `test_*.py` 文件" in testing_text
 
 
 def test_phase_59_localized_verification_notes_track_topicized_meta_and_device_refresh_suites() -> None:
@@ -442,3 +442,24 @@ def test_phase_62_naming_discoverability_notes_are_explicit() -> None:
     assert "custom_components/lipro/core/device/extras_support.py" in file_matrix_text
     assert "DeviceExtras payload / panel parsing support helper home" in file_matrix_text
     assert "diagnostics service mechanics support seam" in file_matrix_text
+
+
+def test_phase_68_public_surface_notes_capture_hotspot_helpers_and_mqtt_authority() -> None:
+    public_surfaces = _PUBLIC_SURFACES.read_text(encoding="utf-8")
+    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(
+        encoding="utf-8"
+    )
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "## Phase 68 Review-Fed Hotspot / Docs Closeout Notes" in public_surfaces
+    assert "telemetry/outcomes.py" in public_surfaces
+    assert "telemetry/json_payloads.py" in public_surfaces
+    assert "topics.py` 只保留 boundary-backed adapter" in public_surfaces
+    assert "mqtt_decoder.py` 继续是唯一 canonical MQTT topic/payload decode authority" in public_surfaces
+    assert "runtime_access_support.py" in public_surfaces
+    assert "telemetry helper home for outcome semantics" in file_matrix_text
+    assert "telemetry helper home for JSON-safe payload builders" in file_matrix_text
+    assert "MQTT boundary-backed topic adapter" in file_matrix_text
+    assert "MQTT authority ambiguity" in residual_text

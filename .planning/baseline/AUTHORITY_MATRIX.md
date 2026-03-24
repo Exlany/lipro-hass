@@ -2,7 +2,7 @@
 
 **Purpose:** 定义文档、fixtures、generated、implementation 的权威来源与同步方向，避免多口径漂移。
 **Status:** Formal baseline asset (`BASE-01` authority truth source)
-**Updated:** 2026-03-23 (Phase 66 release-target fidelity and active-route freshness aligned)
+**Updated:** 2026-03-24 (Phase 68 review-fed hotspot/docs closeout aligned)
 
 ## Formal Role
 
@@ -21,7 +21,7 @@
 | 项目目标与阶段路线 | `.planning/PROJECT.md`, `.planning/ROADMAP.md`, `.planning/STATE.md` | planning -> phase execution | GSD 执行真源 |
 | promoted phase evidence allowlist | `.planning/reviews/PROMOTED_PHASE_ASSETS.md` | roadmap/verification/reviews -> manifest -> governance closeout / phase-history guards | `.planning/phases/**` 默认是 execution-trace；未被 allowlist 列出的 summary/verification/validation 不得自动升级为 current truth |
 | machine-readable governance truth | `.planning/baseline/GOVERNANCE_REGISTRY.json` | registry -> public docs / contributor templates / governance tests | 只承载 active governance facts；archive snapshots 与 milestone evidence 不能反向升级成 current truth |
-| archive milestone snapshots / evidence | `.planning/MILESTONES.md`, `.planning/milestones/*.md`, `.planning/v1.12-MILESTONE-AUDIT.md`, `.planning/v1.13-MILESTONE-AUDIT.md`, `.planning/v1.15-MILESTONE-AUDIT.md`, `.planning/v1.14-MILESTONE-AUDIT.md`, `.planning/v1.6-MILESTONE-AUDIT.md`, `.planning/v1.5-MILESTONE-AUDIT.md`, `.planning/reviews/V1_12_EVIDENCE_INDEX.md`, `.planning/reviews/V1_13_EVIDENCE_INDEX.md`, `.planning/reviews/V1_15_EVIDENCE_INDEX.md`, `.planning/reviews/V1_14_EVIDENCE_INDEX.md`, `.planning/reviews/V1_6_EVIDENCE_INDEX.md`, `.planning/reviews/V1_5_EVIDENCE_INDEX.md` | archive evidence -> audit / handoff / historical review | 历史追溯与 continuity 证据；不是 active governance truth；latest pull-only closeout pointer 当前是 `V1_15_EVIDENCE_INDEX.md`，当前无 active milestone route，下一轮只能由 `$gsd-new-milestone` 打开 |
+| archive milestone snapshots / evidence | `.planning/MILESTONES.md`, `.planning/milestones/*.md`, `.planning/v1.12-MILESTONE-AUDIT.md`, `.planning/v1.13-MILESTONE-AUDIT.md`, `.planning/v1.15-MILESTONE-AUDIT.md`, `.planning/v1.14-MILESTONE-AUDIT.md`, `.planning/v1.6-MILESTONE-AUDIT.md`, `.planning/v1.5-MILESTONE-AUDIT.md`, `.planning/reviews/V1_12_EVIDENCE_INDEX.md`, `.planning/reviews/V1_13_EVIDENCE_INDEX.md`, `.planning/reviews/V1_15_EVIDENCE_INDEX.md`, `.planning/reviews/V1_14_EVIDENCE_INDEX.md`, `.planning/reviews/V1_6_EVIDENCE_INDEX.md`, `.planning/reviews/V1_5_EVIDENCE_INDEX.md` | archive evidence -> audit / handoff / historical review | 历史追溯与 continuity 证据；不是 active governance truth；latest pull-only closeout pointer 当前是 `V1_15_EVIDENCE_INDEX.md`，当前 active route 是 `v1.16 / Phase 68`，其 next governance action 是 `$gsd-complete-milestone v1.16` |
 | 当前工程落地说明 | `docs/developer_architecture.md` | codebase/planning -> developer docs | 当前态解释真源，不凌驾于 baseline 之上 |
 | 本地 codebase maps | `.planning/codebase/README.md`, `.planning/codebase/*.md` | governance truth -> derived collaboration maps -> contributor navigation | 只允许派生解释，不得升级为 baseline/review/roadmap/state 的平行 authority chain |
 | 文件治理状态 | `.planning/reviews/FILE_MATRIX.md` | execution -> governance review | file-level governance truth |
@@ -97,3 +97,10 @@
 - `scripts/check_file_matrix.py` 与 `tests/meta/test_toolchain_truth.py` 现均为 thin runnable roots；它们只保留 single-entry contract，不再独占 inventory/classifier/validator 或 toolchain/release/docs/testing truth 主体。
 - post-Phase-60 tooling topology 的正式 authority 继续锁定在 `.planning/reviews/FILE_MATRIX.md`、`.planning/baseline/VERIFICATION_MATRIX.md`、`.planning/codebase/TESTING.md` 与 `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md`。
 - `scripts/check_file_matrix_{inventory,registry,markdown,validation}.py` 与 `tests/meta/toolchain_truth_*.py` 只承载 implementation / verification concerns，不得反向升级为第二套 governance prose。
+
+
+## Phase 68 Authority Note
+
+- `custom_components/lipro/core/protocol/boundary/mqtt_decoder.py` 继续是 MQTT topic/payload decode 的唯一 canonical authority；`custom_components/lipro/core/mqtt/topics.py` 与 `custom_components/lipro/core/mqtt/message_processor.py` 只能通过 boundary-backed adapter / staged consumer 读取该 authority，不得各自长出 second truth。
+- `custom_components/lipro/core/telemetry/models.py` 继续是 outward telemetry contract home；`outcomes.py` / `json_payloads.py` 只是 inward helper modules，必须经 `models.py` re-export 或 inward compose，而不能自立 authority chain。
+- `.planning/reviews/PROMOTED_PHASE_ASSETS.md` 是 `Phase 68` summary/verification/validation 资产的唯一 allowlist；`68-VERIFICATION.md` 只索引 executed proof，不得反向改写 current governance truth。

@@ -16,6 +16,9 @@ from custom_components.lipro.core.api.request_policy import (
     RequestPolicy,
     compute_rate_limit_wait_time,
 )
+from custom_components.lipro.core.api.request_policy_support import (
+    reached_max_rate_limit_retries,
+)
 
 
 @pytest.mark.asyncio
@@ -52,6 +55,12 @@ async def test_request_policy_handle_rate_limit_waits_for_computed_backoff() -> 
 
     assert wait_time == 1.25
     sleep.assert_awaited_once_with(1.25)
+
+
+def test_request_policy_support_retry_budget_threshold_is_explicit() -> None:
+    assert reached_max_rate_limit_retries(MAX_RATE_LIMIT_RETRIES - 1) is False
+    assert reached_max_rate_limit_retries(MAX_RATE_LIMIT_RETRIES) is True
+    assert reached_max_rate_limit_retries(MAX_RATE_LIMIT_RETRIES + 1) is True
 
 
 def test_request_policy_module_does_not_export_generic_backoff_helper() -> None:

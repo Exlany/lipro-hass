@@ -469,6 +469,61 @@ async def test_query_ota_info_degrades_when_controller_other_api_error() -> None
 
 
 @pytest.mark.asyncio
+async def test_query_ota_info_with_outcome_reports_controller_failure() -> None:
+    row = {"deviceType": "ff000001", "latestVersion": "1.0.1"}
+    iot_request = AsyncMock(
+        side_effect=[
+            {"rows": [row]},
+            {"rows": []},
+            DummyApiError("server error", code=500),
+        ]
+    )
+
+    result = await query_ota_info_with_outcome(
+        iot_request=iot_request,
+        extract_data_list=_extract_rows,
+        is_invalid_param_error_code=lambda code: code == "100000",
+        to_device_type_hex=lambda value: str(value),
+        lipro_api_error=DummyApiError,
+        device_id="mesh_group_1",
+        device_type="ff000001",
+    )
+
+    assert result.rows == [row]
+    assert result.error is None
+    assert result.outcome.kind == "degraded"
+    assert result.outcome.reason_code == "controller_failed"
+    assert result.outcome.http_status == 500
+
+
+@pytest.mark.asyncio
+async def test_query_ota_info_with_outcome_prefers_primary_recovery_over_later_controller_degradation() -> None:
+    row = {"deviceType": "ff000001", "latestVersion": "1.0.1"}
+    iot_request = AsyncMock(
+        side_effect=[
+            DummyApiError("v1 failed", code=500),
+            {"rows": [row]},
+            DummyApiError("invalid param", code="100000"),
+        ]
+    )
+
+    result = await query_ota_info_with_outcome(
+        iot_request=iot_request,
+        extract_data_list=_extract_rows,
+        is_invalid_param_error_code=lambda code: code == "100000",
+        to_device_type_hex=lambda value: str(value),
+        lipro_api_error=DummyApiError,
+        device_id="mesh_group_1",
+        device_type="ff000001",
+    )
+
+    assert result.rows == [row]
+    assert result.error is None
+    assert result.outcome.kind == "degraded"
+    assert result.outcome.reason_code == "primary_endpoint_recovered"
+
+
+@pytest.mark.asyncio
 async def test_fetch_sensor_history_propagates_mapping_error() -> None:
     iot_request = AsyncMock(return_value={"rows": []})
 

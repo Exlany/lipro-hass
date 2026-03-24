@@ -297,8 +297,8 @@ def test_supported_shell_installer_path_uses_verified_release_assets() -> None:
         "bash ./install.sh --archive-file ./lipro-hass-<release-tag>.zip --checksum-file ./SHA256SUMS"
         in readme_zh_text
     )
-    assert "v1.0.0" not in readme_text
-    assert "v1.0.0" not in readme_zh_text
+    assert re.search(r"for example v\d+\.\d+\.\d+", readme_text) is None
+    assert re.search(r"例如 v\d+\.\d+\.\d+", readme_zh_text) is None
     assert "verified GitHub Release assets" in troubleshooting_text
     assert "ARCHIVE_TAG=main" in readme_text
     assert "ARCHIVE_TAG=main" in readme_zh_text
@@ -371,11 +371,12 @@ def test_latest_closeout_pointer_and_no_active_route_stay_current() -> None:
     runbook_text = _RUNBOOK.read_text(encoding="utf-8")
 
     assert ".planning/reviews/V1_15_EVIDENCE_INDEX.md" in docs_text
-    assert "当前无 active milestone route" in docs_text
+    assert "当前无 active milestone route" not in docs_text
+    assert "v1.16 / Phase 68" in docs_text
     assert "V1_15_EVIDENCE_INDEX.md" in runbook_text
     assert "V1_6_EVIDENCE_INDEX.md" not in runbook_text
-    assert "$gsd-new-milestone" in project_text
-    assert "$gsd-new-milestone" in state_text
+    assert "$gsd-complete-milestone v1.16" in project_text
+    assert "$gsd-complete-milestone v1.16" in state_text
     assert "## v1.15 Typed Contract Convergence, Tooling Kernel Hardening & Mypy Closure" in milestones_text
     assert "latest archive-ready closeout pointer = `.planning/reviews/V1_15_EVIDENCE_INDEX.md`" in milestones_text
     assert "v1.11" not in docs_text

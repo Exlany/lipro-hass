@@ -3,7 +3,7 @@
   "name": "Lipro Smart Home",
   "codeowners": ["@Exlany"],
   "config_flow": true,
-  "documentation": "https://github.com/Exlany/lipro-hass/blob/main/README.md",
+  "documentation": "https://github.com/Exlany/lipro-hass/blob/main/docs/README.md",
   "integration_type": "hub",
   "iot_class": "cloud_push",
   "issue_tracker": "https://github.com/Exlany/lipro-hass/issues",

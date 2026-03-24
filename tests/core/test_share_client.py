@@ -8,7 +8,12 @@ from unittest.mock import ANY, AsyncMock, MagicMock, patch
 import aiohttp
 import pytest
 
+from custom_components.lipro.core.anonymous_share.const import (
+    SHARE_REPORT_URL,
+    SHARE_TOKEN_REFRESH_URL,
+)
 from custom_components.lipro.core.anonymous_share.share_client import ShareWorkerClient
+from custom_components.lipro.core.telemetry.models import build_operation_outcome
 
 
 def _response_context(response: MagicMock) -> AsyncMock:
@@ -257,6 +262,27 @@ async def test_refresh_install_token_with_outcome_exposes_reason_codes() -> None
 
 
 @pytest.mark.asyncio
+async def test_refresh_install_token_with_outcome_reports_invalid_refresh_payload() -> None:
+    client = ShareWorkerClient()
+    client.install_token = "tok-old"
+    session = MagicMock()
+    session.post = MagicMock(
+        return_value=_response_context(
+            _response(status=200, payload=["bad-payload"], async_json=False)
+        )
+    )
+
+    outcome = await client.refresh_install_token_with_outcome(session)
+
+    assert outcome.kind == "failed"
+    assert outcome.reason_code == "invalid_refresh_payload"
+    assert outcome.http_status == 200
+    assert client.install_token == "tok-old"
+    assert session.post.call_args is not None
+    assert session.post.call_args.args[0] == SHARE_TOKEN_REFRESH_URL
+
+
+@pytest.mark.asyncio
 async def test_submit_share_payload_backoff_and_missing_installation_id() -> None:
     client = ShareWorkerClient()
     session = MagicMock()
@@ -308,7 +334,12 @@ async def test_submit_share_payload_refreshes_token_before_upload() -> None:
     client = ShareWorkerClient()
     client.install_token = "tok-old"
     client.token_refresh_after = 150
-    refresh_install_token = AsyncMock(return_value=False)
+    refresh_install_token_with_outcome = AsyncMock(
+        return_value=build_operation_outcome(
+            kind="success",
+            reason_code="refresh_success",
+        )
+    )
 
     session = MagicMock()
     session.post = MagicMock(
@@ -322,7 +353,11 @@ async def test_submit_share_payload_refreshes_token_before_upload() -> None:
             "custom_components.lipro.core.anonymous_share.share_client.time.time",
             return_value=200.0,
         ),
-        patch.object(client, "refresh_install_token", new=refresh_install_token),
+        patch.object(
+            client,
+            "refresh_install_token_with_outcome",
+            new=refresh_install_token_with_outcome,
+        ),
     ):
         result = await client.submit_share_payload(
             session,
@@ -332,7 +367,76 @@ async def test_submit_share_payload_refreshes_token_before_upload() -> None:
         )
 
     assert result is False
-    refresh_install_token.assert_awaited_once_with(session)
+    refresh_install_token_with_outcome.assert_awaited_once_with(session)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    (
+        "response",
+        "expected_reason",
+        "expected_http_status",
+        "expected_retry_after",
+        "expected_install_token",
+        "expected_next_upload_attempt_at",
+    ),
+    [
+        (
+            _response(
+                status=429,
+                payload={"code": "RATE_LIMIT"},
+                headers={"Retry-After": "120"},
+            ),
+            "rate_limited",
+            429,
+            120.0,
+            "tok-old",
+            260.0,
+        ),
+        (
+            _response(status=401, payload={"code": "TOKEN_EXPIRED"}),
+            "token_invalid",
+            401,
+            None,
+            None,
+            0.0,
+        ),
+    ],
+)
+async def test_submit_share_payload_with_outcome_surfaces_refresh_failures_when_due(
+    response: MagicMock,
+    expected_reason: str,
+    expected_http_status: int,
+    expected_retry_after: float | None,
+    expected_install_token: str | None,
+    expected_next_upload_attempt_at: float,
+) -> None:
+    client = ShareWorkerClient()
+    client.install_token = "tok-old"
+    client.token_refresh_after = 150
+    session = MagicMock()
+    session.post = MagicMock(return_value=_response_context(response))
+
+    with patch(
+        "custom_components.lipro.core.anonymous_share.share_client.time.time",
+        return_value=200.0,
+    ):
+        outcome = await client.submit_share_payload_with_outcome(
+            session,
+            _make_report(),
+            label="Anonymous share",
+            ensure_loaded=AsyncMock(),
+        )
+
+    assert outcome.kind == "failed"
+    assert outcome.reason_code == expected_reason
+    assert outcome.http_status == expected_http_status
+    assert outcome.retry_after_seconds == expected_retry_after
+    assert client.install_token == expected_install_token
+    assert client.next_upload_attempt_at == expected_next_upload_attempt_at
+    assert session.post.call_count == 1
+    assert session.post.call_args is not None
+    assert session.post.call_args.args[0] == SHARE_TOKEN_REFRESH_URL
 
 
 @pytest.mark.asyncio
@@ -518,6 +622,58 @@ async def test_submit_share_payload_with_outcome_exposes_rate_limit_reason() -> 
     assert outcome.kind == "failed"
     assert outcome.reason_code == "rate_limited"
     assert outcome.retry_after_seconds == 120.0
+
+
+@pytest.mark.asyncio
+async def test_submit_share_payload_with_outcome_exposes_token_rejected_reason() -> None:
+    client = ShareWorkerClient()
+    client.install_token = cast(str | None, "tok-old")
+    session = MagicMock()
+    session.post = MagicMock(
+        side_effect=[
+            _response_context(_response(status=401, payload={"code": "TOKEN_EXPIRED"})),
+            _response_context(_response(status=401, payload={"code": "TOKEN_MISSING"})),
+        ]
+    )
+
+    outcome = await client.submit_share_payload_with_outcome(
+        session,
+        _make_report(),
+        label="Anonymous share",
+        ensure_loaded=AsyncMock(),
+    )
+
+    assert outcome.kind == "failed"
+    assert outcome.reason_code == "token_rejected"
+    assert outcome.http_status == 401
+    assert client.install_token is None
+    assert session.post.call_count == 2
+    assert all(call.args[0] == SHARE_REPORT_URL for call in session.post.call_args_list)
+
+
+@pytest.mark.asyncio
+async def test_submit_share_payload_with_outcome_keeps_413_fallback_terminal_reason() -> None:
+    client = ShareWorkerClient()
+    session = MagicMock()
+    session.post = MagicMock(
+        side_effect=[
+            _response_context(_response(status=413, payload={"code": "TOO_LARGE"})),
+            _response_context(_response(status=413, payload={"code": "TOO_LARGE"})),
+        ]
+    )
+
+    outcome = await client.submit_share_payload_with_outcome(
+        session,
+        _make_report(),
+        label="Anonymous share",
+        ensure_loaded=AsyncMock(),
+    )
+
+    assert outcome.kind == "failed"
+    assert outcome.reason_code == "payload_too_large"
+    assert outcome.http_status == 413
+    assert session.post.call_count == 2
+    assert all(call.args[0] == SHARE_REPORT_URL for call in session.post.call_args_list)
 
 
 @pytest.mark.asyncio

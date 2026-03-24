@@ -56,6 +56,32 @@ async def test_async_handle_refresh_devices_uses_runtime_access_entry_pairs() ->
     coordinator.device_refresh_service.async_refresh_devices.assert_awaited_once_with()
 
 
+@pytest.mark.asyncio
+async def test_async_handle_refresh_devices_scopes_requested_entry_id() -> None:
+    hass = MagicMock()
+    coordinator = MagicMock()
+    coordinator.device_refresh_service.async_refresh_devices = AsyncMock()
+    runtime_entry = SimpleNamespace(entry_id="entry-2")
+
+    runtime_pairs = MagicMock(return_value=[(runtime_entry, coordinator)])
+
+    result = await async_handle_refresh_devices(
+        hass,
+        service_call(hass, {"entry_id": "entry-2"}),
+        domain=DOMAIN,
+        attr_entry_id="entry_id",
+        iter_runtime_entry_coordinators=runtime_pairs,
+    )
+
+    assert result == {
+        "success": True,
+        "refreshed_entries": 1,
+        "requested_entry_id": "entry-2",
+    }
+    runtime_pairs.assert_called_once_with(hass, entry_id="entry-2")
+    coordinator.device_refresh_service.async_refresh_devices.assert_awaited_once_with()
+
+
 def test_iter_lipro_config_entry_ids_for_device_filters_invalid_entries() -> None:
     hass = MagicMock()
     hass.config_entries.async_get_entry.side_effect = lambda entry_id: {
