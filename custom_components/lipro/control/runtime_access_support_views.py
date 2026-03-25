@@ -17,7 +17,9 @@ from .runtime_access_support_members import (
 )
 from .runtime_access_support_telemetry import _build_runtime_telemetry_snapshot
 from .runtime_access_types import (
+    RuntimeCoordinatorFacts,
     RuntimeCoordinatorView,
+    RuntimeEntryFacts,
     RuntimeEntryPort,
     RuntimeEntryView,
 )
@@ -33,6 +35,23 @@ def _build_runtime_coordinator_view(
     coordinator: LiproCoordinator,
 ) -> RuntimeCoordinatorView:
     """Build the explicit runtime read-model for one coordinator."""
+    facts = _build_runtime_coordinator_facts(coordinator)
+
+    return RuntimeCoordinatorView(
+        coordinator=coordinator,
+        update_interval=facts.update_interval,
+        last_update_success=facts.last_update_success,
+        mqtt_connected=facts.mqtt_connected,
+        protocol=facts.protocol,
+        runtime_telemetry_snapshot=facts.runtime_telemetry_snapshot,
+        devices=facts.devices,
+    )
+
+
+def _build_runtime_coordinator_facts(
+    coordinator: LiproCoordinator,
+) -> RuntimeCoordinatorFacts:
+    """Collect the explicit coordinator facts needed by public runtime views."""
     update_interval = _get_explicit_member(coordinator, "update_interval")
     last_update_success = _get_explicit_bool_member(coordinator, "last_update_success")
     mqtt_service = _get_explicit_member(coordinator, "mqtt_service")
@@ -40,8 +59,7 @@ def _build_runtime_coordinator_view(
     protocol = _get_explicit_member(coordinator, "protocol")
     devices = _get_explicit_mapping_member(coordinator, "devices")
 
-    return RuntimeCoordinatorView(
-        coordinator=coordinator,
+    return RuntimeCoordinatorFacts(
         update_interval=None if update_interval is None else str(update_interval),
         last_update_success=last_update_success or False,
         mqtt_connected=mqtt_connected,
@@ -54,41 +72,48 @@ def _build_runtime_coordinator_view(
 
 
 def _build_runtime_entry_coordinator(
-    runtime_entry: RuntimeEntryPort,
+    coordinator: LiproCoordinator | None,
 ) -> RuntimeCoordinatorView | None:
     """Build the coordinator projection owned by one runtime entry."""
-    coordinator = runtime_entry.runtime_data
     if coordinator is None:
         return None
     return _build_runtime_coordinator_view(coordinator)
 
 
-def _coerce_runtime_entry_port(entry: object) -> RuntimeEntryPort | None:
-    """Return the live config entry when it exposes the runtime-entry port."""
+def _coerce_runtime_entry_port(
+    entry: object,
+) -> tuple[RuntimeEntryPort, RuntimeEntryFacts] | None:
+    """Return the narrowed runtime-entry port plus typed facts when explicit."""
     if not _has_explicit_runtime_member(entry, "runtime_data"):
         return None
 
     entry_id = _get_explicit_member(entry, "entry_id")
-    options = _get_explicit_member(entry, "options")
-    if not isinstance(entry_id, str) or not isinstance(options, Mapping):
+    options = _get_explicit_mapping_member(entry, "options")
+    if not isinstance(entry_id, str) or options is None:
         return None
 
-    return cast(RuntimeEntryPort, entry)
+    return cast(RuntimeEntryPort, entry), RuntimeEntryFacts(
+        entry_id=entry_id,
+        options=options,
+        runtime_data=cast(LiproCoordinator | None, _get_explicit_member(entry, "runtime_data")),
+    )
 
 
 def _build_runtime_entry_view_support(
     entry: RuntimeEntryPort | object,
 ) -> RuntimeEntryView | None:
     """Build the typed runtime-entry read-model for control-plane consumers."""
-    runtime_entry = _coerce_runtime_entry_port(entry)
-    if runtime_entry is None:
+    narrowed_entry = _coerce_runtime_entry_port(entry)
+    if narrowed_entry is None:
         return None
+
+    runtime_entry, facts = narrowed_entry
 
     return RuntimeEntryView(
         entry=runtime_entry,
-        entry_id=runtime_entry.entry_id,
-        options=runtime_entry.options,
-        coordinator=_build_runtime_entry_coordinator(runtime_entry),
+        entry_id=facts.entry_id,
+        options=facts.options,
+        coordinator=_build_runtime_entry_coordinator(facts.runtime_data),
     )
 
 
@@ -110,10 +135,11 @@ def _iter_runtime_entries_support(
     """Return live Lipro config entries, optionally scoped to one entry id."""
     entries: list[RuntimeEntryPort] = []
     for entry in hass.config_entries.async_entries(DOMAIN):
-        runtime_entry = _coerce_runtime_entry_port(entry)
-        if runtime_entry is None:
+        narrowed_entry = _coerce_runtime_entry_port(entry)
+        if narrowed_entry is None:
             continue
-        if entry_id is None or runtime_entry.entry_id == entry_id:
+        runtime_entry, facts = narrowed_entry
+        if entry_id is None or facts.entry_id == entry_id:
             entries.append(runtime_entry)
     return entries
 

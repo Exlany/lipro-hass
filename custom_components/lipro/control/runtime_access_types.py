@@ -21,6 +21,27 @@ class RuntimeEntryPort(Protocol):
 
 
 @dataclass(frozen=True, slots=True)
+class RuntimeCoordinatorFacts:
+    """Typed coordinator facts narrowed at the private runtime-access edge."""
+
+    update_interval: str | None
+    last_update_success: bool
+    mqtt_connected: bool | None
+    protocol: ProtocolTelemetryFacadeLike | None
+    runtime_telemetry_snapshot: Mapping[str, object]
+    devices: Mapping[str, LiproDevice] | None
+
+
+@dataclass(frozen=True, slots=True)
+class RuntimeEntryFacts:
+    """Typed config-entry facts narrowed at the private runtime-access edge."""
+
+    entry_id: str
+    options: Mapping[str, object]
+    runtime_data: LiproCoordinator | None
+
+
+@dataclass(frozen=True, slots=True)
 class RuntimeCoordinatorView:
     """Typed read-model of the runtime-facing coordinator facts."""
 
