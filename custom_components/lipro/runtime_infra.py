@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Callable, Iterable, Mapping
+from dataclasses import dataclass
 import functools
 import logging
 from typing import Final, Protocol, cast, runtime_checkable
@@ -37,6 +38,14 @@ class _ConfigEntryCarrier(Protocol):
 
 
 type PendingReloadTasks = dict[str, asyncio.Task[None]]
+
+
+@dataclass(frozen=True, slots=True)
+class _DeviceRegistryReloadPlan:
+    """Resolved device-registry update plus affected config entries."""
+
+    device_id: str
+    entry_ids: tuple[str, ...]
 
 
 def _is_lipro_device_entry(
@@ -118,6 +127,38 @@ def _resolve_lipro_device_registry_update(
     return device_id, cast(_DeviceRegistryEntryLike, device_entry), changes
 
 
+def _build_device_registry_reload_plan(
+    hass: HomeAssistant,
+    *,
+    event_data: Mapping[str, object],
+    domain: str,
+) -> _DeviceRegistryReloadPlan | None:
+    """Return the reload plan for one relevant device-registry update."""
+    resolved_update = _resolve_lipro_device_registry_update(
+        hass,
+        event_data=event_data,
+        domain=domain,
+    )
+    if resolved_update is None:
+        return None
+
+    device_id, device_entry, changes = resolved_update
+    if not _did_device_disabled_state_toggle(device_entry, changes=changes):
+        return None
+
+    entry_ids = tuple(
+        _iter_lipro_config_entry_ids_for_device(
+            hass,
+            domain=domain,
+            device_entry=device_entry,
+        )
+    )
+    if not entry_ids:
+        return None
+
+    return _DeviceRegistryReloadPlan(device_id=device_id, entry_ids=entry_ids)
+
+
 def _did_device_disabled_state_toggle(
     device_entry: _DeviceRegistryEntryLike,
     *,
@@ -174,6 +215,76 @@ def _cancel_pending_reload_tasks(pending_reload_tasks: PendingReloadTasks) -> No
     pending_reload_tasks.clear()
 
 
+def _release_pending_reload_task(
+    pending_reload_tasks: PendingReloadTasks,
+    *,
+    entry_id: str,
+) -> None:
+    """Drop one entry from pending reload bookkeeping."""
+    pending_reload_tasks.pop(entry_id, None)
+
+
+def _log_failed_reload_task(
+    logger: logging.Logger,
+    *,
+    entry_id: str,
+    task: asyncio.Task[None],
+) -> None:
+    """Surface one failed reload task without leaking pending ownership."""
+    if task.cancelled():
+        return
+
+    error = task.exception()
+    if error is not None:
+        logger.warning(
+            "Config entry reload failed after device registry update (%s, %s)",
+            entry_id,
+            type(error).__name__,
+        )
+
+
+def _handle_reload_task_done(
+    pending_reload_tasks: PendingReloadTasks,
+    logger: logging.Logger,
+    entry_id: str,
+    task: asyncio.Task[None],
+) -> None:
+    """Finalize one pending reload task and surface any failures."""
+    _release_pending_reload_task(pending_reload_tasks, entry_id=entry_id)
+    _log_failed_reload_task(logger, entry_id=entry_id, task=task)
+
+
+def _schedule_reloads_for_device_update(
+    hass: HomeAssistant,
+    *,
+    pending_reload_tasks: PendingReloadTasks,
+    event_data: Mapping[str, object],
+    domain: str,
+    logger: logging.Logger,
+    reload_entry: Callable[[str], Awaitable[object]],
+    on_reload_done: Callable[[str, asyncio.Task[None]], None],
+) -> None:
+    """Schedule config-entry reloads for one relevant device-registry update."""
+    reload_plan = _build_device_registry_reload_plan(
+        hass,
+        event_data=event_data,
+        domain=domain,
+    )
+    if reload_plan is None:
+        return
+
+    for entry_id in reload_plan.entry_ids:
+        _schedule_entry_reload(
+            hass,
+            pending_reload_tasks=pending_reload_tasks,
+            entry_id=entry_id,
+            device_id=reload_plan.device_id,
+            logger=logger,
+            reload_entry=reload_entry,
+            on_reload_done=on_reload_done,
+        )
+
+
 def async_setup_device_registry_listener(
     hass: HomeAssistant,
     *,
@@ -184,51 +295,29 @@ def async_setup_device_registry_listener(
     """Listen for Lipro device-registry disable/enable changes and reload entries."""
     pending_reload_tasks: PendingReloadTasks = {}
 
-    def _handle_reload_task_done(entry_id: str, task: asyncio.Task[None]) -> None:
-        """Clear bookkeeping and surface task failures without leaking tasks."""
-        pending_reload_tasks.pop(entry_id, None)
-        if task.cancelled():
-            return
-
-        error = task.exception()
-        if error is not None:
-            logger.warning(
-                "Config entry reload failed after device registry update (%s, %s)",
-                entry_id,
-                type(error).__name__,
-            )
+    def _on_reload_task_done(entry_id: str, task: asyncio.Task[None]) -> None:
+        """Finalize reload bookkeeping for one device-registry-triggered task."""
+        _handle_reload_task_done(
+            pending_reload_tasks,
+            logger,
+            entry_id,
+            task,
+        )
 
     @callback
     def _async_handle_device_registry_updated(
         event: Event[dr.EventDeviceRegistryUpdatedData],
     ) -> None:
         """Handle device_registry_updated events with minimal reload strategy."""
-        resolved_update = _resolve_lipro_device_registry_update(
+        _schedule_reloads_for_device_update(
             hass,
             event_data=event.data,
+            pending_reload_tasks=pending_reload_tasks,
             domain=domain,
+            logger=logger,
+            reload_entry=reload_entry,
+            on_reload_done=_on_reload_task_done,
         )
-        if resolved_update is None:
-            return
-
-        device_id, device_entry, changes = resolved_update
-        if not _did_device_disabled_state_toggle(device_entry, changes=changes):
-            return
-
-        for entry_id in _iter_lipro_config_entry_ids_for_device(
-            hass,
-            domain=domain,
-            device_entry=device_entry,
-        ):
-            _schedule_entry_reload(
-                hass,
-                pending_reload_tasks=pending_reload_tasks,
-                entry_id=entry_id,
-                device_id=device_id,
-                logger=logger,
-                reload_entry=reload_entry,
-                on_reload_done=_handle_reload_task_done,
-            )
 
     unsubscribe = hass.bus.async_listen(
         dr.EVENT_DEVICE_REGISTRY_UPDATED,
