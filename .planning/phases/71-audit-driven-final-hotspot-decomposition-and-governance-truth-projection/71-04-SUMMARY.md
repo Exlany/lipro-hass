@@ -2,13 +2,13 @@
 
 ## Outcome
 
-current-route / latest-archive truth 已 single-source 到 shared test constants 与 active planning truth，`v1.19` current route 与 `v1.18` latest archived baseline 同时成立。
+latest-archive / no-active-route truth 已 single-source 到 shared test constants 与 planning truth，`v1.19` archived baseline 与 `v1.18` previous archived baseline 同时成立。
 
 ## Highlights
 
 - 新增 `tests/meta/governance_current_truth.py` 作为 current-route / latest-archive shared constants home。
-- `PROJECT / ROADMAP / REQUIREMENTS / STATE / docs/README.md` 已共同承认 `v1.19 / Phase 71 complete / closeout-ready`。
-- latest archived closeout pointer 继续绑定 `.planning/reviews/V1_18_EVIDENCE_INDEX.md`，但 current story 已不再停留在 `no active milestone route`。
+- `PROJECT / ROADMAP / REQUIREMENTS / STATE / docs/README.md` 已共同承认 `no active milestone route / latest archived baseline = v1.19`。
+- latest archived closeout pointer 已提升到 `.planning/reviews/V1_19_EVIDENCE_INDEX.md`，而 `v1.18` 已降为 previous archived baseline。
 
 ## Proof
 

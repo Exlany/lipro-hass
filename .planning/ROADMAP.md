@@ -21,7 +21,7 @@
 - ✅ **v1.16 Master Audit Follow-Through, Hotspot Finalization & Docs Contract Hardening** - `Phase 68` archived on 2026-03-24; milestone audit: `.planning/v1.16-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_16_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.16-ROADMAP.md` / `.planning/milestones/v1.16-REQUIREMENTS.md`; non-blocking residual formally carried forward to `v1.17 / Phase 69`
 - ✅ **v1.17 Residual Formalization, Quality-Balance Hardening & Open-Source Contract Closure** - `Phase 69` archived on 2026-03-24; milestone audit: `.planning/v1.17-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_17_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.17-ROADMAP.md` / `.planning/milestones/v1.17-REQUIREMENTS.md`; served as the starting archived baseline for `v1.18 / Phase 70`
 - ✅ **v1.18 Support-Seam Slimming, OTA Resolver Consolidation & Governance Test Topicization** - `Phase 70` archived on 2026-03-24; milestone audit: `.planning/v1.18-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_18_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.18-ROADMAP.md` / `.planning/milestones/v1.18-REQUIREMENTS.md`; served as the starting archived baseline for `v1.19 / Phase 71`
-- 🚧 **v1.19 Audit-Driven Final Hotspot Decomposition & Governance Truth Projection** - formal milestone opened on 2026-03-24 from the `v1.18` terminal audit baseline; `Phase 71` completed on 2026-03-24 with promoted closeout evidence and now awaits milestone archive promotion
+- ✅ **v1.19 Audit-Driven Final Hotspot Decomposition & Governance Truth Projection** - `Phase 71` archived on 2026-03-25; milestone audit: `.planning/v1.19-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_19_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.19-ROADMAP.md` / `.planning/milestones/v1.19-REQUIREMENTS.md`; current governance state = `no active milestone route / latest archived baseline = v1.19`
 
 ## Required Phase Outputs
 
@@ -336,13 +336,18 @@ Plans:
 
 ## Current Milestone
 
-### 🚧 v1.19: Audit-Driven Final Hotspot Decomposition & Governance Truth Projection
 
-> `v1.19` 以 `v1.18` archived baseline 与 repo-wide terminal audit 为起点；目标不是重开第二主链，而是把仍具高杠杆的长流程热点与 current-route truth 漂移面继续 inward split，并把下一步收敛为单一的 milestone archive promotion。
+## v1.19: Audit-Driven Final Hotspot Decomposition & Governance Truth Projection
 
-**Milestone status:** `Phase 71 complete (2026-03-24)`
-**Default next command:** `$gsd-complete-milestone v1.19`（opening phase 已完成；当前里程碑已具备 closeout 条件）
-**Seed input:** `.planning/reviews/V1_19_TERMINAL_AUDIT.md`
+**Milestone Goal:** 基于 `v1.18` archived baseline，把 OTA diagnostics / firmware-install orchestration、anonymous-share submit outcome loop、request pacing / command-runtime 长流程与 current-route / latest-archive truth 的多点同步成本继续 inward split，并把 milestone closeout 收口为单一的 archive promotion。
+
+> `v1.19` 已于 `2026-03-25` 完成 milestone audit、evidence-index closeout 与 archive promotion：它承接 `v1.18` 的 archived baseline，完成 OTA diagnostics / firmware-install、anonymous-share submit、request pacing / command-runtime 的 final hotspot decomposition，并把当前治理状态切换为“latest archived baseline / no active milestone route”。
+
+**Archive status:** `archived / evidence-ready (2026-03-25)`
+**Starting baseline:** `.planning/v1.18-MILESTONE-AUDIT.md`, `.planning/reviews/V1_18_EVIDENCE_INDEX.md`, `.planning/milestones/v1.18-ROADMAP.md`, `.planning/milestones/v1.18-REQUIREMENTS.md`, `.planning/phases/70-support-seam-slimming-ota-resolver-consolidation-and-governance-test-topicization/70-SUMMARY.md`, `.planning/phases/70-support-seam-slimming-ota-resolver-consolidation-and-governance-test-topicization/70-VERIFICATION.md`, `.planning/phases/70-support-seam-slimming-ota-resolver-consolidation-and-governance-test-topicization/70-VALIDATION.md`
+**Requirements basket:** `GOV-55`, `ARC-18`, `HOT-30`, `HOT-31`, `TYP-20`, `TST-21`, `QLT-29`
+**Archive assets:** `.planning/v1.19-MILESTONE-AUDIT.md`, `.planning/reviews/V1_19_EVIDENCE_INDEX.md`, `.planning/milestones/v1.19-ROADMAP.md`, `.planning/milestones/v1.19-REQUIREMENTS.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-SUMMARY.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-VERIFICATION.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-VALIDATION.md`
+**Default next command:** `$gsd-new-milestone`
 
 ### Phase 71: Audit-driven final hotspot decomposition, governance truth projection, and closeout routing
 
@@ -803,7 +808,7 @@ Plans:
 
 **Archive status:** `archived / evidence-ready (2026-03-20)`
 **Route source:** `.planning/phases/41-full-spectrum-architecture-code-quality-and-open-source-audit/41-REMEDIATION-ROADMAP.md`
-**Default next command:** `$gsd-complete-milestone v1.19`
+**Default next command:** `$gsd-new-milestone`
 **Closeout assets:** `.planning/v1.6-MILESTONE-AUDIT.md`, `.planning/reviews/V1_6_EVIDENCE_INDEX.md`, `.planning/milestones/v1.6-ROADMAP.md`, `.planning/milestones/v1.6-REQUIREMENTS.md`, `.planning/phases/45-hotspot-decomposition-and-typed-failure-semantics/45-SUMMARY.md`, `.planning/phases/45-hotspot-decomposition-and-typed-failure-semantics/45-VERIFICATION.md`
 
 ### Phase 42: Delivery trust gates and validation hardening

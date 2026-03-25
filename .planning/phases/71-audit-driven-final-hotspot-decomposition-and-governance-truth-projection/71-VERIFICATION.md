@@ -2,7 +2,7 @@
 
 ## Status
 
-Passed on `2026-03-24`. Phase `71` execution、current-route activation 与 closeout-ready gate 已完成。
+Passed on `2026-03-24`, archive promotion confirmed on `2026-03-25`. Phase `71` execution、latest-archive projection 与 no-active-route gate 已完成。
 
 ## Wave Proof
 
@@ -25,5 +25,5 @@ Passed on `2026-03-24`. Phase `71` execution、current-route activation 与 clos
 
 ## Notes
 
-- latest archived closeout pointer 继续绑定 `V1_18_EVIDENCE_INDEX.md`。
-- 当前治理状态为 `v1.19 / Phase 71 complete / closeout-ready`，后续动作应为 `$gsd-complete-milestone v1.19`。
+- latest archived closeout pointer 已提升到 `V1_19_EVIDENCE_INDEX.md`。
+- 当前治理状态为 `no active milestone route / latest archived baseline = v1.19`，后续动作应为 `$gsd-new-milestone`。

@@ -425,6 +425,30 @@ def test_v1_18_closeout_assets_exist_and_are_pull_only() -> None:
     )
 
 
+def test_v1_19_closeout_assets_exist_and_are_pull_only() -> None:
+    evidence_index = _ROOT / ".planning" / "reviews" / "V1_19_EVIDENCE_INDEX.md"
+    milestone_audit = _ROOT / ".planning" / "v1.19-MILESTONE-AUDIT.md"
+
+    assert evidence_index.exists()
+    assert milestone_audit.exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.19-ROADMAP.md").exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.19-REQUIREMENTS.md").exists()
+    _assert_promoted_phase_assets(
+        "71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection",
+        "71-SUMMARY.md",
+        "71-VERIFICATION.md",
+    )
+
+    assert_pull_only_evidence_index(
+        evidence_index,
+        "71-SUMMARY.md",
+        "71-VERIFICATION.md",
+        "71-VALIDATION.md",
+        "archived / evidence-ready",
+        "V1_19_EVIDENCE_INDEX.md",
+    )
+
+
 def test_governance_truth_registers_v1_14_archive_lineage() -> None:
     authority_text = (
         _ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md"
@@ -442,7 +466,7 @@ def test_governance_truth_registers_v1_14_archive_lineage() -> None:
     assert ".planning/reviews/V1_14_EVIDENCE_INDEX.md" in milestones_text
 
 
-def test_governance_truth_registers_v1_18_latest_archive_pointer() -> None:
+def test_governance_truth_registers_v1_19_latest_archive_pointer() -> None:
     authority_text = (
         _ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md"
     ).read_text(encoding="utf-8")
@@ -458,14 +482,14 @@ def test_governance_truth_registers_v1_18_latest_archive_pointer() -> None:
     )
 
     assert "V1_17_EVIDENCE_INDEX.md" in authority_text
-    assert "V1_18_EVIDENCE_INDEX.md" in authority_text
-    assert "v1.18-MILESTONE-AUDIT.md" in authority_text
-    assert "V1_18_EVIDENCE_INDEX.md" in public_text
+    assert "V1_19_EVIDENCE_INDEX.md" in authority_text
+    assert "v1.19-MILESTONE-AUDIT.md" in authority_text
+    assert "V1_19_EVIDENCE_INDEX.md" in public_text
     assert "## v1.17 Residual Formalization, Quality-Balance Hardening & Open-Source Contract Closure" in milestones_text
-    assert "## v1.18 Support-Seam Slimming, OTA Resolver Consolidation & Governance Test Topicization" in milestones_text
-    assert ".planning/reviews/V1_18_EVIDENCE_INDEX.md" in milestones_text
+    assert "## v1.19 Audit-Driven Final Hotspot Decomposition & Governance Truth Projection" in milestones_text
+    assert ".planning/reviews/V1_19_EVIDENCE_INDEX.md" in milestones_text
     assert LATEST_ARCHIVED_EVIDENCE_PATH in docs_text
-    assert "v1.19 / Phase 71 complete / closeout-ready" in docs_text
+    assert "no active milestone route / latest archived baseline = v1.19" in docs_text
     assert_runbook_points_to_latest_evidence(
         runbook_text,
         LATEST_ARCHIVED_EVIDENCE_FILENAME,

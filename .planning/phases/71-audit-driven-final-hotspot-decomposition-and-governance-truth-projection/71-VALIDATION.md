@@ -35,7 +35,7 @@
 ## Sign-off Checklist
 
 - [x] OTA / firmware-update / share / pacing / command-runtime long flows are thinner without new outward roots
-- [x] current-route truth is active, machine-checkable, and distinct from latest archived baseline
-- [x] latest archived pointer still resolves to `V1_18_EVIDENCE_INDEX.md`
+- [x] latest-archive / no-active-route truth is machine-checkable and distinct from previous archived baseline
+- [x] latest archived pointer now resolves to `V1_19_EVIDENCE_INDEX.md`
 - [x] phase-71 guards freeze touched hotspot/function budgets and route locality
 - [x] planning / baseline / docs truth matches executed reality

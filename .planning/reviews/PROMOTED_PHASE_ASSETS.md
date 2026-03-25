@@ -246,6 +246,15 @@ phases:
     - 70-SUMMARY.md
     - 70-VERIFICATION.md
     - 70-VALIDATION.md
+  71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection:
+    - 71-01-SUMMARY.md
+    - 71-02-SUMMARY.md
+    - 71-03-SUMMARY.md
+    - 71-04-SUMMARY.md
+    - 71-05-SUMMARY.md
+    - 71-SUMMARY.md
+    - 71-VERIFICATION.md
+    - 71-VALIDATION.md
 
 ---
 

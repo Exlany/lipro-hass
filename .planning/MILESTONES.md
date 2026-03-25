@@ -297,3 +297,26 @@
 - `.planning/phases/70-support-seam-slimming-ota-resolver-consolidation-and-governance-test-topicization/70-VALIDATION.md`
 
 ---
+
+---
+
+## v1.19 Audit-Driven Final Hotspot Decomposition & Governance Truth Projection (Closeout: 2026-03-25)
+
+**Phase range:** `71`
+**Phases completed:** 1 phase, 5 plans, 0 tasks
+**Status:** archived / evidence-ready
+**Route truth:** latest archive-ready closeout pointer = `.planning/reviews/V1_19_EVIDENCE_INDEX.md`
+
+**Key accomplishments:**
+- 继续 inward split OTA diagnostics / firmware-install orchestration，保持 entity outward surface 与 helper-owned second story 不回流
+- 收口 anonymous-share submit、request pacing 与 command-runtime 长流程，把热点切回更窄 typed helper seams
+- 统一 planning / docs / tests 的 route truth，并在 archive promotion 后把治理状态切换为 `no active milestone route / latest archived baseline = v1.19`
+
+**Closeout assets:**
+- `.planning/v1.19-MILESTONE-AUDIT.md`
+- `.planning/reviews/V1_19_EVIDENCE_INDEX.md`
+- `.planning/milestones/v1.19-ROADMAP.md`
+- `.planning/milestones/v1.19-REQUIREMENTS.md`
+- `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-SUMMARY.md`
+- `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-VERIFICATION.md`
+- `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-VALIDATION.md`

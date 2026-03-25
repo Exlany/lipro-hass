@@ -237,14 +237,14 @@ def test_private_repo_hacs_caveat_is_consistent() -> None:
         _assert_contains_private_repo_hacs_caveat(path)
 
 
-def test_release_runbook_references_v1_18_evidence_index() -> None:
+def test_release_runbook_references_v1_19_evidence_index() -> None:
     """Maintainer runbook should point at the canonical latest closeout evidence index."""
     runbook_text = _RUNBOOK.read_text(encoding="utf-8")
 
     assert_runbook_points_to_latest_evidence(
         runbook_text,
         LATEST_ARCHIVED_EVIDENCE_FILENAME,
-        deprecated=("V1_6_EVIDENCE_INDEX.md",),
+        deprecated=("V1_18_EVIDENCE_INDEX.md", "V1_6_EVIDENCE_INDEX.md"),
     )
 
 

@@ -376,12 +376,12 @@ def test_latest_closeout_pointer_and_active_route_stay_current() -> None:
     runbook_text = _RUNBOOK.read_text(encoding="utf-8")
 
     assert LATEST_ARCHIVED_EVIDENCE_PATH in docs_text
-    assert "v1.19 / Phase 71 complete / closeout-ready" in docs_text
+    assert "no active milestone route / latest archived baseline = v1.19" in docs_text
     assert LATEST_ARCHIVED_EVIDENCE_FILENAME in runbook_text
     assert "V1_6_EVIDENCE_INDEX.md" not in runbook_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in project_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
-    assert "## v1.18 Support-Seam Slimming, OTA Resolver Consolidation & Governance Test Topicization" in milestones_text
+    assert "## v1.19 Audit-Driven Final Hotspot Decomposition & Governance Truth Projection" in milestones_text
     assert f"latest archive-ready closeout pointer = `{LATEST_ARCHIVED_EVIDENCE_PATH}`" in milestones_text
     assert "v1.11" not in docs_text
     assert "v1.11" not in runbook_text

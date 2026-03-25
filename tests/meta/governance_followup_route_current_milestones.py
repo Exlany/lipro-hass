@@ -175,19 +175,19 @@ def test_v1_8_closeout_through_v1_15_archived_truth_are_consistent() -> None:
     assert ".planning/milestones/v1.13-ROADMAP.md" in project_text
     assert ".planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-01-PLAN.md" not in project_text
 
-    assert "**Status:** `v1.19 / Phase 71 complete / closeout-ready`；latest archived closeout pointer = `.planning/reviews/V1_18_EVIDENCE_INDEX.md`." in project_text
+    assert "**Current route:** `no active milestone route / latest archived baseline = v1.19`；latest archived closeout pointer = `.planning/reviews/V1_19_EVIDENCE_INDEX.md`." in project_text
     assert CURRENT_MILESTONE_HEADER in project_text
     assert LATEST_ARCHIVED_PROJECT_HEADER in project_text
-    assert "**Current status:** `Phase 71 complete / closeout-ready (2026-03-24)`" in project_text
-    assert "**Default next command:** `$gsd-complete-milestone v1.19`" in project_text
+    assert "**Current status:** `archived / evidence-ready (2026-03-25)`" in project_text
+    assert "**Default next command:** `$gsd-new-milestone`" in project_text
     assert "## Archived Milestone (v1.17)" in project_text
     assert "## Archived Milestone (v1.16)" in project_text
     assert "**Current status:** `archived / evidence-ready with carry-forward (2026-03-24)`" in project_text
     assert "## Archived Milestone (v1.15)" in project_text
 
-    assert f"### 🚧 {CURRENT_MILESTONE}: {CURRENT_MILESTONE_NAME}" in roadmap_text
-    assert "**Milestone status:** `Phase 71 complete (2026-03-24)`" in roadmap_text
-    assert "**Default next command:** `$gsd-complete-milestone v1.19`" in roadmap_text
+    assert f"## {CURRENT_MILESTONE}: {CURRENT_MILESTONE_NAME}" in roadmap_text
+    assert "**Archive status:** `archived / evidence-ready (2026-03-25)`" in roadmap_text
+    assert "**Default next command:** `$gsd-new-milestone`" in roadmap_text
     assert CURRENT_PHASE_HEADING in roadmap_text
     assert "Plans:" in roadmap_text
     assert "71-05: sync baselines, promote phase assets, and run the final phase gate" in roadmap_text
@@ -218,8 +218,8 @@ def test_v1_8_closeout_through_v1_15_archived_truth_are_consistent() -> None:
     ):
         assert needle in requirements_text
 
-    assert f"**Current milestone:** `{CURRENT_MILESTONE} {CURRENT_MILESTONE_NAME}`" in state_text
+    assert "**Current milestone:** `No active milestone route`" in state_text
     assert f"**Current mode:** `{CURRENT_ROUTE_MODE}`" in state_text
-    assert "$gsd-complete-milestone v1.19" in state_text
+    assert "$gsd-new-milestone" in state_text
     assert LATEST_ARCHIVED_AUDIT_PATH in state_text
     assert LATEST_ARCHIVED_EVIDENCE_PATH in state_text
