@@ -22,8 +22,8 @@ _CONFIG_ENTRY_DATA = {
 
 
 @pytest.fixture
-def coordinator(hass, mock_lipro_api_client, mock_auth_manager):
-    """Create coordinator with mocked dependencies."""
+def config_entry(hass):
+    """Create the config entry used by coordinator runtime tests."""
     entry = MockConfigEntry(
         domain=DOMAIN,
         data=_CONFIG_ENTRY_DATA,
@@ -31,13 +31,24 @@ def coordinator(hass, mock_lipro_api_client, mock_auth_manager):
         unique_id="lipro_10001",
     )
     entry.add_to_hass(hass)
+    return entry
+
+
+@pytest.fixture
+def coordinator(hass, mock_lipro_api_client, mock_auth_manager, config_entry):
+    """Create coordinator with mocked dependencies."""
     with patch(
         "custom_components.lipro.core.anonymous_share.get_anonymous_share_manager"
     ) as mock_share:
         mock_share.return_value = mock_anonymous_share_manager()
         from custom_components.lipro.core.coordinator import Coordinator
 
-        return Coordinator(hass, mock_lipro_api_client, mock_auth_manager, entry)
+        return Coordinator(
+            hass,
+            mock_lipro_api_client,
+            mock_auth_manager,
+            config_entry,
+        )
 
 
 @pytest.fixture

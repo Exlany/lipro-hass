@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from custom_components.lipro.core.api import LiproAuthError
+from custom_components.lipro.core.coordinator.factory import (
+    CoordinatorBootstrapArtifact,
+)
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from tests.conftest_shared import (
     make_api_device,
@@ -17,6 +21,63 @@ from tests.conftest_shared import (
 
 class TestCoordinatorRuntimeRoot:
     """Test coordinator root callbacks and runtime ownership."""
+
+    def test_coordinator_consumes_named_bootstrap_artifact(
+        self,
+        hass,
+        mock_lipro_api_client,
+        mock_auth_manager,
+        config_entry,
+        patch_anonymous_share_manager,
+    ) -> None:
+        """Coordinator should bind one explicit bootstrap artifact without drift."""
+        from custom_components.lipro.core.coordinator import Coordinator
+
+        state = MagicMock(name="state")
+        runtimes = MagicMock(name="runtimes")
+        update_cycle = MagicMock(name="update_cycle")
+        service_layer = SimpleNamespace(
+            command_service=MagicMock(name="command_service"),
+            mqtt_service=MagicMock(name="mqtt_service"),
+            state_service=MagicMock(name="state_service"),
+            polling_service=MagicMock(name="polling_service"),
+            device_refresh_service=MagicMock(name="device_refresh_service"),
+            telemetry_service=MagicMock(name="telemetry_service"),
+        )
+        artifact = CoordinatorBootstrapArtifact(
+            state=state,
+            runtimes=runtimes,
+            service_layer=service_layer,
+            update_cycle=update_cycle,
+        )
+
+        with patch(
+            "custom_components.lipro.core.coordinator.coordinator.RuntimeOrchestrator.build_bootstrap_artifact",
+            return_value=artifact,
+        ) as build_bootstrap:
+            coordinator = Coordinator(
+                hass,
+                mock_lipro_api_client,
+                mock_auth_manager,
+                config_entry,
+            )
+
+        assert build_bootstrap.call_count == 1
+        assert build_bootstrap.call_args.kwargs["signal_service"] is coordinator.signal_service
+        assert (
+            build_bootstrap.call_args.kwargs["protocol_service"]
+            is coordinator.protocol_service
+        )
+        assert build_bootstrap.call_args.kwargs["polling_updater"] is coordinator
+        assert coordinator._state is state
+        assert coordinator._runtimes is runtimes
+        assert coordinator.command_service is service_layer.command_service
+        assert coordinator.mqtt_service is service_layer.mqtt_service
+        assert coordinator.state_service is service_layer.state_service
+        assert coordinator._polling_service is service_layer.polling_service
+        assert coordinator.device_refresh_service is service_layer.device_refresh_service
+        assert coordinator.telemetry_service is service_layer.telemetry_service
+        assert coordinator._update_cycle is update_cycle
 
     def test_coordinator_keeps_internal_runtime_registry(self, coordinator):
         """Coordinator should keep runtimes internal behind one registry."""
