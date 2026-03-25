@@ -80,6 +80,9 @@ Retired compatibility stubs such as `scripts/agent_worker.py` and `scripts/orche
 - Troubleshooting and routing: `docs/TROUBLESHOOTING.md` → `SUPPORT.md`
 - Private vulnerability disclosure: `SECURITY.md`
 
+Current access-mode note: this repository is private-access. Treat the docs files in this checkout as the canonical first hop; GitHub issue / discussion / security UI routes only apply when your current access mode exposes them or when a future public mirror preserves the same contract.
+当前访问模式说明：本仓库当前是 private-access。请把当前 checkout 中的文档文件视为唯一正式 first hop；GitHub issue / discussion / security UI 路径只有在你当前访问模式可见，或未来 public mirror 保持同一契约时才成立。
+
 ### Maintainer appendix / 维护者附录
 
 - Release / rehearsal / custody continuity: `docs/MAINTAINER_RELEASE_RUNBOOK.md` (maintainer-only, not a public first hop)
@@ -298,7 +301,7 @@ Do not open a public issue for vulnerabilities.
 安全漏洞不要走公开 Issue。
 
 - Follow `SECURITY.md` and use the GitHub private vulnerability reporting path first.
-  请先遵循 `SECURITY.md`，使用 GitHub 私密漏洞披露流程。
+  请先遵循 `SECURITY.md`；只有当你当前访问模式可见时，才优先使用 GitHub 私密漏洞披露流程。
 - Only open a public issue after maintainers confirm the fix is ready to disclose.
   仅在维护者确认可以公开后，再开启公开问题。
 
@@ -323,8 +326,8 @@ See `docs/TROUBLESHOOTING.md` first, then `SUPPORT.md` for usage questions, bug 
 
 ## Questions? / 有问题？
 
-Feel free to open a GitHub Discussion for questions or early design discussion; use Issues for confirmed bugs and trackable work!
-欢迎先通过 GitHub Discussions 提问或讨论设计；确认缺陷与可追踪工作再开 Issue！
+Start with `docs/README.md` and `SUPPORT.md`. If your current access mode exposes GitHub Discussions (or a future public mirror preserves that route), use Discussions for early design discussion; use Issues for confirmed, trackable work when that route is actually reachable.
+请先从 `docs/README.md` 与 `SUPPORT.md` 开始。若你当前访问模式可见 GitHub Discussions（或未来 public mirror 保留该入口），可用它讨论早期设计；只有当 Issue 路径真实可达时，才用它承载已确认、可追踪的工作。
 
 ---
 

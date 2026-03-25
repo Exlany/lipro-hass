@@ -14,6 +14,9 @@
 - `SECURITY.md`：私密漏洞披露。  
   Private vulnerability disclosure.
 
+Current access-mode truth: this repository is private-access. GitHub-hosted Issues / Discussions / Releases / Security UI are therefore conditional surfaces, while the docs files above remain the only guaranteed first hop for every reader of this checkout.
+当前访问模式真相：本仓库是 private-access，因此 GitHub 承载的 Issues / Discussions / Releases / Security UI 都只是条件性入口；上面的文档文件才是当前 checkout 内对所有读者都保证成立的 first hop。
+
 ## Current Docs / 当前文档
 
 - `NORTH_STAR_TARGET_ARCHITECTURE.md`：北极星目标架构与长期裁决基线。  

@@ -1,9 +1,7 @@
 # Lipro 智能家居 Home Assistant 集成
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 [![CI](https://github.com/Exlany/lipro-hass/actions/workflows/ci.yml/badge.svg)](https://github.com/Exlany/lipro-hass/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/Exlany/lipro-hass/actions/workflows/codeql.yml/badge.svg)](https://github.com/Exlany/lipro-hass/actions/workflows/codeql.yml)
-[![GitHub Release](https://img.shields.io/github/v/release/Exlany/lipro-hass?style=flat-square)](https://github.com/Exlany/lipro-hass/releases)
 [![License](https://img.shields.io/github/license/Exlany/lipro-hass?style=flat-square)](LICENSE)
 
 [English](README.md) | 中文 | [更新日志](CHANGELOG.md)
@@ -12,7 +10,9 @@ Home Assistant 集成，用于控制 Lipro 智能家居设备。
 
 发布信任信号：阻断式 CI + 架构/治理守卫、CodeQL、SBOM/attestation/cosign 发布链，以及清晰的安全/支持快路径。
 
-文档快速入口：先看 `docs/README.md`，再按 canonical public route 进入 `CONTRIBUTING.md`、`docs/TROUBLESHOOTING.md`、`SUPPORT.md` 与 `SECURITY.md`。
+文档快速入口：先看 `docs/README.md`，再按 canonical docs-first route 进入 `CONTRIBUTING.md`、`docs/TROUBLESHOOTING.md`、`SUPPORT.md` 与 `SECURITY.md`。
+
+访问模式说明：当前仓库仍是 private-access。下文提到的 HACS / GitHub Releases / GitHub Issues / GitHub Discussions / GitHub Security Advisory 路径，只有在你已经具备仓库访问权限，或未来存在保持同一契约的 public mirror 时才成立。
 
 ## 功能特性
 
@@ -79,23 +79,18 @@ Home Assistant 集成，用于控制 Lipro 智能家居设备。
 
 最低支持的 Home Assistant 版本：`2026.3.1`（安装元数据位于 `hacs.json`，并与 `pyproject.toml` 保持同步）。
 
-私有仓库 / fork 说明：CI 会跳过 HACS validation，因为 HACS 只支持公开 GitHub 仓库。
+当前访问模式真相：本仓库是 private-access。HACS 只支持公开 GitHub 仓库，因此当前仓库并不承诺今天就存在人人可达的 HACS 入口。公开 GitHub Releases、Issues、Discussions 与 Security Advisory 页面同样依赖访问模式。请把当前 checkout 中的文档文件视为唯一保证可达的 first hop。
 
-若 `install.sh` 以 remote 模式运行且未显式指定 archive/tag，默认会解析最新的 tagged release（`latest`）。但面对普通用户的稳定安装文档，仍以 HACS 或经过校验的 GitHub Release 资产为准。
+若 `install.sh` 以 remote 模式运行且未显式指定 archive/tag，默认会解析最新的 tagged release（`latest`）。当前稳定安装说明只承诺你已经可以访问到的已校验 release 资产；如果维护者未来开放 public mirror 或 release surface，它也必须遵守这里描述的同一条 tagged-release 契约。
 
-### HACS（推荐）
+### HACS（仅限未来 public mirror）
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Exlany&repository=lipro-hass&category=integration)
+HACS 必须依赖公开 GitHub 仓库。当前 private-access 仓库因此无法承诺今天就有可用的 HACS 路径。若未来 public mirror 暴露了同一组 tagged release，请改用该 mirror 的 HACS 指引，而不要假定当前仓库已经具备同等可达性。
 
-1. 点击上方按钮，或在 HACS 中添加自定义仓库
-2. 搜索 "Lipro" 并安装
-3. 重启 Home Assistant
-4. 添加集成：设置 → 设备与服务 → 添加集成 → Lipro
-
-### 脚本安装（校验后的 Release 资产）
+### 脚本安装（已校验 Release 资产；需要访问权限）
 
 ```shell
-# 先从 GitHub Releases 下载以下资产。
+# 先从你当前已经可访问的 release surface 下载以下资产。
 # 请将 <release-tag> 替换为你实际下载的 tag（例如 vX.Y.Z）：
 #   - install.sh
 #   - lipro-hass-<release-tag>.zip
@@ -112,11 +107,11 @@ cosign verify-blob ./lipro-hass-<release-tag>.zip \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
 sha256sum -c SHA256SUMS --ignore-missing
 
-# 默认支持的脚本安装路径
+# 在你已拿到本地校验资产后，默认支持的脚本安装路径
 bash ./install.sh --archive-file ./lipro-hass-<release-tag>.zip --checksum-file ./SHA256SUMS
 ```
 
-说明：默认支持的脚本安装路径现在从已下载的 GitHub Release 资产开始。安装脚本会自行校验压缩包摘要，并在 zip 或 `SHA256SUMS` 缺失/不匹配时 fail-closed。
+说明：默认支持的脚本安装路径现在从当前访问模式下已经可得的已校验 release 资产开始。安装脚本会自行校验压缩包摘要，并在 zip 或 `SHA256SUMS` 缺失/不匹配时 fail-closed。
 
 ### 高级预览路径（不受支持）
 
@@ -132,14 +127,14 @@ ARCHIVE_TAG=main LIPRO_ALLOW_MIRROR=1 HUB_DOMAIN=ghfast.top bash ./install.sh
 
 ### Release 资产信任边界
 
-- 稳定安装的信任起点是经过校验的 GitHub Release 资产与 `SHA256SUMS`。
+- 稳定安装的信任起点是经过校验的 release 资产与 `SHA256SUMS`；若未来 public mirror 提供 verified GitHub Release assets，也必须遵守同一套契约。
 - 当前 release trust 证据还会发布 `SBOM`、GitHub artifact `attestation` / `provenance`（`gh attestation verify`）以及 keyless `cosign` 签名 bundle（`cosign verify-blob --bundle ...`）。
 - GitHub artifact attestation / provenance 证明资产如何被构建；`cosign` 签名 bundle 证明 artifact signing。两者互补，但不能互相替代。
 - Tagged release 现在会对 release-trust 栈 fail closed：blocking runtime `pip-audit`、必须存在且无 open alerts 的 tagged `CodeQL` analysis，以及签名校验，都必须在发布前通过。
 
 ### shell_command 服务
 
-1. 先把 `install.sh`、`lipro-hass-<release-tag>.zip` 与 `SHA256SUMS` 下载到本地稳定目录（例如 `/config/lipro-release/`）。
+1. 先把你当前已经可访问到的 `install.sh`、`lipro-hass-<release-tag>.zip` 与 `SHA256SUMS` 下载到本地稳定目录（例如 `/config/lipro-release/`）。
 2. 将以下内容添加到 `configuration.yaml`：
     ```yaml
     shell_command:
@@ -154,7 +149,7 @@ ARCHIVE_TAG=main LIPRO_ALLOW_MIRROR=1 HUB_DOMAIN=ghfast.top bash ./install.sh
 
 ### 手动安装
 
-1. 从 [Releases](https://github.com/Exlany/lipro-hass/releases) 下载 `lipro-hass-<release-tag>.zip`
+1. 从你当前已经可访问的 release surface 下载 `lipro-hass-<release-tag>.zip`（例如当前 private-access 仓库，或未来的 public mirror）
 2. 使用 `SHA256SUMS` 校验压缩包
 3. 解压后将 `custom_components/lipro` 复制到 `config/custom_components/` 目录
 4. 重启 Home Assistant
@@ -187,7 +182,7 @@ ARCHIVE_TAG=main LIPRO_ALLOW_MIRROR=1 HUB_DOMAIN=ghfast.top bash ./install.sh
 | 台灯 | - | ⚠️ 待测试 |
 | 网关 | - | ❌ 不支持 |
 
-> 💡 **欢迎反馈！** 如果您有其他 Lipro 设备，请在 [Issues](https://github.com/Exlany/lipro-hass/issues) 中反馈，帮助我们完善支持列表。
+> 💡 **欢迎反馈！** 如果您有其他 Lipro 设备，请先走 `docs/TROUBLESHOOTING.md` → `SUPPORT.md`。若你当前的访问模式可见 GitHub issue templates（或未来 public mirror 保留该入口），再通过那条路径提交设备信息。
 
 ## 使用场景
 
@@ -375,7 +370,7 @@ data:
 
 ## 支持模型
 
-- 稳定支持目标：通过匹配该标签的 HACS 安装，或使用该标签对应的已校验 GitHub Release 资产
+- 稳定支持目标：使用你当前访问模式下可达、且与最新 tagged release 对齐的已校验资产；若未来存在 public mirror，同一契约也可能表现为匹配该标签的 HACS 安装或已校验 GitHub Release 资产
 - 预览路径（`ARCHIVE_TAG=main`、branch fallback、mirror 安装）：仅属 best effort
 - 公开路由保持单一路径：`docs/README.md` → `CONTRIBUTING.md` / `docs/TROUBLESHOOTING.md` / `SUPPORT.md` / `SECURITY.md`
 - maintainer continuity 与 release custody 统一留在 `docs/MAINTAINER_RELEASE_RUNBOOK.md`，不回流根 README 的 public first hop
@@ -389,9 +384,9 @@ data:
 
 ## 贡献
 
-- 缺陷报告与 Pull Request：先阅读 `CONTRIBUTING.md`，并使用 GitHub Issue / PR 模板
-- 使用问题与想法讨论：先查看 `SUPPORT.md`，优先走 GitHub Discussions
-- 安全问题：遵循 `SECURITY.md`，优先使用私密披露流程
+- 缺陷报告与 Pull Request：先阅读 `CONTRIBUTING.md`；仅当当前访问模式可见时再使用 GitHub Issue / PR 模板
+- 使用问题与想法讨论：先查看 `SUPPORT.md`；只有当当前访问模式可见，或未来 public mirror 保留该入口时，再使用 GitHub Discussions
+- 安全问题：遵循 `SECURITY.md`；仅当当前访问模式可达时才优先使用 GitHub 私密 advisory UI
 - 社区行为约定：`CODE_OF_CONDUCT.md`
 
 ## 文档入口

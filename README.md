@@ -1,9 +1,7 @@
 # Lipro Smart Home for Home Assistant
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 [![CI](https://github.com/Exlany/lipro-hass/actions/workflows/ci.yml/badge.svg)](https://github.com/Exlany/lipro-hass/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/Exlany/lipro-hass/actions/workflows/codeql.yml/badge.svg)](https://github.com/Exlany/lipro-hass/actions/workflows/codeql.yml)
-[![GitHub Release](https://img.shields.io/github/v/release/Exlany/lipro-hass?style=flat-square)](https://github.com/Exlany/lipro-hass/releases)
 [![License](https://img.shields.io/github/license/Exlany/lipro-hass?style=flat-square)](LICENSE)
 
 [中文文档](README_zh.md) | English | [更新日志](CHANGELOG.md)
@@ -12,7 +10,9 @@ Home Assistant integration for controlling Lipro Smart Home devices.
 
 Release trust signals: blocking CI + architecture/governance guards, CodeQL, SBOM/attestation/cosign-backed release pipeline, and explicit security/support fast paths.
 
-Docs fast path: start with `docs/README.md`, then follow the canonical public route to `CONTRIBUTING.md`, `docs/TROUBLESHOOTING.md`, `SUPPORT.md`, and `SECURITY.md`.
+Docs fast path: start with `docs/README.md`, then follow the canonical docs-first route to `CONTRIBUTING.md`, `docs/TROUBLESHOOTING.md`, `SUPPORT.md`, and `SECURITY.md`.
+
+Access-mode note: this repository is currently private-access. The HACS / GitHub Releases / GitHub Issues / GitHub Discussions / GitHub Security Advisory routes mentioned below only apply when you already have repository access or when a future public mirror preserves the same contract.
 
 ## Features
 
@@ -79,23 +79,18 @@ This integration uses a **hybrid mode** to fetch device status:
 
 Minimum supported Home Assistant version: `2026.3.1` (install metadata: `hacs.json`; kept in sync with `pyproject.toml`).
 
-Private repository / fork note: CI skips HACS validation because HACS only supports public GitHub repositories.
+Current access-mode truth: this repository is private-access. HACS only works with public GitHub repositories, so the current repo does not promise a universally reachable HACS entry today. Public GitHub Releases, Issues, Discussions, and Security Advisory pages are likewise access-mode dependent. Treat the docs files in this checkout as the canonical first hop.
 
-If `install.sh` runs in remote mode without a pinned archive/tag, it resolves the latest tagged release by default. Stable public guidance still prefers HACS or verified GitHub Release assets.
+If `install.sh` runs in remote mode without a pinned archive/tag, it resolves the latest tagged release by default. Stable installation guidance currently prefers verified release assets that you can already reach. If the maintainer later enables a public mirror or release surface, it should follow the same tagged-release contract described here.
 
-### HACS (Recommended)
+### HACS (Future Public Mirror Only)
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Exlany&repository=lipro-hass&category=integration)
+HACS requires a public GitHub repository. The current private-access repo therefore cannot promise a working HACS route today. If a future public mirror exposes the same tagged release set, use that mirror's HACS instructions instead of assuming this repo is already reachable there.
 
-1. Click the button above, or add custom repository in HACS
-2. Search for "Lipro" and install
-3. Restart Home Assistant
-4. Add integration: Settings → Devices & Services → Add Integration → Lipro
-
-### Shell (Verified Release Assets)
+### Shell (Verified Release Assets; Access Required)
 
 ```shell
-# Download these release assets from GitHub Releases first.
+# Download these release assets from a release surface you can already reach first.
 # Replace <release-tag> with the actual tag you downloaded (for example vX.Y.Z):
 #   - install.sh
 #   - lipro-hass-<release-tag>.zip
@@ -112,11 +107,11 @@ cosign verify-blob ./lipro-hass-<release-tag>.zip \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
 sha256sum -c SHA256SUMS --ignore-missing
 
-# Supported shell install path
+# Supported shell install path once you already have the verified assets locally
 bash ./install.sh --archive-file ./lipro-hass-<release-tag>.zip --checksum-file ./SHA256SUMS
 ```
 
-Note: the supported shell installer path now starts from downloaded GitHub Release assets. The installer verifies the archive checksum itself and fails closed when the zip or `SHA256SUMS` is missing or mismatched.
+Note: the supported shell installer path now starts from verified release assets that are already available to your current access mode. The installer verifies the archive checksum itself and fails closed when the zip or `SHA256SUMS` is missing or mismatched.
 
 ### Advanced Preview Path (Unsupported)
 
@@ -132,14 +127,14 @@ Note: `ARCHIVE_TAG=main`, branch fallback, and mirror installs are preview / uns
 
 ### Release Asset Trust
 
-- Stable install trust starts from verified GitHub Release assets plus `SHA256SUMS`.
+- Stable install trust starts from verified release assets plus `SHA256SUMS`; if a future public mirror exposes verified GitHub Release assets, they must follow the same contract.
 - Current release trust evidence also publishes an `SBOM`, GitHub artifact `attestation` / `provenance` (`gh attestation verify`), and keyless `cosign` signature bundles (`cosign verify-blob --bundle ...`).
 - GitHub artifact attestation / provenance proves how release assets were produced; `cosign` signature bundles prove artifact signing. They are complementary, not interchangeable.
 - Tagged releases now fail closed on the release-trust stack: blocking runtime `pip-audit`, required tagged `CodeQL` analysis with zero open alerts, and signature verification must all pass before assets publish.
 
 ### shell_command Service
 
-1. Download `install.sh`, `lipro-hass-<release-tag>.zip`, and `SHA256SUMS` into a stable local directory first (for example `/config/lipro-release/`).
+1. Download `install.sh`, `lipro-hass-<release-tag>.zip`, and `SHA256SUMS` from a release surface you can already access into a stable local directory first (for example `/config/lipro-release/`).
 2. Add the following to your `configuration.yaml`:
     ```yaml
     shell_command:
@@ -154,7 +149,7 @@ Note: `ARCHIVE_TAG=main`, branch fallback, and mirror installs are preview / uns
 
 ### Manual Installation
 
-1. Download `lipro-hass-<release-tag>.zip` from [Releases](https://github.com/Exlany/lipro-hass/releases)
+1. Download `lipro-hass-<release-tag>.zip` from a release surface you can already access (for example the current private-access repository or a future public mirror)
 2. Verify it against `SHA256SUMS`
 3. Extract the archive and copy `custom_components/lipro` to your `config/custom_components/` directory
 4. Restart Home Assistant
@@ -187,7 +182,7 @@ To modify account information, click "Configure" on the integration page to reco
 | Desk Lamp | - | ⚠️ Untested |
 | Gateway | - | ❌ Not Supported |
 
-> 💡 **Feedback Welcome!** If you have other Lipro devices, please report in [Issues](https://github.com/Exlany/lipro-hass/issues) to help us improve device support.
+> 💡 **Feedback Welcome!** If you have other Lipro devices, start with `docs/TROUBLESHOOTING.md` → `SUPPORT.md`. If your current access mode exposes GitHub issue templates (or a future public mirror preserves them), use that route to share the device details.
 
 ## Use Cases
 
@@ -374,7 +369,7 @@ This integration is implemented by reverse engineering the Lipro cloud API and i
 
 ## Support Model
 
-- Stable support targets: the latest tagged release via a matching HACS install or verified GitHub Release assets for that tag
+- Stable support targets: the latest tagged release installed from verified assets reachable in your current access mode; if a future public mirror exists, that same contract may also appear as a matching HACS install or verified GitHub Release assets for that tag
 - Preview paths (`ARCHIVE_TAG=main`, branch fallback, mirror installs): best effort only
 - Public routing stays on one path: `docs/README.md` → `CONTRIBUTING.md` / `docs/TROUBLESHOOTING.md` / `SUPPORT.md` / `SECURITY.md`
 - Maintainer continuity and release custody stay in `docs/MAINTAINER_RELEASE_RUNBOOK.md`, not in the root public first hop
@@ -388,9 +383,9 @@ This integration is implemented by reverse engineering the Lipro cloud API and i
 
 ## Contributing
 
-- Bug reports and pull requests: start with `CONTRIBUTING.md` and the GitHub issue / PR templates
-- Usage questions and idea discussion: start with `SUPPORT.md` and GitHub Discussions
-- Security issues: follow `SECURITY.md` and use private disclosure first
+- Bug reports and pull requests: start with `CONTRIBUTING.md`; GitHub issue / PR templates apply when your current access mode exposes them
+- Usage questions and idea discussion: start with `SUPPORT.md`; use GitHub Discussions only when that route is visible in your current access mode or a future public mirror preserves it
+- Security issues: follow `SECURITY.md`; use the private GitHub advisory UI first only when it is reachable in your current access mode
 - Community expectations: `CODE_OF_CONDUCT.md`
 
 ## Documentation

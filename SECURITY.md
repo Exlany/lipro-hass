@@ -5,7 +5,7 @@
 | Version | Status |
 | --- | --- |
 | Latest tagged release / 最新标签版本 | Supported / 支持 |
-| Current HACS install matching latest tag / 与最新标签一致的 HACS 安装 | Supported / 支持 |
+| Matching HACS install on a future public mirror / 未来 public mirror 上与最新标签一致的 HACS 安装 | Supported when that mirror exists / 仅在该 mirror 实际存在时支持 |
 | Older tagged releases / 较早标签版本 | Best effort only / 尽力而为 |
 | `main` / preview installer path | Best effort only / 尽力而为，不承诺稳定支持 |
 
@@ -20,6 +20,9 @@ The runtime dependency envelope is declared in `pyproject.toml` (full runtime fl
 
 Supported shell/manual installs should start from verified GitHub Release assets (`install.sh` + release zip + `SHA256SUMS`). Preview paths such as `ARCHIVE_TAG=main`, branch fallback, or mirror installs are best effort only. If the installer runs in remote mode without a pinned archive/tag, it resolves the latest tagged release by default, but that convenience does not weaken the verified-release support contract.
 默认支持的 shell / 手动安装路径应从经过校验的 GitHub Release 资产（`install.sh` + release zip + `SHA256SUMS`）开始；`ARCHIVE_TAG=main`、branch fallback 与 mirror 安装仅属于尽力而为的预览路径。若安装脚本以 remote 模式运行且未显式指定 archive/tag，则默认解析最新 tagged release（`latest`）；但这种便利性不会削弱经过校验的稳定安装契约。
+
+Access-mode note: this repository is currently private-access. The GitHub security policy page and private advisory UI below therefore only work when your current access mode exposes them or when a future public mirror preserves the same security contract.
+访问模式说明：当前仓库仍是 private-access。下文的 GitHub security policy 页面与私密 advisory UI 因此只有在你当前访问模式可见，或未来 public mirror 保持同一安全契约时才成立。
 
 Current release trust evidence includes published `SHA256SUMS`, `SBOM`, GitHub artifact `attestation` / `provenance`, keyless `cosign` signature bundles, the tagged runtime `pip-audit` gate, and a fail-closed tagged `CodeQL` gate. Artifact attestation / provenance is still release-identity evidence; `cosign` bundles are the artifact-signing layer.
 当前 release trust 证据包括已发布的 `SHA256SUMS`、`SBOM`、GitHub artifact `attestation` / `provenance`、keyless `cosign` 签名 bundle、tagged runtime `pip-audit` 门禁，以及 fail-closed 的 tagged `CodeQL` 门禁。Artifact attestation / provenance 仍属于 release identity 证据；`cosign` bundle 才是 artifact signing 这一层。
@@ -70,8 +73,10 @@ The maintainer-unavailable drill is the repeatable continuity contract for custo
 Please do **not** open a public GitHub issue for security vulnerabilities.
 安全漏洞请**不要**直接提交公开 GitHub Issue。
 
-- Preferred private path / 首选私密路径：`https://github.com/Exlany/lipro-hass/security/advisories/new`
-- Policy landing page / 安全策略入口：`https://github.com/Exlany/lipro-hass/security/policy`
+- Preferred private path when your current access mode exposes it / 当前访问模式可见时的首选私密路径：`https://github.com/Exlany/lipro-hass/security/advisories/new`
+- Policy landing page with the same access caveat / 带同样访问前提的安全策略入口：`https://github.com/Exlany/lipro-hass/security/policy`
+- If those GitHub security routes are not reachable in your current access mode, do not infer a public fallback from this private repository; keep the report private and return to this policy once a repository-access path is actually available.
+- 若这些 GitHub 安全入口在你当前访问模式下不可达，不要把当前 private repository 误读为已经提供公开替代路径；请继续保持私密，并在真实可达的仓库访问路径出现后回到本策略执行。
 - Include / 请附带：integration version、Home Assistant version、reproduction steps、impact assessment、redacted logs
 
 ## Private Disclosure Process / 私密披露流程
