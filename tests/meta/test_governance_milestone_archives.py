@@ -173,8 +173,8 @@ def test_milestone_archive_snapshots_exist_and_are_referenced() -> None:
         assert needle in requirements_text or needle in project_text or needle in milestones_text
 
     assert "v1.16-MILESTONE-AUDIT.md" in state_text
-    assert "$gsd-new-milestone" in state_text
-    assert "no active milestone route" in state_text
+    assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
+    assert f"**Current mode:** `{CURRENT_ROUTE_MODE}`" in state_text
     assert "archived / evidence-ready" in milestones_text
     assert "archived snapshots created / handoff-ready" in milestones_text
     assert "revalidated 2026-03-17" in milestones_text
@@ -489,7 +489,7 @@ def test_governance_truth_registers_v1_19_latest_archive_pointer() -> None:
     assert "## v1.19 Audit-Driven Final Hotspot Decomposition & Governance Truth Projection" in milestones_text
     assert ".planning/reviews/V1_19_EVIDENCE_INDEX.md" in milestones_text
     assert LATEST_ARCHIVED_EVIDENCE_PATH in docs_text
-    assert "no active milestone route / latest archived baseline = v1.19" in docs_text
+    assert "v1.20 active route / Phase 72 planning-ready / latest archived baseline = v1.19" in docs_text
     assert_runbook_points_to_latest_evidence(
         runbook_text,
         LATEST_ARCHIVED_EVIDENCE_FILENAME,
@@ -498,4 +498,5 @@ def test_governance_truth_registers_v1_19_latest_archive_pointer() -> None:
     assert CURRENT_MILESTONE_DEFAULT_NEXT in project_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
     assert CURRENT_MILESTONE_HEADER in project_text
+    assert LATEST_ARCHIVED_EVIDENCE_PATH in project_text
     assert f"**Current mode:** `{CURRENT_ROUTE_MODE}`" in state_text

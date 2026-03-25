@@ -39,6 +39,7 @@ from .conftest import (
 )
 from .governance_current_truth import (
     CURRENT_MILESTONE_DEFAULT_NEXT,
+    CURRENT_ROUTE,
     LATEST_ARCHIVED_EVIDENCE_FILENAME,
     LATEST_ARCHIVED_EVIDENCE_PATH,
 )
@@ -376,7 +377,7 @@ def test_latest_closeout_pointer_and_active_route_stay_current() -> None:
     runbook_text = _RUNBOOK.read_text(encoding="utf-8")
 
     assert LATEST_ARCHIVED_EVIDENCE_PATH in docs_text
-    assert "no active milestone route / latest archived baseline = v1.19" in docs_text
+    assert CURRENT_ROUTE in docs_text
     assert LATEST_ARCHIVED_EVIDENCE_FILENAME in runbook_text
     assert "V1_6_EVIDENCE_INDEX.md" not in runbook_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in project_text

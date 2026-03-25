@@ -25,6 +25,8 @@ def _assert_state_keeps_forward_progress_commands(state_text: str) -> None:
 def _assert_project_allows_post_v1_4_next_step(project_text: str) -> None:
     assert (
         "**Default next step:** `$gsd-new-milestone`" in project_text
+        or re.search(r"\*\*Default next step:\*\* `\$gsd-plan-phase \d+(?:\.\d+)?`", project_text)
+        is not None
         or re.search(
             r"\*\*Default next step:\*\* `\$gsd-plan-phase \d+(?:\.\d+)?` → `\$gsd-execute-phase \d+(?:\.\d+)?`",
             project_text,

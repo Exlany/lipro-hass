@@ -4,9 +4,12 @@ from __future__ import annotations
 
 from .governance_current_truth import (
     CURRENT_MILESTONE,
+    CURRENT_MILESTONE_DEFAULT_NEXT,
     CURRENT_MILESTONE_HEADER,
     CURRENT_MILESTONE_NAME,
+    CURRENT_MILESTONE_STATUS,
     CURRENT_PHASE_HEADING,
+    CURRENT_ROUTE,
     CURRENT_ROUTE_MODE,
     LATEST_ARCHIVED_AUDIT_PATH,
     LATEST_ARCHIVED_EVIDENCE_PATH,
@@ -175,51 +178,54 @@ def test_v1_8_closeout_through_v1_15_archived_truth_are_consistent() -> None:
     assert ".planning/milestones/v1.13-ROADMAP.md" in project_text
     assert ".planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-01-PLAN.md" not in project_text
 
-    assert "**Current route:** `no active milestone route / latest archived baseline = v1.19`；latest archived closeout pointer = `.planning/reviews/V1_19_EVIDENCE_INDEX.md`." in project_text
+    assert f"**Current route:** `{CURRENT_ROUTE}`；latest archived closeout pointer = `{LATEST_ARCHIVED_EVIDENCE_PATH}`." in project_text
     assert CURRENT_MILESTONE_HEADER in project_text
     assert LATEST_ARCHIVED_PROJECT_HEADER in project_text
-    assert "**Current status:** `archived / evidence-ready (2026-03-25)`" in project_text
-    assert "**Default next command:** `$gsd-new-milestone`" in project_text
+    assert f"**Current status:** `{CURRENT_MILESTONE_STATUS}`" in project_text
+    assert f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`" in project_text
     assert "## Archived Milestone (v1.17)" in project_text
     assert "## Archived Milestone (v1.16)" in project_text
     assert "**Current status:** `archived / evidence-ready with carry-forward (2026-03-24)`" in project_text
     assert "## Archived Milestone (v1.15)" in project_text
 
     assert f"## {CURRENT_MILESTONE}: {CURRENT_MILESTONE_NAME}" in roadmap_text
-    assert "**Archive status:** `archived / evidence-ready (2026-03-25)`" in roadmap_text
-    assert "**Default next command:** `$gsd-new-milestone`" in roadmap_text
+    assert "**Milestone status:** `active / Phase 72 planning-ready (2026-03-25)`" in roadmap_text
+    assert f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`" in roadmap_text
     assert CURRENT_PHASE_HEADING in roadmap_text
     assert "Plans:" in roadmap_text
-    assert "71-05: sync baselines, promote phase assets, and run the final phase gate" in roadmap_text
+    assert "72-04: freeze v1.20 current-route truth, focused guards, and planning gate inputs" in roadmap_text
     assert "### Phase 69: Residual read-model closure, wrapper-path thinning, and quality-balance follow-through" in roadmap_text
 
     for needle in (
-        "- [x] **GOV-55**",
-        "- [x] **ARC-18**",
-        "- [x] **HOT-30**",
-        "- [x] **HOT-31**",
-        "- [x] **TYP-20**",
-        "- [x] **TST-21**",
-        "- [x] **QLT-29**",
-        "| GOV-55 | Phase 71 | Completed |",
-        "| ARC-18 | Phase 71 | Completed |",
-        "| HOT-30 | Phase 71 | Completed |",
-        "| HOT-31 | Phase 71 | Completed |",
-        "| TYP-20 | Phase 71 | Completed |",
-        "| TST-21 | Phase 71 | Completed |",
-        "| QLT-29 | Phase 71 | Completed |",
-        "- v1.19 routed requirements: 7 total",
-        "- Current mapped: 7",
-        "- Current complete: 7",
-        "- Current pending: 0",
+        "- [ ] **GOV-56**",
+        "- [ ] **ARC-19**",
+        "- [ ] **HOT-32**",
+        "- [ ] **HOT-33**",
+        "- [ ] **HOT-34**",
+        "- [ ] **TYP-21**",
+        "- [ ] **TST-22**",
+        "- [ ] **QLT-30**",
+        "| GOV-56 | Phase 72, 74 | Planned |",
+        "| ARC-19 | Phase 72, 73 | Planned |",
+        "| HOT-32 | Phase 72 | Planned |",
+        "| HOT-33 | Phase 73 | Planned |",
+        "| HOT-34 | Phase 74 | Planned |",
+        "| TYP-21 | Phase 72, 73 | Planned |",
+        "| TST-22 | Phase 72, 73, 74 | Planned |",
+        "| QLT-30 | Phase 72, 73, 74 | Planned |",
+        "- v1.20 routed requirements: 8 total",
+        "- Current mapped: 8",
+        "- Current complete: 0",
+        "- Current pending: 8",
+        "## Latest Archived Milestone (v1.19)",
         "## Traceability for archived v1.16 route",
         "| GOV-52 | Phase 68 | Completed |",
         "| QLT-26 | Phase 68 | Completed |",
     ):
         assert needle in requirements_text
 
-    assert "**Current milestone:** `No active milestone route`" in state_text
+    assert f"**Current milestone:** `{CURRENT_MILESTONE} {CURRENT_MILESTONE_NAME}`" in state_text
     assert f"**Current mode:** `{CURRENT_ROUTE_MODE}`" in state_text
-    assert "$gsd-new-milestone" in state_text
+    assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
     assert LATEST_ARCHIVED_AUDIT_PATH in state_text
     assert LATEST_ARCHIVED_EVIDENCE_PATH in state_text

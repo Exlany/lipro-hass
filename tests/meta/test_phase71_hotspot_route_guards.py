@@ -1,4 +1,4 @@
-"""Phase 71 hotspot/function-budget and archived-route truth guards."""
+"""Phase 71 hotspot/function-budget and active-route truth guards."""
 
 from __future__ import annotations
 
@@ -10,14 +10,16 @@ from tests.helpers.repo_root import repo_root
 from .governance_current_truth import (
     CURRENT_MILESTONE,
     CURRENT_MILESTONE_HEADER,
-    CURRENT_MILESTONE_LABEL,
     CURRENT_MILESTONE_NAME,
     CURRENT_MILESTONE_ROADMAP_HEADER,
+    CURRENT_PHASE,
+    CURRENT_PHASE_DIR,
     CURRENT_PHASE_HEADING,
     CURRENT_PHASE_TITLE,
     CURRENT_ROUTE_MODE,
     LATEST_ARCHIVED_EVIDENCE_PATH,
-    PREVIOUS_ARCHIVED_PROJECT_HEADER,
+    LATEST_ARCHIVED_MILESTONE,
+    LATEST_ARCHIVED_PROJECT_HEADER,
 )
 
 _ROOT = repo_root(Path(__file__))
@@ -63,22 +65,30 @@ def test_phase71_route_tests_use_shared_current_truth_helper() -> None:
         assert "governance_current_truth" in text
 
 
-def test_phase71_archived_route_truth_is_distinct_from_no_active_route() -> None:
+def test_phase71_archived_route_truth_is_distinct_from_active_v1_20_route() -> None:
     project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
 
     assert CURRENT_MILESTONE_HEADER in project_text
-    assert PREVIOUS_ARCHIVED_PROJECT_HEADER in project_text
+    assert LATEST_ARCHIVED_PROJECT_HEADER in project_text
     assert CURRENT_MILESTONE_ROADMAP_HEADER in roadmap_text
-    assert CURRENT_MILESTONE_HEADER in requirements_text
-    assert f"**Current milestone:** `{CURRENT_MILESTONE_LABEL}`" in state_text
+    assert f"**Current milestone:** `{CURRENT_MILESTONE} {CURRENT_MILESTONE_NAME}`" in state_text
     assert f"**Current mode:** `{CURRENT_ROUTE_MODE}`" in state_text
     assert LATEST_ARCHIVED_EVIDENCE_PATH in project_text
     assert LATEST_ARCHIVED_EVIDENCE_PATH in state_text
     assert CURRENT_PHASE_HEADING in roadmap_text
     assert CURRENT_PHASE_TITLE in roadmap_text
-    assert f"## Latest Archived Milestone ({CURRENT_MILESTONE})" in requirements_text
+    assert f"## Latest Archived Milestone ({LATEST_ARCHIVED_MILESTONE})" in requirements_text
     assert "71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection" in project_text
-    assert CURRENT_MILESTONE_NAME in state_text
+
+
+def test_phase72_context_exists_for_planning_route() -> None:
+    context_path = _ROOT / ".planning" / "phases" / CURRENT_PHASE_DIR / f"{CURRENT_PHASE}-CONTEXT.md"
+    context_text = context_path.read_text(encoding="utf-8")
+
+    assert context_path.exists()
+    assert f"# Phase {CURRENT_PHASE} Context" in context_text
+    assert "v1.19 archived / evidence-ready" in context_text
+    assert "runtime_access" in context_text

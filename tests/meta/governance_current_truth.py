@@ -1,22 +1,34 @@
-"""Shared latest-archive and no-active-route truth for governance tests."""
+"""Shared active-route and latest-archive truth for governance tests."""
 
 from __future__ import annotations
 
-CURRENT_MILESTONE = "v1.19"
-CURRENT_MILESTONE_NAME = "Audit-Driven Final Hotspot Decomposition & Governance Truth Projection"
-CURRENT_MILESTONE_HEADER = f"## Latest Archived Milestone ({CURRENT_MILESTONE})"
-CURRENT_MILESTONE_ROADMAP_HEADER = f"## {CURRENT_MILESTONE}: {CURRENT_MILESTONE_NAME}"
-CURRENT_MILESTONE_STATUS = "archived / evidence-ready (2026-03-25)"
-CURRENT_MILESTONE_DEFAULT_NEXT = "$gsd-new-milestone"
-CURRENT_MILESTONE_LABEL = "No active milestone route"
-CURRENT_PHASE = "71"
-CURRENT_PHASE_TITLE = "Audit-driven final hotspot decomposition, governance truth projection, and closeout routing"
-CURRENT_PHASE_HEADING = f"### Phase {CURRENT_PHASE}: {CURRENT_PHASE_TITLE}"
-CURRENT_PHASE_DIR = "71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection"
-CURRENT_ROUTE_MODE = "no active milestone route / latest archived baseline = v1.19"
-LATEST_ARCHIVED_MILESTONE = CURRENT_MILESTONE
-LATEST_ARCHIVED_MILESTONE_NAME = CURRENT_MILESTONE_NAME
-LATEST_ARCHIVED_PROJECT_HEADER = CURRENT_MILESTONE_HEADER
+ACTIVE_MILESTONE = "v1.20"
+ACTIVE_MILESTONE_NAME = "Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement"
+ACTIVE_MILESTONE_HEADER = f"## Active Milestone ({ACTIVE_MILESTONE})"
+ACTIVE_MILESTONE_ROADMAP_HEADER = f"## {ACTIVE_MILESTONE}: {ACTIVE_MILESTONE_NAME}"
+ACTIVE_MILESTONE_STATUS = "active / Phase 72 planning-ready (2026-03-25)"
+ACTIVE_MILESTONE_DEFAULT_NEXT = "$gsd-plan-phase 72"
+ACTIVE_MILESTONE_LABEL = f"{ACTIVE_MILESTONE} {ACTIVE_MILESTONE_NAME}"
+ACTIVE_PHASE = "72"
+ACTIVE_PHASE_TITLE = "Runtime bootstrap convergence, lifecycle orchestration consolidation, and runtime-access probe retirement"
+ACTIVE_PHASE_HEADING = f"### Phase {ACTIVE_PHASE}: {ACTIVE_PHASE_TITLE}"
+ACTIVE_PHASE_DIR = "72-runtime-bootstrap-convergence-lifecycle-orchestration-and-runtime-access-probe-retirement"
+CURRENT_ROUTE = "v1.20 active route / Phase 72 planning-ready / latest archived baseline = v1.19"
+CURRENT_ROUTE_MODE = "Phase 72 planning-ready"
+CURRENT_MILESTONE = ACTIVE_MILESTONE
+CURRENT_MILESTONE_NAME = ACTIVE_MILESTONE_NAME
+CURRENT_MILESTONE_HEADER = ACTIVE_MILESTONE_HEADER
+CURRENT_MILESTONE_ROADMAP_HEADER = ACTIVE_MILESTONE_ROADMAP_HEADER
+CURRENT_MILESTONE_STATUS = ACTIVE_MILESTONE_STATUS
+CURRENT_MILESTONE_DEFAULT_NEXT = ACTIVE_MILESTONE_DEFAULT_NEXT
+CURRENT_MILESTONE_LABEL = ACTIVE_MILESTONE_LABEL
+CURRENT_PHASE = ACTIVE_PHASE
+CURRENT_PHASE_TITLE = ACTIVE_PHASE_TITLE
+CURRENT_PHASE_HEADING = ACTIVE_PHASE_HEADING
+CURRENT_PHASE_DIR = ACTIVE_PHASE_DIR
+LATEST_ARCHIVED_MILESTONE = "v1.19"
+LATEST_ARCHIVED_MILESTONE_NAME = "Audit-Driven Final Hotspot Decomposition & Governance Truth Projection"
+LATEST_ARCHIVED_PROJECT_HEADER = f"## Latest Archived Milestone ({LATEST_ARCHIVED_MILESTONE})"
 LATEST_ARCHIVED_EVIDENCE_FILENAME = "V1_19_EVIDENCE_INDEX.md"
 LATEST_ARCHIVED_EVIDENCE_PATH = ".planning/reviews/V1_19_EVIDENCE_INDEX.md"
 LATEST_ARCHIVED_AUDIT_FILENAME = "v1.19-MILESTONE-AUDIT.md"

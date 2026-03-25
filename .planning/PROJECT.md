@@ -2,11 +2,29 @@
 
 
 **Status:** Active
-**Current route:** `no active milestone route / latest archived baseline = v1.19`；latest archived closeout pointer = `.planning/reviews/V1_19_EVIDENCE_INDEX.md`.
-**Legacy route-string compatibility:** **Status:** `no active milestone route / latest archived baseline = v1.19`；latest archived closeout pointer = `.planning/reviews/V1_19_EVIDENCE_INDEX.md`.
-**Goal:** 基于 `v1.19` archived baseline 与 `Phase 71` closeout evidence，把 latest-archive / no-active-route truth 固化为下一轮里程碑的唯一出发点；后续治理动作只能显式通过 `$gsd-new-milestone` 建立新路线，而不是回写第二条 current story。
-**Default next step:** `$gsd-new-milestone`
-**Active baseline:** 当前无 active milestone；latest archived baseline = `v1.19`；previous archived baseline = `v1.18`。
+**Current route:** `v1.20 active route / Phase 72 planning-ready / latest archived baseline = v1.19`；latest archived closeout pointer = `.planning/reviews/V1_19_EVIDENCE_INDEX.md`.
+**Legacy route-string compatibility:** **Status:** `v1.20 active route / Phase 72 planning-ready / latest archived baseline = v1.19`；latest archived closeout pointer = `.planning/reviews/V1_19_EVIDENCE_INDEX.md`.
+**Goal:** 基于 `v1.19` archived baseline、`Phase 71` closeout evidence 与 `.planning/reviews/V1_19_TERMINAL_AUDIT.md` 已登记的 follow-up seeds，把 bootstrap / lifecycle / runtime-access / service-family / auth-legacy 的剩余 residual 沿既有 north-star seams 继续 inward convergence，并把 current route 正式切到 `v1.20 / Phase 72 -> 74`。
+**Default next step:** `$gsd-plan-phase 72`
+**Active baseline:** active milestone = `v1.20`；latest archived baseline = `v1.19`；previous archived baseline = `v1.18`。
+
+## Active Milestone (v1.20)
+
+**Name:** `v1.20 Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement`
+
+**Why now:** `v1.19` 已把 archive/current governance truth、OTA / anonymous-share / request-pacing / command-runtime hotspot 与 `Phase 71` closeout 收口到 archived baseline；`.planning/reviews/V1_19_TERMINAL_AUDIT.md` 则明确登记了下一轮更高杠杆、但仍可沿正式主链 inward 收口的 residual：`Coordinator` bootstrap / builder 重组、`runtime_access` probing 退役、`EntryLifecycleController` / `EntryLifecycleSupport` orchestration 归并、`service_router` service-family 重切、diagnostics/helper convergence、`LiproEntity` 运行面策略下沉 / `schedule.py` runtime surface formalization，以及 auth legacy snapshot / compatibility wrapper retirement。
+
+**North-star fit:** `v1.20` 继续只允许以下收敛方式：
+
+- bootstrap / lifecycle / runtime-access 只能回收到现有 `control/` 与 runtime formal homes，不得新建 orchestration root、builder folklore 或 shadow bootstrap chain。
+- service-family / diagnostics/helper / schedule / entity runtime strategy 只能做 inward deduplication 与 formal-home clarification，不得恢复 helper-owned second story。
+- auth legacy snapshot / compatibility wrapper 只能继续退役并缩窄 outward contract，不得引入新的 legacy alias / compat root。
+- latest archived closeout pointer 继续固定在 `.planning/reviews/V1_19_EVIDENCE_INDEX.md`；`v1.19` 保持 latest archived baseline，`v1.18` 保持 previous archived baseline。
+
+**Current status:** `active / Phase 72 planning-ready (2026-03-25)`
+**Starting baseline:** `.planning/v1.19-MILESTONE-AUDIT.md`, `.planning/reviews/V1_19_EVIDENCE_INDEX.md`, `.planning/milestones/v1.19-ROADMAP.md`, `.planning/milestones/v1.19-REQUIREMENTS.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-SUMMARY.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-VERIFICATION.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-VALIDATION.md`, `.planning/reviews/V1_19_TERMINAL_AUDIT.md`
+**Requirements basket:** `GOV-56`, `ARC-19`, `HOT-32`, `HOT-33`, `HOT-34`, `TYP-21`, `TST-22`, `QLT-30`
+**Default next command:** `$gsd-plan-phase 72`
 
 ## Latest Archived Milestone (v1.19)
 

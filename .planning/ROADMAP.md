@@ -21,7 +21,8 @@
 - ✅ **v1.16 Master Audit Follow-Through, Hotspot Finalization & Docs Contract Hardening** - `Phase 68` archived on 2026-03-24; milestone audit: `.planning/v1.16-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_16_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.16-ROADMAP.md` / `.planning/milestones/v1.16-REQUIREMENTS.md`; non-blocking residual formally carried forward to `v1.17 / Phase 69`
 - ✅ **v1.17 Residual Formalization, Quality-Balance Hardening & Open-Source Contract Closure** - `Phase 69` archived on 2026-03-24; milestone audit: `.planning/v1.17-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_17_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.17-ROADMAP.md` / `.planning/milestones/v1.17-REQUIREMENTS.md`; served as the starting archived baseline for `v1.18 / Phase 70`
 - ✅ **v1.18 Support-Seam Slimming, OTA Resolver Consolidation & Governance Test Topicization** - `Phase 70` archived on 2026-03-24; milestone audit: `.planning/v1.18-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_18_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.18-ROADMAP.md` / `.planning/milestones/v1.18-REQUIREMENTS.md`; served as the starting archived baseline for `v1.19 / Phase 71`
-- ✅ **v1.19 Audit-Driven Final Hotspot Decomposition & Governance Truth Projection** - `Phase 71` archived on 2026-03-25; milestone audit: `.planning/v1.19-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_19_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.19-ROADMAP.md` / `.planning/milestones/v1.19-REQUIREMENTS.md`; current governance state = `no active milestone route / latest archived baseline = v1.19`
+- 🚧 **v1.20 Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement** - active route opened on 2026-03-25 from `.planning/reviews/V1_19_TERMINAL_AUDIT.md`; `Phase 72 -> 74` planned; latest archived baseline remains `v1.19`; next command: `$gsd-plan-phase 72`
+- ✅ **v1.19 Audit-Driven Final Hotspot Decomposition & Governance Truth Projection** - `Phase 71` archived on 2026-03-25; milestone audit: `.planning/v1.19-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_19_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.19-ROADMAP.md` / `.planning/milestones/v1.19-REQUIREMENTS.md`; serves as the latest archived baseline for `v1.20 / Phase 72 -> 74`
 
 ## Required Phase Outputs
 
@@ -336,6 +337,57 @@ Plans:
 
 ## Current Milestone
 
+
+## v1.20: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
+
+**Milestone Goal:** 基于 `v1.19` archived baseline，把 bootstrap / lifecycle / runtime-access / service-family / diagnostics-helper / entity-runtime / auth-legacy 的 remaining residual 继续沿正式主链 inward convergence，同时保持 `v1.19` 作为 latest archived baseline 与 `V1_19_EVIDENCE_INDEX.md` 的 pull-only closeout pointer 身份。
+
+> `v1.20` 从 `v1.19` archived baseline 与 `.planning/reviews/V1_19_TERMINAL_AUDIT.md` 开立 active route：它承接 `Phase 71` 的 latest archived evidence，聚焦 bootstrap/lifecycle/runtime-access convergence、service-family/helper/runtime-surface deduplication 与 auth legacy residual retirement，并把下一步固定为 `Phase 72` 规划。
+
+**Milestone status:** `active / Phase 72 planning-ready (2026-03-25)`
+**Starting baseline:** `.planning/v1.19-MILESTONE-AUDIT.md`, `.planning/reviews/V1_19_EVIDENCE_INDEX.md`, `.planning/milestones/v1.19-ROADMAP.md`, `.planning/milestones/v1.19-REQUIREMENTS.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-SUMMARY.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-VERIFICATION.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-VALIDATION.md`, `.planning/reviews/V1_19_TERMINAL_AUDIT.md`
+**Requirements basket:** `GOV-56`, `ARC-19`, `HOT-32`, `HOT-33`, `HOT-34`, `TYP-21`, `TST-22`, `QLT-30`
+**Latest archived closeout pointer:** `.planning/reviews/V1_19_EVIDENCE_INDEX.md`
+**Default next command:** `$gsd-plan-phase 72`
+
+### Phase 72: Runtime bootstrap convergence, lifecycle orchestration consolidation, and runtime-access probe retirement
+
+**Goal:** 把 `Coordinator` bootstrap / builder、`EntryLifecycleController` / `EntryLifecycleSupport` orchestration 与 `runtime_access` test-aware probing 收敛回既有 formal homes，降低 startup / lifecycle hotspot density，同时冻结 `v1.20` active-route truth 与 focused no-growth guards。
+**Depends on:** Phase 71
+**Requirements**: [GOV-56, ARC-19, HOT-32, TYP-21, TST-22, QLT-30]
+**Status**: Planning ready
+
+Plans:
+- [ ] 72-01: formalize bootstrap collaborators and trim coordinator startup density
+- [ ] 72-02: converge lifecycle orchestration into explicit controller/support seams
+- [ ] 72-03: retire test-aware runtime-access probing without reopening backdoors
+- [ ] 72-04: freeze v1.20 current-route truth, focused guards, and planning gate inputs
+
+### Phase 73: Service-family deduplication, diagnostics/helper convergence, and runtime-surface formalization
+
+**Goal:** 继续重切 `service_router` forwarding family、diagnostics/helper duplication、`LiproEntity` runtime strategy 与 `schedule.py` formal runtime surface，把厚重 helper / forwarding chains 压回更诚实的 service/runtime homes。
+**Depends on:** Phase 72
+**Requirements**: [ARC-19, HOT-33, TYP-21, TST-22, QLT-30]
+**Status**: Pending
+
+Plans:
+- [ ] 73-01: re-cut service-router forwarding families into explicit service homes
+- [ ] 73-02: converge diagnostics helper families and retire duplicated helper support seams
+- [ ] 73-03: formalize entity runtime strategy and schedule runtime surfaces
+- [ ] 73-04: extend focused guards and verification proofs for service/runtime convergence
+
+### Phase 74: Legacy auth residual retirement, test topicization, and milestone closeout
+
+**Goal:** 关闭 auth legacy snapshot / compatibility wrapper 残留，继续 topicize remaining large suites，并完成 `v1.20` governance sync、validation 与 milestone closeout，不让 non-blocking residual 无 owner 漂移。
+**Depends on:** Phase 73
+**Requirements**: [GOV-56, HOT-34, TST-22, QLT-30]
+**Status**: Pending
+
+Plans:
+- [ ] 74-01: retire auth legacy snapshot and compatibility wrappers
+- [ ] 74-02: topicize remaining large suites and maintainability guards
+- [ ] 74-03: complete governance sync, validation, and closeout evidence prep
+- [ ] 74-04: run final milestone gates and archive-readiness arbitration
 
 ## v1.19: Audit-Driven Final Hotspot Decomposition & Governance Truth Projection
 

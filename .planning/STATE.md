@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.19
-milestone_name: Audit-Driven Final Hotspot Decomposition & Governance Truth Projection
-status: archived
-last_updated: "2026-03-25T00:00:00Z"
+milestone: v1.20
+milestone_name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
+status: active
+last_updated: "2026-03-25T00:30:00Z"
 progress:
-  total_phases: 1
-  completed_phases: 1
-  total_plans: 5
-  completed_plans: 5
+  total_phases: 3
+  completed_phases: 0
+  total_plans: 12
+  completed_plans: 0
 ---
 
 # Project State
@@ -17,16 +17,24 @@ progress:
 
 See: `.planning/PROJECT.md`
 
-**Current milestone:** `No active milestone route`
-**Core value:** 基于 `v1.19` archived closeout evidence，把 latest archived baseline / no-active-route truth 与 hotspot no-growth contract 固化为下一轮里程碑的唯一出发点。
-**Current mode:** `no active milestone route / latest archived baseline = v1.19`
+**Current milestone:** `v1.20 Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement`
+**Core value:** 基于 `v1.19` archived baseline 与 `.planning/reviews/V1_19_TERMINAL_AUDIT.md` 已登记 seeds，把 bootstrap / lifecycle / runtime-access / service-family / auth-legacy residual 沿单一 north-star 主链继续 inward convergence，同时保持 `v1.19` 作为 latest archived baseline。
+**Current mode:** `Phase 72 planning-ready`
 
 ## Current Position
 
-- `v1.19` 已于 `2026-03-25` 完成 milestone archive promotion：`Phase 71` 的 `5/5` plans 与 closeout evidence 已提升为 latest archived baseline。
-- latest archived closeout pointer 现为 `.planning/reviews/V1_19_EVIDENCE_INDEX.md`；它只承担 pull-only archived evidence 入口身份。
-- `v1.18` 退为 previous archived baseline；`v1.17` 继续保留为 historical archived baseline。
-- 当前治理状态是 `no active milestone route / latest archived baseline = v1.19`；下一步必须通过 `$gsd-new-milestone` 显式建立新路线。
+- `v1.20` 已于 `2026-03-25` 开立为 active milestone route：当前 phase queue = `72 -> 74`，下一步是 `$gsd-plan-phase 72`。
+- latest archived closeout pointer 继续固定为 `.planning/reviews/V1_19_EVIDENCE_INDEX.md`；它只承担 pull-only archived evidence 入口身份。
+- `v1.19` 继续作为 latest archived baseline；`v1.18` 继续作为 previous archived baseline；`v1.17` 保留为 historical archived baseline。
+- 当前 active route 来自 `.planning/reviews/V1_19_TERMINAL_AUDIT.md`；所有 non-blocking residual 已显式编排到 `Phase 72 -> 74`，不再保持 ownerless carry-forward。
+
+## Active Milestone (v1.20)
+
+- **Milestone:** `v1.20 Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement`
+- **Phase range:** `72 -> 74`
+- **Milestone status:** `active / Phase 72 planning-ready (2026-03-25)`
+- **Route seed:** `.planning/reviews/V1_19_TERMINAL_AUDIT.md`
+- **Starting baseline:** `.planning/v1.19-MILESTONE-AUDIT.md`, `.planning/reviews/V1_19_EVIDENCE_INDEX.md`, `.planning/milestones/v1.19-ROADMAP.md`, `.planning/milestones/v1.19-REQUIREMENTS.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-SUMMARY.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-VERIFICATION.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-VALIDATION.md`
 
 ## Latest Archived Baseline (v1.19)
 
@@ -51,10 +59,10 @@ See: `.planning/PROJECT.md`
 
 ## Recommended Next Command
 
-1. `$gsd-new-milestone` —— 基于 `v1.19` archived evidence 启动下一轮里程碑
-2. `$gsd-progress` —— 查看当前归档后的全局状态与历史路线
+1. `$gsd-plan-phase 72` —— 基于 `v1.19` terminal-audit seeds 为 active route 落详细计划
+2. `$gsd-progress` —— 查看 `v1.20 / Phase 72 -> 74` 当前路线与归档基线状态
 3. `uv run python scripts/check_file_matrix.py --check` —— 复核 planning / baseline / promoted assets 与 file-matrix 契约
-4. `uv run pytest -q tests/meta/test_governance_release_contract.py tests/meta/test_governance_milestone_archives.py tests/meta/test_version_sync.py tests/meta/governance_followup_route_current_milestones.py tests/meta/test_phase71_hotspot_route_guards.py` —— 复核 latest archive pointer、no-active-route 与 hotspot-route guards
+4. `uv run pytest -q tests/meta/test_governance_release_contract.py tests/meta/test_governance_milestone_archives.py tests/meta/test_version_sync.py tests/meta/governance_followup_route_current_milestones.py tests/meta/test_phase71_hotspot_route_guards.py` —— 复核 active-route / latest-archive / hotspot-route guards
 
 ## Session Continuity
 
@@ -65,15 +73,17 @@ If resuming, read in this order:
 3. `.planning/ROADMAP.md`
 4. `.planning/REQUIREMENTS.md`
 5. `.planning/STATE.md`
-6. `.planning/v1.19-MILESTONE-AUDIT.md`
-7. `.planning/reviews/V1_19_EVIDENCE_INDEX.md`
-8. `.planning/milestones/v1.19-ROADMAP.md`
-9. `.planning/milestones/v1.19-REQUIREMENTS.md`
-10. `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-SUMMARY.md`
-11. `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-VERIFICATION.md`
-12. `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-VALIDATION.md`
-13. `.planning/v1.18-MILESTONE-AUDIT.md`
-14. `.planning/reviews/V1_18_EVIDENCE_INDEX.md`
+6. `.planning/reviews/V1_19_TERMINAL_AUDIT.md`
+7. `.planning/phases/72-runtime-bootstrap-convergence-lifecycle-orchestration-and-runtime-access-probe-retirement/72-CONTEXT.md`
+8. `.planning/v1.19-MILESTONE-AUDIT.md`
+9. `.planning/reviews/V1_19_EVIDENCE_INDEX.md`
+10. `.planning/milestones/v1.19-ROADMAP.md`
+11. `.planning/milestones/v1.19-REQUIREMENTS.md`
+12. `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-SUMMARY.md`
+13. `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-VERIFICATION.md`
+14. `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-VALIDATION.md`
+15. `.planning/v1.18-MILESTONE-AUDIT.md`
+16. `.planning/reviews/V1_18_EVIDENCE_INDEX.md`
 
 ## Historical Continuity Anchors
 
