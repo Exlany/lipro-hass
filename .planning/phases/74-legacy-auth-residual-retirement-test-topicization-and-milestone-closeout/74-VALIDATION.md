@@ -1,3 +1,9 @@
+---
+nyquist_compliant: true
+wave_0_complete: true
+updated: 2026-03-25
+---
+
 # Phase 74 Validation Contract
 
 ## Wave Order
