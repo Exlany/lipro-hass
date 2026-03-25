@@ -27,6 +27,8 @@ from .runtime.tuning_runtime import TuningRuntime
 if TYPE_CHECKING:
     from ..device import LiproDevice
     from .entity_protocol import LiproEntityProtocol
+    from .lifecycle import CoordinatorUpdateCycle
+    from .runtime_wiring import CoordinatorServiceLayer
 
 
 def normalize_device_key(device_id: str) -> str:
@@ -56,3 +58,13 @@ class CoordinatorRuntimes:
     status: StatusRuntime
     mqtt: MqttRuntime
     command: CommandRuntime
+
+
+@dataclass(frozen=True, slots=True)
+class CoordinatorBootstrapArtifact:
+    """Named bootstrap contract returned to the coordinator runtime root."""
+
+    state: CoordinatorStateContainers
+    runtimes: CoordinatorRuntimes
+    service_layer: CoordinatorServiceLayer
+    update_cycle: CoordinatorUpdateCycle

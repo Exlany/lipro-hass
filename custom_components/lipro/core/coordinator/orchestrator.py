@@ -1,11 +1,8 @@
-"""Runtime orchestrator for coordinator collaborators.
-
-This module replaces the scattered DI wiring in factory.py with a clean,
-context-driven orchestration pattern.
-"""
+"""Runtime orchestrator for coordinator collaborators."""
 
 from __future__ import annotations
 
+from collections.abc import Awaitable, Callable
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -13,6 +10,7 @@ from ..command.confirmation_tracker import CommandConfirmationTracker
 from ..device.identity_index import DeviceIdentityIndex
 from ..utils.background_task_manager import BackgroundTaskManager
 from .factory import (
+    CoordinatorBootstrapArtifact,
     CoordinatorRuntimes,
     CoordinatorStateContainers,
     normalize_device_key,
@@ -30,6 +28,11 @@ from .runtime.state_runtime import StateRuntime
 from .runtime.status_runtime import StatusRuntime
 from .runtime.tuning_runtime import TuningRuntime
 from .runtime_context import RuntimeContext
+from .runtime_wiring import (
+    build_runtime_context,
+    build_update_cycle,
+    initialize_service_layer,
+)
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -39,6 +42,9 @@ if TYPE_CHECKING:
     from ..device import LiproDevice
     from ..protocol import LiproProtocolFacade
     from .runtime.mqtt.connection import PollingIntervalUpdater
+    from .services.protocol_service import CoordinatorProtocolService
+    from .services.telemetry_service import CoordinatorSignalService
+    from .types import PropertyDict
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -152,6 +158,74 @@ class RuntimeOrchestrator:
             status=self._build_status_runtime(context, state_runtime),
             mqtt=self._build_mqtt_runtime(context, state, polling_updater),
             command=self._build_command_runtime(context, state),
+        )
+
+    def build_bootstrap_artifact(
+        self,
+        *,
+        signal_service: CoordinatorSignalService,
+        protocol_service: CoordinatorProtocolService,
+        get_device_by_id: Callable[[str], LiproDevice | None],
+        apply_properties_update: Callable[
+            [LiproDevice, PropertyDict, str],
+            Awaitable[bool],
+        ],
+        schedule_listener_update: Callable[[], None],
+        request_refresh: Callable[[], Awaitable[None]],
+        trigger_reauth: Callable[[], Awaitable[None]],
+        is_mqtt_connected: Callable[[], bool],
+        ensure_authenticated: Callable[[], Awaitable[None]],
+        async_setup_mqtt: Callable[[], Awaitable[bool]],
+        replace_devices: Callable[[dict[str, LiproDevice]], None],
+        publish_updated_data: Callable[[dict[str, LiproDevice]], None],
+        async_refresh_devices: Callable[[], Awaitable[dict[str, LiproDevice]]],
+        update_interval_seconds_getter: Callable[[], int | None],
+        run_status_polling: Callable[[], Awaitable[None]],
+        refresh_device_snapshot: Callable[[], Awaitable[None]],
+        polling_updater: PollingIntervalUpdater,
+    ) -> CoordinatorBootstrapArtifact:
+        """Build the named bootstrap contract consumed by `Coordinator`."""
+        state = self.build_state_containers()
+        runtimes = self.build_runtimes(
+            context=build_runtime_context(
+                get_device_by_id=get_device_by_id,
+                apply_properties_update=apply_properties_update,
+                schedule_listener_update=schedule_listener_update,
+                signal_service=signal_service,
+                request_refresh=request_refresh,
+                trigger_reauth=trigger_reauth,
+                is_mqtt_connected=is_mqtt_connected,
+            ),
+            state=state,
+            polling_updater=polling_updater,
+        )
+        service_layer = initialize_service_layer(
+            runtimes=runtimes,
+            state=state,
+            protocol_service=protocol_service,
+            async_setup_mqtt=async_setup_mqtt,
+            replace_devices=replace_devices,
+            publish_updated_data=publish_updated_data,
+            get_device_by_id=get_device_by_id,
+            async_refresh_devices=async_refresh_devices,
+            update_interval_seconds_getter=update_interval_seconds_getter,
+            logger=self.logger,
+        )
+        return CoordinatorBootstrapArtifact(
+            state=state,
+            runtimes=runtimes,
+            service_layer=service_layer,
+            update_cycle=build_update_cycle(
+                ensure_authenticated=ensure_authenticated,
+                should_refresh_device_list=runtimes.device.should_refresh_device_list,
+                refresh_device_snapshot=refresh_device_snapshot,
+                has_mqtt_transport=lambda: runtimes.mqtt.has_transport,
+                has_devices=lambda: bool(state.devices),
+                setup_mqtt=async_setup_mqtt,
+                run_status_polling=run_status_polling,
+                telemetry_service=service_layer.telemetry_service,
+                devices_getter=lambda: state.devices,
+            ),
         )
 
     def _build_tuning_runtime(self) -> TuningRuntime:

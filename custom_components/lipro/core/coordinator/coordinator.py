@@ -19,11 +19,6 @@ from .lifecycle import (
     async_shutdown as coordinator_async_shutdown,
 )
 from .orchestrator import RuntimeOrchestrator
-from .runtime_wiring import (
-    build_runtime_context,
-    build_update_cycle,
-    initialize_service_layer,
-)
 from .services import (
     CoordinatorAuthService,
     CoordinatorCommandService,
@@ -108,57 +103,34 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             device_refresh_service_getter=lambda: self.device_refresh_service,
         )
 
-        # Build runtime components
-        self._runtimes = orchestrator.build_runtimes(
-            context=build_runtime_context(
-                get_device_by_id=self._get_device_by_id,
-                apply_properties_update=self._apply_properties_update,
-                schedule_listener_update=self._schedule_listener_update,
-                signal_service=self.signal_service,
-                request_refresh=self.async_request_refresh,
-                trigger_reauth=self.auth_service.async_trigger_reauth,
-                is_mqtt_connected=self._is_mqtt_connected,
-            ),
-            state=self._state,
-            polling_updater=self,
-        )
-
-        service_layer = initialize_service_layer(
-            runtimes=self._runtimes,
-            state=self._state,
+        bootstrap = orchestrator.build_bootstrap_artifact(
+            signal_service=self.signal_service,
             protocol_service=self.protocol_service,
+            get_device_by_id=self._get_device_by_id,
+            apply_properties_update=self._apply_properties_update,
+            schedule_listener_update=self._schedule_listener_update,
+            request_refresh=self.async_request_refresh,
+            trigger_reauth=self.auth_service.async_trigger_reauth,
+            is_mqtt_connected=self._is_mqtt_connected,
+            ensure_authenticated=self.auth_service.async_ensure_authenticated,
             async_setup_mqtt=self.async_setup_mqtt,
             replace_devices=self._replace_devices,
-            publish_updated_data=lambda devices: self.async_set_updated_data(devices),
-            get_device_by_id=self.get_device_by_id,
+            publish_updated_data=self.async_set_updated_data,
             async_refresh_devices=self.async_refresh_devices,
-            update_interval_seconds_getter=lambda: (
-                int(self.update_interval.total_seconds())
-                if self.update_interval is not None
-                else None
-            ),
-            logger=_LOGGER,
-        )
-        self.command_service = service_layer.command_service
-        self.mqtt_service = service_layer.mqtt_service
-        self.state_service = service_layer.state_service
-        self._polling_service = service_layer.polling_service
-        self.device_refresh_service = service_layer.device_refresh_service
-        self.telemetry_service = service_layer.telemetry_service
-        self._update_cycle = build_update_cycle(
-            ensure_authenticated=self.auth_service.async_ensure_authenticated,
-            should_refresh_device_list=self._runtimes.device.should_refresh_device_list,
-            refresh_device_snapshot=lambda: self._async_refresh_device_snapshot(
-                force=True,
-                mqtt_timeout_seconds=5,
-            ),
-            has_mqtt_transport=lambda: self._runtimes.mqtt.has_transport,
-            has_devices=lambda: bool(self._state.devices),
-            setup_mqtt=self.async_setup_mqtt,
+            update_interval_seconds_getter=self._get_update_interval_seconds,
             run_status_polling=self._async_run_status_polling,
-            telemetry_service=self.telemetry_service,
-            devices_getter=lambda: self._state.devices,
+            refresh_device_snapshot=self._async_force_refresh_device_snapshot,
+            polling_updater=self,
         )
+        self._state = bootstrap.state
+        self._runtimes = bootstrap.runtimes
+        self.command_service = bootstrap.service_layer.command_service
+        self.mqtt_service = bootstrap.service_layer.mqtt_service
+        self.state_service = bootstrap.service_layer.state_service
+        self._polling_service = bootstrap.service_layer.polling_service
+        self.device_refresh_service = bootstrap.service_layer.device_refresh_service
+        self.telemetry_service = bootstrap.service_layer.telemetry_service
+        self._update_cycle = bootstrap.update_cycle
 
     # RuntimeContext callback methods (injected into all runtimes)
     def _get_device_by_id(self, device_id: str) -> LiproDevice | None:
@@ -207,6 +179,16 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         """Replace the canonical device registry in place to preserve shared references."""
         self._state.devices.clear()
         self._state.devices.update(devices)
+
+    def _get_update_interval_seconds(self) -> int | None:
+        """Return the current polling interval in seconds for service consumers."""
+        if self.update_interval is None:
+            return None
+        return int(self.update_interval.total_seconds())
+
+    async def _async_force_refresh_device_snapshot(self) -> None:
+        """Refresh the canonical device snapshot using coordinator root policy."""
+        await self._async_refresh_device_snapshot(force=True, mqtt_timeout_seconds=5)
 
     @property
     def devices(self) -> Mapping[str, LiproDevice]:
