@@ -24,13 +24,16 @@ from custom_components.lipro.const.config import (
     CONF_DEVICE_FILTER_SSID_LIST,
     CONF_DEVICE_FILTER_SSID_MODE,
     CONF_LIGHT_TURN_ON_ON_ADJUST,
+    CONF_MQTT_ENABLED,
     CONF_PASSWORD_HASH,
     CONF_PHONE,
     CONF_PHONE_ID,
     CONF_POWER_QUERY_INTERVAL,
     CONF_ROOM_AREA_SYNC_FORCE,
     DEFAULT_COMMAND_RESULT_VERIFY,
+    DEFAULT_MQTT_ENABLED,
     DEFAULT_POWER_QUERY_INTERVAL,
+    DEFAULT_SCAN_INTERVAL,
     DEVICE_FILTER_MODE_EXCLUDE,
     DEVICE_FILTER_MODE_INCLUDE,
     DEVICE_FILTER_MODE_OFF,
@@ -185,6 +188,52 @@ async def test_options_flow_advanced_schema_normalizes_mode_case(
         else power_query_interval_marker.default
     )
     assert power_query_interval_default == DEFAULT_POWER_QUERY_INTERVAL
+
+
+async def test_options_flow_init_schema_falls_back_for_invalid_persisted_defaults(
+    hass: HomeAssistant,
+) -> None:
+    """Init schema should project only safe scalar defaults from persisted options."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="Lipro (138****0000)",
+        data={
+            CONF_PHONE: "13800000000",
+            CONF_PASSWORD_HASH: "e10adc3949ba59abbe56e057f20f883e",
+            CONF_PHONE_ID: "550e8400-e29b-41d4-a716-446655440000",
+            "access_token": "test_token",
+            "refresh_token": "test_refresh",
+            "user_id": 10001,
+        },
+        options={
+            "scan_interval": True,
+            CONF_MQTT_ENABLED: "true",
+        },
+        unique_id="lipro_10001",
+    )
+    entry.add_to_hass(hass)
+
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "init"
+
+    data_schema = result["data_schema"]
+    assert data_schema is not None
+
+    scan_marker = _get_schema_marker(data_schema, "scan_interval")
+    assert isinstance(scan_marker, vol.Required)
+    scan_default = (
+        scan_marker.default() if callable(scan_marker.default) else scan_marker.default
+    )
+    assert scan_default == DEFAULT_SCAN_INTERVAL
+
+    mqtt_marker = _get_schema_marker(data_schema, CONF_MQTT_ENABLED)
+    assert isinstance(mqtt_marker, vol.Required)
+    mqtt_default = (
+        mqtt_marker.default() if callable(mqtt_marker.default) else mqtt_marker.default
+    )
+    assert mqtt_default is DEFAULT_MQTT_ENABLED
 
 async def test_options_flow_advanced_step(
     hass: HomeAssistant,

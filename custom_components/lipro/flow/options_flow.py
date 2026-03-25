@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 import re
-from typing import Any
 
 import voluptuous as vol
 
@@ -65,6 +64,38 @@ _DEVICE_FILTER_MODE_VALUES: tuple[str, str, str] = (
     DEVICE_FILTER_MODE_EXCLUDE,
 )
 _DEVICE_FILTER_LIST_SPLIT_RE = re.compile(r"[\r\n,;]+")
+_BOOLEAN_OPTION_KEYS: tuple[str, ...] = (
+    CONF_MQTT_ENABLED,
+    CONF_ENABLE_POWER_MONITORING,
+    CONF_ANONYMOUS_SHARE_ENABLED,
+    CONF_ANONYMOUS_SHARE_ERRORS,
+    CONF_DEBUG_MODE,
+    CONF_LIGHT_TURN_ON_ON_ADJUST,
+    CONF_ROOM_AREA_SYNC_FORCE,
+    CONF_COMMAND_RESULT_VERIFY,
+)
+_INTEGER_OPTION_KEYS: tuple[str, ...] = (
+    CONF_SCAN_INTERVAL,
+    CONF_POWER_QUERY_INTERVAL,
+    CONF_REQUEST_TIMEOUT,
+)
+_DEVICE_FILTER_MODE_KEYS: tuple[str, ...] = (
+    CONF_DEVICE_FILTER_HOME_MODE,
+    CONF_DEVICE_FILTER_MODEL_MODE,
+    CONF_DEVICE_FILTER_SSID_MODE,
+    CONF_DEVICE_FILTER_DID_MODE,
+)
+_DEVICE_FILTER_LIST_KEYS: tuple[str, ...] = (
+    CONF_DEVICE_FILTER_HOME_LIST,
+    CONF_DEVICE_FILTER_MODEL_LIST,
+    CONF_DEVICE_FILTER_SSID_LIST,
+    CONF_DEVICE_FILTER_DID_LIST,
+)
+
+type PersistedOptionValue = bool | int | str
+type PersistedOptions = dict[str, PersistedOptionValue]
+type OptionsMapping = Mapping[str, object]
+type OptionsSchema = dict[vol.Marker, object]
 
 
 def _split_device_filter_text(value: str) -> list[str]:
@@ -83,8 +114,28 @@ def _split_device_filter_text(value: str) -> list[str]:
     return tokens
 
 
+def _resolve_bool_option_default(
+    options: OptionsMapping,
+    key: str,
+    default: bool,
+) -> bool:
+    """Return one safe boolean default from persisted options."""
+    value = options.get(key, default)
+    return value if isinstance(value, bool) else default
+
+
+def _resolve_int_option_default(
+    options: OptionsMapping,
+    key: str,
+    default: int,
+) -> int:
+    """Return one safe integer default from persisted options."""
+    value = options.get(key, default)
+    return value if isinstance(value, int) and not isinstance(value, bool) else default
+
+
 def _build_bool_option_field(
-    options: Mapping[str, Any],
+    options: OptionsMapping,
     key: str,
     default: bool,
 ) -> tuple[vol.Marker, type[bool]]:
@@ -92,14 +143,14 @@ def _build_bool_option_field(
     return (
         vol.Required(
             key,
-            default=options.get(key, default),
+            default=_resolve_bool_option_default(options, key, default),
         ),
         bool,
     )
 
 
 def _build_int_option_field(
-    options: Mapping[str, Any],
+    options: OptionsMapping,
     key: str,
     default: int,
     min_value: int,
@@ -109,7 +160,7 @@ def _build_int_option_field(
     return (
         vol.Required(
             key,
-            default=options.get(key, default),
+            default=_resolve_int_option_default(options, key, default),
         ),
         vol.All(
             vol.Coerce(int),
@@ -118,7 +169,7 @@ def _build_int_option_field(
     )
 
 
-def _coerce_device_filter_list_option(value: Any) -> str:
+def _coerce_device_filter_list_option(value: object) -> str:
     """Coerce stored filter-list option to canonical, form-friendly text."""
     if isinstance(value, str):
         separator = ", "
@@ -138,7 +189,7 @@ def _coerce_device_filter_list_option(value: Any) -> str:
     return ""
 
 
-def _normalize_device_filter_mode_option(value: Any) -> str:
+def _normalize_device_filter_mode_option(value: object) -> str:
     """Normalize raw mode option to one canonical device filter mode."""
     if isinstance(value, str):
         normalized = value.strip().casefold()
@@ -147,28 +198,58 @@ def _normalize_device_filter_mode_option(value: Any) -> str:
     return DEFAULT_DEVICE_FILTER_MODE
 
 
+def _extract_persisted_options(user_input: OptionsMapping) -> PersistedOptions:
+    """Extract the supported persisted options from one validated form payload."""
+    extracted: PersistedOptions = {}
+
+    for key in _BOOLEAN_OPTION_KEYS:
+        value = user_input.get(key)
+        if isinstance(value, bool):
+            extracted[key] = value
+
+    for key in _INTEGER_OPTION_KEYS:
+        value = user_input.get(key)
+        if isinstance(value, int) and not isinstance(value, bool):
+            extracted[key] = value
+
+    for key in _DEVICE_FILTER_MODE_KEYS:
+        if key in user_input:
+            extracted[key] = _normalize_device_filter_mode_option(user_input.get(key))
+
+    for key in _DEVICE_FILTER_LIST_KEYS:
+        if key in user_input:
+            value = user_input.get(key)
+            extracted[key] = (
+                value if isinstance(value, str) else _coerce_device_filter_list_option(value)
+            )
+
+    return extracted
+
+
 class LiproOptionsFlow(OptionsFlow):
     """Handle Lipro options."""
 
     def __init__(self) -> None:
         """Initialize options flow."""
         super().__init__()
-        self._options: dict[str, Any] = {}
+        self._options: PersistedOptions = {}
 
     async def async_step_init(
         self,
-        user_input: dict[str, Any] | None = None,
+        user_input: dict[str, object] | None = None,
     ) -> ConfigFlowResult:
         """Manage basic options."""
         if user_input is not None:
-            # Store basic options and check if user wants advanced settings
-            show_advanced = user_input.pop(_CONF_SHOW_ADVANCED, False)
-            self._options.update(user_input)
+            show_advanced = _resolve_bool_option_default(
+                user_input,
+                _CONF_SHOW_ADVANCED,
+                False,
+            )
+            self._options.update(_extract_persisted_options(user_input))
 
             if show_advanced:
                 return await self.async_step_advanced()
 
-            # Merge with existing advanced options (keep previous values)
             return self._save_options()
 
         return self.async_show_form(
@@ -178,11 +259,11 @@ class LiproOptionsFlow(OptionsFlow):
 
     async def async_step_advanced(
         self,
-        user_input: dict[str, Any] | None = None,
+        user_input: dict[str, object] | None = None,
     ) -> ConfigFlowResult:
         """Manage advanced options."""
         if user_input is not None:
-            self._options.update(user_input)
+            self._options.update(_extract_persisted_options(user_input))
             return self._save_options()
 
         return self.async_show_form(
@@ -192,27 +273,16 @@ class LiproOptionsFlow(OptionsFlow):
 
     def _save_options(self) -> ConfigFlowResult:
         """Save options, merging with existing advanced options if not visited."""
-        # Merge: start with existing options, overlay with new selections
         merged = dict(self.config_entry.options)
         merged.update(self._options)
 
-        for mode_key in (
-            CONF_DEVICE_FILTER_HOME_MODE,
-            CONF_DEVICE_FILTER_MODEL_MODE,
-            CONF_DEVICE_FILTER_SSID_MODE,
-            CONF_DEVICE_FILTER_DID_MODE,
-        ):
+        for mode_key in _DEVICE_FILTER_MODE_KEYS:
             if mode_key in merged:
                 merged[mode_key] = _normalize_device_filter_mode_option(
                     merged.get(mode_key)
                 )
 
-        for list_key in (
-            CONF_DEVICE_FILTER_HOME_LIST,
-            CONF_DEVICE_FILTER_MODEL_LIST,
-            CONF_DEVICE_FILTER_SSID_LIST,
-            CONF_DEVICE_FILTER_DID_LIST,
-        ):
+        for list_key in _DEVICE_FILTER_LIST_KEYS:
             if list_key in merged:
                 merged[list_key] = _coerce_device_filter_list_option(
                     merged.get(list_key)
@@ -223,7 +293,7 @@ class LiproOptionsFlow(OptionsFlow):
     def _build_init_schema(self) -> vol.Schema:
         """Build the basic options schema."""
         options = self.config_entry.options
-        schema: dict[vol.Marker, Any] = {}
+        schema: OptionsSchema = {}
 
         int_fields = (
             (
@@ -258,7 +328,7 @@ class LiproOptionsFlow(OptionsFlow):
     def _build_advanced_schema(self) -> vol.Schema:
         """Build the advanced options schema."""
         options = self.config_entry.options
-        schema: dict[vol.Marker, Any] = {}
+        schema: OptionsSchema = {}
 
         for key, default, min_value, max_value in (
             (
