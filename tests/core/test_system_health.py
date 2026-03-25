@@ -232,6 +232,39 @@ async def test_system_health_info_omits_mqtt_count_when_mqtt_connected_is_non_bo
     assert "mqtt_connected_entries" not in result
 
 
+@pytest.mark.asyncio
+async def test_system_health_info_ignores_probe_only_entries() -> None:
+    """System health should only count entries that satisfy the formal runtime port."""
+
+    class ProbeOnlyEntry:
+        def __getattr__(self, name: str) -> object:
+            return {
+                "entry_id": "ghost-entry",
+                "options": {},
+                "runtime_data": SimpleNamespace(),
+            }[name]
+
+    hass = MagicMock()
+    hass.config_entries.async_entries.return_value = [
+        ProbeOnlyEntry(),
+        SimpleNamespace(
+            entry_id="entry-1",
+            options={},
+            runtime_data=SimpleNamespace(
+                devices={"d1": object()},
+                last_update_success=True,
+                mqtt_service=SimpleNamespace(connected=True),
+            ),
+        ),
+    ]
+
+    result = await system_health_info(hass)
+
+    assert result["logged_accounts"] == 1
+    assert result["total_devices"] == 1
+    assert result["mqtt_connected_entries"] == 1
+
+
 def test_runtime_access_rejects_partial_foreign_entry() -> None:
     """Runtime access should ignore foreign objects lacking formal entry shape."""
     from custom_components.lipro.control.runtime_access import (

@@ -6,6 +6,7 @@ from .device_refresh_service import CoordinatorDeviceRefreshService
 from .mqtt_service import CoordinatorMqttService
 from .polling_service import CoordinatorPollingService
 from .protocol_service import CoordinatorProtocolService
+from .schedule_service import CoordinatorScheduleService
 from .state_service import CoordinatorStateService
 from .telemetry_service import CoordinatorSignalService, CoordinatorTelemetryService
 
@@ -16,6 +17,7 @@ __all__ = [
     "CoordinatorMqttService",
     "CoordinatorPollingService",
     "CoordinatorProtocolService",
+    "CoordinatorScheduleService",
     "CoordinatorSignalService",
     "CoordinatorStateService",
     "CoordinatorTelemetryService",

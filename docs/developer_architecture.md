@@ -157,7 +157,7 @@ custom_components/lipro/
 | Touched area | Minimum verification |
 |---|---|
 | `core/protocol/**`, `core/api/**`, replay/fixture changes | `uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/meta/test_protocol_replay_assets.py tests/core/api/test_protocol_replay_rest.py tests/integration/test_protocol_replay_harness.py` |
-| `core/coordinator/**`, runtime service changes | `uv run pytest -q tests/core/coordinator tests/test_coordinator_public.py` |
+| `core/coordinator/**`, runtime service changes | `uv run pytest -q tests/core/coordinator/test_runtime_root.py tests/integration/test_mqtt_coordinator_integration.py` |
 | `control/**`, `services/**`, governance truth | `uv run pytest -q tests/meta/test_governance*.py tests/services` |
 | `config_flow.py`, flow schemas, runtime glue | `uv run pytest -q tests/flows tests/core/test_init_runtime_setup_entry.py tests/core/test_init_runtime_setup_entry_failures.py` |
 | massive test topicization only | run the touched topical suites + `uv run pytest -q tests/core tests/flows tests/meta` |

@@ -10,6 +10,8 @@ import subprocess
 
 from tests.helpers.repo_root import repo_root
 
+from .governance_current_truth import CURRENT_RUNTIME_ROOT_TEST
+
 _ROOT = repo_root(Path(__file__))
 
 _DEVELOP_SCRIPT = _ROOT / "scripts" / "develop"
@@ -21,6 +23,7 @@ def test_verification_matrix_and_checker_guard_active_path_truth() -> None:
         encoding="utf-8"
     )
     checker_text = (_ROOT / "scripts" / "check_file_matrix.py").read_text(encoding="utf-8")
+    docs_text = (_ROOT / "docs" / "developer_architecture.md").read_text(encoding="utf-8")
 
     assert "tests/core/anonymous_share/test_manager_submission.py" in verification_text
     assert "tests/core/test_coordinator_entry.py" in verification_text
@@ -28,6 +31,8 @@ def test_verification_matrix_and_checker_guard_active_path_truth() -> None:
     assert "tests/core/test_anonymous_share.py" not in verification_text
     assert "tests/test_coordinator_public.py" not in verification_text
     assert "tests/test_coordinator_runtime.py" not in verification_text
+    assert CURRENT_RUNTIME_ROOT_TEST in docs_text
+    assert "tests/test_coordinator_public.py" not in docs_text
     assert "VERIFICATION_MATRIX_PATH" in checker_text
     assert "validate_verification_matrix_paths" in checker_text
     assert "check_file_matrix_inventory" in checker_text

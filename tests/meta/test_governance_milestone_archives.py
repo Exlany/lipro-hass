@@ -9,6 +9,7 @@ from .governance_contract_helpers import (
 from .governance_current_truth import (
     CURRENT_MILESTONE_DEFAULT_NEXT,
     CURRENT_MILESTONE_HEADER,
+    CURRENT_ROUTE,
     CURRENT_ROUTE_MODE,
     LATEST_ARCHIVED_EVIDENCE_FILENAME,
     LATEST_ARCHIVED_EVIDENCE_PATH,
@@ -489,7 +490,7 @@ def test_governance_truth_registers_v1_19_latest_archive_pointer() -> None:
     assert "## v1.19 Audit-Driven Final Hotspot Decomposition & Governance Truth Projection" in milestones_text
     assert ".planning/reviews/V1_19_EVIDENCE_INDEX.md" in milestones_text
     assert LATEST_ARCHIVED_EVIDENCE_PATH in docs_text
-    assert "v1.20 active route / Phase 72 planning-ready / latest archived baseline = v1.19" in docs_text
+    assert CURRENT_ROUTE in docs_text
     assert_runbook_points_to_latest_evidence(
         runbook_text,
         LATEST_ARCHIVED_EVIDENCE_FILENAME,

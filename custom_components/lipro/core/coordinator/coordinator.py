@@ -128,6 +128,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         self.mqtt_service = bootstrap.service_layer.mqtt_service
         self.state_service = bootstrap.service_layer.state_service
         self._polling_service = bootstrap.service_layer.polling_service
+        self.schedule_service = bootstrap.service_layer.schedule_service
         self.device_refresh_service = bootstrap.service_layer.device_refresh_service
         self.telemetry_service = bootstrap.service_layer.telemetry_service
         self._update_cycle = bootstrap.update_cycle
@@ -196,6 +197,10 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         return MappingProxyType(self._state.devices)
 
     # Public methods for entity integration
+    def iter_devices(self) -> tuple[LiproDevice, ...]:
+        """Return a stable iterable of the current runtime devices."""
+        return tuple(self.devices.values())
+
     def get_device(self, serial: str) -> LiproDevice | None:
         """Get device by serial number.
 

@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from datetime import timedelta
 from typing import TYPE_CHECKING, Any, Protocol
 
@@ -167,6 +167,29 @@ class ProtocolServiceLike(Protocol):
     ) -> list[OtaInfoRow]: ...
 
 
+class ScheduleServiceLike(Protocol):
+    """Stable schedule surface exposed outside the runtime plane."""
+
+    async def async_get_schedules(
+        self,
+        device: ScheduleMeshDeviceLike,
+    ) -> list[ScheduleTimingRow]: ...
+
+    async def async_add_schedule(
+        self,
+        device: ScheduleMeshDeviceLike,
+        days: list[int],
+        times: list[int],
+        events: list[int],
+    ) -> list[ScheduleTimingRow]: ...
+
+    async def async_delete_schedules(
+        self,
+        device: ScheduleMeshDeviceLike,
+        schedule_ids: list[int],
+    ) -> list[ScheduleTimingRow]: ...
+
+
 class RuntimeAuthServiceLike(Protocol):
     """Stable coordinator-auth surface exposed outside the runtime plane."""
 
@@ -211,6 +234,8 @@ class LiproRuntimeCoordinator(Protocol):
     @property
     def devices(self) -> Mapping[str, LiproDevice]: ...
 
+    def iter_devices(self) -> Iterable[LiproDevice]: ...
+
     async def async_request_refresh(self) -> None: ...
 
     async def async_send_command(
@@ -243,6 +268,9 @@ class LiproCoordinator(LiproRuntimeCoordinator, Protocol):
 
     @property
     def device_refresh_service(self) -> DeviceRefreshServiceLike: ...
+
+    @property
+    def schedule_service(self) -> ScheduleServiceLike: ...
 
     @property
     def mqtt_service(self) -> MqttServiceLike: ...

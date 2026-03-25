@@ -16,11 +16,14 @@ from collections.abc import Generator, Mapping
 from datetime import timedelta
 import pathlib
 from types import MappingProxyType
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import DEFAULT, AsyncMock, MagicMock, patch
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: F401
+
+if TYPE_CHECKING:
+    from custom_components.lipro.core.device import LiproDevice
 
 # Domain constant
 DOMAIN = "lipro"
@@ -214,6 +217,15 @@ class _CoordinatorDouble:
         self.protocol_service.async_delete_device_schedules = AsyncMock(
             side_effect=_async_delete_device_schedules
         )
+        self.protocol_service.async_get_device_schedules_for_device = AsyncMock(
+            side_effect=_async_get_device_schedules
+        )
+        self.protocol_service.async_add_device_schedule_for_device = AsyncMock(
+            side_effect=_async_add_device_schedule
+        )
+        self.protocol_service.async_delete_device_schedules_for_device = AsyncMock(
+            side_effect=_async_delete_device_schedules
+        )
         self.protocol_service.async_query_ota_info = AsyncMock(
             side_effect=_async_query_ota_info
         )
@@ -229,6 +241,12 @@ class _CoordinatorDouble:
         )
         self.protocol_service.async_fetch_door_sensor_history = AsyncMock(
             side_effect=_async_fetch_door_sensor_history
+        )
+
+        self.schedule_service = MagicMock(
+            async_get_schedules=self.protocol_service.async_get_device_schedules_for_device,
+            async_add_schedule=self.protocol_service.async_add_device_schedule_for_device,
+            async_delete_schedules=self.protocol_service.async_delete_device_schedules_for_device,
         )
 
         self.device_refresh_service: Any = MagicMock()
@@ -255,6 +273,9 @@ class _CoordinatorDouble:
         self._devices_store = dict(value)
         self._devices_view = MappingProxyType(self._devices_store)
         self.device_refresh_service.devices = self._devices_view
+
+    def iter_devices(self) -> tuple[LiproDevice, ...]:
+        return tuple(self._devices_view.values())
 
     def _lookup_get_device(self, serial: str) -> Any:
         if self.get_device._mock_return_value is not DEFAULT:

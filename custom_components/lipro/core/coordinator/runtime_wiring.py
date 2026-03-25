@@ -27,6 +27,7 @@ from .services import (
     CoordinatorDeviceRefreshService,
     CoordinatorMqttService,
     CoordinatorPollingService,
+    CoordinatorScheduleService,
     CoordinatorStateService,
     CoordinatorTelemetryService,
 )
@@ -42,6 +43,7 @@ class CoordinatorServiceLayer:
     mqtt_service: CoordinatorMqttService
     state_service: CoordinatorStateService
     polling_service: CoordinatorPollingService
+    schedule_service: CoordinatorScheduleService
     device_refresh_service: CoordinatorDeviceRefreshService
     telemetry_service: CoordinatorTelemetryService
 
@@ -106,6 +108,9 @@ def initialize_service_layer(
         has_mqtt_transport_getter=lambda: runtimes.mqtt.has_transport,
         logger=logger,
     )
+    schedule_service = CoordinatorScheduleService(
+        protocol_service=protocol_service,
+    )
     device_refresh_service = CoordinatorDeviceRefreshService(
         device_runtime=runtimes.device,
         state_runtime=runtimes.state,
@@ -125,6 +130,7 @@ def initialize_service_layer(
         mqtt_service=mqtt_service,
         state_service=state_service,
         polling_service=polling_service,
+        schedule_service=schedule_service,
         device_refresh_service=device_refresh_service,
         telemetry_service=telemetry_service,
     )

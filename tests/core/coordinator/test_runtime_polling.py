@@ -29,6 +29,7 @@ class TestCoordinatorRuntimePolling:
         coordinator._runtimes.device.refresh_devices = AsyncMock(return_value=snapshot)
         coordinator._runtimes.mqtt.bind_transport(MagicMock())
         coordinator.async_set_updated_data = MagicMock()
+        coordinator._polling_service.publish_updated_data = coordinator.async_set_updated_data
 
         with patch.object(
             type(coordinator.mqtt_service),
@@ -61,6 +62,7 @@ class TestCoordinatorRuntimePolling:
             )
         )
         coordinator.async_set_updated_data = MagicMock()
+        coordinator._polling_service.publish_updated_data = coordinator.async_set_updated_data
 
         with pytest.raises(RuntimeSnapshotRefreshRejectedError, match="page=2"):
             await coordinator.async_refresh_devices()

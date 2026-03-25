@@ -6,10 +6,10 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from homeassistant.exceptions import ServiceValidationError
 
 from custom_components.lipro.const.base import DOMAIN
 from custom_components.lipro.services.maintenance import async_handle_refresh_devices
+from homeassistant.exceptions import ServiceValidationError
 from tests.helpers.service_call import service_call
 
 

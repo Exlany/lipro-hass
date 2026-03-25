@@ -210,7 +210,7 @@ async def async_handle_get_schedules(
     schedules: ScheduleRows = await async_call_schedule_service(
         coordinator,
         device,
-        protocol_call=coordinator.protocol_service.async_get_device_schedules_for_device,
+        protocol_call=coordinator.schedule_service.async_get_schedules,
         service_log="Service call: get_schedules for %s",
         error_log="API error getting schedules: %s",
         error_translation_key="schedule_fetch_failed",
@@ -258,7 +258,7 @@ async def async_handle_add_schedule(
     schedules: ScheduleRows = await async_call_schedule_service(
         coordinator,
         device,
-        protocol_call=coordinator.protocol_service.async_add_device_schedule_for_device,
+        protocol_call=coordinator.schedule_service.async_add_schedule,
         call_args=(days, times, events),
         service_log=(
             "Service call: add_schedule for %s (days=%s, times=%s, events=%s)"
@@ -297,7 +297,7 @@ async def async_handle_delete_schedules(
     remaining: ScheduleRows = await async_call_schedule_service(
         coordinator,
         device,
-        protocol_call=coordinator.protocol_service.async_delete_device_schedules_for_device,
+        protocol_call=coordinator.schedule_service.async_delete_schedules,
         call_args=(schedule_ids,),
         service_log="Service call: delete_schedules for %s (ids=%s)",
         service_log_args=(

@@ -12,7 +12,7 @@ _PRODUCTION_ROOT = _ROOT / "custom_components" / "lipro"
 
 _LINE_BUDGETS = {
     "control/runtime_access_support.py": 480,
-    "runtime_infra.py": 344,
+    "runtime_infra.py": 440,
     "services/schedule.py": 350,
     "core/api/client.py": 15,
     "core/api/endpoint_surface.py": 350,

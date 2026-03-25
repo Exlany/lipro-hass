@@ -20,7 +20,7 @@ _USE_DEFAULT_GET_DEVICE = object()
 
 def _normalize_device_cache(devices):
     if devices is None:
-        return MappingProxyType({})
+        return None
     if isinstance(devices, Mapping):
         return MappingProxyType(dict(devices))
     return devices
@@ -129,3 +129,24 @@ async def test_config_entry_diagnostics_redacts_ir_gateway_projection(
         result = await async_get_config_entry_diagnostics(hass, entry)
 
     assert result["devices"][0]["extra_data"] == {"gateway_device_id": "**REDACTED**"}
+
+
+@pytest.mark.asyncio
+async def test_device_diagnostics_reports_degraded_runtime_device_cache(
+    hass,
+) -> None:
+    """Device diagnostics should surface degraded cache state via runtime_access."""
+    coordinator = _make_coordinator(
+        devices=None,
+        get_device=None,
+    )
+    coordinator.get_device_by_id = None
+    entry = _make_entry(runtime_data=coordinator)
+
+    result = await async_get_device_diagnostics(
+        hass,
+        entry,
+        _make_device_entry("03ab5ccd7c111111"),
+    )
+
+    assert result == {"error": "device_cache_unavailable"}

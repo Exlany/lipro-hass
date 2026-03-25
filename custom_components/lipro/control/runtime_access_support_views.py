@@ -8,7 +8,11 @@ from typing import TYPE_CHECKING, cast
 from homeassistant.core import HomeAssistant
 
 from ..const.base import DOMAIN
-from ..runtime_types import LiproCoordinator, ProtocolTelemetryFacadeLike
+from ..runtime_types import (
+    LiproCoordinator,
+    LiproRuntimeCoordinator,
+    ProtocolTelemetryFacadeLike,
+)
 from .runtime_access_support_members import (
     _get_explicit_bool_member,
     _get_explicit_mapping_member,
@@ -72,12 +76,12 @@ def _build_runtime_coordinator_facts(
 
 
 def _build_runtime_entry_coordinator(
-    coordinator: LiproCoordinator | None,
+    coordinator: LiproRuntimeCoordinator | None,
 ) -> RuntimeCoordinatorView | None:
     """Build the coordinator projection owned by one runtime entry."""
     if coordinator is None:
         return None
-    return _build_runtime_coordinator_view(coordinator)
+    return _build_runtime_coordinator_view(cast(LiproCoordinator, coordinator))
 
 
 def _coerce_runtime_entry_port(

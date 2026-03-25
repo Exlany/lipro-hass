@@ -189,7 +189,7 @@ def test_v1_8_closeout_through_v1_15_archived_truth_are_consistent() -> None:
     assert "## Archived Milestone (v1.15)" in project_text
 
     assert f"## {CURRENT_MILESTONE}: {CURRENT_MILESTONE_NAME}" in roadmap_text
-    assert "**Milestone status:** `active / Phase 72 planning-ready (2026-03-25)`" in roadmap_text
+    assert f"**Milestone status:** `{CURRENT_MILESTONE_STATUS}`" in roadmap_text
     assert f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`" in roadmap_text
     assert CURRENT_PHASE_HEADING in roadmap_text
     assert "Plans:" in roadmap_text
@@ -197,26 +197,26 @@ def test_v1_8_closeout_through_v1_15_archived_truth_are_consistent() -> None:
     assert "### Phase 69: Residual read-model closure, wrapper-path thinning, and quality-balance follow-through" in roadmap_text
 
     for needle in (
-        "- [ ] **GOV-56**",
-        "- [ ] **ARC-19**",
-        "- [ ] **HOT-32**",
-        "- [ ] **HOT-33**",
+        "- [x] **GOV-56**",
+        "- [x] **ARC-19**",
+        "- [x] **HOT-32**",
+        "- [x] **HOT-33**",
         "- [ ] **HOT-34**",
-        "- [ ] **TYP-21**",
+        "- [x] **TYP-21**",
         "- [ ] **TST-22**",
         "- [ ] **QLT-30**",
-        "| GOV-56 | Phase 72, 74 | Planned |",
-        "| ARC-19 | Phase 72, 73 | Planned |",
-        "| HOT-32 | Phase 72 | Planned |",
-        "| HOT-33 | Phase 73 | Planned |",
+        "| GOV-56 | Phase 72, 74 | Completed |",
+        "| ARC-19 | Phase 72, 73 | Completed |",
+        "| HOT-32 | Phase 72 | Completed |",
+        "| HOT-33 | Phase 73 | Completed |",
         "| HOT-34 | Phase 74 | Planned |",
-        "| TYP-21 | Phase 72, 73 | Planned |",
+        "| TYP-21 | Phase 72, 73 | Completed |",
         "| TST-22 | Phase 72, 73, 74 | Planned |",
         "| QLT-30 | Phase 72, 73, 74 | Planned |",
         "- v1.20 routed requirements: 8 total",
         "- Current mapped: 8",
-        "- Current complete: 0",
-        "- Current pending: 8",
+        "- Current complete: 5",
+        "- Current pending: 3",
         "## Latest Archived Milestone (v1.19)",
         "## Traceability for archived v1.16 route",
         "| GOV-52 | Phase 68 | Completed |",

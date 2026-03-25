@@ -155,7 +155,7 @@ def test_build_runtime_diagnostics_projection_marks_missing_device_cache() -> No
         last_update_success=True,
         mqtt_service=SimpleNamespace(connected=True),
         protocol=None,
-        telemetry_service=SimpleNamespace(build_snapshot=lambda: {}),
+        telemetry_service=SimpleNamespace(build_snapshot=dict),
         devices=None,
     )
     entry = SimpleNamespace(

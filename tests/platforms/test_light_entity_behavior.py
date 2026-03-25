@@ -504,12 +504,14 @@ class TestLiproLightAdditionalCoverage:
         """Setup should create entities only for light and fan-light devices."""
         from custom_components.lipro.light import LiproLight, async_setup_entry
 
+        devices = {
+            "light_1": make_device("light"),
+            "fan_light": make_device("fanLight"),
+            "switch_1": make_device("switch"),
+        }
         coordinator = SimpleNamespace(
-            devices={
-                "light_1": make_device("light"),
-                "fan_light": make_device("fanLight"),
-                "switch_1": make_device("switch"),
-            }
+            devices=devices,
+            iter_devices=lambda: tuple(devices.values()),
         )
         entry = SimpleNamespace(runtime_data=coordinator)
         from custom_components.lipro import LiproConfigEntry

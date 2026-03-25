@@ -26,15 +26,17 @@ class TestSelectSetupBehavior:
             async_setup_entry,
         )
 
+        devices = {
+            "heater": make_device("heater"),
+            "gear_light": make_device(
+                "light",
+                properties={"gearList": '[{"temperature":50,"brightness":100}]'},
+            ),
+            "plain_light": make_device("light"),
+        }
         coordinator = SimpleNamespace(
-            devices={
-                "heater": make_device("heater"),
-                "gear_light": make_device(
-                    "light",
-                    properties={"gearList": '[{"temperature":50,"brightness":100}]'},
-                ),
-                "plain_light": make_device("light"),
-            }
+            devices=devices,
+            iter_devices=lambda: tuple(devices.values()),
         )
         entry = SimpleNamespace(runtime_data=coordinator)
         from custom_components.lipro import LiproConfigEntry

@@ -14,9 +14,10 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const.base import DOMAIN
 from .control.entry_root_wiring import (
+    EntryLifecycleControllerDependencies as _EntryLifecycleControllerDependencies,
     EntryLifecycleControllerLike as _EntryLifecycleControllerLike,
     build_entry_lifecycle_controller as _build_entry_lifecycle_controller_impl,
-    build_entry_lifecycle_controller_kwargs as _build_entry_lifecycle_controller_kwargs_impl,
+    build_entry_lifecycle_controller_dependencies as _build_entry_lifecycle_controller_dependencies_impl,
     build_service_registry as _build_service_registry_impl,
 )
 from .entry_options import (
@@ -38,6 +39,11 @@ if TYPE_CHECKING:
     from homeassistant.helpers.typing import ConfigType
 
     from .control.service_registry import ServiceRegistry
+    from .coordinator_entry import Coordinator as _CoordinatorType
+    from .core import (
+        LiproAuthManager as _LiproAuthManagerType,
+        LiproProtocolFacade as _LiproProtocolFacadeType,
+    )
 
 
 class _CoreModule(Protocol):
@@ -157,6 +163,39 @@ PLATFORMS: list[Platform] = [
 type LiproRuntimeData = LiproRuntimeCoordinator | None
 type LiproConfigEntry = ConfigEntry[LiproRuntimeData]
 
+if TYPE_CHECKING:
+    from collections.abc import Awaitable
+
+    type ProtocolFactory = Callable[..., _LiproProtocolFacadeType]
+    type AuthManagerFactory = Callable[[_LiproProtocolFacadeType], _LiproAuthManagerType]
+
+    class CoordinatorFactory(Protocol):
+        """Typed lazy coordinator constructor used only for local casts."""
+
+        def __call__(
+            self,
+            hass: HomeAssistant,
+            protocol: _LiproProtocolFacadeType,
+            auth_manager: _LiproAuthManagerType,
+            config_entry: LiproConfigEntry,
+            *,
+            update_interval: int = ...,
+        ) -> _CoordinatorType:
+            """Return one configured coordinator instance."""
+
+    type BuildEntryAuthContext = Callable[
+        ..., tuple[_LiproProtocolFacadeType, _LiproAuthManagerType]
+    ]
+    type AuthenticateEntry = Callable[[_LiproAuthManagerType], Awaitable[None]]
+    type PersistEntryTokens = Callable[
+        [HomeAssistant, LiproConfigEntry, _LiproAuthManagerType],
+        None,
+    ]
+    type StoreEntryOptionsSnapshot = Callable[[HomeAssistant, LiproConfigEntry], None]
+    type ReloadEntryIfOptionsChanged = Callable[
+        [HomeAssistant, LiproConfigEntry], Awaitable[None]
+    ]
+
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
@@ -267,24 +306,30 @@ def _build_service_registry() -> ServiceRegistry:
     )
 
 
-def _build_entry_lifecycle_controller_kwargs() -> dict[str, object]:
-    """Build the stable collaborator set for one lifecycle-controller instance."""
-    return _build_entry_lifecycle_controller_kwargs_impl(
+def _build_entry_lifecycle_controller_dependencies(
+) -> _EntryLifecycleControllerDependencies:
+    """Build the stable collaborator bundle for one lifecycle-controller instance."""
+    return _build_entry_lifecycle_controller_dependencies_impl(
         logger=_LOGGER,
-        domain=DOMAIN,
         platforms=PLATFORMS,
-        protocol_factory=LiproProtocolFacade,
-        auth_manager_factory=LiproAuthManager,
-        coordinator_factory=Coordinator,
+        protocol_factory=cast("ProtocolFactory", LiproProtocolFacade),
+        auth_manager_factory=cast("AuthManagerFactory", LiproAuthManager),
+        coordinator_factory=cast("CoordinatorFactory", Coordinator),
         get_client_session=async_get_clientsession,
-        build_entry_auth_context=build_entry_auth_context,
-        async_authenticate_entry=async_authenticate_entry,
+        build_entry_auth_context=cast("BuildEntryAuthContext", build_entry_auth_context),
+        async_authenticate_entry=cast("AuthenticateEntry", async_authenticate_entry),
         clear_entry_runtime_data=clear_entry_runtime_data,
         get_entry_int_option=get_entry_int_option,
-        persist_entry_tokens_if_changed=persist_entry_tokens_if_changed,
-        store_entry_options_snapshot=store_entry_options_snapshot,
+        persist_entry_tokens_if_changed=cast(
+            "PersistEntryTokens", persist_entry_tokens_if_changed
+        ),
+        store_entry_options_snapshot=cast(
+            "StoreEntryOptionsSnapshot", store_entry_options_snapshot
+        ),
         remove_entry_options_snapshot=remove_entry_options_snapshot,
-        async_reload_entry_if_options_changed=async_reload_entry_if_options_changed,
+        async_reload_entry_if_options_changed=cast(
+            "ReloadEntryIfOptionsChanged", async_reload_entry_if_options_changed
+        ),
         async_ensure_runtime_infra=async_ensure_runtime_infra,
         setup_device_registry_listener=setup_device_registry_listener,
         remove_device_registry_listener=remove_device_registry_listener,
@@ -297,7 +342,7 @@ def _build_entry_lifecycle_controller() -> _EntryLifecycleControllerLike:
     return _build_entry_lifecycle_controller_impl(
         load_module=_load_module,
         controller_module_name="custom_components.lipro.control.entry_lifecycle_controller",
-        controller_kwargs=_build_entry_lifecycle_controller_kwargs(),
+        controller_dependencies=_build_entry_lifecycle_controller_dependencies(),
     )
 
 

@@ -6,7 +6,7 @@ sole control-plane owner while delegating mechanical flow steps inward.
 
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable, Coroutine, Sequence
+from collections.abc import Awaitable, Callable, Coroutine
 from dataclasses import dataclass
 from functools import partial
 import logging
@@ -15,15 +15,15 @@ from typing import Any, Protocol, cast
 from aiohttp import ClientSession
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
 from ..const.config import DEFAULT_SCAN_INTERVAL
 from ..coordinator_entry import Coordinator
 from ..core import LiproAuthManager, LiproProtocolFacade
-from .service_registry import ServiceRegistry
+from ..runtime_types import LiproRuntimeCoordinator
+from .entry_root_wiring import EntryLifecycleControllerDependencies
 
-type EntryLike = ConfigEntry[Coordinator | None]
+type EntryLike = ConfigEntry[LiproRuntimeCoordinator | None]
 type ProtocolFactory = Callable[..., LiproProtocolFacade]
 type AuthManagerFactory = Callable[[LiproProtocolFacade], LiproAuthManager]
 type GetClientSession = Callable[[HomeAssistant], ClientSession]
@@ -92,42 +92,26 @@ class EntryLifecycleSupport:
     def __init__(
         self,
         *,
-        logger: logging.Logger,
-        platforms: Sequence[Platform],
-        protocol_factory: ProtocolFactory,
-        auth_manager_factory: AuthManagerFactory,
-        coordinator_factory: CoordinatorFactory,
-        get_client_session: GetClientSession,
-        build_entry_auth_context: BuildEntryAuthContext,
-        async_authenticate_entry: AuthenticateEntry,
-        clear_entry_runtime_data: ClearEntryRuntimeData,
-        persist_entry_tokens_if_changed: PersistEntryTokens,
-        store_entry_options_snapshot: StoreEntryOptionsSnapshot,
-        remove_entry_options_snapshot: RemoveEntryOptionsSnapshot,
-        async_ensure_runtime_infra: EnsureRuntimeInfra,
-        setup_device_registry_listener: SetupDeviceRegistryListener,
-        remove_device_registry_listener: RemoveDeviceRegistryListener,
-        has_other_runtime_entries: HasOtherRuntimeEntries,
-        service_registry: ServiceRegistry,
+        dependencies: EntryLifecycleControllerDependencies,
     ) -> None:
         """Initialize the support seam with controller-owned collaborators."""
-        self._logger = logger
-        self._platforms = tuple(platforms)
-        self._protocol_factory = protocol_factory
-        self._auth_manager_factory = auth_manager_factory
-        self._coordinator_factory = coordinator_factory
-        self._get_client_session = get_client_session
-        self._build_entry_auth_context = build_entry_auth_context
-        self._async_authenticate_entry = async_authenticate_entry
-        self._clear_entry_runtime_data = clear_entry_runtime_data
-        self._persist_entry_tokens_if_changed = persist_entry_tokens_if_changed
-        self._store_entry_options_snapshot = store_entry_options_snapshot
-        self._remove_entry_options_snapshot = remove_entry_options_snapshot
-        self._async_ensure_runtime_infra = async_ensure_runtime_infra
-        self._setup_device_registry_listener = setup_device_registry_listener
-        self._remove_device_registry_listener = remove_device_registry_listener
-        self._has_other_runtime_entries = has_other_runtime_entries
-        self._service_registry = service_registry
+        self._logger = dependencies.logger
+        self._platforms = dependencies.platforms
+        self._protocol_factory = dependencies.protocol_factory
+        self._auth_manager_factory = dependencies.auth_manager_factory
+        self._coordinator_factory = dependencies.coordinator_factory
+        self._get_client_session = dependencies.get_client_session
+        self._build_entry_auth_context = dependencies.build_entry_auth_context
+        self._async_authenticate_entry = dependencies.async_authenticate_entry
+        self._clear_entry_runtime_data = dependencies.clear_entry_runtime_data
+        self._persist_entry_tokens_if_changed = dependencies.persist_entry_tokens_if_changed
+        self._store_entry_options_snapshot = dependencies.store_entry_options_snapshot
+        self._remove_entry_options_snapshot = dependencies.remove_entry_options_snapshot
+        self._async_ensure_runtime_infra = dependencies.async_ensure_runtime_infra
+        self._setup_device_registry_listener = dependencies.setup_device_registry_listener
+        self._remove_device_registry_listener = dependencies.remove_device_registry_listener
+        self._has_other_runtime_entries = dependencies.has_other_runtime_entries
+        self._service_registry = dependencies.service_registry
 
     def _build_setup_listener(self) -> Callable[[HomeAssistant], None]:
         """Bind the shared device-registry listener to the controller logger."""

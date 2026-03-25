@@ -150,12 +150,14 @@ class TestLiproFanEntityBehavior:
             async_setup_entry,
         )
 
+        devices = {
+            "fan": make_device("fanLight"),
+            "heater": make_device("heater"),
+            "light": make_device("light"),
+        }
         coordinator = SimpleNamespace(
-            devices={
-                "fan": make_device("fanLight"),
-                "heater": make_device("heater"),
-                "light": make_device("light"),
-            }
+            devices=devices,
+            iter_devices=lambda: tuple(devices.values()),
         )
         entry = SimpleNamespace(runtime_data=coordinator)
         from custom_components.lipro import LiproConfigEntry

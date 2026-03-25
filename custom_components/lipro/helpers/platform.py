@@ -95,7 +95,7 @@ def create_platform_entities[EntityT: Entity](
     """Create entities for a platform using a filter and factory function."""
     return [
         entity_factory(coordinator, device)
-        for device in coordinator.devices.values()
+        for device in coordinator.iter_devices()
         if device_filter(device)
     ]
 
@@ -111,7 +111,7 @@ def create_device_entities[EntityT: Entity](
 ) -> list[EntityT]:
     """Create one or more entities per device using a shared builder."""
     entities: list[EntityT] = []
-    for device in coordinator.devices.values():
+    for device in coordinator.iter_devices():
         if device_filter is not None and not device_filter(device):
             continue
         entities.extend(entity_builder(coordinator, device))

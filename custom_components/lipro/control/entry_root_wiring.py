@@ -8,8 +8,9 @@ module only carries mechanical controller/service-registry assembly.
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
+from dataclasses import dataclass
 import logging
-from typing import Protocol, cast
+from typing import TYPE_CHECKING, Protocol, cast
 
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
@@ -21,6 +22,26 @@ from .service_registry import (
     SetupServicesFn,
 )
 
+if TYPE_CHECKING:
+    from .entry_lifecycle_support import (
+        AuthenticateEntry,
+        AuthManagerFactory,
+        BuildEntryAuthContext,
+        ClearEntryRuntimeData,
+        CoordinatorFactory,
+        EnsureRuntimeInfra,
+        GetClientSession,
+        GetEntryIntOption,
+        HasOtherRuntimeEntries,
+        PersistEntryTokens,
+        ProtocolFactory,
+        ReloadEntryIfOptionsChanged,
+        RemoveDeviceRegistryListener,
+        RemoveEntryOptionsSnapshot,
+        SetupDeviceRegistryListener,
+        StoreEntryOptionsSnapshot,
+    )
+
 
 class ServiceRegistrationsLike(Protocol):
     """Service-registration table surface consumed by the root wiring helper."""
@@ -31,6 +52,31 @@ class ServiceRegistrationsLike(Protocol):
 
     def has_debug_mode_runtime_entry(self, hass: HomeAssistant) -> bool:
         """Return whether at least one runtime entry is in debug mode."""
+
+
+@dataclass(frozen=True, slots=True)
+class EntryLifecycleControllerDependencies:
+    """Typed collaborator bundle consumed by the runtime lifecycle owner."""
+
+    logger: logging.Logger
+    platforms: tuple[Platform, ...]
+    protocol_factory: ProtocolFactory
+    auth_manager_factory: AuthManagerFactory
+    coordinator_factory: CoordinatorFactory
+    get_client_session: GetClientSession
+    build_entry_auth_context: BuildEntryAuthContext
+    async_authenticate_entry: AuthenticateEntry
+    clear_entry_runtime_data: ClearEntryRuntimeData
+    get_entry_int_option: GetEntryIntOption
+    persist_entry_tokens_if_changed: PersistEntryTokens
+    store_entry_options_snapshot: StoreEntryOptionsSnapshot
+    remove_entry_options_snapshot: RemoveEntryOptionsSnapshot
+    async_reload_entry_if_options_changed: ReloadEntryIfOptionsChanged
+    async_ensure_runtime_infra: EnsureRuntimeInfra
+    setup_device_registry_listener: SetupDeviceRegistryListener
+    remove_device_registry_listener: RemoveDeviceRegistryListener
+    has_other_runtime_entries: HasOtherRuntimeEntries
+    service_registry: ServiceRegistry
 
 
 class EntryLifecycleControllerLike(Protocol):
@@ -48,7 +94,11 @@ class EntryLifecycleControllerLike(Protocol):
 class EntryLifecycleControllerFactory(Protocol):
     """Runtime-loaded controller constructor surface."""
 
-    def __call__(self, **kwargs: object) -> EntryLifecycleControllerLike: ...
+    def __call__(
+        self,
+        *,
+        dependencies: EntryLifecycleControllerDependencies,
+    ) -> EntryLifecycleControllerLike: ...
 
 
 class EntryLifecycleControllerModule(Protocol):
@@ -80,52 +130,50 @@ def build_service_registry(
 
 
 
-def build_entry_lifecycle_controller_kwargs(
+def build_entry_lifecycle_controller_dependencies(
     *,
     logger: logging.Logger,
-    domain: str,
-    platforms: list[Platform],
-    protocol_factory: object,
-    auth_manager_factory: object,
-    coordinator_factory: object,
-    get_client_session: object,
-    build_entry_auth_context: object,
-    async_authenticate_entry: object,
-    clear_entry_runtime_data: object,
-    get_entry_int_option: object,
-    persist_entry_tokens_if_changed: object,
-    store_entry_options_snapshot: object,
-    remove_entry_options_snapshot: object,
-    async_reload_entry_if_options_changed: object,
-    async_ensure_runtime_infra: object,
-    setup_device_registry_listener: object,
-    remove_device_registry_listener: object,
-    has_other_runtime_entries: object,
+    platforms: Sequence[Platform],
+    protocol_factory: ProtocolFactory,
+    auth_manager_factory: AuthManagerFactory,
+    coordinator_factory: CoordinatorFactory,
+    get_client_session: GetClientSession,
+    build_entry_auth_context: BuildEntryAuthContext,
+    async_authenticate_entry: AuthenticateEntry,
+    clear_entry_runtime_data: ClearEntryRuntimeData,
+    get_entry_int_option: GetEntryIntOption,
+    persist_entry_tokens_if_changed: PersistEntryTokens,
+    store_entry_options_snapshot: StoreEntryOptionsSnapshot,
+    remove_entry_options_snapshot: RemoveEntryOptionsSnapshot,
+    async_reload_entry_if_options_changed: ReloadEntryIfOptionsChanged,
+    async_ensure_runtime_infra: EnsureRuntimeInfra,
+    setup_device_registry_listener: SetupDeviceRegistryListener,
+    remove_device_registry_listener: RemoveDeviceRegistryListener,
+    has_other_runtime_entries: HasOtherRuntimeEntries,
     service_registry: ServiceRegistry,
-) -> dict[str, object]:
-    """Build the stable collaborator bundle for one lifecycle-controller instance."""
-    return {
-        "logger": logger,
-        "domain": domain,
-        "platforms": platforms,
-        "protocol_factory": protocol_factory,
-        "auth_manager_factory": auth_manager_factory,
-        "coordinator_factory": coordinator_factory,
-        "get_client_session": get_client_session,
-        "build_entry_auth_context": build_entry_auth_context,
-        "async_authenticate_entry": async_authenticate_entry,
-        "clear_entry_runtime_data": clear_entry_runtime_data,
-        "get_entry_int_option": get_entry_int_option,
-        "persist_entry_tokens_if_changed": persist_entry_tokens_if_changed,
-        "store_entry_options_snapshot": store_entry_options_snapshot,
-        "remove_entry_options_snapshot": remove_entry_options_snapshot,
-        "async_reload_entry_if_options_changed": async_reload_entry_if_options_changed,
-        "async_ensure_runtime_infra": async_ensure_runtime_infra,
-        "setup_device_registry_listener": setup_device_registry_listener,
-        "remove_device_registry_listener": remove_device_registry_listener,
-        "has_other_runtime_entries": has_other_runtime_entries,
-        "service_registry": service_registry,
-    }
+) -> EntryLifecycleControllerDependencies:
+    """Build the stable typed collaborator bundle for one lifecycle owner."""
+    return EntryLifecycleControllerDependencies(
+        logger=logger,
+        platforms=tuple(platforms),
+        protocol_factory=protocol_factory,
+        auth_manager_factory=auth_manager_factory,
+        coordinator_factory=coordinator_factory,
+        get_client_session=get_client_session,
+        build_entry_auth_context=build_entry_auth_context,
+        async_authenticate_entry=async_authenticate_entry,
+        clear_entry_runtime_data=clear_entry_runtime_data,
+        get_entry_int_option=get_entry_int_option,
+        persist_entry_tokens_if_changed=persist_entry_tokens_if_changed,
+        store_entry_options_snapshot=store_entry_options_snapshot,
+        remove_entry_options_snapshot=remove_entry_options_snapshot,
+        async_reload_entry_if_options_changed=async_reload_entry_if_options_changed,
+        async_ensure_runtime_infra=async_ensure_runtime_infra,
+        setup_device_registry_listener=setup_device_registry_listener,
+        remove_device_registry_listener=remove_device_registry_listener,
+        has_other_runtime_entries=has_other_runtime_entries,
+        service_registry=service_registry,
+    )
 
 
 
@@ -133,7 +181,7 @@ def build_entry_lifecycle_controller(
     *,
     load_module: Callable[[str], object],
     controller_module_name: str,
-    controller_kwargs: dict[str, object],
+    controller_dependencies: EntryLifecycleControllerDependencies,
 ) -> EntryLifecycleControllerLike:
     """Build the runtime lifecycle controller outside the HA root adapter."""
     controller_module = cast(
@@ -141,13 +189,14 @@ def build_entry_lifecycle_controller(
         load_module(controller_module_name),
     )
     controller_factory = controller_module.EntryLifecycleController
-    return controller_factory(**controller_kwargs)
+    return controller_factory(dependencies=controller_dependencies)
 
 
 __all__ = [
+    "EntryLifecycleControllerDependencies",
     "EntryLifecycleControllerLike",
     "ServiceRegistrationsLike",
     "build_entry_lifecycle_controller",
-    "build_entry_lifecycle_controller_kwargs",
+    "build_entry_lifecycle_controller_dependencies",
     "build_service_registry",
 ]

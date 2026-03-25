@@ -6,7 +6,11 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Protocol
 
-from ..runtime_types import LiproCoordinator, ProtocolTelemetryFacadeLike
+from ..runtime_types import (
+    LiproCoordinator,
+    LiproRuntimeCoordinator,
+    ProtocolTelemetryFacadeLike,
+)
 
 if TYPE_CHECKING:
     from ..core.device import LiproDevice
@@ -16,8 +20,8 @@ class RuntimeEntryPort(Protocol):
     """Minimal config-entry surface consumed by control runtime access."""
 
     entry_id: str
-    runtime_data: LiproCoordinator | None
-    options: Mapping[str, object]
+    runtime_data: LiproRuntimeCoordinator | None
+    options: object
 
 
 @dataclass(frozen=True, slots=True)
@@ -38,7 +42,7 @@ class RuntimeEntryFacts:
 
     entry_id: str
     options: Mapping[str, object]
-    runtime_data: LiproCoordinator | None
+    runtime_data: LiproRuntimeCoordinator | None
 
 
 @dataclass(frozen=True, slots=True)

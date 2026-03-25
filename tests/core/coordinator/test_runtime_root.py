@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from types import SimpleNamespace
+from typing import cast
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -10,6 +10,18 @@ import pytest
 from custom_components.lipro.core.api import LiproAuthError
 from custom_components.lipro.core.coordinator.factory import (
     CoordinatorBootstrapArtifact,
+)
+from custom_components.lipro.core.coordinator.runtime_wiring import (
+    CoordinatorServiceLayer,
+)
+from custom_components.lipro.core.coordinator.services import (
+    CoordinatorCommandService,
+    CoordinatorDeviceRefreshService,
+    CoordinatorMqttService,
+    CoordinatorPollingService,
+    CoordinatorScheduleService,
+    CoordinatorStateService,
+    CoordinatorTelemetryService,
 )
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from tests.conftest_shared import (
@@ -36,13 +48,20 @@ class TestCoordinatorRuntimeRoot:
         state = MagicMock(name="state")
         runtimes = MagicMock(name="runtimes")
         update_cycle = MagicMock(name="update_cycle")
-        service_layer = SimpleNamespace(
-            command_service=MagicMock(name="command_service"),
-            mqtt_service=MagicMock(name="mqtt_service"),
-            state_service=MagicMock(name="state_service"),
-            polling_service=MagicMock(name="polling_service"),
-            device_refresh_service=MagicMock(name="device_refresh_service"),
-            telemetry_service=MagicMock(name="telemetry_service"),
+        service_layer = CoordinatorServiceLayer(
+            command_service=cast("CoordinatorCommandService", MagicMock(name="command_service")),
+            mqtt_service=cast("CoordinatorMqttService", MagicMock(name="mqtt_service")),
+            state_service=cast("CoordinatorStateService", MagicMock(name="state_service")),
+            polling_service=cast("CoordinatorPollingService", MagicMock(name="polling_service")),
+            schedule_service=cast("CoordinatorScheduleService", MagicMock(name="schedule_service")),
+            device_refresh_service=cast(
+                "CoordinatorDeviceRefreshService",
+                MagicMock(name="device_refresh_service"),
+            ),
+            telemetry_service=cast(
+                "CoordinatorTelemetryService",
+                MagicMock(name="telemetry_service"),
+            ),
         )
         artifact = CoordinatorBootstrapArtifact(
             state=state,
@@ -75,6 +94,7 @@ class TestCoordinatorRuntimeRoot:
         assert coordinator.mqtt_service is service_layer.mqtt_service
         assert coordinator.state_service is service_layer.state_service
         assert coordinator._polling_service is service_layer.polling_service
+        assert coordinator.schedule_service is service_layer.schedule_service
         assert coordinator.device_refresh_service is service_layer.device_refresh_service
         assert coordinator.telemetry_service is service_layer.telemetry_service
         assert coordinator._update_cycle is update_cycle

@@ -6,12 +6,12 @@
 
 ### Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
 
-- [ ] **GOV-56**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / docs / meta guards` 必须共同承认 `v1.20` active route、`Phase 72 -> 74` 规划、`v1.19` latest archived baseline 与 `.planning/reviews/V1_19_EVIDENCE_INDEX.md` latest pull-only closeout pointer；不得回退到 no-active-route story。
-- [ ] **ARC-19**: bootstrap / lifecycle / `runtime_access` / `service_router` / `schedule` formal homes 必须继续收敛到单一 north-star 主链，不得新增 second orchestration root、builder folklore、shadow helper carrier 或 helper-owned public surface。
-- [ ] **HOT-32**: `Coordinator` bootstrap / builder、`EntryLifecycleController` / `EntryLifecycleSupport` orchestration 与 `runtime_access` test-aware probing 必须 inward decomposition + probing retirement，降低 hotspot density 而不回流 backdoor。
-- [ ] **HOT-33**: service-router forwarding families、diagnostics/helper duplication、`LiproEntity` runtime strategy 与 `schedule.py` runtime surface 必须完成 formalize / deduplicate，并保持 outward behavior 稳定。
+- [x] **GOV-56**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / docs / meta guards` 现共同承认 `v1.20` active route、`Phase 72 -> 74` 规划、`v1.19` latest archived baseline 与 `.planning/reviews/V1_19_EVIDENCE_INDEX.md` latest pull-only closeout pointer；current mutable story 不得回退到 stale archive-only route 叙事。
+- [x] **ARC-19**: bootstrap / lifecycle / `runtime_access` / `service_router` / `schedule` formal homes 必须继续收敛到单一 north-star 主链，不得新增 second orchestration root、builder folklore、shadow helper carrier 或 helper-owned public surface。
+- [x] **HOT-32**: `Coordinator` bootstrap / builder、`EntryLifecycleController` / `EntryLifecycleSupport` orchestration 与 `runtime_access` test-aware probing 必须 inward decomposition + probing retirement，降低 hotspot density 而不回流 backdoor。
+- [x] **HOT-33**: service-router forwarding families、diagnostics/helper duplication、`LiproEntity` runtime strategy 与 `schedule.py` runtime surface 必须完成 formalize / deduplicate，并保持 outward behavior 稳定。
 - [ ] **HOT-34**: auth legacy snapshot / compatibility wrapper 必须继续退役，剩余 legacy alias 需显式清点、缩窄并设置删除 gate。
-- [ ] **TYP-21**: runtime / lifecycle / service / auth seams 必须维持或提升 typed contract honesty，不得用 `Any` / compatibility shell 掩盖 boundary drift。
+- [x] **TYP-21**: runtime / lifecycle / service / auth seams 必须维持或提升 typed contract honesty，不得用 `Any` / compatibility shell 掩盖 boundary drift。
 - [ ] **TST-22**: 大型 suites 与治理 guards 必须继续 topicize / focused freeze，新增 route / hotspot / no-growth guards 覆盖 `Phase 72 -> 74` touched scope。
 - [ ] **QLT-30**: touched scope 必须在 `uv run ruff check .`、`uv run mypy --follow-imports=silent .`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check` 与 focused/full pytest 下持续全绿。
 
@@ -19,20 +19,20 @@
 
 | Requirement | Planned Phase | Status |
 |-------------|---------------|--------|
-| GOV-56 | Phase 72, 74 | Planned |
-| ARC-19 | Phase 72, 73 | Planned |
-| HOT-32 | Phase 72 | Planned |
-| HOT-33 | Phase 73 | Planned |
+| GOV-56 | Phase 72, 74 | Completed |
+| ARC-19 | Phase 72, 73 | Completed |
+| HOT-32 | Phase 72 | Completed |
+| HOT-33 | Phase 73 | Completed |
 | HOT-34 | Phase 74 | Planned |
-| TYP-21 | Phase 72, 73 | Planned |
+| TYP-21 | Phase 72, 73 | Completed |
 | TST-22 | Phase 72, 73, 74 | Planned |
 | QLT-30 | Phase 72, 73, 74 | Planned |
 
 **Coverage:**
 - v1.20 routed requirements: 8 total
 - Current mapped: 8
-- Current complete: 0
-- Current pending: 8
+- Current complete: 5
+- Current pending: 3
 - Current unmapped: 0 ✓
 
 ## Latest Archived Milestone (v1.19)
@@ -41,7 +41,7 @@
 
 ### Hotspot Decomposition & Archive Promotion
 
-- [x] **GOV-55**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / docs index / meta guards` 现共同承认 `v1.19` 已完成 archive promotion，并把当前治理状态切到 `no active milestone route / latest archived baseline = v1.19`；`v1.18` 退为 previous archived baseline。
+- [x] **GOV-55**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / docs index / meta guards` 已完成 `v1.19` archive promotion 与 latest-baseline pointer 固定；其归档阶段随后让位给 `v1.20` active route，而 `v1.18` 继续作为 previous archived baseline。
 - [x] **ARC-18**: OTA / firmware-update / anonymous-share / request pacing / command runtime 只允许 inward decomposition，不得新增 outward root、compat shell 或 second story。
 - [x] **HOT-30**: OTA / firmware-install、anonymous-share submit、request pacing 与 command-runtime touched hotspots 已显著降低单函数决策密度，并把 orchestration 切回更窄的 helper/home 边界。
 - [x] **HOT-31**: `Phase 71` 留下的 focused hotspot/function budgets 与 route-truth guards 继续冻结 touched scope，防止 archived closeout 之后的 density 与 truth drift 回流。
@@ -294,7 +294,7 @@
 **Coverage:**
 - v1.14 routed requirements: 27 total
 - Current mapped: 27
-- Current complete: 27
+- Current complete: 57
 - Current pending: 0
 - Current unmapped: 0 ✓
 

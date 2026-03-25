@@ -42,26 +42,27 @@ from .runtime_access_types import (
 )
 
 type RuntimeTelemetryView = dict[str, object]
+type RuntimeEntryLike = RuntimeEntryPort | object
 type RuntimeEntryCoordinator = tuple[RuntimeEntryPort, LiproCoordinator]
 type RuntimeDeviceAndCoordinator = tuple[LiproDevice, LiproCoordinator]
 
 
 def build_entry_telemetry_exporter(
-    entry: RuntimeEntryPort,
+    entry: RuntimeEntryLike,
 ) -> RuntimeTelemetryExporter | None:
     """Return the formal runtime telemetry exporter for one config entry."""
     return _support.build_entry_telemetry_exporter_support(entry)
 
 
 def build_runtime_entry_view(
-    entry: RuntimeEntryPort,
+    entry: RuntimeEntryLike,
 ) -> RuntimeEntryView | None:
     """Return the formal runtime-entry view for one config entry."""
     return _build_runtime_entry_view_support(entry)
 
 
 def get_entry_runtime_coordinator(
-    entry: RuntimeEntryPort,
+    entry: RuntimeEntryLike,
 ) -> LiproCoordinator | None:
     """Return the coordinator attached to a config entry, if loaded."""
     return _get_entry_runtime_coordinator_support(entry)
@@ -166,14 +167,14 @@ def iter_developer_runtime_coordinators(
 
 
 def iter_runtime_devices_for_entry(
-    entry: RuntimeEntryPort,
+    entry: RuntimeEntryLike,
 ) -> list[LiproDevice]:
     """Return all runtime devices for one entry through runtime_access."""
     return _iter_runtime_devices_for_entry_support(entry)
 
 
 def find_runtime_device_for_entry(
-    entry: RuntimeEntryPort,
+    entry: RuntimeEntryLike,
     device_id: str,
 ) -> LiproDevice | None:
     """Return one runtime device for an entry through runtime_access."""
@@ -188,7 +189,7 @@ def is_runtime_device_mapping_degraded(
 
 
 def build_entry_system_health_view(
-    entry: RuntimeEntryPort,
+    entry: RuntimeEntryLike,
 ) -> RuntimeTelemetryView:
     """Return the control-plane system-health projection for one config entry."""
     exporter = build_entry_telemetry_exporter(entry)
@@ -250,7 +251,7 @@ def _coerce_failure_summary(telemetry_view: RuntimeTelemetryView) -> FailureSumm
 
 
 def build_runtime_snapshot(
-    entry: RuntimeEntryPort,
+    entry: RuntimeEntryLike,
 ) -> RuntimeCoordinatorSnapshot | None:
     """Build one control-plane runtime snapshot from a config entry."""
     runtime_entry = build_runtime_entry_view(entry)
@@ -273,7 +274,7 @@ def build_runtime_snapshot(
 
 
 def build_runtime_diagnostics_projection(
-    entry: RuntimeEntryPort,
+    entry: RuntimeEntryLike,
 ) -> RuntimeDiagnosticsProjection | None:
     """Build the typed diagnostics-facing runtime projection for one config entry."""
     runtime_entry = build_runtime_entry_view(entry)

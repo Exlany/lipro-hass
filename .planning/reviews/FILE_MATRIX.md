@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 619
+**Python files total:** 626
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -176,6 +176,7 @@
 | `custom_components/lipro/core/coordinator/services/mqtt_service.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/services/polling_service.py` | Runtime | Phase 36 | 保留 | polling/status/outlet/snapshot orchestration helper home |
 | `custom_components/lipro/core/coordinator/services/protocol_service.py` | Runtime | Phase 14 | 保留 | protocol-facing runtime service surface |
+| `custom_components/lipro/core/coordinator/services/schedule_service.py` | Runtime | Phase 73 | 保留 | schedule runtime service formal home |
 | `custom_components/lipro/core/coordinator/services/state_service.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/services/telemetry_service.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/types.py` | Runtime | Phase 5 | 重构 | - |
@@ -459,6 +460,8 @@
 | `tests/core/test_diagnostics_config_entry.py` | Control | Phase 49 | 保留 | config-entry diagnostics topic suite |
 | `tests/core/test_diagnostics_device.py` | Control | Phase 49 | 保留 | device diagnostics topic suite |
 | `tests/core/test_diagnostics_redaction.py` | Control | Phase 49 | 保留 | redaction diagnostics topic suite |
+| `tests/core/test_entry_lifecycle_controller.py` | Control | Phase 72 | 保留 | lifecycle-controller focused seam suite |
+| `tests/core/test_entry_root_wiring.py` | Control | Phase 72 | 保留 | root-wiring typed dependency bundle suite |
 | `tests/core/test_entry_update_listener.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_exceptions.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_group_status.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -486,6 +489,8 @@
 | `tests/core/test_outlet_power_runtime.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_property_normalization.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_report_builder.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/test_runtime_access.py` | Control | Phase 65 / 72 | 保留 | runtime-access formal surface topic suite |
+| `tests/core/test_runtime_infra.py` | Control | Phase 72 | 保留 | runtime-infra listener ownership topic suite |
 | `tests/core/test_runtime_support.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_share_client.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_system_health.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -570,6 +575,8 @@
 | `tests/meta/test_phase69_support_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase70_governance_hotspot_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase71_hotspot_route_guards.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_phase72_runtime_bootstrap_route_guards.py` | Assurance | Phase 72 | 保留 | runtime/bootstrap current-route and no-growth guard suite |
+| `tests/meta/test_phase73_service_runtime_convergence_guards.py` | Assurance | Phase 73 | 保留 | service/runtime convergence, no-bypass, and current-route guard suite |
 | `tests/meta/test_protocol_replay_assets.py` | Assurance | Phase 7.4 | 保留 | - |
 | `tests/meta/test_public_surface_guards.py` | Assurance | Phase 6 | 保留 | thin shell after public-surface topicization |
 | `tests/meta/test_service_translation_sync.py` | Assurance | Phase 6 | 保留 | - |
