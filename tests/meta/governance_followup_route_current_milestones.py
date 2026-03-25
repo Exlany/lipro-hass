@@ -183,6 +183,7 @@ def test_v1_8_closeout_through_v1_15_archived_truth_are_consistent() -> None:
     assert LATEST_ARCHIVED_PROJECT_HEADER in project_text
     assert f"**Current status:** `{CURRENT_MILESTONE_STATUS}`" in project_text
     assert f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`" in project_text
+    assert "## Archived Milestone (v1.20)" not in project_text
     assert "## Archived Milestone (v1.17)" in project_text
     assert "## Archived Milestone (v1.16)" in project_text
     assert "**Current status:** `archived / evidence-ready with carry-forward (2026-03-24)`" in project_text
@@ -193,7 +194,7 @@ def test_v1_8_closeout_through_v1_15_archived_truth_are_consistent() -> None:
     assert f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`" in roadmap_text
     assert CURRENT_PHASE_HEADING in roadmap_text
     assert "Plans:" in roadmap_text
-    assert "72-04: freeze v1.20 current-route truth, focused guards, and planning gate inputs" in roadmap_text
+    assert "75-04: promote v1.20 closeout evidence and freeze the Phase 75 governance truth" in roadmap_text
     assert "### Phase 69: Residual read-model closure, wrapper-path thinning, and quality-balance follow-through" in roadmap_text
 
     for needle in (
@@ -205,14 +206,14 @@ def test_v1_8_closeout_through_v1_15_archived_truth_are_consistent() -> None:
         "- [x] **TYP-21**",
         "- [x] **TST-22**",
         "- [x] **QLT-30**",
-        "| GOV-56 | Phase 72, 74 | Completed |",
-        "| ARC-19 | Phase 72, 73 | Completed |",
+        "| GOV-56 | Phase 72, 74, 75 | Completed |",
+        "| ARC-19 | Phase 72, 73, 75 | Completed |",
         "| HOT-32 | Phase 72 | Completed |",
         "| HOT-33 | Phase 73 | Completed |",
         "| HOT-34 | Phase 74 | Completed |",
-        "| TYP-21 | Phase 72, 73 | Completed |",
-        "| TST-22 | Phase 72, 73, 74 | Completed |",
-        "| QLT-30 | Phase 72, 73, 74 | Completed |",
+        "| TYP-21 | Phase 72, 73, 75 | Completed |",
+        "| TST-22 | Phase 72, 73, 74, 75 | Completed |",
+        "| QLT-30 | Phase 72, 73, 74, 75 | Completed |",
         "- v1.20 routed requirements: 8 total",
         "- Current mapped: 8",
         "- Current complete: 8",
@@ -226,6 +227,7 @@ def test_v1_8_closeout_through_v1_15_archived_truth_are_consistent() -> None:
 
     assert f"**Current milestone:** `{CURRENT_MILESTONE} {CURRENT_MILESTONE_NAME}`" in state_text
     assert f"**Current mode:** `{CURRENT_ROUTE_MODE}`" in state_text
+    assert "archived / evidence-ready" not in CURRENT_MILESTONE_STATUS
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
     assert LATEST_ARCHIVED_AUDIT_PATH in state_text
     assert LATEST_ARCHIVED_EVIDENCE_PATH in state_text

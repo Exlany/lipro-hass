@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Awaitable, Callable
+from typing import TypedDict, cast
+
 from homeassistant.components import system_health
 from homeassistant.core import HomeAssistant
 
@@ -9,9 +12,26 @@ from ..const.base import VERSION
 from .models import RuntimeCoordinatorSnapshot
 from .runtime_access import build_runtime_snapshots, iter_runtime_entries
 
-type FailureEntry = dict[str, str | None]
-type SystemHealthValue = str | int | bool | list[FailureEntry]
-type SystemHealthPayload = dict[str, SystemHealthValue]
+
+class FailureEntry(TypedDict):
+    """Stable per-entry failure projection for system health."""
+
+    entry_ref: str
+    failure_category: str | None
+    failure_origin: str | None
+    handling_policy: str | None
+    error_type: str | None
+
+
+class SystemHealthPayload(TypedDict, total=False):
+    """Stable system-health payload shape exposed by the thin adapter."""
+
+    component_version: str
+    can_reach_server: bool
+    logged_accounts: int
+    total_devices: int
+    mqtt_connected_entries: int
+    failure_entries: list[FailureEntry]
 
 
 def _build_failure_entries(
@@ -21,7 +41,10 @@ def _build_failure_entries(
     return [
         {
             "entry_ref": snapshot.entry_ref or snapshot.entry_id,
-            **snapshot.failure_summary,
+            "failure_category": snapshot.failure_summary["failure_category"],
+            "failure_origin": snapshot.failure_summary["failure_origin"],
+            "handling_policy": snapshot.failure_summary["handling_policy"],
+            "error_type": snapshot.failure_summary["error_type"],
         }
         for snapshot in snapshots
         if snapshot.failure_summary["error_type"] is not None
@@ -73,7 +96,9 @@ async def async_register(
 ) -> None:
     """Register system health callbacks."""
     del hass
-    register.async_register_info(system_health_info)
+    register.async_register_info(
+        cast(Callable[[HomeAssistant], Awaitable[dict[object, object]]], system_health_info)
+    )
 
 
 async def system_health_info(

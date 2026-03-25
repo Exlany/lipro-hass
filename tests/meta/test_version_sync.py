@@ -121,7 +121,7 @@ def test_bug_report_template_lists_supported_install_methods() -> None:
     )
     options = install_method_field["attributes"]["options"]
 
-    assert "HACS" in options
+    assert any("HACS" in option for option in options)
     assert any("Shell" in option for option in options)
     assert any("shell_command" in option for option in options)
     assert any("Manual" in option for option in options)

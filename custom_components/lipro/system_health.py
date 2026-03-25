@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Awaitable, Callable
+from typing import cast
+
 from homeassistant.components import system_health
 from homeassistant.core import HomeAssistant
 
@@ -18,7 +21,9 @@ async def async_register(
 ) -> None:
     """Register system health callbacks."""
     del hass
-    register.async_register_info(system_health_info)
+    register.async_register_info(
+        cast(Callable[[HomeAssistant], Awaitable[dict[object, object]]], system_health_info)
+    )
 
 
 async def system_health_info(hass: HomeAssistant) -> SystemHealthPayload:

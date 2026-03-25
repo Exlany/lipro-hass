@@ -6,8 +6,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        感谢你的建议！开放式想法与使用讨论优先走 GitHub Discussions；若你已经有明确、可执行的改进提案，再使用这个表单。
-        Thanks for suggesting a new feature! Prefer GitHub Discussions for open-ended ideas and usage discussion; use this form when you already have a concrete, actionable proposal.
+        感谢你的建议！当前仓库是 private-access，请先按 `docs/README.md` → `SUPPORT.md` 走 docs-first 路由。开放式想法与使用讨论只有在你当前访问模式可见 GitHub Discussions，或未来 public mirror 保留该入口时，才建议走 Discussions；若你已经有明确、可执行的改进提案，再使用这个表单。
+        Thanks for suggesting a new feature! This repository is currently private-access, so start with the docs-first route `docs/README.md` → `SUPPORT.md`. Prefer GitHub Discussions for open-ended ideas only when your current access mode exposes Discussions or when a future public mirror preserves that route; use this form when you already have a concrete, actionable proposal.
 
   - type: checkboxes
     attributes:

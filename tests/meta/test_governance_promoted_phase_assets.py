@@ -217,3 +217,57 @@ def test_phase_66_closeout_assets_exist_and_are_promoted() -> None:
     assert "## Phase 66 Exit Contract" in verification_text
     assert "## Phase 66 Residual Delta" in residual_text
     assert "## Phase 66 Status Update" in kill_text
+
+
+def test_phase_72_closeout_assets_exist_and_are_promoted() -> None:
+    _assert_promoted_phase_assets(
+        "72-runtime-bootstrap-convergence-lifecycle-orchestration-and-runtime-access-probe-retirement",
+        "72-01-SUMMARY.md",
+        "72-02-SUMMARY.md",
+        "72-03-SUMMARY.md",
+        "72-04-SUMMARY.md",
+        "72-VERIFICATION.md",
+        "72-VALIDATION.md",
+    )
+
+    audit_text = (_ROOT / ".planning" / "v1.20-MILESTONE-AUDIT.md").read_text(encoding="utf-8")
+
+    assert "72-04-SUMMARY.md" in audit_text
+    assert "72-VERIFICATION.md" in audit_text
+    assert "72-VALIDATION.md" in audit_text
+
+
+def test_phase_73_closeout_assets_exist_and_are_promoted() -> None:
+    _assert_promoted_phase_assets(
+        "73-service-family-deduplication-diagnostics-helper-convergence-and-runtime-surface-formalization",
+        "73-01-SUMMARY.md",
+        "73-02-SUMMARY.md",
+        "73-03-SUMMARY.md",
+        "73-04-SUMMARY.md",
+        "73-VERIFICATION.md",
+        "73-VALIDATION.md",
+    )
+
+    audit_text = (_ROOT / ".planning" / "v1.20-MILESTONE-AUDIT.md").read_text(encoding="utf-8")
+
+    assert "73-04-SUMMARY.md" in audit_text
+    assert "73-VERIFICATION.md" in audit_text
+    assert "73-VALIDATION.md" in audit_text
+
+
+def test_phase_74_closeout_assets_exist_and_are_promoted() -> None:
+    _assert_promoted_phase_assets(
+        "74-legacy-auth-residual-retirement-test-topicization-and-milestone-closeout",
+        "74-01-SUMMARY.md",
+        "74-02-SUMMARY.md",
+        "74-03-SUMMARY.md",
+        "74-04-SUMMARY.md",
+        "74-VERIFICATION.md",
+        "74-VALIDATION.md",
+    )
+
+    audit_text = (_ROOT / ".planning" / "v1.20-MILESTONE-AUDIT.md").read_text(encoding="utf-8")
+
+    assert "74-04-SUMMARY.md" in audit_text
+    assert "74-VERIFICATION.md" in audit_text
+    assert "74-VALIDATION.md" in audit_text

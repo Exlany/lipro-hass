@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
 from ..core.device.extras_features import diagnostic_gateway_projection
 from .models import empty_failure_summary
@@ -21,10 +21,10 @@ if TYPE_CHECKING:
     from .. import LiproConfigEntry
     from ..core.device import LiproDevice
 
-type DiagnosticsPayload = dict[str, object]
-type RedactDataFn = Callable[[Mapping[str, object], set[str]], object]
+type DiagnosticsPayload = dict[str, Any]
+type RedactDataFn = Callable[[Mapping[str, object], set[str]], Any]
 type RedactTitleFn = Callable[[str], str]
-type RedactDevicePropertiesFn = Callable[[object], object]
+type RedactDevicePropertiesFn = Callable[[object], dict[str, Any]]
 type BuildDeviceDiagnosticsFn = Callable[[LiproDevice], DiagnosticsPayload]
 type ExtractDeviceSerialFn = Callable[..., str | None]
 

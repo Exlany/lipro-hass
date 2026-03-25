@@ -15,8 +15,11 @@ body:
         最低支持的 Home Assistant 版本真源为 `pyproject.toml` 中的 `2026.3.1`。
         The canonical minimum supported Home Assistant version is `2026.3.1` from `pyproject.toml`.
 
-        若仓库或 fork 为私有，CI 会跳过 HACS validation，因为 HACS 只支持公开 GitHub 仓库。
-        If this repository or fork is private, CI skips HACS validation because HACS only supports public GitHub repositories.
+        当前仓库是 private-access；这个 GitHub 表单只对已经具备仓库访问权限的读者成立。规范 first hop 仍是 `docs/README.md` → `docs/TROUBLESHOOTING.md` → `SUPPORT.md`；若未来 public mirror 出现，也必须沿同一条 docs-first 路由。
+        This repository is currently private-access, so this GitHub form only applies to readers who already have repository access. The canonical first hop still stays `docs/README.md` → `docs/TROUBLESHOOTING.md` → `SUPPORT.md`; any future public mirror must follow the same docs-first route.
+
+        若当前仓库或 fork 为私有，CI 会跳过 HACS validation。HACS 只支持公开 GitHub 仓库，因此它不是当前 private-access 仓库对所有读者都保证存在的默认入口。
+        If this repository or fork is private, CI skips HACS validation. HACS only supports public GitHub repositories, so it is not a guaranteed default route for every reader of the current private-access repository.
 
         若安装脚本以 remote 模式运行且未显式指定 archive/tag，则默认会解析最新 tagged release（`latest`）；若你使用了 `ARCHIVE_TAG=main` / branch fallback / mirror 之类预览路径，请在报告里明确写出。
         If the installer runs in remote mode without a pinned archive/tag, it resolves the latest tagged release (`latest`) by default; if you used `ARCHIVE_TAG=main`, branch fallback, or a mirror-backed preview path, say so explicitly in the report.
@@ -133,9 +136,9 @@ body:
     id: install-method
     attributes:
       label: Installation Method / 安装方式
-      description: "HACS / Shell / shell_command / Manual；private repos or forks skip CI HACS validation. / 私有仓库或 fork 会跳过 CI HACS validation。"
+      description: "HACS (future public mirror only) / Shell / shell_command / Manual；private repos or forks skip CI HACS validation. / HACS（仅未来 public mirror）/ Shell / shell_command / Manual；私有仓库或 fork 会跳过 CI HACS validation。"
       options:
-        - "HACS"
+        - "HACS (future public mirror only) / HACS（仅未来 public mirror）"
         - "Shell / SSH installer / SSH 安装脚本"
         - "shell_command"
         - "Manual / 手动安装"

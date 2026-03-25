@@ -5,8 +5,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import tomllib
-from typing import Any
-
 import yaml
 
 from tests.helpers.repo_root import repo_root
@@ -19,7 +17,7 @@ _BUG_TEMPLATE = _ROOT / ".github" / "ISSUE_TEMPLATE" / "bug.yml"
 _DOCS_README = _ROOT / "docs" / "README.md"
 
 
-def _load_yaml(path: Path) -> dict[str, Any]:
+def _load_yaml(path: Path) -> dict[str, object]:
     loaded = yaml.safe_load(path.read_text(encoding="utf-8"))
     assert isinstance(loaded, dict)
     return loaded
@@ -54,7 +52,9 @@ def test_docs_first_entrypoints_keep_private_repo_caveat_visible() -> None:
     docs_text = _DOCS_README.read_text(encoding="utf-8")
 
     assert docs_link["url"].endswith("/docs/README.md")
-    assert "public fast path" in docs_link["about"].lower()
+    about_text = docs_link["about"].lower()
+    assert "docs-first route stays canonical" in about_text
+    assert "repository access" in about_text
     assert "Public Fast Path" in docs_text
     assert "Maintainer Appendix" in docs_text
     assert "SECURITY.md" in bug_text

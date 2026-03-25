@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from homeassistant.components.diagnostics import async_redact_data
 
@@ -46,7 +46,7 @@ def _redact_entry_title(title: object) -> str:
     return _redact_entry_title_surface(title)
 
 
-def _redact_property_value(value: object, key: str | None = None) -> object:
+def _redact_property_value(value: object, key: str | None = None) -> Any:
     """Recursively redact sensitive values in property payloads."""
     return _redact_property_value_surface(value, key)
 

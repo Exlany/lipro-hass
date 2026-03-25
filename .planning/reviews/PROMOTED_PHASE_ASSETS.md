@@ -256,6 +256,28 @@ phases:
     - 71-VERIFICATION.md
     - 71-VALIDATION.md
 
+  72-runtime-bootstrap-convergence-lifecycle-orchestration-and-runtime-access-probe-retirement:
+    - 72-01-SUMMARY.md
+    - 72-02-SUMMARY.md
+    - 72-03-SUMMARY.md
+    - 72-04-SUMMARY.md
+    - 72-VERIFICATION.md
+    - 72-VALIDATION.md
+  73-service-family-deduplication-diagnostics-helper-convergence-and-runtime-surface-formalization:
+    - 73-01-SUMMARY.md
+    - 73-02-SUMMARY.md
+    - 73-03-SUMMARY.md
+    - 73-04-SUMMARY.md
+    - 73-VERIFICATION.md
+    - 73-VALIDATION.md
+  74-legacy-auth-residual-retirement-test-topicization-and-milestone-closeout:
+    - 74-01-SUMMARY.md
+    - 74-02-SUMMARY.md
+    - 74-03-SUMMARY.md
+    - 74-04-SUMMARY.md
+    - 74-VERIFICATION.md
+    - 74-VALIDATION.md
+
 ---
 
 # Promoted Phase Assets

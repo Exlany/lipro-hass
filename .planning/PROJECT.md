@@ -2,9 +2,9 @@
 
 
 **Status:** Active
-**Current route:** `v1.20 active route / Phase 74 complete / latest archived baseline = v1.19`；latest archived closeout pointer = `.planning/reviews/V1_19_EVIDENCE_INDEX.md`.
-**Legacy route-string compatibility:** **Status:** `v1.20 active route / Phase 74 complete / latest archived baseline = v1.19`；latest archived closeout pointer = `.planning/reviews/V1_19_EVIDENCE_INDEX.md`.
-**Goal:** 基于 `v1.19` archived baseline、`Phase 71` closeout evidence 与 `.planning/reviews/V1_19_TERMINAL_AUDIT.md` 已登记的 follow-up seeds，把 bootstrap / lifecycle / runtime-access / service-family / auth-legacy 的剩余 residual 沿既有 north-star seams 继续 inward convergence，并把 current route 正式推进到 `v1.20 / Phase 74 complete / closeout-ready`。
+**Current route:** `v1.20 active route / Phase 75 complete / latest archived baseline = v1.19`；latest archived closeout pointer = `.planning/reviews/V1_19_EVIDENCE_INDEX.md`.
+**Legacy route-string compatibility:** **Status:** `v1.20 active route / Phase 75 complete / latest archived baseline = v1.19`；latest archived closeout pointer = `.planning/reviews/V1_19_EVIDENCE_INDEX.md`.
+**Goal:** 基于 `v1.19` archived baseline、`Phase 71` closeout evidence 与 `.planning/reviews/V1_19_TERMINAL_AUDIT.md` 已登记的 follow-up seeds，把 bootstrap / lifecycle / runtime-access / service-family / auth-legacy residual 继续沿既有 north-star seams inward convergence，并在 `Phase 75` 完成 private-access honesty、closeout evidence promotion 与 thin-adapter typing hardening，把 current route 正式推进到 `v1.20 / Phase 75 complete / closeout-ready`。
 **Default next step:** `$gsd-complete-milestone v1.20`
 **Active baseline:** active milestone = `v1.20`；latest archived baseline = `v1.19`；previous archived baseline = `v1.18`。
 
@@ -12,7 +12,7 @@
 
 **Name:** `v1.20 Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement`
 
-**Why now:** `v1.19` 已把 archive/current governance truth、OTA / anonymous-share / request-pacing / command-runtime hotspot 与 `Phase 71` closeout 收口到 archived baseline；`.planning/reviews/V1_19_TERMINAL_AUDIT.md` 则明确登记了下一轮更高杠杆、但仍可沿正式主链 inward 收口的 residual：`Coordinator` bootstrap / builder 重组、`runtime_access` probing 退役、`EntryLifecycleController` / `EntryLifecycleSupport` orchestration 归并、`service_router` service-family 重切、diagnostics/helper convergence、`LiproEntity` 运行面策略下沉 / `schedule.py` runtime surface formalization，以及 auth legacy snapshot / compatibility wrapper retirement。
+**Why now:** `v1.19` 已把 archive/current governance truth、OTA / anonymous-share / request-pacing / command-runtime hotspot 与 `Phase 71` closeout 收口到 archived baseline；`.planning/reviews/V1_19_TERMINAL_AUDIT.md` 则明确登记了下一轮更高杠杆、但仍可沿正式主链 inward 收口的 residual：`Coordinator` bootstrap / builder 重组、`runtime_access` probing 退役、`EntryLifecycleController` / `EntryLifecycleSupport` orchestration 归并、`service_router` service-family 重切、diagnostics/helper convergence、`LiproEntity` 运行面策略下沉 / `schedule.py` runtime surface formalization，以及 auth legacy snapshot / compatibility wrapper retirement。`Phase 75` 继续把 private-access public-entry honesty、`72/73/74` closeout evidence promotion 与 diagnostics/system-health/options-flow thin-adapter typing 收口为同一条 closeout-ready story。
 
 **North-star fit:** `v1.20` 继续只允许以下收敛方式：
 
@@ -21,7 +21,7 @@
 - auth legacy snapshot / compatibility wrapper 只能继续退役并缩窄 outward contract，不得引入新的 legacy alias / compat root。
 - latest archived closeout pointer 继续固定在 `.planning/reviews/V1_19_EVIDENCE_INDEX.md`；`v1.19` 保持 latest archived baseline，`v1.18` 保持 previous archived baseline。
 
-**Current status:** `active / Phase 74 complete (2026-03-25)`
+**Current status:** `active / Phase 75 complete (2026-03-25)`
 **Starting baseline:** `.planning/v1.19-MILESTONE-AUDIT.md`, `.planning/reviews/V1_19_EVIDENCE_INDEX.md`, `.planning/milestones/v1.19-ROADMAP.md`, `.planning/milestones/v1.19-REQUIREMENTS.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-SUMMARY.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-VERIFICATION.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-VALIDATION.md`, `.planning/reviews/V1_19_TERMINAL_AUDIT.md`
 **Requirements basket:** `GOV-56`, `ARC-19`, `HOT-32`, `HOT-33`, `HOT-34`, `TYP-21`, `TST-22`, `QLT-30`
 **Default next command:** `$gsd-complete-milestone v1.20`
@@ -35,7 +35,7 @@
 **North-star fit:** `v1.19` 的 latest archived baseline 继续确认以下裁决：
 
 - OTA / firmware update / anonymous-share / request pacing / command runtime 只允许 inward decomposition，不得新增 outward root、compat shell 或 second story。
-- `PROJECT / ROADMAP / REQUIREMENTS / STATE / docs / meta guards` 在 `v1.19` archive promotion 当时共同承认 archived-only transition truth；当前 mutable story 已升级为 `v1.20 active route / Phase 74 complete / latest archived baseline = v1.19`，并把 `v1.18` 保持为 previous archived baseline。
+- `PROJECT / ROADMAP / REQUIREMENTS / STATE / docs / meta guards` 在 `v1.19` archive promotion 当时共同承认 archived-only transition truth；当前 mutable story 已升级为 `v1.20 active route / Phase 75 complete / latest archived baseline = v1.19`，并把 `v1.18` 保持为 previous archived baseline。
 - latest archived closeout pointer 现绑定 `.planning/reviews/V1_19_EVIDENCE_INDEX.md`；archive evidence 只承担 pull-only/historical 身份，不反向定义未来 active story。
 - `Phase 71` 留下的 focused no-growth guards 持续冻结 touched scope，防止 function-density 与 route drift 在 archived closeout 之后回流。
 

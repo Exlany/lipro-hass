@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 636
+**Python files total:** 638
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -587,6 +587,8 @@
 | `tests/meta/test_phase72_runtime_bootstrap_route_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase73_service_runtime_convergence_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase74_cleanup_closeout_guards.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_phase75_access_mode_honesty_guards.py` | Assurance | Phase 75 | 保留 | private-access honesty focused guard |
+| `tests/meta/test_phase75_governance_closeout_guards.py` | Assurance | Phase 75 | 保留 | promoted-evidence + current-route closeout guard |
 | `tests/meta/test_protocol_replay_assets.py` | Assurance | Phase 7.4 | 保留 | - |
 | `tests/meta/test_public_surface_guards.py` | Assurance | Phase 6 | 保留 | thin shell after public-surface topicization |
 | `tests/meta/test_service_translation_sync.py` | Assurance | Phase 6 | 保留 | - |

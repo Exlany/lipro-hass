@@ -90,6 +90,16 @@ def _assert_promoted_phase_assets(phase_dir_name: str, *filenames: str) -> None:
         assert (phase_root / filename).exists()
 
 
+def _assert_exact_promoted_phase_assets(phase_dir_name: str, *filenames: str) -> None:
+    promoted_assets = _load_promoted_phase_assets()
+    assert phase_dir_name in promoted_assets
+    assert promoted_assets[phase_dir_name] == frozenset(filenames)
+
+    phase_root = _ROOT / ".planning" / "phases" / phase_dir_name
+    for filename in filenames:
+        assert (phase_root / filename).exists()
+
+
 def _assert_phase_assets_not_promoted(phase_dir_name: str, *filenames: str) -> None:
     promoted_assets = _load_promoted_phase_assets().get(phase_dir_name, frozenset())
 
@@ -201,4 +211,53 @@ def test_promoted_phase_assets_manifest_enforces_explicit_ci_evidence() -> None:
         "43-02-SUMMARY.md",
         "43-03-SUMMARY.md",
         "43-04-SUMMARY.md",
+    )
+
+
+def test_v1_20_promoted_allowlist_exactly_matches_audited_closeout_bundles() -> None:
+    _assert_exact_promoted_phase_assets(
+        "72-runtime-bootstrap-convergence-lifecycle-orchestration-and-runtime-access-probe-retirement",
+        "72-01-SUMMARY.md",
+        "72-02-SUMMARY.md",
+        "72-03-SUMMARY.md",
+        "72-04-SUMMARY.md",
+        "72-VERIFICATION.md",
+        "72-VALIDATION.md",
+    )
+    _assert_exact_promoted_phase_assets(
+        "73-service-family-deduplication-diagnostics-helper-convergence-and-runtime-surface-formalization",
+        "73-01-SUMMARY.md",
+        "73-02-SUMMARY.md",
+        "73-03-SUMMARY.md",
+        "73-04-SUMMARY.md",
+        "73-VERIFICATION.md",
+        "73-VALIDATION.md",
+    )
+    _assert_exact_promoted_phase_assets(
+        "74-legacy-auth-residual-retirement-test-topicization-and-milestone-closeout",
+        "74-01-SUMMARY.md",
+        "74-02-SUMMARY.md",
+        "74-03-SUMMARY.md",
+        "74-04-SUMMARY.md",
+        "74-VERIFICATION.md",
+        "74-VALIDATION.md",
+    )
+
+
+def test_v1_20_promoted_allowlist_does_not_widen_into_execution_traces() -> None:
+    for phase_dir_name, prefix in (
+        ("72-runtime-bootstrap-convergence-lifecycle-orchestration-and-runtime-access-probe-retirement", "72"),
+        ("73-service-family-deduplication-diagnostics-helper-convergence-and-runtime-surface-formalization", "73"),
+        ("74-legacy-auth-residual-retirement-test-topicization-and-milestone-closeout", "74"),
+    ):
+        _assert_phase_assets_not_promoted(phase_dir_name, f"{prefix}-CONTEXT.md", f"{prefix}-RESEARCH.md", f"{prefix}-01-PLAN.md")
+
+    _assert_phase_assets_not_promoted(
+        "75-access-mode-truth-closure-evidence-promotion-formalization-and-thin-adapter-typing-hardening",
+        "75-CONTEXT.md",
+        "75-RESEARCH.md",
+        "75-01-PLAN.md",
+        "75-01-SUMMARY.md",
+        "75-VERIFICATION.md",
+        "75-VALIDATION.md",
     )
