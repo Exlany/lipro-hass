@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -34,6 +34,26 @@ async def test_async_register_registers_system_health_callback(hass) -> None:
     await async_register(hass, register)
 
     register.async_register_info.assert_called_once_with(system_health_info)
+
+
+@pytest.mark.asyncio
+async def test_system_health_info_delegates_to_control_surface(hass) -> None:
+    """System-health adapter should stay a thin wrapper over control surface."""
+    payload = {
+        "component_version": VERSION,
+        "can_reach_server": False,
+        "logged_accounts": 0,
+        "total_devices": 0,
+    }
+
+    with patch(
+        "custom_components.lipro.system_health._system_health_info_surface",
+        new=AsyncMock(return_value=payload),
+    ) as mock_surface:
+        result = await system_health_info(hass)
+
+    assert result == payload
+    mock_surface.assert_awaited_once_with(hass, version=VERSION)
 
 
 @pytest.mark.asyncio

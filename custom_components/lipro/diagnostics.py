@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, cast
 
 from homeassistant.components.diagnostics import async_redact_data
 
 from .const.base import DOMAIN
 from .control.diagnostics_surface import (
+    AnonymousShareManagerFactory,
+    DiagnosticsPayload as ControlDiagnosticsPayload,
     async_get_config_entry_diagnostics as _async_get_config_entry_diagnostics_surface,
     async_get_device_diagnostics as _async_get_device_diagnostics_surface,
     build_device_diagnostics as _build_device_diagnostics_surface,
@@ -21,7 +23,7 @@ from .control.redaction import (
     redact_entry_title as _redact_entry_title_surface,
     redact_property_value as _redact_property_value_surface,
 )
-from .core.anonymous_share import get_anonymous_share_manager
+from .core.anonymous_share import AnonymousShareManager, get_anonymous_share_manager
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -31,22 +33,25 @@ if TYPE_CHECKING:
     from .core.device import LiproDevice
 
 
+type DiagnosticsPayload = ControlDiagnosticsPayload
+
+
 PROPERTY_KEYS_TO_REDACT = _PROPERTY_KEYS_TO_REDACT
 TO_REDACT = _TO_REDACT
 OPTIONS_TO_REDACT = _OPTIONS_TO_REDACT
 
 
-def _redact_entry_title(title: Any) -> str:
+def _redact_entry_title(title: object) -> str:
     """Redact sensitive identifiers from config-entry title."""
     return _redact_entry_title_surface(title)
 
 
-def _redact_property_value(value: Any, key: str | None = None) -> Any:
+def _redact_property_value(value: object, key: str | None = None) -> object:
     """Recursively redact sensitive values in property payloads."""
     return _redact_property_value_surface(value, key)
 
 
-def _redact_device_properties(properties: object) -> dict[str, Any]:
+def _redact_device_properties(properties: object) -> DiagnosticsPayload:
     """Redact sensitive keys from device properties."""
     if not isinstance(properties, dict):
         return {}
@@ -57,12 +62,12 @@ def _get_anonymous_share_manager_for_diagnostics(
     hass: HomeAssistant,
     *,
     entry_id: str | None = None,
-) -> Any:
+) -> AnonymousShareManager:
     """Resolve the anonymous-share manager for diagnostics surfaces."""
     return get_anonymous_share_manager(hass, entry_id=entry_id)
 
 
-def _build_device_diagnostics(device: LiproDevice) -> dict[str, Any]:
+def _build_device_diagnostics(device: LiproDevice) -> DiagnosticsPayload:
     """Build redacted diagnostics payload for a single device."""
     return _build_device_diagnostics_surface(
         device,
@@ -78,12 +83,15 @@ def _extract_device_serial(device: DeviceEntry) -> str | None:
 async def async_get_config_entry_diagnostics(
     hass: HomeAssistant,
     entry: LiproConfigEntry,
-) -> dict[str, Any]:
+) -> DiagnosticsPayload:
     """Return diagnostics for a config entry."""
     return await _async_get_config_entry_diagnostics_surface(
         hass,
         entry,
-        get_anonymous_share_manager=_get_anonymous_share_manager_for_diagnostics,
+        get_anonymous_share_manager=cast(
+            AnonymousShareManagerFactory,
+            _get_anonymous_share_manager_for_diagnostics,
+        ),
         async_redact_data=async_redact_data,
         redact_entry_title=_redact_entry_title,
         build_device_diagnostics_fn=_build_device_diagnostics,
@@ -96,7 +104,7 @@ async def async_get_device_diagnostics(
     hass: HomeAssistant,
     entry: LiproConfigEntry,
     device: DeviceEntry,
-) -> dict[str, Any]:
+) -> DiagnosticsPayload:
     """Return diagnostics for a single device entry."""
     return await _async_get_device_diagnostics_surface(
         hass,

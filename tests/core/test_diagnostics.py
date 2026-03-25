@@ -11,6 +11,7 @@ import pytest
 
 from custom_components.lipro.const.base import DOMAIN
 from custom_components.lipro.diagnostics import (
+    _redact_device_properties,
     async_get_config_entry_diagnostics,
     async_get_device_diagnostics,
 )
@@ -89,6 +90,11 @@ def _patch_share_manager(share_manager):
         "custom_components.lipro.diagnostics.get_anonymous_share_manager",
         return_value=share_manager,
     )
+
+
+def test_redact_device_properties_rejects_non_mapping_inputs() -> None:
+    """Diagnostics adapter should only pass typed property mappings downstream."""
+    assert _redact_device_properties(["not", "a", "mapping"]) == {}
 
 
 @pytest.mark.asyncio
