@@ -172,7 +172,7 @@ class RuntimeOrchestrator:
         ],
         schedule_listener_update: Callable[[], None],
         request_refresh: Callable[[], Awaitable[None]],
-        trigger_reauth: Callable[[], Awaitable[None]],
+        trigger_reauth: Callable[[str], Awaitable[None]],
         is_mqtt_connected: Callable[[], bool],
         ensure_authenticated: Callable[[], Awaitable[None]],
         async_setup_mqtt: Callable[[], Awaitable[bool]],
