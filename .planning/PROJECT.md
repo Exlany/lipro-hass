@@ -2,69 +2,55 @@
 
 
 **Status:** Active
-**Current route:** `v1.20 active route / Phase 75 complete / latest archived baseline = v1.19`；latest archived closeout pointer = `.planning/reviews/V1_19_EVIDENCE_INDEX.md`.
-**Legacy route-string compatibility:** **Status:** `v1.20 active route / Phase 75 complete / latest archived baseline = v1.19`；latest archived closeout pointer = `.planning/reviews/V1_19_EVIDENCE_INDEX.md`.
-**Goal:** 基于 `v1.19` archived baseline、`Phase 71` closeout evidence 与 `.planning/reviews/V1_19_TERMINAL_AUDIT.md` 已登记的 follow-up seeds，把 bootstrap / lifecycle / runtime-access / service-family / auth-legacy residual 继续沿既有 north-star seams inward convergence，并在 `Phase 75` 完成 private-access honesty、closeout evidence promotion 与 thin-adapter typing hardening，把 current route 正式推进到 `v1.20 / Phase 75 complete / closeout-ready`。
-**Default next step:** `$gsd-complete-milestone v1.20`
-**Active baseline:** active milestone = `v1.20`；latest archived baseline = `v1.19`；previous archived baseline = `v1.18`。
+**Current route:** `no active milestone route / latest archived baseline = v1.20`；latest archived closeout pointer = `.planning/reviews/V1_20_EVIDENCE_INDEX.md`.
+**Legacy route-string compatibility:** **Status:** `no active milestone route / latest archived baseline = v1.20`；latest archived closeout pointer = `.planning/reviews/V1_20_EVIDENCE_INDEX.md`.
+**Goal:** 以 `v1.20` archived baseline、`.planning/v1.20-MILESTONE-AUDIT.md` verdict 与 `.planning/reviews/V1_20_EVIDENCE_INDEX.md` pull-only closeout pointer 作为下一条正式路线的唯一 seed；下一轮工作必须通过 `$gsd-new-milestone` 显式开立，不得把 `Phase 75` closeout truth 回写成隐式 active route。
+**Default next step:** `$gsd-new-milestone`
+**Active baseline:** no active milestone；latest archived baseline = `v1.20`；previous archived baseline = `v1.19`。
 
-## Active Milestone (v1.20)
+## Latest Archived Milestone (v1.20)
 
 **Name:** `v1.20 Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement`
 
-**Why now:** `v1.19` 已把 archive/current governance truth、OTA / anonymous-share / request-pacing / command-runtime hotspot 与 `Phase 71` closeout 收口到 archived baseline；`.planning/reviews/V1_19_TERMINAL_AUDIT.md` 则明确登记了下一轮更高杠杆、但仍可沿正式主链 inward 收口的 residual：`Coordinator` bootstrap / builder 重组、`runtime_access` probing 退役、`EntryLifecycleController` / `EntryLifecycleSupport` orchestration 归并、`service_router` service-family 重切、diagnostics/helper convergence、`LiproEntity` 运行面策略下沉 / `schedule.py` runtime surface formalization，以及 auth legacy snapshot / compatibility wrapper retirement。`Phase 75` 继续把 private-access public-entry honesty、`72/73/74` closeout evidence promotion 与 diagnostics/system-health/options-flow thin-adapter typing 收口为同一条 closeout-ready story。
+**Why now:** `v1.19` 已把 archive/current governance truth、OTA / anonymous-share / request-pacing / command-runtime hotspot 与 `Phase 71` closeout 收口到 archived baseline；`.planning/reviews/V1_19_TERMINAL_AUDIT.md` 则登记了 bootstrap / lifecycle / runtime-access / service-family / diagnostics-helper / entity-runtime / auth-legacy 这些仍值得沿既有 north-star seams inward convergence 的 residual。`Phase 72 -> 75` 已全部完成，最终把 access-mode honesty、promoted closeout evidence formalization 与 thin-adapter typing hardening 一并收口为 archived baseline。
 
-**North-star fit:** `v1.20` 继续只允许以下收敛方式：
+**North-star fit:** `v1.20` 归档后继续确认以下裁决：
 
 - bootstrap / lifecycle / runtime-access 只能回收到现有 `control/` 与 runtime formal homes，不得新建 orchestration root、builder folklore 或 shadow bootstrap chain。
 - service-family / diagnostics/helper / schedule / entity runtime strategy 只能做 inward deduplication 与 formal-home clarification，不得恢复 helper-owned second story。
 - auth legacy snapshot / compatibility wrapper 只能继续退役并缩窄 outward contract，不得引入新的 legacy alias / compat root。
-- latest archived closeout pointer 继续固定在 `.planning/reviews/V1_19_EVIDENCE_INDEX.md`；`v1.19` 保持 latest archived baseline，`v1.18` 保持 previous archived baseline。
+- latest archived closeout pointer 现已固定为 `.planning/reviews/V1_20_EVIDENCE_INDEX.md`；`v1.20` 成为 latest archived baseline，`v1.19` 退为 previous archived baseline；下一条正式路线只能通过 `$gsd-new-milestone` 显式建立。
 
-**Current status:** `active / Phase 75 complete (2026-03-25)`
+**Current status:** `archived / evidence-ready (2026-03-25)`
 **Starting baseline:** `.planning/v1.19-MILESTONE-AUDIT.md`, `.planning/reviews/V1_19_EVIDENCE_INDEX.md`, `.planning/milestones/v1.19-ROADMAP.md`, `.planning/milestones/v1.19-REQUIREMENTS.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-SUMMARY.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-VERIFICATION.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-VALIDATION.md`, `.planning/reviews/V1_19_TERMINAL_AUDIT.md`
 **Requirements basket:** `GOV-56`, `ARC-19`, `HOT-32`, `HOT-33`, `HOT-34`, `TYP-21`, `TST-22`, `QLT-30`
-**Default next command:** `$gsd-complete-milestone v1.20`
+**Archive assets:** `.planning/v1.20-MILESTONE-AUDIT.md`, `.planning/reviews/V1_20_EVIDENCE_INDEX.md`, `.planning/milestones/v1.20-ROADMAP.md`, `.planning/milestones/v1.20-REQUIREMENTS.md`, `.planning/phases/72-runtime-bootstrap-convergence-lifecycle-orchestration-and-runtime-access-probe-retirement/{72-01-SUMMARY.md,72-02-SUMMARY.md,72-03-SUMMARY.md,72-04-SUMMARY.md,72-VERIFICATION.md,72-VALIDATION.md}`, `.planning/phases/73-service-family-deduplication-diagnostics-helper-convergence-and-runtime-surface-formalization/{73-01-SUMMARY.md,73-02-SUMMARY.md,73-03-SUMMARY.md,73-04-SUMMARY.md,73-VERIFICATION.md,73-VALIDATION.md}`, `.planning/phases/74-legacy-auth-residual-retirement-test-topicization-and-milestone-closeout/{74-01-SUMMARY.md,74-02-SUMMARY.md,74-03-SUMMARY.md,74-04-SUMMARY.md,74-VERIFICATION.md,74-VALIDATION.md}`
+**Default next command:** `$gsd-new-milestone`
 
-## Latest Archived Milestone (v1.19)
+## Previous Archived Milestone (v1.19)
 
 **Name:** `v1.19 Audit-Driven Final Hotspot Decomposition & Governance Truth Projection`
 
-**Why now:** `v1.18` 已把 support-seam、anonymous-share / OTA helper convergence、archive/current version truth freeze 与治理 topicization 收口到归档态；repo-wide terminal audit 仍锁定一组值得 final inward split 的高杠杆热点：OTA diagnostics / firmware-install orchestration、anonymous-share submit outcome loop、request pacing / command-runtime long flow，以及 current-route / latest-archive truth 的多点字面同步。`Phase 71` 已将这些问题沿既有 north-star seams 收口，并于 `2026-03-25` 完成 milestone archive promotion。
+**Why now:** `v1.18` 已把 support-seam、anonymous-share / OTA helper convergence、archive/current version truth freeze 与治理 topicization 收口到归档态；repo-wide terminal audit 锁定的高杠杆热点则在 `Phase 71` 被继续 inward split，并于 `2026-03-25` 完成 archive promotion。当前它已退为 `v1.20` 的 previous archived baseline。
 
-**North-star fit:** `v1.19` 的 latest archived baseline 继续确认以下裁决：
+**North-star fit:** `v1.19` 的 archived contract 继续确认以下裁决：
 
 - OTA / firmware update / anonymous-share / request pacing / command runtime 只允许 inward decomposition，不得新增 outward root、compat shell 或 second story。
-- `PROJECT / ROADMAP / REQUIREMENTS / STATE / docs / meta guards` 在 `v1.19` archive promotion 当时共同承认 archived-only transition truth；当前 mutable story 已升级为 `v1.20 active route / Phase 75 complete / latest archived baseline = v1.19`，并把 `v1.18` 保持为 previous archived baseline。
-- latest archived closeout pointer 现绑定 `.planning/reviews/V1_19_EVIDENCE_INDEX.md`；archive evidence 只承担 pull-only/historical 身份，不反向定义未来 active story。
+- `PROJECT / ROADMAP / REQUIREMENTS / STATE / docs / meta guards` 在 `v1.19` archive promotion 当时共同承认 archived-only transition truth；当前治理状态已切换为 `no active milestone route / latest archived baseline = v1.20`，并把 `v1.19` 固定为 previous archived baseline。
+- latest archived closeout pointer 已升级为 `.planning/reviews/V1_20_EVIDENCE_INDEX.md`；`.planning/reviews/V1_19_EVIDENCE_INDEX.md` 继续只承担 historical / pull-only 身份。
 - `Phase 71` 留下的 focused no-growth guards 持续冻结 touched scope，防止 function-density 与 route drift 在 archived closeout 之后回流。
 
-**Phase range:** `Phase 71 -> 71`
 **Current status:** `archived / evidence-ready (2026-03-25)`
 **Starting baseline:** `.planning/v1.18-MILESTONE-AUDIT.md`, `.planning/reviews/V1_18_EVIDENCE_INDEX.md`, `.planning/milestones/v1.18-ROADMAP.md`, `.planning/milestones/v1.18-REQUIREMENTS.md`, `.planning/phases/70-support-seam-slimming-ota-resolver-consolidation-and-governance-test-topicization/70-SUMMARY.md`, `.planning/phases/70-support-seam-slimming-ota-resolver-consolidation-and-governance-test-topicization/70-VERIFICATION.md`, `.planning/phases/70-support-seam-slimming-ota-resolver-consolidation-and-governance-test-topicization/70-VALIDATION.md`
-**Requirements basket:** `GOV-55`, `ARC-18`, `HOT-30`, `HOT-31`, `TYP-20`, `TST-21`, `QLT-29`
 **Archive assets:** `.planning/v1.19-MILESTONE-AUDIT.md`, `.planning/reviews/V1_19_EVIDENCE_INDEX.md`, `.planning/milestones/v1.19-ROADMAP.md`, `.planning/milestones/v1.19-REQUIREMENTS.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-SUMMARY.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-VERIFICATION.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-VALIDATION.md`
 **Default next command:** `$gsd-new-milestone`
 
-## Previous Archived Milestone (v1.18)
+## Historical Archived Baseline (v1.18)
 
-**Name:** `v1.18 Support-Seam Slimming, OTA Resolver Consolidation & Governance Test Topicization`
-
-**Why now:** `v1.17` 已把 residual formalization 与 honest open-source contract 收回正式主链，但 repo-wide 终审仍锁定最后一批高杠杆 residual：`runtime_access_support.py` 的 support-cluster 过厚、anonymous-share / OTA helper truth 分散，以及 archive/current version truth 与治理 mega-tests 的维护半径偏大。`Phase 70` 已把这些问题沿既有 north-star seams 收口，并完成 milestone archive promotion。
-
-**North-star fit:** `v1.18` 的 previous archived baseline 继续确认以下裁决：
-
-- `runtime_access.py` 继续维持唯一 outward runtime home；helper decomposition 只允许 inward split，不得回长 shadow API shell。
-- anonymous-share 与 OTA 只允许 `keep formal home + split inward + converge helper truth`，不得新增第二条 protocol/runtime story。
-- archive / version / release docs 只允许 current docs / registry / runbook 承担可变真源；历史 evidence / phase 文档必须保持冻结。
-- 治理 meta tests 要继续按 concern/topic 组织，降低 failure radius，而不是回到 phase-number mega shell。
-
-**Phase range:** `Phase 70 -> 70`
-**Current status:** `archived / evidence-ready (2026-03-24)`
-**Starting baseline:** `.planning/v1.17-MILESTONE-AUDIT.md`, `.planning/reviews/V1_17_EVIDENCE_INDEX.md`, `.planning/milestones/v1.17-ROADMAP.md`, `.planning/milestones/v1.17-REQUIREMENTS.md`, `.planning/phases/69-residual-read-model-quality-balance-and-open-source-contract-closure/69-SUMMARY.md`, `.planning/phases/69-residual-read-model-quality-balance-and-open-source-contract-closure/69-VERIFICATION.md`, `.planning/phases/69-residual-read-model-quality-balance-and-open-source-contract-closure/69-VALIDATION.md`
-**Requirements basket:** `GOV-54`, `ARC-17`, `HOT-28`, `HOT-29`, `OSS-10`, `TST-20`, `QLT-28`
-**Archive assets:** `.planning/v1.18-MILESTONE-AUDIT.md`, `.planning/reviews/V1_18_EVIDENCE_INDEX.md`, `.planning/milestones/v1.18-ROADMAP.md`, `.planning/milestones/v1.18-REQUIREMENTS.md`, `.planning/phases/70-support-seam-slimming-ota-resolver-consolidation-and-governance-test-topicization/70-SUMMARY.md`, `.planning/phases/70-support-seam-slimming-ota-resolver-consolidation-and-governance-test-topicization/70-VERIFICATION.md`, `.planning/phases/70-support-seam-slimming-ota-resolver-consolidation-and-governance-test-topicization/70-VALIDATION.md`
-**Default next command:** `$gsd-new-milestone`
+- **Milestone:** `v1.18 Support-Seam Slimming, OTA Resolver Consolidation & Governance Test Topicization`
+- **Phase range:** `70`
+- **Archive status:** `archived / evidence-ready (2026-03-24)`
+- **Archive assets:** `.planning/v1.18-MILESTONE-AUDIT.md`, `.planning/reviews/V1_18_EVIDENCE_INDEX.md`, `.planning/milestones/v1.18-ROADMAP.md`, `.planning/milestones/v1.18-REQUIREMENTS.md`, `.planning/phases/70-support-seam-slimming-ota-resolver-consolidation-and-governance-test-topicization/70-SUMMARY.md`, `.planning/phases/70-support-seam-slimming-ota-resolver-consolidation-and-governance-test-topicization/70-VERIFICATION.md`, `.planning/phases/70-support-seam-slimming-ota-resolver-consolidation-and-governance-test-topicization/70-VALIDATION.md`
 
 ## Archived Milestone (v1.17)
 

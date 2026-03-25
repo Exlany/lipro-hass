@@ -118,7 +118,7 @@ def test_docs_index_keeps_internal_route_story_out_of_public_fast_path() -> None
         "Current governance status",
         "$gsd-plan-phase",
         "latest archived closeout pointer",
-        "V1_19_EVIDENCE_INDEX.md",
+        "V1_20_EVIDENCE_INDEX.md",
     ):
         assert token not in docs_text
 

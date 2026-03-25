@@ -21,6 +21,8 @@ from scripts.check_file_matrix import (
 )
 from tests.helpers.architecture_policy import load_structural_rules, load_targeted_bans
 
+from .governance_current_truth import CURRENT_MILESTONE_DEFAULT_NEXT
+
 _ROOT = repo_root(Path(__file__))
 
 _FILE_MATRIX = _ROOT / ".planning" / "reviews" / "FILE_MATRIX.md"
@@ -362,12 +364,6 @@ def test_phase_60_tooling_closeout_is_frozen_in_current_story_truth() -> None:
     assert "| TST-12 | Phase 60 | Complete |" in requirements_text
     assert "| GOV-44 | Phase 60 | Complete |" in requirements_text
     assert ".planning/v1.13-MILESTONE-AUDIT.md" in state_text
-    assert (
-        "$gsd-new-milestone" in state_text
-        or "$gsd-plan-phase 72" in state_text
-        or "$gsd-plan-phase 73" in state_text
-        or "$gsd-plan-phase 74" in state_text
-        or "$gsd-complete-milestone v1.20" in state_text
-    )
+    assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
     assert "scripts/check_file_matrix_inventory.py" in file_matrix_text
     assert "tests/meta/toolchain_truth_python_stack.py" in file_matrix_text

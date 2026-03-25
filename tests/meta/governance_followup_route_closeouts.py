@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from .governance_current_truth import CURRENT_MILESTONE_DEFAULT_NEXT
 from .test_governance_closeout_guards import (
     _ROOT,
     _assert_project_allows_post_v1_4_next_step,
@@ -250,4 +251,5 @@ def test_phase_46_audit_truth_is_consistent() -> None:
 
     assert "`Phase 46` 已于 `2026-03-20` 执行完成" in state_text
     assert "46-REMEDIATION-ROADMAP.md" in state_text
-    assert ("$gsd-new-milestone" in state_text or "$gsd-progress" in state_text or "$gsd-plan-phase 72" in state_text)
+    assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
+    assert "$gsd-progress" in state_text

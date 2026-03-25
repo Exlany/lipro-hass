@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from .conftest import _ROOT, _assert_current_mode_tracks_phase_lifecycle
+from .governance_current_truth import CURRENT_MILESTONE_DEFAULT_NEXT
 from .test_governance_closeout_guards import (
     _assert_promoted_phase_assets,
     _assert_state_keeps_forward_progress_commands,
@@ -84,7 +85,7 @@ def test_phase_52_execution_evidence_is_consistent() -> None:
     _assert_state_reflects_post_v1_4_continuation(state_text)
     _assert_state_keeps_forward_progress_commands(state_text)
     assert "## Planned Milestone (v1.8)" in project_text
-    assert ("$gsd-new-milestone" in project_text or "$gsd-plan-phase 72" in project_text)
+    assert CURRENT_MILESTONE_DEFAULT_NEXT in project_text
     assert "phase: 52" in summary_text
     assert "status: passed" in summary_text
     assert "52-03" in summary_text

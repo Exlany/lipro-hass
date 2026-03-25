@@ -414,11 +414,11 @@ _None currently registered._
 
 - 无新增 active residual family。
 - runtime support helper decomposition、anonymous-share / OTA shared-helper convergence 与 archive-vs-current truth freeze 已在本 phase 完成收口；后续若继续优化，只允许沿既有 formal homes / governance chain 细化，不得重开第二故事线。
-- latest archived baseline 现已提升到 `v1.19`；当前 mutable current story 已升级为 `v1.20 active route / Phase 74 complete / latest archived baseline = v1.19`，且本 phase 不新增 ownerless carry-forward。
+- latest archived baseline 现已提升到 `v1.19`；当前 mutable current story 已升级为 `no active milestone route / latest archived baseline = v1.20`，且本 phase 不新增 ownerless carry-forward。
 
 
 ## Phase 71 Residual Delta
 
 - 无新增 active residual family。
 - OTA / firmware-install、anonymous-share submit、request pacing 与 command-runtime 长流程已在本 phase 获得更窄 helper decomposition；后续若继续优化，只允许沿既有 formal homes / governance chain 细化。
-- milestone truth 已完成 archive promotion；当前 mutable current story 现为 `v1.20 active route / Phase 74 complete / latest archived baseline = v1.19`；`v1.18` 退为 previous archived baseline。
+- milestone truth 已完成 archive promotion；当前 mutable current story 现为 `no active milestone route / latest archived baseline = v1.20`；`v1.18` 退为 previous archived baseline。

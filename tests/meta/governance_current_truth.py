@@ -1,41 +1,45 @@
-"""Shared active-route and latest-archive truth for governance tests."""
+"""Shared archived-route and latest-archive truth for governance tests."""
 
 from __future__ import annotations
 
-ACTIVE_MILESTONE = "v1.20"
-ACTIVE_MILESTONE_NAME = "Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement"
-ACTIVE_MILESTONE_HEADER = f"## Active Milestone ({ACTIVE_MILESTONE})"
-ACTIVE_MILESTONE_ROADMAP_HEADER = f"## {ACTIVE_MILESTONE}: {ACTIVE_MILESTONE_NAME}"
-ACTIVE_MILESTONE_STATUS = "active / Phase 75 complete (2026-03-25)"
-ACTIVE_MILESTONE_DEFAULT_NEXT = "$gsd-complete-milestone v1.20"
-ACTIVE_MILESTONE_LABEL = f"{ACTIVE_MILESTONE} {ACTIVE_MILESTONE_NAME}"
-ACTIVE_PHASE = "75"
-ACTIVE_PHASE_TITLE = "Access-mode truth closure, evidence promotion formalization, and thin-adapter typing hardening"
-ACTIVE_PHASE_HEADING = f"### Phase {ACTIVE_PHASE}: {ACTIVE_PHASE_TITLE}"
-ACTIVE_PHASE_DIR = "75-access-mode-truth-closure-evidence-promotion-formalization-and-thin-adapter-typing-hardening"
-CURRENT_ROUTE = "v1.20 active route / Phase 75 complete / latest archived baseline = v1.19"
-CURRENT_ROUTE_MODE = "Phase 75 complete"
-CURRENT_ROUTE_PROSE_FORBIDDEN = ("no active milestone route",)
+CURRENT_MILESTONE = "v1.20"
+CURRENT_MILESTONE_NAME = (
+    "Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement"
+)
+CURRENT_MILESTONE_HEADER = f"## Latest Archived Milestone ({CURRENT_MILESTONE})"
+CURRENT_MILESTONE_ROADMAP_HEADER = (
+    f"## {CURRENT_MILESTONE}: {CURRENT_MILESTONE_NAME}"
+)
+CURRENT_MILESTONE_STATUS = "archived / evidence-ready (2026-03-25)"
+CURRENT_MILESTONE_DEFAULT_NEXT = "$gsd-new-milestone"
+CURRENT_MILESTONE_LABEL = f"{CURRENT_MILESTONE} {CURRENT_MILESTONE_NAME}"
+CURRENT_MILESTONE_STATE_LABEL = "No active milestone route"
+CURRENT_PHASE = "75"
+CURRENT_PHASE_TITLE = (
+    "Access-mode truth closure, evidence promotion formalization, and thin-adapter typing hardening"
+)
+CURRENT_PHASE_HEADING = f"### Phase {CURRENT_PHASE}: {CURRENT_PHASE_TITLE}"
+CURRENT_PHASE_DIR = (
+    "75-access-mode-truth-closure-evidence-promotion-formalization-and-thin-adapter-typing-hardening"
+)
+CURRENT_ROUTE = "no active milestone route / latest archived baseline = v1.20"
+CURRENT_ROUTE_MODE = CURRENT_ROUTE
+CURRENT_ROUTE_PROSE_FORBIDDEN = (
+    "v1.20 active route / Phase 75 complete / latest archived baseline = v1.19",
+)
 CURRENT_RUNTIME_ROOT_TEST = "tests/core/coordinator/test_runtime_root.py"
-CURRENT_MILESTONE = ACTIVE_MILESTONE
-CURRENT_MILESTONE_NAME = ACTIVE_MILESTONE_NAME
-CURRENT_MILESTONE_HEADER = ACTIVE_MILESTONE_HEADER
-CURRENT_MILESTONE_ROADMAP_HEADER = ACTIVE_MILESTONE_ROADMAP_HEADER
-CURRENT_MILESTONE_STATUS = ACTIVE_MILESTONE_STATUS
-CURRENT_MILESTONE_DEFAULT_NEXT = ACTIVE_MILESTONE_DEFAULT_NEXT
-CURRENT_MILESTONE_LABEL = ACTIVE_MILESTONE_LABEL
-CURRENT_PHASE = ACTIVE_PHASE
-CURRENT_PHASE_TITLE = ACTIVE_PHASE_TITLE
-CURRENT_PHASE_HEADING = ACTIVE_PHASE_HEADING
-CURRENT_PHASE_DIR = ACTIVE_PHASE_DIR
-LATEST_ARCHIVED_MILESTONE = "v1.19"
-LATEST_ARCHIVED_MILESTONE_NAME = "Audit-Driven Final Hotspot Decomposition & Governance Truth Projection"
-LATEST_ARCHIVED_PROJECT_HEADER = f"## Latest Archived Milestone ({LATEST_ARCHIVED_MILESTONE})"
-LATEST_ARCHIVED_EVIDENCE_FILENAME = "V1_19_EVIDENCE_INDEX.md"
-LATEST_ARCHIVED_EVIDENCE_PATH = ".planning/reviews/V1_19_EVIDENCE_INDEX.md"
-LATEST_ARCHIVED_AUDIT_FILENAME = "v1.19-MILESTONE-AUDIT.md"
-LATEST_ARCHIVED_AUDIT_PATH = ".planning/v1.19-MILESTONE-AUDIT.md"
-PREVIOUS_ARCHIVED_MILESTONE = "v1.18"
-PREVIOUS_ARCHIVED_MILESTONE_NAME = "Support-Seam Slimming, OTA Resolver Consolidation & Governance Test Topicization"
-PREVIOUS_ARCHIVED_PROJECT_HEADER = f"## Previous Archived Milestone ({PREVIOUS_ARCHIVED_MILESTONE})"
-PREVIOUS_ARCHIVED_EVIDENCE_PATH = ".planning/reviews/V1_18_EVIDENCE_INDEX.md"
+LATEST_ARCHIVED_MILESTONE = CURRENT_MILESTONE
+LATEST_ARCHIVED_MILESTONE_NAME = CURRENT_MILESTONE_NAME
+LATEST_ARCHIVED_PROJECT_HEADER = CURRENT_MILESTONE_HEADER
+LATEST_ARCHIVED_EVIDENCE_FILENAME = "V1_20_EVIDENCE_INDEX.md"
+LATEST_ARCHIVED_EVIDENCE_PATH = ".planning/reviews/V1_20_EVIDENCE_INDEX.md"
+LATEST_ARCHIVED_AUDIT_FILENAME = "v1.20-MILESTONE-AUDIT.md"
+LATEST_ARCHIVED_AUDIT_PATH = ".planning/v1.20-MILESTONE-AUDIT.md"
+PREVIOUS_ARCHIVED_MILESTONE = "v1.19"
+PREVIOUS_ARCHIVED_MILESTONE_NAME = (
+    "Audit-Driven Final Hotspot Decomposition & Governance Truth Projection"
+)
+PREVIOUS_ARCHIVED_PROJECT_HEADER = (
+    f"## Previous Archived Milestone ({PREVIOUS_ARCHIVED_MILESTONE})"
+)
+PREVIOUS_ARCHIVED_EVIDENCE_PATH = ".planning/reviews/V1_19_EVIDENCE_INDEX.md"

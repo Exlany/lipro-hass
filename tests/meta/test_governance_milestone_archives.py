@@ -467,7 +467,53 @@ def test_governance_truth_registers_v1_14_archive_lineage() -> None:
     assert ".planning/reviews/V1_14_EVIDENCE_INDEX.md" in milestones_text
 
 
-def test_governance_truth_registers_v1_19_latest_archive_pointer() -> None:
+def test_v1_20_closeout_assets_exist_and_are_pull_only() -> None:
+    evidence_index = _ROOT / ".planning" / "reviews" / "V1_20_EVIDENCE_INDEX.md"
+    milestone_audit = _ROOT / ".planning" / "v1.20-MILESTONE-AUDIT.md"
+
+    assert evidence_index.exists()
+    assert milestone_audit.exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.20-ROADMAP.md").exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.20-REQUIREMENTS.md").exists()
+    _assert_promoted_phase_assets(
+        "72-runtime-bootstrap-convergence-lifecycle-orchestration-and-runtime-access-probe-retirement",
+        "72-01-SUMMARY.md",
+        "72-02-SUMMARY.md",
+        "72-03-SUMMARY.md",
+        "72-04-SUMMARY.md",
+        "72-VERIFICATION.md",
+        "72-VALIDATION.md",
+    )
+    _assert_promoted_phase_assets(
+        "73-service-family-deduplication-diagnostics-helper-convergence-and-runtime-surface-formalization",
+        "73-01-SUMMARY.md",
+        "73-02-SUMMARY.md",
+        "73-03-SUMMARY.md",
+        "73-04-SUMMARY.md",
+        "73-VERIFICATION.md",
+        "73-VALIDATION.md",
+    )
+    _assert_promoted_phase_assets(
+        "74-legacy-auth-residual-retirement-test-topicization-and-milestone-closeout",
+        "74-01-SUMMARY.md",
+        "74-02-SUMMARY.md",
+        "74-03-SUMMARY.md",
+        "74-04-SUMMARY.md",
+        "74-VERIFICATION.md",
+        "74-VALIDATION.md",
+    )
+
+    assert_pull_only_evidence_index(
+        evidence_index,
+        "72-VERIFICATION.md",
+        "73-VERIFICATION.md",
+        "74-VERIFICATION.md",
+        "archived / evidence-ready",
+        "V1_20_EVIDENCE_INDEX.md",
+    )
+
+
+def test_governance_truth_registers_v1_20_latest_archive_pointer() -> None:
     authority_text = (
         _ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md"
     ).read_text(encoding="utf-8")
@@ -482,13 +528,13 @@ def test_governance_truth_registers_v1_19_latest_archive_pointer() -> None:
         encoding="utf-8"
     )
 
-    assert "V1_17_EVIDENCE_INDEX.md" in authority_text
     assert "V1_19_EVIDENCE_INDEX.md" in authority_text
-    assert "v1.19-MILESTONE-AUDIT.md" in authority_text
-    assert "V1_19_EVIDENCE_INDEX.md" in public_text
-    assert "## v1.17 Residual Formalization, Quality-Balance Hardening & Open-Source Contract Closure" in milestones_text
+    assert "V1_20_EVIDENCE_INDEX.md" in authority_text
+    assert "v1.20-MILESTONE-AUDIT.md" in authority_text
+    assert "V1_20_EVIDENCE_INDEX.md" in public_text
     assert "## v1.19 Audit-Driven Final Hotspot Decomposition & Governance Truth Projection" in milestones_text
-    assert ".planning/reviews/V1_19_EVIDENCE_INDEX.md" in milestones_text
+    assert "## v1.20 Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement" in milestones_text
+    assert ".planning/reviews/V1_20_EVIDENCE_INDEX.md" in milestones_text
     assert LATEST_ARCHIVED_EVIDENCE_PATH not in docs_text
     assert CURRENT_ROUTE not in docs_text
     assert_runbook_points_to_latest_evidence(

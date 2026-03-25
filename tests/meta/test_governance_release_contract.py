@@ -372,7 +372,7 @@ def test_troubleshooting_and_runbook_navigation_is_consistent() -> None:
         assert "docs/MAINTAINER_RELEASE_RUNBOOK.md" in path.read_text(encoding="utf-8")
 
 
-def test_latest_closeout_pointer_and_active_route_stay_current() -> None:
+def test_latest_closeout_pointer_and_archived_route_stay_current() -> None:
     project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
     milestones_text = (_ROOT / ".planning" / "MILESTONES.md").read_text(encoding="utf-8")
@@ -387,7 +387,7 @@ def test_latest_closeout_pointer_and_active_route_stay_current() -> None:
     assert "V1_6_EVIDENCE_INDEX.md" not in runbook_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in project_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
-    assert "## v1.19 Audit-Driven Final Hotspot Decomposition & Governance Truth Projection" in milestones_text
+    assert "## v1.20 Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement" in milestones_text
     assert f"latest archive-ready closeout pointer = `{LATEST_ARCHIVED_EVIDENCE_PATH}`" in milestones_text
     assert "v1.11" not in docs_text
     assert "v1.11" not in runbook_text

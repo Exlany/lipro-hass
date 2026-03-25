@@ -7,13 +7,14 @@ from .governance_current_truth import (
     CURRENT_MILESTONE_DEFAULT_NEXT,
     CURRENT_MILESTONE_HEADER,
     CURRENT_MILESTONE_NAME,
+    CURRENT_MILESTONE_STATE_LABEL,
     CURRENT_MILESTONE_STATUS,
     CURRENT_PHASE_HEADING,
     CURRENT_ROUTE,
     CURRENT_ROUTE_MODE,
     LATEST_ARCHIVED_AUDIT_PATH,
     LATEST_ARCHIVED_EVIDENCE_PATH,
-    LATEST_ARCHIVED_PROJECT_HEADER,
+    PREVIOUS_ARCHIVED_PROJECT_HEADER,
 )
 from .test_governance_closeout_guards import _ROOT
 
@@ -180,10 +181,10 @@ def test_v1_8_closeout_through_v1_15_archived_truth_are_consistent() -> None:
 
     assert f"**Current route:** `{CURRENT_ROUTE}`；latest archived closeout pointer = `{LATEST_ARCHIVED_EVIDENCE_PATH}`." in project_text
     assert CURRENT_MILESTONE_HEADER in project_text
-    assert LATEST_ARCHIVED_PROJECT_HEADER in project_text
+    assert PREVIOUS_ARCHIVED_PROJECT_HEADER in project_text
     assert f"**Current status:** `{CURRENT_MILESTONE_STATUS}`" in project_text
     assert f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`" in project_text
-    assert "## Archived Milestone (v1.20)" not in project_text
+    assert "## Active Milestone (v1.20)" not in project_text
     assert "## Archived Milestone (v1.17)" in project_text
     assert "## Archived Milestone (v1.16)" in project_text
     assert "**Current status:** `archived / evidence-ready with carry-forward (2026-03-24)`" in project_text
@@ -218,16 +219,16 @@ def test_v1_8_closeout_through_v1_15_archived_truth_are_consistent() -> None:
         "- Current mapped: 8",
         "- Current complete: 8",
         "- Current pending: 0",
-        "## Latest Archived Milestone (v1.19)",
+        "## Previous Archived Milestone (v1.19)",
         "## Traceability for archived v1.16 route",
         "| GOV-52 | Phase 68 | Completed |",
         "| QLT-26 | Phase 68 | Completed |",
     ):
         assert needle in requirements_text
 
-    assert f"**Current milestone:** `{CURRENT_MILESTONE} {CURRENT_MILESTONE_NAME}`" in state_text
+    assert f"**Current milestone:** `{CURRENT_MILESTONE_STATE_LABEL}`" in state_text
     assert f"**Current mode:** `{CURRENT_ROUTE_MODE}`" in state_text
-    assert "archived / evidence-ready" not in CURRENT_MILESTONE_STATUS
+    assert "archived / evidence-ready" in CURRENT_MILESTONE_STATUS
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
     assert LATEST_ARCHIVED_AUDIT_PATH in state_text
     assert LATEST_ARCHIVED_EVIDENCE_PATH in state_text

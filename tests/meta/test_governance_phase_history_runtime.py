@@ -8,6 +8,7 @@ from .conftest import (
     _assert_current_mode_tracks_phase_lifecycle,
     _assert_state_preserves_phase_17_closeout_history,
 )
+from .governance_current_truth import CURRENT_MILESTONE_ROADMAP_HEADER
 from .test_governance_closeout_guards import (
     _assert_promoted_phase_assets,
     _assert_state_keeps_forward_progress_commands,
@@ -267,7 +268,8 @@ def test_phase_19_execution_truth_is_consistent() -> None:
     assert "## Archived Milestone (v1.5)" in project_text
     assert "## Archived Milestone (v1.4)" in project_text
     assert "**Historical archive assets:**" in project_text
-    assert "## Current Milestone" in roadmap_text
+    assert "## Latest Archived Milestone" in roadmap_text or "## Current Milestone" in roadmap_text
+    assert CURRENT_MILESTONE_ROADMAP_HEADER in roadmap_text
     assert "### Phase 19: Headless Consumer Proof & Adapter Demotion" in roadmap_text
     assert "**Requirements**: [CORE-02]" in roadmap_text
     assert "**Status**: Complete (`2026-03-16`)" in roadmap_text

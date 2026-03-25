@@ -1,24 +1,24 @@
 # Requirements: Lipro-HASS North Star Evolution
 
-## Active Milestone (v1.20)
+## Latest Archived Milestone (v1.20)
 
-> `v1.20` 以 `v1.19` archived baseline、`Phase 71` closeout evidence 与 `.planning/reviews/V1_19_TERMINAL_AUDIT.md` 为 immediate seed；当前重点不是重开第二条路线，而是把 bootstrap / lifecycle / runtime-access / service-family / auth-legacy 等明确登记 residual 继续沿正式主链收口，并在 `Phase 75` 完成 access-mode honesty、closeout evidence promotion 与 thin-adapter typing hardening。
+> `v1.20` 已于 `2026-03-25` 完成 archive promotion；以下 requirements / traceability 保留 `Phase 72 -> 75` 的最终 fulfilled contract，归档快照见 `.planning/milestones/v1.20-REQUIREMENTS.md`，审计裁决见 `.planning/v1.20-MILESTONE-AUDIT.md`，证据索引见 `.planning/reviews/V1_20_EVIDENCE_INDEX.md`。
 
 ### Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
 
-- [x] **GOV-56**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / docs / meta guards` 现共同承认 `v1.20` active route、`Phase 72 -> 75` 完成态、`v1.19` latest archived baseline 与 `.planning/reviews/V1_19_EVIDENCE_INDEX.md` latest pull-only closeout pointer；`Phase 75` 只 formalize access-mode honesty 与 promoted closeout evidence，不得把 `v1.20` 伪装成 archived。
-- [x] **ARC-19**: bootstrap / lifecycle / `runtime_access` / `service_router` / `schedule` formal homes 必须继续收敛到单一 north-star 主链；`diagnostics.py` / `system_health.py` 这些 thin adapters 只能继续委托 formal control homes，不得新增 second orchestration root、builder folklore、shadow helper carrier 或 helper-owned public surface。
-- [x] **HOT-32**: `Coordinator` bootstrap / builder、`EntryLifecycleController` / `EntryLifecycleSupport` orchestration 与 `runtime_access` test-aware probing 必须 inward decomposition + probing retirement，降低 hotspot density 而不回流 backdoor。
-- [x] **HOT-33**: service-router forwarding families、diagnostics/helper duplication、`LiproEntity` runtime strategy 与 `schedule.py` runtime surface 必须完成 formalize / deduplicate，并保持 outward behavior 稳定。
+- [x] **GOV-56**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / docs / meta guards` 现共同承认 `no active milestone route / latest archived baseline = v1.20`、`.planning/reviews/V1_20_EVIDENCE_INDEX.md` latest pull-only closeout pointer、`v1.19` previous archived baseline 与 `v1.18` historical archived baseline；`Phase 75` 只完成 access-mode honesty 与 archive-truth closure，不单独升格为 promoted phase bundle。
+- [x] **ARC-19**: bootstrap / lifecycle / `runtime_access` / `service_router` / `schedule` formal homes 已继续收敛到单一 north-star 主链；`diagnostics.py` / `system_health.py` 这些 thin adapters 继续只委托 formal control homes，不得新增 second orchestration root、builder folklore、shadow helper carrier 或 helper-owned public surface。
+- [x] **HOT-32**: `Coordinator` bootstrap / builder、`EntryLifecycleController` / `EntryLifecycleSupport` orchestration 与 `runtime_access` test-aware probing 已完成 inward decomposition + probing retirement，热点保持冻结。
+- [x] **HOT-33**: service-router forwarding families、diagnostics/helper duplication、`LiproEntity` runtime strategy 与 `schedule.py` runtime surface 已完成 formalize / deduplicate，并保持 outward behavior 稳定。
 - [x] **HOT-34**: auth legacy snapshot / compatibility wrapper 已继续退役，剩余 legacy alias 已显式清点、缩窄并写回 delete gate。
-- [x] **TYP-21**: runtime / lifecycle / service / auth seams 与 thin adapters（含 diagnostics / system-health / options-flow）必须维持或提升 typed contract honesty，不得用 `Any` / compatibility shell 掩盖 boundary drift。
-- [x] **TST-22**: 大型 suites 与治理 guards 已继续 topicize / focused freeze，新增 route / hotspot / no-growth guards 已覆盖 `Phase 72 -> 75` touched scope。
+- [x] **TYP-21**: runtime / lifecycle / service / auth seams 与 thin adapters（含 diagnostics / system-health / options-flow）继续保持 typed contract honesty，不得用 `Any` / compatibility shell 掩盖 boundary drift。
+- [x] **TST-22**: 大型 suites 与治理 guards 已继续 topicize / focused freeze；`Phase 72 -> 75` touched scope 的 route / hotspot / no-growth guards 在 archive promotion 后仍定位清晰。
 - [x] **QLT-30**: touched scope 已在 `uv run ruff check .`、`uv run mypy --follow-imports=silent .`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check` 与 focused/full pytest 下持续全绿。
 
-## Traceability for active v1.20 route
+## Traceability for archived v1.20 route
 
-| Requirement | Planned Phase | Status |
-|-------------|---------------|--------|
+| Requirement | Phase | Status |
+|-------------|-------|--------|
 | GOV-56 | Phase 72, 74, 75 | Completed |
 | ARC-19 | Phase 72, 73, 75 | Completed |
 | HOT-32 | Phase 72 | Completed |
@@ -35,19 +35,17 @@
 - Current pending: 0
 - Current unmapped: 0 ✓
 
-## Latest Archived Milestone (v1.19)
+## Previous Archived Milestone (v1.19)
 
-> `v1.19` 已于 `2026-03-25` 完成归档；以下 requirements / traceability 保留 `Phase 71` 的最终 fulfilled contract，归档快照见 `.planning/milestones/v1.19-REQUIREMENTS.md`，审计裁决见 `.planning/v1.19-MILESTONE-AUDIT.md`，证据索引见 `.planning/reviews/V1_19_EVIDENCE_INDEX.md`。
+> `v1.19` 已于 `2026-03-25` 完成归档；以下 requirements / traceability 保留 `Phase 71` 的最终 fulfilled contract。当前它已退为 previous archived baseline；latest closeout pointer 现为 `.planning/reviews/V1_20_EVIDENCE_INDEX.md`。
 
-### Hotspot Decomposition & Archive Promotion
-
-- [x] **GOV-55**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / docs index / meta guards` 已完成 `v1.19` archive promotion 与 latest-baseline pointer 固定；其归档阶段随后让位给 `v1.20` active route，而 `v1.18` 继续作为 previous archived baseline。
+- [x] **GOV-55**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / docs index / meta guards` 在 `v1.19` archive promotion 当时共同承认 `v1.19` 已完成 archive promotion；当前治理状态已切换为 `no active milestone route / latest archived baseline = v1.20`，`v1.19` 退为 previous archived baseline。
 - [x] **ARC-18**: OTA / firmware-update / anonymous-share / request pacing / command runtime 只允许 inward decomposition，不得新增 outward root、compat shell 或 second story。
 - [x] **HOT-30**: OTA / firmware-install、anonymous-share submit、request pacing 与 command-runtime touched hotspots 已显著降低单函数决策密度，并把 orchestration 切回更窄的 helper/home 边界。
 - [x] **HOT-31**: `Phase 71` 留下的 focused hotspot/function budgets 与 route-truth guards 继续冻结 touched scope，防止 archived closeout 之后的 density 与 truth drift 回流。
-- [x] **TYP-20**: 本轮新拆出的 helper seams 继续使用显式 typed payload / outcome / pacing contracts，不得以 `object`、宽口 mapping 或弱化返回值取代正式协作者语义。
+- [x] **TYP-20**: 新拆出的 helper seams 继续使用显式 typed payload / outcome / pacing contracts，不得以 `object`、宽口 mapping 或弱化返回值取代正式协作者语义。
 - [x] **TST-21**: governance current-route / archive-pointer tests 已共享单一 current-truth helper，并在 archive promotion 后共同切到 latest archived pointer / no-active-route contract。
-- [x] **QLT-29**: `v1.19` touched scope 已在 `uv run ruff check .`、`uv run mypy --follow-imports=silent .`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check` 与 milestone archive promotion gates 下保持绿色，并留下 `archived / evidence-ready` 证据。
+- [x] **QLT-29**: touched scope 已在 `uv run ruff check .`、`uv run mypy --follow-imports=silent .`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、focused pytest 与必要的 repo-wide governance/test suites 下保持绿色。
 
 ## Traceability for archived v1.19 route
 
@@ -68,22 +66,17 @@
 - Current pending: 0
 - Current unmapped: 0 ✓
 
-## Previous Archived Milestone (v1.18)
+## Historical Archived Baseline (v1.18)
 
-> `v1.18` 已于 `2026-03-24` 完成归档；以下 requirements / traceability 保留 `Phase 70` 的最终 fulfilled contract，归档快照见 `.planning/milestones/v1.18-REQUIREMENTS.md`，审计裁决见 `.planning/v1.18-MILESTONE-AUDIT.md`，证据索引见 `.planning/reviews/V1_18_EVIDENCE_INDEX.md`。
+> `v1.18` 已于 `2026-03-24` 完成归档；以下 requirements / traceability 保留 `Phase 70` 的最终 fulfilled contract，供后续 milestone 继续 pull requirement lineage。
 
-### Support-Seam Slimming & Helper Convergence
-
-- [x] **GOV-54**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / validation assets / version guards` 现在共同承认 `v1.18` 已完成 archive promotion，同时把 archive / latest-evidence / version truth 的可变边界限制在 current docs / registry / runbook，不再让历史 phase/evidence 资产承担版本同步义务。
+- [x] **GOV-54**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / validation assets / version guards` 现共同承认 `v1.18` 已完成 archive promotion，并把 archive / latest-evidence / version truth 的可变边界限制在 current docs / registry / runbook，不再让历史 phase/evidence 资产承担版本同步义务。
 - [x] **ARC-17**: `runtime_access.py` 继续作为唯一 outward runtime home；`runtime_access_support.py` 已 inward split 为更窄的 typed helper clusters，OTA query/selection 与 anonymous-share submit/refresh/outcome 也已沿 formal homes 完成 helper convergence，没有长出第二 root。
 - [x] **HOT-28**: `custom_components/lipro/control/runtime_access_support.py`、`custom_components/lipro/core/anonymous_share/share_client_flows.py`、`custom_components/lipro/core/api/diagnostics_api_ota.py` 与 `custom_components/lipro/entities/firmware_update.py` 已降低 decision density，并通过 shared helper / selector / response-resolution seams 缩小回归面。
 - [x] **HOT-29**: 治理 mega-tests、archive assertions 与 release-doc guards 已进一步 topicization；重复断言已抽成 shared helpers / concern-oriented contracts，避免 single giant test 承担多个 concern。
-
-### Open-Source & Quality Freeze
-
 - [x] **OSS-10**: `docs/README.md`、`SUPPORT.md`、`SECURITY.md`、`docs/MAINTAINER_RELEASE_RUNBOOK.md`、`pyproject.toml`、`manifest.json` 与 governance registry 继续讲同一条 honest open-source contract，明确 public first-hop、live-docs reality、archive freeze boundary 与 maintainer continuity limitation。
 - [x] **TST-20**: 新增或重构的治理 / hotspot guards 已提升 failure localization、domain naming 与 test ownership clarity，不再把 phase 编年史壳层当作长期测试拓扑的唯一 discoverability 入口。
-- [x] **QLT-28**: `v1.18` touched scope 已在 `uv run ruff check .`、`uv run mypy --follow-imports=silent .`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check` 与 focused pytest bundle 下保持绿色，并留下可解释的 closeout 证据。
+- [x] **QLT-28**: touched scope 已在 `uv run ruff check .`、`uv run mypy --follow-imports=silent .`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、focused pytest 与必要的 repo-wide governance/test suites 下保持绿色。
 
 ## Traceability for archived v1.18 route
 
@@ -96,14 +89,6 @@
 | OSS-10 | Phase 70 | Completed |
 | TST-20 | Phase 70 | Completed |
 | QLT-28 | Phase 70 | Completed |
-
-**Coverage:**
-- v1.18 routed requirements: 7 total
-- Current mapped: 7
-- Current complete: 7
-- Current pending: 0
-- Current unmapped: 0 ✓
-
 ## Archived Milestone (v1.17)
 
 > `v1.17` 已于 `2026-03-24` 完成归档；以下 requirements / traceability 保留 `Phase 69` 的最终 fulfilled contract，归档快照见 `.planning/milestones/v1.17-REQUIREMENTS.md`，审计裁决见 `.planning/v1.17-MILESTONE-AUDIT.md`，证据索引见 `.planning/reviews/V1_17_EVIDENCE_INDEX.md`。

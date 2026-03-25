@@ -1,4 +1,4 @@
-"""Focused guards for Phase 75 governance closeout truth."""
+"""Focused guards for Phase 75 governance archive truth."""
 
 from __future__ import annotations
 
@@ -24,6 +24,7 @@ def test_phase75_exit_contract_freezes_promoted_evidence_chain() -> None:
 
     assert "## Phase 75 Exit Contract" in verification_text
     assert ".planning/reviews/PROMOTED_PHASE_ASSETS.md" in verification_text
+    assert ".planning/reviews/V1_20_EVIDENCE_INDEX.md" in verification_text
     assert "v1.20-MILESTONE-AUDIT.md" in verification_text
     assert "75-VERIFICATION.md" in verification_text
     assert "75-VALIDATION.md" in verification_text
@@ -38,7 +39,7 @@ def test_phase75_exit_contract_freezes_promoted_evidence_chain() -> None:
             assert filename in audit_text
 
 
-def test_phase75_current_route_truth_stays_active_closeout_ready() -> None:
+def test_phase75_archive_truth_stays_frozen_after_closeout() -> None:
     project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
@@ -55,8 +56,8 @@ def test_phase75_current_route_truth_stays_active_closeout_ready() -> None:
     assert CURRENT_MILESTONE_DEFAULT_NEXT in project_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in roadmap_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
-    assert "## Archived Milestone (v1.20)" not in project_text
-    assert "archived / evidence-ready" not in CURRENT_MILESTONE_STATUS
+    assert "## Latest Archived Milestone (v1.20)" in project_text
+    assert "## Latest Archived Milestone" in roadmap_text
     assert CURRENT_PHASE_DIR in str(_ROOT / ".planning" / "phases" / CURRENT_PHASE_DIR)
 
 
