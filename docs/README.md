@@ -14,30 +14,6 @@
 - `SECURITY.md`：私密漏洞披露。  
   Private vulnerability disclosure.
 
-## Release Hygiene / 发版清理
-
-- **GitHub-facing release tree / GitHub 发布可见树**：根目录公开入口以 `README.md` / `README_zh.md`、`CONTRIBUTING.md`、`SUPPORT.md`、`SECURITY.md`、`CHANGELOG.md`、`LICENSE` 与 `docs/` 当前文档为准；`.planning/*` 继续保持 maintainer-facing governance / evidence 身份，不作为 public first hop。  
-  Public GitHub release surfaces stay on the root public docs plus current `docs/` pages; `.planning/*` remains maintainer-facing governance/evidence rather than a public first hop.
-- **Must not ride along / 不应随发版混入**：本地生成的 `coverage.*`、`.benchmarks/`、`.mypy_cache/`、`.pytest_cache/`、`.ruff_cache/`、`.venv/`、`__pycache__/`、`*.egg-info/`、scratch files 与一次性 research 输出必须在合并主线 / 发版前清走。  
-  Local generated artifacts, caches, scratch files, and one-off research output must be removed before merge/release.
-- **Execution traces / 执行痕迹**：`.planning/phases/**` 中未被 promoted / referenced 的 `PLAN / CONTEXT / RESEARCH` 仍只是执行痕迹；公开文档不应把它们当作对外发布文档集的一部分。  
-  Non-promoted `PLAN / CONTEXT / RESEARCH` phase assets remain execution traces and must not be treated as part of the public release doc set.
-
-## Maintainer Appendix / 维护者附录
-
-- `docs/MAINTAINER_RELEASE_RUNBOOK.md`：维护者专用的发版 / rehearsal / custody 附录，不属于 public first hop。  
-  Maintainer-only release, rehearsal, and custody appendix; not part of the public first hop.
-- `.planning/baseline/GOVERNANCE_REGISTRY.json`：registry-backed maintainer routing / rehearsal metadata，会投影到 contributor docs 与 GitHub templates 以降低 drift。  
-  Registry-backed maintainer routing / rehearsal metadata projected into contributor docs and GitHub templates to reduce drift.
-- `.planning/*`：治理、审阅、archive 与 evidence 真源。  
-  Governance, review, archive, and evidence truth sources.
-
-## Tooling Entry Points / 工具入口
-
-- **Active local entrypoints / 现役入口**：`./scripts/setup`、`./scripts/develop`、`./scripts/lint`
-- **Explicit Python/CI commands / 显式命令真源**：`CONTRIBUTING.md` 中的 `uv run ...` 分组命令
-- **Retired compatibility stubs / 退役兼容壳**：`scripts/agent_worker.py`、`scripts/orchestrator.py` —— 仅保留为 unsupported 的 fail-fast deprecation 入口；请改走 `docs/README.md` 与 `CONTRIBUTING.md`
-
 ## Current Docs / 当前文档
 
 - `NORTH_STAR_TARGET_ARCHITECTURE.md`：北极星目标架构与长期裁决基线。  
@@ -51,6 +27,21 @@
 - `adr/README.md`：长期有效的架构决策与取舍记录。  
   Long-lived architecture decisions and trade-offs.
 
+## Release Hygiene / 发版清理
+
+- **GitHub-facing release tree / GitHub 发布可见树**：根目录公开入口以 `README.md` / `README_zh.md`、`CONTRIBUTING.md`、`SUPPORT.md`、`SECURITY.md`、`CHANGELOG.md`、`LICENSE` 与 `docs/` 当前文档为准；`.planning/*` 继续保持 maintainer-facing governance / evidence 身份，不作为 public first hop。  
+  Public GitHub release surfaces stay on the root public docs plus current `docs/` pages; `.planning/*` remains maintainer-facing governance/evidence rather than a public first hop.
+- **Must not ride along / 不应随发版混入**：本地生成的 `coverage.*`、`.benchmarks/`、`.mypy_cache/`、`.pytest_cache/`、`.ruff_cache/`、`.venv/`、`__pycache__/`、`*.egg-info/`、scratch files 与一次性 research 输出必须在合并主线 / 发版前清走。  
+  Local generated artifacts, caches, scratch files, and one-off research output must be removed before merge/release.
+- **Execution traces / 执行痕迹**：`.planning/phases/**` 中未被 promoted / referenced 的 `PLAN / CONTEXT / RESEARCH` 仍只是执行痕迹；公开文档不应把它们当作对外发布文档集的一部分。  
+  Non-promoted `PLAN / CONTEXT / RESEARCH` phase assets remain execution traces and must not be treated as part of the public release doc set.
+
+## Tooling Entry Points / 工具入口
+
+- **Active local entrypoints / 现役入口**：`./scripts/setup`、`./scripts/develop`、`./scripts/lint`
+- **Explicit Python/CI commands / 显式命令真源**：`CONTRIBUTING.md` 中的 `uv run ...` 分组命令
+- **Retired compatibility stubs / 退役兼容壳**：`scripts/agent_worker.py`、`scripts/orchestrator.py` —— 仅保留为 unsupported 的 fail-fast deprecation 入口；请改走 `docs/README.md` 与 `CONTRIBUTING.md`
+
 ## Bilingual Boundary / 双语边界
 
 - **必须镜像的公开入口**：`README.md` 与 `README_zh.md` 必须保持等价的 public entry navigation、安装契约与外部链接。  
@@ -60,41 +51,18 @@
 - **允许 maintainer-only 的附录**：`docs/MAINTAINER_RELEASE_RUNBOOK.md`、`.planning/*`、milestone audit 与 phase evidence 索引可以保持维护者取向；公开入口可按需显式链接过去，但不得让其取代 public first hop。  
   Maintainer-only appendices may stay maintainer-facing, but public entrypoints may link there only when needed and must not let them replace the public first hop.
 
-## Maintainer Truth Sources / 维护者真源
+## Maintainer Appendix / 维护者附录
 
-以下 `.planning/*` 与治理契约主要服务维护者 / 评审者，不是普通用户排障入口；用户仍应优先沿 README → troubleshooting → support 主链导航。
-
-以下内容统一作为当前仓库真源：
-
-- `.planning/PROJECT.md`
-- `.planning/ROADMAP.md`
-- `.planning/REQUIREMENTS.md`
-- `.planning/STATE.md`
-- `.planning/baseline/*.md`
-- `.planning/baseline/GOVERNANCE_REGISTRY.json`
-- `.planning/reviews/*.md`
-- `.planning/reviews/PROMOTED_PHASE_ASSETS.md`（`.planning/phases/**` promoted allowlist）
-- `AGENTS.md`
-- `CLAUDE.md`（仅作为 Claude Code 兼容入口）
-
-## Historical Archive Reference / 历史归档参考
-
-以下资产保留 archive / evidence / continuity 身份，供维护者审计、追溯与 handoff 使用，但**不是**当前治理真源：
-
-- 最新 archive-ready governance baseline：`.planning/v1.19-MILESTONE-AUDIT.md`、`.planning/reviews/V1_19_EVIDENCE_INDEX.md`、`.planning/milestones/v1.19-ROADMAP.md`、`.planning/milestones/v1.19-REQUIREMENTS.md`
-- 当前治理状态：`v1.20 active route / Phase 73 complete / latest archived baseline = v1.19`；latest archived closeout pointer 仍为 `.planning/reviews/V1_19_EVIDENCE_INDEX.md`，下一步治理动作是 `$gsd-plan-phase 74`，current-story 以 `.planning/PROJECT.md`、`.planning/ROADMAP.md`、`.planning/REQUIREMENTS.md` 与 `.planning/STATE.md` 为准
-- `.planning/MILESTONES.md`
-- `.planning/milestones/*.md`
-- `.planning/v1.17-MILESTONE-AUDIT.md`
-- `.planning/reviews/V1_17_EVIDENCE_INDEX.md`
-- `.planning/v1.16-MILESTONE-AUDIT.md`
-- `.planning/reviews/V1_16_EVIDENCE_INDEX.md`
-- `.planning/v1.12-MILESTONE-AUDIT.md`
-- `.planning/reviews/V1_12_EVIDENCE_INDEX.md`
-- `.planning/v1.6-MILESTONE-AUDIT.md`
-- `.planning/reviews/V1_6_EVIDENCE_INDEX.md`
-- `.planning/v1.5-MILESTONE-AUDIT.md`
-- `.planning/reviews/V1_5_EVIDENCE_INDEX.md`
+- `docs/MAINTAINER_RELEASE_RUNBOOK.md`：维护者专用的发版 / rehearsal / custody 附录，不属于 public first hop。  
+  Maintainer-only release, rehearsal, and custody appendix; not part of the public first hop.
+- `.planning/baseline/GOVERNANCE_REGISTRY.json`：registry-backed maintainer routing / rehearsal metadata，会投影到 contributor docs 与 GitHub templates 以降低 drift。  
+  Registry-backed maintainer routing / rehearsal metadata projected into contributor docs and GitHub templates to reduce drift.
+- **Package semver / 包版本真源**：release-compatible package version 必须同步于 `pyproject.toml`、`custom_components/lipro/manifest.json` 与 `custom_components/lipro/const/base.py`。  
+  Release/package semver must stay synchronized across `pyproject.toml`, `custom_components/lipro/manifest.json`, and `custom_components/lipro/const/base.py`.
+- **Internal governance milestones / 内部治理里程碑**：`.planning` 中的 `v1.20`、`Phase 74` 之类标识只表示内部治理路线，不表示 package release semver，也不能替代 Git tag / package version。  
+  Milestone/phase identifiers such as `v1.20` or `Phase 74` are internal governance route IDs, not package release semver.
+- **Maintainer truth sources / 维护者真源**：`.planning/PROJECT.md`、`.planning/ROADMAP.md`、`.planning/REQUIREMENTS.md`、`.planning/STATE.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md`、`.planning/reviews/PROMOTED_PHASE_ASSETS.md`、`AGENTS.md` 与 `CLAUDE.md`（仅 Claude Code 兼容入口）。  
+  Maintainer truth lives in the active `.planning/*` governance set plus `AGENTS.md` and `CLAUDE.md` compatibility entrypoints.
 
 ## Phase 资产身份与开源治理 / Phase Asset Identity and Open Source Governance
 

@@ -82,7 +82,7 @@ Home Assistant entry / flow / service / entity
 - `.planning/baseline/ARCHITECTURE_POLICY.md` 与 `tests/meta/test_dependency_guards.py` 禁止这些平台模块直接依赖 `custom_components.lipro.core.api`、`custom_components.lipro.core.mqtt` 或 `custom_components.lipro.core.protocol.boundary`。
 
 ### 4.3 Service entrypoints
-- `custom_components/lipro/control/service_registry.py` 现为 HA service declaration 的正式 owner；`custom_components/lipro/services/registrations.py` 只保留 compat import shell，handler 全部落在 `custom_components/lipro/control/service_router.py`。
+- `custom_components/lipro/control/service_registry.py` 现为 HA service declaration 的唯一正式 owner；handler 全部落在 `custom_components/lipro/control/service_router.py`，仓库中不再保留额外的 compat registration shell。
 - `custom_components/lipro/control/developer_router_support.py` 已承接 developer-report、optional capability、sensor-history 等私有 glue；`tests/services/test_services_registry.py` 确认 registration handler 模块归属仍是 `service_router.py`。
 
 ## 5. Data Flow

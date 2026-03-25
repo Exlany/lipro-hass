@@ -77,7 +77,7 @@ This integration uses a **hybrid mode** to fetch device status:
 
 ## Installation
 
-Minimum supported Home Assistant version: `2026.3.1` (canonical source: `pyproject.toml`).
+Minimum supported Home Assistant version: `2026.3.1` (install metadata: `hacs.json`; kept in sync with `pyproject.toml`).
 
 Private repository / fork note: CI skips HACS validation because HACS only supports public GitHub repositories.
 
@@ -374,7 +374,7 @@ This integration is implemented by reverse engineering the Lipro cloud API and i
 
 ## Support Model
 
-- Stable support targets: the latest tagged release and the matching HACS install
+- Stable support targets: the latest tagged release via a matching HACS install or verified GitHub Release assets for that tag
 - Preview paths (`ARCHIVE_TAG=main`, branch fallback, mirror installs): best effort only
 - Public routing stays on one path: `docs/README.md` → `CONTRIBUTING.md` / `docs/TROUBLESHOOTING.md` / `SUPPORT.md` / `SECURITY.md`
 - Maintainer continuity and release custody stay in `docs/MAINTAINER_RELEASE_RUNBOOK.md`, not in the root public first hop

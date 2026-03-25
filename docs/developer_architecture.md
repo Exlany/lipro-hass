@@ -1,6 +1,6 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `Phase 43` (`2026-03-20`)
+> **Last aligned through**: `Phase 74` (`2026-03-25`)
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
@@ -134,7 +134,7 @@ custom_components/lipro/
 
 ### 3. 控制面调用
 
-1. HA service declaration 由 `custom_components/lipro/control/service_registry.py` 作为正式 owner 注册；`custom_components/lipro/services/registrations.py` 仅保留 compat import shell
+1. HA service declaration 由 `custom_components/lipro/control/service_registry.py` 作为唯一正式 owner 注册；已不存在额外的 `services/registrations.py` compat import shell
 2. `control/service_router.py` 接管 public callback
 3. `control/service_router_handlers.py` / support helpers 组合 request shaping、runtime lookup、error translation
 4. runtime formal surface 完成实际行为

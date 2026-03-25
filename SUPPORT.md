@@ -13,7 +13,7 @@ If you only need public user / contributor routing, stop at the table above: `do
 
 ## Version & Validation Truth
 
-- Minimum supported Home Assistant version: `2026.3.1` (canonical source: `pyproject.toml`).
+- Minimum supported Home Assistant version: `2026.3.1` (install metadata: `hacs.json`; kept in sync with `pyproject.toml`).
 - Canonical runtime dependency envelope: `pyproject.toml` (full runtime floor/bounds) + `custom_components/lipro/manifest.json` (Home Assistant-installed subset).
 - Supported stable install paths: HACS and verified GitHub Release assets (`install.sh` + release zip + `SHA256SUMS`).
 - Current release trust stack: published `SHA256SUMS`, `SBOM`, GitHub artifact `attestation` / `provenance` (`gh attestation verify`), keyless `cosign` signature bundles (`cosign verify-blob --bundle ...`), and the blocking tagged runtime `pip-audit` gate.
@@ -30,6 +30,7 @@ If you only need public user / contributor routing, stop at the table above: `do
 
 - Latest tagged release: supported
 - Current HACS install that matches the latest tagged release: supported
+- Verified GitHub Release assets for the latest tagged release: supported
 - Older tagged releases: best effort only unless the issue is a still-open security or data-loss regression
 - `main` / preview installer flows: best effort only, not a stable support target
 

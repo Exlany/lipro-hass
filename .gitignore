@@ -98,8 +98,8 @@ assets/
 !.planning/codebase/
 !.planning/codebase/*.md
 !.planning/phases/
-!.planning/phases/12-type-contract-alignment-residual-cleanup-and-governance-hygiene/
-!.planning/phases/12-type-contract-alignment-residual-cleanup-and-governance-hygiene/*.md
+!.planning/phases/*/
+!.planning/phases/*/*.md
 # Benchmarks (generated)
 .benchmarks/
 benchmark_results.json

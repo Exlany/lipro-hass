@@ -9,8 +9,8 @@ from pathlib import Path
 LOGGER = logging.getLogger(__name__)
 
 _DEPRECATION_MESSAGE = (
-    "scripts/agent_worker.py 已退役；当前仓库改用主代理主控 + 子代理按需派发，"
-    "历史重构档案不再保留在仓库中。"
+    "scripts/agent_worker.py 已退役；当前仓库仅保留它作为 unsupported 的 fail-fast 入口，"
+    "请改走现役工具链。"
 )
 
 
@@ -34,7 +34,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> int:
-    """Print the deprecation notice and exit successfully."""
+    """Print the deprecation notice and exit with the fail-fast status."""
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
     parser = build_parser()
     args = parser.parse_args()

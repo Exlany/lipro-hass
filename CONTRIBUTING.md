@@ -13,7 +13,7 @@ Thank you for your interest in contributing to the Lipro Smart Home integration!
 
 ### Version Truth / 版本真源
 
-- Canonical minimum supported Home Assistant version: `2026.3.1` from `pyproject.toml` (`homeassistant==2026.3.1`).
+- Canonical minimum supported Home Assistant version: `2026.3.1` from `hacs.json`, kept in sync with the `pyproject.toml` dev pin (`homeassistant==2026.3.1`).
 - Canonical Python toolchain truth: minimum Python `3.14.2`, with development / CI targeting Python `3.14` (`requires-python`, `mypy`, `ruff`, `pre-commit`, devcontainer, and CI stay aligned under that contract).
 - 唯一 Python 工具链真相：最低 Python `3.14.2`，开发 / CI 目标为 Python `3.14`（`requires-python`、`mypy`、`ruff`、`pre-commit`、devcontainer 与 CI 都遵守这条契约）。
 - 唯一最低支持 Home Assistant 版本真源：`pyproject.toml` 中的 `homeassistant==2026.3.1`。

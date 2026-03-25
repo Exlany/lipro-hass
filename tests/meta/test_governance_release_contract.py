@@ -376,8 +376,10 @@ def test_latest_closeout_pointer_and_active_route_stay_current() -> None:
     docs_text = _DOCS_README.read_text(encoding="utf-8")
     runbook_text = _RUNBOOK.read_text(encoding="utf-8")
 
-    assert LATEST_ARCHIVED_EVIDENCE_PATH in docs_text
-    assert CURRENT_ROUTE in docs_text
+    assert LATEST_ARCHIVED_EVIDENCE_PATH not in docs_text
+    assert CURRENT_ROUTE not in docs_text
+    assert "Current governance status" not in docs_text
+    assert "$gsd-plan-phase" not in docs_text
     assert LATEST_ARCHIVED_EVIDENCE_FILENAME in runbook_text
     assert "V1_6_EVIDENCE_INDEX.md" not in runbook_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in project_text
@@ -453,6 +455,9 @@ def test_support_and_issue_routing_are_consistent() -> None:
     support_text = _SUPPORT.read_text(encoding="utf-8")
     security_text = _SECURITY.read_text(encoding="utf-8")
     contributing_text = _CONTRIBUTING.read_text(encoding="utf-8")
+    readme_text = _README.read_text(encoding="utf-8")
+    readme_zh_text = _README_ZH.read_text(encoding="utf-8")
+    runbook_text = _RUNBOOK.read_text(encoding="utf-8")
     issue_config = _load_yaml(_ISSUE_CONFIG)
     contact_links = _as_mapping_list(issue_config.get("contact_links", []))
     contact_urls = [_as_str(link["url"]) for link in contact_links]
@@ -466,6 +471,12 @@ def test_support_and_issue_routing_are_consistent() -> None:
     assert "SECURITY.md" in support_text
     assert "single-maintainer" in support_text
     assert "verified GitHub Release assets" in support_text
+    assert "matching HACS install" in readme_text
+    assert "verified GitHub Release assets" in readme_text
+    assert "匹配该标签的 HACS 安装" in readme_zh_text
+    assert "已校验 GitHub Release 资产" in readme_zh_text
+    assert "matching HACS install" in runbook_text
+    assert "verified GitHub Release assets" in runbook_text
     assert "Best effort" in security_text or "best effort" in security_text
     assert "verified GitHub Release assets" in security_text
 

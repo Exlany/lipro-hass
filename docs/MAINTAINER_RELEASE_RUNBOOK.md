@@ -10,7 +10,7 @@ This repository currently follows a single-maintainer release model. Every tagge
 
 - Canonical package version: `pyproject.toml`, `custom_components/lipro/manifest.json`, `custom_components/lipro/const/base.py`
 - Canonical runtime dependency envelope: `pyproject.toml` (full runtime floor/bounds) + `custom_components/lipro/manifest.json` (Home Assistant-installed subset)
-- Canonical minimum supported Home Assistant version: `2026.3.1` from `pyproject.toml`
+- Canonical minimum supported Home Assistant version: `2026.3.1` from `hacs.json` (kept in sync with the `pyproject.toml` dev pin)
 - Canonical public support/security paths: `README.md`, `README_zh.md`, `CONTRIBUTING.md`, `SUPPORT.md`, `SECURITY.md`
 - Canonical troubleshooting path: `docs/TROUBLESHOOTING.md`
 - Canonical latest archive-ready closeout evidence pointer: `.planning/reviews/V1_19_EVIDENCE_INDEX.md`
@@ -133,7 +133,7 @@ uv run pytest -q tests/meta/test_governance*.py tests/meta/test_toolchain_truth.
 
 ### Support Window / EOL Posture
 
-- The latest tagged release and a matching HACS install are the only stable support targets.
+- The latest tagged release, a matching HACS install, and verified GitHub Release assets built from that tag are the stable support targets.
 - Preview paths such as `ARCHIVE_TAG=main`, branch fallback, or mirror installs remain best effort only.
 
 ## No-Silent-Defer Rule

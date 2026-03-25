@@ -169,9 +169,9 @@ def test_phase_43_control_service_boundary_stays_one_way_and_explicit() -> None:
     maintenance_text = (
         _ROOT / "custom_components" / "lipro" / "services" / "maintenance.py"
     ).read_text(encoding="utf-8")
-    registrations_text = (
+    registrations_path = (
         _ROOT / "custom_components" / "lipro" / "services" / "registrations.py"
-    ).read_text(encoding="utf-8")
+    )
     diagnostics_helpers_text = (
         _ROOT / "custom_components" / "lipro" / "services" / "diagnostics" / "helpers.py"
     ).read_text(encoding="utf-8")
@@ -222,8 +222,7 @@ def test_phase_43_control_service_boundary_stays_one_way_and_explicit() -> None:
     assert "device_registry_updated" not in maintenance_text
     assert "async_setup_device_registry_listener" not in maintenance_text
 
-    assert "control.service_registry" in registrations_text
-    assert "control.service_router" not in registrations_text
+    assert not registrations_path.exists()
     assert "control.runtime_access" not in diagnostics_helpers_text
     assert "import_module(" not in diagnostics_helpers_text
     assert "control.runtime_access" not in diagnostics_feedback_handlers_text

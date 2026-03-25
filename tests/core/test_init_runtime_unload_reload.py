@@ -10,6 +10,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.lipro import async_reload_entry, async_setup, async_unload_entry
 from custom_components.lipro.const.base import DOMAIN
 from custom_components.lipro.const.config import CONF_DEBUG_MODE
+from custom_components.lipro.control.service_registry import SERVICE_REGISTRATIONS
 from custom_components.lipro.services.contracts import (
     SERVICE_GET_CITY,
     SERVICE_GET_DEVELOPER_REPORT,
@@ -147,8 +148,6 @@ class TestInitUnloadAndReloadBehavior(_InitRuntimeBehaviorBase):
             ) as mock_remove_listener,
         ):
             assert await async_unload_entry(hass, entry) is True
-
-        from custom_components.lipro.services.registrations import SERVICE_REGISTRATIONS
 
         mock_remove_services.assert_called_once_with(
             hass,

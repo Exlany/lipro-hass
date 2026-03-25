@@ -9,8 +9,8 @@ from pathlib import Path
 LOGGER = logging.getLogger(__name__)
 
 _DEPRECATION_MESSAGE = (
-    "scripts/orchestrator.py 已退役；当前仓库不再依赖重构编排平台，"
-    "历史重构档案不再保留在仓库中。"
+    "scripts/orchestrator.py 已退役；当前仓库仅保留它作为 unsupported 的 fail-fast 入口，"
+    "请改走现役工具链。"
 )
 
 
@@ -35,7 +35,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> int:
-    """Print the deprecation notice and exit successfully."""
+    """Print the deprecation notice and exit with the fail-fast status."""
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
     args = build_parser().parse_args()
     LOGGER.error("%s", _DEPRECATION_MESSAGE)

@@ -110,6 +110,20 @@ def test_docs_index_makes_public_fast_path_and_bilingual_boundary_explicit() -> 
 
 
 
+
+def test_docs_index_keeps_internal_route_story_out_of_public_fast_path() -> None:
+    docs_text = _DOCS_README.read_text(encoding="utf-8")
+
+    for token in (
+        "Current governance status",
+        "$gsd-plan-phase",
+        "latest archived closeout pointer",
+        "V1_19_EVIDENCE_INDEX.md",
+    ):
+        assert token not in docs_text
+
+
+
 def test_deep_docs_keep_single_maintainer_continuity_truth() -> None:
     """Support/security/troubleshooting/runbook should tell one honest continuity story."""
     support_text = _SUPPORT.read_text(encoding="utf-8")
@@ -205,3 +219,7 @@ def test_docs_index_and_retired_tooling_contract_are_machine_readable() -> None:
     assert "return 2" in orchestrator_text
     assert "Use docs/README.md and CONTRIBUTING.md" in worker_text
     assert "Use docs/README.md and CONTRIBUTING.md" in orchestrator_text
+    assert "exit successfully" not in worker_text
+    assert "exit successfully" not in orchestrator_text
+    assert "历史重构档案不再保留在仓库中" not in worker_text
+    assert "历史重构档案不再保留在仓库中" not in orchestrator_text

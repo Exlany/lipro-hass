@@ -132,6 +132,8 @@ def test_governance_registry_tracks_version_and_install_defaults() -> None:
     install_text = (_ROOT / "install.sh").read_text(encoding="utf-8")
 
     assert registry["homeassistant"]["minimum_version"] == _read_homeassistant_version()
+    assert registry["homeassistant"]["source"] == "hacs.json"
+    assert registry["homeassistant"]["sync_source"] == "pyproject.toml"
     assert registry["python"]["requires_python"] == _read_python_requires()
     assert registry["install"]["remote_default_archive_tag"] == "latest"
     assert registry["install"]["private_repo_skips_hacs_validation"] is True

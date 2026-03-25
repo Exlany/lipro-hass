@@ -326,6 +326,25 @@ OVERRIDE_TRUTH_FAMILIES = (
         ("tests/core/test_device_refresh_snapshot.py", "device-refresh snapshot-builder topic home"),
     )),
 
+
+OverrideTruthFamily(area="Cross-cutting", owner_phase="Phase 7 / 74", fate="保留", rows=(
+    ("tests/core/test_share_client.py", "thin shell after ShareWorkerClient topicization"),
+    ("tests/core/test_share_client_support.py", "shared helper root for ShareWorkerClient topicized suites"),
+    ("tests/core/test_share_client_primitives.py", "ShareWorkerClient primitive/token topic home"),
+    ("tests/core/test_share_client_refresh.py", "ShareWorkerClient token-refresh topic home"),
+    ("tests/core/test_share_client_submit.py", "ShareWorkerClient submit/outcome topic home"),
+    ("tests/core/test_share_client_boundary.py", "ShareWorkerClient external-boundary proof home"),
+)),
+
+OverrideTruthFamily(area="Runtime", owner_phase="Phase 5 / 6 / 74", fate="保留", rows=(
+    ("tests/core/coordinator/runtime/test_command_runtime.py", "thin shell after CommandRuntime topicization"),
+    ("tests/core/coordinator/runtime/test_command_runtime_support.py", "shared helper root for CommandRuntime topicized suites"),
+    ("tests/core/coordinator/runtime/test_command_runtime_builder_retry.py", "CommandRuntime builder/retry topic home"),
+    ("tests/core/coordinator/runtime/test_command_runtime_sender.py", "CommandRuntime sender topic home"),
+    ("tests/core/coordinator/runtime/test_command_runtime_confirmation.py", "CommandRuntime confirmation topic home"),
+    ("tests/core/coordinator/runtime/test_command_runtime_orchestration.py", "CommandRuntime orchestration topic home"),
+)),
+
     OverrideTruthFamily(area="Runtime", owner_phase="Phase 7", fate="删除候选", rows=(
         ("custom_components/lipro/core/coordinator/device_registry_sync.py", "shadow helper"),
         ("custom_components/lipro/core/coordinator/runtime/group_lookup_runtime.py", "shadow helper"),

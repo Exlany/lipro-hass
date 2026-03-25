@@ -187,7 +187,7 @@ _None currently registered._
 
 ## Phase 11 Residual Delta
 
-- `custom_components/lipro/control/service_router.py` 已成为真实 formal router implementation home；`control/service_registry.py` 现为正式 registration-table owner，而 `services/registrations.py` 已降为 compat import shell。
+- `custom_components/lipro/control/service_router.py` 已成为真实 formal router implementation home；`control/service_registry.py` 现为正式 registration-table owner，`services/registrations.py` compat shell 已在 Phase 74 删除。
 - 仓库内测试已迁移到 `custom_components.lipro.control.service_router`，不再把 `services/wiring.py` 当成 patch-first truth。
 - `custom_components/lipro/services/wiring.py` compat shell 已删除，`Legacy service wiring carrier` residual family 已关闭。
 - `custom_components/lipro/core/api/endpoints/__init__.py` 不再导出 `_ClientEndpointsMixin`；`API mixin inheritance` residual 现只覆盖 remaining helper mixin / typing anchors。
@@ -414,11 +414,11 @@ _None currently registered._
 
 - 无新增 active residual family。
 - runtime support helper decomposition、anonymous-share / OTA shared-helper convergence 与 archive-vs-current truth freeze 已在本 phase 完成收口；后续若继续优化，只允许沿既有 formal homes / governance chain 细化，不得重开第二故事线。
-- latest archived baseline 现已提升到 `v1.19`；当前 mutable current story 已升级为 `v1.20 active route / Phase 73 complete / latest archived baseline = v1.19`，且本 phase 不新增 ownerless carry-forward。
+- latest archived baseline 现已提升到 `v1.19`；当前 mutable current story 已升级为 `v1.20 active route / Phase 74 complete / latest archived baseline = v1.19`，且本 phase 不新增 ownerless carry-forward。
 
 
 ## Phase 71 Residual Delta
 
 - 无新增 active residual family。
 - OTA / firmware-install、anonymous-share submit、request pacing 与 command-runtime 长流程已在本 phase 获得更窄 helper decomposition；后续若继续优化，只允许沿既有 formal homes / governance chain 细化。
-- milestone truth 已完成 archive promotion；当前 mutable current story 现为 `v1.20 active route / Phase 73 complete / latest archived baseline = v1.19`；`v1.18` 退为 previous archived baseline。
+- milestone truth 已完成 archive promotion；当前 mutable current story 现为 `v1.20 active route / Phase 74 complete / latest archived baseline = v1.19`；`v1.18` 退为 previous archived baseline。

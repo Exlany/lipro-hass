@@ -367,6 +367,7 @@ def test_phase_60_tooling_closeout_is_frozen_in_current_story_truth() -> None:
         or "$gsd-plan-phase 72" in state_text
         or "$gsd-plan-phase 73" in state_text
         or "$gsd-plan-phase 74" in state_text
+        or "$gsd-complete-milestone v1.20" in state_text
     )
     assert "scripts/check_file_matrix_inventory.py" in file_matrix_text
     assert "tests/meta/toolchain_truth_python_stack.py" in file_matrix_text

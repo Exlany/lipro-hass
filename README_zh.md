@@ -77,7 +77,7 @@ Home Assistant 集成，用于控制 Lipro 智能家居设备。
 
 ## 安装
 
-最低支持的 Home Assistant 版本：`2026.3.1`（唯一版本真源：`pyproject.toml`）。
+最低支持的 Home Assistant 版本：`2026.3.1`（安装元数据位于 `hacs.json`，并与 `pyproject.toml` 保持同步）。
 
 私有仓库 / fork 说明：CI 会跳过 HACS validation，因为 HACS 只支持公开 GitHub 仓库。
 
@@ -375,7 +375,7 @@ data:
 
 ## 支持模型
 
-- 稳定支持目标：最新标签版本与与其一致的 HACS 安装
+- 稳定支持目标：通过匹配该标签的 HACS 安装，或使用该标签对应的已校验 GitHub Release 资产
 - 预览路径（`ARCHIVE_TAG=main`、branch fallback、mirror 安装）：仅属 best effort
 - 公开路由保持单一路径：`docs/README.md` → `CONTRIBUTING.md` / `docs/TROUBLESHOOTING.md` / `SUPPORT.md` / `SECURITY.md`
 - maintainer continuity 与 release custody 统一留在 `docs/MAINTAINER_RELEASE_RUNBOOK.md`，不回流根 README 的 public first hop

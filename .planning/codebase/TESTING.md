@@ -1,6 +1,6 @@
 # TESTING
 > Snapshot: `2026-03-25`
-> Freshness: Phase 73 governance + topical-test refresh；仅按 `AGENTS.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md`、`docs/developer_architecture.md` 与当前 CI/release/public-doc truth 截面成立。上述真源变更后，本图谱必须同步刷新或标记过时。
+> Freshness: Phase 74 legacy-auth residual retirement + topicized-test closeout；仅按 `AGENTS.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md`、`docs/developer_architecture.md` 与当前 CI/release/public-doc truth 截面成立。上述真源变更后，本图谱必须同步刷新或标记过时。
 > Scope: `tests/**/*.py`、CI/pre-commit、fixtures/readmes、governance baselines 中的测试策略与质量门禁
 > Derived collaboration map: 本文件是受约束的协作图谱 / 派生视图，仅用于导航、协作与局部审阅。
 > Authority: 若与 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md` 或 `docs/developer_architecture.md` 冲突，以后者为准；本图谱不得反向充当当前治理真源，且必须同步回写、标记为过时，或注明历史观察。
@@ -29,11 +29,12 @@
 
 - 测试栈完整：`pytest`、`pytest-asyncio`、`pytest-cov`、`pytest-homeassistant-custom-component`、`pytest-benchmark`、`syrupy`、`mypy`、`xdist` 全部进入 dev 依赖。证据：`pyproject.toml:33`。
 - CI 把质量拆成 `lint`、`governance`、`security`、`test`、`benchmark`、`validate` 六道门，release 先复用 CI，再做版本校验与打包。证据：`.github/workflows/ci.yml:22`, `.github/workflows/release.yml:25`, `tests/meta/test_governance_guards.py:185`。
-- 当前仓库共有 `245` 个 `test_*.py` 文件；其中 `34` 个 meta guard、`5` 个 integration、`4` 个 benchmark、`4` 个 snapshot 文件；另有 `5` 个 fixture family readme 维护 authority/用途说明。
+- 当前仓库共有 `256` 个 `test_*.py` 文件；其中 `35` 个 meta guard、`5` 个 integration、`4` 个 benchmark、`4` 个 snapshot 文件；另有 `5` 个 fixture family readme 维护 authority/用途说明。
 - Coverage gate 是硬门槛：主测试 job 以 `95%` 为下限，snapshot coverage 已包含在主 `tests/` lane 中；`coverage_diff.py` 默认执行 floor-only check，只有显式提供 baseline 才会产出 diff；benchmark 则作为 baseline-governed artifact lane 产出 `.benchmarks/benchmark.json`，并区分 threshold warning 与 no-regression gate。证据：`.github/workflows/ci.yml:177`, `CONTRIBUTING.md:94`。
 - `Phase 55` 已把 `test_api_command_surface.py`、`test_transport_runtime.py`、`test_{light,fan,select,switch}.py` 收敛成 thin shell，并引入 `16` 个 named topic files，failure localization 直接落到 command/response、MQTT lifecycle/subscription、以及各平台 model/behavior concern。
 - `Phase 59` 再把 `tests/meta/{test_public_surface_guards.py,test_governance_phase_history.py,test_governance_followup_route.py}` 收窄成 thin shell roots，并引入 `9` 个 named truth-family modules；同时让 `tests/core/test_device_refresh.py` 退场，由 `tests/core/test_device_refresh_{parsing,filter,snapshot,runtime}.py` 承接 focused verification。
 - `Phase 60` 再把 `scripts/check_file_matrix.py` 收窄成 thin checker root，并引入 `scripts/check_file_matrix_inventory.py`、`scripts/check_file_matrix_registry.py`、`scripts/check_file_matrix_markdown.py` 与 `scripts/check_file_matrix_validation.py`；同时把 `tests/meta/test_toolchain_truth.py` 收窄成 thin daily root，并引入 `tests/meta/toolchain_truth_python_stack.py`、`tests/meta/toolchain_truth_release_contract.py`、`tests/meta/toolchain_truth_docs_fast_path.py`、`tests/meta/toolchain_truth_ci_contract.py`、`tests/meta/toolchain_truth_testing_governance.py` 与 `tests/meta/toolchain_truth_checker_paths.py`，daily command 仍保持单入口。
+- `Phase 74` 再把 `tests/core/test_share_client.py` 与 `tests/core/coordinator/runtime/test_command_runtime.py` 收窄成 thin shell roots，并引入 `tests/core/test_share_client_{boundary,primitives,refresh,submit,support}.py` 与 `tests/core/coordinator/runtime/test_command_runtime_{builder_retry,confirmation,orchestration,sender,support}.py`；full collection 继续只保留单入口，同时 mixed explicit collection 也避免重复收集。
 - repo-wide typing truth 现按 `production_any`、`production_type_ignore`、`tests_any_non_meta`、`meta_guard_any_literals`、`meta_support_any`、`tests_type_ignore` 与 `meta_guard_type_ignore_literals` 分桶叙述；production no-growth 继续保持 hard fail。
 
 ## 3. 测试分层图谱

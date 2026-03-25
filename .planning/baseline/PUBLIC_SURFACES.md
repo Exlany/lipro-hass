@@ -34,7 +34,7 @@
 
 - `.planning/baseline/GOVERNANCE_REGISTRY.json` 是 governance-only 的 machine-readable baseline asset：它只承载 active governance facts（版本、安装、support routing、release trust、continuity），不是 runtime / control / protocol 的 public API。
 - `.planning/MILESTONES.md`、`.planning/milestones/*.md`、`.planning/v1.12-MILESTONE-AUDIT.md`、`.planning/v1.13-MILESTONE-AUDIT.md`、`.planning/v1.14-MILESTONE-AUDIT.md`、`.planning/v1.15-MILESTONE-AUDIT.md`、`.planning/v1.16-MILESTONE-AUDIT.md`、`.planning/v1.17-MILESTONE-AUDIT.md`、`.planning/v1.18-MILESTONE-AUDIT.md`、`.planning/v1.19-MILESTONE-AUDIT.md`、`.planning/v1.6-MILESTONE-AUDIT.md` 与 `V1_12_EVIDENCE_INDEX.md` / `V1_13_EVIDENCE_INDEX.md` / `V1_14_EVIDENCE_INDEX.md` / `V1_15_EVIDENCE_INDEX.md` / `V1_16_EVIDENCE_INDEX.md` / `V1_17_EVIDENCE_INDEX.md` / `V1_18_EVIDENCE_INDEX.md` / `V1_19_EVIDENCE_INDEX.md` / `V1_6_EVIDENCE_INDEX.md` / `V1_5_EVIDENCE_INDEX.md` 继续只承担 archive / audit / handoff 身份；它们可以作为历史证据被引用，但不得回流为 current governance truth。
-- `docs/README.md` 与 `docs/MAINTAINER_RELEASE_RUNBOOK.md` 可以显式引用 `V1_19_EVIDENCE_INDEX.md` 作为 latest archive-ready closeout pointer；当前治理状态已切到 `v1.20 active route / Phase 73 complete / latest archived baseline = v1.19`，下一步治理动作是 `$gsd-plan-phase 74`。
+- `docs/README.md` 只保留 public docs map 与 maintainer appendix 指针；archive-ready closeout pointer、current route 与 next GSD action 只允许留在 maintainer-facing governance truth 中。
 - `custom_components/lipro/control/runtime_access.py` 是 control/services 读取 runtime entry 枚举、device lookup 与 snapshot projection 的唯一正式 read-model home。
 - `custom_components/lipro/services/execution.py` 同时保持 `formal shared service execution facade` 身份；`schedule.py` 复用它的 shared executor，而不是维护第二条 auth/error 执行链。
 - `docs/README.md` 只负责解释当前可读入口与 active-vs-archive 边界，不得把 milestone snapshots 或 phase workspace assets 重新讲成对外 current source。
@@ -44,7 +44,7 @@
 - `custom_components/lipro/control/runtime_access.py` 现在同时固定 typed diagnostics/system-health projection 与 entry-scoped runtime lookup；control consumers 不再混搭 coordinator internals / ad-hoc mapping reads。
 - `custom_components/lipro/control/service_router_support.py` 是 service callback 热路径里唯一正式 `(device, coordinator)` bridge；`custom_components/lipro/services/device_lookup.py` 只保留 service-facing `device_id` resolution，不再拥有 runtime truth。
 - `custom_components/lipro/runtime_infra.py` 成为 device-registry listener、pending reload task cleanup 与 reload coordination 的正式 home；`custom_components/lipro/services/maintenance.py` 只保留消费 control 注入 runtime provider 的 `refresh_devices` thin adapter。
-- `custom_components/lipro/control/service_router.py` 继续是 public callback home；`custom_components/lipro/control/service_registry.py` 现在也是正式 service-registration owner，而 `services/registrations.py` 只保留 compat import/binding 身份，没有第二条 service-ownership story。
+- `custom_components/lipro/control/service_router.py` 继续是 public callback home；`custom_components/lipro/control/service_registry.py` 是唯一正式 service-registration owner，仓库中不再保留 `services/registrations.py` 这类 compat import/binding shell。
 
 ## Phase 48 Formal-Root Hotspot Decomposition Notes
 
@@ -148,7 +148,7 @@
 
 ## Phase 11 Control / Surface Closeout Notes
 
-- `custom_components/lipro/control/service_router.py` 已成为 control-plane 唯一正式 service callback home；`custom_components/lipro/control/service_registry.py` 负责 registration tables / debug gating，而 `custom_components/lipro/services/registrations.py` 只做 compat import/binding。
+- `custom_components/lipro/control/service_router.py` 已成为 control-plane 唯一正式 service callback home；`custom_components/lipro/control/service_registry.py` 负责 registration tables / debug gating，仓库中不再保留额外的 compat registration shell。
 - legacy wiring compat shell 已正式删除，不再属于 transitional public surface，也不得作为 patch / import truth 回流。
 - `custom_components/lipro/control/runtime_access.py` 继续是 control-plane runtime locator；control adapters 不得再旁路读取 coordinator internals。
 

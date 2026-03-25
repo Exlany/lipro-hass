@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from custom_components.lipro.control import service_router, service_router_support
-from custom_components.lipro.services.registrations import SERVICE_REGISTRATIONS
+from custom_components.lipro.control.service_registry import SERVICE_REGISTRATIONS
 from custom_components.lipro.services.registry import (
     ServiceRegistration,
     register_service,

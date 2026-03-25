@@ -85,7 +85,6 @@ _CURRENT_ROUTE_PROSE_PATHS = (
     ".planning/baseline/AUTHORITY_MATRIX.md",
     ".planning/baseline/VERIFICATION_MATRIX.md",
     ".planning/reviews/RESIDUAL_LEDGER.md",
-    "docs/README.md",
 )
 
 
@@ -201,7 +200,7 @@ def test_phase72_current_route_truth_replaces_stale_route_story() -> None:
     docs_text = (_ROOT / "docs" / "README.md").read_text(encoding="utf-8")
 
     assert CURRENT_ROUTE in project_text
-    assert CURRENT_ROUTE in docs_text
+    assert CURRENT_ROUTE not in docs_text
     assert CURRENT_MILESTONE_HEADER in project_text
     assert CURRENT_MILESTONE_HEADER in requirements_text
     assert CURRENT_MILESTONE_ROADMAP_HEADER in roadmap_text
@@ -214,6 +213,7 @@ def test_phase72_current_route_truth_replaces_stale_route_story() -> None:
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
     assert LATEST_ARCHIVED_EVIDENCE_PATH in project_text
     assert LATEST_ARCHIVED_EVIDENCE_PATH in state_text
+    assert LATEST_ARCHIVED_EVIDENCE_PATH not in docs_text
 
     for relative_path in _CURRENT_ROUTE_PROSE_PATHS:
         text = (_ROOT / relative_path).read_text(encoding="utf-8")

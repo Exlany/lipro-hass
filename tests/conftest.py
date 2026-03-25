@@ -26,7 +26,81 @@ if TYPE_CHECKING:
     from custom_components.lipro.core.device import LiproDevice
 
 # Domain constant
+
 DOMAIN = "lipro"
+_REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
+_TOPICIZED_THIN_SHELLS = {
+    "tests/core/test_share_client.py": {
+        "tests/core/test_share_client_primitives.py",
+        "tests/core/test_share_client_refresh.py",
+        "tests/core/test_share_client_submit.py",
+        "tests/core/test_share_client_boundary.py",
+    },
+    "tests/core/coordinator/runtime/test_command_runtime.py": {
+        "tests/core/coordinator/runtime/test_command_runtime_builder_retry.py",
+        "tests/core/coordinator/runtime/test_command_runtime_sender.py",
+        "tests/core/coordinator/runtime/test_command_runtime_confirmation.py",
+        "tests/core/coordinator/runtime/test_command_runtime_orchestration.py",
+    },
+}
+
+
+def _normalize_pytest_target(raw: str) -> str:
+    candidate = raw.split("::", 1)[0]
+    if not candidate or candidate.startswith("-"):
+        return ""
+    path = pathlib.Path(candidate)
+    try:
+        return path.resolve().relative_to(_REPO_ROOT).as_posix()
+    except ValueError:
+        return candidate.lstrip("./")
+
+
+def pytest_ignore_collect(collection_path: pathlib.Path, config: pytest.Config) -> bool:
+    """Keep thin-shell suites runnable by path without duplicating full-suite collection."""
+    try:
+        relative_path = collection_path.resolve().relative_to(_REPO_ROOT).as_posix()
+    except ValueError:
+        return False
+
+    if relative_path not in _TOPICIZED_THIN_SHELLS:
+        return False
+
+    explicit_targets = {
+        normalized
+        for normalized in (_normalize_pytest_target(arg) for arg in config.args)
+        if normalized
+    }
+    if relative_path not in explicit_targets:
+        return True
+
+    sibling_topics = _TOPICIZED_THIN_SHELLS[relative_path]
+    return any(topic in explicit_targets for topic in sibling_topics)
+
+
+def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
+    """Drop thin-shell items when their topical siblings are explicitly collected together."""
+    explicit_targets = {
+        normalized
+        for normalized in (_normalize_pytest_target(arg) for arg in config.args)
+        if normalized
+    }
+    if not explicit_targets:
+        return
+
+    shells_to_drop = {
+        shell
+        for shell, topics in _TOPICIZED_THIN_SHELLS.items()
+        if shell in explicit_targets and any(topic in explicit_targets for topic in topics)
+    }
+    if not shells_to_drop:
+        return
+
+    items[:] = [
+        item
+        for item in items
+        if all(not item.nodeid.startswith(f"{shell}::") for shell in shells_to_drop)
+    ]
 
 
 # =========================================================================

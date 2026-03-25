@@ -14,7 +14,7 @@ MANUFACTURER: Final = "Lipro"
 # IoT device ID format: IOT_DEVICE_ID_PREFIX + 12 hex chars (BLE MAC without colons)
 IOT_DEVICE_ID_PREFIX: Final = "03ab"
 
-# Integration version (should match manifest.json)
+# Integration version (should match pyproject.toml and manifest.json)
 VERSION: Final = "1.0.0"
 
 # API library version - increment when API changes are made
