@@ -305,7 +305,10 @@ def test_supported_shell_installer_path_uses_verified_release_assets() -> None:
     )
     assert re.search(r"for example v\d+\.\d+\.\d+", readme_text) is None
     assert re.search(r"例如 v\d+\.\d+\.\d+", readme_zh_text) is None
-    assert "verified GitHub Release assets" in troubleshooting_text
+    assert (
+        "verified GitHub Release assets" in troubleshooting_text
+        or "verified release assets" in troubleshooting_text
+    )
     assert "ARCHIVE_TAG=main" in readme_text
     assert "ARCHIVE_TAG=main" in readme_zh_text
 
@@ -394,11 +397,18 @@ def test_security_disclosure_path_is_present() -> None:
     security_text = _SECURITY.read_text(encoding="utf-8")
     issue_config = _load_yaml(_ISSUE_CONFIG)
     contact_links = _as_mapping_list(issue_config["contact_links"])
-    contact_urls = {_as_str(link["url"]) for link in contact_links}
+    docs_link = next(
+        link for link in contact_links if "Documentation" in _as_str(link["name"])
+    )
+    security_link = next(
+        link for link in contact_links if "Security" in _as_str(link["name"])
+    )
 
     assert "/security/advisories/new" in security_text
     assert "public GitHub issue" in security_text
-    assert "https://github.com/Exlany/lipro-hass/security/policy" in contact_urls
+    assert "private-access" in security_text
+    assert _as_str(docs_link["url"]).endswith("/docs/README.md")
+    assert "access mode" in _as_str(security_link["about"]).lower()
 
 
 def test_readme_exposes_community_and_governance_entrypoints() -> None:
@@ -460,20 +470,25 @@ def test_support_and_issue_routing_are_consistent() -> None:
     runbook_text = _RUNBOOK.read_text(encoding="utf-8")
     issue_config = _load_yaml(_ISSUE_CONFIG)
     contact_links = _as_mapping_list(issue_config.get("contact_links", []))
-    contact_urls = [_as_str(link["url"]) for link in contact_links]
+    docs_link = next(
+        link for link in contact_links if "Documentation" in _as_str(link["name"])
+    )
+    contact_abouts = [_as_str(link["about"]) for link in contact_links]
 
     assert "SUPPORT.md" in contributing_text
     assert "SECURITY.md" in contributing_text
     assert "verified release assets" in contributing_text
-    assert any("discussions" in url.lower() for url in contact_urls)
-    assert any("security/policy" in url.lower() for url in contact_urls)
+    assert _as_str(docs_link["url"]).endswith("/docs/README.md")
+    assert any("access mode" in about.lower() for about in contact_abouts)
     assert "Discussion" in support_text or "讨论" in support_text
     assert "SECURITY.md" in support_text
     assert "single-maintainer" in support_text
     assert "verified GitHub Release assets" in support_text
-    assert "matching HACS install" in readme_text
+    assert "private-access" in readme_text
+    assert "future public mirror" in readme_text
     assert "verified GitHub Release assets" in readme_text
-    assert "匹配该标签的 HACS 安装" in readme_zh_text
+    assert "private-access" in readme_zh_text
+    assert "public mirror" in readme_zh_text
     assert "已校验 GitHub Release 资产" in readme_zh_text
     assert "matching HACS install" in runbook_text
     assert "verified GitHub Release assets" in runbook_text

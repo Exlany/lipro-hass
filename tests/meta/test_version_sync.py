@@ -154,6 +154,7 @@ def test_docs_index_route_is_consistent() -> None:
     assert registry["continuity"]["drill_name"] == "maintainer-unavailable drill"
     assert pyproject["project"]["urls"]["Documentation"].endswith("/docs/README.md")
     assert manifest["documentation"].endswith("/docs/README.md")
+    assert manifest["issue_tracker"].endswith("/docs/README.md")
     assert docs_link["url"].endswith("/docs/README.md")
 
 
@@ -327,14 +328,15 @@ def test_issue_config_routes_docs_to_index() -> None:
     assert doc_link["url"].endswith("docs/README.md")
 
 
-def test_project_urls_expose_public_entrypoints() -> None:
+def test_project_urls_keep_private_access_routes_honest() -> None:
     pyproject = tomllib.loads(_PYPROJECT.read_text(encoding="utf-8"))
     urls = pyproject["project"]["urls"]
 
     assert urls["Documentation"].endswith("docs/README.md")
     assert urls["Support"].endswith("SUPPORT.md")
     assert urls["Security"].endswith("SECURITY.md")
-    assert urls["Discussions"].endswith("/discussions")
+    assert "Discussions" not in urls
+    assert "Issues" not in urls
 
 
 def test_package_metadata_marks_stable_release_posture() -> None:

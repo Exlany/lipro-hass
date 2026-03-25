@@ -196,6 +196,12 @@ def test_docs_index_and_retired_tooling_contract_are_machine_readable() -> None:
     docs_link = next(
         link for link in issue_config["contact_links"] if "Documentation" in link["name"]
     )
+    discussions_link = next(
+        link for link in issue_config["contact_links"] if "Discussions" in link["name"]
+    )
+    security_link = next(
+        link for link in issue_config["contact_links"] if "Security" in link["name"]
+    )
 
     assert registry["continuity"]["projection_targets"] == [
         "CONTRIBUTING.md",
@@ -205,11 +211,19 @@ def test_docs_index_and_retired_tooling_contract_are_machine_readable() -> None:
     ]
     assert registry["support"]["documentation_route"] == "docs/README.md"
     assert registry["docs"]["index_route"] == "docs/README.md"
-    assert registry["support"]["feature_route"].startswith("GitHub Discussions")
     assert pyproject["project"]["urls"]["Documentation"].endswith("/docs/README.md")
+    assert pyproject["project"]["urls"]["Support"].endswith("/SUPPORT.md")
+    assert pyproject["project"]["urls"]["Security"].endswith("/SECURITY.md")
+    assert "Discussions" not in pyproject["project"]["urls"]
+    assert "Issues" not in pyproject["project"]["urls"]
     assert docs_link["url"].endswith("/docs/README.md")
+    assert "docs-first" in docs_link["about"]
+    assert "access mode" in discussions_link["about"].lower()
+    assert "access mode" in security_link["about"].lower()
     assert ".planning/baseline/GOVERNANCE_REGISTRY.json" in docs_text
     assert ".planning/baseline/GOVERNANCE_REGISTRY.json" in contributing_text
+    assert "private-access" in docs_text
+    assert "private-access" in contributing_text
     for token in registry["tooling"]["active_entrypoints"]:
         assert token in docs_text
     for token in registry["tooling"]["compatibility_stubs"]:
