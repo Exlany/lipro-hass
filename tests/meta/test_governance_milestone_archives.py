@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 from .governance_contract_helpers import (
     assert_pull_only_evidence_index,
     assert_runbook_points_to_latest_evidence,
@@ -546,3 +548,31 @@ def test_governance_truth_registers_v1_20_latest_archive_pointer() -> None:
         deprecated=("V1_6_EVIDENCE_INDEX.md",),
     )
     _assert_latest_archived_route_truth(project_text, roadmap_text, state_text)
+
+def test_machine_readable_roadmap_current_entry_prefers_latest_archived_baseline() -> None:
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    cleaned = re.sub(r"<details>[\s\S]*?</details>", "", roadmap_text, flags=re.IGNORECASE)
+
+    heading_match = re.search(r"## .*v(\d+(?:\.\d+)+)[:\s]+([^\n(]+)", cleaned)
+    assert heading_match is not None
+    assert heading_match.group(1) == "1.20"
+    assert heading_match.group(2).strip() == (
+        "Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement"
+    )
+    assert "### 🚧 v1.1 Protocol Fidelity & Operability" not in roadmap_text
+
+
+def test_machine_readable_milestones_latest_archived_baseline_comes_first() -> None:
+    milestones_text = (_ROOT / ".planning" / "MILESTONES.md").read_text(encoding="utf-8")
+
+    shipped_match = re.search(
+        r"^##\s+(v[\d.]+)\s+(.+?)\s+\(Shipped:",
+        milestones_text,
+        re.MULTILINE,
+    )
+    assert shipped_match is not None
+    assert shipped_match.group(1) == "v1.20"
+    assert shipped_match.group(2).strip() == (
+        "Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement"
+    )
+

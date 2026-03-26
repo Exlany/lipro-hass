@@ -44,7 +44,8 @@
 
 </details>
 
-### 🚧 v1.1 Protocol Fidelity & Operability
+**Legacy route (v1.1): Protocol Fidelity & Operability**
+
 
 **Milestone Goal:** 在不破坏既有北极星单一主链的前提下，正式引入 boundary decoder family、architecture policy enforcement、runtime telemetry exporter、replay evidence，并把已登记 residual surfaces 收口到显式、可删除、可验证的最小集合。
 

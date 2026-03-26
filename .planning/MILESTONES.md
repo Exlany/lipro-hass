@@ -1,5 +1,31 @@
 # Milestones
 
+> Machine-readable contract: latest archived baseline appears first so bootstrap tooling can resolve the next milestone seed from the same truth as `.planning/STATE.md`.
+
+## v1.20 Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement (Shipped: 2026-03-25; Closeout: 2026-03-25)
+
+**Phase range:** `72 -> 75`
+**Phases completed:** 4 phases, 16 plans, 0 tasks
+**Status:** archived / evidence-ready
+**Route truth:** latest archived evidence index = `.planning/reviews/V1_20_EVIDENCE_INDEX.md`
+
+**Key accomplishments:**
+- 收口 `Coordinator` bootstrap / lifecycle orchestration / `runtime_access` probing，把 startup 与 lifecycle hotspot 压回既有 formal homes
+- 完成 service-router forwarding family、diagnostics/helper duplication、entity runtime strategy 与 schedule runtime surface 的 formalize / deduplicate
+- 继续退役 auth legacy snapshot / compatibility wrapper，完成 suite topicization、governance cleanup 与 archive-readiness arbitration
+- 统一 private-access honest story、promoted closeout evidence allowlist 与 thin-adapter typing，并把仓库切到 `no active milestone route / latest archived baseline = v1.20`
+
+**Closeout assets:**
+- `.planning/v1.20-MILESTONE-AUDIT.md`
+- `.planning/reviews/V1_20_EVIDENCE_INDEX.md`
+- `.planning/milestones/v1.20-ROADMAP.md`
+- `.planning/milestones/v1.20-REQUIREMENTS.md`
+- `.planning/phases/72-runtime-bootstrap-convergence-lifecycle-orchestration-and-runtime-access-probe-retirement/{72-01-SUMMARY.md,72-02-SUMMARY.md,72-03-SUMMARY.md,72-04-SUMMARY.md,72-VERIFICATION.md,72-VALIDATION.md}`
+- `.planning/phases/73-service-family-deduplication-diagnostics-helper-convergence-and-runtime-surface-formalization/{73-01-SUMMARY.md,73-02-SUMMARY.md,73-03-SUMMARY.md,73-04-SUMMARY.md,73-VERIFICATION.md,73-VALIDATION.md}`
+- `.planning/phases/74-legacy-auth-residual-retirement-test-topicization-and-milestone-closeout/{74-01-SUMMARY.md,74-02-SUMMARY.md,74-03-SUMMARY.md,74-04-SUMMARY.md,74-VERIFICATION.md,74-VALIDATION.md}`
+
+---
+
 ## v1.0 North Star Rebuild (Shipped: 2026-03-13)
 
 **Phase range:** `1 -> 7`（含 `1.5 / 2.5 / 2.6`）
@@ -322,25 +348,3 @@
 - `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-VALIDATION.md`
 
 ---
-
-## v1.20 Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement (Closeout: 2026-03-25)
-
-**Phase range:** `72 -> 75`
-**Phases completed:** 4 phases, 16 plans, 0 tasks
-**Status:** archived / evidence-ready
-**Route truth:** latest archived evidence index = `.planning/reviews/V1_20_EVIDENCE_INDEX.md`
-
-**Key accomplishments:**
-- 收口 `Coordinator` bootstrap / lifecycle orchestration / `runtime_access` probing，把 startup 与 lifecycle hotspot 压回既有 formal homes
-- 完成 service-router forwarding family、diagnostics/helper duplication、entity runtime strategy 与 schedule runtime surface 的 formalize / deduplicate
-- 继续退役 auth legacy snapshot / compatibility wrapper，完成 suite topicization、governance cleanup 与 archive-readiness arbitration
-- 统一 private-access honest story、promoted closeout evidence allowlist 与 thin-adapter typing，并把仓库切到 `no active milestone route / latest archived baseline = v1.20`
-
-**Closeout assets:**
-- `.planning/v1.20-MILESTONE-AUDIT.md`
-- `.planning/reviews/V1_20_EVIDENCE_INDEX.md`
-- `.planning/milestones/v1.20-ROADMAP.md`
-- `.planning/milestones/v1.20-REQUIREMENTS.md`
-- `.planning/phases/72-runtime-bootstrap-convergence-lifecycle-orchestration-and-runtime-access-probe-retirement/{72-01-SUMMARY.md,72-02-SUMMARY.md,72-03-SUMMARY.md,72-04-SUMMARY.md,72-VERIFICATION.md,72-VALIDATION.md}`
-- `.planning/phases/73-service-family-deduplication-diagnostics-helper-convergence-and-runtime-surface-formalization/{73-01-SUMMARY.md,73-02-SUMMARY.md,73-03-SUMMARY.md,73-04-SUMMARY.md,73-VERIFICATION.md,73-VALIDATION.md}`
-- `.planning/phases/74-legacy-auth-residual-retirement-test-topicization-and-milestone-closeout/{74-01-SUMMARY.md,74-02-SUMMARY.md,74-03-SUMMARY.md,74-04-SUMMARY.md,74-VERIFICATION.md,74-VALIDATION.md}`
