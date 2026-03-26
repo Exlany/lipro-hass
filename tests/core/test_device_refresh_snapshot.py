@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, call, patch
+from unittest.mock import AsyncMock, Mock, call, patch
 
 import pytest
 
@@ -21,7 +21,10 @@ from custom_components.lipro.core.coordinator.runtime.device.snapshot import (
 @pytest.fixture
 def mock_client():
     """Create mock protocol facade."""
-    return AsyncMock()
+    client = AsyncMock()
+    client.contracts = Mock()
+    client.contracts.normalize_mesh_group_status_rows = Mock(side_effect=lambda rows: rows)
+    return client
 
 
 @pytest.fixture

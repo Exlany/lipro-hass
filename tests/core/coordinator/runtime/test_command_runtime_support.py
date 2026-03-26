@@ -24,6 +24,7 @@ from custom_components.lipro.core.command.result import (
 )
 from custom_components.lipro.core.coordinator.runtime.command import (
     CommandBuilder,
+    CommandDispatchApiError,
     CommandSender,
     ConfirmationManager,
     RetryStrategy,
@@ -121,6 +122,7 @@ __all__ = [
     "COMMAND_RESULT_STATE_PENDING",
     "COMMAND_VERIFICATION_RESULT_TIMEOUT",
     "CommandBuilder",
+    "CommandDispatchApiError",
     "CommandRuntime",
     "CommandSender",
     "ConfirmationManager",

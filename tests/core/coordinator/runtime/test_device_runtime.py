@@ -28,6 +28,8 @@ def mock_client() -> Mock:
     client.query_group_devices = AsyncMock()
     client.query_outlet_devices = AsyncMock()
     client.query_mesh_group_status = AsyncMock(return_value=[])
+    client.contracts = Mock()
+    client.contracts.normalize_mesh_group_status_rows = Mock(side_effect=lambda rows: rows)
     return client
 
 

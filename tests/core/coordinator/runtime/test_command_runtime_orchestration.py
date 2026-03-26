@@ -9,6 +9,7 @@ import pytest
 
 from .test_command_runtime_support import (
     COMMAND_RESULT_STATE_FAILED,
+    CommandDispatchApiError,
     CommandRuntime,
     CommandSender,
     LiproApiError,
@@ -118,6 +119,35 @@ class TestCommandRuntime:
 
             assert success is False
             assert command_runtime._last_failure is not None
+
+    @pytest.mark.asyncio
+    async def test_send_device_command_preserves_planned_route_on_api_error(
+        self, command_runtime, mock_device
+    ):
+        """Route-aware sender failures should keep the planned route in failure summary."""
+        with patch.object(command_runtime._sender, "send_command") as mock_send:
+            mock_send.side_effect = CommandDispatchApiError(
+                route="group_direct",
+                error=LiproApiError("routeful boom"),
+            )
+
+            success, route = await command_runtime.send_device_command(
+                device=mock_device,
+                command="POWER_ON",
+                properties=None,
+                fallback_device_id=None,
+            )
+
+            assert success is False
+            assert route == "group_direct"
+            assert command_runtime.last_command_failure_summary == {
+                "reason": "api_error",
+                "route": "group_direct",
+                "device_id": mock_device.serial,
+                "message": "routeful boom",
+                "error_type": "LiproApiError",
+                "failure_category": "protocol",
+            }
 
     @pytest.mark.asyncio
     async def test_send_device_command_auth_error_triggers_reauth(

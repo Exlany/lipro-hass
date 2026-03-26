@@ -4,11 +4,15 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable
+from dataclasses import dataclass
 import logging
 from typing import TYPE_CHECKING
 
 from ....api import LiproApiError, LiproAuthError, LiproConnectionError
-from ....command.dispatch import execute_command_plan_with_trace
+from ....command.dispatch import (
+    execute_command_dispatch,
+    resolve_command_plan_with_trace,
+)
 from ....command.result import (
     COMMAND_RESULT_STATE_CONFIRMED,
     COMMAND_RESULT_STATE_FAILED,
@@ -21,6 +25,7 @@ from ....command.result import (
     classify_command_result_payload,
     query_command_result_once,
 )
+from ....command.trace import update_trace_with_response
 from ....utils.log_safety import safe_error_placeholder
 from ....utils.redaction import redact_identifier as _redact_identifier
 from ...types import CommandTrace
@@ -37,6 +42,14 @@ _NON_FATAL_VERIFICATION_QUERY_EXCEPTIONS = (
     TimeoutError,
     ValueError,
 )
+
+
+@dataclass(slots=True)
+class CommandDispatchApiError(Exception):
+    """Protocol API error annotated with the resolved command route."""
+
+    route: str
+    error: LiproApiError
 
 
 class CommandSender:
@@ -66,8 +79,7 @@ class CommandSender:
         Returns:
             Tuple of (api_result, route_name)
         """
-        _plan, result, route = await execute_command_plan_with_trace(
-            self._protocol,
+        plan = resolve_command_plan_with_trace(
             device=device,
             command=command,
             properties=properties,
@@ -75,6 +87,15 @@ class CommandSender:
             trace=trace,
             redact_identifier=self._redact_identifier,
         )
+        try:
+            result, route = await execute_command_dispatch(
+                self._protocol,
+                device=device,
+                plan=plan,
+            )
+        except LiproApiError as err:
+            raise CommandDispatchApiError(route=plan.route, error=err) from err
+        update_trace_with_response(trace, result)
         return result, route
 
     async def verify_command_delivery(
@@ -136,4 +157,4 @@ class CommandSender:
         return False, None
 
 
-__all__ = ["CommandSender"]
+__all__ = ["CommandDispatchApiError", "CommandSender"]

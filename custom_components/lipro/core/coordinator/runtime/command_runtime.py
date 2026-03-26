@@ -28,6 +28,7 @@ from ..types import (
     CommandTrace,
     ReauthCallback,
 )
+from .command.sender import CommandDispatchApiError
 
 if TYPE_CHECKING:
     from ...device import LiproDevice
@@ -233,6 +234,14 @@ class CommandRuntime:
                 fallback_device_id=request.fallback_device_id,
                 trace=trace,
             )
+        except CommandDispatchApiError as err:
+            await self._handle_api_error(
+                request=request,
+                trace=trace,
+                route=err.route,
+                err=err.error,
+            )
+            return None, err.route
         except LiproApiError as err:
             await self._handle_api_error(
                 request=request,

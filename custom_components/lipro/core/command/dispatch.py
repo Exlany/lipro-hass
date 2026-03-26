@@ -353,6 +353,32 @@ async def execute_command_dispatch(
     return await _execute_group_command(client, device=device, plan=plan)
 
 
+def resolve_command_plan_with_trace(
+    *,
+    device: LiproDevice,
+    command: str,
+    properties: list[dict[str, str]] | None,
+    fallback_device_id: str | None,
+    trace: CommandTracePayload,
+    redact_identifier: RedactIdentifier,
+) -> CommandDispatchPlan:
+    """Resolve one dispatch plan and append resolved request fields to trace."""
+    plan: CommandDispatchPlan = plan_command_dispatch(
+        device,
+        command,
+        properties,
+        fallback_device_id,
+    )
+    update_trace_with_resolved_request(
+        trace,
+        command=plan.command,
+        properties=plan.properties,
+        fallback_device_id=plan.member_fallback_id,
+        redact_identifier=redact_identifier,
+    )
+    return plan
+
+
 async def execute_command_plan_with_trace(
     client: LiproProtocolFacade,
     *,
@@ -368,20 +394,15 @@ async def execute_command_plan_with_trace(
     Returns:
         Tuple of (dispatch_plan, api_result, route_name)
     """
-    plan: CommandDispatchPlan = plan_command_dispatch(
-        device,
-        command,
-        properties,
-        fallback_device_id,
-    )
-    route = plan.route
-    update_trace_with_resolved_request(
-        trace,
-        command=plan.command,
-        properties=plan.properties,
-        fallback_device_id=plan.member_fallback_id,
+    plan = resolve_command_plan_with_trace(
+        device=device,
+        command=command,
+        properties=properties,
+        fallback_device_id=fallback_device_id,
+        trace=trace,
         redact_identifier=redact_identifier,
     )
+    route = plan.route
     result, route = await execute_command_dispatch(
         client,
         device=device,

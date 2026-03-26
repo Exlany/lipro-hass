@@ -5,7 +5,6 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-import inspect
 import logging
 from typing import TYPE_CHECKING, Any, Protocol, cast
 
@@ -85,7 +84,7 @@ class SnapshotProtocolPort(Protocol):
         self,
         group_ids: list[str],
     ) -> list[CanonicalMeshGroupStatusRow]:
-        """Return raw/canonical mesh-group rows for the requested groups."""
+        """Return canonical mesh-group rows for the requested groups."""
 
     @property
     def contracts(self) -> SnapshotProtocolContracts:
@@ -144,11 +143,7 @@ class SnapshotBuilder:
 
         try:
             rows = await self._protocol.query_mesh_group_status(group_ids)
-            normalized_rows_obj: object = self._contracts.normalize_mesh_group_status_rows(
-                rows
-            )
-            if inspect.isawaitable(normalized_rows_obj):
-                normalized_rows_obj = await normalized_rows_obj
+            normalized_rows = self._contracts.normalize_mesh_group_status_rows(rows)
         except asyncio.CancelledError:
             raise
         except (
@@ -164,11 +159,6 @@ class SnapshotBuilder:
                 stage="mesh_group_topology",
                 cause_type=type(err).__name__,
             ) from err
-
-        if isinstance(normalized_rows_obj, list):
-            normalized_rows = normalized_rows_obj
-        else:
-            normalized_rows = [row for row in rows if isinstance(row, dict)]
 
         for row in normalized_rows:
             group_id = row.get("groupId")

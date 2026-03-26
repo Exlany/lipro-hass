@@ -12,7 +12,9 @@ from .test_command_runtime_support import (
     COMMAND_RESULT_STATE_FAILED,
     COMMAND_RESULT_STATE_PENDING,
     COMMAND_VERIFICATION_RESULT_TIMEOUT,
+    CommandDispatchApiError,
     CommandSender,
+    LiproApiError,
 )
 
 pytest_plugins = ("tests.core.coordinator.runtime.test_command_runtime_support",)
@@ -24,17 +26,19 @@ class TestCommandSender:
     async def test_send_command_success(self, mock_client, mock_device):
         """Test successful command send."""
         sender = CommandSender(protocol=mock_client)
-        trace: dict[str, Any] = {}
+        trace: dict[str, object] = {}
 
-        with patch(
-            "custom_components.lipro.core.coordinator.runtime.command.sender.execute_command_plan_with_trace"
-        ) as mock_exec:
-            mock_plan = Mock()
-            mock_exec.return_value = (
-                mock_plan,
-                {"pushSuccess": True, "msgSn": "12345"},
-                "iot",
-            )
+        with (
+            patch(
+                "custom_components.lipro.core.coordinator.runtime.command.sender.resolve_command_plan_with_trace"
+            ) as mock_resolve,
+            patch(
+                "custom_components.lipro.core.coordinator.runtime.command.sender.execute_command_dispatch"
+            ) as mock_dispatch,
+        ):
+            mock_plan = Mock(route="iot")
+            mock_resolve.return_value = mock_plan
+            mock_dispatch.return_value = ({"pushSuccess": True, "msgSn": "12345"}, "iot")
 
             result, route = await sender.send_command(
                 device=mock_device,
@@ -47,6 +51,38 @@ class TestCommandSender:
             assert isinstance(result, dict)
             assert result["pushSuccess"] is True
             assert route == "iot"
+
+    @pytest.mark.asyncio
+    async def test_send_command_wraps_api_error_with_planned_route(
+        self, mock_client, mock_device
+    ):
+        """Sender should preserve the resolved route when protocol send raises."""
+        sender = CommandSender(protocol=mock_client)
+        trace: dict[str, object] = {}
+
+        with (
+            patch(
+                "custom_components.lipro.core.coordinator.runtime.command.sender.resolve_command_plan_with_trace"
+            ) as mock_resolve,
+            patch(
+                "custom_components.lipro.core.coordinator.runtime.command.sender.execute_command_dispatch"
+            ) as mock_dispatch,
+        ):
+            mock_plan = Mock(route="group_direct")
+            mock_resolve.return_value = mock_plan
+            mock_dispatch.side_effect = LiproApiError("boom")
+
+            with pytest.raises(CommandDispatchApiError) as exc_info:
+                await sender.send_command(
+                    device=mock_device,
+                    command="POWER_ON",
+                    properties=None,
+                    fallback_device_id=None,
+                    trace=trace,
+                )
+
+        assert exc_info.value.route == "group_direct"
+        assert isinstance(exc_info.value.error, LiproApiError)
 
     @pytest.mark.asyncio
     async def test_verify_command_delivery_timeout(self, mock_client, mock_device):
