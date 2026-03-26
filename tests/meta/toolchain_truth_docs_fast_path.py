@@ -11,7 +11,10 @@ import yaml
 from tests.helpers.repo_root import repo_root
 
 from .governance_contract_helpers import _assert_public_docs_hide_internal_route_story
-from .governance_current_truth import LEGACY_ARCHIVED_CLOSEOUT_POINTER_LABEL
+from .governance_current_truth import (
+    LATEST_ARCHIVED_EVIDENCE_FILENAME,
+    LEGACY_ARCHIVED_CLOSEOUT_POINTER_LABEL,
+)
 
 _ROOT = repo_root(Path(__file__))
 
@@ -120,7 +123,7 @@ def test_docs_index_keeps_internal_route_story_out_of_public_fast_path() -> None
     _assert_public_docs_hide_internal_route_story(
         docs_text,
         LEGACY_ARCHIVED_CLOSEOUT_POINTER_LABEL,
-        "V1_20_EVIDENCE_INDEX.md",
+        LATEST_ARCHIVED_EVIDENCE_FILENAME,
     )
 
 

@@ -448,3 +448,10 @@ _None currently registered._
 
 - 无新增 active residual family。
 - governance/tooling typing closure、final meta-suite hotspot topicization 与 live route truth 已在本 phase 冻结；后续 milestone closeout 只消费这些既有 closeout assets，不得再回头重开 giant-test 或类型诚实性热点。
+
+
+## v1.21 Milestone Closeout Delta
+
+- 无新增 active residual family。
+- `Phase 76 -> 80` closeout 资产已全部转入 archived-only evidence chain；后续新路线只能 pull 这些既有证据，不得回头把 closeout truth 重新写成 active current story。
+- latest archived baseline 已提升到 `v1.21`；`v1.20` 退为 previous archived baseline。

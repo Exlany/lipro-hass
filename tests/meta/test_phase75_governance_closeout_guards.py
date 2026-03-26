@@ -12,12 +12,12 @@ from .governance_current_truth import (
     HISTORICAL_ARCHIVE_TRANSITION_ROUTE_TRUTH,
     HISTORICAL_CLOSEOUT_ROUTE_TRUTH,
     LATEST_ARCHIVED_MILESTONE_STATUS,
-    LATEST_ARCHIVED_PHASE_DIR,
     LATEST_ARCHIVED_PROJECT_HEADER,
 )
 from .governance_promoted_assets import _load_promoted_phase_assets
 
 _ROOT = repo_root(Path(__file__))
+_PHASE75_DIR = "75-access-mode-truth-closure-evidence-promotion-formalization-and-thin-adapter-typing-hardening"
 
 
 def test_phase75_exit_contract_freezes_promoted_evidence_chain() -> None:
@@ -75,11 +75,11 @@ def test_phase75_archive_truth_stays_frozen_after_closeout() -> None:
         assert "当前治理状态已切换为" not in text
         assert "当前治理状态现已切换为" not in text
         assert "live governance state" not in text
-    assert LATEST_ARCHIVED_PHASE_DIR in str(_ROOT / ".planning" / "phases" / LATEST_ARCHIVED_PHASE_DIR)
+    assert _PHASE75_DIR in str(_ROOT / ".planning" / "phases" / _PHASE75_DIR)
 
 
 def test_phase75_evidence_files_exist_without_promotion() -> None:
-    phase_dir = _ROOT / ".planning" / "phases" / LATEST_ARCHIVED_PHASE_DIR
+    phase_dir = _ROOT / ".planning" / "phases" / _PHASE75_DIR
     promoted = _load_promoted_phase_assets()
 
     for filename in (
@@ -91,4 +91,4 @@ def test_phase75_evidence_files_exist_without_promotion() -> None:
         "75-VALIDATION.md",
     ):
         assert (phase_dir / filename).exists()
-        assert filename not in promoted.get(LATEST_ARCHIVED_PHASE_DIR, frozenset())
+        assert filename not in promoted.get(_PHASE75_DIR, frozenset())

@@ -455,6 +455,68 @@ def test_v1_19_closeout_assets_exist_and_are_pull_only() -> None:
     )
 
 
+def test_v1_21_closeout_assets_exist_and_are_pull_only() -> None:
+    evidence_index = _ROOT / ".planning" / "reviews" / "V1_21_EVIDENCE_INDEX.md"
+    milestone_audit = _ROOT / ".planning" / "v1.21-MILESTONE-AUDIT.md"
+
+    assert evidence_index.exists()
+    assert milestone_audit.exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.21-ROADMAP.md").exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.21-REQUIREMENTS.md").exists()
+    _assert_promoted_phase_assets(
+        "76-governance-bootstrap-truth-hardening-archive-seed-determinism-and-active-route-activation",
+        "76-01-SUMMARY.md",
+        "76-02-SUMMARY.md",
+        "76-03-SUMMARY.md",
+        "76-VERIFICATION.md",
+        "76-VALIDATION.md",
+    )
+    _assert_promoted_phase_assets(
+        "77-governance-guard-topicization-bootstrap-smoke-coverage-and-literal-drift-reduction",
+        "77-01-SUMMARY.md",
+        "77-02-SUMMARY.md",
+        "77-03-SUMMARY.md",
+        "77-VERIFICATION.md",
+        "77-VALIDATION.md",
+    )
+    _assert_promoted_phase_assets(
+        "78-quality-gate-formalization-route-handoff-ergonomics-and-milestone-closeout-readiness",
+        "78-01-SUMMARY.md",
+        "78-02-SUMMARY.md",
+        "78-03-SUMMARY.md",
+        "78-SUMMARY.md",
+        "78-VERIFICATION.md",
+        "78-VALIDATION.md",
+    )
+    _assert_promoted_phase_assets(
+        "79-governance-tooling-hotspot-decomposition-and-release-contract-topicization",
+        "79-01-SUMMARY.md",
+        "79-02-SUMMARY.md",
+        "79-03-SUMMARY.md",
+        "79-SUMMARY.md",
+        "79-VERIFICATION.md",
+        "79-VALIDATION.md",
+    )
+    _assert_promoted_phase_assets(
+        "80-governance-typing-closure-and-final-meta-suite-hotspot-topicization",
+        "80-01-SUMMARY.md",
+        "80-02-SUMMARY.md",
+        "80-03-SUMMARY.md",
+        "80-SUMMARY.md",
+        "80-VERIFICATION.md",
+        "80-VALIDATION.md",
+    )
+
+    assert_pull_only_evidence_index(
+        evidence_index,
+        "76-VERIFICATION.md",
+        "77-VALIDATION.md",
+        "80-VERIFICATION.md",
+        "archived / evidence-ready",
+        "V1_21_EVIDENCE_INDEX.md",
+    )
+
+
 def test_governance_truth_registers_v1_14_archive_lineage() -> None:
     authority_text = (
         _ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md"
@@ -518,7 +580,7 @@ def test_v1_20_closeout_assets_exist_and_are_pull_only() -> None:
     )
 
 
-def test_governance_truth_registers_v1_20_latest_archive_pointer() -> None:
+def test_governance_truth_registers_v1_21_latest_archive_pointer() -> None:
     authority_text = (
         _ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md"
     ).read_text(encoding="utf-8")
@@ -536,11 +598,12 @@ def test_governance_truth_registers_v1_20_latest_archive_pointer() -> None:
 
     assert "V1_19_EVIDENCE_INDEX.md" in authority_text
     assert "V1_20_EVIDENCE_INDEX.md" in authority_text
-    assert "v1.20-MILESTONE-AUDIT.md" in authority_text
-    assert "V1_20_EVIDENCE_INDEX.md" in public_text
-    assert "## v1.19 Audit-Driven Final Hotspot Decomposition & Governance Truth Projection" in milestones_text
+    assert "V1_21_EVIDENCE_INDEX.md" in authority_text
+    assert "v1.21-MILESTONE-AUDIT.md" in authority_text
+    assert "V1_21_EVIDENCE_INDEX.md" in public_text
     assert "## v1.20 Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement" in milestones_text
-    assert ".planning/reviews/V1_20_EVIDENCE_INDEX.md" in milestones_text
+    assert "## v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation" in milestones_text
+    assert ".planning/reviews/V1_21_EVIDENCE_INDEX.md" in milestones_text
     _assert_public_docs_hide_internal_route_story(docs_text)
     assert_runbook_points_to_latest_evidence(
         runbook_text,
@@ -549,15 +612,14 @@ def test_governance_truth_registers_v1_20_latest_archive_pointer() -> None:
     )
     _assert_latest_archived_route_truth(project_text, roadmap_text, state_text)
 
-def test_machine_readable_roadmap_current_entry_prefers_active_milestone() -> None:
+def test_machine_readable_roadmap_latest_archived_entry_comes_first() -> None:
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
-    active_match = re.search(r"🚧\s*\*\*v(\d+(?:\.\d+)+)\s+([^*]+)\*\*", roadmap_text)
-    assert active_match is not None
-    assert active_match.group(1) == "1.21"
-    assert active_match.group(2).strip() == (
+    archived_match = re.search(r"^-\s+✅\s+\*\*v(\d+(?:\.\d+)+)\s+([^*]+)\*\*", roadmap_text, re.MULTILINE)
+    assert archived_match is not None
+    assert archived_match.group(1) == "1.21"
+    assert archived_match.group(2).strip() == (
         "Governance Bootstrap Truth Hardening & Planning Route Automation"
     )
-    assert "### 🚧 v1.1 Protocol Fidelity & Operability" not in roadmap_text
 
 
 def test_machine_readable_milestones_latest_archived_baseline_comes_first() -> None:
@@ -569,9 +631,9 @@ def test_machine_readable_milestones_latest_archived_baseline_comes_first() -> N
         re.MULTILINE,
     )
     assert shipped_match is not None
-    assert shipped_match.group(1) == "v1.20"
+    assert shipped_match.group(1) == "v1.21"
     assert shipped_match.group(2).strip() == (
-        "Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement"
+        "Governance Bootstrap Truth Hardening & Planning Route Automation"
     )
 
 

@@ -6,33 +6,53 @@
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.21
   name: Governance Bootstrap Truth Hardening & Planning Route Automation
-  status: closeout-ready (2026-03-26)
+  status: archived / evidence-ready (2026-03-26)
   phase: "80"
   phase_title: Governance typing closure and final meta-suite hotspot topicization
-  route_mode: Phase 80 complete
-latest_archived:
-  version: v1.20
-  name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
-  status: archived / evidence-ready (2026-03-25)
-  phase: "75"
-  phase_title: Access-mode truth closure, evidence promotion formalization, and thin-adapter typing hardening
-  phase_dir: 75-access-mode-truth-closure-evidence-promotion-formalization-and-thin-adapter-typing-hardening
-  audit_path: .planning/v1.20-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_20_EVIDENCE_INDEX.md
+  phase_dir: 80-governance-typing-closure-and-final-meta-suite-hotspot-topicization
+  audit_path: .planning/v1.21-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_21_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.19
-  name: Audit-Driven Final Hotspot Decomposition & Governance Truth Projection
-  evidence_path: .planning/reviews/V1_19_EVIDENCE_INDEX.md
+  version: v1.20
+  name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
+  evidence_path: .planning/reviews/V1_20_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.21 active route / Phase 80 complete / latest archived baseline = v1.20
-  default_next_command: $gsd-complete-milestone v1.21
-  latest_archived_evidence_pointer: .planning/reviews/V1_20_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.21
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_21_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
+
+## v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation (Shipped: 2026-03-26; Closeout: 2026-03-26)
+
+**Phase range:** `76 -> 80`
+**Phases completed:** 5 phases, 15 plans, 0 tasks
+**Status:** archived / evidence-ready
+**Route truth:** latest archived evidence index = `.planning/reviews/V1_21_EVIDENCE_INDEX.md`
+
+**Key accomplishments:**
+- 把 `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES` 的 bootstrap selector 收口为 machine-readable `governance-route` contract，并在 archive promotion 后稳定切到 `no active milestone route / latest archived baseline = v1.21`，同时保留 historical closeout route truth = `no active milestone route / latest archived baseline = v1.21`
+- 完成 focused bootstrap smoke、route-handoff quality gate 与 promoted-evidence / review-ledger 冻结，让 `$gsd-next` 只能把下一步前推到 `$gsd-new-milestone`
+- 拆薄 `check_file_matrix_registry` hotspot、topicize release-contract mega-suite，并保持 governance/tooling outward contract 与 file-matrix honesty 稳定
+- 收口 governance/tooling typing regressions、补齐 `77-VALIDATION` 与 final meta-suite hotspot topicization，把 `Phase 76 -> 80` 一次性冻结为 archived-only evidence bundle
+
+**Closeout assets:**
+- `.planning/v1.21-MILESTONE-AUDIT.md`
+- `.planning/reviews/V1_21_EVIDENCE_INDEX.md`
+- `.planning/milestones/v1.21-ROADMAP.md`
+- `.planning/milestones/v1.21-REQUIREMENTS.md`
+- `.planning/phases/76-governance-bootstrap-truth-hardening-archive-seed-determinism-and-active-route-activation/{76-01-SUMMARY.md,76-02-SUMMARY.md,76-03-SUMMARY.md,76-VERIFICATION.md,76-VALIDATION.md}`
+- `.planning/phases/77-governance-guard-topicization-bootstrap-smoke-coverage-and-literal-drift-reduction/{77-01-SUMMARY.md,77-02-SUMMARY.md,77-03-SUMMARY.md,77-VERIFICATION.md,77-VALIDATION.md}`
+- `.planning/phases/78-quality-gate-formalization-route-handoff-ergonomics-and-milestone-closeout-readiness/{78-01-SUMMARY.md,78-02-SUMMARY.md,78-03-SUMMARY.md,78-SUMMARY.md,78-VERIFICATION.md,78-VALIDATION.md}`
+- `.planning/phases/79-governance-tooling-hotspot-decomposition-and-release-contract-topicization/{79-01-SUMMARY.md,79-02-SUMMARY.md,79-03-SUMMARY.md,79-SUMMARY.md,79-VERIFICATION.md,79-VALIDATION.md}`
+- `.planning/phases/80-governance-typing-closure-and-final-meta-suite-hotspot-topicization/{80-01-SUMMARY.md,80-02-SUMMARY.md,80-03-SUMMARY.md,80-SUMMARY.md,80-VERIFICATION.md,80-VALIDATION.md}`
+
+---
 
 ## v1.20 Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement (Shipped: 2026-03-25; Closeout: 2026-03-25)
 
@@ -45,7 +65,7 @@ bootstrap:
 - 收口 `Coordinator` bootstrap / lifecycle orchestration / `runtime_access` probing，把 startup 与 lifecycle hotspot 压回既有 formal homes
 - 完成 service-router forwarding family、diagnostics/helper duplication、entity runtime strategy 与 schedule runtime surface 的 formalize / deduplicate
 - 继续退役 auth legacy snapshot / compatibility wrapper，完成 suite topicization、governance cleanup 与 archive-readiness arbitration
-- 统一 private-access honest story、promoted closeout evidence allowlist 与 thin-adapter typing，并保留 historical closeout route truth = `no active milestone route / latest archived baseline = v1.20`
+- 统一 private-access honest story、promoted closeout evidence allowlist 与 thin-adapter typing，并保留 historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.20`
 
 **Closeout assets:**
 - `.planning/v1.20-MILESTONE-AUDIT.md`
@@ -368,7 +388,7 @@ bootstrap:
 **Key accomplishments:**
 - 继续 inward split OTA diagnostics / firmware-install orchestration，保持 entity outward surface 与 helper-owned second story 不回流
 - 收口 anonymous-share submit、request pacing 与 command-runtime 长流程，把热点切回更窄 typed helper seams
-- 统一 planning / docs / tests 的 route truth，并保留 historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.19`
+- 统一 planning / docs / tests 的 route truth，完成 `v1.19 -> v1.20` 的 archive-transition 交接并退为历史归档基线
 
 **Closeout assets:**
 - `.planning/v1.19-MILESTONE-AUDIT.md`

@@ -288,6 +288,7 @@ phases:
   - 77-02-SUMMARY.md
   - 77-03-SUMMARY.md
   - 77-VERIFICATION.md
+  - 77-VALIDATION.md
   78-quality-gate-formalization-route-handoff-ergonomics-and-milestone-closeout-readiness:
   - 78-01-SUMMARY.md
   - 78-02-SUMMARY.md
