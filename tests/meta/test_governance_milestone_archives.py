@@ -8,13 +8,16 @@ from .governance_contract_helpers import (
 )
 from .governance_current_truth import (
     CURRENT_MILESTONE_DEFAULT_NEXT,
-    CURRENT_MILESTONE_HEADER,
     CURRENT_ROUTE,
     CURRENT_ROUTE_MODE,
     LATEST_ARCHIVED_EVIDENCE_FILENAME,
     LATEST_ARCHIVED_EVIDENCE_PATH,
 )
-from .test_governance_closeout_guards import _ROOT, _assert_promoted_phase_assets
+from .test_governance_closeout_guards import (
+    _ROOT,
+    _assert_latest_archived_route_truth,
+    _assert_promoted_phase_assets,
+)
 
 
 def test_v1_1_closeout_assets_exist_and_are_pull_only() -> None:
@@ -117,6 +120,7 @@ def test_milestone_archive_snapshots_exist_and_are_referenced() -> None:
     project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
     milestones_text = (_ROOT / ".planning" / "MILESTONES.md").read_text(encoding="utf-8")
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
 
     archive_paths = (
         _ROOT / ".planning" / "milestones" / "v1.1-ROADMAP.md",
@@ -521,6 +525,7 @@ def test_governance_truth_registers_v1_20_latest_archive_pointer() -> None:
         _ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md"
     ).read_text(encoding="utf-8")
     milestones_text = (_ROOT / ".planning" / "MILESTONES.md").read_text(encoding="utf-8")
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
     docs_text = (_ROOT / "docs" / "README.md").read_text(encoding="utf-8")
@@ -542,8 +547,4 @@ def test_governance_truth_registers_v1_20_latest_archive_pointer() -> None:
         LATEST_ARCHIVED_EVIDENCE_FILENAME,
         deprecated=("V1_6_EVIDENCE_INDEX.md",),
     )
-    assert CURRENT_MILESTONE_DEFAULT_NEXT in project_text
-    assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
-    assert CURRENT_MILESTONE_HEADER in project_text
-    assert LATEST_ARCHIVED_EVIDENCE_PATH in project_text
-    assert f"**Current mode:** `{CURRENT_ROUTE_MODE}`" in state_text
+    _assert_latest_archived_route_truth(project_text, roadmap_text, state_text)

@@ -8,17 +8,13 @@ from pathlib import Path
 from tests.helpers.repo_root import repo_root
 
 from .governance_current_truth import (
-    CURRENT_MILESTONE_DEFAULT_NEXT,
     CURRENT_MILESTONE_HEADER,
-    CURRENT_MILESTONE_ROADMAP_HEADER,
-    CURRENT_MILESTONE_STATUS,
-    CURRENT_PHASE_HEADING,
     CURRENT_ROUTE,
-    CURRENT_ROUTE_MODE,
     CURRENT_ROUTE_PROSE_FORBIDDEN,
     CURRENT_RUNTIME_ROOT_TEST,
     LATEST_ARCHIVED_EVIDENCE_PATH,
 )
+from .test_governance_closeout_guards import _assert_latest_archived_route_truth
 
 _ROOT = repo_root(Path(__file__))
 _PRODUCTION_ROOT = _ROOT / "custom_components" / "lipro"
@@ -199,20 +195,10 @@ def test_phase72_current_route_truth_replaces_stale_route_story() -> None:
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
     docs_text = (_ROOT / "docs" / "README.md").read_text(encoding="utf-8")
 
+    _assert_latest_archived_route_truth(project_text, roadmap_text, state_text)
     assert CURRENT_ROUTE in project_text
     assert CURRENT_ROUTE not in docs_text
-    assert CURRENT_MILESTONE_HEADER in project_text
     assert CURRENT_MILESTONE_HEADER in requirements_text
-    assert CURRENT_MILESTONE_ROADMAP_HEADER in roadmap_text
-    assert CURRENT_PHASE_HEADING in roadmap_text
-    assert CURRENT_MILESTONE_STATUS in project_text
-    assert CURRENT_MILESTONE_STATUS in roadmap_text
-    assert f"**Current mode:** `{CURRENT_ROUTE_MODE}`" in state_text
-    assert CURRENT_MILESTONE_DEFAULT_NEXT in project_text
-    assert CURRENT_MILESTONE_DEFAULT_NEXT in roadmap_text
-    assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
-    assert LATEST_ARCHIVED_EVIDENCE_PATH in project_text
-    assert LATEST_ARCHIVED_EVIDENCE_PATH in state_text
     assert LATEST_ARCHIVED_EVIDENCE_PATH not in docs_text
 
     for relative_path in _CURRENT_ROUTE_PROSE_PATHS:
