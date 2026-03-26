@@ -165,7 +165,10 @@ BASE_OVERRIDE_TRUTH_FAMILIES = (
 
     OverrideTruthFamily(area="Assurance", owner_phase="Phase 37", fate="保留", rows=(
         ("tests/meta/test_governance_phase_history_runtime.py", "runtime closeout phase-history topic home"),
-        ("tests/meta/test_governance_phase_history_topology.py", "topology closeout phase-history topic home"),
+        ("tests/meta/test_governance_phase_history_topology.py", "thin shell after topology phase-history topicization"),
+        ("tests/meta/governance_phase_history_topology_foundations.py", "foundation/early-route phase-history topology topic home"),
+        ("tests/meta/governance_phase_history_topology_execution.py", "archived execution phase-history topology topic home"),
+        ("tests/meta/governance_phase_history_topology_closeouts.py", "closeout/promoted-asset phase-history topology topic home"),
     )),
 
     OverrideTruthFamily(area="Control", owner_phase="Phase 37", fate="保留", rows=(

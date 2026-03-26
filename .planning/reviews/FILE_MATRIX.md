@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 664
+**Python files total:** 667
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -576,6 +576,9 @@
 | `tests/meta/governance_phase_history_archive_execution.py` | Assurance | Phase 59 | 保留 | phase-history archive/execution topic home |
 | `tests/meta/governance_phase_history_current_milestones.py` | Assurance | Phase 59 | 保留 | phase-history current-milestone topic home |
 | `tests/meta/governance_phase_history_mid_closeouts.py` | Assurance | Phase 59 | 保留 | phase-history mid-closeout topic home |
+| `tests/meta/governance_phase_history_topology_closeouts.py` | Assurance | Phase 37 | 保留 | closeout/promoted-asset phase-history topology topic home |
+| `tests/meta/governance_phase_history_topology_execution.py` | Assurance | Phase 37 | 保留 | archived execution phase-history topology topic home |
+| `tests/meta/governance_phase_history_topology_foundations.py` | Assurance | Phase 37 | 保留 | foundation/early-route phase-history topology topic home |
 | `tests/meta/governance_promoted_assets.py` | Assurance | Phase 77 | 保留 | shared promoted-phase-asset helper home |
 | `tests/meta/public_surface_architecture_policy.py` | Assurance | Phase 59 | 保留 | public-surface architecture/policy topic home |
 | `tests/meta/public_surface_phase_notes.py` | Assurance | Phase 59 | 保留 | public-surface phase-note topic home |
@@ -593,7 +596,7 @@
 | `tests/meta/test_governance_milestone_archives.py` | Assurance | Phase 49 | 保留 | thin shell after milestone-archive topicization |
 | `tests/meta/test_governance_phase_history.py` | Assurance | Phase 33 / 37 | 保留 | thin shell after phase-history topicization |
 | `tests/meta/test_governance_phase_history_runtime.py` | Assurance | Phase 37 | 保留 | runtime closeout phase-history topic home |
-| `tests/meta/test_governance_phase_history_topology.py` | Assurance | Phase 37 | 保留 | topology closeout phase-history topic home |
+| `tests/meta/test_governance_phase_history_topology.py` | Assurance | Phase 37 | 保留 | thin shell after topology phase-history topicization |
 | `tests/meta/test_governance_promoted_phase_assets.py` | Assurance | Phase 49 | 保留 | promoted-asset topic suite |
 | `tests/meta/test_governance_release_continuity.py` | Assurance | Phase 79 | 保留 | release continuity/custody topic suite home |
 | `tests/meta/test_governance_release_contract.py` | Assurance | Phase 33 / 77 / 79 | 保留 | release/governance workflow anchor suite |
