@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import deque
+from dataclasses import dataclass
 import logging
 from typing import TYPE_CHECKING, Any, Literal, cast
 
@@ -37,6 +38,19 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 _MAX_TRACES = 100
+
+
+type CommandProperties = list[dict[str, str]] | None
+
+
+@dataclass(frozen=True, slots=True)
+class _CommandRequest:
+    """Immutable request context shared across command-runtime stages."""
+
+    device: LiproDevice
+    command: str
+    properties: CommandProperties
+    fallback_device_id: str | None
 
 
 def _coerce_error_type(trace: CommandTrace) -> str | None:
@@ -193,39 +207,37 @@ class CommandRuntime:
         *,
         device: LiproDevice,
         command: str,
-        properties: list[dict[str, str]] | None,
+        properties: CommandProperties,
         fallback_device_id: str | None,
     ) -> tuple[bool, str]:
         """Send command to device with full flow."""
-        success, route, _trace = await self._execute_device_command(
+        request = _CommandRequest(
             device=device,
             command=command,
             properties=properties,
             fallback_device_id=fallback_device_id,
         )
+        success, route, _trace = await self._execute_device_command(request=request)
         return success, route
 
     async def _send_command_with_trace(
         self,
         *,
-        device: LiproDevice,
-        command: str,
-        properties: list[dict[str, str]] | None,
-        fallback_device_id: str | None,
+        request: _CommandRequest,
         trace: CommandTrace,
     ) -> tuple[object | None, str]:
         """Send one command and normalize API errors into the shared failure path."""
         try:
             return await self._sender.send_command(
-                device=device,
-                command=command,
-                properties=properties,
-                fallback_device_id=fallback_device_id,
+                device=request.device,
+                command=request.command,
+                properties=request.properties,
+                fallback_device_id=request.fallback_device_id,
                 trace=trace,
             )
         except LiproApiError as err:
             await self._handle_api_error(
-                device=device,
+                request=request,
                 trace=trace,
                 route="unknown",
                 err=err,
@@ -235,18 +247,17 @@ class CommandRuntime:
     def _record_push_delivery_failure(
         self,
         *,
+        request: _CommandRequest,
         trace: CommandTrace,
         route: str,
-        command: str,
-        device: LiproDevice,
     ) -> None:
         """Record one push-stage command failure."""
         failure = apply_push_failure(
             trace=trace,
             route=route,
-            command=command,
-            device_name=device.name,
-            device_serial=device.serial,
+            command=request.command,
+            device_name=request.device.name,
+            device_serial=request.device.serial,
             logger=_LOGGER,
         )
         self._record_failure(
@@ -258,11 +269,10 @@ class CommandRuntime:
     def _extract_msg_sn_or_record_failure(
         self,
         *,
+        request: _CommandRequest,
         result: object,
         trace: CommandTrace,
         route: str,
-        command: str,
-        device: LiproDevice,
     ) -> str | None:
         """Return one message serial number or record the canonical missing-msg failure."""
         msg_sn = extract_msg_sn(result)
@@ -272,9 +282,9 @@ class CommandRuntime:
         failure = apply_missing_msg_sn_failure(
             trace=trace,
             route=route,
-            command=command,
-            device_name=device.name,
-            device_serial=device.serial,
+            command=request.command,
+            device_name=request.device.name,
+            device_serial=request.device.serial,
             logger=_LOGGER,
         )
         self._record_failure(
@@ -287,43 +297,35 @@ class CommandRuntime:
     async def _execute_device_command(
         self,
         *,
-        device: LiproDevice,
-        command: str,
-        properties: list[dict[str, str]] | None,
-        fallback_device_id: str | None,
+        request: _CommandRequest,
     ) -> tuple[bool, str, CommandTrace]:
         """Execute the shared command flow and return trace for all callers."""
         trace = build_command_trace(
-            device=device,
-            command=command,
-            properties=properties,
-            fallback_device_id=fallback_device_id,
+            device=request.device,
+            command=request.command,
+            properties=request.properties,
+            fallback_device_id=request.fallback_device_id,
             redact_identifier=lambda x: x,
         )
         result, route = await self._send_command_with_trace(
-            device=device,
-            command=command,
-            properties=properties,
-            fallback_device_id=fallback_device_id,
+            request=request,
             trace=trace,
         )
         if result is None:
             return False, route, trace
         if is_command_push_failed(result):
             self._record_push_delivery_failure(
+                request=request,
                 trace=trace,
                 route=route,
-                command=command,
-                device=device,
             )
             return False, route, trace
 
         msg_sn = self._extract_msg_sn_or_record_failure(
+            request=request,
             result=result,
             trace=trace,
             route=route,
-            command=command,
-            device=device,
         )
         if msg_sn is None:
             return False, route, trace
@@ -332,15 +334,13 @@ class CommandRuntime:
             trace=trace,
             route=route,
             msg_sn=msg_sn,
-            device=device,
+            device=request.device,
         )
         if not verified:
             return False, route, trace
 
         self._finalize_success(
-            device=device,
-            command=command,
-            properties=properties,
+            request=request,
             route=route,
             trace=trace,
         )
@@ -408,24 +408,24 @@ class CommandRuntime:
     def _finalize_success(
         self,
         *,
-        device: LiproDevice,
-        command: str,
-        properties: list[dict[str, str]] | None,
+        request: _CommandRequest,
         route: str,
         trace: CommandTrace,
     ) -> None:
         """Finalize successful command."""
         skip_immediate = self._builder.should_skip_immediate_refresh(
-            command=command, properties=properties
+            command=request.command, properties=request.properties
         )
         self._confirmation.track_command_expectation(
-            device_serial=device.serial, command=command, properties=properties
+            device_serial=request.device.serial,
+            command=request.command,
+            properties=request.properties,
         )
         adaptive_delay = self._confirmation.get_adaptive_post_refresh_delay(
-            device.serial
+            request.device.serial
         )
         self._confirmation.schedule_post_command_refresh(
-            skip_immediate=skip_immediate, device_serial=device.serial
+            skip_immediate=skip_immediate, device_serial=request.device.serial
         )
         apply_successful_command_trace(
             trace=trace,
@@ -440,16 +440,16 @@ class CommandRuntime:
     async def _handle_api_error(
         self,
         *,
-        device: LiproDevice,
+        request: _CommandRequest,
         trace: CommandTrace,
         route: str,
         err: LiproApiError,
-    ) -> bool:
+    ) -> None:
         """Handle API errors."""
         failure = build_command_api_error_failure(
             trace=trace,
             route=route,
-            device_serial=device.serial,
+            device_serial=request.device.serial,
             err=err,
             update_trace_with_exception=update_trace_with_exception,
         )
@@ -467,7 +467,6 @@ class CommandRuntime:
         )
         if reauth_reason is not None:
             await self._trigger_reauth(reauth_reason)
-        return False
 
 
 __all__ = ["CommandRuntime"]

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Mapping
+from dataclasses import dataclass, field
 import inspect
 import logging
 from typing import TYPE_CHECKING, Any, Protocol, cast
@@ -35,6 +36,43 @@ _LOGGER = logging.getLogger(__name__)
 _DEFAULT_DEVICE_PAGE_SIZE = 100
 
 type DeviceRow = PropertyDict
+
+
+def _coerce_total_count(
+    *,
+    offset: int,
+    devices_data: list[DeviceListItem],
+    total: object,
+) -> int:
+    """Coerce one device-page total into a non-negative integer boundary."""
+    fallback_total = offset + len(devices_data)
+    if isinstance(total, bool):
+        return fallback_total
+    if isinstance(total, int):
+        return max(total, 0)
+    if isinstance(total, float) and total.is_integer():
+        return max(int(total), 0)
+    if isinstance(total, str):
+        try:
+            return max(int(total), 0)
+        except ValueError:
+            return fallback_total
+    return fallback_total
+
+
+@dataclass(slots=True)
+class _SnapshotAssembly:
+    """Mutable buckets used while assembling one fetched device snapshot."""
+
+    devices: dict[str, LiproDevice] = field(default_factory=dict)
+    device_by_id: dict[str, LiproDevice] = field(default_factory=dict)
+    identity_mapping: dict[str, LiproDevice] = field(default_factory=dict)
+    identity_aliases_by_serial: dict[str, tuple[str, ...]] = field(default_factory=dict)
+    iot_ids: list[str] = field(default_factory=list)
+    group_ids: list[str] = field(default_factory=list)
+    outlet_ids: list[str] = field(default_factory=list)
+    cloud_serials: set[str] = field(default_factory=set)
+    diagnostic_gateway_devices: dict[str, LiproDevice] = field(default_factory=dict)
 
 
 class SnapshotProtocolPort(Protocol):
@@ -149,20 +187,11 @@ class SnapshotBuilder:
         total: object,
     ) -> bool:
         """Return whether one canonical device page has more rows to fetch."""
-        if isinstance(total, bool):
-            total_count = offset + len(devices_data)
-        elif isinstance(total, int):
-            total_count = total
-        elif isinstance(total, float) and total.is_integer():
-            total_count = int(total)
-        elif isinstance(total, str):
-            try:
-                total_count = int(total)
-            except ValueError:
-                total_count = offset + len(devices_data)
-        else:
-            total_count = offset + len(devices_data)
-        return offset + len(devices_data) < max(total_count, 0)
+        return offset + len(devices_data) < _coerce_total_count(
+            offset=offset,
+            devices_data=devices_data,
+            total=total,
+        )
 
     async def _fetch_device_page(self, *, page: int) -> tuple[list[DeviceRow], bool]:
         """Fetch one device page through the formal canonical contract."""
@@ -281,39 +310,31 @@ class SnapshotBuilder:
         *,
         normalized_row: DeviceRow,
         device: LiproDevice,
-        devices: dict[str, LiproDevice],
-        device_by_id: dict[str, LiproDevice],
-        identity_mapping: dict[str, LiproDevice],
-        identity_aliases_by_serial: dict[str, tuple[str, ...]],
-        iot_ids: list[str],
-        group_ids: list[str],
-        outlet_ids: list[str],
-        cloud_serials: set[str],
-        diagnostic_gateway_devices: dict[str, LiproDevice],
+        assembly: _SnapshotAssembly,
     ) -> None:
         """Record one normalized device into runtime snapshot buckets."""
         if device.capabilities.is_gateway:
-            diagnostic_gateway_devices[device.serial] = device
+            assembly.diagnostic_gateway_devices[device.serial] = device
             return
 
-        devices[device.serial] = device
+        assembly.devices[device.serial] = device
         identity_aliases = self._build_index_identity_aliases(normalized_row, device)
-        identity_aliases_by_serial[device.serial] = identity_aliases
+        assembly.identity_aliases_by_serial[device.serial] = identity_aliases
 
         for identity_alias in identity_aliases:
-            device_by_id[identity_alias] = device
-            identity_mapping[identity_alias] = device
+            assembly.device_by_id[identity_alias] = device
+            assembly.identity_mapping[identity_alias] = device
 
-        cloud_serials.add(device.serial)
+        assembly.cloud_serials.add(device.serial)
 
         if device.is_group:
             if device.iot_device_id:
-                group_ids.append(device.iot_device_id)
+                assembly.group_ids.append(device.iot_device_id)
         elif device.capabilities.is_outlet:
             if device.iot_device_id:
-                outlet_ids.append(device.iot_device_id)
+                assembly.outlet_ids.append(device.iot_device_id)
         elif device.iot_device_id:
-            iot_ids.append(device.iot_device_id)
+            assembly.iot_ids.append(device.iot_device_id)
 
     async def build_full_snapshot(
         self,
@@ -323,15 +344,7 @@ class SnapshotBuilder:
         """Build complete device snapshot from paginated API."""
         all_devices = await self._collect_snapshot_pages(max_pages=max_pages)
 
-        devices: dict[str, LiproDevice] = {}
-        device_by_id: dict[str, LiproDevice] = {}
-        identity_mapping: dict[str, LiproDevice] = {}
-        identity_aliases_by_serial: dict[str, tuple[str, ...]] = {}
-        iot_ids: list[str] = []
-        group_ids: list[str] = []
-        outlet_ids: list[str] = []
-        cloud_serials: set[str] = set()
-        diagnostic_gateway_devices: dict[str, LiproDevice] = {}
+        assembly = _SnapshotAssembly()
 
         for page_number, device_data in all_devices:
             try:
@@ -354,41 +367,33 @@ class SnapshotBuilder:
             self._record_snapshot_device(
                 normalized_row=normalized_row,
                 device=device,
-                devices=devices,
-                device_by_id=device_by_id,
-                identity_mapping=identity_mapping,
-                identity_aliases_by_serial=identity_aliases_by_serial,
-                iot_ids=iot_ids,
-                group_ids=group_ids,
-                outlet_ids=outlet_ids,
-                cloud_serials=cloud_serials,
-                diagnostic_gateway_devices=diagnostic_gateway_devices,
+                assembly=assembly,
             )
 
         await self._async_enrich_mesh_group_metadata(
-            device_by_id=device_by_id,
-            group_ids=group_ids,
+            device_by_id=assembly.device_by_id,
+            group_ids=assembly.group_ids,
         )
 
-        self._device_identity_index.replace(identity_mapping)
+        self._device_identity_index.replace(assembly.identity_mapping)
 
         _LOGGER.info(
             "Built device snapshot: %d devices (%d IoT, %d groups, %d outlets)",
-            len(devices),
-            len(iot_ids),
-            len(group_ids),
-            len(outlet_ids),
+            len(assembly.devices),
+            len(assembly.iot_ids),
+            len(assembly.group_ids),
+            len(assembly.outlet_ids),
         )
 
         return FetchedDeviceSnapshot(
-            devices=devices,
-            device_by_id=device_by_id,
-            iot_ids=iot_ids,
-            group_ids=group_ids,
-            outlet_ids=outlet_ids,
-            identity_aliases_by_serial=identity_aliases_by_serial,
-            cloud_serials=cloud_serials,
-            diagnostic_gateway_devices=diagnostic_gateway_devices,
+            devices=assembly.devices,
+            device_by_id=assembly.device_by_id,
+            iot_ids=assembly.iot_ids,
+            group_ids=assembly.group_ids,
+            outlet_ids=assembly.outlet_ids,
+            identity_aliases_by_serial=assembly.identity_aliases_by_serial,
+            cloud_serials=assembly.cloud_serials,
+            diagnostic_gateway_devices=assembly.diagnostic_gateway_devices,
         )
 
 
