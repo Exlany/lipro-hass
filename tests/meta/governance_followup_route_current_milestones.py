@@ -4,21 +4,17 @@ from __future__ import annotations
 
 from .conftest import _ROOT
 from .governance_current_truth import (
-    CURRENT_MILESTONE,
     CURRENT_MILESTONE_DEFAULT_NEXT,
-    CURRENT_MILESTONE_HEADER,
-    CURRENT_MILESTONE_NAME,
     CURRENT_MILESTONE_STATE_LABEL,
     CURRENT_MILESTONE_STATUS,
-    CURRENT_PHASE_HEADING,
-    CURRENT_ROUTE,
     CURRENT_ROUTE_MODE,
     LATEST_ARCHIVED_AUDIT_PATH,
-    LATEST_ARCHIVED_EVIDENCE_LABEL,
     LATEST_ARCHIVED_EVIDENCE_PATH,
-    PREVIOUS_ARCHIVED_PROJECT_HEADER,
 )
-from .test_governance_closeout_guards import _assert_promoted_closeout_package
+from .test_governance_closeout_guards import (
+    _assert_latest_archived_route_truth,
+    _assert_promoted_closeout_package,
+)
 
 
 def test_archived_route_followup_truth_from_v1_8_to_v1_20_is_consistent() -> None:
@@ -181,21 +177,13 @@ def test_archived_route_followup_truth_from_v1_8_to_v1_20_is_consistent() -> Non
     assert ".planning/milestones/v1.13-ROADMAP.md" in project_text
     assert ".planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-01-PLAN.md" not in project_text
 
-    assert f"**Current route:** `{CURRENT_ROUTE}`；{LATEST_ARCHIVED_EVIDENCE_LABEL} = `{LATEST_ARCHIVED_EVIDENCE_PATH}`." in project_text
-    assert CURRENT_MILESTONE_HEADER in project_text
-    assert PREVIOUS_ARCHIVED_PROJECT_HEADER in project_text
-    assert f"**Current status:** `{CURRENT_MILESTONE_STATUS}`" in project_text
-    assert f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`" in project_text
+    _assert_latest_archived_route_truth(project_text, roadmap_text, state_text)
     assert "## Active Milestone (v1.20)" not in project_text
     assert "## Archived Milestone (v1.17)" in project_text
     assert "## Archived Milestone (v1.16)" in project_text
     assert "**Current status:** `archived / evidence-ready with carry-forward (2026-03-24)`" in project_text
     assert "## Archived Milestone (v1.15)" in project_text
 
-    assert f"## {CURRENT_MILESTONE}: {CURRENT_MILESTONE_NAME}" in roadmap_text
-    assert f"**Milestone status:** `{CURRENT_MILESTONE_STATUS}`" in roadmap_text
-    assert f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`" in roadmap_text
-    assert CURRENT_PHASE_HEADING in roadmap_text
     assert "Plans:" in roadmap_text
     assert "75-04: promote v1.20 closeout evidence and freeze the Phase 75 governance truth" in roadmap_text
     assert "### Phase 69: Residual read-model closure, wrapper-path thinning, and quality-balance follow-through" in roadmap_text

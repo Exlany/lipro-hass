@@ -9,6 +9,20 @@ import re
 from scripts.check_file_matrix import repo_root
 
 from .conftest import _load_frontmatter
+from .governance_current_truth import (
+    CURRENT_MILESTONE_DEFAULT_NEXT,
+    CURRENT_MILESTONE_HEADER,
+    CURRENT_MILESTONE_ROADMAP_HEADER,
+    CURRENT_MILESTONE_STATE_LABEL,
+    CURRENT_MILESTONE_STATUS,
+    CURRENT_PHASE_HEADING,
+    CURRENT_ROUTE,
+    CURRENT_ROUTE_MODE,
+    LATEST_ARCHIVED_AUDIT_PATH,
+    LATEST_ARCHIVED_EVIDENCE_LABEL,
+    LATEST_ARCHIVED_EVIDENCE_PATH,
+    PREVIOUS_ARCHIVED_PROJECT_HEADER,
+)
 
 
 def _assert_state_keeps_forward_progress_commands(state_text: str) -> None:
@@ -93,6 +107,31 @@ def _assert_promoted_phase_assets(phase_dir_name: str, *filenames: str) -> None:
 def _assert_promoted_closeout_package(roadmap_text: str, *filenames: str) -> None:
     package_listing = ", ".join(f"`{filename}`" for filename in filenames)
     assert f"**Promoted closeout package**: {package_listing}" in roadmap_text
+
+
+def _assert_latest_archived_route_truth(
+    project_text: str,
+    roadmap_text: str,
+    state_text: str,
+) -> None:
+    assert (
+        f"**Current route:** `{CURRENT_ROUTE}`；{LATEST_ARCHIVED_EVIDENCE_LABEL} = "
+        f"`{LATEST_ARCHIVED_EVIDENCE_PATH}`."
+    ) in project_text
+    assert CURRENT_MILESTONE_HEADER in project_text
+    assert PREVIOUS_ARCHIVED_PROJECT_HEADER in project_text
+    assert f"**Current status:** `{CURRENT_MILESTONE_STATUS}`" in project_text
+    assert f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`" in project_text
+    assert CURRENT_MILESTONE_ROADMAP_HEADER in roadmap_text
+    assert f"**Milestone status:** `{CURRENT_MILESTONE_STATUS}`" in roadmap_text
+    assert f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`" in roadmap_text
+    assert CURRENT_PHASE_HEADING in roadmap_text
+    assert f"**Current milestone:** `{CURRENT_MILESTONE_STATE_LABEL}`" in state_text
+    assert f"**Current mode:** `{CURRENT_ROUTE_MODE}`" in state_text
+    assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
+    assert LATEST_ARCHIVED_AUDIT_PATH in state_text
+    assert LATEST_ARCHIVED_EVIDENCE_PATH in project_text
+    assert LATEST_ARCHIVED_EVIDENCE_PATH in state_text
 
 
 def _assert_exact_promoted_phase_assets(phase_dir_name: str, *filenames: str) -> None:
