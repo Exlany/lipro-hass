@@ -18,13 +18,13 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Current milestone:** `No active milestone route`
-**Core value:** 以 `v1.20` archived baseline 与 `.planning/reviews/V1_20_EVIDENCE_INDEX.md` latest pull-only closeout pointer 作为下一条正式路线的唯一 seed；任何后续 work 都必须显式开立新 milestone，不得隐式延续 `Phase 75` closeout truth。
+**Core value:** 以 `v1.20` archived baseline 与 `.planning/reviews/V1_20_EVIDENCE_INDEX.md` latest pull-only archived evidence index 作为下一条正式路线的唯一 seed；任何后续 work 都必须显式开立新 milestone，不得隐式延续 `Phase 75` closeout truth。
 **Current mode:** `no active milestone route / latest archived baseline = v1.20`
 
 ## Current Position
 
 - `v1.20` 已于 `2026-03-25` 完成 milestone archive promotion：当前 phase queue `72 -> 75` 全部完成，仓库已无 active milestone route；下一步是 `$gsd-new-milestone`。
-- latest archived closeout pointer 已固定为 `.planning/reviews/V1_20_EVIDENCE_INDEX.md`；它只承担 pull-only archived evidence 入口身份。
+- latest archived evidence index 已固定为 `.planning/reviews/V1_20_EVIDENCE_INDEX.md`；它只承担 pull-only archived evidence 入口身份。
 - `v1.20` 现为 latest archived baseline；`v1.19` 退为 previous archived baseline；`v1.18` 保留为 historical archived baseline。
 - 当前 archived baseline 由 `.planning/reviews/V1_19_TERMINAL_AUDIT.md` seed 路线收口而成，并通过 `.planning/v1.20-MILESTONE-AUDIT.md` 与 `.planning/reviews/V1_20_EVIDENCE_INDEX.md` 冻结归档真相。
 

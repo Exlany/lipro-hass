@@ -341,12 +341,12 @@ Plans:
 
 **Milestone Goal:** 基于 `v1.19` archived baseline，把 bootstrap / lifecycle / runtime-access / service-family / diagnostics-helper / entity-runtime / auth-legacy 的 remaining residual 继续沿正式主链 inward convergence，并最终把 archive-truth / access-mode honesty 一并收口为 `v1.20` archived baseline。
 
-> `v1.20` 已于 `2026-03-25` 完成 milestone audit、Phase 75 route-truth closure、evidence-index closeout 与 archive promotion：它承接 `Phase 71` 的 archived evidence，先后完成 bootstrap/lifecycle/runtime-access convergence、service-family/helper/runtime-surface deduplication、auth legacy residual retirement，并把治理状态切换为 `no active milestone route / latest archived baseline = v1.20`。
+> `v1.20` 已于 `2026-03-25` 完成 milestone audit、Phase 75 route-truth closure、evidence-index registration 与 archive promotion：它承接 `Phase 71` 的 archived evidence，先后完成 bootstrap/lifecycle/runtime-access convergence、service-family/helper/runtime-surface deduplication、auth legacy residual retirement，并把治理状态切换为 `no active milestone route / latest archived baseline = v1.20`。
 
 **Milestone status:** `archived / evidence-ready (2026-03-25)`
 **Starting baseline:** `.planning/v1.19-MILESTONE-AUDIT.md`, `.planning/reviews/V1_19_EVIDENCE_INDEX.md`, `.planning/milestones/v1.19-ROADMAP.md`, `.planning/milestones/v1.19-REQUIREMENTS.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-SUMMARY.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-VERIFICATION.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-VALIDATION.md`, `.planning/reviews/V1_19_TERMINAL_AUDIT.md`
 **Requirements basket:** `GOV-56`, `ARC-19`, `HOT-32`, `HOT-33`, `HOT-34`, `TYP-21`, `TST-22`, `QLT-30`
-**Latest archived closeout pointer:** `.planning/reviews/V1_20_EVIDENCE_INDEX.md`
+**Latest archived evidence index:** `.planning/reviews/V1_20_EVIDENCE_INDEX.md`
 **Default next command:** `$gsd-new-milestone`
 
 ### Phase 72: Runtime bootstrap convergence, lifecycle orchestration consolidation, and runtime-access probe retirement

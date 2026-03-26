@@ -13,6 +13,7 @@ from .governance_current_truth import (
     CURRENT_ROUTE,
     CURRENT_ROUTE_MODE,
     LATEST_ARCHIVED_AUDIT_PATH,
+    LATEST_ARCHIVED_EVIDENCE_LABEL,
     LATEST_ARCHIVED_EVIDENCE_PATH,
     PREVIOUS_ARCHIVED_PROJECT_HEADER,
 )
@@ -179,7 +180,7 @@ def test_v1_8_closeout_through_v1_15_archived_truth_are_consistent() -> None:
     assert ".planning/milestones/v1.13-ROADMAP.md" in project_text
     assert ".planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-01-PLAN.md" not in project_text
 
-    assert f"**Current route:** `{CURRENT_ROUTE}`；latest archived closeout pointer = `{LATEST_ARCHIVED_EVIDENCE_PATH}`." in project_text
+    assert f"**Current route:** `{CURRENT_ROUTE}`；{LATEST_ARCHIVED_EVIDENCE_LABEL} = `{LATEST_ARCHIVED_EVIDENCE_PATH}`." in project_text
     assert CURRENT_MILESTONE_HEADER in project_text
     assert PREVIOUS_ARCHIVED_PROJECT_HEADER in project_text
     assert f"**Current status:** `{CURRENT_MILESTONE_STATUS}`" in project_text

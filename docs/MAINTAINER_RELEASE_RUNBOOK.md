@@ -13,7 +13,7 @@ This repository currently follows a single-maintainer release model. Every tagge
 - Canonical minimum supported Home Assistant version: `2026.3.1` from `hacs.json` (kept in sync with the `pyproject.toml` dev pin)
 - Canonical public support/security paths: `README.md`, `README_zh.md`, `CONTRIBUTING.md`, `SUPPORT.md`, `SECURITY.md`
 - Canonical troubleshooting path: `docs/TROUBLESHOOTING.md`
-- Canonical latest archive-ready closeout evidence pointer: `.planning/reviews/V1_20_EVIDENCE_INDEX.md`
+- Canonical latest archived evidence index: `.planning/reviews/V1_20_EVIDENCE_INDEX.md`
 - Canonical firmware certification trust-root asset: `custom_components/lipro/firmware_support_manifest.json` (historical filename retained)
 
 Private repositories and forks skip CI HACS validation because HACS only supports public GitHub repositories; do not treat a skipped HACS job as a release blocker in that case.

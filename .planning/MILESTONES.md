@@ -328,7 +328,7 @@
 **Phase range:** `72 -> 75`
 **Phases completed:** 4 phases, 16 plans, 0 tasks
 **Status:** archived / evidence-ready
-**Route truth:** latest archive-ready closeout pointer = `.planning/reviews/V1_20_EVIDENCE_INDEX.md`
+**Route truth:** latest archived evidence index = `.planning/reviews/V1_20_EVIDENCE_INDEX.md`
 
 **Key accomplishments:**
 - 收口 `Coordinator` bootstrap / lifecycle orchestration / `runtime_access` probing，把 startup 与 lifecycle hotspot 压回既有 formal homes

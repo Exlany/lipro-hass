@@ -41,6 +41,7 @@ from .governance_current_truth import (
     CURRENT_MILESTONE_DEFAULT_NEXT,
     CURRENT_ROUTE,
     LATEST_ARCHIVED_EVIDENCE_FILENAME,
+    LATEST_ARCHIVED_EVIDENCE_LABEL,
     LATEST_ARCHIVED_EVIDENCE_PATH,
 )
 
@@ -388,7 +389,7 @@ def test_latest_closeout_pointer_and_archived_route_stay_current() -> None:
     assert CURRENT_MILESTONE_DEFAULT_NEXT in project_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
     assert "## v1.20 Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement" in milestones_text
-    assert f"latest archive-ready closeout pointer = `{LATEST_ARCHIVED_EVIDENCE_PATH}`" in milestones_text
+    assert f"{LATEST_ARCHIVED_EVIDENCE_LABEL} = `{LATEST_ARCHIVED_EVIDENCE_PATH}`" in milestones_text
     assert "v1.11" not in docs_text
     assert "v1.11" not in runbook_text
 

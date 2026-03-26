@@ -2,9 +2,8 @@
 
 
 **Status:** Active
-**Current route:** `no active milestone route / latest archived baseline = v1.20`；latest archived closeout pointer = `.planning/reviews/V1_20_EVIDENCE_INDEX.md`.
-**Legacy route-string compatibility:** **Status:** `no active milestone route / latest archived baseline = v1.20`；latest archived closeout pointer = `.planning/reviews/V1_20_EVIDENCE_INDEX.md`.
-**Goal:** 以 `v1.20` archived baseline、`.planning/v1.20-MILESTONE-AUDIT.md` verdict 与 `.planning/reviews/V1_20_EVIDENCE_INDEX.md` pull-only closeout pointer 作为下一条正式路线的唯一 seed；下一轮工作必须通过 `$gsd-new-milestone` 显式开立，不得把 `Phase 75` closeout truth 回写成隐式 active route。
+**Current route:** `no active milestone route / latest archived baseline = v1.20`；latest archived evidence index = `.planning/reviews/V1_20_EVIDENCE_INDEX.md`.
+**Goal:** 以 `v1.20` archived baseline、`.planning/v1.20-MILESTONE-AUDIT.md` verdict 与 `.planning/reviews/V1_20_EVIDENCE_INDEX.md` pull-only archived evidence index 作为下一条正式路线的唯一 seed；下一轮工作必须通过 `$gsd-new-milestone` 显式开立，不得把 `Phase 75` closeout truth 回写成隐式 active route。
 **Default next step:** `$gsd-new-milestone`
 **Active baseline:** no active milestone；latest archived baseline = `v1.20`；previous archived baseline = `v1.19`。
 
@@ -19,7 +18,7 @@
 - bootstrap / lifecycle / runtime-access 只能回收到现有 `control/` 与 runtime formal homes，不得新建 orchestration root、builder folklore 或 shadow bootstrap chain。
 - service-family / diagnostics/helper / schedule / entity runtime strategy 只能做 inward deduplication 与 formal-home clarification，不得恢复 helper-owned second story。
 - auth legacy snapshot / compatibility wrapper 只能继续退役并缩窄 outward contract，不得引入新的 legacy alias / compat root。
-- latest archived closeout pointer 现已固定为 `.planning/reviews/V1_20_EVIDENCE_INDEX.md`；`v1.20` 成为 latest archived baseline，`v1.19` 退为 previous archived baseline；下一条正式路线只能通过 `$gsd-new-milestone` 显式建立。
+- latest archived evidence index 现已固定为 `.planning/reviews/V1_20_EVIDENCE_INDEX.md`；`v1.20` 成为 latest archived baseline，`v1.19` 退为 previous archived baseline；下一条正式路线只能通过 `$gsd-new-milestone` 显式建立。
 
 **Current status:** `archived / evidence-ready (2026-03-25)`
 **Starting baseline:** `.planning/v1.19-MILESTONE-AUDIT.md`, `.planning/reviews/V1_19_EVIDENCE_INDEX.md`, `.planning/milestones/v1.19-ROADMAP.md`, `.planning/milestones/v1.19-REQUIREMENTS.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-SUMMARY.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-VERIFICATION.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-VALIDATION.md`, `.planning/reviews/V1_19_TERMINAL_AUDIT.md`
@@ -37,7 +36,7 @@
 
 - OTA / firmware update / anonymous-share / request pacing / command runtime 只允许 inward decomposition，不得新增 outward root、compat shell 或 second story。
 - `PROJECT / ROADMAP / REQUIREMENTS / STATE / docs / meta guards` 在 `v1.19` archive promotion 当时共同承认 archived-only transition truth；当前治理状态已切换为 `no active milestone route / latest archived baseline = v1.20`，并把 `v1.19` 固定为 previous archived baseline。
-- latest archived closeout pointer 已升级为 `.planning/reviews/V1_20_EVIDENCE_INDEX.md`；`.planning/reviews/V1_19_EVIDENCE_INDEX.md` 继续只承担 historical / pull-only 身份。
+- latest archived evidence index 已升级为 `.planning/reviews/V1_20_EVIDENCE_INDEX.md`；`.planning/reviews/V1_19_EVIDENCE_INDEX.md` 继续只承担 historical / pull-only 身份。
 - `Phase 71` 留下的 focused no-growth guards 持续冻结 touched scope，防止 function-density 与 route drift 在 archived closeout 之后回流。
 
 **Current status:** `archived / evidence-ready (2026-03-25)`
