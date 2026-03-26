@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 654
+**Python files total:** 664
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -348,7 +348,13 @@
 | `tests/core/api/test_api_command_surface_misc.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_api_command_surface_rate_limits.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_api_command_surface_responses.py` | Protocol | Phase 2 | 保留 | - |
-| `tests/core/api/test_api_device_surface.py` | Protocol | Phase 33 | 保留 | topicized device / capability regression home |
+| `tests/core/api/test_api_device_surface.py` | Protocol | Phase 33 | 保留 | thin shell after device-surface topicization |
+| `tests/core/api/test_api_device_surface_connect_status.py` | Protocol | Phase 33 | 保留 | connect-status API regression topic home |
+| `tests/core/api/test_api_device_surface_devices.py` | Protocol | Phase 33 | 保留 | device-list API regression topic home |
+| `tests/core/api/test_api_device_surface_mesh_groups.py` | Protocol | Phase 33 | 保留 | mesh-group status API regression topic home |
+| `tests/core/api/test_api_device_surface_optional_capabilities.py` | Protocol | Phase 33 | 保留 | optional-capability API regression topic home |
+| `tests/core/api/test_api_device_surface_outlet_power.py` | Protocol | Phase 33 | 保留 | outlet-power API regression topic home |
+| `tests/core/api/test_api_device_surface_status.py` | Protocol | Phase 33 | 保留 | device-status API regression topic home |
 | `tests/core/api/test_api_diagnostics_service.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_api_request_policy.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_api_schedule_candidate_mutations.py` | Protocol | Phase 2 | 保留 | - |
@@ -358,7 +364,11 @@
 | `tests/core/api/test_api_status_endpoints.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_api_status_service.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_api_status_service_regressions.py` | Protocol | Phase 2 | 保留 | - |
-| `tests/core/api/test_api_transport_and_schedule.py` | Protocol | Phase 33 | 保留 | topicized transport / schedule regression home |
+| `tests/core/api/test_api_transport_and_schedule.py` | Protocol | Phase 33 | 保留 | thin shell after transport/schedule topicization |
+| `tests/core/api/test_api_transport_and_schedule_close.py` | Protocol | Phase 33 | 保留 | client-close API regression topic home |
+| `tests/core/api/test_api_transport_and_schedule_mqtt.py` | Protocol | Phase 33 | 保留 | MQTT-config API regression topic home |
+| `tests/core/api/test_api_transport_and_schedule_schedules.py` | Protocol | Phase 33 | 保留 | schedule API regression topic home |
+| `tests/core/api/test_api_transport_and_schedule_transport_boundary.py` | Protocol | Phase 33 | 保留 | transport-boundary API regression topic home |
 | `tests/core/api/test_api_transport_executor.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_api_types_smoke.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_auth_recovery_telemetry.py` | Protocol | Phase 2 | 保留 | - |
