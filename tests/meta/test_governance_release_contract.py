@@ -39,10 +39,12 @@ from .conftest import (
 )
 from .governance_current_truth import (
     CURRENT_MILESTONE_DEFAULT_NEXT,
-    CURRENT_ROUTE,
     LATEST_ARCHIVED_EVIDENCE_FILENAME,
     LATEST_ARCHIVED_EVIDENCE_LABEL,
     LATEST_ARCHIVED_EVIDENCE_PATH,
+)
+from .test_governance_closeout_guards import (
+    _assert_public_docs_hide_internal_route_story,
 )
 
 _CODEQL_WORKFLOW = _ROOT / ".github" / "workflows" / "codeql.yml"
@@ -380,10 +382,7 @@ def test_latest_closeout_pointer_and_archived_route_stay_current() -> None:
     docs_text = _DOCS_README.read_text(encoding="utf-8")
     runbook_text = _RUNBOOK.read_text(encoding="utf-8")
 
-    assert LATEST_ARCHIVED_EVIDENCE_PATH not in docs_text
-    assert CURRENT_ROUTE not in docs_text
-    assert "Current governance status" not in docs_text
-    assert "$gsd-plan-phase" not in docs_text
+    _assert_public_docs_hide_internal_route_story(docs_text)
     assert LATEST_ARCHIVED_EVIDENCE_FILENAME in runbook_text
     assert "V1_6_EVIDENCE_INDEX.md" not in runbook_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in project_text

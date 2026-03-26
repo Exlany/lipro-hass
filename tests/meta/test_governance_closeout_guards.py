@@ -134,6 +134,20 @@ def _assert_latest_archived_route_truth(
     assert LATEST_ARCHIVED_EVIDENCE_PATH in state_text
 
 
+def _assert_public_docs_hide_internal_route_story(
+    docs_text: str,
+    *extra_forbidden_tokens: str,
+) -> None:
+    for token in (
+        CURRENT_ROUTE,
+        LATEST_ARCHIVED_EVIDENCE_PATH,
+        "Current governance status",
+        "$gsd-plan-phase",
+        *extra_forbidden_tokens,
+    ):
+        assert token not in docs_text
+
+
 def _assert_exact_promoted_phase_assets(phase_dir_name: str, *filenames: str) -> None:
     promoted_assets = _load_promoted_phase_assets()
     assert phase_dir_name in promoted_assets

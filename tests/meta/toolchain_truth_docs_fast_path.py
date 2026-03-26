@@ -11,6 +11,9 @@ import yaml
 from tests.helpers.repo_root import repo_root
 
 from .governance_current_truth import LEGACY_ARCHIVED_CLOSEOUT_POINTER_LABEL
+from .test_governance_closeout_guards import (
+    _assert_public_docs_hide_internal_route_story,
+)
 
 _ROOT = repo_root(Path(__file__))
 
@@ -116,13 +119,11 @@ def test_docs_index_makes_public_fast_path_and_bilingual_boundary_explicit() -> 
 def test_docs_index_keeps_internal_route_story_out_of_public_fast_path() -> None:
     docs_text = _DOCS_README.read_text(encoding="utf-8")
 
-    for token in (
-        "Current governance status",
-        "$gsd-plan-phase",
+    _assert_public_docs_hide_internal_route_story(
+        docs_text,
         LEGACY_ARCHIVED_CLOSEOUT_POINTER_LABEL,
         "V1_20_EVIDENCE_INDEX.md",
-    ):
-        assert token not in docs_text
+    )
 
 
 

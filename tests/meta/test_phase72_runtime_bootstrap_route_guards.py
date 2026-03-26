@@ -12,9 +12,11 @@ from .governance_current_truth import (
     CURRENT_ROUTE,
     CURRENT_ROUTE_PROSE_FORBIDDEN,
     CURRENT_RUNTIME_ROOT_TEST,
-    LATEST_ARCHIVED_EVIDENCE_PATH,
 )
-from .test_governance_closeout_guards import _assert_latest_archived_route_truth
+from .test_governance_closeout_guards import (
+    _assert_latest_archived_route_truth,
+    _assert_public_docs_hide_internal_route_story,
+)
 
 _ROOT = repo_root(Path(__file__))
 _PRODUCTION_ROOT = _ROOT / "custom_components" / "lipro"
@@ -197,9 +199,8 @@ def test_phase72_current_route_truth_replaces_stale_route_story() -> None:
 
     _assert_latest_archived_route_truth(project_text, roadmap_text, state_text)
     assert CURRENT_ROUTE in project_text
-    assert CURRENT_ROUTE not in docs_text
+    _assert_public_docs_hide_internal_route_story(docs_text)
     assert CURRENT_MILESTONE_HEADER in requirements_text
-    assert LATEST_ARCHIVED_EVIDENCE_PATH not in docs_text
 
     for relative_path in _CURRENT_ROUTE_PROSE_PATHS:
         text = (_ROOT / relative_path).read_text(encoding="utf-8")

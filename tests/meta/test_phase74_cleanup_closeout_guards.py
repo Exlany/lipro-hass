@@ -7,6 +7,9 @@ from pathlib import Path
 from tests.helpers.repo_root import repo_root
 
 from .governance_current_truth import LEGACY_ARCHIVED_CLOSEOUT_POINTER_LABEL
+from .test_governance_closeout_guards import (
+    _assert_public_docs_hide_internal_route_story,
+)
 
 _ROOT = repo_root(Path(__file__))
 
@@ -27,12 +30,10 @@ def test_phase74_gitignore_drops_phase12_special_case() -> None:
 def test_phase74_docs_index_keeps_internal_route_private() -> None:
     text = (_ROOT / "docs" / "README.md").read_text(encoding="utf-8")
 
-    for token in (
-        "Current governance status",
-        "$gsd-plan-phase",
+    _assert_public_docs_hide_internal_route_story(
+        text,
         LEGACY_ARCHIVED_CLOSEOUT_POINTER_LABEL,
-    ):
-        assert token not in text
+    )
 
 
 def test_phase74_retired_stubs_fail_fast_honestly() -> None:
