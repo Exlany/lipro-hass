@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import deque
+from collections.abc import Callable
 from dataclasses import dataclass
 import logging
 from typing import TYPE_CHECKING, Any, Literal, cast
@@ -20,6 +21,7 @@ from ...command.result import (
     is_command_push_failed,
 )
 from ...command.trace import build_command_trace, update_trace_with_exception
+from ...utils.redaction import redact_identifier as _redact_identifier
 from ..types import (
     CommandFailureSummary,
     CommandReauthReason,
@@ -41,6 +43,7 @@ _MAX_TRACES = 100
 
 
 type CommandProperties = list[dict[str, str]] | None
+type IdentifierRedactor = Callable[[str | None], str | None]
 
 
 @dataclass(frozen=True, slots=True)
@@ -104,6 +107,7 @@ class CommandRuntime:
         retry: RetryStrategy,
         confirmation: ConfirmationManager,
         trigger_reauth: ReauthCallback,
+        redact_identifier: IdentifierRedactor = _redact_identifier,
         debug_mode: bool = False,
     ) -> None:
         """Initialize with component dependencies."""
@@ -112,6 +116,7 @@ class CommandRuntime:
         self._retry = retry
         self._confirmation = confirmation
         self._trigger_reauth = trigger_reauth
+        self._redact_identifier = redact_identifier
         self._debug_mode = debug_mode
         self._traces: deque[CommandTrace] = deque(maxlen=_MAX_TRACES)
         self._last_failure: CommandTrace | None = None
@@ -136,14 +141,7 @@ class CommandRuntime:
 
     def get_runtime_metrics(self) -> dict[str, Any]:
         """Return lightweight command-runtime telemetry."""
-        confirmation_metrics_getter = getattr(
-            self._confirmation, "get_runtime_metrics", None
-        )
-        confirmation_metrics = (
-            confirmation_metrics_getter()
-            if callable(confirmation_metrics_getter)
-            else {}
-        )
+        confirmation_metrics: object = self._confirmation.get_runtime_metrics()
         if not isinstance(confirmation_metrics, dict):
             confirmation_metrics = {}
         return {
@@ -305,7 +303,7 @@ class CommandRuntime:
             command=request.command,
             properties=request.properties,
             fallback_device_id=request.fallback_device_id,
-            redact_identifier=lambda x: x,
+            redact_identifier=self._redact_identifier,
         )
         result, route = await self._send_command_with_trace(
             request=request,

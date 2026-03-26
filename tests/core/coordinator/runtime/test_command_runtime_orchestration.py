@@ -225,6 +225,51 @@ class TestCommandRuntime:
 
         assert len(runtime._traces) == 0
 
+
+    def test_get_runtime_metrics_uses_confirmation_contract(self, command_runtime) -> None:
+        """CommandRuntime should read confirmation metrics through the formal contract."""
+        command_runtime._confirmation.get_runtime_metrics = lambda: {"pending": 2}
+
+        assert command_runtime.get_runtime_metrics() == {
+            "debug_enabled": True,
+            "trace_count": 0,
+            "last_failure": None,
+            "confirmation": {"pending": 2},
+        }
+
+    @pytest.mark.asyncio
+    async def test_send_device_command_trace_uses_injected_redactor(
+        self, mock_device, runtime_deps
+    ) -> None:
+        """Command trace should honor the injected identifier redactor."""
+        runtime = CommandRuntime(
+            builder=runtime_deps["builder"],
+            sender=runtime_deps["sender"],
+            retry=runtime_deps["retry"],
+            confirmation=runtime_deps["confirmation"],
+            trigger_reauth=runtime_deps["trigger_reauth"],
+            redact_identifier=lambda value: f"redacted:{value}" if value else None,
+            debug_mode=True,
+        )
+
+        with patch.object(runtime._sender, "send_command") as mock_send:
+            mock_send.return_value = ({"pushSuccess": True, "msgSn": "12345"}, "iot")
+
+            with patch.object(runtime, "_verify_delivery") as mock_verify:
+                mock_verify.return_value = (True, None)
+
+                success, route = await runtime.send_device_command(
+                    device=mock_device,
+                    command="POWER_ON",
+                    properties=None,
+                    fallback_device_id="fallback-1",
+                )
+
+        assert success is True
+        assert route == "iot"
+        assert runtime.get_recent_traces()[0]["device_id"] == f"redacted:{mock_device.serial}"
+        assert runtime.get_recent_traces()[0]["requested_fallback_device_id"] == "redacted:fallback-1"
+
 @pytest.mark.asyncio
 async def test_verify_command_delivery_auth_errors_bubble(mock_client, mock_device):
     sender = CommandSender(protocol=mock_client)
