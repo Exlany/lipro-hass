@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🚧 **v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation** - Phases 76-78 completed on 2026-03-26 from the `v1.20` archived baseline; next command: `$gsd-complete-milestone v1.21`
+- 🚧 **v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation** - Phases 76-79 completed on 2026-03-26 from the `v1.20` archived baseline; next command: `$gsd-complete-milestone v1.21`
 - ✅ **v1.0 North Star Rebuild** - Phases 1-7 (+ 1.5 / 2.5 / 2.6), shipped 2026-03-13, archive: `.planning/milestones/v1.0-ROADMAP.md`
 - ✅ **v1.1 Protocol Fidelity & Operability** - Phases 7.1-17 complete; final audit complete; milestone snapshots archived at `.planning/milestones/v1.1-ROADMAP.md` / `.planning/milestones/v1.1-REQUIREMENTS.md` (updated 2026-03-16)
 - ✅ **v1.2 Host-Neutral Core & Replay Completion** - Phases 18-24 complete after Phase 24 reopen revalidation; 24 plans complete; milestone snapshots archived at `.planning/milestones/v1.2-ROADMAP.md` / `.planning/milestones/v1.2-REQUIREMENTS.md`; `v1.3` handoff-ready (revalidated 2026-03-17)
@@ -33,9 +33,9 @@ active_milestone:
   version: v1.21
   name: Governance Bootstrap Truth Hardening & Planning Route Automation
   status: closeout-ready (2026-03-26)
-  phase: "78"
-  phase_title: Quality gate formalization, route-handoff ergonomics, and milestone-closeout readiness
-  route_mode: Phase 78 complete
+  phase: "79"
+  phase_title: Governance tooling hotspot decomposition and release-contract topicization
+  route_mode: Phase 79 complete
 latest_archived:
   version: v1.20
   name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
@@ -51,7 +51,7 @@ previous_archived:
   name: Audit-Driven Final Hotspot Decomposition & Governance Truth Projection
   evidence_path: .planning/reviews/V1_19_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.21 active route / Phase 78 complete / latest archived baseline = v1.20
+  current_route: v1.21 active route / Phase 79 complete / latest archived baseline = v1.20
   default_next_command: $gsd-complete-milestone v1.21
   latest_archived_evidence_pointer: .planning/reviews/V1_20_EVIDENCE_INDEX.md
 ```
@@ -61,7 +61,7 @@ bootstrap:
 
 ## v1.21: Governance Bootstrap Truth Hardening & Planning Route Automation
 
-> `v1.21` 不再把 planning/bootstrap truth 当作 archive-closeout 之后的附带修补，而是以 `v1.20` archived baseline、latest archived evidence index 与 recent bootstrap drift fix 为 seed，正式把 current-route activation、parser-visible contract 与 governance-route maintainability 立成新 milestone。
+> `v1.21` 不再把 planning/bootstrap truth 当作 archive-closeout 之后的附带修补，而是以 `v1.20` archived baseline、latest archived evidence index、recent bootstrap drift fix 与 governance/tooling hotspot maintainability pass 为 seed，正式把 current-route activation、parser-visible contract、registry decomposition 与 release-contract topicization 立成同一条 milestone。
 
 **Milestone status:** `closeout-ready (2026-03-26)`
 **Default next command:** `$gsd-complete-milestone v1.21`
@@ -118,6 +118,24 @@ Plans:
 - [x] 78-01: formalize route-handoff entry conditions and local verification path (completed 2026-03-26)
 - [x] 78-02: project quality gates onto current-route activation and closeout readiness (completed 2026-03-26)
 - [x] 78-03: freeze low-maintenance governance story for later archive promotion (completed 2026-03-26)
+
+### Phase 79: Governance tooling hotspot decomposition and release-contract topicization
+
+**Goal:** 把 governance/tooling/test maintainability 的剩余高价值热点一次性收口：拆薄 file-matrix registry monolith、topicize release-contract mega-suite，并把 live route truth 诚实前推到新的 closeout-ready handoff。 
+**Depends on:** Phase 78
+**Requirements**: [GOV-58, HOT-35, TST-24, QLT-32]
+**Success Criteria**:
+  1. `scripts/check_file_matrix_registry.py` 不再承担 monolithic classifier hotspot，且 `C901` 复杂度命中消失。
+  2. `tests/meta/test_governance_release_contract.py` 回到稳定 anchor，docs / continuity concern 拆到更清晰的 topic suites。
+  3. `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / VERIFICATION_MATRIX / review ledgers / governance_current_truth.py` 共同冻结 `Phase 79 complete` 真相。
+**Status**: Complete (`2026-03-26`)
+**Plans**: 3/3 complete
+**Promoted closeout package**: `79-SUMMARY.md`, `79-VERIFICATION.md`, `79-VALIDATION.md`
+
+Plans:
+- [x] 79-01: formalize live route truth and phase-79 closeout contract (completed 2026-03-26)
+- [x] 79-02: decompose the file-matrix registry hotspot into slimmer governed homes (completed 2026-03-26)
+- [x] 79-03: topicize release-contract coverage and freeze phase-79 closeout truth (completed 2026-03-26)
 
 ## Required Phase Outputs
 
@@ -1613,3 +1631,4 @@ Plans:
 - [x] 66-04: freeze Phase 66 current-story, verification, and residual ledgers after execution (completed 2026-03-23)
 **Focused evidence:** `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-01-SUMMARY.md`, `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-02-SUMMARY.md`, `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-03-SUMMARY.md`, `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-04-SUMMARY.md`
 **Closeout evidence:** `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-SUMMARY.md`, `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-VERIFICATION.md`
+

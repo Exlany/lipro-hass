@@ -6,6 +6,10 @@ import json
 from pathlib import Path
 
 from scripts import check_translations as translation_checker
+from scripts.check_file_matrix_registry import (
+    classify_path,
+    iter_override_truth_families,
+)
 from scripts.coverage_diff import (
     load_file_percents,
     load_percent,
@@ -226,3 +230,30 @@ def test_check_translations_main_fails_when_translation_files_drift(
     assert translation_checker.main() == 1
     output = capsys.readouterr().out
     assert "keys differ from en.json" in output
+
+
+def test_file_matrix_registry_classifies_phase_79_hotspot_split_files() -> None:
+    assert classify_path("scripts/check_file_matrix_registry_classifiers.py").owner_phase == "Phase 79"
+    assert classify_path("scripts/check_file_matrix_registry_overrides.py").owner_phase == "Phase 79"
+    assert classify_path("tests/meta/test_governance_release_docs.py").owner_phase == "Phase 79"
+    assert classify_path("tests/meta/test_governance_release_continuity.py").owner_phase == "Phase 79"
+    assert classify_path("tests/meta/test_governance_route_handoff_smoke.py").owner_phase == "Phase 79"
+
+
+def test_file_matrix_registry_keeps_phase_79_override_family_unique() -> None:
+    families = iter_override_truth_families()
+    phase_79 = [family for family in families if family.owner_phase == "Phase 79"]
+    assert phase_79
+    seen_paths: set[str] = set()
+    for family in families:
+        for path, _ in family.rows:
+            assert path not in seen_paths
+            seen_paths.add(path)
+    phase_79_paths = {path for family in phase_79 for path, _ in family.rows}
+    assert {
+        "scripts/check_file_matrix_registry_classifiers.py",
+        "scripts/check_file_matrix_registry_overrides.py",
+        "scripts/check_file_matrix_registry_shared.py",
+        "tests/meta/test_governance_release_docs.py",
+        "tests/meta/test_governance_release_continuity.py",
+    } <= phase_79_paths

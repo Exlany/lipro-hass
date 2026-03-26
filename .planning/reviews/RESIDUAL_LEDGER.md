@@ -438,3 +438,8 @@ _None currently registered._
 
 - 无新增 active residual family。
 - route-handoff fast path、closeout-ready wording、promoted evidence allowlist 与 review ledgers 已在本 phase 冻结；后续 archive promotion 只消费这些既有证据，不得再回头补 current-story handoff。
+
+## Phase 79 Residual Delta
+
+- 无新增 active residual family。
+- registry classifier split、release-contract topic suites 与 live route truth 已在本 phase 冻结；后续 milestone closeout 只消费这些既有 closeout assets，不得再回头重开治理工具链热点。

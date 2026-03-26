@@ -192,7 +192,7 @@ Choose the smallest lane that still matches the changed surface; do not invent a
 请选择仍能覆盖改动面的最小验证路径，不要再造一套影子 CI 故事线。
 
 - **docs-only**: `uv run pytest -q tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py`
-- **governance-only**: `uv run pytest -q tests/meta/test_governance_release_contract.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py`
+- **governance-only**: `uv run pytest -q tests/meta/test_governance_release_*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py`
 - **release-only**: `uv run pytest -q tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py`
 - **maintainer-only verify-only / non-publish rehearsal**: trigger `.github/workflows/release.yml` via `workflow_dispatch` with `tag=<existing-tag>` and `publish_assets=false`; this validates the release path without publishing public assets
 

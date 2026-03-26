@@ -90,14 +90,14 @@ def test_phase_78_exit_contract_aligns_verification_and_file_matrix() -> None:
         _ROOT / ".planning" / "reviews" / "FILE_MATRIX.md"
     ).read_text(encoding="utf-8")
 
-    assert "## Phase 78 Exit Contract" in verification_text
+    assert "## Phase 79 Exit Contract" in verification_text
     assert f"当前 mutable story = `{CURRENT_ROUTE}`" in verification_text
     assert f"default next command = `{CURRENT_MILESTONE_DEFAULT_NEXT}`" in verification_text
     assert f"**Latest archived pointer:** `{LATEST_ARCHIVED_EVIDENCE_PATH}`" in verification_text
     assert (
-        "uv run pytest -q tests/meta/test_governance_bootstrap_smoke.py "
-        "tests/meta/test_governance_closeout_guards.py "
-        "tests/meta/test_governance_release_contract.py"
+        "tests/meta/test_governance_release_contract.py "
+        "tests/meta/test_governance_release_docs.py "
+        "tests/meta/test_governance_release_continuity.py"
     ) in verification_text
     assert (
         "uv run pytest -q tests/meta/test_governance_route_handoff_smoke.py "
@@ -117,7 +117,9 @@ def test_phase_78_exit_contract_aligns_verification_and_file_matrix() -> None:
         "tests/meta/test_governance_route_handoff_smoke.py": "route-handoff gsd fast-path smoke guard home",
         "tests/meta/test_governance_closeout_guards.py": "closeout + promoted-asset manifest smoke anchor",
         "tests/meta/governance_followup_route_current_milestones.py": "governance-route contract + current/latest archive pointer-drift guard",
-        "tests/meta/test_governance_release_contract.py": "release/docs governance contract guard home",
+        "tests/meta/test_governance_release_contract.py": "release/governance workflow anchor suite",
+        "tests/meta/test_governance_release_docs.py": "release/docs topic suite home",
+        "tests/meta/test_governance_release_continuity.py": "release continuity/custody topic suite home",
     }
     for relative_path, residual_story in row_expectations.items():
         assert relative_path in file_matrix_text

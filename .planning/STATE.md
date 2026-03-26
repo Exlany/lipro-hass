@@ -5,10 +5,10 @@ milestone_name: Governance Bootstrap Truth Hardening & Planning Route Automation
 status: active
 last_updated: "2026-03-26T00:00:00Z"
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 9
-  completed_plans: 9
+  total_phases: 4
+  completed_phases: 4
+  total_plans: 12
+  completed_plans: 12
 ---
 
 # Project State
@@ -18,19 +18,19 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation`
-**Core value:** 以 `v1.20` archived baseline 与 `.planning/reviews/V1_20_EVIDENCE_INDEX.md` latest archived evidence index 作为 active route 的稳定 seed，把 `v1.21` 的 current route 前推到 `Phase 78 complete`，并把默认下一步固定到 `$gsd-complete-milestone v1.21`。
-**Current mode:** `Phase 78 complete`
+**Core value:** 以 `v1.20` archived baseline 与 `.planning/reviews/V1_20_EVIDENCE_INDEX.md` latest archived evidence index 作为 active route 的稳定 seed，把 `v1.21` 的 current route 前推到 `Phase 79 complete`，并把默认下一步固定到 `$gsd-complete-milestone v1.21`。
+**Current mode:** `Phase 79 complete`
 
 ## Current Position
 
-- `v1.21` 已于 `2026-03-26` 完成 `Phase 76 -> 78` 全部执行；当前里程碑已进入 `closeout-ready`，下一步是 `$gsd-complete-milestone v1.21`。
+- `v1.21` 已于 `2026-03-26` 完成 `Phase 76 -> 79` 全部执行；当前里程碑已进入 `closeout-ready`，下一步是 `$gsd-complete-milestone v1.21`。
 - latest archived baseline 固定为 `v1.20`；latest archived evidence index 继续是 `.planning/reviews/V1_20_EVIDENCE_INDEX.md`；`v1.19` 继续承担 previous archived baseline。
-- recent bootstrap drift 已被 machine-readable contract、focused smoke、verification matrix、file-matrix registry 与 review ledgers 共同冻结；后续 archive promotion 不再需要补 current-story handoff。
+- recent bootstrap drift 与 governance/tooling maintainability hotspots 已被 machine-readable contract、focused smoke、topicized release suites、verification matrix、file-matrix registry 与 review ledgers 共同冻结；后续 archive promotion 不再需要补 current-story handoff。
 
 ## Current Milestone (v1.21)
 
 - **Milestone:** `v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation`
-- **Phase range:** `76 -> 78`
+- **Phase range:** `76 -> 79`
 - **Milestone status:** `closeout-ready (2026-03-26)`
 - **Seed input:** `.planning/v1.20-MILESTONE-AUDIT.md`, `.planning/reviews/V1_20_EVIDENCE_INDEX.md`, `.planning/MILESTONES.md`, `.planning/ROADMAP.md`, `.planning/REQUIREMENTS.md`, `.planning/STATE.md`, `tests/meta/governance_current_truth.py`, `tests/meta/test_governance_milestone_archives.py`
 - **Default next command:** `$gsd-complete-milestone v1.21`
@@ -43,9 +43,9 @@ active_milestone:
   version: v1.21
   name: Governance Bootstrap Truth Hardening & Planning Route Automation
   status: closeout-ready (2026-03-26)
-  phase: "78"
-  phase_title: Quality gate formalization, route-handoff ergonomics, and milestone-closeout readiness
-  route_mode: Phase 78 complete
+  phase: "79"
+  phase_title: Governance tooling hotspot decomposition and release-contract topicization
+  route_mode: Phase 79 complete
 latest_archived:
   version: v1.20
   name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
@@ -61,7 +61,7 @@ previous_archived:
   name: Audit-Driven Final Hotspot Decomposition & Governance Truth Projection
   evidence_path: .planning/reviews/V1_19_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.21 active route / Phase 78 complete / latest archived baseline = v1.20
+  current_route: v1.21 active route / Phase 79 complete / latest archived baseline = v1.20
   default_next_command: $gsd-complete-milestone v1.21
   latest_archived_evidence_pointer: .planning/reviews/V1_20_EVIDENCE_INDEX.md
 ```
@@ -97,9 +97,9 @@ bootstrap:
 1. `$gsd-complete-milestone v1.21` —— 执行当前 closeout-ready route 的 milestone audit / archive closeout
 2. `$gsd-next` —— 让 GSD 自动前推到当前里程碑的正式收官动作
 3. `$gsd-progress` —— 查看 current route / latest archived baseline / next command 是否保持一致
-4. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" init progress` —— 复核 fast-path 是否只承认 `Phase 78 complete`
+4. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" init progress` —— 复核 fast-path 是否只承认 `Phase 79 complete`
 5. `uv run python scripts/check_file_matrix.py --check` —— 复核 planning / baseline / review / promoted-asset 契约
-6. `uv run pytest -q tests/meta/test_governance_route_handoff_smoke.py tests/meta/test_governance_bootstrap_smoke.py tests/meta/test_governance_closeout_guards.py tests/meta/governance_followup_route_current_milestones.py` —— 复核 closeout-ready / fast-path / matrix drift guards
+6. `uv run pytest -q tests/meta/test_governance_route_handoff_smoke.py tests/meta/test_governance_bootstrap_smoke.py tests/meta/test_governance_closeout_guards.py tests/meta/test_governance_release_contract.py tests/meta/test_governance_release_docs.py tests/meta/test_governance_release_continuity.py tests/meta/governance_followup_route_current_milestones.py` —— 复核 closeout-ready / fast-path / matrix drift guards
 
 ## Session Continuity
 

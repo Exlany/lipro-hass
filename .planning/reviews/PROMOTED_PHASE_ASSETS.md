@@ -295,6 +295,13 @@ phases:
   - 78-SUMMARY.md
   - 78-VERIFICATION.md
   - 78-VALIDATION.md
+  79-governance-tooling-hotspot-decomposition-and-release-contract-topicization:
+  - 79-01-SUMMARY.md
+  - 79-02-SUMMARY.md
+  - 79-03-SUMMARY.md
+  - 79-SUMMARY.md
+  - 79-VERIFICATION.md
+  - 79-VALIDATION.md
 ---
 
 # Promoted Phase Assets

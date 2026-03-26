@@ -28,7 +28,7 @@ def test_active_route_bootstrap_contract_stays_current() -> None:
     assert CURRENT_MILESTONE_DEFAULT_NEXT in project_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in roadmap_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
-    assert '## Phase 78 Exit Contract' in verification_text
+    assert '## Phase 79 Exit Contract' in verification_text
     assert CURRENT_ROUTE in verification_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in verification_text
     assert f'**Latest archived pointer:** `{LATEST_ARCHIVED_EVIDENCE_PATH}`' in verification_text

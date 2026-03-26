@@ -297,3 +297,29 @@ def test_phase_78_closeout_assets_exist_and_are_promoted() -> None:
     assert "## Phase 78 Exit Contract" in verification_text
     assert "## Phase 78 Residual Delta" in residual_text
     assert "## Phase 78 Status Update" in kill_text
+
+
+def test_phase_79_closeout_assets_exist_and_are_promoted() -> None:
+    _assert_promoted_phase_assets(
+        "79-governance-tooling-hotspot-decomposition-and-release-contract-topicization",
+        "79-01-SUMMARY.md",
+        "79-02-SUMMARY.md",
+        "79-03-SUMMARY.md",
+        "79-SUMMARY.md",
+        "79-VERIFICATION.md",
+        "79-VALIDATION.md",
+    )
+
+    verification_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    residual_text = (
+        _ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md"
+    ).read_text(encoding="utf-8")
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "## Phase 79 Exit Contract" in verification_text
+    assert "## Phase 79 Residual Delta" in residual_text
+    assert "## Phase 79 Status Update" in kill_text

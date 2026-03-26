@@ -1,52 +1,26 @@
-"""Topicized governance regression coverage extracted from `tests/meta/test_governance_guards.py` (test_governance_release_contract)."""
+"""Release/workflow governance contract anchor suite."""
 
 from __future__ import annotations
-
-import re
 
 from .conftest import (
     _AGENTS,
     _CI_WORKFLOW,
-    _CODEOWNERS,
     _CONTRIBUTING,
-    _DEVCONTAINER,
-    _DOCS_README,
-    _ISSUE_CONFIG,
-    _MANIFEST,
-    _PR_TEMPLATE,
     _PRE_COMMIT,
-    _QUALITY_SCALE,
-    _README,
-    _README_ZH,
     _RELEASE_WORKFLOW,
     _ROOT,
     _RUNBOOK,
-    _SECURITY,
     _SUPPORT,
-    _TROUBLESHOOTING,
     _as_bool,
     _as_mapping,
     _as_mapping_list,
     _as_str,
     _as_str_list,
-    _count_numbered_markdown_items,
-    _extract_checklist_labels,
-    _extract_labeled_bullets,
-    _extract_markdown_section,
-    _load_json,
     _load_yaml,
-    _parse_codeowners_handles,
-)
-from .governance_contract_helpers import _assert_public_docs_hide_internal_route_story
-from .governance_current_truth import (
-    LATEST_ARCHIVED_EVIDENCE_FILENAME,
-    LATEST_ARCHIVED_EVIDENCE_LABEL,
-    LATEST_ARCHIVED_EVIDENCE_PATH,
 )
 
 _CODEQL_WORKFLOW = _ROOT / ".github" / "workflows" / "codeql.yml"
 _GOVERNANCE_REGISTRY = _ROOT / ".planning" / "baseline" / "GOVERNANCE_REGISTRY.json"
-
 
 def test_ci_and_release_workflows_share_governance_and_version_gates() -> None:
     ci_workflow = _load_yaml(_CI_WORKFLOW)
@@ -228,7 +202,6 @@ def test_ci_and_release_workflows_share_governance_and_version_gates() -> None:
     assert "Initialize CodeQL" in codeql_steps
     assert "Perform CodeQL Analysis" in codeql_steps
 
-
 def test_governance_closeout_suite_is_wired_into_daily_gate_commands() -> None:
     agents_text = _AGENTS.read_text(encoding="utf-8")
     contributing_text = _CONTRIBUTING.read_text(encoding="utf-8")
@@ -252,66 +225,6 @@ def test_governance_closeout_suite_is_wired_into_daily_gate_commands() -> None:
         ci_text,
     ):
         assert "tests/meta/test_toolchain_truth.py" in text
-
-
-def test_contributor_contract_matches_ci_language() -> None:
-    contributing_bullets = _extract_labeled_bullets(
-        _extract_markdown_section(
-            _CONTRIBUTING.read_text(encoding="utf-8"),
-            "CI Contract / CI 契约",
-        )
-    )
-    pr_checklist = _extract_checklist_labels(_PR_TEMPLATE.read_text(encoding="utf-8"))
-
-    assert {"lint", "governance", "test", "benchmark", "validate", "release"} <= set(
-        contributing_bullets
-    )
-    assert {"lint", "governance", "test", "benchmark"} <= set(pr_checklist)
-    assert "uv run python scripts/check_translations.py" in contributing_bullets["lint"]
-    assert "tests/meta/test_governance*.py" in contributing_bullets["governance"]
-    assert "tests/meta/test_toolchain_truth.py" in contributing_bullets["governance"]
-    assert "tests/meta/test_version_sync.py" in contributing_bullets["governance"]
-    assert "--ignore=tests/benchmarks" in contributing_bullets["test"]
-    assert "tests/snapshots/" not in contributing_bullets["test"]
-    assert "snapshot coverage" in contributing_bullets["test"]
-    assert "changed measured files" in contributing_bullets["test"]
-    assert "--changed-files .coverage-changed-files" in contributing_bullets["test"]
-    assert "--baseline" in contributing_bullets["test"]
-    assert "tests/benchmarks/" in contributing_bullets["benchmark"]
-    assert ".benchmarks/benchmark.json" in contributing_bullets["benchmark"]
-    assert "scripts/check_benchmark_baseline.py" in contributing_bullets["benchmark"]
-    assert "benchmark_baselines.json" in contributing_bullets["benchmark"]
-    assert "threshold warning" in contributing_bullets["benchmark"]
-    assert "no-regression gate" in contributing_bullets["benchmark"]
-
-
-def test_supported_shell_installer_path_uses_verified_release_assets() -> None:
-    install_text = (_ROOT / "install.sh").read_text(encoding="utf-8")
-    readme_text = _README.read_text(encoding="utf-8")
-    readme_zh_text = _README_ZH.read_text(encoding="utf-8")
-    troubleshooting_text = _TROUBLESHOOTING.read_text(encoding="utf-8")
-
-    assert "--archive-file" in install_text
-    assert "--checksum-file" in install_text
-    assert "ARCHIVE_TAG=latest bash -" not in readme_text
-    assert "ARCHIVE_TAG=latest bash -" not in readme_zh_text
-    assert (
-        "bash ./install.sh --archive-file ./lipro-hass-<release-tag>.zip --checksum-file ./SHA256SUMS"
-        in readme_text
-    )
-    assert (
-        "bash ./install.sh --archive-file ./lipro-hass-<release-tag>.zip --checksum-file ./SHA256SUMS"
-        in readme_zh_text
-    )
-    assert re.search(r"for example v\d+\.\d+\.\d+", readme_text) is None
-    assert re.search(r"例如 v\d+\.\d+\.\d+", readme_zh_text) is None
-    assert (
-        "verified GitHub Release assets" in troubleshooting_text
-        or "verified release assets" in troubleshooting_text
-    )
-    assert "ARCHIVE_TAG=main" in readme_text
-    assert "ARCHIVE_TAG=main" in readme_zh_text
-
 
 def test_phase_23_audit_checklist_covers_addendum_and_explicit_defers() -> None:
     checklist_text = (
@@ -342,176 +255,6 @@ def test_phase_23_audit_checklist_covers_addendum_and_explicit_defers() -> None:
         "code scanning",
     ):
         assert token in checklist_text
-
-
-def test_troubleshooting_and_runbook_navigation_is_consistent() -> None:
-    assert _TROUBLESHOOTING.exists()
-    assert _RUNBOOK.exists()
-
-    troubleshooting_targets = (
-        _README,
-        _README_ZH,
-        _CONTRIBUTING,
-        _SUPPORT,
-        _DOCS_README,
-    )
-    runbook_targets = (
-        _README,
-        _README_ZH,
-        _CONTRIBUTING,
-        _SUPPORT,
-        _SECURITY,
-        _DOCS_README,
-        _PR_TEMPLATE,
-        _ROOT / ".github" / "ISSUE_TEMPLATE" / "bug.yml",
-    )
-
-    for path in troubleshooting_targets:
-        assert "docs/TROUBLESHOOTING.md" in path.read_text(encoding="utf-8")
-    for path in runbook_targets:
-        assert "docs/MAINTAINER_RELEASE_RUNBOOK.md" in path.read_text(encoding="utf-8")
-
-
-def test_latest_closeout_pointer_and_archived_route_stay_current() -> None:
-    milestones_text = (_ROOT / ".planning" / "MILESTONES.md").read_text(encoding="utf-8")
-    docs_text = _DOCS_README.read_text(encoding="utf-8")
-    runbook_text = _RUNBOOK.read_text(encoding="utf-8")
-
-    _assert_public_docs_hide_internal_route_story(docs_text)
-    assert LATEST_ARCHIVED_EVIDENCE_FILENAME in runbook_text
-    assert "V1_6_EVIDENCE_INDEX.md" not in runbook_text
-    assert "## v1.20 Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement" in milestones_text
-    assert f"{LATEST_ARCHIVED_EVIDENCE_LABEL} = `{LATEST_ARCHIVED_EVIDENCE_PATH}`" in milestones_text
-    assert "v1.11" not in docs_text
-    assert "v1.11" not in runbook_text
-
-
-def test_security_disclosure_path_is_present() -> None:
-    security_text = _SECURITY.read_text(encoding="utf-8")
-    issue_config = _load_yaml(_ISSUE_CONFIG)
-    contact_links = _as_mapping_list(issue_config["contact_links"])
-    docs_link = next(
-        link for link in contact_links if "Documentation" in _as_str(link["name"])
-    )
-    security_link = next(
-        link for link in contact_links if "Security" in _as_str(link["name"])
-    )
-
-    assert "/security/advisories/new" in security_text
-    assert "public GitHub issue" in security_text
-    assert "private-access" in security_text
-    assert _as_str(docs_link["url"]).endswith("/docs/README.md")
-    assert "access mode" in _as_str(security_link["about"]).lower()
-
-
-def test_readme_exposes_community_and_governance_entrypoints() -> None:
-    for readme_path in (_README, _README_ZH):
-        readme_text = readme_path.read_text(encoding="utf-8")
-        for asset in (
-            "CONTRIBUTING.md",
-            "SUPPORT.md",
-            "SECURITY.md",
-            "CODE_OF_CONDUCT.md",
-            "docs/README.md",
-            "custom_components/lipro/quality_scale.yaml",
-            ".devcontainer.json",
-        ):
-            assert asset in readme_text
-
-
-def test_manifest_codeowners_match_repo_codeowners() -> None:
-    manifest = _load_json(_MANIFEST)
-    assert manifest.get("codeowners") == _parse_codeowners_handles(
-        _CODEOWNERS.read_text(encoding="utf-8")
-    )
-
-
-def test_release_runbook_and_support_docs_expose_continuity_truth() -> None:
-    runbook_text = _RUNBOOK.read_text(encoding="utf-8")
-    support_text = _SUPPORT.read_text(encoding="utf-8")
-    security_text = _SECURITY.read_text(encoding="utf-8")
-    codeowners_text = _CODEOWNERS.read_text(encoding="utf-8")
-
-    for token in (
-        "single-maintainer",
-        "release custody",
-        "freeze",
-        "best effort",
-        "delegate",
-    ):
-        assert token in runbook_text
-    assert "Continuity Drill Checklist" in runbook_text
-    assert "maintainer-unavailable drill" in runbook_text.lower()
-    assert "triage owner" in support_text
-    assert "best effort" in support_text
-    assert "no documented delegate exists today" in support_text
-    assert "maintainer-unavailable drill" in support_text.lower()
-    assert "freeze new tagged releases" in security_text
-    assert "Documented delegate: none currently" in security_text
-    assert "maintainer-unavailable drill" in security_text.lower()
-    assert "release custodian" in codeowners_text
-    assert "maintainer-unavailable drill" in codeowners_text.lower()
-    assert "restore custody only after" in codeowners_text
-
-
-def test_support_and_issue_routing_are_consistent() -> None:
-    support_text = _SUPPORT.read_text(encoding="utf-8")
-    security_text = _SECURITY.read_text(encoding="utf-8")
-    contributing_text = _CONTRIBUTING.read_text(encoding="utf-8")
-    readme_text = _README.read_text(encoding="utf-8")
-    readme_zh_text = _README_ZH.read_text(encoding="utf-8")
-    runbook_text = _RUNBOOK.read_text(encoding="utf-8")
-    issue_config = _load_yaml(_ISSUE_CONFIG)
-    contact_links = _as_mapping_list(issue_config.get("contact_links", []))
-    docs_link = next(
-        link for link in contact_links if "Documentation" in _as_str(link["name"])
-    )
-    contact_abouts = [_as_str(link["about"]) for link in contact_links]
-
-    assert "SUPPORT.md" in contributing_text
-    assert "SECURITY.md" in contributing_text
-    assert "verified release assets" in contributing_text
-    assert _as_str(docs_link["url"]).endswith("/docs/README.md")
-    assert any("access mode" in about.lower() for about in contact_abouts)
-    assert "Discussion" in support_text or "讨论" in support_text
-    assert "SECURITY.md" in support_text
-    assert "single-maintainer" in support_text
-    assert "verified GitHub Release assets" in support_text
-    assert "private-access" in readme_text
-    assert "future public mirror" in readme_text
-    assert "verified GitHub Release assets" in readme_text
-    assert "private-access" in readme_zh_text
-    assert "public mirror" in readme_zh_text
-    assert "已校验 GitHub Release 资产" in readme_zh_text
-    assert "matching HACS install" in runbook_text
-    assert "verified GitHub Release assets" in runbook_text
-    assert "Best effort" in security_text or "best effort" in security_text
-    assert "verified GitHub Release assets" in security_text
-
-
-def test_templates_and_governance_docs_keep_continuity_contract() -> None:
-    bug_text = (_ROOT / ".github" / "ISSUE_TEMPLATE" / "bug.yml").read_text(
-        encoding="utf-8"
-    )
-    pr_text = _PR_TEMPLATE.read_text(encoding="utf-8")
-    support_text = _SUPPORT.read_text(encoding="utf-8")
-    security_text = _SECURITY.read_text(encoding="utf-8")
-    codeowners_text = _CODEOWNERS.read_text(encoding="utf-8")
-
-    assert "do not transfer release custody" in bug_text
-    assert "undocumented delegate" in bug_text
-    assert "freeze new tagged releases and new release promises" in bug_text
-    assert "do not transfer release custody" in support_text
-    assert "do not by themselves transfer release custody" in security_text
-    assert "issue/PR template text" in security_text
-    assert "docs/README.md" in pr_text
-    assert "docs/MAINTAINER_RELEASE_RUNBOOK.md" in pr_text
-    assert ".github/CODEOWNERS" in pr_text
-    assert "maintainer-unavailable drill" in bug_text.lower()
-    assert "maintainer-unavailable drill" in pr_text.lower()
-    assert "undocumented delegate" in pr_text
-    assert "do not transfer custody" in codeowners_text
-
 
 def test_preview_lane_and_release_identity_keep_stable_contract_separate() -> None:
     ci_workflow = _load_yaml(_CI_WORKFLOW)
@@ -576,62 +319,3 @@ def test_preview_lane_and_release_identity_keep_stable_contract_separate() -> No
         assert "schedule" in lowered
         assert "workflow_dispatch" in lowered
         assert "advisory" in lowered
-
-
-def test_runbook_and_pr_template_capture_break_glass_and_rehearsal_truth() -> None:
-    registry = _load_json(_GOVERNANCE_REGISTRY)
-    release_registry = _as_mapping(registry["release"])
-    runbook_text = _RUNBOOK.read_text(encoding="utf-8")
-    pr_text = _PR_TEMPLATE.read_text(encoding="utf-8")
-
-    for token in (
-        _as_str(release_registry["break_glass_verify_only_phrase"]),
-        _as_str(release_registry["non_publish_rehearsal_phrase"]),
-    ):
-        assert token in runbook_text
-        assert token in pr_text
-
-
-def test_change_type_validation_guidance_is_consistent() -> None:
-    contributing_text = _CONTRIBUTING.read_text(encoding="utf-8")
-    support_text = _SUPPORT.read_text(encoding="utf-8")
-    runbook_text = _RUNBOOK.read_text(encoding="utf-8")
-
-    for token in ("docs-only", "governance-only", "release-only"):
-        assert token in contributing_text
-    assert "publish_assets=false" in contributing_text
-    assert "publish_assets=false" in runbook_text
-    assert "release-only" in support_text
-
-
-def test_quality_scale_and_devcontainer_truth_are_in_sync() -> None:
-    quality_scale = _load_yaml(_QUALITY_SCALE)
-    rules = _as_mapping(quality_scale["rules"])
-    known_limitations_rule = _as_mapping(rules["docs-known-limitations"])
-    known_limitations_comment = _as_str(known_limitations_rule["comment"])
-    match = re.search(r"(\d+) known limitations", known_limitations_comment)
-    assert match is not None
-    expected_known_limitations = int(match.group(1))
-
-    readme_section = _extract_markdown_section(
-        _README.read_text(encoding="utf-8"),
-        "Known Limitations",
-    )
-    assert _count_numbered_markdown_items(readme_section) == expected_known_limitations
-    config_flow_rule = _as_mapping(rules["config-flow-test-coverage"])
-    config_flow_comment = _as_str(config_flow_rule["comment"])
-    for relative_path in (
-        "tests/flows/test_flow_schemas.py",
-        "tests/flows/test_config_flow_user.py",
-        "tests/flows/test_config_flow_reauth.py",
-        "tests/flows/test_config_flow_reconfigure.py",
-        "tests/flows/test_options_flow.py",
-    ):
-        assert relative_path in config_flow_comment
-        assert (_ROOT / relative_path).exists()
-
-    devcontainer = _load_json(_DEVCONTAINER)
-    customizations = _as_mapping(devcontainer["customizations"])
-    vscode = _as_mapping(customizations["vscode"])
-    settings = _as_mapping(vscode["settings"])
-    assert _as_str(settings["python.defaultInterpreterPath"]).endswith("/.venv/bin/python")
