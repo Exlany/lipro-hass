@@ -27,10 +27,10 @@ PLANNING_ROUTE_CONTRACT: dict[str, object] = {
     "active_milestone": {
         "version": "v1.21",
         "name": "Governance Bootstrap Truth Hardening & Planning Route Automation",
-        "status": "execution-ready (2026-03-26)",
-        "phase": "76",
-        "phase_title": "Governance bootstrap truth hardening, archive-seed determinism, and active-route activation",
-        "route_mode": "Phase 76 execution-ready",
+        "status": "closeout-ready (2026-03-26)",
+        "phase": "78",
+        "phase_title": "Quality gate formalization, route-handoff ergonomics, and milestone-closeout readiness",
+        "route_mode": "Phase 78 complete",
     },
     "latest_archived": {
         "version": "v1.20",
@@ -49,8 +49,8 @@ PLANNING_ROUTE_CONTRACT: dict[str, object] = {
         "evidence_path": ".planning/reviews/V1_19_EVIDENCE_INDEX.md",
     },
     "bootstrap": {
-        "current_route": "v1.21 active route / Phase 76 execution-ready / latest archived baseline = v1.20",
-        "default_next_command": "$gsd-execute-phase 76",
+        "current_route": "v1.21 active route / Phase 78 complete / latest archived baseline = v1.20",
+        "default_next_command": "$gsd-complete-milestone v1.21",
         "latest_archived_evidence_pointer": ".planning/reviews/V1_20_EVIDENCE_INDEX.md",
     },
 }
@@ -119,6 +119,7 @@ CURRENT_ROUTE = _as_str(_BOOTSTRAP["current_route"])
 CURRENT_ROUTE_MODE = _as_str(_ACTIVE["route_mode"])
 CURRENT_ROUTE_PROSE_FORBIDDEN = (
     "v1.20 active route / Phase 75 complete / latest archived baseline = v1.19",
+    "v1.21 active route / Phase 76 execution-ready / latest archived baseline = v1.20",
 )
 CURRENT_RUNTIME_ROOT_TEST = "tests/core/coordinator/test_runtime_root.py"
 LATEST_ARCHIVED_MILESTONE = _as_str(_LATEST["version"])

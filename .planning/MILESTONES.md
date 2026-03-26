@@ -9,10 +9,10 @@ contract_name: governance-route
 active_milestone:
   version: v1.21
   name: Governance Bootstrap Truth Hardening & Planning Route Automation
-  status: execution-ready (2026-03-26)
-  phase: "76"
-  phase_title: Governance bootstrap truth hardening, archive-seed determinism, and active-route activation
-  route_mode: Phase 76 execution-ready
+  status: closeout-ready (2026-03-26)
+  phase: "78"
+  phase_title: Quality gate formalization, route-handoff ergonomics, and milestone-closeout readiness
+  route_mode: Phase 78 complete
 latest_archived:
   version: v1.20
   name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
@@ -28,8 +28,8 @@ previous_archived:
   name: Audit-Driven Final Hotspot Decomposition & Governance Truth Projection
   evidence_path: .planning/reviews/V1_19_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.21 active route / Phase 76 execution-ready / latest archived baseline = v1.20
-  default_next_command: $gsd-execute-phase 76
+  current_route: v1.21 active route / Phase 78 complete / latest archived baseline = v1.20
+  default_next_command: $gsd-complete-milestone v1.21
   latest_archived_evidence_pointer: .planning/reviews/V1_20_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->

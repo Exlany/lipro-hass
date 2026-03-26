@@ -82,7 +82,7 @@ def test_promoted_phase_assets_manifest_enforces_explicit_ci_evidence() -> None:
     )
 
 
-def test_phase_76_activation_contract_aligns_verification_and_file_matrix() -> None:
+def test_phase_78_exit_contract_aligns_verification_and_file_matrix() -> None:
     verification_text = (
         _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
     ).read_text(encoding="utf-8")
@@ -90,7 +90,7 @@ def test_phase_76_activation_contract_aligns_verification_and_file_matrix() -> N
         _ROOT / ".planning" / "reviews" / "FILE_MATRIX.md"
     ).read_text(encoding="utf-8")
 
-    assert "## Phase 76 Current-Route Activation Contract" in verification_text
+    assert "## Phase 78 Exit Contract" in verification_text
     assert f"当前 mutable story = `{CURRENT_ROUTE}`" in verification_text
     assert f"default next command = `{CURRENT_MILESTONE_DEFAULT_NEXT}`" in verification_text
     assert f"**Latest archived pointer:** `{LATEST_ARCHIVED_EVIDENCE_PATH}`" in verification_text
@@ -100,10 +100,13 @@ def test_phase_76_activation_contract_aligns_verification_and_file_matrix() -> N
         "tests/meta/test_governance_release_contract.py"
     ) in verification_text
     assert (
-        "uv run pytest -q tests/meta/test_governance_milestone_archives.py "
+        "uv run pytest -q tests/meta/test_governance_route_handoff_smoke.py "
+        "tests/meta/test_governance_milestone_archives.py "
         "tests/meta/governance_followup_route_current_milestones.py "
-        "tests/meta/test_phase75_governance_closeout_guards.py"
+        "tests/meta/test_phase75_governance_closeout_guards.py "
+        "tests/meta/test_governance_promoted_phase_assets.py"
     ) in verification_text
+    assert "node \"$HOME/.codex/get-shit-done/bin/gsd-tools.cjs\" init progress" in verification_text
     assert "uv run python scripts/check_file_matrix.py --check" in verification_text
 
     row_expectations = {
@@ -111,6 +114,7 @@ def test_phase_76_activation_contract_aligns_verification_and_file_matrix() -> N
         "tests/meta/governance_current_truth.py": "governance-route contract + shared current/latest archive truth helper",
         "tests/meta/governance_promoted_assets.py": "shared promoted-phase-asset helper home",
         "tests/meta/test_governance_bootstrap_smoke.py": "focused bootstrap smoke guard home",
+        "tests/meta/test_governance_route_handoff_smoke.py": "route-handoff gsd fast-path smoke guard home",
         "tests/meta/test_governance_closeout_guards.py": "closeout + promoted-asset manifest smoke anchor",
         "tests/meta/governance_followup_route_current_milestones.py": "governance-route contract + current/latest archive pointer-drift guard",
         "tests/meta/test_governance_release_contract.py": "release/docs governance contract guard home",

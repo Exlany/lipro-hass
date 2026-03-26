@@ -314,3 +314,19 @@
 - 本 phase **无新增 active kill target**；typed runtime-access wrappers、schedule/protocol service narrowing、checker balance hardening 与 current-story governance freeze 都沿既有正式 home 收口，没有制造新的 delete-gated 过渡物。
 - `custom_components/lipro/control/runtime_access_support.py`、`custom_components/lipro/runtime_infra.py` 与 related helper mirrors 继续只承担 localized support seam 身份，不是未来 cleanup campaign 的临时借口。
 - `v1.18` archive promotion 已完成；当前无 active milestone route，且不得把 `Phase 70` 结果回退成 planned residual。
+
+
+## Phase 76 Status Update
+
+- 本 phase **无新增 active kill target**；治理真相修复采用 contract/block/guard 收口，而不是 file-level cleanup campaign。
+- historical milestone prose 继续保留 archive/audit 身份；被关闭的是 parser-visible shadow，而不是历史证据本身。
+
+## Phase 77 Status Update
+
+- 本 phase **无新增 active kill target**；shared helper 已回到诚实 helper home，focused bootstrap smoke 已冻结成长期 no-growth concern。
+- `test_governance_closeout_guards.py` 不再承担跨 suite helper API 身份；被关闭的是误导性 topology，而不是 closeout smoke anchor。
+
+## Phase 78 Status Update
+
+- 本 phase **无新增 active kill target**；closeout-ready route handoff 只前推 live truth、fast-path smoke 与 review ledgers，不新增 file-level delete gate。
+- 后续唯一正式下一步是 `$gsd-complete-milestone v1.21`；不得再以“补 current story”为名重开隐性 phase。

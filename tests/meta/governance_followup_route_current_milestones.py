@@ -182,7 +182,7 @@ def test_archived_route_followup_truth_from_v1_8_to_v1_20_is_consistent() -> Non
     assert ".planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-01-PLAN.md" not in project_text
 
     contracts = assert_machine_readable_route_contracts()
-    assert contracts["REQUIREMENTS"]["active_milestone"]["phase"] == "76"
+    assert contracts["REQUIREMENTS"]["active_milestone"]["phase"] == "78"
     assert contracts["MILESTONES"]["latest_archived"]["version"] == "v1.20"
     assert (
         contracts["STATE"]["bootstrap"]["latest_archived_evidence_pointer"]
@@ -242,7 +242,8 @@ def test_archived_route_followup_truth_from_v1_8_to_v1_20_is_consistent() -> Non
 
     assert f"**Current milestone:** `{CURRENT_MILESTONE_STATE_LABEL}`" in state_text
     assert f"**Current mode:** `{CURRENT_ROUTE_MODE}`" in state_text
-    assert "execution-ready" in CURRENT_MILESTONE_STATUS
+    assert "closeout-ready" in CURRENT_MILESTONE_STATUS
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
+    assert CURRENT_MILESTONE_DEFAULT_NEXT in roadmap_text
     assert LATEST_ARCHIVED_AUDIT_PATH in state_text
     assert LATEST_ARCHIVED_EVIDENCE_PATH in state_text

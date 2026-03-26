@@ -2,31 +2,31 @@
 
 ## Current Milestone (v1.21)
 
-> `v1.21` 以 `v1.20` archived baseline、machine-readable bootstrap drift 修正与当前 governance route guards 为 immediate seed；当前 mutable story 已前推到 `Phase 76 execution-ready`，默认下一步为 `$gsd-execute-phase 76`；本轮重点不是重开生产热点，而是把 planning/bootstrap/current-route truth 收口成稳定、低维护、可机器消费的正式合同。
+> `v1.21` 以 `v1.20` archived baseline、machine-readable bootstrap drift 修正与 `Phase 76 -> 78` 的 governance route guards 为 immediate seed；当前 mutable story 已前推到 `Phase 78 complete`，里程碑状态为 `closeout-ready`，默认下一步为 `$gsd-complete-milestone v1.21`；本轮重点不是重开生产热点，而是把 planning/bootstrap/current-route truth 冻结成稳定、低维护、可机器消费的正式 handoff contract。
 
 ### Governance Bootstrap Truth Hardening & Planning Route Automation
 
-- [ ] **GOV-57**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / tests/meta` 必须共享单一 deterministic current-route 与 next-milestone seed；archived-only / active-route 切换不得再依赖 accidental heading order、hidden parser assumptions 或大段 prose 复制。
-- [ ] **ARC-20**: 历史 milestone body 可以继续保留 audit / archive 身份，但不得再在 current-route 之前以 parser-visible 形式伪装成 active/current milestone 候选。
-- [ ] **DOC-04**: planning docs 必须显式区分 human-readable narrative 与 machine-readable bootstrap contract，并在不污染 public docs 的前提下诚实声明 latest archived baseline / previous archived baseline / next step。
-- [ ] **TST-23**: focused governance guards 必须覆盖 active-route bootstrap、latest-archive projection、historical-route demotion 与 literal-drift freeze，避免同一 current-story 在多份 suites 中手工散写。
-- [ ] **QLT-31**: 开启下一条正式路线必须成为可重复验证的质量门：`gsd` smoke、focused route guards、file-matrix / architecture / repo-wide gates 需共同证明 route activation 不是一次性修复。
+- [x] **GOV-57**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / tests/meta` 必须共享单一 deterministic current-route 与 next-milestone seed；archived-only / active-route 切换不得再依赖 accidental heading order、hidden parser assumptions 或大段 prose 复制。
+- [x] **ARC-20**: 历史 milestone body 可以继续保留 audit / archive 身份，但不得再在 current-route 之前以 parser-visible 形式伪装成 active/current milestone 候选。
+- [x] **DOC-04**: planning docs 必须显式区分 human-readable narrative 与 machine-readable bootstrap contract，并在不污染 public docs 的前提下诚实声明 latest archived baseline / previous archived baseline / next step。
+- [x] **TST-23**: focused governance guards 必须覆盖 active-route bootstrap、latest-archive projection、historical-route demotion 与 literal-drift freeze，避免同一 current-story 在多份 suites 中手工散写。
+- [x] **QLT-31**: 开启下一条正式路线必须成为可重复验证的质量门：`gsd` smoke、focused route guards、file-matrix / architecture / repo-wide gates 需共同证明 route activation 不是一次性修复。
 
 ## Traceability for v1.21 route
 
 | Requirement | Planned Phase | Status |
 |-------------|---------------|--------|
-| GOV-57 | Phase 76 | Planned |
-| ARC-20 | Phase 76 | Planned |
-| DOC-04 | Phase 77 | Planned |
-| TST-23 | Phase 77 | Planned |
-| QLT-31 | Phase 78 | Planned |
+| GOV-57 | Phase 76, 78 | Completed |
+| ARC-20 | Phase 76 | Completed |
+| DOC-04 | Phase 77 | Completed |
+| TST-23 | Phase 77 | Completed |
+| QLT-31 | Phase 78 | Completed |
 
 **Current Coverage:**
 - v1.21 requirements: 5 total
 - Current mapped: 5
-- Current complete: 0
-- Current pending: 5
+- Current complete: 5
+- Current pending: 0
 - Current unmapped: 0 ✓
 
 <!-- governance-route-contract:start -->
@@ -36,10 +36,10 @@ contract_name: governance-route
 active_milestone:
   version: v1.21
   name: Governance Bootstrap Truth Hardening & Planning Route Automation
-  status: execution-ready (2026-03-26)
-  phase: "76"
-  phase_title: Governance bootstrap truth hardening, archive-seed determinism, and active-route activation
-  route_mode: Phase 76 execution-ready
+  status: closeout-ready (2026-03-26)
+  phase: "78"
+  phase_title: Quality gate formalization, route-handoff ergonomics, and milestone-closeout readiness
+  route_mode: Phase 78 complete
 latest_archived:
   version: v1.20
   name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
@@ -55,8 +55,8 @@ previous_archived:
   name: Audit-Driven Final Hotspot Decomposition & Governance Truth Projection
   evidence_path: .planning/reviews/V1_19_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.21 active route / Phase 76 execution-ready / latest archived baseline = v1.20
-  default_next_command: $gsd-execute-phase 76
+  current_route: v1.21 active route / Phase 78 complete / latest archived baseline = v1.20
+  default_next_command: $gsd-complete-milestone v1.21
   latest_archived_evidence_pointer: .planning/reviews/V1_20_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->

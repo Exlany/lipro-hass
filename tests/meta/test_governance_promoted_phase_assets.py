@@ -271,3 +271,29 @@ def test_phase_74_closeout_assets_exist_and_are_promoted() -> None:
     assert "74-04-SUMMARY.md" in audit_text
     assert "74-VERIFICATION.md" in audit_text
     assert "74-VALIDATION.md" in audit_text
+
+
+def test_phase_78_closeout_assets_exist_and_are_promoted() -> None:
+    _assert_promoted_phase_assets(
+        "78-quality-gate-formalization-route-handoff-ergonomics-and-milestone-closeout-readiness",
+        "78-01-SUMMARY.md",
+        "78-02-SUMMARY.md",
+        "78-03-SUMMARY.md",
+        "78-SUMMARY.md",
+        "78-VERIFICATION.md",
+        "78-VALIDATION.md",
+    )
+
+    verification_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    residual_text = (
+        _ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md"
+    ).read_text(encoding="utf-8")
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "## Phase 78 Exit Contract" in verification_text
+    assert "## Phase 78 Residual Delta" in residual_text
+    assert "## Phase 78 Status Update" in kill_text

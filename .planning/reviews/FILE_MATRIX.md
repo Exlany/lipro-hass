@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 640
+**Python files total:** 641
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -566,6 +566,7 @@
 | `tests/meta/test_firmware_support_manifest_repo_asset.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/governance_promoted_assets.py` | Assurance | Phase 77 | 保留 | shared promoted-phase-asset helper home |
 | `tests/meta/test_governance_bootstrap_smoke.py` | Assurance | Phase 77 | 保留 | focused bootstrap smoke guard home |
+| `tests/meta/test_governance_route_handoff_smoke.py` | Assurance | Phase 78 | 保留 | route-handoff gsd fast-path smoke guard home |
 | `tests/meta/test_governance_closeout_guards.py` | Assurance | Phase 27 / 44 / 49 / 77 | 保留 | closeout + promoted-asset manifest smoke anchor |
 | `tests/meta/test_governance_followup_route.py` | Assurance | Phase 49 | 保留 | thin shell after followup-route topicization |
 | `tests/meta/test_governance_guards.py` | Assurance | Phase 33 | 保留 | inventory / policy governance topic root |

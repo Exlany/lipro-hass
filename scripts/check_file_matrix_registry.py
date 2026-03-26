@@ -520,6 +520,8 @@ def _classify_test_path(path: str) -> FileGovernanceRow | None:
         return _row_for_path(path, "Assurance", "Phase 8")
     if path == "tests/meta/test_governance_bootstrap_smoke.py":
         return _row_for_path(path, "Assurance", "Phase 77")
+    if path == "tests/meta/test_governance_route_handoff_smoke.py":
+        return _row_for_path(path, "Assurance", "Phase 78")
     if path == "tests/meta/governance_promoted_assets.py":
         return _row_for_path(path, "Assurance", "Phase 77")
     if path == "tests/meta/test_governance_closeout_guards.py":

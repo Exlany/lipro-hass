@@ -28,10 +28,12 @@ def test_active_route_bootstrap_contract_stays_current() -> None:
     assert CURRENT_MILESTONE_DEFAULT_NEXT in project_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in roadmap_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
-    assert '## Phase 76 Current-Route Activation Contract' in verification_text
+    assert '## Phase 78 Exit Contract' in verification_text
+    assert CURRENT_ROUTE in verification_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in verification_text
     assert f'**Latest archived pointer:** `{LATEST_ARCHIVED_EVIDENCE_PATH}`' in verification_text
     assert 'tests/meta/test_governance_bootstrap_smoke.py' in verification_text
+    assert 'tests/meta/test_governance_route_handoff_smoke.py' in verification_text
 
 
 def test_public_docs_keep_internal_bootstrap_story_hidden() -> None:

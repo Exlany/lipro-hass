@@ -2,7 +2,7 @@
 
 **Purpose:** 建立 requirement → artifact → test → doc → phase acceptance / handoff 的统一验证闭环。
 **Status:** Formal baseline asset (`BASE-03` phase acceptance truth source)
-**Updated:** 2026-03-25 (Phase 74 closeout aligned)
+**Updated:** 2026-03-26 (Phase 78 closeout aligned)
 
 ## Formal Role
 
@@ -395,3 +395,13 @@
 - default next command = `$gsd-execute-phase 76`
 - **Focused runnable proof:** `uv run pytest -q tests/meta/test_governance_bootstrap_smoke.py tests/meta/test_governance_closeout_guards.py tests/meta/test_governance_release_contract.py`、`uv run pytest -q tests/meta/test_governance_milestone_archives.py tests/meta/governance_followup_route_current_milestones.py tests/meta/test_phase75_governance_closeout_guards.py tests/meta/test_version_sync.py` 与 `uv run python scripts/check_file_matrix.py --check`。
 - **Unblock effect:** current route 已从 planning-ready 前推到 execution-ready；latest archived baseline 继续固定为 `v1.20`，latest archived pointer 继续固定为 `.planning/reviews/V1_20_EVIDENCE_INDEX.md`，下一步默认执行 `$gsd-execute-phase 76`。
+
+
+## Phase 78 Exit Contract
+
+- **Required artifacts:** `.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md,MILESTONES.md}`, `.planning/baseline/VERIFICATION_MATRIX.md`, `.planning/reviews/{FILE_MATRIX.md,PROMOTED_PHASE_ASSETS.md,RESIDUAL_LEDGER.md,KILL_LIST.md}`, `tests/meta/{governance_current_truth.py,test_governance_bootstrap_smoke.py,test_governance_route_handoff_smoke.py,test_governance_closeout_guards.py,test_governance_milestone_archives.py,governance_followup_route_current_milestones.py,test_phase75_governance_closeout_guards.py,test_governance_promoted_phase_assets.py,test_governance_release_contract.py,test_version_sync.py}`, `.planning/phases/78-quality-gate-formalization-route-handoff-ergonomics-and-milestone-closeout-readiness/{78-01-SUMMARY.md,78-02-SUMMARY.md,78-03-SUMMARY.md,78-SUMMARY.md,78-VERIFICATION.md,78-VALIDATION.md}`.
+- **Required governance proof:** 当前 mutable story = `v1.21 active route / Phase 78 complete / latest archived baseline = v1.20`；`PROJECT.md`、`ROADMAP.md`、`REQUIREMENTS.md`、`STATE.md`、`MILESTONES.md` 与 `tests/meta/governance_current_truth.py` 的 `governance-route` contract block 必须共同承认 `status = closeout-ready (2026-03-26)`、`route_mode = Phase 78 complete` 与 default next command = `$gsd-complete-milestone v1.21`；`.planning/reviews/PROMOTED_PHASE_ASSETS.md` 需 allowlist `Phase 76 / 77 / 78` closeout bundles，且不得提升 `PLAN / CONTEXT / RESEARCH`；`.planning/reviews/RESIDUAL_LEDGER.md` 与 `.planning/reviews/KILL_LIST.md` 必须共同声明本轮无新增 active residual family / active kill target。
+- **Latest archived pointer:** `.planning/reviews/V1_20_EVIDENCE_INDEX.md`
+- default next command = `$gsd-complete-milestone v1.21`
+- **Required runnable proof:** `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" init progress`、`node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" state json`、`node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" phase-plan-index 78`、`uv run pytest -q tests/meta/test_governance_bootstrap_smoke.py tests/meta/test_governance_closeout_guards.py tests/meta/test_governance_route_handoff_smoke.py tests/meta/test_governance_release_contract.py tests/meta/test_version_sync.py`、`uv run pytest -q tests/meta/test_governance_route_handoff_smoke.py tests/meta/test_governance_milestone_archives.py tests/meta/governance_followup_route_current_milestones.py tests/meta/test_phase75_governance_closeout_guards.py tests/meta/test_governance_promoted_phase_assets.py`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check` 与 `uv run ruff check tests/meta`。
+- **Unblock effect:** `Phase 78` 可标记为 `3/3 complete`；`v1.21` 进入 milestone closeout-ready，且后续下一步只能执行 `$gsd-complete-milestone v1.21`。

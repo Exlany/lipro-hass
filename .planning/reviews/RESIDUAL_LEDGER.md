@@ -422,3 +422,19 @@ _None currently registered._
 - 无新增 active residual family。
 - OTA / firmware-install、anonymous-share submit、request pacing 与 command-runtime 长流程已在本 phase 获得更窄 helper decomposition；后续若继续优化，只允许沿既有 formal homes / governance chain 细化。
 - milestone truth 已完成 archive promotion；当前 mutable current story 现为 `no active milestone route / latest archived baseline = v1.20`；`v1.18` 退为 previous archived baseline。
+
+
+## Phase 76 Residual Delta
+
+- 无新增 active residual family。
+- machine-readable governance-route contract、latest archived pointer 与 parser-visible bootstrap shadow 已在本 phase 完成收口；后续若继续优化，只允许沿既有 planning/baseline/review truth 细化，不得重开第二故事线。
+
+## Phase 77 Residual Delta
+
+- 无新增 active residual family。
+- bootstrap smoke topicization、shared route-truth helper 与 docs/private-boundary freeze 已在本 phase 完成收口；后续只允许继续沿 focused guard 细化，不得把 mega-suite 或 helper folklore 写回 live route。
+
+## Phase 78 Residual Delta
+
+- 无新增 active residual family。
+- route-handoff fast path、closeout-ready wording、promoted evidence allowlist 与 review ledgers 已在本 phase 冻结；后续 archive promotion 只消费这些既有证据，不得再回头补 current-story handoff。
