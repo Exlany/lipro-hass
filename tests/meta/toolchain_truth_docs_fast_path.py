@@ -10,6 +10,8 @@ import yaml
 
 from tests.helpers.repo_root import repo_root
 
+from .governance_current_truth import LEGACY_ARCHIVED_CLOSEOUT_POINTER_LABEL
+
 _ROOT = repo_root(Path(__file__))
 
 _PYPROJECT = _ROOT / "pyproject.toml"
@@ -117,7 +119,7 @@ def test_docs_index_keeps_internal_route_story_out_of_public_fast_path() -> None
     for token in (
         "Current governance status",
         "$gsd-plan-phase",
-        "latest archived closeout pointer",
+        LEGACY_ARCHIVED_CLOSEOUT_POINTER_LABEL,
         "V1_20_EVIDENCE_INDEX.md",
     ):
         assert token not in docs_text

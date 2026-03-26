@@ -37,7 +37,7 @@
 
 ## Previous Archived Milestone (v1.19)
 
-> `v1.19` 已于 `2026-03-25` 完成归档；以下 requirements / traceability 保留 `Phase 71` 的最终 fulfilled contract。当前它已退为 previous archived baseline；latest closeout pointer 现为 `.planning/reviews/V1_20_EVIDENCE_INDEX.md`。
+> `v1.19` 已于 `2026-03-25` 完成归档；以下 requirements / traceability 保留 `Phase 71` 的最终 fulfilled contract。当前它已退为 previous archived baseline；latest archived evidence index 现为 `.planning/reviews/V1_20_EVIDENCE_INDEX.md`。
 
 - [x] **GOV-55**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / docs index / meta guards` 在 `v1.19` archive promotion 当时共同承认 `v1.19` 已完成 archive promotion；当前治理状态已切换为 `no active milestone route / latest archived baseline = v1.20`，`v1.19` 退为 previous archived baseline。
 - [x] **ARC-18**: OTA / firmware-update / anonymous-share / request pacing / command runtime 只允许 inward decomposition，不得新增 outward root、compat shell 或 second story。

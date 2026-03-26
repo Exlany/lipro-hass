@@ -151,7 +151,6 @@ _META_SUPPORT_ANY_BUDGET = {
     "tests/meta/test_blueprints.py": 3,
     "tests/meta/test_evidence_pack_authority.py": 2,
     "tests/meta/public_surface_runtime_contracts.py": 1,
-    "tests/meta/test_governance_guards.py": 4,
     "tests/meta/test_version_sync.py": 3,
 }
 

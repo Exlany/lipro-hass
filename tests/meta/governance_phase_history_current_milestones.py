@@ -1,10 +1,10 @@
-"""Current-milestone governance execution evidence guards."""
+"""Archived phase-history execution evidence guards for v1.8-v1.12."""
 
 from __future__ import annotations
 
 from .conftest import _ROOT, _assert_current_mode_tracks_phase_lifecycle
-from .governance_current_truth import CURRENT_MILESTONE_DEFAULT_NEXT
 from .test_governance_closeout_guards import (
+    _assert_promoted_closeout_package,
     _assert_promoted_phase_assets,
     _assert_state_keeps_forward_progress_commands,
     _assert_state_reflects_post_v1_4_continuation,
@@ -36,7 +36,7 @@ def test_phase_51_execution_evidence_is_consistent() -> None:
     assert "### Phase 51: Continuity automation, governance-registry projection, and release rehearsal hardening" in roadmap_text
     assert "**Status**: Complete (`2026-03-21`)" in roadmap_text
     assert "**Plans**: 3/3 complete" in roadmap_text
-    assert "**Promoted closeout package**: `51-SUMMARY.md`, `51-VERIFICATION.md`" in roadmap_text
+    _assert_promoted_closeout_package(roadmap_text, "51-SUMMARY.md", "51-VERIFICATION.md")
     for req_id in ("GOV-38", "GOV-39", "QLT-18"):
         assert f"| {req_id} | Phase 51 | Complete |" in requirements_text
     _assert_current_mode_tracks_phase_lifecycle(state_text)
@@ -79,13 +79,12 @@ def test_phase_52_execution_evidence_is_consistent() -> None:
     assert "### Phase 52: Protocol-root second-round slimming and request-policy isolation" in roadmap_text
     assert "**Status**: Complete (`2026-03-21`)" in roadmap_text
     assert "**Plans**: 3/3 complete" in roadmap_text
-    assert "**Promoted closeout package**: `52-SUMMARY.md`, `52-VERIFICATION.md`" in roadmap_text
+    _assert_promoted_closeout_package(roadmap_text, "52-SUMMARY.md", "52-VERIFICATION.md")
     assert "| ARC-08 | Phase 52 | Complete |" in requirements_text
     _assert_current_mode_tracks_phase_lifecycle(state_text)
     _assert_state_reflects_post_v1_4_continuation(state_text)
     _assert_state_keeps_forward_progress_commands(state_text)
     assert "## Planned Milestone (v1.8)" in project_text
-    assert CURRENT_MILESTONE_DEFAULT_NEXT in project_text
     assert "phase: 52" in summary_text
     assert "status: passed" in summary_text
     assert "52-03" in summary_text
@@ -121,7 +120,7 @@ def test_phase_53_execution_evidence_is_consistent() -> None:
     assert "### Phase 53: Runtime and entry-root second-round throttling" in roadmap_text
     assert "**Status**: Complete (`2026-03-21`)" in roadmap_text
     assert "**Plans**: 3/3 complete" in roadmap_text
-    assert "**Promoted closeout package**: `53-SUMMARY.md`, `53-VERIFICATION.md`" in roadmap_text
+    _assert_promoted_closeout_package(roadmap_text, "53-SUMMARY.md", "53-VERIFICATION.md")
     assert "| HOT-12 | Phase 53 | Complete |" in requirements_text
     _assert_current_mode_tracks_phase_lifecycle(state_text)
     _assert_state_reflects_post_v1_4_continuation(state_text)
@@ -163,7 +162,7 @@ def test_phase_54_execution_evidence_is_consistent() -> None:
     assert "### Phase 54: Helper-hotspot formalization for anonymous-share and diagnostics helper families" in roadmap_text
     assert "**Status**: Complete (`2026-03-21`)" in roadmap_text
     assert "**Plans**: 4/4 complete" in roadmap_text
-    assert "**Promoted closeout package**: `54-SUMMARY.md`, `54-VERIFICATION.md`" in roadmap_text
+    _assert_promoted_closeout_package(roadmap_text, "54-SUMMARY.md", "54-VERIFICATION.md")
     assert "| HOT-13 | Phase 54 | Complete |" in requirements_text
     _assert_current_mode_tracks_phase_lifecycle(state_text)
     _assert_state_reflects_post_v1_4_continuation(state_text)
@@ -205,7 +204,7 @@ def test_phase_55_execution_evidence_is_consistent() -> None:
     assert "### Phase 55: Mega-test topicization round 2 and repo-wide typing-metric stratification" in roadmap_text
     assert "**Status**: Complete (`2026-03-21`)" in roadmap_text
     assert "**Plans**: 5/5 complete" in roadmap_text
-    assert "**Promoted closeout package**: `55-SUMMARY.md`, `55-VERIFICATION.md`" in roadmap_text
+    _assert_promoted_closeout_package(roadmap_text, "55-SUMMARY.md", "55-VERIFICATION.md")
     assert "| TST-10 | Phase 55 | Complete |" in requirements_text
     assert "| TYP-13 | Phase 55 | Complete |" in requirements_text
     _assert_current_mode_tracks_phase_lifecycle(state_text)
@@ -249,7 +248,7 @@ def test_phase_56_execution_evidence_is_consistent() -> None:
     assert "### Phase 56: Shared backoff neutralization and cross-plane retry hygiene" in roadmap_text
     assert "**Status**: Complete (`2026-03-22`)" in roadmap_text
     assert "**Plans**: 3/3 complete" in roadmap_text
-    assert "**Promoted closeout package**: `56-SUMMARY.md`, `56-VERIFICATION.md`" in roadmap_text
+    _assert_promoted_closeout_package(roadmap_text, "56-SUMMARY.md", "56-VERIFICATION.md")
     assert "| RES-13 | Phase 56 | Complete |" in requirements_text
     assert "| ARC-09 | Phase 56 | Complete |" in requirements_text
     assert "| GOV-40 | Phase 56 | Complete |" in requirements_text
@@ -294,7 +293,7 @@ def test_phase_57_execution_evidence_is_consistent() -> None:
     assert "### Phase 57: Command-result typed outcome and reason-code hardening" in roadmap_text
     assert "**Status**: Complete (`2026-03-22`)" in roadmap_text
     assert "**Plans**: 3/3 complete" in roadmap_text
-    assert "**Promoted closeout package**: `57-SUMMARY.md`, `57-VERIFICATION.md`" in roadmap_text
+    _assert_promoted_closeout_package(roadmap_text, "57-SUMMARY.md", "57-VERIFICATION.md")
     assert "| ERR-12 | Phase 57 | Complete |" in requirements_text
     assert "| TYP-14 | Phase 57 | Complete |" in requirements_text
     assert "| GOV-41 | Phase 57 | Complete |" in requirements_text
@@ -339,7 +338,7 @@ def test_phase_58_execution_evidence_is_consistent() -> None:
     assert "### Phase 58: Repository audit refresh and next-wave routing" in roadmap_text
     assert "**Status**: Complete (`2026-03-22`)" in roadmap_text
     assert "**Plans**: 3/3 complete" in roadmap_text
-    assert "**Promoted closeout package**: `58-SUMMARY.md`, `58-VERIFICATION.md`" in roadmap_text
+    _assert_promoted_closeout_package(roadmap_text, "58-SUMMARY.md", "58-VERIFICATION.md")
     assert "| AUD-03 | Phase 58 | Complete |" in requirements_text
     assert "| ARC-10 | Phase 58 | Complete |" in requirements_text
     assert "| OSS-06 | Phase 58 | Complete |" in requirements_text
@@ -383,7 +382,7 @@ def test_phase_59_execution_evidence_is_consistent() -> None:
     assert "### Phase 59: Verification localization and governance guard topicization" in roadmap_text
     assert "**Status**: Complete (`2026-03-22`)" in roadmap_text
     assert "**Plans**: 3/3 complete" in roadmap_text
-    assert "**Promoted closeout package**: `59-SUMMARY.md`, `59-VERIFICATION.md`" in roadmap_text
+    _assert_promoted_closeout_package(roadmap_text, "59-SUMMARY.md", "59-VERIFICATION.md")
     assert "| TST-11 | Phase 59 | Complete |" in requirements_text
     assert "| QLT-19 | Phase 59 | Complete |" in requirements_text
     assert "| GOV-43 | Phase 59 | Complete |" in requirements_text

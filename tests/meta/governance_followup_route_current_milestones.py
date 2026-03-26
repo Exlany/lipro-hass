@@ -1,7 +1,8 @@
-"""Current milestone follow-up routing truth guards."""
+"""Archived-route follow-up truth guards spanning v1.8-v1.20."""
 
 from __future__ import annotations
 
+from .conftest import _ROOT
 from .governance_current_truth import (
     CURRENT_MILESTONE,
     CURRENT_MILESTONE_DEFAULT_NEXT,
@@ -17,10 +18,10 @@ from .governance_current_truth import (
     LATEST_ARCHIVED_EVIDENCE_PATH,
     PREVIOUS_ARCHIVED_PROJECT_HEADER,
 )
-from .test_governance_closeout_guards import _ROOT
+from .test_governance_closeout_guards import _assert_promoted_closeout_package
 
 
-def test_v1_8_closeout_through_v1_15_archived_truth_are_consistent() -> None:
+def test_archived_route_followup_truth_from_v1_8_to_v1_20_is_consistent() -> None:
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
         encoding="utf-8"
@@ -53,7 +54,7 @@ def test_v1_8_closeout_through_v1_15_archived_truth_are_consistent() -> None:
     assert "**Default next command:** `$gsd-complete-milestone v1.9`" in roadmap_text
     assert "### Phase 56: Shared backoff neutralization and cross-plane retry hygiene" in roadmap_text
     assert "**Plans**: 3/3 complete" in roadmap_text
-    assert "**Promoted closeout package**: `56-SUMMARY.md`, `56-VERIFICATION.md`" in roadmap_text
+    _assert_promoted_closeout_package(roadmap_text, "56-SUMMARY.md", "56-VERIFICATION.md")
 
     for needle in (
         "- [x] **RES-13**",
@@ -82,7 +83,7 @@ def test_v1_8_closeout_through_v1_15_archived_truth_are_consistent() -> None:
     assert "**Default next command:** `$gsd-complete-milestone v1.10`" in roadmap_text
     assert "### Phase 57: Command-result typed outcome and reason-code hardening" in roadmap_text
     assert "**Plans**: 3/3 complete" in roadmap_text
-    assert "**Promoted closeout package**: `57-SUMMARY.md`, `57-VERIFICATION.md`" in roadmap_text
+    _assert_promoted_closeout_package(roadmap_text, "57-SUMMARY.md", "57-VERIFICATION.md")
 
     for needle in (
         "- [x] **ERR-12**",
@@ -110,7 +111,7 @@ def test_v1_8_closeout_through_v1_15_archived_truth_are_consistent() -> None:
     assert "**Default next command:** `$gsd-complete-milestone v1.11`" in roadmap_text
     assert "### Phase 58: Repository audit refresh and next-wave routing" in roadmap_text
     assert "**Plans**: 3/3 complete" in roadmap_text
-    assert "**Promoted closeout package**: `58-SUMMARY.md`, `58-VERIFICATION.md`" in roadmap_text
+    _assert_promoted_closeout_package(roadmap_text, "58-SUMMARY.md", "58-VERIFICATION.md")
 
     for needle in (
         "- [x] **AUD-03**",
@@ -134,7 +135,7 @@ def test_v1_8_closeout_through_v1_15_archived_truth_are_consistent() -> None:
     assert ".planning/reviews/V1_12_EVIDENCE_INDEX.md" in roadmap_text
     assert "### Phase 59: Verification localization and governance guard topicization" in roadmap_text
     assert "**Plans**: 3/3 complete" in roadmap_text
-    assert "**Promoted closeout package**: `59-SUMMARY.md`, `59-VERIFICATION.md`" in roadmap_text
+    _assert_promoted_closeout_package(roadmap_text, "59-SUMMARY.md", "59-VERIFICATION.md")
 
     for needle in (
         "- [x] **TST-11**",

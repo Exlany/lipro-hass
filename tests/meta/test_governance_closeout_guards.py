@@ -90,6 +90,11 @@ def _assert_promoted_phase_assets(phase_dir_name: str, *filenames: str) -> None:
         assert (phase_root / filename).exists()
 
 
+def _assert_promoted_closeout_package(roadmap_text: str, *filenames: str) -> None:
+    package_listing = ", ".join(f"`{filename}`" for filename in filenames)
+    assert f"**Promoted closeout package**: {package_listing}" in roadmap_text
+
+
 def _assert_exact_promoted_phase_assets(phase_dir_name: str, *filenames: str) -> None:
     promoted_assets = _load_promoted_phase_assets()
     assert phase_dir_name in promoted_assets

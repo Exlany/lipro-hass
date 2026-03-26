@@ -6,6 +6,8 @@ from pathlib import Path
 
 from tests.helpers.repo_root import repo_root
 
+from .governance_current_truth import LEGACY_ARCHIVED_CLOSEOUT_POINTER_LABEL
+
 _ROOT = repo_root(Path(__file__))
 
 
@@ -28,7 +30,7 @@ def test_phase74_docs_index_keeps_internal_route_private() -> None:
     for token in (
         "Current governance status",
         "$gsd-plan-phase",
-        "latest archived closeout pointer",
+        LEGACY_ARCHIVED_CLOSEOUT_POINTER_LABEL,
     ):
         assert token not in text
 
