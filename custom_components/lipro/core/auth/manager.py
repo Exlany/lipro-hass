@@ -8,7 +8,7 @@ from dataclasses import dataclass
 import hashlib
 import logging
 import time
-from typing import TYPE_CHECKING, TypedDict
+from typing import TYPE_CHECKING
 
 from ...const.api import (
     ACCESS_TOKEN_EXPIRY_SECONDS,
@@ -27,17 +27,6 @@ _LOGGER = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-
-
-class AuthDataSnapshot(TypedDict, total=False):
-    """Legacy storage payload projected from the formal auth session."""
-
-    access_token: str | None
-    refresh_token: str | None
-    user_id: int | None
-    phone_id: str | None
-    expires_at: float | None
-    biz_id: str | None
 
 
 @dataclass(frozen=True, slots=True)

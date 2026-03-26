@@ -72,7 +72,7 @@ Current access-mode truth: this repository is private-access. GitHub-hosted Issu
 - **默认身份**：`.planning/phases/**` 是 phase 执行工作区；`*-PLAN.md`、`*-CONTEXT.md`、`*-RESEARCH.md` 与临时过程文件默认属于执行痕迹，不自动升级为长期治理真源。
 - **提升条件**：只有被 `.planning/ROADMAP.md`、`.planning/baseline/VERIFICATION_MATRIX.md`、`.planning/milestones/*.md` 或 `.planning/reviews/*.md` 显式引用的 phase 证据，才作为长期跟踪资产保留。
 - **发布门禁**：`.github/workflows/release.yml` 必须复用 `.github/workflows/ci.yml` 的治理与版本守卫，且只能从 `refs/tags/${RELEASE_TAG}` 构建资产，不能旁路发版。
-- **对外入口**：贡献与披露契约统一收敛到 `CONTRIBUTING.md`、`docs/TROUBLESHOOTING.md`、`SUPPORT.md`、`docs/MAINTAINER_RELEASE_RUNBOOK.md`、`.github/pull_request_template.md`、`.github/ISSUE_TEMPLATE/*.yml` 与 `SECURITY.md`。
+- **对外入口**：贡献与披露契约统一收敛到 `CONTRIBUTING.md`、`docs/TROUBLESHOOTING.md`、`SUPPORT.md`、`.github/pull_request_template.md`、`.github/ISSUE_TEMPLATE/*.yml` 与 `SECURITY.md`；`docs/MAINTAINER_RELEASE_RUNBOOK.md` 继续保持 maintainer appendix 身份，不属于 public first hop。
 
 ## Maintainer Rules / 维护者规则
 

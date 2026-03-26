@@ -19,10 +19,10 @@ It complements `tests/fixtures/api_contracts/` instead of duplicating it:
 | `mqtt.message-envelope@v1` | `mqtt_message_envelope.device_state.v1.json` | `tests/core/mqtt/test_mqtt_payload.py`, `tests/core/mqtt/test_protocol_replay_mqtt.py` | Replay-ready MQTT envelope fixture carrying pre-properties canonical mapping. |
 | `mqtt.properties@v1` | `mqtt_properties.device_state.v1.json` | `tests/core/mqtt/test_mqtt_payload.py`, `tests/core/mqtt/test_message_processor.py` | Replay-ready MQTT state frame fixture carrying topic, payload, canonical output, and fingerprint. |
 
-## Phase 20 Continuity Rule
+## Boundary Continuity Rule
 
-- `mqtt.topic@v1` 与 `mqtt.message-envelope@v1` 属于 `Phase 20` remaining-family closeout；一旦 Wave 2 fixture 落地，必须在本目录与 `tests/fixtures/protocol_replay/` 同步出现，而不是继续停留在 `topics.py`、`message_processor.py` 或 `payload.py` 的 helper 叙事里。
-- fixture matrix、replay README、baseline authority wording 必须讲同一条 boundary-first story；若仍有未完成 family，应明确写成 pending closeout，而不是继续沿用 v1.1 de-scope 口径。
+- `mqtt.topic@v1` 与 `mqtt.message-envelope@v1` 属于 live boundary fixture family；一旦 fixture 落地或更新，必须在本目录与 `tests/fixtures/protocol_replay/` 同步出现，而不是继续停留在 `topics.py`、`message_processor.py` 或 `payload.py` 的 helper 叙事里。
+- fixture matrix、replay README、baseline authority wording 必须讲同一条 boundary-first story；若仍有未完成 family，应明确写成 pending boundary coverage，而不是继续沿用 phase closeout 口径。
 
 ## Rules
 

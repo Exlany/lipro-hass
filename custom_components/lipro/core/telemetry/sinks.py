@@ -52,12 +52,31 @@ def _as_mapping(value: TelemetryJsonValue) -> dict[str, TelemetryJsonValue] | No
     return None
 
 
+def _mapping_child(
+    value: dict[str, TelemetryJsonValue] | None,
+    key: str,
+) -> dict[str, TelemetryJsonValue] | None:
+    if value is None:
+        return None
+    return _as_mapping(value.get(key))
+
+
 def _get_int(value: TelemetryJsonValue, default: int = 0) -> int:
     if isinstance(value, bool):
         return int(value)
     if isinstance(value, int):
         return value
     return default
+
+
+def _mapping_get_int(
+    value: dict[str, TelemetryJsonValue] | None,
+    key: str,
+    default: int = 0,
+) -> int:
+    if value is None:
+        return default
+    return _get_int(value.get(key), default)
 
 
 def _get_number(value: TelemetryJsonValue) -> int | float | None:
@@ -68,16 +87,62 @@ def _get_number(value: TelemetryJsonValue) -> int | float | None:
     return None
 
 
+def _mapping_get_number(
+    value: dict[str, TelemetryJsonValue] | None,
+    key: str,
+) -> int | float | None:
+    if value is None:
+        return None
+    return _get_number(value.get(key))
+
+
 def _get_bool(value: TelemetryJsonValue) -> bool | None:
     if isinstance(value, bool):
         return value
     return None
 
 
+def _mapping_get_bool(
+    value: dict[str, TelemetryJsonValue] | None,
+    key: str,
+) -> bool | None:
+    if value is None:
+        return None
+    return _get_bool(value.get(key))
+
+
 def _get_str(value: TelemetryJsonValue) -> str | None:
     if isinstance(value, str):
         return value
     return None
+
+
+def _mapping_get_str(
+    value: dict[str, TelemetryJsonValue] | None,
+    key: str,
+) -> str | None:
+    if value is None:
+        return None
+    return _get_str(value.get(key))
+
+
+def _build_protocol_session_flags(snapshot: TelemetrySnapshot) -> ProtocolSessionFlags:
+    protocol_session = _as_mapping(snapshot.protocol.get("session"))
+    protocol_session_flags: ProtocolSessionFlags = {}
+    if protocol_session is None:
+        return protocol_session_flags
+
+    access_token_present = _mapping_get_bool(protocol_session, "access_token_present")
+    refresh_token_present = _mapping_get_bool(protocol_session, "refresh_token_present")
+    request_timeout = _mapping_get_number(protocol_session, "request_timeout")
+
+    if access_token_present is not None:
+        protocol_session_flags["access_token_present"] = access_token_present
+    if refresh_token_present is not None:
+        protocol_session_flags["refresh_token_present"] = refresh_token_present
+    if request_timeout is not None:
+        protocol_session_flags["request_timeout"] = request_timeout
+    return protocol_session_flags
 
 
 class DiagnosticsTelemetrySink:
@@ -108,85 +173,62 @@ class SystemHealthTelemetrySink:
         runtime_tuning = _as_mapping(snapshot.runtime.get("tuning"))
         protocol_telemetry = _as_mapping(snapshot.protocol.get("telemetry"))
         protocol_auth_recovery = _as_mapping(snapshot.protocol.get("auth_recovery"))
-        command_confirmation = (
-            _as_mapping(runtime_command.get("confirmation"))
-            if runtime_command is not None
-            else None
-        )
-        tuning_metrics = (
-            _as_mapping(runtime_tuning.get("metrics"))
-            if runtime_tuning is not None
-            else None
-        )
+        command_confirmation = _mapping_child(runtime_command, "confirmation")
+        tuning_metrics = _mapping_child(runtime_tuning, "metrics")
+
         return {
             **_header(snapshot),
             "failure_summary": _build_failure_summary(snapshot),
-            "device_count": _get_int(snapshot.runtime.get("device_count"), 0),
-            "polling_interval_seconds": _get_number(
-                snapshot.runtime.get("polling_interval_seconds")
+            "device_count": _mapping_get_int(snapshot.runtime, "device_count"),
+            "polling_interval_seconds": _mapping_get_number(
+                snapshot.runtime,
+                "polling_interval_seconds",
             ),
-            "last_update_success": _get_bool(
-                snapshot.runtime.get("last_update_success")
+            "last_update_success": _mapping_get_bool(
+                snapshot.runtime,
+                "last_update_success",
             ),
-            "mqtt_connected": (
-                _get_bool(runtime_mqtt.get("connected"))
-                if runtime_mqtt is not None
-                else None
+            "mqtt_connected": _mapping_get_bool(runtime_mqtt, "connected"),
+            "mqtt_disconnect_notified": _mapping_get_bool(
+                runtime_mqtt,
+                "disconnect_notified",
             ),
-            "mqtt_disconnect_notified": (
-                _get_bool(runtime_mqtt.get("disconnect_notified"))
-                if runtime_mqtt is not None
-                else None
+            "mqtt_last_transport_error": _mapping_get_str(
+                runtime_mqtt,
+                "last_transport_error",
             ),
-            "mqtt_last_transport_error": (
-                _get_str(runtime_mqtt.get("last_transport_error"))
-                if runtime_mqtt is not None
-                else None
+            "command_trace_count": _mapping_get_int(runtime_command, "trace_count"),
+            "command_confirmation_avg_latency_seconds": _mapping_get_number(
+                command_confirmation,
+                "avg_latency_seconds",
             ),
-            "command_trace_count": (
-                _get_int(runtime_command.get("trace_count"), 0)
-                if runtime_command is not None
-                else 0
+            "command_confirmation_timeout_total": _mapping_get_int(
+                command_confirmation,
+                "timeout_total",
             ),
-            "command_confirmation_avg_latency_seconds": (
-                _get_number(command_confirmation.get("avg_latency_seconds"))
-                if command_confirmation is not None
-                else None
+            "connect_state_event_count": _mapping_get_int(
+                runtime_signals,
+                "connect_state_event_count",
             ),
-            "command_confirmation_timeout_total": (
-                _get_int(command_confirmation.get("timeout_total"), 0)
-                if command_confirmation is not None
-                else 0
+            "group_reconciliation_request_count": _mapping_get_int(
+                runtime_signals,
+                "group_reconciliation_request_count",
             ),
-            "connect_state_event_count": (
-                _get_int(runtime_signals.get("connect_state_event_count"), 0)
-                if runtime_signals is not None
-                else 0
+            "refresh_avg_latency_seconds": _mapping_get_number(
+                tuning_metrics,
+                "avg_latency",
             ),
-            "group_reconciliation_request_count": (
-                _get_int(runtime_signals.get("group_reconciliation_request_count"), 0)
-                if runtime_signals is not None
-                else 0
+            "protocol_mqtt_last_error_type": _mapping_get_str(
+                protocol_telemetry,
+                "mqtt_last_error_type",
             ),
-            "refresh_avg_latency_seconds": (
-                _get_number(tuning_metrics.get("avg_latency"))
-                if tuning_metrics is not None
-                else None
+            "auth_refresh_success_count": _mapping_get_int(
+                protocol_auth_recovery,
+                "refresh_success_count",
             ),
-            "protocol_mqtt_last_error_type": (
-                _get_str(protocol_telemetry.get("mqtt_last_error_type"))
-                if protocol_telemetry is not None
-                else None
-            ),
-            "auth_refresh_success_count": (
-                _get_int(protocol_auth_recovery.get("refresh_success_count"), 0)
-                if protocol_auth_recovery is not None
-                else 0
-            ),
-            "auth_refresh_failure_count": (
-                _get_int(protocol_auth_recovery.get("refresh_failure_count"), 0)
-                if protocol_auth_recovery is not None
-                else 0
+            "auth_refresh_failure_count": _mapping_get_int(
+                protocol_auth_recovery,
+                "refresh_failure_count",
             ),
         }
 
@@ -198,24 +240,12 @@ class DeveloperTelemetrySink:
 
     def build_view(self, snapshot: TelemetrySnapshot) -> DeveloperTelemetryView:
         """Return the developer projection for one snapshot."""
-        protocol_session = _as_mapping(snapshot.protocol.get("session"))
-        protocol_session_flags: ProtocolSessionFlags = {}
-        if protocol_session is not None:
-            access_token_present = _get_bool(protocol_session.get("access_token_present"))
-            refresh_token_present = _get_bool(protocol_session.get("refresh_token_present"))
-            request_timeout = _get_number(protocol_session.get("request_timeout"))
-            if access_token_present is not None:
-                protocol_session_flags["access_token_present"] = access_token_present
-            if refresh_token_present is not None:
-                protocol_session_flags["refresh_token_present"] = refresh_token_present
-            if request_timeout is not None:
-                protocol_session_flags["request_timeout"] = request_timeout
         return {
             **_header(snapshot),
             "failure_summary": _build_failure_summary(snapshot),
             "protocol": snapshot.protocol,
             "runtime": snapshot.runtime,
-            "protocol_session_flags": protocol_session_flags,
+            "protocol_session_flags": _build_protocol_session_flags(snapshot),
         }
 
 
@@ -232,8 +262,12 @@ class CITelemetrySink:
             "mqtt_connected": system_health["mqtt_connected"],
             "command_trace_count": system_health["command_trace_count"],
             "connect_state_event_count": system_health["connect_state_event_count"],
-            "command_confirmation_timeout_total": system_health["command_confirmation_timeout_total"],
-            "refresh_avg_latency_seconds": system_health["refresh_avg_latency_seconds"],
+            "command_confirmation_timeout_total": system_health[
+                "command_confirmation_timeout_total"
+            ],
+            "refresh_avg_latency_seconds": system_health[
+                "refresh_avg_latency_seconds"
+            ],
             "auth_refresh_success_count": system_health["auth_refresh_success_count"],
         }
         return {
