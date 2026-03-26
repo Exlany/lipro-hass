@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 from .conftest import _ROOT, _assert_current_mode_tracks_phase_lifecycle
-from .test_governance_closeout_guards import (
-    _assert_promoted_closeout_package,
-    _assert_promoted_phase_assets,
+from .governance_contract_helpers import (
     _assert_state_keeps_forward_progress_commands,
     _assert_state_reflects_post_v1_4_continuation,
+)
+from .governance_promoted_assets import (
+    _assert_promoted_closeout_package,
+    _assert_promoted_phase_assets,
 )
 
 _ROADMAP_TEXT = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")

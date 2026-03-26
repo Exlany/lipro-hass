@@ -7,13 +7,13 @@ from pathlib import Path
 
 from tests.helpers.repo_root import repo_root
 
+from .governance_contract_helpers import _assert_latest_archived_route_truth
 from .governance_current_truth import (
     LATEST_ARCHIVED_PHASE,
     LATEST_ARCHIVED_PHASE_DIR,
     LATEST_ARCHIVED_PHASE_TITLE,
     PREVIOUS_ARCHIVED_MILESTONE,
 )
-from .test_governance_closeout_guards import _assert_latest_archived_route_truth
 
 _ROOT = repo_root(Path(__file__))
 _FUNCTION_BUDGETS = {

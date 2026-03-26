@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .test_governance_closeout_guards import _ROOT, _assert_promoted_phase_assets
+from .governance_promoted_assets import _ROOT, _assert_promoted_phase_assets
 
 
 def test_phase_43_closeout_assets_exist_and_are_promoted() -> None:

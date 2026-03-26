@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
-from .test_governance_closeout_guards import (
+from .governance_contract_helpers import (
     _ROOT,
+    _assert_state_keeps_forward_progress_commands,
+)
+from .governance_promoted_assets import (
     _assert_phase_assets_not_promoted,
     _assert_promoted_phase_assets,
-    _assert_state_keeps_forward_progress_commands,
 )
 
 

@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from .governance_current_truth import CURRENT_MILESTONE_DEFAULT_NEXT
-from .test_governance_closeout_guards import (
+from .governance_contract_helpers import (
     _ROOT,
     _assert_project_allows_post_v1_4_next_step,
-    _assert_promoted_phase_assets,
     _assert_state_keeps_forward_progress_commands,
     _assert_state_reflects_post_v1_4_continuation,
 )
+from .governance_current_truth import CURRENT_MILESTONE_DEFAULT_NEXT
+from .governance_promoted_assets import _assert_promoted_phase_assets
 
 
 def test_phase_36_planning_truth_is_consistent() -> None:

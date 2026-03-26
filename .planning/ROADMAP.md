@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🚧 **v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation** - Phases 76-78 opened on 2026-03-26 from the `v1.20` archived baseline; next command: `$gsd-plan-phase 76`
+- 🚧 **v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation** - Phases 76-78 opened on 2026-03-26 from the `v1.20` archived baseline; next command: `$gsd-execute-phase 76`
 - ✅ **v1.0 North Star Rebuild** - Phases 1-7 (+ 1.5 / 2.5 / 2.6), shipped 2026-03-13, archive: `.planning/milestones/v1.0-ROADMAP.md`
 - ✅ **v1.1 Protocol Fidelity & Operability** - Phases 7.1-17 complete; final audit complete; milestone snapshots archived at `.planning/milestones/v1.1-ROADMAP.md` / `.planning/milestones/v1.1-REQUIREMENTS.md` (updated 2026-03-16)
 - ✅ **v1.2 Host-Neutral Core & Replay Completion** - Phases 18-24 complete after Phase 24 reopen revalidation; 24 plans complete; milestone snapshots archived at `.planning/milestones/v1.2-ROADMAP.md` / `.planning/milestones/v1.2-REQUIREMENTS.md`; `v1.3` handoff-ready (revalidated 2026-03-17)
@@ -23,7 +23,39 @@
 - ✅ **v1.17 Residual Formalization, Quality-Balance Hardening & Open-Source Contract Closure** - `Phase 69` archived on 2026-03-24; milestone audit: `.planning/v1.17-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_17_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.17-ROADMAP.md` / `.planning/milestones/v1.17-REQUIREMENTS.md`; served as the starting archived baseline for `v1.18 / Phase 70`
 - ✅ **v1.18 Support-Seam Slimming, OTA Resolver Consolidation & Governance Test Topicization** - `Phase 70` archived on 2026-03-24; milestone audit: `.planning/v1.18-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_18_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.18-ROADMAP.md` / `.planning/milestones/v1.18-REQUIREMENTS.md`; served as the starting archived baseline for `v1.19 / Phase 71`
 - ✅ **v1.19 Audit-Driven Final Hotspot Decomposition & Governance Truth Projection** - `Phase 71` archived on 2026-03-25; milestone audit: `.planning/v1.19-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_19_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.19-ROADMAP.md` / `.planning/milestones/v1.19-REQUIREMENTS.md`; serves as the previous archived baseline for `v1.20`
-- ✅ **v1.20 Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement** - `Phase 72 -> 75` archived on 2026-03-25; milestone audit: `.planning/v1.20-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_20_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.20-ROADMAP.md` / `.planning/milestones/v1.20-REQUIREMENTS.md`; current governance state = `no active milestone route / latest archived baseline = v1.20`
+- ✅ **v1.20 Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement** - `Phase 72 -> 75` archived on 2026-03-25; milestone audit: `.planning/v1.20-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_20_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.20-ROADMAP.md` / `.planning/milestones/v1.20-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.20`
+
+<!-- governance-route-contract:start -->
+```yaml
+contract_version: 1
+contract_name: governance-route
+active_milestone:
+  version: v1.21
+  name: Governance Bootstrap Truth Hardening & Planning Route Automation
+  status: execution-ready (2026-03-26)
+  phase: "76"
+  phase_title: Governance bootstrap truth hardening, archive-seed determinism, and active-route activation
+  route_mode: Phase 76 execution-ready
+latest_archived:
+  version: v1.20
+  name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
+  status: archived / evidence-ready (2026-03-25)
+  phase: "75"
+  phase_title: Access-mode truth closure, evidence promotion formalization, and thin-adapter typing hardening
+  phase_dir: 75-access-mode-truth-closure-evidence-promotion-formalization-and-thin-adapter-typing-hardening
+  audit_path: .planning/v1.20-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_20_EVIDENCE_INDEX.md
+  evidence_label: latest archived evidence index
+previous_archived:
+  version: v1.19
+  name: Audit-Driven Final Hotspot Decomposition & Governance Truth Projection
+  evidence_path: .planning/reviews/V1_19_EVIDENCE_INDEX.md
+bootstrap:
+  current_route: v1.21 active route / Phase 76 execution-ready / latest archived baseline = v1.20
+  default_next_command: $gsd-execute-phase 76
+  latest_archived_evidence_pointer: .planning/reviews/V1_20_EVIDENCE_INDEX.md
+```
+<!-- governance-route-contract:end -->
 
 ## Current Milestone
 
@@ -31,8 +63,8 @@
 
 > `v1.21` 不再把 planning/bootstrap truth 当作 archive-closeout 之后的附带修补，而是以 `v1.20` archived baseline、latest archived evidence index 与 recent bootstrap drift fix 为 seed，正式把 current-route activation、parser-visible contract 与 governance-route maintainability 立成新 milestone。
 
-**Milestone status:** `planning-ready (2026-03-26)`
-**Default next command:** `$gsd-plan-phase 76`
+**Milestone status:** `execution-ready (2026-03-26)`
+**Default next command:** `$gsd-execute-phase 76`
 **Seed input:** `.planning/v1.20-MILESTONE-AUDIT.md`, `.planning/reviews/V1_20_EVIDENCE_INDEX.md`, `.planning/MILESTONES.md`, `.planning/ROADMAP.md`, `.planning/REQUIREMENTS.md`, `.planning/STATE.md`, `tests/meta/governance_current_truth.py`, `tests/meta/test_governance_milestone_archives.py`
 
 ### Phase 76: Governance bootstrap truth hardening, archive-seed determinism, and active-route activation
@@ -44,7 +76,7 @@
   1. `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES` 共同暴露同一条 parser-stable current route 与 latest archived baseline。
   2. 历史 milestone body 继续可读、可审计，但不再先于 current milestone 被 machine-readable bootstrap 消费。
   3. active-route docs / state / latest-archive pointer 在同一轮保持诚实一致，无需事后手工热修。
-**Status**: Planning-ready
+**Status**: Execution-ready
 **Plans**: 3 planned
 
 Plans:
@@ -404,7 +436,7 @@ Plans:
 
 **Milestone Goal:** 基于 `v1.19` archived baseline，把 bootstrap / lifecycle / runtime-access / service-family / diagnostics-helper / entity-runtime / auth-legacy 的 remaining residual 继续沿正式主链 inward convergence，并最终把 archive-truth / access-mode honesty 一并收口为 `v1.20` archived baseline。
 
-> `v1.20` 已于 `2026-03-25` 完成 milestone audit、Phase 75 route-truth closure、evidence-index registration 与 archive promotion：它承接 `Phase 71` 的 archived evidence，先后完成 bootstrap/lifecycle/runtime-access convergence、service-family/helper/runtime-surface deduplication、auth legacy residual retirement，并把治理状态切换为 `no active milestone route / latest archived baseline = v1.20`。
+> `v1.20` 已于 `2026-03-25` 完成 milestone audit、Phase 75 route-truth closure、evidence-index registration 与 archive promotion：它承接 `Phase 71` 的 archived evidence，先后完成 bootstrap/lifecycle/runtime-access convergence、service-family/helper/runtime-surface deduplication、auth legacy residual retirement，并留下 historical closeout route truth = `no active milestone route / latest archived baseline = v1.20`。
 
 **Milestone status:** `archived / evidence-ready (2026-03-25)`
 **Starting baseline:** `.planning/v1.19-MILESTONE-AUDIT.md`, `.planning/reviews/V1_19_EVIDENCE_INDEX.md`, `.planning/milestones/v1.19-ROADMAP.md`, `.planning/milestones/v1.19-REQUIREMENTS.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-SUMMARY.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-VERIFICATION.md`, `.planning/phases/71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection/71-VALIDATION.md`, `.planning/reviews/V1_19_TERMINAL_AUDIT.md`
@@ -455,7 +487,7 @@ Plans:
 
 ### Phase 75: Access-mode truth closure, evidence promotion formalization, and thin-adapter typing hardening
 
-**Goal:** 让 private-access honest story、promoted evidence allowlist、thin-adapter typed honesty 与 milestone archive truth 讲同一条收官叙事，并把 live governance state 正式切到 `no active milestone route / latest archived baseline = v1.20`。
+**Goal:** 让 private-access honest story、promoted evidence allowlist、thin-adapter typed honesty 与 milestone archive truth 讲同一条收官叙事，并把 historical closeout route truth 明确写为 `no active milestone route / latest archived baseline = v1.20`。
 **Depends on:** Phase 74
 **Requirements**: [GOV-56, ARC-19, TYP-21, TST-22, QLT-30]
 **Status**: Complete (2026-03-25)
@@ -471,7 +503,7 @@ Plans:
 
 **Milestone Goal:** 基于 `v1.18` archived baseline，把 OTA diagnostics / firmware-install orchestration、anonymous-share submit outcome loop、request pacing / command-runtime 长流程与 current-route / latest-archive truth 的多点同步成本继续 inward split，并把 milestone closeout 收口为单一的 archive promotion。
 
-> `v1.19` 已于 `2026-03-25` 完成 milestone audit、evidence-index closeout 与 archive promotion：它承接 `v1.18` 的 archived baseline，完成 OTA diagnostics / firmware-install、anonymous-share submit、request pacing / command-runtime 的 final hotspot decomposition，并完成 archive-promotion transition；当前治理状态现已切换为 `no active milestone route / latest archived baseline = v1.20`；`v1.19` 退为 previous archived baseline。
+> `v1.19` 已于 `2026-03-25` 完成 milestone audit、evidence-index closeout 与 archive promotion：它承接 `v1.18` 的 archived baseline，完成 OTA diagnostics / firmware-install、anonymous-share submit、request pacing / command-runtime 的 final hotspot decomposition，并完成 archive-promotion transition；其 historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.19`；后续在 `v1.20` archive promotion 中，`v1.19` 退为 previous archived baseline。
 
 **Archive status:** `archived / evidence-ready (2026-03-25)`
 **Starting baseline:** `.planning/v1.18-MILESTONE-AUDIT.md`, `.planning/reviews/V1_18_EVIDENCE_INDEX.md`, `.planning/milestones/v1.18-ROADMAP.md`, `.planning/milestones/v1.18-REQUIREMENTS.md`, `.planning/phases/70-support-seam-slimming-ota-resolver-consolidation-and-governance-test-topicization/70-SUMMARY.md`, `.planning/phases/70-support-seam-slimming-ota-resolver-consolidation-and-governance-test-topicization/70-VERIFICATION.md`, `.planning/phases/70-support-seam-slimming-ota-resolver-consolidation-and-governance-test-topicization/70-VALIDATION.md`

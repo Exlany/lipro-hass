@@ -8,12 +8,12 @@ from .conftest import (
     _assert_current_mode_tracks_phase_lifecycle,
     _assert_state_preserves_phase_17_closeout_history,
 )
-from .governance_current_truth import CURRENT_MILESTONE_ROADMAP_HEADER
-from .test_governance_closeout_guards import (
-    _assert_promoted_phase_assets,
+from .governance_contract_helpers import (
     _assert_state_keeps_forward_progress_commands,
     _assert_state_reflects_post_v1_4_continuation,
 )
+from .governance_current_truth import CURRENT_MILESTONE_ROADMAP_HEADER
+from .governance_promoted_assets import _assert_promoted_phase_assets
 
 
 def test_phase_30_31_typed_closeout_truth_is_consistent() -> None:

@@ -2,7 +2,7 @@
 
 ## Current Milestone (v1.21)
 
-> `v1.21` 以 `v1.20` archived baseline、machine-readable bootstrap drift 修正与当前 governance route guards 为 immediate seed；本轮重点不是重开生产热点，而是把 planning/bootstrap/current-route truth 收口成稳定、低维护、可机器消费的正式合同。
+> `v1.21` 以 `v1.20` archived baseline、machine-readable bootstrap drift 修正与当前 governance route guards 为 immediate seed；当前 mutable story 已前推到 `Phase 76 execution-ready`，默认下一步为 `$gsd-execute-phase 76`；本轮重点不是重开生产热点，而是把 planning/bootstrap/current-route truth 收口成稳定、低维护、可机器消费的正式合同。
 
 ### Governance Bootstrap Truth Hardening & Planning Route Automation
 
@@ -29,13 +29,45 @@
 - Current pending: 5
 - Current unmapped: 0 ✓
 
+<!-- governance-route-contract:start -->
+```yaml
+contract_version: 1
+contract_name: governance-route
+active_milestone:
+  version: v1.21
+  name: Governance Bootstrap Truth Hardening & Planning Route Automation
+  status: execution-ready (2026-03-26)
+  phase: "76"
+  phase_title: Governance bootstrap truth hardening, archive-seed determinism, and active-route activation
+  route_mode: Phase 76 execution-ready
+latest_archived:
+  version: v1.20
+  name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
+  status: archived / evidence-ready (2026-03-25)
+  phase: "75"
+  phase_title: Access-mode truth closure, evidence promotion formalization, and thin-adapter typing hardening
+  phase_dir: 75-access-mode-truth-closure-evidence-promotion-formalization-and-thin-adapter-typing-hardening
+  audit_path: .planning/v1.20-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_20_EVIDENCE_INDEX.md
+  evidence_label: latest archived evidence index
+previous_archived:
+  version: v1.19
+  name: Audit-Driven Final Hotspot Decomposition & Governance Truth Projection
+  evidence_path: .planning/reviews/V1_19_EVIDENCE_INDEX.md
+bootstrap:
+  current_route: v1.21 active route / Phase 76 execution-ready / latest archived baseline = v1.20
+  default_next_command: $gsd-execute-phase 76
+  latest_archived_evidence_pointer: .planning/reviews/V1_20_EVIDENCE_INDEX.md
+```
+<!-- governance-route-contract:end -->
+
 ## Latest Archived Milestone (v1.20)
 
 > `v1.20` 已于 `2026-03-25` 完成 archive promotion；以下 requirements / traceability 保留 `Phase 72 -> 75` 的最终 fulfilled contract，归档快照见 `.planning/milestones/v1.20-REQUIREMENTS.md`，审计裁决见 `.planning/v1.20-MILESTONE-AUDIT.md`，证据索引见 `.planning/reviews/V1_20_EVIDENCE_INDEX.md`。
 
 ### Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
 
-- [x] **GOV-56**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / docs / meta guards` 现共同承认 `no active milestone route / latest archived baseline = v1.20`、`.planning/reviews/V1_20_EVIDENCE_INDEX.md` latest pull-only archived evidence index、`v1.19` previous archived baseline 与 `v1.18` historical archived baseline；`Phase 75` 只完成 access-mode honesty 与 archive-truth closure，不单独升格为 promoted phase bundle。
+- [x] **GOV-56**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / docs / meta guards` 共同保留 `v1.20` closeout 当时的 historical closeout route truth = `no active milestone route / latest archived baseline = v1.20`、`.planning/reviews/V1_20_EVIDENCE_INDEX.md` latest pull-only archived evidence index、`v1.19` previous archived baseline 与 `v1.18` historical archived baseline；`Phase 75` 只完成 access-mode honesty 与 archive-truth closure，不单独升格为 promoted phase bundle。
 - [x] **ARC-19**: bootstrap / lifecycle / `runtime_access` / `service_router` / `schedule` formal homes 已继续收敛到单一 north-star 主链；`diagnostics.py` / `system_health.py` 这些 thin adapters 继续只委托 formal control homes，不得新增 second orchestration root、builder folklore、shadow helper carrier 或 helper-owned public surface。
 - [x] **HOT-32**: `Coordinator` bootstrap / builder、`EntryLifecycleController` / `EntryLifecycleSupport` orchestration 与 `runtime_access` test-aware probing 已完成 inward decomposition + probing retirement，热点保持冻结。
 - [x] **HOT-33**: service-router forwarding families、diagnostics/helper duplication、`LiproEntity` runtime strategy 与 `schedule.py` runtime surface 已完成 formalize / deduplicate，并保持 outward behavior 稳定。
@@ -68,7 +100,7 @@
 
 > `v1.19` 已于 `2026-03-25` 完成归档；以下 requirements / traceability 保留 `Phase 71` 的最终 fulfilled contract。当前它已退为 previous archived baseline；latest archived evidence index 现为 `.planning/reviews/V1_20_EVIDENCE_INDEX.md`。
 
-- [x] **GOV-55**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / docs index / meta guards` 在 `v1.19` archive promotion 当时共同承认 `v1.19` 已完成 archive promotion；当前治理状态已切换为 `no active milestone route / latest archived baseline = v1.20`，`v1.19` 退为 previous archived baseline。
+- [x] **GOV-55**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / docs index / meta guards` 在 `v1.19` archive promotion 当时共同承认 `v1.19` 已完成 archive promotion；其 historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.19`；后续在 `v1.20` archive promotion 中，`v1.19` 退为 previous archived baseline。
 - [x] **ARC-18**: OTA / firmware-update / anonymous-share / request pacing / command runtime 只允许 inward decomposition，不得新增 outward root、compat shell 或 second story。
 - [x] **HOT-30**: OTA / firmware-install、anonymous-share submit、request pacing 与 command-runtime touched hotspots 已显著降低单函数决策密度，并把 orchestration 切回更窄的 helper/home 边界。
 - [x] **HOT-31**: `Phase 71` 留下的 focused hotspot/function budgets 与 route-truth guards 继续冻结 touched scope，防止 archived closeout 之后的 density 与 truth drift 回流。

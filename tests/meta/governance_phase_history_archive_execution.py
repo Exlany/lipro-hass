@@ -9,7 +9,7 @@ from .conftest import (
     _assert_current_mode_tracks_phase_lifecycle,
     _assert_state_preserves_phase_17_closeout_history,
 )
-from .test_governance_closeout_guards import _assert_promoted_phase_assets
+from .governance_promoted_assets import _assert_promoted_phase_assets
 
 
 def test_phase_7_5_planning_truth_is_consistent() -> None:

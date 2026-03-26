@@ -3,21 +3,25 @@
 from __future__ import annotations
 
 from .conftest import _ROOT
+from .governance_contract_helpers import _assert_latest_archived_route_truth
 from .governance_current_truth import (
     CURRENT_MILESTONE_DEFAULT_NEXT,
     CURRENT_MILESTONE_STATE_LABEL,
     CURRENT_MILESTONE_STATUS,
     CURRENT_ROUTE_MODE,
+    HISTORICAL_ARCHIVE_TRANSITION_ROUTE_TRUTH,
+    HISTORICAL_CLOSEOUT_ROUTE_TRUTH,
     LATEST_ARCHIVED_AUDIT_PATH,
     LATEST_ARCHIVED_EVIDENCE_PATH,
+    assert_machine_readable_route_contracts,
 )
-from .test_governance_closeout_guards import (
-    _assert_latest_archived_route_truth,
-    _assert_promoted_closeout_package,
-)
+from .governance_promoted_assets import _assert_promoted_closeout_package
 
 
 def test_archived_route_followup_truth_from_v1_8_to_v1_20_is_consistent() -> None:
+    milestones_text = (_ROOT / ".planning" / "MILESTONES.md").read_text(
+        encoding="utf-8"
+    )
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
         encoding="utf-8"
@@ -177,6 +181,26 @@ def test_archived_route_followup_truth_from_v1_8_to_v1_20_is_consistent() -> Non
     assert ".planning/milestones/v1.13-ROADMAP.md" in project_text
     assert ".planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-01-PLAN.md" not in project_text
 
+    contracts = assert_machine_readable_route_contracts()
+    assert contracts["REQUIREMENTS"]["active_milestone"]["phase"] == "76"
+    assert contracts["MILESTONES"]["latest_archived"]["version"] == "v1.20"
+    assert (
+        contracts["STATE"]["bootstrap"]["latest_archived_evidence_pointer"]
+        == LATEST_ARCHIVED_EVIDENCE_PATH
+    )
+    assert HISTORICAL_CLOSEOUT_ROUTE_TRUTH in milestones_text
+    assert HISTORICAL_ARCHIVE_TRANSITION_ROUTE_TRUTH in milestones_text
+    assert HISTORICAL_CLOSEOUT_ROUTE_TRUTH in requirements_text
+    assert HISTORICAL_ARCHIVE_TRANSITION_ROUTE_TRUTH in requirements_text
+    assert HISTORICAL_CLOSEOUT_ROUTE_TRUTH in roadmap_text
+    assert HISTORICAL_ARCHIVE_TRANSITION_ROUTE_TRUTH in roadmap_text
+
+    for text in (milestones_text, roadmap_text, requirements_text):
+        assert "current governance state =" not in text
+        assert "当前治理状态已切换为" not in text
+        assert "当前治理状态现已切换为" not in text
+        assert "live governance state" not in text
+
     _assert_latest_archived_route_truth(project_text, roadmap_text, state_text)
     assert "## Current Milestone (v1.21)" in project_text
     assert "## Archived Milestone (v1.17)" in project_text
@@ -218,7 +242,7 @@ def test_archived_route_followup_truth_from_v1_8_to_v1_20_is_consistent() -> Non
 
     assert f"**Current milestone:** `{CURRENT_MILESTONE_STATE_LABEL}`" in state_text
     assert f"**Current mode:** `{CURRENT_ROUTE_MODE}`" in state_text
-    assert "planning-ready" in CURRENT_MILESTONE_STATUS
+    assert "execution-ready" in CURRENT_MILESTONE_STATUS
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
     assert LATEST_ARCHIVED_AUDIT_PATH in state_text
     assert LATEST_ARCHIVED_EVIDENCE_PATH in state_text

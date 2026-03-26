@@ -7,15 +7,15 @@ from pathlib import Path
 
 from tests.helpers.repo_root import repo_root
 
+from .governance_contract_helpers import (
+    _assert_latest_archived_route_truth,
+    _assert_public_docs_hide_internal_route_story,
+)
 from .governance_current_truth import (
     CURRENT_MILESTONE_HEADER,
     CURRENT_ROUTE,
     CURRENT_ROUTE_PROSE_FORBIDDEN,
     CURRENT_RUNTIME_ROOT_TEST,
-)
-from .test_governance_closeout_guards import (
-    _assert_latest_archived_route_truth,
-    _assert_public_docs_hide_internal_route_story,
 )
 
 _ROOT = repo_root(Path(__file__))

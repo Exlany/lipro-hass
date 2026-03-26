@@ -37,14 +37,11 @@ from .conftest import (
     _load_yaml,
     _parse_codeowners_handles,
 )
+from .governance_contract_helpers import _assert_public_docs_hide_internal_route_story
 from .governance_current_truth import (
-    CURRENT_MILESTONE_DEFAULT_NEXT,
     LATEST_ARCHIVED_EVIDENCE_FILENAME,
     LATEST_ARCHIVED_EVIDENCE_LABEL,
     LATEST_ARCHIVED_EVIDENCE_PATH,
-)
-from .test_governance_closeout_guards import (
-    _assert_public_docs_hide_internal_route_story,
 )
 
 _CODEQL_WORKFLOW = _ROOT / ".github" / "workflows" / "codeql.yml"
@@ -376,8 +373,6 @@ def test_troubleshooting_and_runbook_navigation_is_consistent() -> None:
 
 
 def test_latest_closeout_pointer_and_archived_route_stay_current() -> None:
-    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
-    state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
     milestones_text = (_ROOT / ".planning" / "MILESTONES.md").read_text(encoding="utf-8")
     docs_text = _DOCS_README.read_text(encoding="utf-8")
     runbook_text = _RUNBOOK.read_text(encoding="utf-8")
@@ -385,8 +380,6 @@ def test_latest_closeout_pointer_and_archived_route_stay_current() -> None:
     _assert_public_docs_hide_internal_route_story(docs_text)
     assert LATEST_ARCHIVED_EVIDENCE_FILENAME in runbook_text
     assert "V1_6_EVIDENCE_INDEX.md" not in runbook_text
-    assert CURRENT_MILESTONE_DEFAULT_NEXT in project_text
-    assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
     assert "## v1.20 Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement" in milestones_text
     assert f"{LATEST_ARCHIVED_EVIDENCE_LABEL} = `{LATEST_ARCHIVED_EVIDENCE_PATH}`" in milestones_text
     assert "v1.11" not in docs_text

@@ -1,6 +1,38 @@
 # Milestones
 
-> Machine-readable contract: latest archived baseline appears first so bootstrap tooling can resolve the next milestone seed from the same truth as `.planning/STATE.md`.
+> Machine-readable bootstrap truth now lives in the shared `governance-route` contract block below; milestone chronology remains human-readable archive history instead of the parser-visible selector.
+
+<!-- governance-route-contract:start -->
+```yaml
+contract_version: 1
+contract_name: governance-route
+active_milestone:
+  version: v1.21
+  name: Governance Bootstrap Truth Hardening & Planning Route Automation
+  status: execution-ready (2026-03-26)
+  phase: "76"
+  phase_title: Governance bootstrap truth hardening, archive-seed determinism, and active-route activation
+  route_mode: Phase 76 execution-ready
+latest_archived:
+  version: v1.20
+  name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
+  status: archived / evidence-ready (2026-03-25)
+  phase: "75"
+  phase_title: Access-mode truth closure, evidence promotion formalization, and thin-adapter typing hardening
+  phase_dir: 75-access-mode-truth-closure-evidence-promotion-formalization-and-thin-adapter-typing-hardening
+  audit_path: .planning/v1.20-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_20_EVIDENCE_INDEX.md
+  evidence_label: latest archived evidence index
+previous_archived:
+  version: v1.19
+  name: Audit-Driven Final Hotspot Decomposition & Governance Truth Projection
+  evidence_path: .planning/reviews/V1_19_EVIDENCE_INDEX.md
+bootstrap:
+  current_route: v1.21 active route / Phase 76 execution-ready / latest archived baseline = v1.20
+  default_next_command: $gsd-execute-phase 76
+  latest_archived_evidence_pointer: .planning/reviews/V1_20_EVIDENCE_INDEX.md
+```
+<!-- governance-route-contract:end -->
 
 ## v1.20 Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement (Shipped: 2026-03-25; Closeout: 2026-03-25)
 
@@ -13,7 +45,7 @@
 - 收口 `Coordinator` bootstrap / lifecycle orchestration / `runtime_access` probing，把 startup 与 lifecycle hotspot 压回既有 formal homes
 - 完成 service-router forwarding family、diagnostics/helper duplication、entity runtime strategy 与 schedule runtime surface 的 formalize / deduplicate
 - 继续退役 auth legacy snapshot / compatibility wrapper，完成 suite topicization、governance cleanup 与 archive-readiness arbitration
-- 统一 private-access honest story、promoted closeout evidence allowlist 与 thin-adapter typing，并把仓库切到 `no active milestone route / latest archived baseline = v1.20`
+- 统一 private-access honest story、promoted closeout evidence allowlist 与 thin-adapter typing，并保留 historical closeout route truth = `no active milestone route / latest archived baseline = v1.20`
 
 **Closeout assets:**
 - `.planning/v1.20-MILESTONE-AUDIT.md`
@@ -336,7 +368,7 @@
 **Key accomplishments:**
 - 继续 inward split OTA diagnostics / firmware-install orchestration，保持 entity outward surface 与 helper-owned second story 不回流
 - 收口 anonymous-share submit、request pacing 与 command-runtime 长流程，把热点切回更窄 typed helper seams
-- 统一 planning / docs / tests 的 route truth，并在 archive promotion 后把治理状态切换为 `no active milestone route / latest archived baseline = v1.19`
+- 统一 planning / docs / tests 的 route truth，并保留 historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.19`
 
 **Closeout assets:**
 - `.planning/v1.19-MILESTONE-AUDIT.md`

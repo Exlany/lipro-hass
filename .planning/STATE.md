@@ -18,12 +18,12 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation`
-**Core value:** 以 `v1.20` archived baseline 与 `.planning/reviews/V1_20_EVIDENCE_INDEX.md` latest archived evidence index 作为 active route 的稳定 seed，把 `v1.21` 的下一步工作收束到 `Phase 76` planning，而不是继续依赖 archive-closeout 后的一次性修补。
-**Current mode:** `Phase 76 planning-ready`
+**Core value:** 以 `v1.20` archived baseline 与 `.planning/reviews/V1_20_EVIDENCE_INDEX.md` latest archived evidence index 作为 active route 的稳定 seed，把 `v1.21` 的 current route 前推到 `Phase 76 execution-ready`，并把默认下一步固定到 `$gsd-execute-phase 76`。
+**Current mode:** `Phase 76 execution-ready`
 
 ## Current Position
 
-- `v1.21` 已于 `2026-03-26` 显式开立为 active milestone；当前 phase queue `76 -> 78` 已进入 planning-ready，下一步是 `$gsd-plan-phase 76`。
+- `v1.21` 已于 `2026-03-26` 显式开立为 active milestone；当前 phase queue `76 -> 78` 已前推到 execution-ready，下一步是 `$gsd-execute-phase 76`。
 - latest archived baseline 固定为 `v1.20`；latest archived evidence index 继续是 `.planning/reviews/V1_20_EVIDENCE_INDEX.md`；`v1.19` 继续承担 previous archived baseline。
 - recent bootstrap drift 已通过 machine-readable contract 修正；后续重点是把这类 current-route / latest-archive truth 固化为长期维护友好的 planning/bootstrap contract。
 
@@ -31,9 +31,41 @@ See: `.planning/PROJECT.md`
 
 - **Milestone:** `v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation`
 - **Phase range:** `76 -> 78`
-- **Milestone status:** `planning-ready (2026-03-26)`
+- **Milestone status:** `execution-ready (2026-03-26)`
 - **Seed input:** `.planning/v1.20-MILESTONE-AUDIT.md`, `.planning/reviews/V1_20_EVIDENCE_INDEX.md`, `.planning/MILESTONES.md`, `.planning/ROADMAP.md`, `.planning/REQUIREMENTS.md`, `.planning/STATE.md`, `tests/meta/governance_current_truth.py`, `tests/meta/test_governance_milestone_archives.py`
-- **Default next command:** `$gsd-plan-phase 76`
+- **Default next command:** `$gsd-execute-phase 76`
+
+<!-- governance-route-contract:start -->
+```yaml
+contract_version: 1
+contract_name: governance-route
+active_milestone:
+  version: v1.21
+  name: Governance Bootstrap Truth Hardening & Planning Route Automation
+  status: execution-ready (2026-03-26)
+  phase: "76"
+  phase_title: Governance bootstrap truth hardening, archive-seed determinism, and active-route activation
+  route_mode: Phase 76 execution-ready
+latest_archived:
+  version: v1.20
+  name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
+  status: archived / evidence-ready (2026-03-25)
+  phase: "75"
+  phase_title: Access-mode truth closure, evidence promotion formalization, and thin-adapter typing hardening
+  phase_dir: 75-access-mode-truth-closure-evidence-promotion-formalization-and-thin-adapter-typing-hardening
+  audit_path: .planning/v1.20-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_20_EVIDENCE_INDEX.md
+  evidence_label: latest archived evidence index
+previous_archived:
+  version: v1.19
+  name: Audit-Driven Final Hotspot Decomposition & Governance Truth Projection
+  evidence_path: .planning/reviews/V1_19_EVIDENCE_INDEX.md
+bootstrap:
+  current_route: v1.21 active route / Phase 76 execution-ready / latest archived baseline = v1.20
+  default_next_command: $gsd-execute-phase 76
+  latest_archived_evidence_pointer: .planning/reviews/V1_20_EVIDENCE_INDEX.md
+```
+<!-- governance-route-contract:end -->
 
 ## Latest Archived Baseline (v1.20)
 
@@ -62,12 +94,12 @@ See: `.planning/PROJECT.md`
 
 ## Recommended Next Command
 
-1. `$gsd-plan-phase 76` —— 先把 `v1.21 / Phase 76` 详细计划落盘
-2. `$gsd-execute-phase 76` —— 在 Phase 76 计划确认后执行 current-route/bootstrap truth 收口
-3. `$gsd-next` —— 让 GSD 继续在 `v1.21` active route 内自动推进
-4. `$gsd-progress` —— 查看当前 active route / latest archived baseline / next command 是否保持一致
-5. `uv run python scripts/check_file_matrix.py --check` —— 复核 planning / baseline / review / archive assets 契约
-6. `uv run pytest -q tests/meta/test_governance_milestone_archives.py tests/meta/governance_followup_route_current_milestones.py tests/meta/test_governance_release_contract.py tests/meta/test_phase75_governance_closeout_guards.py tests/meta/test_version_sync.py` —— 复核 active-route / latest-archive / promoted evidence guards
+1. `$gsd-execute-phase 76` —— 执行 `v1.21 / Phase 76` 的 current-route activation contract
+2. `$gsd-next` —— 让 GSD 继续在 `v1.21` active route 内自动推进
+3. `$gsd-progress` —— 查看当前 active route / latest archived baseline / next command 是否保持一致
+4. `uv run python scripts/check_file_matrix.py --check` —— 复核 planning / baseline / review / archive assets 契约
+5. `uv run pytest -q tests/meta/test_governance_closeout_guards.py tests/meta/test_governance_release_contract.py tests/meta/test_version_sync.py` —— 复核 execution-ready / latest-archive pointer / matrix drift guards
+6. `$gsd-plan-phase 76` —— 仅在 execution-ready contract 再次漂移、需要回退重规划时使用
 
 ## Session Continuity
 

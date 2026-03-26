@@ -2,10 +2,42 @@
 
 
 **Status:** Active
-**Current route:** `v1.21 active route / Phase 76 planning-ready / latest archived baseline = v1.20`；latest archived evidence index = `.planning/reviews/V1_20_EVIDENCE_INDEX.md`.
+**Current route:** `v1.21 active route / Phase 76 execution-ready / latest archived baseline = v1.20`；latest archived evidence index = `.planning/reviews/V1_20_EVIDENCE_INDEX.md`.
 **Goal:** 以 `v1.20` archived baseline、`.planning/v1.20-MILESTONE-AUDIT.md` verdict、`.planning/reviews/V1_20_EVIDENCE_INDEX.md` pull-only archived evidence 与刚刚完成的 machine-readable bootstrap 修正为 seed，显式开立 `v1.21` active route，把 planning docs / route guards / next-step bootstrap 收口成 deterministic contract，避免后续 `$gsd-plan-phase / $gsd-execute-phase / $gsd-next` 再依赖一次性人工修补。
-**Default next step:** `$gsd-plan-phase 76`
+**Default next step:** `$gsd-execute-phase 76`
 **Active baseline:** current active milestone = `v1.21`；latest archived baseline = `v1.20`；previous archived baseline = `v1.19`。
+
+<!-- governance-route-contract:start -->
+```yaml
+contract_version: 1
+contract_name: governance-route
+active_milestone:
+  version: v1.21
+  name: Governance Bootstrap Truth Hardening & Planning Route Automation
+  status: execution-ready (2026-03-26)
+  phase: "76"
+  phase_title: Governance bootstrap truth hardening, archive-seed determinism, and active-route activation
+  route_mode: Phase 76 execution-ready
+latest_archived:
+  version: v1.20
+  name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
+  status: archived / evidence-ready (2026-03-25)
+  phase: "75"
+  phase_title: Access-mode truth closure, evidence promotion formalization, and thin-adapter typing hardening
+  phase_dir: 75-access-mode-truth-closure-evidence-promotion-formalization-and-thin-adapter-typing-hardening
+  audit_path: .planning/v1.20-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_20_EVIDENCE_INDEX.md
+  evidence_label: latest archived evidence index
+previous_archived:
+  version: v1.19
+  name: Audit-Driven Final Hotspot Decomposition & Governance Truth Projection
+  evidence_path: .planning/reviews/V1_19_EVIDENCE_INDEX.md
+bootstrap:
+  current_route: v1.21 active route / Phase 76 execution-ready / latest archived baseline = v1.20
+  default_next_command: $gsd-execute-phase 76
+  latest_archived_evidence_pointer: .planning/reviews/V1_20_EVIDENCE_INDEX.md
+```
+<!-- governance-route-contract:end -->
 
 ## Current Milestone (v1.21)
 
@@ -21,10 +53,10 @@
 - 先把 `Phase 76 -> 78` 的 planning/bootstrap truth 铺稳，再进入后续执行链路，避免重复修同类 drift。
 
 **Phase range:** `Phase 76 -> 78`
-**Current status:** `planning-ready (2026-03-26)`
+**Current status:** `execution-ready (2026-03-26)`
 **Seed input:** `.planning/v1.20-MILESTONE-AUDIT.md`, `.planning/reviews/V1_20_EVIDENCE_INDEX.md`, `.planning/MILESTONES.md`, `.planning/ROADMAP.md`, `.planning/REQUIREMENTS.md`, `.planning/STATE.md`, `tests/meta/governance_current_truth.py`, `tests/meta/test_governance_milestone_archives.py`
 **Requirements basket:** `GOV-57`, `ARC-20`, `DOC-04`, `TST-23`, `QLT-31`
-**Default next command:** `$gsd-plan-phase 76`
+**Default next command:** `$gsd-execute-phase 76`
 
 ## Latest Archived Milestone (v1.20)
 

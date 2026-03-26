@@ -9,11 +9,13 @@ from tests.helpers.repo_root import repo_root
 from .governance_current_truth import (
     CURRENT_MILESTONE_DEFAULT_NEXT,
     CURRENT_ROUTE,
+    HISTORICAL_ARCHIVE_TRANSITION_ROUTE_TRUTH,
+    HISTORICAL_CLOSEOUT_ROUTE_TRUTH,
     LATEST_ARCHIVED_MILESTONE_STATUS,
     LATEST_ARCHIVED_PHASE_DIR,
     LATEST_ARCHIVED_PROJECT_HEADER,
 )
-from .test_governance_closeout_guards import _load_promoted_phase_assets
+from .governance_promoted_assets import _load_promoted_phase_assets
 
 _ROOT = repo_root(Path(__file__))
 
@@ -42,6 +44,9 @@ def test_phase75_exit_contract_freezes_promoted_evidence_chain() -> None:
 
 def test_phase75_archive_truth_stays_frozen_after_closeout() -> None:
     project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
+    milestones_text = (_ROOT / ".planning" / "MILESTONES.md").read_text(
+        encoding="utf-8"
+    )
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
@@ -59,6 +64,17 @@ def test_phase75_archive_truth_stays_frozen_after_closeout() -> None:
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
     assert LATEST_ARCHIVED_PROJECT_HEADER in project_text
     assert "## Latest Archived Milestone" in roadmap_text
+    assert HISTORICAL_CLOSEOUT_ROUTE_TRUTH in milestones_text
+    assert HISTORICAL_ARCHIVE_TRANSITION_ROUTE_TRUTH in milestones_text
+    assert HISTORICAL_CLOSEOUT_ROUTE_TRUTH in roadmap_text
+    assert HISTORICAL_ARCHIVE_TRANSITION_ROUTE_TRUTH in roadmap_text
+    assert HISTORICAL_CLOSEOUT_ROUTE_TRUTH in requirements_text
+    assert HISTORICAL_ARCHIVE_TRANSITION_ROUTE_TRUTH in requirements_text
+    for text in (milestones_text, roadmap_text, requirements_text):
+        assert "current governance state =" not in text
+        assert "当前治理状态已切换为" not in text
+        assert "当前治理状态现已切换为" not in text
+        assert "live governance state" not in text
     assert LATEST_ARCHIVED_PHASE_DIR in str(_ROOT / ".planning" / "phases" / LATEST_ARCHIVED_PHASE_DIR)
 
 

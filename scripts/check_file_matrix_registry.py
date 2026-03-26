@@ -141,8 +141,18 @@ OVERRIDE_TRUTH_FAMILIES = (
         ("tests/core/test_init_service_handlers.py", "shared helper root for topicized init service-handler regressions"),
     )),
 
-    OverrideTruthFamily(area="Assurance", owner_phase="Phase 27 / 44 / 49", fate="保留", rows=(
-        ("tests/meta/test_governance_closeout_guards.py", "helper + promoted-manifest smoke anchor"),
+    OverrideTruthFamily(area="Assurance", owner_phase="Phase 6 / 77", fate="保留", rows=(
+        ("tests/meta/governance_contract_helpers.py", "shared governance route/doc helper home"),
+        ("tests/meta/test_version_sync.py", "version/runtime metadata sync guard home"),
+    )),
+
+    OverrideTruthFamily(area="Assurance", owner_phase="Phase 77", fate="保留", rows=(
+        ("tests/meta/governance_promoted_assets.py", "shared promoted-phase-asset helper home"),
+        ("tests/meta/test_governance_bootstrap_smoke.py", "focused bootstrap smoke guard home"),
+    )),
+
+    OverrideTruthFamily(area="Assurance", owner_phase="Phase 27 / 44 / 49 / 77", fate="保留", rows=(
+        ("tests/meta/test_governance_closeout_guards.py", "closeout + promoted-asset manifest smoke anchor"),
     )),
 
     OverrideTruthFamily(area="Control", owner_phase="Phase 3", fate="保留", rows=(
@@ -161,9 +171,9 @@ OVERRIDE_TRUTH_FAMILIES = (
         ("custom_components/lipro/services/execution.py", "formal service execution facade; private auth seam closed"),
     )),
 
-    OverrideTruthFamily(area="Assurance", owner_phase="Phase 33", fate="保留", rows=(
+    OverrideTruthFamily(area="Assurance", owner_phase="Phase 33 / 77", fate="保留", rows=(
         ("tests/meta/test_governance_guards.py", "inventory / policy governance topic root"),
-        ("tests/meta/test_governance_release_contract.py", "toolchain + docs navigation + terminology truth guard home"),
+        ("tests/meta/test_governance_release_contract.py", "release/docs governance contract guard home"),
     )),
 
     OverrideTruthFamily(area="Control", owner_phase="Phase 33", fate="保留", rows=(
@@ -508,8 +518,16 @@ def _classify_test_path(path: str) -> FileGovernanceRow | None:
         return _row_for_path(path, "Assurance", "Phase 7.4")
     if path == "tests/meta/test_evidence_pack_authority.py":
         return _row_for_path(path, "Assurance", "Phase 8")
+    if path == "tests/meta/test_governance_bootstrap_smoke.py":
+        return _row_for_path(path, "Assurance", "Phase 77")
+    if path == "tests/meta/governance_promoted_assets.py":
+        return _row_for_path(path, "Assurance", "Phase 77")
     if path == "tests/meta/test_governance_closeout_guards.py":
-        return _row_for_path(path, "Assurance", "Phase 27")
+        return _row_for_path(path, "Assurance", "Phase 27 / 44 / 49 / 77")
+    if path == "tests/meta/test_governance_release_contract.py":
+        return _row_for_path(path, "Assurance", "Phase 33 / 77")
+    if path == "tests/meta/test_version_sync.py":
+        return _row_for_path(path, "Assurance", "Phase 6 / 77")
     if path.startswith("tests/meta/"):
         return _row_for_path(path, "Assurance", "Phase 6")
     if path.startswith("tests/harness/evidence_pack/"):

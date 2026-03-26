@@ -1,181 +1,20 @@
-"""Governance closeout helper home and promoted-asset manifest guards."""
+"""Governance closeout smoke and promoted-asset manifest guards."""
 
 from __future__ import annotations
 
-from functools import lru_cache
-from pathlib import Path
-import re
-
-from scripts.check_file_matrix import repo_root
-
 from .conftest import _load_frontmatter
+from .governance_contract_helpers import _ROOT
 from .governance_current_truth import (
     CURRENT_MILESTONE_DEFAULT_NEXT,
-    CURRENT_MILESTONE_HEADER,
-    CURRENT_MILESTONE_ROADMAP_HEADER,
-    CURRENT_MILESTONE_STATE_LABEL,
-    CURRENT_MILESTONE_STATUS,
-    CURRENT_PHASE_HEADING,
     CURRENT_ROUTE,
-    CURRENT_ROUTE_MODE,
-    LATEST_ARCHIVED_AUDIT_PATH,
-    LATEST_ARCHIVED_EVIDENCE_LABEL,
     LATEST_ARCHIVED_EVIDENCE_PATH,
-    LATEST_ARCHIVED_MILESTONE_STATUS,
-    LATEST_ARCHIVED_PROJECT_HEADER,
-    PREVIOUS_ARCHIVED_PROJECT_HEADER,
 )
-
-
-def _assert_state_keeps_forward_progress_commands(state_text: str) -> None:
-    assert "## Recommended Next Command" in state_text
-    assert "$gsd-progress" in state_text
-    assert (
-        "$gsd-plan-milestone-gaps" in state_text
-        or "$gsd-new-milestone" in state_text
-        or re.search(r"\$gsd-(?:plan|execute)-phase \d+(?:\.\d+)?", state_text)
-        or re.search(r"\$gsd-complete-milestone v\d+\.\d+", state_text)
-    )
-
-
-def _assert_project_allows_post_v1_4_next_step(project_text: str) -> None:
-    assert (
-        "**Default next step:** `$gsd-new-milestone`" in project_text
-        or re.search(r"\*\*Default next step:\*\* `\$gsd-plan-phase \d+(?:\.\d+)?`", project_text)
-        is not None
-        or re.search(
-            r"\*\*Default next step:\*\* `\$gsd-plan-phase \d+(?:\.\d+)?` → `\$gsd-execute-phase \d+(?:\.\d+)?`",
-            project_text,
-        )
-        is not None
-        or re.search(
-            r"\*\*Default next step:\*\* `\$gsd-execute-phase \d+(?:\.\d+)?`",
-            project_text,
-        )
-        is not None
-        or re.search(
-            r"\*\*Default next step:\*\* `\$gsd-complete-milestone v\d+\.\d+`",
-            project_text,
-        )
-        is not None
-    )
-
-
-def _assert_state_reflects_post_v1_4_continuation(state_text: str) -> None:
-    assert (
-        "`Phase 39 complete`" in state_text
-        or re.search(
-            r"Phase \d+(?:\.\d+)? (?:execution-ready|complete|routing-ready|planning-ready)",
-            state_text,
-        )
-        or re.search(r"v1\.\d+ archived", state_text)
-        or re.search(r"\$gsd-(?:plan|execute)-phase \d+(?:\.\d+)?", state_text)
-        or re.search(r"\$gsd-complete-milestone v\d+\.\d+", state_text)
-        or "$gsd-new-milestone" in state_text
-    )
-
-
-_ROOT = repo_root(Path(__file__))
-
-_PROMOTED_PHASE_ASSETS = _ROOT / ".planning" / "reviews" / "PROMOTED_PHASE_ASSETS.md"
-
-
-@lru_cache(maxsize=1)
-def _load_promoted_phase_assets() -> dict[str, frozenset[str]]:
-    manifest = _load_frontmatter(_PROMOTED_PHASE_ASSETS)
-    phases = manifest["phases"]
-    assert isinstance(phases, dict)
-
-    promoted_assets: dict[str, frozenset[str]] = {}
-    for phase_dir_name, filenames in phases.items():
-        assert isinstance(phase_dir_name, str)
-        assert isinstance(filenames, list)
-        assert filenames
-        promoted_assets[phase_dir_name] = frozenset(filenames)
-
-    return promoted_assets
-
-
-def _assert_promoted_phase_assets(phase_dir_name: str, *filenames: str) -> None:
-    promoted_assets = _load_promoted_phase_assets()
-    assert phase_dir_name in promoted_assets
-
-    phase_root = _ROOT / ".planning" / "phases" / phase_dir_name
-    for filename in filenames:
-        assert filename in promoted_assets[phase_dir_name]
-        assert (phase_root / filename).exists()
-
-
-def _assert_promoted_closeout_package(roadmap_text: str, *filenames: str) -> None:
-    package_listing = ", ".join(f"`{filename}`" for filename in filenames)
-    assert f"**Promoted closeout package**: {package_listing}" in roadmap_text
-
-
-def _assert_current_route_truth(
-    project_text: str,
-    roadmap_text: str,
-    state_text: str,
-) -> None:
-    assert (
-        f"**Current route:** `{CURRENT_ROUTE}`；{LATEST_ARCHIVED_EVIDENCE_LABEL} = "
-        f"`{LATEST_ARCHIVED_EVIDENCE_PATH}`."
-    ) in project_text
-    assert CURRENT_MILESTONE_HEADER in project_text
-    assert LATEST_ARCHIVED_PROJECT_HEADER in project_text
-    assert PREVIOUS_ARCHIVED_PROJECT_HEADER in project_text
-    assert f"**Current status:** `{CURRENT_MILESTONE_STATUS}`" in project_text
-    assert f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`" in project_text
-    assert CURRENT_MILESTONE_ROADMAP_HEADER in roadmap_text
-    assert f"**Milestone status:** `{CURRENT_MILESTONE_STATUS}`" in roadmap_text
-    assert f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`" in roadmap_text
-    assert CURRENT_PHASE_HEADING in roadmap_text
-    assert f"**Current milestone:** `{CURRENT_MILESTONE_STATE_LABEL}`" in state_text
-    assert f"**Current mode:** `{CURRENT_ROUTE_MODE}`" in state_text
-    assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
-    assert LATEST_ARCHIVED_AUDIT_PATH in state_text
-    assert LATEST_ARCHIVED_EVIDENCE_PATH in project_text
-    assert LATEST_ARCHIVED_EVIDENCE_PATH in state_text
-
-
-def _assert_latest_archived_route_truth(
-    project_text: str,
-    roadmap_text: str,
-    state_text: str,
-) -> None:
-    _assert_current_route_truth(project_text, roadmap_text, state_text)
-    assert f"**Current status:** `{LATEST_ARCHIVED_MILESTONE_STATUS}`" in project_text
-    assert LATEST_ARCHIVED_PROJECT_HEADER in project_text
-
-
-def _assert_public_docs_hide_internal_route_story(
-    docs_text: str,
-    *extra_forbidden_tokens: str,
-) -> None:
-    for token in (
-        CURRENT_ROUTE,
-        LATEST_ARCHIVED_EVIDENCE_PATH,
-        "Current governance status",
-        "$gsd-plan-phase",
-        *extra_forbidden_tokens,
-    ):
-        assert token not in docs_text
-
-
-def _assert_exact_promoted_phase_assets(phase_dir_name: str, *filenames: str) -> None:
-    promoted_assets = _load_promoted_phase_assets()
-    assert phase_dir_name in promoted_assets
-    assert promoted_assets[phase_dir_name] == frozenset(filenames)
-
-    phase_root = _ROOT / ".planning" / "phases" / phase_dir_name
-    for filename in filenames:
-        assert (phase_root / filename).exists()
-
-
-def _assert_phase_assets_not_promoted(phase_dir_name: str, *filenames: str) -> None:
-    promoted_assets = _load_promoted_phase_assets().get(phase_dir_name, frozenset())
-
-    for filename in filenames:
-        assert filename not in promoted_assets
+from .governance_promoted_assets import (
+    _PROMOTED_PHASE_ASSETS,
+    _assert_exact_promoted_phase_assets,
+    _assert_phase_assets_not_promoted,
+    _load_promoted_phase_assets,
+)
 
 
 def test_promoted_phase_assets_manifest_enforces_explicit_ci_evidence() -> None:
@@ -241,6 +80,44 @@ def test_promoted_phase_assets_manifest_enforces_explicit_ci_evidence() -> None:
         "32-01-PLAN.md",
         "32-VALIDATION.md",
     )
+
+
+def test_phase_76_activation_contract_aligns_verification_and_file_matrix() -> None:
+    verification_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    file_matrix_text = (
+        _ROOT / ".planning" / "reviews" / "FILE_MATRIX.md"
+    ).read_text(encoding="utf-8")
+
+    assert "## Phase 76 Current-Route Activation Contract" in verification_text
+    assert f"当前 mutable story = `{CURRENT_ROUTE}`" in verification_text
+    assert f"default next command = `{CURRENT_MILESTONE_DEFAULT_NEXT}`" in verification_text
+    assert f"**Latest archived pointer:** `{LATEST_ARCHIVED_EVIDENCE_PATH}`" in verification_text
+    assert (
+        "uv run pytest -q tests/meta/test_governance_bootstrap_smoke.py "
+        "tests/meta/test_governance_closeout_guards.py "
+        "tests/meta/test_governance_release_contract.py"
+    ) in verification_text
+    assert (
+        "uv run pytest -q tests/meta/test_governance_milestone_archives.py "
+        "tests/meta/governance_followup_route_current_milestones.py "
+        "tests/meta/test_phase75_governance_closeout_guards.py"
+    ) in verification_text
+    assert "uv run python scripts/check_file_matrix.py --check" in verification_text
+
+    row_expectations = {
+        "tests/meta/governance_contract_helpers.py": "shared governance route/doc helper home",
+        "tests/meta/governance_current_truth.py": "governance-route contract + shared current/latest archive truth helper",
+        "tests/meta/governance_promoted_assets.py": "shared promoted-phase-asset helper home",
+        "tests/meta/test_governance_bootstrap_smoke.py": "focused bootstrap smoke guard home",
+        "tests/meta/test_governance_closeout_guards.py": "closeout + promoted-asset manifest smoke anchor",
+        "tests/meta/governance_followup_route_current_milestones.py": "governance-route contract + current/latest archive pointer-drift guard",
+        "tests/meta/test_governance_release_contract.py": "release/docs governance contract guard home",
+    }
+    for relative_path, residual_story in row_expectations.items():
+        assert relative_path in file_matrix_text
+        assert residual_story in file_matrix_text
     _assert_phase_assets_not_promoted(
         "34-continuity-and-hard-release-gates",
         "34-01-PLAN.md",
