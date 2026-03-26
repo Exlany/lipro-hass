@@ -9,8 +9,6 @@ from tests.helpers.repo_root import repo_root
 
 from .governance_contract_helpers import _assert_latest_archived_route_truth
 from .governance_current_truth import (
-    LATEST_ARCHIVED_PHASE,
-    LATEST_ARCHIVED_PHASE_DIR,
     LATEST_ARCHIVED_PHASE_TITLE,
     PREVIOUS_ARCHIVED_MILESTONE,
 )
@@ -27,10 +25,14 @@ _FUNCTION_BUDGETS = {
 }
 _ROUTE_TESTS = (
     "tests/meta/governance_followup_route_current_milestones.py",
-    "tests/meta/test_governance_release_contract.py",
+    "tests/meta/test_governance_bootstrap_smoke.py",
+    "tests/meta/test_governance_route_handoff_smoke.py",
     "tests/meta/test_governance_milestone_archives.py",
     "tests/meta/test_version_sync.py",
 )
+
+_PHASE75 = "75"
+_PHASE75_DIR = "75-access-mode-truth-closure-evidence-promotion-formalization-and-thin-adapter-typing-hardening"
 
 
 def _function_length(relative_path: str, function_name: str) -> int:
@@ -71,10 +73,10 @@ def test_phase71_archived_route_truth_is_distinct_from_latest_v1_20_archive_rout
 
 
 def test_phase75_context_exists_for_latest_archived_closeout_route() -> None:
-    context_path = _ROOT / ".planning" / "phases" / LATEST_ARCHIVED_PHASE_DIR / f"{LATEST_ARCHIVED_PHASE}-CONTEXT.md"
+    context_path = _ROOT / ".planning" / "phases" / _PHASE75_DIR / f"{_PHASE75}-CONTEXT.md"
     context_text = context_path.read_text(encoding="utf-8")
 
     assert context_path.exists()
-    assert f"# Phase {LATEST_ARCHIVED_PHASE} Context" in context_text
+    assert f"# Phase {_PHASE75} Context" in context_text
     assert "v1.19 archived / evidence-ready" in context_text
     assert "runtime_access" in context_text

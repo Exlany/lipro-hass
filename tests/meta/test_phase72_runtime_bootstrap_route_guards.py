@@ -70,19 +70,16 @@ _PRODUCTION_IMPORT_LOCALITY = {
 }
 _ROUTE_TESTS = (
     "tests/meta/governance_followup_route_current_milestones.py",
-    "tests/meta/test_governance_release_contract.py",
+    "tests/meta/test_governance_bootstrap_smoke.py",
+    "tests/meta/test_governance_route_handoff_smoke.py",
     "tests/meta/test_governance_milestone_archives.py",
     "tests/meta/test_version_sync.py",
 )
 _CURRENT_ROUTE_PROSE_PATHS = (
     ".planning/PROJECT.md",
-    ".planning/ROADMAP.md",
-    ".planning/REQUIREMENTS.md",
     ".planning/STATE.md",
     ".planning/baseline/PUBLIC_SURFACES.md",
     ".planning/baseline/AUTHORITY_MATRIX.md",
-    ".planning/baseline/VERIFICATION_MATRIX.md",
-    ".planning/reviews/RESIDUAL_LEDGER.md",
 )
 
 

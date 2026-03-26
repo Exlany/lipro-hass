@@ -130,11 +130,17 @@ def test_phase70_archive_tokens_live_in_archive_family_not_version_sync() -> Non
     version_sync_text = (_ROOT / "tests" / "meta" / "test_version_sync.py").read_text(
         encoding="utf-8"
     )
-    milestone_archives_text = (
-        _ROOT / "tests" / "meta" / "test_governance_milestone_archives.py"
-    ).read_text(encoding="utf-8")
+    milestone_archive_family_paths = (
+        _ROOT / "tests" / "meta" / "test_governance_milestone_archives.py",
+        _ROOT / "tests" / "meta" / "governance_milestone_archives_assets.py",
+        _ROOT / "tests" / "meta" / "governance_milestone_archives_truth.py",
+        _ROOT / "tests" / "meta" / "governance_milestone_archives_ordering.py",
+    )
+    milestone_archive_family_text = "\n".join(
+        path.read_text(encoding="utf-8") for path in milestone_archive_family_paths
+    )
 
     assert "69-SUMMARY.md" not in version_sync_text
     assert "69-VERIFICATION.md" not in version_sync_text
-    assert "69-SUMMARY.md" in milestone_archives_text
-    assert "69-VERIFICATION.md" in milestone_archives_text
+    assert "69-SUMMARY.md" in milestone_archive_family_text
+    assert "69-VERIFICATION.md" in milestone_archive_family_text

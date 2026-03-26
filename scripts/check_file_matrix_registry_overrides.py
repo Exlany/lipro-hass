@@ -191,7 +191,8 @@ BASE_OVERRIDE_TRUTH_FAMILIES = (
 
     OverrideTruthFamily(area="Assurance", owner_phase="Phase 49", fate="保留", rows=(
         ("tests/meta/test_governance_followup_route.py", "thin shell after followup-route topicization"),
-        ("tests/meta/test_governance_milestone_archives.py", "milestone-archive topic suite"),
+        ("tests/meta/test_governance_milestone_archives.py", "thin shell after milestone-archive topicization"),
+        ("tests/meta/governance_milestone_archives_assets.py", "milestone-archive asset existence topic home"),
         ("tests/meta/test_governance_promoted_phase_assets.py", "promoted-asset topic suite"),
     )),
 
@@ -241,6 +242,9 @@ BASE_OVERRIDE_TRUTH_FAMILIES = (
 
     OverrideTruthFamily(area="Assurance", owner_phase="Phase 6", fate="保留", rows=(
         ("tests/meta/test_public_surface_guards.py", "thin shell after public-surface topicization"),
+        ("tests/meta/test_dependency_guards.py", "thin shell after dependency-guard topicization"),
+        ("tests/meta/dependency_guard_helpers.py", "shared dependency-guard structural-rule helper home"),
+        ("tests/meta/dependency_guards_policy.py", "architecture-policy structural-rule guard family"),
     )),
 
     OverrideTruthFamily(area="Assurance", owner_phase="Phase 6 / 7 / 60", fate="保留", rows=(
@@ -254,8 +258,7 @@ BASE_OVERRIDE_TRUTH_FAMILIES = (
         ("scripts/check_file_matrix_validation.py", "file-governance drift validators and run_checks home"),
         ("tests/meta/toolchain_truth_checker_paths.py", "checker-path and local-develop smoke truth family"),
         ("tests/meta/toolchain_truth_ci_contract.py", "CI lane, pre-push, lint, and pytest contract truth family"),
-        ("tests/meta/toolchain_truth_docs_fast_path.py", "docs fast-path, continuity, and machine-readable governance truth family"),
-        ("tests/meta/toolchain_truth_python_stack.py", "Python pin, devcontainer, and pre-commit toolchain truth family"),
+                ("tests/meta/toolchain_truth_python_stack.py", "Python pin, devcontainer, and pre-commit toolchain truth family"),
         ("tests/meta/toolchain_truth_release_contract.py", "release workflow and identity-evidence truth family"),
         ("tests/meta/toolchain_truth_testing_governance.py", "testing-map and derived-governance topology truth family"),
     )),
@@ -298,6 +301,27 @@ OverrideTruthFamily(area="Runtime", owner_phase="Phase 5 / 6 / 74", fate="保留
         ("scripts/check_architecture_policy.py", "-"),
         ("tests/helpers/architecture_policy.py", "-"),
         ("tests/helpers/ast_guard_utils.py", "-"),
+    )),
+
+    OverrideTruthFamily(area="Assurance", owner_phase="Phase 49 / 77 / 80", fate="保留", rows=(
+        ("tests/meta/governance_milestone_archives_truth.py", "milestone-archive authority/pointer truth topic home"),
+        ("tests/meta/governance_milestone_archives_ordering.py", "milestone-archive snapshot ordering + historical-route topic home"),
+    )),
+
+    OverrideTruthFamily(area="Assurance", owner_phase="Phase 40 / 43 / 50 / 53 / 68", fate="保留", rows=(
+        ("tests/meta/dependency_guards_service_runtime.py", "service/runtime dependency-story guard family"),
+    )),
+
+    OverrideTruthFamily(area="Assurance", owner_phase="Phase 40 / 52 / 57", fate="保留", rows=(
+        ("tests/meta/dependency_guards_protocol_contracts.py", "protocol/schedule dependency-story guard family"),
+    )),
+
+    OverrideTruthFamily(area="Assurance", owner_phase="Phase 48 / 49 / 54 / 55 / 56 / 58 / 62", fate="保留", rows=(
+        ("tests/meta/dependency_guards_review_ledgers.py", "dependency-note / verification / naming topic guard family"),
+    )),
+
+    OverrideTruthFamily(area="Assurance", owner_phase="Phase 44 / 60", fate="保留", rows=(
+        ("tests/meta/toolchain_truth_docs_fast_path.py", "docs fast-path, continuity, and machine-readable governance truth family; toolchain + docs navigation + terminology truth guard home"),
     )),
 )
 
