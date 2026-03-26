@@ -302,6 +302,13 @@ phases:
   - 79-SUMMARY.md
   - 79-VERIFICATION.md
   - 79-VALIDATION.md
+  80-governance-typing-closure-and-final-meta-suite-hotspot-topicization:
+  - 80-01-SUMMARY.md
+  - 80-02-SUMMARY.md
+  - 80-03-SUMMARY.md
+  - 80-SUMMARY.md
+  - 80-VERIFICATION.md
+  - 80-VALIDATION.md
 ---
 
 # Promoted Phase Assets

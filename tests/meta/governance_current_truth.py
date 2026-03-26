@@ -28,9 +28,9 @@ PLANNING_ROUTE_CONTRACT: dict[str, object] = {
         "version": "v1.21",
         "name": "Governance Bootstrap Truth Hardening & Planning Route Automation",
         "status": "closeout-ready (2026-03-26)",
-        "phase": "79",
-        "phase_title": "Governance tooling hotspot decomposition and release-contract topicization",
-        "route_mode": "Phase 79 complete",
+        "phase": "80",
+        "phase_title": "Governance typing closure and final meta-suite hotspot topicization",
+        "route_mode": "Phase 80 complete",
     },
     "latest_archived": {
         "version": "v1.20",
@@ -49,7 +49,7 @@ PLANNING_ROUTE_CONTRACT: dict[str, object] = {
         "evidence_path": ".planning/reviews/V1_19_EVIDENCE_INDEX.md",
     },
     "bootstrap": {
-        "current_route": "v1.21 active route / Phase 79 complete / latest archived baseline = v1.20",
+        "current_route": "v1.21 active route / Phase 80 complete / latest archived baseline = v1.20",
         "default_next_command": "$gsd-complete-milestone v1.21",
         "latest_archived_evidence_pointer": ".planning/reviews/V1_20_EVIDENCE_INDEX.md",
     },
@@ -121,6 +121,7 @@ CURRENT_ROUTE_PROSE_FORBIDDEN = (
     "v1.20 active route / Phase 75 complete / latest archived baseline = v1.19",
     "v1.21 active route / Phase 76 execution-ready / latest archived baseline = v1.20",
     "v1.21 active route / Phase 78 complete / latest archived baseline = v1.20",
+    "v1.21 active route / Phase 79 complete / latest archived baseline = v1.20",
 )
 CURRENT_RUNTIME_ROOT_TEST = "tests/core/coordinator/test_runtime_root.py"
 LATEST_ARCHIVED_MILESTONE = _as_str(_LATEST["version"])

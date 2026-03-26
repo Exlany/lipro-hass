@@ -10,9 +10,9 @@ active_milestone:
   version: v1.21
   name: Governance Bootstrap Truth Hardening & Planning Route Automation
   status: closeout-ready (2026-03-26)
-  phase: "79"
-  phase_title: Governance tooling hotspot decomposition and release-contract topicization
-  route_mode: Phase 79 complete
+  phase: "80"
+  phase_title: Governance typing closure and final meta-suite hotspot topicization
+  route_mode: Phase 80 complete
 latest_archived:
   version: v1.20
   name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
@@ -28,7 +28,7 @@ previous_archived:
   name: Audit-Driven Final Hotspot Decomposition & Governance Truth Projection
   evidence_path: .planning/reviews/V1_19_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.21 active route / Phase 79 complete / latest archived baseline = v1.20
+  current_route: v1.21 active route / Phase 80 complete / latest archived baseline = v1.20
   default_next_command: $gsd-complete-milestone v1.21
   latest_archived_evidence_pointer: .planning/reviews/V1_20_EVIDENCE_INDEX.md
 ```

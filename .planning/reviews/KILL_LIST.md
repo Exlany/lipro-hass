@@ -335,3 +335,8 @@
 
 - 本 phase **无新增 active kill target**；治理工具链热点拆分与 release-contract topicization 只收口维护性与 current-truth honesty，不新增 file-level delete gate。
 - 后续唯一正式下一步是 `$gsd-complete-milestone v1.21`；不得再以“补 current story”或“临时 topic shell”为名重开隐性 phase。
+
+## Phase 80 Status Update
+
+- 本 phase **无新增 active kill target**；治理 typing closure 与 giant-test topicization 只收口维护性与 current-truth honesty，不新增 file-level delete gate。
+- 后续唯一正式下一步是 `$gsd-complete-milestone v1.21`；不得再以“补 mypy”或“补测试拆分”为名重开隐性 phase。

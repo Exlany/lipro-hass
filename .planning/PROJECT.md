@@ -2,8 +2,8 @@
 
 
 **Status:** Active
-**Current route:** `v1.21 active route / Phase 79 complete / latest archived baseline = v1.20`；latest archived evidence index = `.planning/reviews/V1_20_EVIDENCE_INDEX.md`.
-**Goal:** 以 `v1.20` archived baseline、`.planning/v1.20-MILESTONE-AUDIT.md` verdict、`.planning/reviews/V1_20_EVIDENCE_INDEX.md` pull-only archived evidence 与 `Phase 76 -> 79` 的 planning/bootstrap hardening + governance tooling maintainability pass 为 seed，把 `v1.21` current route 冻结到 closeout-ready handoff，确保 `$gsd-plan-phase / $gsd-execute-phase / $gsd-next` 的后续流转不再依赖一次性人工修补。
+**Current route:** `v1.21 active route / Phase 80 complete / latest archived baseline = v1.20`；latest archived evidence index = `.planning/reviews/V1_20_EVIDENCE_INDEX.md`.
+**Goal:** 以 `v1.20` archived baseline、`.planning/v1.20-MILESTONE-AUDIT.md` verdict、`.planning/reviews/V1_20_EVIDENCE_INDEX.md` pull-only archived evidence 与 `Phase 76 -> 80` 的 planning/bootstrap hardening + governance quality closure 为 seed，把 `v1.21` current route 冻结到 closeout-ready handoff，确保 `$gsd-plan-phase / $gsd-execute-phase / $gsd-next` 的后续流转不再依赖一次性人工修补。
 **Default next step:** `$gsd-complete-milestone v1.21`
 **Active baseline:** current active milestone = `v1.21`；latest archived baseline = `v1.20`；previous archived baseline = `v1.19`。
 
@@ -15,9 +15,9 @@ active_milestone:
   version: v1.21
   name: Governance Bootstrap Truth Hardening & Planning Route Automation
   status: closeout-ready (2026-03-26)
-  phase: "79"
-  phase_title: Governance tooling hotspot decomposition and release-contract topicization
-  route_mode: Phase 79 complete
+  phase: "80"
+  phase_title: Governance typing closure and final meta-suite hotspot topicization
+  route_mode: Phase 80 complete
 latest_archived:
   version: v1.20
   name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
@@ -33,7 +33,7 @@ previous_archived:
   name: Audit-Driven Final Hotspot Decomposition & Governance Truth Projection
   evidence_path: .planning/reviews/V1_19_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.21 active route / Phase 79 complete / latest archived baseline = v1.20
+  current_route: v1.21 active route / Phase 80 complete / latest archived baseline = v1.20
   default_next_command: $gsd-complete-milestone v1.21
   latest_archived_evidence_pointer: .planning/reviews/V1_20_EVIDENCE_INDEX.md
 ```
@@ -50,12 +50,12 @@ bootstrap:
 - 不把外部 GSD parser 当作第二权威；repo 内必须先提供 deterministic、可验证、可持续消费的 route/bootstrap 真源。
 - 不让历史 milestone prose、旧 heading 或 archive narrative 继续伪装成 current route selector。
 - 不为治理问题新增 helper-owned second story；仍以既有 planning docs、baseline、reviews 与 meta guards 为正式 home。
-- `Phase 76 -> 79` 已把 planning/bootstrap truth、governance tooling maintainability 与 release-contract topicization 收口为 closeout-ready handoff contract；后续 archive promotion 不再需要补 current story。
+- `Phase 76 -> 80` 已把 planning/bootstrap truth、governance tooling maintainability、typing closure 与 final meta-suite hotspot topicization 收口为 closeout-ready handoff contract；后续 archive promotion 不再需要补 current story。
 
-**Phase range:** `Phase 76 -> 79`
+**Phase range:** `Phase 76 -> 80`
 **Current status:** `closeout-ready (2026-03-26)`
 **Seed input:** `.planning/v1.20-MILESTONE-AUDIT.md`, `.planning/reviews/V1_20_EVIDENCE_INDEX.md`, `.planning/MILESTONES.md`, `.planning/ROADMAP.md`, `.planning/REQUIREMENTS.md`, `.planning/STATE.md`, `tests/meta/governance_current_truth.py`, `tests/meta/test_governance_milestone_archives.py`
-**Requirements basket:** `GOV-57`, `ARC-20`, `DOC-04`, `TST-23`, `QLT-31`, `GOV-58`, `HOT-35`, `TST-24`, `QLT-32`
+**Requirements basket:** `GOV-57`, `ARC-20`, `DOC-04`, `TST-23`, `QLT-31`, `GOV-58`, `HOT-35`, `TST-24`, `QLT-32`, `GOV-59`, `TYP-22`, `HOT-36`, `TST-25`, `QLT-33`
 **Default next command:** `$gsd-complete-milestone v1.21`
 
 ## Latest Archived Milestone (v1.20)

@@ -48,6 +48,13 @@ def _build_override_index(
 
 OVERRIDES = _build_override_index(OVERRIDE_TRUTH_FAMILIES)
 
+__all__ = [
+    "OVERRIDES",
+    "FileGovernanceRow",
+    "classify_path",
+    "iter_override_truth_families",
+]
+
 
 def iter_override_truth_families() -> tuple[OverrideTruthFamily, ...]:
     """Return the focused override families that feed the registry."""

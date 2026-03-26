@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🚧 **v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation** - Phases 76-79 completed on 2026-03-26 from the `v1.20` archived baseline; next command: `$gsd-complete-milestone v1.21`
+- 🚧 **v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation** - Phases 76-80 completed on 2026-03-26 from the `v1.20` archived baseline; next command: `$gsd-complete-milestone v1.21`
 - ✅ **v1.0 North Star Rebuild** - Phases 1-7 (+ 1.5 / 2.5 / 2.6), shipped 2026-03-13, archive: `.planning/milestones/v1.0-ROADMAP.md`
 - ✅ **v1.1 Protocol Fidelity & Operability** - Phases 7.1-17 complete; final audit complete; milestone snapshots archived at `.planning/milestones/v1.1-ROADMAP.md` / `.planning/milestones/v1.1-REQUIREMENTS.md` (updated 2026-03-16)
 - ✅ **v1.2 Host-Neutral Core & Replay Completion** - Phases 18-24 complete after Phase 24 reopen revalidation; 24 plans complete; milestone snapshots archived at `.planning/milestones/v1.2-ROADMAP.md` / `.planning/milestones/v1.2-REQUIREMENTS.md`; `v1.3` handoff-ready (revalidated 2026-03-17)
@@ -33,9 +33,9 @@ active_milestone:
   version: v1.21
   name: Governance Bootstrap Truth Hardening & Planning Route Automation
   status: closeout-ready (2026-03-26)
-  phase: "79"
-  phase_title: Governance tooling hotspot decomposition and release-contract topicization
-  route_mode: Phase 79 complete
+  phase: "80"
+  phase_title: Governance typing closure and final meta-suite hotspot topicization
+  route_mode: Phase 80 complete
 latest_archived:
   version: v1.20
   name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
@@ -51,7 +51,7 @@ previous_archived:
   name: Audit-Driven Final Hotspot Decomposition & Governance Truth Projection
   evidence_path: .planning/reviews/V1_19_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.21 active route / Phase 79 complete / latest archived baseline = v1.20
+  current_route: v1.21 active route / Phase 80 complete / latest archived baseline = v1.20
   default_next_command: $gsd-complete-milestone v1.21
   latest_archived_evidence_pointer: .planning/reviews/V1_20_EVIDENCE_INDEX.md
 ```
@@ -136,6 +136,24 @@ Plans:
 - [x] 79-01: formalize live route truth and phase-79 closeout contract (completed 2026-03-26)
 - [x] 79-02: decompose the file-matrix registry hotspot into slimmer governed homes (completed 2026-03-26)
 - [x] 79-03: topicize release-contract coverage and freeze phase-79 closeout truth (completed 2026-03-26)
+
+### Phase 80: Governance typing closure and final meta-suite hotspot topicization
+
+**Goal:** 收口 `Phase 79` 引入的 governance/tooling typing regressions，拆掉最后两处 giant governance tests，并把 live route truth 诚实前推到 `Phase 80 complete`。
+**Depends on:** Phase 79
+**Requirements**: [GOV-59, TYP-22, HOT-36, TST-25, QLT-33]
+**Success Criteria**:
+  1. `uv run mypy --follow-imports=silent .` 重新对 touched governance/tooling roots 绿灯，且不引入 `Any` / `type: ignore` 逃逸。
+  2. `tests/meta/governance_followup_route_current_milestones.py` 与 `tests/meta/test_governance_release_contract.py` 不再依赖 giant single-test body。
+  3. `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / VERIFICATION_MATRIX / review ledgers / governance_current_truth.py` 共同冻结 `Phase 80 complete` 真相。
+**Status**: Complete (`2026-03-26`)
+**Plans**: 3/3 complete
+**Promoted closeout package**: `80-SUMMARY.md`, `80-VERIFICATION.md`, `80-VALIDATION.md`
+
+Plans:
+- [x] 80-01: restore governance/tooling typing closure after phase-79 topicization (completed 2026-03-26)
+- [x] 80-02: decompose the remaining giant follow-up and workflow governance tests (completed 2026-03-26)
+- [x] 80-03: freeze phase-80 closeout truth and quality proof bundle (completed 2026-03-26)
 
 ## Required Phase Outputs
 

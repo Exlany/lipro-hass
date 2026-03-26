@@ -9,6 +9,7 @@ import subprocess
 
 from tests.helpers.repo_root import repo_root
 
+from .conftest import _as_bool, _as_mapping, _as_mapping_list, _as_str
 from .governance_contract_helpers import _assert_latest_archived_route_truth
 from .governance_current_truth import (
     CURRENT_MILESTONE,
@@ -63,7 +64,7 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
     assert CURRENT_MILESTONE_DEFAULT_NEXT in roadmap_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in requirements_text
-    assert '## Phase 79 Exit Contract' in verification_text
+    assert '## Phase 80 Exit Contract' in verification_text
     assert CURRENT_ROUTE in verification_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in verification_text
     assert LATEST_ARCHIVED_EVIDENCE_PATH in verification_text
@@ -74,32 +75,32 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
 
 def test_gsd_fast_path_matches_current_closeout_ready_story() -> None:
     progress = _run_gsd_tools('init', 'progress')
-    phases = progress['phases']
-    assert isinstance(phases, list)
-    phase_79 = next(phase for phase in phases if phase['number'] == '79')
-    assert phase_79['status'] == 'complete'
-    assert phase_79['plan_count'] == 3
-    assert phase_79['summary_count'] == 4
+    phases = _as_mapping_list(progress['phases'])
+    phase_80 = next(phase for phase in phases if _as_str(phase['number']) == '80')
+    assert _as_str(phase_80['status']) == 'complete'
+    assert phase_80['plan_count'] == 3
+    assert phase_80['summary_count'] == 4
     assert progress['next_phase'] is None
 
     state = _run_gsd_tools('state', 'json')
-    assert state['milestone'] == CURRENT_MILESTONE
-    assert state['status'] == 'active'
-    assert state['progress'] == {
-        'total_phases': '4',
-        'completed_phases': '4',
-        'total_plans': '12',
-        'completed_plans': '12',
+    assert _as_str(state['milestone']) == CURRENT_MILESTONE
+    assert _as_str(state['status']) == 'active'
+    assert _as_mapping(state['progress']) == {
+        'total_phases': '5',
+        'completed_phases': '5',
+        'total_plans': '15',
+        'completed_plans': '15',
     }
 
-    phase_index = _run_gsd_tools('phase-plan-index', '79')
-    assert phase_index['phase'] == '79'
+    phase_index = _run_gsd_tools('phase-plan-index', '80')
+    assert _as_str(phase_index['phase']) == '80'
     assert phase_index['incomplete'] == []
-    assert [plan['id'] for plan in phase_index['plans']] == ['79-01', '79-02', '79-03']
-    assert all(plan['has_summary'] for plan in phase_index['plans'])
+    plans = _as_mapping_list(phase_index['plans'])
+    assert [_as_str(plan['id']) for plan in plans] == ['80-01', '80-02', '80-03']
+    assert all(_as_bool(plan['has_summary']) for plan in plans)
 
 
-def test_phase_79_closeout_assets_are_promoted_without_planning_traces() -> None:
+def test_phase_80_closeout_assets_are_promoted_without_planning_traces() -> None:
     _assert_promoted_phase_assets(
         '76-governance-bootstrap-truth-hardening-archive-seed-determinism-and-active-route-activation',
         '76-01-SUMMARY.md',
@@ -132,4 +133,13 @@ def test_phase_79_closeout_assets_are_promoted_without_planning_traces() -> None
         '79-SUMMARY.md',
         '79-VERIFICATION.md',
         '79-VALIDATION.md',
+    )
+    _assert_promoted_phase_assets(
+        '80-governance-typing-closure-and-final-meta-suite-hotspot-topicization',
+        '80-01-SUMMARY.md',
+        '80-02-SUMMARY.md',
+        '80-03-SUMMARY.md',
+        '80-SUMMARY.md',
+        '80-VERIFICATION.md',
+        '80-VALIDATION.md',
     )

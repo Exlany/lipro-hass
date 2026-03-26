@@ -2,7 +2,7 @@
 
 ## Current Milestone (v1.21)
 
-> `v1.21` 以 `v1.20` archived baseline、machine-readable bootstrap drift 修正与 `Phase 76 -> 79` 的 governance route guards / tooling maintainability pass 为 immediate seed；当前 mutable story 已前推到 `Phase 79 complete`，里程碑状态为 `closeout-ready`，默认下一步为 `$gsd-complete-milestone v1.21`；本轮重点不是重开生产热点，而是把 planning/bootstrap/current-route truth、governance tooling hotspot decomposition 与 release-contract topicization 一次性冻结成稳定、低维护、可机器消费的正式 handoff contract。
+> `v1.21` 以 `v1.20` archived baseline、machine-readable bootstrap drift 修正与 `Phase 76 -> 80` 的 governance route guards / quality closure 为 immediate seed；当前 mutable story 已前推到 `Phase 80 complete`，里程碑状态为 `closeout-ready`，默认下一步为 `$gsd-complete-milestone v1.21`；本轮重点不是重开生产热点，而是把 planning/bootstrap/current-route truth、typing closure 与 final meta-suite hotspot topicization 一次性冻结成稳定、低维护、可机器消费的正式 handoff contract。
 
 ### Governance Bootstrap Truth Hardening & Planning Route Automation
 
@@ -15,6 +15,11 @@
 - [x] **HOT-35**: `scripts/check_file_matrix_registry.py` 不得再保留 monolithic hotspot；分类逻辑必须拆到更薄、更清晰的 governed homes。
 - [x] **TST-24**: release-contract governance coverage 必须 topicize 到更清晰的 docs / continuity concern homes，同时保留稳定 anchor suite。
 - [x] **QLT-32**: touched governance/tooling scope 必须通过 focused lint / matrix / architecture / pytest proof，并证明 registry hotspot 的复杂度已下降。
+- [x] **GOV-59**: live planning/governance truth 必须诚实记录 `v1.21` 已纳入 `Phase 80`，并在执行完成后回到 `Phase 80 complete / $gsd-complete-milestone v1.21` 的单一路线。
+- [x] **TYP-22**: governance/tooling touched roots 必须回到 `mypy`-clean 状态，且类型边界只能通过显式导出与 typed JSON helper 收口。
+- [x] **HOT-36**: remaining giant governance tests 必须停止承担单体 truth carrier 职责，failure localization 与编辑可维护性必须同步提升。
+- [x] **TST-25**: focused governance suites 必须在 giant-test 拆分后继续覆盖 current route、archived baseline、release workflow 与 follow-up truth。
+- [x] **QLT-33**: touched scope 必须通过 `mypy`、`ruff`、`check_file_matrix`、`check_architecture_policy`、focused pytest 与 GSD fast-path proof。
 
 ## Traceability for v1.21 route
 
@@ -29,11 +34,16 @@
 | HOT-35 | Phase 79 | Completed |
 | TST-24 | Phase 79 | Completed |
 | QLT-32 | Phase 79 | Completed |
+| GOV-59 | Phase 80 | Completed |
+| TYP-22 | Phase 80 | Completed |
+| HOT-36 | Phase 80 | Completed |
+| TST-25 | Phase 80 | Completed |
+| QLT-33 | Phase 80 | Completed |
 
 **Current Coverage:**
-- v1.21 requirements: 9 total
-- Current mapped: 9
-- Current complete: 9
+- v1.21 requirements: 14 total
+- Current mapped: 14
+- Current complete: 14
 - Current pending: 0
 - Current unmapped: 0 ✓
 
@@ -45,9 +55,9 @@ active_milestone:
   version: v1.21
   name: Governance Bootstrap Truth Hardening & Planning Route Automation
   status: closeout-ready (2026-03-26)
-  phase: "79"
-  phase_title: Governance tooling hotspot decomposition and release-contract topicization
-  route_mode: Phase 79 complete
+  phase: "80"
+  phase_title: Governance typing closure and final meta-suite hotspot topicization
+  route_mode: Phase 80 complete
 latest_archived:
   version: v1.20
   name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
@@ -63,7 +73,7 @@ previous_archived:
   name: Audit-Driven Final Hotspot Decomposition & Governance Truth Projection
   evidence_path: .planning/reviews/V1_19_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.21 active route / Phase 79 complete / latest archived baseline = v1.20
+  current_route: v1.21 active route / Phase 80 complete / latest archived baseline = v1.20
   default_next_command: $gsd-complete-milestone v1.21
   latest_archived_evidence_pointer: .planning/reviews/V1_20_EVIDENCE_INDEX.md
 ```

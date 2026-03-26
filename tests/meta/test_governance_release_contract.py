@@ -22,73 +22,38 @@ from .conftest import (
 _CODEQL_WORKFLOW = _ROOT / ".github" / "workflows" / "codeql.yml"
 _GOVERNANCE_REGISTRY = _ROOT / ".planning" / "baseline" / "GOVERNANCE_REGISTRY.json"
 
-def test_ci_and_release_workflows_share_governance_and_version_gates() -> None:
-    ci_workflow = _load_yaml(_CI_WORKFLOW)
-    release_workflow = _load_yaml(_RELEASE_WORKFLOW)
-    codeql_workflow = _load_yaml(_CODEQL_WORKFLOW)
+def _step_names(steps: list[dict[str, object]]) -> set[str]:
+    return {_as_str(step["name"]) for step in steps}
 
+
+def _step_named(steps: list[dict[str, object]], name: str) -> dict[str, object]:
+    return next(step for step in steps if step.get("name") == name)
+
+
+def _step_run(steps: list[dict[str, object]], name: str) -> str:
+    return _as_str(_step_named(steps, name)["run"])
+
+
+def _assert_run_contains(run: str, *tokens: str) -> None:
+    for token in tokens:
+        assert token in run
+
+
+def test_ci_governance_job_runs_meta_version_and_toolchain_guards() -> None:
+    ci_workflow = _load_yaml(_CI_WORKFLOW)
     ci_on = _as_mapping(ci_workflow["on"])
     ci_jobs = _as_mapping(ci_workflow["jobs"])
-    release_jobs = _as_mapping(release_workflow["jobs"])
-    release_permissions = _as_mapping(release_workflow["permissions"])
-
     assert "workflow_call" in ci_on
 
     governance_job = _as_mapping(ci_jobs["governance"])
     governance_steps = _as_mapping_list(governance_job["steps"])
     governance_runs = "\n".join(_as_str(step.get("run", "")) for step in governance_steps)
-    assert "tests/meta/test_governance*.py" in governance_runs
-    assert "tests/meta/test_toolchain_truth.py" in governance_runs
-    assert "tests/meta/test_version_sync.py" in governance_runs
-
-    security_job = _as_mapping(ci_jobs["security"])
-    security_steps = _as_mapping_list(security_job["steps"])
-    security_step_names = {_as_str(step["name"]) for step in security_steps}
-    assert "Export runtime requirements" in security_step_names
-    assert "Run pip-audit (runtime)" in security_step_names
-
-    test_job = _as_mapping(ci_jobs["test"])
-    test_steps = _as_mapping_list(test_job["steps"])
-    test_step_names = {_as_str(step["name"]) for step in test_steps}
-    assert "Run snapshot tests" not in test_step_names
-    assert "Record test lane contract" in test_step_names
-    assert "Resolve changed coverage surface" in test_step_names
-    assert "Check total + changed-surface coverage gates" in test_step_names
-
-    benchmark_job = _as_mapping(ci_jobs["benchmark"])
-    benchmark_steps = _as_mapping_list(benchmark_job["steps"])
-    benchmark_step_names = {_as_str(step["name"]) for step in benchmark_steps}
-    assert "Run benchmark suite" in benchmark_step_names
-    assert "Upload benchmark artifact" in benchmark_step_names
-    assert "Compare benchmark results against baseline manifest" in benchmark_step_names
-    assert "Record benchmark governed posture" in benchmark_step_names
-    benchmark_run = next(step for step in benchmark_steps if step.get("name") == "Run benchmark suite")
-    assert benchmark_run.get("continue-on-error") in (None, False)
-    assert _as_str(benchmark_run["id"]) == "benchmark_run"
-    upload_step = next(step for step in benchmark_steps if step.get("name") == "Upload benchmark artifact")
-    assert _as_str(upload_step["uses"]) == "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02"
-    upload_with = _as_mapping(upload_step["with"])
-    assert _as_str(upload_with["path"]) == ".benchmarks/benchmark.json"
-    compare_step = next(
-        step
-        for step in benchmark_steps
-        if step.get("name") == "Compare benchmark results against baseline manifest"
+    _assert_run_contains(
+        governance_runs,
+        "tests/meta/test_governance*.py",
+        "tests/meta/test_toolchain_truth.py",
+        "tests/meta/test_version_sync.py",
     )
-    compare_run = _as_str(compare_step["run"])
-    assert "scripts/check_benchmark_baseline.py" in compare_run
-    assert "tests/benchmarks/benchmark_baselines.json" in compare_run
-    benchmark_summary = next(
-        step
-        for step in benchmark_steps
-        if step.get("name") == "Record benchmark governed posture"
-    )
-    assert "no-regression gate" in _as_str(benchmark_summary["run"])
-
-    validate_job = _as_mapping(release_jobs["validate"])
-    assert _as_str(validate_job["uses"]) == "./.github/workflows/ci.yml"
-    validate_with = _as_mapping(validate_job["with"])
-    assert _as_str(validate_with["ref"]) == "refs/tags/${{ env.RELEASE_TAG }}"
-    assert _as_str(validate_job["secrets"]) == "inherit"
 
     workflow_call = _as_mapping(ci_on["workflow_call"])
     workflow_inputs = _as_mapping(workflow_call["inputs"])
@@ -96,25 +61,78 @@ def test_ci_and_release_workflows_share_governance_and_version_gates() -> None:
     assert _as_bool(workflow_ref["required"]) is False
     assert _as_str(workflow_ref["default"]) == ""
 
+
+def test_ci_security_and_test_jobs_keep_expected_gate_steps() -> None:
+    ci_workflow = _load_yaml(_CI_WORKFLOW)
+    ci_jobs = _as_mapping(ci_workflow["jobs"])
+
+    security_job = _as_mapping(ci_jobs["security"])
+    security_step_names = _step_names(_as_mapping_list(security_job["steps"]))
+    assert "Export runtime requirements" in security_step_names
+    assert "Run pip-audit (runtime)" in security_step_names
+
+    test_job = _as_mapping(ci_jobs["test"])
+    test_step_names = _step_names(_as_mapping_list(test_job["steps"]))
+    assert "Run snapshot tests" not in test_step_names
+    assert "Record test lane contract" in test_step_names
+    assert "Resolve changed coverage surface" in test_step_names
+    assert "Check total + changed-surface coverage gates" in test_step_names
+
+
+def test_ci_benchmark_lane_enforces_baseline_and_artifact_contract() -> None:
+    ci_workflow = _load_yaml(_CI_WORKFLOW)
+    ci_jobs = _as_mapping(ci_workflow["jobs"])
+    benchmark_job = _as_mapping(ci_jobs["benchmark"])
+    benchmark_steps = _as_mapping_list(benchmark_job["steps"])
+    benchmark_step_names = _step_names(benchmark_steps)
+
+    assert "Run benchmark suite" in benchmark_step_names
+    assert "Upload benchmark artifact" in benchmark_step_names
+    assert "Compare benchmark results against baseline manifest" in benchmark_step_names
+    assert "Record benchmark governed posture" in benchmark_step_names
+
+    benchmark_run = _step_named(benchmark_steps, "Run benchmark suite")
+    assert benchmark_run.get("continue-on-error") in (None, False)
+    assert _as_str(benchmark_run["id"]) == "benchmark_run"
+
+    upload_step = _step_named(benchmark_steps, "Upload benchmark artifact")
+    assert _as_str(upload_step["uses"]) == "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02"
+    upload_with = _as_mapping(upload_step["with"])
+    assert _as_str(upload_with["path"]) == ".benchmarks/benchmark.json"
+
+    compare_run = _step_run(benchmark_steps, "Compare benchmark results against baseline manifest")
+    _assert_run_contains(compare_run, "scripts/check_benchmark_baseline.py", "tests/benchmarks/benchmark_baselines.json")
+    benchmark_summary = _step_run(benchmark_steps, "Record benchmark governed posture")
+    assert "no-regression gate" in benchmark_summary
+
+
+def test_release_validate_and_security_gates_reuse_tagged_ref_contract() -> None:
+    release_workflow = _load_yaml(_RELEASE_WORKFLOW)
+    release_jobs = _as_mapping(release_workflow["jobs"])
+    release_permissions = _as_mapping(release_workflow["permissions"])
+
+    validate_job = _as_mapping(release_jobs["validate"])
+    assert _as_str(validate_job["uses"]) == "./.github/workflows/ci.yml"
+    validate_with = _as_mapping(validate_job["with"])
+    assert _as_str(validate_with["ref"]) == "refs/tags/${{ env.RELEASE_TAG }}"
+    assert _as_str(validate_job["secrets"]) == "inherit"
+
     security_gate = _as_mapping(release_jobs["security_gate"])
     assert _as_str(security_gate["needs"]) == "validate"
     security_gate_steps = _as_mapping_list(security_gate["steps"])
-    security_gate_step_names = {_as_str(step["name"]) for step in security_gate_steps}
+    security_gate_step_names = _step_names(security_gate_steps)
     assert "Checkout tagged release ref" in security_gate_step_names
     assert "Set up Python" in security_gate_step_names
     assert "Run pip-audit (runtime, tagged release)" in security_gate_step_names
 
-    security_setup = next(
-        step for step in security_gate_steps if step.get("name") == "Set up Python"
-    )
+    security_setup = _step_named(security_gate_steps, "Set up Python")
     security_setup_with = _as_mapping(security_setup["with"])
     assert _as_str(security_setup["uses"]) == "actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405"
     assert _as_str(security_setup_with["python-version"]) == "3.14"
 
     code_scanning_gate = _as_mapping(release_jobs["code_scanning_gate"])
     assert _as_str(code_scanning_gate["needs"]) == "validate"
-    code_scanning_gate_steps = _as_mapping_list(code_scanning_gate["steps"])
-    code_scanning_gate_step_names = {_as_str(step["name"]) for step in code_scanning_gate_steps}
+    code_scanning_gate_step_names = _step_names(_as_mapping_list(code_scanning_gate["steps"]))
     assert "Checkout tagged release ref" in code_scanning_gate_step_names
     assert "Wait for tagged CodeQL analysis" in code_scanning_gate_step_names
     assert "Fail on open CodeQL alerts for tagged ref" in code_scanning_gate_step_names
@@ -124,83 +142,79 @@ def test_ci_and_release_workflows_share_governance_and_version_gates() -> None:
     assert _as_str(release_permissions["id-token"]) == "write"
     assert _as_str(release_permissions["security-events"]) == "read"
 
+
+def test_release_build_job_enforces_version_install_and_signing_contract() -> None:
+    release_workflow = _load_yaml(_RELEASE_WORKFLOW)
+    release_jobs = _as_mapping(release_workflow["jobs"])
     build_job = _as_mapping(release_jobs["build"])
     assert set(_as_str_list(build_job["needs"])) == {"validate", "security_gate", "code_scanning_gate"}
+
     build_steps = _as_mapping_list(build_job["steps"])
-    step_names = {_as_str(step["name"]) for step in build_steps}
-    assert "Checkout tagged release ref" in step_names
-    assert "Verify tag matches project version" in step_names
-    assert "Build zip, installer, and checksums" in step_names
-    assert "Smoke-test release artifact install" in step_names
-    assert "Export SBOM" in step_names
-    assert "Generate artifact attestation" in step_names
-    assert "Verify generated artifact attestations" in step_names
-    assert "Install cosign" in step_names
-    assert "Sign release assets" in step_names
-    assert "Verify release signatures" in step_names
-    assert "Write release identity manifest" in step_names
+    step_names = _step_names(build_steps)
+    for expected in (
+        "Checkout tagged release ref",
+        "Verify tag matches project version",
+        "Build zip, installer, and checksums",
+        "Smoke-test release artifact install",
+        "Export SBOM",
+        "Generate artifact attestation",
+        "Verify generated artifact attestations",
+        "Install cosign",
+        "Sign release assets",
+        "Verify release signatures",
+        "Write release identity manifest",
+    ):
+        assert expected in step_names
 
-    checkout_step = next(
-        step for step in build_steps if step.get("name") == "Checkout tagged release ref"
-    )
-    checkout_with = _as_mapping(checkout_step["with"])
+    checkout_with = _as_mapping(_step_named(build_steps, "Checkout tagged release ref")["with"])
     assert _as_str(checkout_with["ref"]) == "refs/tags/${{ env.RELEASE_TAG }}"
-    version_guard = next(
-        _as_str(step["run"])
-        for step in build_steps
-        if step.get("name") == "Verify tag matches project version"
-    )
-    assert "pyproject.toml" in version_guard
-    assert "RELEASE_TAG" in version_guard
 
-    signature_verify = next(
-        _as_str(step["run"])
-        for step in build_steps
-        if step.get("name") == "Verify release signatures"
-    )
+    version_guard = _step_run(build_steps, "Verify tag matches project version")
+    _assert_run_contains(version_guard, "pyproject.toml", "RELEASE_TAG")
+
+    signature_verify = _step_run(build_steps, "Verify release signatures")
     assert 'identity_regex="^https://github.com/${GITHUB_REPOSITORY}/.github/workflows/release.yml@refs/tags/${RELEASE_TAG}$"' in signature_verify
     assert "heads/.+" not in signature_verify
 
-    install_smoke = next(
-        _as_str(step["run"])
-        for step in build_steps
-        if step.get("name") == "Smoke-test release artifact install"
+    install_smoke = _step_run(build_steps, "Smoke-test release artifact install")
+    _assert_run_contains(
+        install_smoke,
+        "--archive-file",
+        "--checksum-file",
+        "configuration.yaml",
+        ".storage",
+        "custom_components/lipro/manifest.json",
     )
-    for token in ("--archive-file", "--checksum-file", "configuration.yaml", ".storage", "custom_components/lipro/manifest.json"):
-        assert token in install_smoke
 
-    publish_release = next(
-        step for step in build_steps if step.get("name") == "Publish release assets"
-    )
-    published_with = _as_mapping(publish_release["with"])
+    published_with = _as_mapping(_step_named(build_steps, "Publish release assets")["with"])
     published_files = _as_str(published_with["files"])
-    assert "dist/install.sh" in published_files
-    assert "SHA256SUMS" in published_files
-    assert ".spdx.json" in published_files
-    assert ".release-identity.txt" in published_files
-    assert ".sigstore.json" in published_files
+    _assert_run_contains(
+        published_files,
+        "dist/install.sh",
+        "SHA256SUMS",
+        ".spdx.json",
+        ".release-identity.txt",
+        ".sigstore.json",
+    )
 
-    codeql = _load_yaml(_CODEQL_WORKFLOW)
-    codeql_permissions = _as_mapping(codeql["permissions"])
+
+def test_codeql_tag_workflow_matches_release_scanning_contract() -> None:
+    codeql_workflow = _load_yaml(_CODEQL_WORKFLOW)
+    codeql_permissions = _as_mapping(codeql_workflow["permissions"])
     assert _as_str(codeql_permissions["security-events"]) == "write"
-    codeql_jobs = _as_mapping(codeql["jobs"])
+
+    codeql_jobs = _as_mapping(codeql_workflow["jobs"])
     codeql_analyze = _as_mapping(codeql_jobs["analyze"])
-    analyze_steps = {_as_str(step["name"]) for step in _as_mapping_list(codeql_analyze["steps"])}
-    assert "Initialize CodeQL" in analyze_steps
-    assert "Perform CodeQL Analysis" in analyze_steps
+    codeql_steps = _step_names(_as_mapping_list(codeql_analyze["steps"]))
+    assert "Initialize CodeQL" in codeql_steps
+    assert "Perform CodeQL Analysis" in codeql_steps
 
     codeql_on = _as_mapping(codeql_workflow["on"])
     assert "workflow_dispatch" in codeql_on
     assert "push" in codeql_on
     codeql_push = _as_mapping(codeql_on["push"])
     assert "v*" in _as_str_list(codeql_push["tags"])
-    codeql_workflow_permissions = _as_mapping(codeql_workflow["permissions"])
-    assert _as_str(codeql_workflow_permissions["security-events"]) == "write"
-    codeql_workflow_jobs = _as_mapping(codeql_workflow["jobs"])
-    codeql_workflow_analyze = _as_mapping(codeql_workflow_jobs["analyze"])
-    codeql_steps = {_as_str(step["name"]) for step in _as_mapping_list(codeql_workflow_analyze["steps"])}
-    assert "Initialize CodeQL" in codeql_steps
-    assert "Perform CodeQL Analysis" in codeql_steps
+
 
 def test_governance_closeout_suite_is_wired_into_daily_gate_commands() -> None:
     agents_text = _AGENTS.read_text(encoding="utf-8")
