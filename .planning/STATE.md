@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.20
-milestone_name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
-status: archived
-last_updated: "2026-03-25T19:30:00Z"
+milestone: v1.21
+milestone_name: Governance Bootstrap Truth Hardening & Planning Route Automation
+status: active
+last_updated: "2026-03-26T00:00:00Z"
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 16
-  completed_plans: 16
+  total_phases: 3
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
@@ -17,16 +17,23 @@ progress:
 
 See: `.planning/PROJECT.md`
 
-**Current milestone:** `No active milestone route`
-**Core value:** 以 `v1.20` archived baseline 与 `.planning/reviews/V1_20_EVIDENCE_INDEX.md` latest pull-only archived evidence index 作为下一条正式路线的唯一 seed；任何后续 work 都必须显式开立新 milestone，不得隐式延续 `Phase 75` closeout truth。
-**Current mode:** `no active milestone route / latest archived baseline = v1.20`
+**Current milestone:** `v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation`
+**Core value:** 以 `v1.20` archived baseline 与 `.planning/reviews/V1_20_EVIDENCE_INDEX.md` latest archived evidence index 作为 active route 的稳定 seed，把 `v1.21` 的下一步工作收束到 `Phase 76` planning，而不是继续依赖 archive-closeout 后的一次性修补。
+**Current mode:** `Phase 76 planning-ready`
 
 ## Current Position
 
-- `v1.20` 已于 `2026-03-25` 完成 milestone archive promotion：当前 phase queue `72 -> 75` 全部完成，仓库已无 active milestone route；下一步是 `$gsd-new-milestone`。
-- latest archived evidence index 已固定为 `.planning/reviews/V1_20_EVIDENCE_INDEX.md`；它只承担 pull-only archived evidence 入口身份。
-- `v1.20` 现为 latest archived baseline；`v1.19` 退为 previous archived baseline；`v1.18` 保留为 historical archived baseline。
-- 当前 archived baseline 由 `.planning/reviews/V1_19_TERMINAL_AUDIT.md` seed 路线收口而成，并通过 `.planning/v1.20-MILESTONE-AUDIT.md` 与 `.planning/reviews/V1_20_EVIDENCE_INDEX.md` 冻结归档真相。
+- `v1.21` 已于 `2026-03-26` 显式开立为 active milestone；当前 phase queue `76 -> 78` 已进入 planning-ready，下一步是 `$gsd-plan-phase 76`。
+- latest archived baseline 固定为 `v1.20`；latest archived evidence index 继续是 `.planning/reviews/V1_20_EVIDENCE_INDEX.md`；`v1.19` 继续承担 previous archived baseline。
+- recent bootstrap drift 已通过 machine-readable contract 修正；后续重点是把这类 current-route / latest-archive truth 固化为长期维护友好的 planning/bootstrap contract。
+
+## Current Milestone (v1.21)
+
+- **Milestone:** `v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation`
+- **Phase range:** `76 -> 78`
+- **Milestone status:** `planning-ready (2026-03-26)`
+- **Seed input:** `.planning/v1.20-MILESTONE-AUDIT.md`, `.planning/reviews/V1_20_EVIDENCE_INDEX.md`, `.planning/MILESTONES.md`, `.planning/ROADMAP.md`, `.planning/REQUIREMENTS.md`, `.planning/STATE.md`, `tests/meta/governance_current_truth.py`, `tests/meta/test_governance_milestone_archives.py`
+- **Default next command:** `$gsd-plan-phase 76`
 
 ## Latest Archived Baseline (v1.20)
 
@@ -55,11 +62,12 @@ See: `.planning/PROJECT.md`
 
 ## Recommended Next Command
 
-1. `$gsd-new-milestone` —— 以 `v1.20` archived baseline 为起点，显式开立下一条正式路线
-2. `$gsd-next` —— 让 GSD 自动路由到 archive-closeout 之后的下一步工作流
-3. `$gsd-progress` —— 查看 `no active milestone route / latest archived baseline = v1.20` 的当前状态
-4. `uv run python scripts/check_file_matrix.py --check` —— 复核 planning / baseline / review / archive assets 契约
-5. `uv run pytest -q tests/meta/test_governance_milestone_archives.py tests/meta/governance_followup_route_current_milestones.py tests/meta/test_governance_release_contract.py tests/meta/test_phase75_governance_closeout_guards.py tests/meta/test_version_sync.py` —— 复核 archive pointer / no-active-route / promoted evidence guards
+1. `$gsd-plan-phase 76` —— 先把 `v1.21 / Phase 76` 详细计划落盘
+2. `$gsd-execute-phase 76` —— 在 Phase 76 计划确认后执行 current-route/bootstrap truth 收口
+3. `$gsd-next` —— 让 GSD 继续在 `v1.21` active route 内自动推进
+4. `$gsd-progress` —— 查看当前 active route / latest archived baseline / next command 是否保持一致
+5. `uv run python scripts/check_file_matrix.py --check` —— 复核 planning / baseline / review / archive assets 契约
+6. `uv run pytest -q tests/meta/test_governance_milestone_archives.py tests/meta/governance_followup_route_current_milestones.py tests/meta/test_governance_release_contract.py tests/meta/test_phase75_governance_closeout_guards.py tests/meta/test_version_sync.py` —— 复核 active-route / latest-archive / promoted evidence guards
 
 ## Session Continuity
 

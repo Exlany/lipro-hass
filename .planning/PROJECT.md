@@ -2,10 +2,29 @@
 
 
 **Status:** Active
-**Current route:** `no active milestone route / latest archived baseline = v1.20`；latest archived evidence index = `.planning/reviews/V1_20_EVIDENCE_INDEX.md`.
-**Goal:** 以 `v1.20` archived baseline、`.planning/v1.20-MILESTONE-AUDIT.md` verdict 与 `.planning/reviews/V1_20_EVIDENCE_INDEX.md` pull-only archived evidence index 作为下一条正式路线的唯一 seed；下一轮工作必须通过 `$gsd-new-milestone` 显式开立，不得把 `Phase 75` closeout truth 回写成隐式 active route。
-**Default next step:** `$gsd-new-milestone`
-**Active baseline:** no active milestone；latest archived baseline = `v1.20`；previous archived baseline = `v1.19`。
+**Current route:** `v1.21 active route / Phase 76 planning-ready / latest archived baseline = v1.20`；latest archived evidence index = `.planning/reviews/V1_20_EVIDENCE_INDEX.md`.
+**Goal:** 以 `v1.20` archived baseline、`.planning/v1.20-MILESTONE-AUDIT.md` verdict、`.planning/reviews/V1_20_EVIDENCE_INDEX.md` pull-only archived evidence 与刚刚完成的 machine-readable bootstrap 修正为 seed，显式开立 `v1.21` active route，把 planning docs / route guards / next-step bootstrap 收口成 deterministic contract，避免后续 `$gsd-plan-phase / $gsd-execute-phase / $gsd-next` 再依赖一次性人工修补。
+**Default next step:** `$gsd-plan-phase 76`
+**Active baseline:** current active milestone = `v1.21`；latest archived baseline = `v1.20`；previous archived baseline = `v1.19`。
+
+## Current Milestone (v1.21)
+
+**Name:** `v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation`
+
+**Why now:** `v1.20` 已把 bootstrap / lifecycle / service-family / auth-residual 收口为 archived baseline，但 recent bootstrap parser drift 证明：`PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / tests/meta` 之间仍存在 machine-readable truth 与 prose-order 绑定的维护风险。最诚实的动作不是继续停留在 `no active milestone route`，而是把“如何稳定开启下一条正式路线”本身立为新 milestone，并沿 north-star 单一主链把 planning/bootstrap/governance 入口继续正式化。
+
+**North-star fit:** `v1.21` 继续沿单一正式主链推进：
+
+- 不把外部 GSD parser 当作第二权威；repo 内必须先提供 deterministic、可验证、可持续消费的 route/bootstrap 真源。
+- 不让历史 milestone prose、旧 heading 或 archive narrative 继续伪装成 current route selector。
+- 不为治理问题新增 helper-owned second story；仍以既有 planning docs、baseline、reviews 与 meta guards 为正式 home。
+- 先把 `Phase 76 -> 78` 的 planning/bootstrap truth 铺稳，再进入后续执行链路，避免重复修同类 drift。
+
+**Phase range:** `Phase 76 -> 78`
+**Current status:** `planning-ready (2026-03-26)`
+**Seed input:** `.planning/v1.20-MILESTONE-AUDIT.md`, `.planning/reviews/V1_20_EVIDENCE_INDEX.md`, `.planning/MILESTONES.md`, `.planning/ROADMAP.md`, `.planning/REQUIREMENTS.md`, `.planning/STATE.md`, `tests/meta/governance_current_truth.py`, `tests/meta/test_governance_milestone_archives.py`
+**Requirements basket:** `GOV-57`, `ARC-20`, `DOC-04`, `TST-23`, `QLT-31`
+**Default next command:** `$gsd-plan-phase 76`
 
 ## Latest Archived Milestone (v1.20)
 

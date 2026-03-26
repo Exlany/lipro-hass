@@ -1,4 +1,4 @@
-"""Archived-route follow-up truth guards spanning v1.8-v1.20."""
+"""Current-route and archived-baseline follow-up truth guards spanning v1.8-v1.21."""
 
 from __future__ import annotations
 
@@ -178,7 +178,7 @@ def test_archived_route_followup_truth_from_v1_8_to_v1_20_is_consistent() -> Non
     assert ".planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-01-PLAN.md" not in project_text
 
     _assert_latest_archived_route_truth(project_text, roadmap_text, state_text)
-    assert "## Active Milestone (v1.20)" not in project_text
+    assert "## Current Milestone (v1.21)" in project_text
     assert "## Archived Milestone (v1.17)" in project_text
     assert "## Archived Milestone (v1.16)" in project_text
     assert "**Current status:** `archived / evidence-ready with carry-forward (2026-03-24)`" in project_text
@@ -218,7 +218,7 @@ def test_archived_route_followup_truth_from_v1_8_to_v1_20_is_consistent() -> Non
 
     assert f"**Current milestone:** `{CURRENT_MILESTONE_STATE_LABEL}`" in state_text
     assert f"**Current mode:** `{CURRENT_ROUTE_MODE}`" in state_text
-    assert "archived / evidence-ready" in CURRENT_MILESTONE_STATUS
+    assert "planning-ready" in CURRENT_MILESTONE_STATUS
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
     assert LATEST_ARCHIVED_AUDIT_PATH in state_text
     assert LATEST_ARCHIVED_EVIDENCE_PATH in state_text

@@ -21,6 +21,8 @@ from .governance_current_truth import (
     LATEST_ARCHIVED_AUDIT_PATH,
     LATEST_ARCHIVED_EVIDENCE_LABEL,
     LATEST_ARCHIVED_EVIDENCE_PATH,
+    LATEST_ARCHIVED_MILESTONE_STATUS,
+    LATEST_ARCHIVED_PROJECT_HEADER,
     PREVIOUS_ARCHIVED_PROJECT_HEADER,
 )
 
@@ -109,7 +111,7 @@ def _assert_promoted_closeout_package(roadmap_text: str, *filenames: str) -> Non
     assert f"**Promoted closeout package**: {package_listing}" in roadmap_text
 
 
-def _assert_latest_archived_route_truth(
+def _assert_current_route_truth(
     project_text: str,
     roadmap_text: str,
     state_text: str,
@@ -119,6 +121,7 @@ def _assert_latest_archived_route_truth(
         f"`{LATEST_ARCHIVED_EVIDENCE_PATH}`."
     ) in project_text
     assert CURRENT_MILESTONE_HEADER in project_text
+    assert LATEST_ARCHIVED_PROJECT_HEADER in project_text
     assert PREVIOUS_ARCHIVED_PROJECT_HEADER in project_text
     assert f"**Current status:** `{CURRENT_MILESTONE_STATUS}`" in project_text
     assert f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`" in project_text
@@ -132,6 +135,16 @@ def _assert_latest_archived_route_truth(
     assert LATEST_ARCHIVED_AUDIT_PATH in state_text
     assert LATEST_ARCHIVED_EVIDENCE_PATH in project_text
     assert LATEST_ARCHIVED_EVIDENCE_PATH in state_text
+
+
+def _assert_latest_archived_route_truth(
+    project_text: str,
+    roadmap_text: str,
+    state_text: str,
+) -> None:
+    _assert_current_route_truth(project_text, roadmap_text, state_text)
+    assert f"**Current status:** `{LATEST_ARCHIVED_MILESTONE_STATUS}`" in project_text
+    assert LATEST_ARCHIVED_PROJECT_HEADER in project_text
 
 
 def _assert_public_docs_hide_internal_route_story(

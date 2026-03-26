@@ -549,15 +549,13 @@ def test_governance_truth_registers_v1_20_latest_archive_pointer() -> None:
     )
     _assert_latest_archived_route_truth(project_text, roadmap_text, state_text)
 
-def test_machine_readable_roadmap_current_entry_prefers_latest_archived_baseline() -> None:
+def test_machine_readable_roadmap_current_entry_prefers_active_milestone() -> None:
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
-    cleaned = re.sub(r"<details>[\s\S]*?</details>", "", roadmap_text, flags=re.IGNORECASE)
-
-    heading_match = re.search(r"## .*v(\d+(?:\.\d+)+)[:\s]+([^\n(]+)", cleaned)
-    assert heading_match is not None
-    assert heading_match.group(1) == "1.20"
-    assert heading_match.group(2).strip() == (
-        "Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement"
+    active_match = re.search(r"🚧\s*\*\*v(\d+(?:\.\d+)+)\s+([^*]+)\*\*", roadmap_text)
+    assert active_match is not None
+    assert active_match.group(1) == "1.21"
+    assert active_match.group(2).strip() == (
+        "Governance Bootstrap Truth Hardening & Planning Route Automation"
     )
     assert "### 🚧 v1.1 Protocol Fidelity & Operability" not in roadmap_text
 

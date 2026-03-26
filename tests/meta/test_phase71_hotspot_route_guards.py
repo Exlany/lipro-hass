@@ -8,9 +8,9 @@ from pathlib import Path
 from tests.helpers.repo_root import repo_root
 
 from .governance_current_truth import (
-    CURRENT_PHASE,
-    CURRENT_PHASE_DIR,
-    CURRENT_PHASE_TITLE,
+    LATEST_ARCHIVED_PHASE,
+    LATEST_ARCHIVED_PHASE_DIR,
+    LATEST_ARCHIVED_PHASE_TITLE,
     PREVIOUS_ARCHIVED_MILESTONE,
 )
 from .test_governance_closeout_guards import _assert_latest_archived_route_truth
@@ -65,16 +65,16 @@ def test_phase71_archived_route_truth_is_distinct_from_latest_v1_20_archive_rout
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
 
     _assert_latest_archived_route_truth(project_text, roadmap_text, state_text)
-    assert CURRENT_PHASE_TITLE in roadmap_text
+    assert LATEST_ARCHIVED_PHASE_TITLE in roadmap_text
     assert f"## Previous Archived Milestone ({PREVIOUS_ARCHIVED_MILESTONE})" in requirements_text
     assert "71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection" in project_text
 
 
-def test_phase72_context_exists_for_planning_route() -> None:
-    context_path = _ROOT / ".planning" / "phases" / CURRENT_PHASE_DIR / f"{CURRENT_PHASE}-CONTEXT.md"
+def test_phase75_context_exists_for_latest_archived_closeout_route() -> None:
+    context_path = _ROOT / ".planning" / "phases" / LATEST_ARCHIVED_PHASE_DIR / f"{LATEST_ARCHIVED_PHASE}-CONTEXT.md"
     context_text = context_path.read_text(encoding="utf-8")
 
     assert context_path.exists()
-    assert f"# Phase {CURRENT_PHASE} Context" in context_text
+    assert f"# Phase {LATEST_ARCHIVED_PHASE} Context" in context_text
     assert "v1.19 archived / evidence-ready" in context_text
     assert "runtime_access" in context_text

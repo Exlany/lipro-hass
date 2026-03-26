@@ -8,9 +8,10 @@ from tests.helpers.repo_root import repo_root
 
 from .governance_current_truth import (
     CURRENT_MILESTONE_DEFAULT_NEXT,
-    CURRENT_MILESTONE_STATUS,
-    CURRENT_PHASE_DIR,
     CURRENT_ROUTE,
+    LATEST_ARCHIVED_MILESTONE_STATUS,
+    LATEST_ARCHIVED_PHASE_DIR,
+    LATEST_ARCHIVED_PROJECT_HEADER,
 )
 from .test_governance_closeout_guards import _load_promoted_phase_assets
 
@@ -46,7 +47,7 @@ def test_phase75_archive_truth_stays_frozen_after_closeout() -> None:
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
 
     for text in (project_text, roadmap_text, state_text):
-        assert CURRENT_ROUTE in text or CURRENT_MILESTONE_STATUS in text
+        assert CURRENT_ROUTE in text or LATEST_ARCHIVED_MILESTONE_STATUS in text
 
     assert "| GOV-56 | Phase 72, 74, 75 | Completed |" in requirements_text
     assert "| ARC-19 | Phase 72, 73, 75 | Completed |" in requirements_text
@@ -56,13 +57,13 @@ def test_phase75_archive_truth_stays_frozen_after_closeout() -> None:
     assert CURRENT_MILESTONE_DEFAULT_NEXT in project_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in roadmap_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
-    assert "## Latest Archived Milestone (v1.20)" in project_text
+    assert LATEST_ARCHIVED_PROJECT_HEADER in project_text
     assert "## Latest Archived Milestone" in roadmap_text
-    assert CURRENT_PHASE_DIR in str(_ROOT / ".planning" / "phases" / CURRENT_PHASE_DIR)
+    assert LATEST_ARCHIVED_PHASE_DIR in str(_ROOT / ".planning" / "phases" / LATEST_ARCHIVED_PHASE_DIR)
 
 
 def test_phase75_evidence_files_exist_without_promotion() -> None:
-    phase_dir = _ROOT / ".planning" / "phases" / CURRENT_PHASE_DIR
+    phase_dir = _ROOT / ".planning" / "phases" / LATEST_ARCHIVED_PHASE_DIR
     promoted = _load_promoted_phase_assets()
 
     for filename in (
@@ -74,4 +75,4 @@ def test_phase75_evidence_files_exist_without_promotion() -> None:
         "75-VALIDATION.md",
     ):
         assert (phase_dir / filename).exists()
-        assert filename not in promoted.get(CURRENT_PHASE_DIR, frozenset())
+        assert filename not in promoted.get(LATEST_ARCHIVED_PHASE_DIR, frozenset())

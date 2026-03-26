@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- 🚧 **v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation** - Phases 76-78 opened on 2026-03-26 from the `v1.20` archived baseline; next command: `$gsd-plan-phase 76`
 - ✅ **v1.0 North Star Rebuild** - Phases 1-7 (+ 1.5 / 2.5 / 2.6), shipped 2026-03-13, archive: `.planning/milestones/v1.0-ROADMAP.md`
 - ✅ **v1.1 Protocol Fidelity & Operability** - Phases 7.1-17 complete; final audit complete; milestone snapshots archived at `.planning/milestones/v1.1-ROADMAP.md` / `.planning/milestones/v1.1-REQUIREMENTS.md` (updated 2026-03-16)
 - ✅ **v1.2 Host-Neutral Core & Replay Completion** - Phases 18-24 complete after Phase 24 reopen revalidation; 24 plans complete; milestone snapshots archived at `.planning/milestones/v1.2-ROADMAP.md` / `.planning/milestones/v1.2-REQUIREMENTS.md`; `v1.3` handoff-ready (revalidated 2026-03-17)
@@ -23,6 +24,67 @@
 - ✅ **v1.18 Support-Seam Slimming, OTA Resolver Consolidation & Governance Test Topicization** - `Phase 70` archived on 2026-03-24; milestone audit: `.planning/v1.18-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_18_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.18-ROADMAP.md` / `.planning/milestones/v1.18-REQUIREMENTS.md`; served as the starting archived baseline for `v1.19 / Phase 71`
 - ✅ **v1.19 Audit-Driven Final Hotspot Decomposition & Governance Truth Projection** - `Phase 71` archived on 2026-03-25; milestone audit: `.planning/v1.19-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_19_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.19-ROADMAP.md` / `.planning/milestones/v1.19-REQUIREMENTS.md`; serves as the previous archived baseline for `v1.20`
 - ✅ **v1.20 Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement** - `Phase 72 -> 75` archived on 2026-03-25; milestone audit: `.planning/v1.20-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_20_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.20-ROADMAP.md` / `.planning/milestones/v1.20-REQUIREMENTS.md`; current governance state = `no active milestone route / latest archived baseline = v1.20`
+
+## Current Milestone
+
+## v1.21: Governance Bootstrap Truth Hardening & Planning Route Automation
+
+> `v1.21` 不再把 planning/bootstrap truth 当作 archive-closeout 之后的附带修补，而是以 `v1.20` archived baseline、latest archived evidence index 与 recent bootstrap drift fix 为 seed，正式把 current-route activation、parser-visible contract 与 governance-route maintainability 立成新 milestone。
+
+**Milestone status:** `planning-ready (2026-03-26)`
+**Default next command:** `$gsd-plan-phase 76`
+**Seed input:** `.planning/v1.20-MILESTONE-AUDIT.md`, `.planning/reviews/V1_20_EVIDENCE_INDEX.md`, `.planning/MILESTONES.md`, `.planning/ROADMAP.md`, `.planning/REQUIREMENTS.md`, `.planning/STATE.md`, `tests/meta/governance_current_truth.py`, `tests/meta/test_governance_milestone_archives.py`
+
+### Phase 76: Governance bootstrap truth hardening, archive-seed determinism, and active-route activation
+
+**Goal:** 把 `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES` 之间的 current-route / latest-archive truth 收口成 deterministic bootstrap contract，确保 active route 激活不再依赖 hidden heading order 或历史 prose 漏洞。
+**Depends on:** Phase 75
+**Requirements**: [GOV-57, ARC-20]
+**Draft Success Criteria**:
+  1. `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES` 共同暴露同一条 parser-stable current route 与 latest archived baseline。
+  2. 历史 milestone body 继续可读、可审计，但不再先于 current milestone 被 machine-readable bootstrap 消费。
+  3. active-route docs / state / latest-archive pointer 在同一轮保持诚实一致，无需事后手工热修。
+**Status**: Planning-ready
+**Plans**: 3 planned
+
+Plans:
+- [ ] 76-01: converge current-route and latest-archive machine-readable contracts
+- [ ] 76-02: retire parser-visible historical milestone shadows without losing audit context
+- [ ] 76-03: sync active-route docs, state, and latest-archive pointers
+
+### Phase 77: Governance guard topicization, bootstrap smoke coverage, and literal-drift reduction
+
+**Goal:** 把 current-route / latest-archive / next-step bootstrap 相关守卫切成更清晰的 focused suites，并减少 large governance files 对同一故事线的重复 literal 依赖。
+**Depends on:** Phase 76
+**Requirements**: [DOC-04, TST-23]
+**Draft Success Criteria**:
+  1. focused guards 能直接发现 active-route bootstrap、latest-archive projection 与 docs/private-boundary drift。
+  2. shared helpers / constants 覆盖 route-truth 主故事，避免多文件重复散写大段 current-story 文案。
+  3. public docs 继续隐藏 internal bootstrap folklore，但 contributor/governance truth 保持可审计。
+**Status**: Planning-ready
+**Plans**: 3 planned
+
+Plans:
+- [ ] 77-01: add focused bootstrap smoke guards for active-route and archive transitions
+- [ ] 77-02: topicize shared current-route assertions and reduce duplicated literals
+- [ ] 77-03: freeze doc-facing and internal-bootstrap boundaries in governance suites
+
+### Phase 78: Quality gate formalization, route-handoff ergonomics, and milestone-closeout readiness
+
+**Goal:** 把 `gsd-plan-phase / gsd-execute-phase / gsd-next` 的入口条件、验证门禁与 eventual closeout readiness 明确写成可重复运行的 route-handoff contract。
+**Depends on:** Phase 77
+**Requirements**: [QLT-31, GOV-57]
+**Draft Success Criteria**:
+  1. current route activation、phase planning、phase execution 与 later closeout 都有清晰的 local verification path。
+  2. verification/file-matrix/architecture gates 能把 planning/bootstrap drift 当作一等质量问题阻断。
+  3. 后续从 `v1.21` 过渡到 archive-ready 时，不再需要一次性“补 current story”。
+**Status**: Planning-ready
+**Plans**: 3 planned
+
+Plans:
+- [ ] 78-01: formalize route-handoff entry conditions and local verification path
+- [ ] 78-02: project quality gates onto current-route activation and closeout readiness
+- [ ] 78-03: freeze low-maintenance governance story for later archive promotion
 
 ## Required Phase Outputs
 

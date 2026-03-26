@@ -1,5 +1,34 @@
 # Requirements: Lipro-HASS North Star Evolution
 
+## Current Milestone (v1.21)
+
+> `v1.21` 以 `v1.20` archived baseline、machine-readable bootstrap drift 修正与当前 governance route guards 为 immediate seed；本轮重点不是重开生产热点，而是把 planning/bootstrap/current-route truth 收口成稳定、低维护、可机器消费的正式合同。
+
+### Governance Bootstrap Truth Hardening & Planning Route Automation
+
+- [ ] **GOV-57**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / tests/meta` 必须共享单一 deterministic current-route 与 next-milestone seed；archived-only / active-route 切换不得再依赖 accidental heading order、hidden parser assumptions 或大段 prose 复制。
+- [ ] **ARC-20**: 历史 milestone body 可以继续保留 audit / archive 身份，但不得再在 current-route 之前以 parser-visible 形式伪装成 active/current milestone 候选。
+- [ ] **DOC-04**: planning docs 必须显式区分 human-readable narrative 与 machine-readable bootstrap contract，并在不污染 public docs 的前提下诚实声明 latest archived baseline / previous archived baseline / next step。
+- [ ] **TST-23**: focused governance guards 必须覆盖 active-route bootstrap、latest-archive projection、historical-route demotion 与 literal-drift freeze，避免同一 current-story 在多份 suites 中手工散写。
+- [ ] **QLT-31**: 开启下一条正式路线必须成为可重复验证的质量门：`gsd` smoke、focused route guards、file-matrix / architecture / repo-wide gates 需共同证明 route activation 不是一次性修复。
+
+## Traceability for v1.21 route
+
+| Requirement | Planned Phase | Status |
+|-------------|---------------|--------|
+| GOV-57 | Phase 76 | Planned |
+| ARC-20 | Phase 76 | Planned |
+| DOC-04 | Phase 77 | Planned |
+| TST-23 | Phase 77 | Planned |
+| QLT-31 | Phase 78 | Planned |
+
+**Current Coverage:**
+- v1.21 requirements: 5 total
+- Current mapped: 5
+- Current complete: 0
+- Current pending: 5
+- Current unmapped: 0 ✓
+
 ## Latest Archived Milestone (v1.20)
 
 > `v1.20` 已于 `2026-03-25` 完成 archive promotion；以下 requirements / traceability 保留 `Phase 72 -> 75` 的最终 fulfilled contract，归档快照见 `.planning/milestones/v1.20-REQUIREMENTS.md`，审计裁决见 `.planning/v1.20-MILESTONE-AUDIT.md`，证据索引见 `.planning/reviews/V1_20_EVIDENCE_INDEX.md`。
