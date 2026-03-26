@@ -242,14 +242,6 @@ class CommandRuntime:
                 err=err.error,
             )
             return None, err.route
-        except LiproApiError as err:
-            await self._handle_api_error(
-                request=request,
-                trace=trace,
-                route="unknown",
-                err=err,
-            )
-            return None, "unknown"
 
     def _record_push_delivery_failure(
         self,

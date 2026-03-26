@@ -100,6 +100,7 @@ class TestCommandRuntime:
             )
 
             assert success is False
+            assert _route == "iot"
             assert command_runtime._last_failure is not None
 
     @pytest.mark.asyncio
@@ -108,9 +109,12 @@ class TestCommandRuntime:
     ):
         """Test send_device_command with API error."""
         with patch.object(command_runtime._sender, "send_command") as mock_send:
-            mock_send.side_effect = LiproApiError("API Error")
+            mock_send.side_effect = CommandDispatchApiError(
+                route="device_direct",
+                error=LiproApiError("API Error"),
+            )
 
-            success, _route = await command_runtime.send_device_command(
+            success, route = await command_runtime.send_device_command(
                 device=mock_device,
                 command="POWER_ON",
                 properties=None,
@@ -118,6 +122,7 @@ class TestCommandRuntime:
             )
 
             assert success is False
+            assert route == "device_direct"
             assert command_runtime._last_failure is not None
 
     @pytest.mark.asyncio
@@ -155,9 +160,12 @@ class TestCommandRuntime:
     ):
         """Test send_device_command with auth error triggers reauth."""
         with patch.object(command_runtime._sender, "send_command") as mock_send:
-            mock_send.side_effect = LiproAuthError("Auth failed")
+            mock_send.side_effect = CommandDispatchApiError(
+                route="device_direct",
+                error=LiproAuthError("Auth failed"),
+            )
 
-            success, _route = await command_runtime.send_device_command(
+            success, route = await command_runtime.send_device_command(
                 device=mock_device,
                 command="POWER_ON",
                 properties=None,
@@ -165,9 +173,10 @@ class TestCommandRuntime:
             )
 
             assert success is False
+            assert route == "device_direct"
             assert command_runtime.last_command_failure_summary == {
                 "reason": "api_error",
-                "route": "unknown",
+                "route": "device_direct",
                 "device_id": mock_device.serial,
                 "message": "Auth failed",
                 "error_type": "LiproAuthError",
