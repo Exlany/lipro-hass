@@ -1,5 +1,72 @@
 # Requirements: Lipro-HASS North Star Evolution
 
+## Current Milestone (v1.22)
+
+> `v1.22` 已于 `2026-03-27` 从 `v1.21` archived baseline 正式开立；本轮只承认一条 active route：`v1.22 active route / Phase 81 planning-ready / latest archived baseline = v1.21`。目标不是重开内部治理第二故事线，而是把既有治理真相外化为 maintainer / contributor / release 一体化协作契约。
+
+### Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
+
+- [ ] **GOV-60**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / tests/meta` 必须共享单一 active-route、default-next-command 与 latest archived evidence pointer；`v1.22` 不能回退到 archived-only bootstrap story，也不能把 public docs 写成第二套 current governance truth。
+- [ ] **OSS-10**: `README.md`、`README_zh.md`、`CONTRIBUTING.md`、`SUPPORT.md`、`SECURITY.md` 与 `docs/README.md` 必须共同提供一条清晰的 contributor / maintainer first-hop，并互相交叉链接到同一入口矩阵。
+- [ ] **DOC-08**: 仓库必须提供 contributor-facing 架构变更地图，明确 protocol / runtime / control / external-boundary / governance 各自的允许改动边界、必要证据与回写位置。
+- [ ] **ARC-21**: release / changelog / version sync / archived evidence 只能讲一条发布主链；不得出现 helper-owned release folklore、parallel runbook 或脱离 archived evidence pointer 的发版说明。
+- [ ] **GOV-61**: issue / PR / security intake 模板必须收集最小充分证据：复现步骤、影响边界家族、风险/影响面、验证命令与 disclosure route，避免无上下文请求重新制造维护噪音。
+- [ ] **OSS-11**: maintainer ownership / triage contract 必须明确 support boundary、review expectations、handoff / continuity 路线与 bus-factor 降噪策略；开源协作不再默认依赖隐性口头知识。
+- [ ] **TST-26**: focused guards 必须验证 public entry docs、community-health templates、release / evidence links、active milestone route truth 与 latest archived pointer 的一致性。
+- [ ] **QLT-34**: touched scope 必须通过 `uv run python scripts/check_file_matrix.py --check`、focused governance/open-source pytest、必要的 version-sync / release-contract 守卫；新增文档与模板调整不能牺牲 current-truth honesty。
+
+## Traceability for active v1.22 route
+
+| Requirement | Planned Phase | Status |
+|-------------|---------------|--------|
+| GOV-60 | Phase 82 | Planned |
+| OSS-10 | Phase 81 | Planned |
+| DOC-08 | Phase 81 | Planned |
+| ARC-21 | Phase 82 | Planned |
+| GOV-61 | Phase 83 | Planned |
+| OSS-11 | Phase 83 | Planned |
+| TST-26 | Phase 84 | Planned |
+| QLT-34 | Phase 84 | Planned |
+
+**Current Coverage:**
+- v1.22 requirements: 8 total
+- Current mapped: 8
+- Current complete: 0
+- Current pending: 8
+- Current unmapped: 0 ✓
+
+<!-- governance-route-contract:start -->
+```yaml
+contract_version: 1
+contract_name: governance-route
+active_milestone:
+  version: v1.22
+  name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
+  status: planning-ready (2026-03-27)
+  phase: "81"
+  phase_title: Contributor onramp route convergence and public entry contract
+  route_mode: Phase 81 planning-ready
+latest_archived:
+  version: v1.21
+  name: Governance Bootstrap Truth Hardening & Planning Route Automation
+  status: archived / evidence-ready (2026-03-26)
+  phase: "80"
+  phase_title: Governance typing closure and final meta-suite hotspot topicization
+  phase_dir: 80-governance-typing-closure-and-final-meta-suite-hotspot-topicization
+  audit_path: .planning/v1.21-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_21_EVIDENCE_INDEX.md
+  evidence_label: latest archived evidence index
+previous_archived:
+  version: v1.20
+  name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
+  evidence_path: .planning/reviews/V1_20_EVIDENCE_INDEX.md
+bootstrap:
+  current_route: v1.22 active route / Phase 81 planning-ready / latest archived baseline = v1.21
+  default_next_command: $gsd-discuss-phase 81
+  latest_archived_evidence_pointer: .planning/reviews/V1_21_EVIDENCE_INDEX.md
+```
+<!-- governance-route-contract:end -->
+
 ## Latest Archived Milestone (v1.21)
 
 > `v1.21` 已于 `2026-03-26` 完成 archive promotion；以下 requirements / traceability 保留 `Phase 76 -> 80` 的最终 fulfilled contract，归档快照见 `.planning/milestones/v1.21-REQUIREMENTS.md`，审计裁决见 `.planning/v1.21-MILESTONE-AUDIT.md`，证据索引见 `.planning/reviews/V1_21_EVIDENCE_INDEX.md`；historical closeout route truth = `no active milestone route / latest archived baseline = v1.21`。
@@ -47,31 +114,6 @@
 - Current pending: 0
 - Current unmapped: 0 ✓
 
-<!-- governance-route-contract:start -->
-```yaml
-contract_version: 1
-contract_name: governance-route
-active_milestone: null
-latest_archived:
-  version: v1.21
-  name: Governance Bootstrap Truth Hardening & Planning Route Automation
-  status: archived / evidence-ready (2026-03-26)
-  phase: "80"
-  phase_title: Governance typing closure and final meta-suite hotspot topicization
-  phase_dir: 80-governance-typing-closure-and-final-meta-suite-hotspot-topicization
-  audit_path: .planning/v1.21-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_21_EVIDENCE_INDEX.md
-  evidence_label: latest archived evidence index
-previous_archived:
-  version: v1.20
-  name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
-  evidence_path: .planning/reviews/V1_20_EVIDENCE_INDEX.md
-bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.21
-  default_next_command: $gsd-new-milestone
-  latest_archived_evidence_pointer: .planning/reviews/V1_21_EVIDENCE_INDEX.md
-```
-<!-- governance-route-contract:end -->
 
 ## Previous Archived Milestone (v1.20)
 

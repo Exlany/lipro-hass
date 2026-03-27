@@ -73,40 +73,39 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
     assert 'route-handoff gsd fast-path smoke guard home' in file_matrix_text
 
 
-def test_gsd_fast_path_matches_current_closeout_ready_story() -> None:
+def test_gsd_fast_path_matches_current_active_route_story() -> None:
     progress = _run_gsd_tools('init', 'progress')
     phases = _as_mapping_list(progress['phases'])
-    phase_80 = next(phase for phase in phases if _as_str(phase['number']) == '80')
-    phase_80_plan_count = phase_80['plan_count']
-    phase_80_summary_count = phase_80['summary_count']
-    assert isinstance(phase_80_plan_count, int)
-    assert isinstance(phase_80_summary_count, int)
-    assert _as_str(phase_80['status']) == 'complete'
-    assert phase_80_plan_count == 3
-    assert phase_80_summary_count == phase_80_plan_count + 1
-    assert progress['next_phase'] is None
+    phase_81 = next(phase for phase in phases if _as_str(phase['number']) == '81')
+    phase_81_plan_count = phase_81['plan_count']
+    phase_81_summary_count = phase_81['summary_count']
+    assert isinstance(phase_81_plan_count, int)
+    assert isinstance(phase_81_summary_count, int)
+    assert _as_str(phase_81['status']) == 'not_started'
+    assert phase_81_plan_count == 0
+    assert phase_81_summary_count == 0
+    next_phase = _as_mapping(progress['next_phase'])
+    assert _as_str(next_phase['number']) == '81'
 
     state = _run_gsd_tools('state', 'json')
     assert _as_str(state['milestone']) == CURRENT_MILESTONE
-    assert _as_str(state['status']) == 'archived'
+    assert _as_str(state['status']) == 'active'
     assert _as_mapping(state['progress']) == {
-        'total_phases': '5',
-        'completed_phases': '5',
-        'total_plans': '15',
-        'completed_plans': '15',
+        'total_phases': '4',
+        'completed_phases': '0',
+        'total_plans': '12',
+        'completed_plans': '0',
     }
     assert progress['phase_count'] == len(phases)
-    assert progress['completed_count'] == sum(
-        1 for phase in phases if _as_str(phase['status']) == 'complete'
-    )
+    assert progress['completed_count'] == 0
     assert progress['current_phase'] is None
 
-    phase_index = _run_gsd_tools('phase-plan-index', '80')
-    assert _as_str(phase_index['phase']) == '80'
+    phase_index = _run_gsd_tools('phase-plan-index', '81')
+    assert _as_str(phase_index['phase']) == '81'
+    assert _as_str(phase_index['error']) == 'Phase not found'
+    assert phase_index['plans'] == []
     assert phase_index['incomplete'] == []
-    plans = _as_mapping_list(phase_index['plans'])
-    assert [_as_str(plan['id']) for plan in plans] == ['80-01', '80-02', '80-03']
-    assert all(_as_bool(plan['has_summary']) for plan in plans)
+    assert _as_bool(phase_index['has_checkpoints']) is False
 
 
 def test_phase_80_closeout_assets_are_promoted_without_planning_traces() -> None:

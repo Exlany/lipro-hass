@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.21
-milestone_name: Governance Bootstrap Truth Hardening & Planning Route Automation
-status: archived
-last_updated: "2026-03-26T18:00:00Z"
+milestone: v1.22
+milestone_name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
+status: active
+last_updated: "2026-03-27T00:00:00Z"
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 15
-  completed_plans: 15
+  total_phases: 4
+  completed_phases: 0
+  total_plans: 12
+  completed_plans: 0
 ---
 
 # Project State
@@ -17,21 +17,27 @@ progress:
 
 See: `.planning/PROJECT.md`
 
-**Current milestone:** `No active milestone route`
-**Core value:** 以 `v1.21` archived baseline 与 `.planning/reviews/V1_21_EVIDENCE_INDEX.md` latest pull-only closeout pointer 作为下一条正式路线的唯一 seed；任何后续 work 都必须显式开立新 milestone，不得隐式延续 `Phase 76 -> 80` closeout truth。
-**Current mode:** `no active milestone route / latest archived baseline = v1.21`
+**Current milestone:** `v1.22 Maintainer Entry Contracts, Release Operations Closure & Contributor Routing`
+**Core value:** 把 `v1.21` archived baseline 与 `.planning/reviews/V1_21_EVIDENCE_INDEX.md` latest pull-only closeout pointer 外化为 maintainer / contributor / release 的单一协作路线；不再把下一轮增量浪费在重开内部治理第二故事线。
+**Current mode:** `Phase 81 planning-ready`
 
 ## Current Position
 
-- `v1.21` 已于 `2026-03-26` 完成 `Phase 76 -> 80` 全部执行，并完成 milestone audit / archive promotion；当前里程碑已进入 `archived / evidence-ready`，下一步是 `$gsd-new-milestone`。
+- `v1.22` 已于 `2026-03-27` 从 `v1.21` archived baseline 正式开立；当前已完成 milestone scoping、requirements routing 与 phase roadmap 初始化，下一步是 `$gsd-discuss-phase 81`。
 - latest archived baseline 固定为 `v1.21`；latest archived evidence index 继续是 `.planning/reviews/V1_21_EVIDENCE_INDEX.md`；`v1.20` 继续承担 previous archived baseline。
-- bootstrap drift、typing regressions、release-contract topicization 与 final meta-suite hotspots 已被 machine-readable contract、focused smoke、topicized governance suites、verification matrix、file-matrix registry 与 review ledgers 共同冻结；后续新路线不得回写第二套 current story。
+- 当前最高价值工作集中在 contributor / maintainer first-hop、release evidence chain、intake templates 与 ownership / triage contract，不再重开 production runtime hotspot surgery。
 
 <!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone: null
+active_milestone:
+  version: v1.22
+  name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
+  status: planning-ready (2026-03-27)
+  phase: "81"
+  phase_title: Contributor onramp route convergence and public entry contract
+  route_mode: Phase 81 planning-ready
 latest_archived:
   version: v1.21
   name: Governance Bootstrap Truth Hardening & Planning Route Automation
@@ -47,8 +53,8 @@ previous_archived:
   name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
   evidence_path: .planning/reviews/V1_20_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.21
-  default_next_command: $gsd-new-milestone
+  current_route: v1.22 active route / Phase 81 planning-ready / latest archived baseline = v1.21
+  default_next_command: $gsd-discuss-phase 81
   latest_archived_evidence_pointer: .planning/reviews/V1_21_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -79,11 +85,79 @@ bootstrap:
 
 ## Recommended Next Command
 
-1. `$gsd-new-milestone` —— 以 `v1.21` archived baseline 为起点，显式开立下一条正式路线
-2. `$gsd-next` —— 让 GSD 自动路由到 archive-closeout 之后的下一步工作流
-3. `$gsd-progress` —— 查看 `no active milestone route / latest archived baseline = v1.21` 的当前状态
+1. `$gsd-discuss-phase 81` —— 为 `Phase 81` 收集上下文、界定 public entry / architecture change-map / docs route 的精确边界
+2. `$gsd-plan-phase 81` —— 若无需讨论，直接把 `Phase 81` 细化成可执行计划
+3. `$gsd-progress` —— 查看 `v1.22 active route / Phase 81 planning-ready / latest archived baseline = v1.21` 的当前状态
 4. `uv run python scripts/check_file_matrix.py --check` —— 复核 planning / baseline / review / archive assets 契约
-5. `uv run pytest -q tests/meta/test_governance_milestone_archives.py tests/meta/governance_followup_route_current_milestones.py tests/meta/test_governance_release_contract.py tests/meta/test_governance_route_handoff_smoke.py tests/meta/test_governance_bootstrap_smoke.py tests/meta/test_version_sync.py` —— 复核 archive pointer / no-active-route / promoted evidence guards
+5. `uv run pytest -q tests/meta/test_governance_bootstrap_smoke.py tests/meta/test_governance_route_handoff_smoke.py tests/meta/governance_followup_route_current_milestones.py tests/meta/test_governance_release_contract.py tests/meta/test_governance_release_docs.py tests/meta/test_governance_release_continuity.py tests/meta/test_version_sync.py` —— 复核 active route / public entry / release continuity 守卫
+
+## Session Continuity
+
+If resuming, read in this order:
+
+1. `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`
+2. `.planning/PROJECT.md`
+3. `.planning/ROADMAP.md`
+4. `.planning/REQUIREMENTS.md`
+5. `.planning/STATE.md`
+6. `.planning/reviews/V1_21_EVIDENCE_INDEX.md`
+7. `.planning/v1.21-MILESTONE-AUDIT.md`
+8. `.planning/milestones/v1.21-ROADMAP.md`
+9. `.planning/milestones/v1.21-REQUIREMENTS.md`
+10. `.planning/reviews/V1_20_EVIDENCE_INDEX.md`
+11. `.planning/v1.20-MILESTONE-AUDIT.md`
+12. `.planning/milestones/v1.20-ROADMAP.md`
+13. `.planning/milestones/v1.20-REQUIREMENTS.md`
+14. `.planning/reviews/V1_19_TERMINAL_AUDIT.md`
+15. `.planning/reviews/V1_19_EVIDENCE_INDEX.md`
+16. `.planning/milestones/v1.19-REQUIREMENTS.md`
+17. `.planning/phases/80-governance-typing-closure-and-final-meta-suite-hotspot-topicization/80-SUMMARY.md`
+18. `.planning/phases/80-governance-typing-closure-and-final-meta-suite-hotspot-topicization/80-VERIFICATION.md`
+19. `.planning/phases/80-governance-typing-closure-and-final-meta-suite-hotspot-topicization/80-VALIDATION.md`
+
+## Historical Continuity Anchors
+
+`v1.1` 已完成全部计划执行：`15 phases / 58 plans` 全绿落表
+
+- `Phase 17` 已完成：最终残留退役 / 类型契约收紧 / 里程碑收官。
+- `Phase 24` 已完成并于 2026-03-17 重新验证。
+- `Phase 46` 已于 `2026-03-20` 执行完成；follow-up route source = `.planning/phases/46-exhaustive-repository-audit-standards-conformance-and-remediation-routing/46-REMEDIATION-ROADMAP.md`。
+- `v1.21` archive anchors: `.planning/v1.21-MILESTONE-AUDIT.md`, `.planning/reviews/V1_21_EVIDENCE_INDEX.md`, `.planning/milestones/v1.21-ROADMAP.md`, `.planning/milestones/v1.21-REQUIREMENTS.md`
+- `v1.20` archive anchors: `.planning/v1.20-MILESTONE-AUDIT.md`, `.planning/reviews/V1_20_EVIDENCE_INDEX.md`, `.planning/milestones/v1.20-ROADMAP.md`, `.planning/milestones/v1.20-REQUIREMENTS.md`
+- `v1.19` archive anchors: `.planning/v1.19-MILESTONE-AUDIT.md`, `.planning/reviews/V1_19_EVIDENCE_INDEX.md`, `.planning/milestones/v1.19-ROADMAP.md`, `.planning/milestones/v1.19-REQUIREMENTS.md`
+- `v1.16` archive anchors: `.planning/v1.16-MILESTONE-AUDIT.md`, `.planning/reviews/V1_16_EVIDENCE_INDEX.md`, `.planning/milestones/v1.16-ROADMAP.md`, `.planning/milestones/v1.16-REQUIREMENTS.md`
+- `v1.13` archive anchors: `.planning/v1.13-MILESTONE-AUDIT.md`, `.planning/reviews/V1_13_EVIDENCE_INDEX.md`, `.planning/milestones/v1.13-ROADMAP.md`, `.planning/milestones/v1.13-REQUIREMENTS.md`
+- `v1.6` archive anchors: `.planning/v1.6-MILESTONE-AUDIT.md`, `.planning/reviews/V1_6_EVIDENCE_INDEX.md`, `.planning/milestones/v1.6-ROADMAP.md`, `.planning/milestones/v1.6-REQUIREMENTS.md`
+- `v1.5` archive anchors: `.planning/v1.5-MILESTONE-AUDIT.md`, `.planning/reviews/V1_5_EVIDENCE_INDEX.md`, `.planning/milestones/v1.5-ROADMAP.md`, `.planning/milestones/v1.5-REQUIREMENTS.md`
+
+## Governance Truth Sources
+
+1. `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`
+2. `.planning/PROJECT.md`
+3. `.planning/ROADMAP.md`
+4. `.planning/REQUIREMENTS.md`
+5. `.planning/STATE.md`
+6. `.planning/baseline/*.md` 与 `.planning/baseline/GOVERNANCE_REGISTRY.json`
+7. `.planning/reviews/*.md`
+8. `docs/developer_architecture.md`
+9. `AGENTS.md`
+10. `CLAUDE.md`（若使用 Claude Code）
+11. 历史执行 / 审计 / 归档文档
+
+## Phase Asset Promotion Contract
+
+- `.planning/reviews/PROMOTED_PHASE_ASSETS.md` 是 `.planning/phases/**` 的显式 promoted allowlist。
+- `Phase 72 / 73 / 74` 的 audited closeout bundles（`01..04-SUMMARY.md` + `VERIFICATION.md` + `VALIDATION.md`）现已正式提升为长期治理 / CI evidence。
+- 未列入 allowlist 的 phase `PLAN / CONTEXT / RESEARCH / PRD` 与临时 closeout 文件默认保持执行痕迹身份；即使 `v1.20` 已归档，`Phase 75` 资产仍按 execution trace 处理，不作为长期治理 / CI 证据。
+
+
+## Recommended Next Command
+
+1. `$gsd-discuss-phase 81` —— 为 `Phase 81` 收集上下文、界定 public entry / architecture change-map / docs route 的精确边界
+2. `$gsd-plan-phase 81` —— 若无需讨论，直接把 `Phase 81` 细化成可执行计划
+3. `$gsd-progress` —— 查看 `v1.22 active route / Phase 81 planning-ready / latest archived baseline = v1.21` 的当前状态
+4. `uv run python scripts/check_file_matrix.py --check` —— 复核 planning / baseline / review / archive assets 契约
+5. `uv run pytest -q tests/meta/test_governance_bootstrap_smoke.py tests/meta/test_governance_route_handoff_smoke.py tests/meta/governance_followup_route_current_milestones.py tests/meta/test_governance_release_contract.py tests/meta/test_governance_release_docs.py tests/meta/test_governance_release_continuity.py tests/meta/test_version_sync.py` —— 复核 active route / public entry / release continuity 守卫
 
 ## Session Continuity
 

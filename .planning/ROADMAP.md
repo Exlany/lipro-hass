@@ -2,34 +2,21 @@
 
 ## Milestones
 
+- 🚧 **v1.22 Maintainer Entry Contracts, Release Operations Closure & Contributor Routing** - opened on 2026-03-27 from `v1.21` archived baseline; current phase = `81`; status: `planning-ready (2026-03-27)`; next step: `$gsd-discuss-phase 81`
 - ✅ **v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation** - `Phase 76 -> 80` archived on 2026-03-26; milestone audit: `.planning/v1.21-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_21_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.21-ROADMAP.md` / `.planning/milestones/v1.21-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.21`
-- ✅ **v1.0 North Star Rebuild** - Phases 1-7 (+ 1.5 / 2.5 / 2.6), shipped 2026-03-13, archive: `.planning/milestones/v1.0-ROADMAP.md`
-- ✅ **v1.1 Protocol Fidelity & Operability** - Phases 7.1-17 complete; final audit complete; milestone snapshots archived at `.planning/milestones/v1.1-ROADMAP.md` / `.planning/milestones/v1.1-REQUIREMENTS.md` (updated 2026-03-16)
-- ✅ **v1.2 Host-Neutral Core & Replay Completion** - Phases 18-24 complete after Phase 24 reopen revalidation; 24 plans complete; milestone snapshots archived at `.planning/milestones/v1.2-ROADMAP.md` / `.planning/milestones/v1.2-REQUIREMENTS.md`; `v1.3` handoff-ready (revalidated 2026-03-17)
-- ✅ **v1.4 Sustainment, Trust Gates & Final Hotspot Burn-down** - Phases 34-39 shipped 2026-03-19; milestone audit: `.planning/v1.4-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_4_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.4-ROADMAP.md` / `.planning/milestones/v1.4-REQUIREMENTS.md`; local tag: `v1.4`
-- ✅ **v1.5 Governance Truth Consolidation & Control-Surface Finalization** - Phase 40 shipped 2026-03-19; milestone audit: `.planning/v1.5-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_5_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.5-ROADMAP.md` / `.planning/milestones/v1.5-REQUIREMENTS.md`; local tag: `v1.5`
-- ✅ **v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure** - Phases 42-45 closed out on 2026-03-20 from the formal `41-REMEDIATION-ROADMAP.md` route; milestone audit: `.planning/v1.6-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_6_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.6-ROADMAP.md` / `.planning/milestones/v1.6-REQUIREMENTS.md`
-- ✅ **v1.7 Full-Spectrum Repository Audit, Open-Source Maturity & Remediation Routing** - Phase 46 audit executed on 2026-03-20; Phase 47 -> 50 completed on 2026-03-21 with promoted closeout evidence; formalized follow-up route complete
-- ✅ **v1.8 Operational Continuity Automation, Formal-Root Sustainment & Hotspot Round 2** - formal milestone opened on 2026-03-21 from post-Phase-50 audit arbitration; Phases 51 -> 55 completed on 2026-03-21 with promoted closeout evidence and ready for archive / next-milestone arbitration
-- ✅ **v1.9 Shared Backoff Neutralization & Cross-Plane Retry Hygiene** - formal milestone opened on 2026-03-22 from the explicit Phase 56+ residual carry-forward; Phase 56 completed on 2026-03-22 with promoted closeout evidence and now serves as the closeout-ready seed baseline for v1.10
-- ✅ **v1.13 Tooling Truth Decomposition, Formal-Home Slimming & Naming/Discoverability Convergence** - `Phase 60 -> 62` archived on 2026-03-22; milestone audit: `.planning/v1.13-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_13_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.13-ROADMAP.md` / `.planning/milestones/v1.13-REQUIREMENTS.md`
-- ✅ **v1.12 Verification Localization & Governance Guard Topicization** - `Phase 59` archived on 2026-03-22; milestone audit: `.planning/v1.12-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_12_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.12-ROADMAP.md` / `.planning/milestones/v1.12-REQUIREMENTS.md`
-- ✅ **v1.11 Repository Audit Refresh & Next-Wave Remediation Routing** - formal milestone opened on 2026-03-22 from the renewed full-repository audit request; Phase 58 completed on 2026-03-22 with refreshed repo-wide audit evidence and now serves as the closeout-ready seed baseline for v1.12
-- ✅ **v1.10 Command-Result Typed Outcome & Reason-Code Hardening** - formal milestone opened on 2026-03-22 from the Phase 56 deferred follow-up route; Phase 57 completed on 2026-03-22 with promoted closeout evidence and now serves as the closeout-ready seed baseline for v1.11
-
-- ✅ **v1.15 Typed Contract Convergence, Tooling Kernel Hardening & Mypy Closure** - `Phase 67` archived on 2026-03-24; milestone audit: `.planning/v1.15-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_15_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.15-ROADMAP.md` / `.planning/milestones/v1.15-REQUIREMENTS.md`
-- ✅ **v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure** - `Phase 63 -> 66` archived on 2026-03-23; milestone audit: `.planning/v1.14-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_14_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.14-ROADMAP.md` / `.planning/milestones/v1.14-REQUIREMENTS.md`
-- ✅ **v1.16 Master Audit Follow-Through, Hotspot Finalization & Docs Contract Hardening** - `Phase 68` archived on 2026-03-24; milestone audit: `.planning/v1.16-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_16_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.16-ROADMAP.md` / `.planning/milestones/v1.16-REQUIREMENTS.md`; non-blocking residual formally carried forward to `v1.17 / Phase 69`
-- ✅ **v1.17 Residual Formalization, Quality-Balance Hardening & Open-Source Contract Closure** - `Phase 69` archived on 2026-03-24; milestone audit: `.planning/v1.17-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_17_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.17-ROADMAP.md` / `.planning/milestones/v1.17-REQUIREMENTS.md`; served as the starting archived baseline for `v1.18 / Phase 70`
-- ✅ **v1.18 Support-Seam Slimming, OTA Resolver Consolidation & Governance Test Topicization** - `Phase 70` archived on 2026-03-24; milestone audit: `.planning/v1.18-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_18_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.18-ROADMAP.md` / `.planning/milestones/v1.18-REQUIREMENTS.md`; served as the starting archived baseline for `v1.19 / Phase 71`
-- ✅ **v1.19 Audit-Driven Final Hotspot Decomposition & Governance Truth Projection** - `Phase 71` archived on 2026-03-25; milestone audit: `.planning/v1.19-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_19_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.19-ROADMAP.md` / `.planning/milestones/v1.19-REQUIREMENTS.md`; serves as the previous archived baseline for `v1.20`
-- ✅ **v1.20 Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement** - `Phase 72 -> 75` archived on 2026-03-25; milestone audit: `.planning/v1.20-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_20_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.20-ROADMAP.md` / `.planning/milestones/v1.20-REQUIREMENTS.md`; historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.20`
+- 🗂 **Historical archive snapshots** - `.planning/milestones/{v1.1-ROADMAP.md,v1.1-REQUIREMENTS.md,v1.2-ROADMAP.md,v1.2-REQUIREMENTS.md,v1.4-ROADMAP.md,v1.4-REQUIREMENTS.md,v1.5-ROADMAP.md,v1.5-REQUIREMENTS.md,v1.6-ROADMAP.md,v1.6-REQUIREMENTS.md,v1.12-ROADMAP.md,v1.12-REQUIREMENTS.md,v1.13-ROADMAP.md,v1.13-REQUIREMENTS.md,v1.14-ROADMAP.md,v1.14-REQUIREMENTS.md,v1.15-ROADMAP.md,v1.15-REQUIREMENTS.md,v1.16-ROADMAP.md,v1.16-REQUIREMENTS.md,v1.17-ROADMAP.md,v1.17-REQUIREMENTS.md}` 继续保留为 continuity / archive reference。
 
 <!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone: null
+active_milestone:
+  version: v1.22
+  name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
+  status: planning-ready (2026-03-27)
+  phase: "81"
+  phase_title: Contributor onramp route convergence and public entry contract
+  route_mode: Phase 81 planning-ready
 latest_archived:
   version: v1.21
   name: Governance Bootstrap Truth Hardening & Planning Route Automation
@@ -45,13 +32,88 @@ previous_archived:
   name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
   evidence_path: .planning/reviews/V1_20_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.21
-  default_next_command: $gsd-new-milestone
+  current_route: v1.22 active route / Phase 81 planning-ready / latest archived baseline = v1.21
+  default_next_command: $gsd-discuss-phase 81
   latest_archived_evidence_pointer: .planning/reviews/V1_21_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
-## Latest Archived Milestone
+## v1.22: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
+
+**Milestone Goal:** 把 `v1.21` 已归档冻结的治理/证据链外化为 contributor / maintainer / release 一体化协作契约，统一入口叙事、发布证据链、intake 模板与 ownership / triage 路由。
+**Milestone status:** `planning-ready (2026-03-27)`
+**Starting baseline:** `.planning/v1.21-MILESTONE-AUDIT.md`, `.planning/reviews/V1_21_EVIDENCE_INDEX.md`, `.planning/milestones/v1.21-ROADMAP.md`, `.planning/milestones/v1.21-REQUIREMENTS.md`
+**Requirements basket:** `GOV-60`, `OSS-10`, `DOC-08`, `ARC-21`, `GOV-61`, `OSS-11`, `TST-26`, `QLT-34`
+**Default next command:** `$gsd-discuss-phase 81`
+
+### Phase 81: Contributor onramp route convergence and public entry contract
+
+**Goal:** 统一 public entry docs 与 contributor / maintainer first-hop，把 bilingual onramp、support / security / contribution links 与架构变更地图收口为单一路由。
+**Depends on:** Phase 80
+**Requirements**: [OSS-10, DOC-08]
+**Success Criteria**:
+  1. `README.md`、`README_zh.md`、`docs/README.md`、`CONTRIBUTING.md`、`SUPPORT.md` 与 `SECURITY.md` 对外讲同一条 first-hop story。
+  2. contributor-facing 架构变更地图清楚声明 protocol / runtime / control / external-boundary / governance 的 allowed change story 与 evidence destinations。
+  3. public docs 保持隐藏 internal bootstrap folklore，但 contributor / maintainer route 不再散落、重复或互相矛盾。
+**Status**: Planned
+**Plans**: 3 total / 0 completed / 3 pending
+
+Plans:
+- [ ] 81-01: converge README, README_zh, docs index, CONTRIBUTING, SUPPORT, and SECURITY into one contributor / maintainer first-hop
+- [ ] 81-02: publish a contributor-facing architecture change map and evidence destinations for protocol / runtime / control / external-boundary work
+- [ ] 81-03: freeze public-entry and contributor-route truth in planning docs and focused guards
+
+### Phase 82: Release operations closure and evidence-chain formalization
+
+**Goal:** 把 release gate、changelog / version sync、archived evidence pointer 与 maintainer runbook 收口成一条可审计的发布主链。
+**Depends on:** Phase 81
+**Requirements**: [GOV-60, ARC-21]
+**Success Criteria**:
+  1. release / changelog / version-sync / archived evidence 只承认一条 maintainer-facing route，不再残留平行 runbook 或 helper folklore。
+  2. governance docs、release workflow anchors 与 archived evidence pointer 对同一 milestone / version 讲同一条故事。
+  3. maintainer runbook 明确何时查看 milestone audit、evidence index、version sync 与 release artifacts。
+**Status**: Planned
+**Plans**: 3 total / 0 completed / 3 pending
+
+Plans:
+- [ ] 82-01: align release runbook, changelog, version sync, and archived evidence pointers under one maintainer route
+- [ ] 82-02: harden release-facing docs and workflow anchors against parallel or stale release stories
+- [ ] 82-03: freeze release-operations truth across planning docs, governance helpers, and focused release guards
+
+### Phase 83: Intake templates and maintainer stewardship contract
+
+**Goal:** 把 issue / PR / security intake 与 maintainer ownership / triage contract formalize 成低噪音、可交接、可审计的开源协作边界。
+**Depends on:** Phase 82
+**Requirements**: [GOV-61, OSS-11]
+**Success Criteria**:
+  1. issue / PR / security templates 要求最小充分证据，减少无边界、无复现、无验证命令的输入。
+  2. maintainer ownership / triage contract 明确 review expectations、support boundary、handoff / continuity 与单维护者现实约束。
+  3. public collaboration surfaces 能把问题路由到正确边界家族，而不是把 maintainer 负担回推为隐性知识。
+**Status**: Planned
+**Plans**: 3 total / 0 completed / 3 pending
+
+Plans:
+- [ ] 83-01: upgrade issue, pull-request, and security intake templates into evidence-first routers
+- [ ] 83-02: formalize maintainer ownership, triage expectations, and continuity rules in contributor-facing docs
+- [ ] 83-03: freeze stewardship and intake truth across templates, support docs, and governance ledgers
+
+### Phase 84: Governance/open-source guard coverage and milestone truth freeze
+
+**Goal:** 为 maintainer / contributor / release 新契约补齐 focused verification，并把 `v1.22` active-route starter truth 冻结到 planning / governance 守卫中。
+**Depends on:** Phase 83
+**Requirements**: [TST-26, QLT-34]
+**Success Criteria**:
+  1. focused guards 能发现 active-route、public-entry docs、template evidence fields、release / version links 与 archived pointer drift。
+  2. touched docs / governance helpers / templates 在必要的 local quality gates 下继续绿色。
+  3. `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / VERIFICATION_MATRIX / governance_current_truth.py` 共同冻结 `v1.22` 的 planning-ready current story。
+**Status**: Planned
+**Plans**: 3 total / 0 completed / 3 pending
+
+Plans:
+- [ ] 84-01: add focused governance and community-health guards for active-route, docs-entry, and template evidence drift
+- [ ] 84-02: align verification matrix and related ledgers with the v1.22 planning-ready route truth
+- [ ] 84-03: freeze v1.22 starter truth after focused validation and guard updates
+
 
 ## v1.21: Governance Bootstrap Truth Hardening & Planning Route Automation
 

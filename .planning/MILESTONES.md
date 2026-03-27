@@ -6,7 +6,13 @@
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone: null
+active_milestone:
+  version: v1.22
+  name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
+  status: planning-ready (2026-03-27)
+  phase: "81"
+  phase_title: Contributor onramp route convergence and public entry contract
+  route_mode: Phase 81 planning-ready
 latest_archived:
   version: v1.21
   name: Governance Bootstrap Truth Hardening & Planning Route Automation
@@ -22,8 +28,8 @@ previous_archived:
   name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
   evidence_path: .planning/reviews/V1_20_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.21
-  default_next_command: $gsd-new-milestone
+  current_route: v1.22 active route / Phase 81 planning-ready / latest archived baseline = v1.21
+  default_next_command: $gsd-discuss-phase 81
   latest_archived_evidence_pointer: .planning/reviews/V1_21_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->

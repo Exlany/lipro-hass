@@ -2,17 +2,23 @@
 
 
 **Status:** Active
-**Current route:** `no active milestone route / latest archived baseline = v1.21`；latest archived evidence index = `.planning/reviews/V1_21_EVIDENCE_INDEX.md`.
-**Legacy route-string compatibility:** **Status:** `no active milestone route / latest archived baseline = v1.21`；latest archived closeout pointer = `.planning/reviews/V1_21_EVIDENCE_INDEX.md`.
-**Goal:** 以 `v1.21` archived baseline、`.planning/v1.21-MILESTONE-AUDIT.md` verdict 与 `.planning/reviews/V1_21_EVIDENCE_INDEX.md` pull-only archived evidence 作为下一条正式路线的唯一 seed；后续 `$gsd-plan-phase / $gsd-execute-phase / $gsd-next` 只应从 `$gsd-new-milestone` 显式开立的新里程碑继续推进，不得把 `Phase 76 -> 80` closeout truth 回写成隐式 active route。
-**Default next step:** `$gsd-new-milestone`
-**Active baseline:** no active milestone；latest archived baseline = `v1.21`；previous archived baseline = `v1.20`。
+**Current route:** `v1.22 active route / Phase 81 planning-ready / latest archived baseline = v1.21`；latest archived evidence index = `.planning/reviews/V1_21_EVIDENCE_INDEX.md`.
+**Legacy route-string compatibility:** **Status:** `v1.22 active route / Phase 81 planning-ready / latest archived baseline = v1.21`；latest archived closeout pointer = `.planning/reviews/V1_21_EVIDENCE_INDEX.md`.
+**Goal:** 把 `v1.21` 已归档完成的治理/证据链外化为贡献者与维护者都能直接执行的单一协作、审查与发布运营路线。
+**Default next step:** `$gsd-discuss-phase 81`
+**Active baseline:** active milestone = `v1.22`；latest archived baseline = `v1.21`；previous archived baseline = `v1.20`.
 
 <!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone: null
+active_milestone:
+  version: v1.22
+  name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
+  status: planning-ready (2026-03-27)
+  phase: "81"
+  phase_title: Contributor onramp route convergence and public entry contract
+  route_mode: Phase 81 planning-ready
 latest_archived:
   version: v1.21
   name: Governance Bootstrap Truth Hardening & Planning Route Automation
@@ -28,11 +34,36 @@ previous_archived:
   name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
   evidence_path: .planning/reviews/V1_20_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.21
-  default_next_command: $gsd-new-milestone
+  current_route: v1.22 active route / Phase 81 planning-ready / latest archived baseline = v1.21
+  default_next_command: $gsd-discuss-phase 81
   latest_archived_evidence_pointer: .planning/reviews/V1_21_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
+
+## Current Milestone (v1.22)
+
+**Name:** `Maintainer Entry Contracts, Release Operations Closure & Contributor Routing`
+
+**Goal:** 把 `v1.21` 已归档冻结的内部治理/证据链压缩成贡献者与维护者都能直接遵循的单一路由：统一入口文档、模板化 intake、发布运营证据链与所有权/分诊契约。
+
+**Target features:**
+
+- 统一 `README*`、`CONTRIBUTING.md`、`SUPPORT.md`、`SECURITY.md`、issue/PR 模板与 release runbook 的入口叙事与交叉链接。
+- 把 release gate、changelog / version sync、archive evidence pointer 收口为一条可审计的发布主链。
+- 输出 contributor-facing 架构变更地图，明确 protocol / runtime / control / external-boundary 各自允许改什么、证据落哪里。
+- 把 issue / PR / security intake 升级为带证据的路由器，要求复现、边界家族、影响面与验证命令。
+- 增补 maintainer ownership / triage 契约，降低 bus factor，避免治理知识继续只藏在 `.planning/` 内部。
+
+**Key context:**
+
+- `v1.21` 已清空 active residual family 与 active kill target；继续拆 runtime 主链的收益已低于风险。
+- 新一轮最高价值增量不再是继续 topicize 内向治理，而是把稳定真相外化为开源维护入口与发布运营能力。
+- 范围锚点参考 GitHub 官方 community health / issue forms / security policy / releases 文档，以及 Home Assistant Integration Quality Scale 的 contributor-facing 约束。
+
+**Current status:** `planning-ready (2026-03-27)`
+**Starting baseline:** `.planning/v1.21-MILESTONE-AUDIT.md`, `.planning/reviews/V1_21_EVIDENCE_INDEX.md`, `.planning/milestones/v1.21-ROADMAP.md`, `.planning/milestones/v1.21-REQUIREMENTS.md`
+**Requirements basket:** `GOV-60`, `OSS-10`, `DOC-08`, `ARC-21`, `GOV-61`, `OSS-11`, `TST-26`, `QLT-34`
+**Default next command:** `$gsd-discuss-phase 81`
 
 ## Latest Archived Milestone (v1.21)
 
