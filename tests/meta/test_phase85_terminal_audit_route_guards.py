@@ -11,7 +11,8 @@ def test_phase85_terminal_audit_artifact_covers_required_areas_and_routing_colum
         encoding="utf-8"
     )
 
-    assert CURRENT_ROUTE in audit_text
+    assert "v1.23 / Phase 85" in audit_text
+    assert "route next" in audit_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT not in audit_text
     for area in ("production", "tests", "tooling", "docs", "governance"):
         assert area in audit_text
@@ -52,7 +53,7 @@ def test_phase85_baseline_refresh_truth_blocks_stale_topology_and_backoff_storie
     assert "compat surface 读取" not in dependency_text
 
 
-def test_phase85_verification_matrix_and_state_register_current_audit_route() -> None:
+def test_phase85_verification_matrix_and_closeout_truth_register_current_audit_route() -> None:
     verification_text = (
         _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
     ).read_text(encoding="utf-8")
@@ -60,12 +61,23 @@ def test_phase85_verification_matrix_and_state_register_current_audit_route() ->
     file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(
         encoding="utf-8"
     )
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(
+        encoding="utf-8"
+    )
 
     assert "## Phase 85 Terminal Audit / Residual Routing" in verification_text
+    assert "## Phase 87 Assurance Hotspot Decomposition / No-Regrowth Guards" in verification_text
     assert CURRENT_ROUTE in verification_text
     assert "85-terminal-audit-refresh-and-residual-routing" in verification_text
     assert "V1_23_TERMINAL_AUDIT.md" in verification_text
     assert "production / tests / tooling / docs / governance" in verification_text
     assert "owner / exit condition / evidence path" in verification_text
+    assert "tests/meta/test_phase87_assurance_hotspot_guards.py" in verification_text
     assert "V1_23_TERMINAL_AUDIT.md" in state_text
     assert "tests/meta/test_phase85_terminal_audit_route_guards.py" in file_matrix_text
+    assert "tests/meta/test_phase87_assurance_hotspot_guards.py" in file_matrix_text
+    assert residual_text.count(
+        "giant assurance carriers (`test_api_diagnostics_service.py`, `test_protocol_contract_matrix.py`, `test_mqtt_runtime.py`)"
+    ) == 1
+    assert "| giant assurance carriers (`test_api_diagnostics_service.py`, `test_protocol_contract_matrix.py`, `test_mqtt_runtime.py`) | Assurance | closed in Phase 87 | Phase 87 |" in residual_text
+    assert "| giant assurance carriers (`test_api_diagnostics_service.py`, `test_protocol_contract_matrix.py`, `test_mqtt_runtime.py`) | Assurance | route next | Phase 87 |" not in residual_text

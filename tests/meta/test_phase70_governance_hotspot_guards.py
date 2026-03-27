@@ -144,3 +144,16 @@ def test_phase70_archive_tokens_live_in_archive_family_not_version_sync() -> Non
     assert "69-VERIFICATION.md" not in version_sync_text
     assert "69-SUMMARY.md" in milestone_archive_family_text
     assert "69-VERIFICATION.md" in milestone_archive_family_text
+
+def test_phase70_governance_hotspot_closeout_stays_distinct_from_phase87_assurance_guards() -> None:
+    verification_text = (_ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md").read_text(
+        encoding="utf-8"
+    )
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "Archive-vs-current version truth drift and governance mega-test sprawl" in residual_text
+    assert "## Phase 87 Assurance Hotspot Decomposition / No-Regrowth Guards" in verification_text
+    assert "tests/meta/test_phase87_assurance_hotspot_guards.py" in verification_text
+

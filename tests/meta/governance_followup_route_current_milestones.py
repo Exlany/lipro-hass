@@ -256,7 +256,7 @@ def test_current_v1_23_project_state_and_latest_archive_pointers_align() -> None
         "## Archived Milestone (v1.17)",
         "## Archived Milestone (v1.16)",
         "## Archived Milestone (v1.15)",
-        "**Current status:** `Phase 87 execution-ready (2026-03-27)`",
+        "**Current status:** `Phase 87 complete (2026-03-27)`",
     )
     _assert_contains_all(
         _ROADMAP_TEXT,
@@ -275,22 +275,22 @@ def test_current_v1_23_project_state_and_latest_archive_pointers_align() -> None
         "- [x] **GOV-62**",
         "- [x] **HOT-37**",
         "- [x] **ARC-22**",
-        "- [ ] **HOT-38**",
-        "- [ ] **TST-27**",
+        "- [x] **HOT-38**",
+        "- [x] **TST-27**",
         "- [ ] **GOV-63**",
         "- [ ] **QLT-35**",
         "| AUD-04 | Phase 85 | Completed |",
         "| GOV-62 | Phase 85 | Completed |",
         "| HOT-37 | Phase 86 | Completed |",
         "| ARC-22 | Phase 86 | Completed |",
-        "| HOT-38 | Phase 87 | Planned |",
-        "| TST-27 | Phase 87 | Planned |",
+        "| HOT-38 | Phase 87 | Completed |",
+        "| TST-27 | Phase 87 | Completed |",
         "| GOV-63 | Phase 88 | Planned |",
         "| QLT-35 | Phase 88 | Planned |",
         "- v1.23 routed requirements: 8 total",
         "- Current mapped: 8",
-        "- Current complete: 4",
-        "- Current pending: 4",
+        "- Current complete: 6",
+        "- Current pending: 2",
         "## Latest Archived Milestone (v1.22)",
         "## Previous Archived Milestone (v1.21)",
         "## Previous Archived Milestone (v1.20)",
@@ -307,4 +307,4 @@ def test_current_v1_23_project_state_and_latest_archive_pointers_align() -> None
         LATEST_ARCHIVED_EVIDENCE_PATH,
         ".planning/reviews/V1_23_TERMINAL_AUDIT.md",
     )
-    assert CURRENT_MILESTONE_STATUS == "Phase 87 execution-ready (2026-03-27)"
+    assert CURRENT_MILESTONE_STATUS == "Phase 87 complete (2026-03-27)"

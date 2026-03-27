@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 669
+**Python files total:** 682
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -356,7 +356,11 @@
 | `tests/core/api/test_api_device_surface_optional_capabilities.py` | Protocol | Phase 33 | 保留 | optional-capability API regression topic home |
 | `tests/core/api/test_api_device_surface_outlet_power.py` | Protocol | Phase 33 | 保留 | outlet-power API regression topic home |
 | `tests/core/api/test_api_device_surface_status.py` | Protocol | Phase 33 | 保留 | device-status API regression topic home |
-| `tests/core/api/test_api_diagnostics_service.py` | Protocol | Phase 2 / 85 | 保留 | `Phase 85` audit: diagnostics/OTA/cloud-query mega-suite routed to `Phase 87` topicization |
+| `tests/core/api/test_api_diagnostics_service.py` | Protocol | Phase 2 / 85 / 87 | 保留 | thin anchor after diagnostics API hotspot topicization |
+| `tests/core/api/test_api_diagnostics_service_cloud.py` | Protocol | Phase 87 | 保留 | cloud raw-body diagnostics contract topic home |
+| `tests/core/api/test_api_diagnostics_service_history.py` | Protocol | Phase 87 | 保留 | history / command-result diagnostics topic home |
+| `tests/core/api/test_api_diagnostics_service_ota.py` | Protocol | Phase 87 | 保留 | OTA / info-fallback diagnostics topic home |
+| `tests/core/api/test_api_diagnostics_service_support.py` | Protocol | Phase 87 | 保留 | local inward helper home for diagnostics API topical suites |
 | `tests/core/api/test_api_request_policy.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_api_schedule_candidate_mutations.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_api_schedule_candidate_queries.py` | Protocol | Phase 2 | 保留 | - |
@@ -374,7 +378,10 @@
 | `tests/core/api/test_api_types_smoke.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_auth_recovery_telemetry.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_helper_modules.py` | Protocol | Phase 2 | 保留 | - |
-| `tests/core/api/test_protocol_contract_matrix.py` | Protocol | Phase 2 / 85 | 保留 | `Phase 85` audit: protocol-contract matrix hotspot routed to `Phase 87` topicization + guards |
+| `tests/core/api/test_protocol_contract_boundary_decoders.py` | Protocol | Phase 87 | 保留 | boundary-decoder and canonicalization contract topic home |
+| `tests/core/api/test_protocol_contract_facade_runtime.py` | Protocol | Phase 87 | 保留 | unified-root / facade-runtime contract topic home |
+| `tests/core/api/test_protocol_contract_fixture_authority.py` | Protocol | Phase 87 | 保留 | fixture-authority and replay-manifest contract topic home |
+| `tests/core/api/test_protocol_contract_matrix.py` | Protocol | Phase 2 / 85 / 87 | 保留 | thin anchor after protocol-contract hotspot topicization |
 | `tests/core/api/test_protocol_replay_rest.py` | Protocol | Phase 7.4 | 保留 | - |
 | `tests/core/api/test_request_codec.py` | Protocol | Phase 2 | 保留 | - |
 | `tests/core/api/test_response_safety.py` | Protocol | Phase 2 | 保留 | - |
@@ -393,7 +400,12 @@
 | `tests/core/coordinator/runtime/test_command_runtime_sender.py` | Runtime | Phase 5 / 6 / 74 | 保留 | CommandRuntime sender topic home |
 | `tests/core/coordinator/runtime/test_command_runtime_support.py` | Runtime | Phase 5 / 6 / 74 | 保留 | shared helper root for CommandRuntime topicized suites |
 | `tests/core/coordinator/runtime/test_device_runtime.py` | Runtime | Phase 5 / 6 | 保留 | - |
-| `tests/core/coordinator/runtime/test_mqtt_runtime.py` | Runtime | Phase 5 / 6 / 85 | 保留 | `Phase 85` audit: runtime MQTT mega-suite routed to `Phase 87` topicization + guards |
+| `tests/core/coordinator/runtime/test_mqtt_runtime.py` | Runtime | Phase 5 / 6 / 85 / 87 | 保留 | thin shell after MQTT runtime hotspot topicization |
+| `tests/core/coordinator/runtime/test_mqtt_runtime_connection.py` | Runtime | Phase 87 | 保留 | MQTT runtime connection / reconnect topic home |
+| `tests/core/coordinator/runtime/test_mqtt_runtime_init.py` | Runtime | Phase 87 | 保留 | MQTT runtime init / dependency-injection topic home |
+| `tests/core/coordinator/runtime/test_mqtt_runtime_messages.py` | Runtime | Phase 87 | 保留 | MQTT runtime message-handling / dedup topic home |
+| `tests/core/coordinator/runtime/test_mqtt_runtime_notifications.py` | Runtime | Phase 87 | 保留 | MQTT runtime notification / reset topic home |
+| `tests/core/coordinator/runtime/test_mqtt_runtime_support.py` | Runtime | Phase 87 | 保留 | local support helper home for topicized MQTT runtime suites |
 | `tests/core/coordinator/runtime/test_runtime_telemetry_methods.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/runtime/test_state_runtime.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/runtime/test_status_runtime.py` | Runtime | Phase 5 / 6 | 保留 | - |
@@ -620,6 +632,7 @@
 | `tests/meta/test_phase75_access_mode_honesty_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase75_governance_closeout_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase85_terminal_audit_route_guards.py` | Assurance | Phase 85 | 保留 | phase-85 terminal-audit coverage / routing-column / phase-slug no-regrowth guard home |
+| `tests/meta/test_phase87_assurance_hotspot_guards.py` | Assurance | Phase 87 | 保留 | focused no-regrowth guard home for Phase 87 assurance hotspot topicization |
 | `tests/meta/test_protocol_replay_assets.py` | Assurance | Phase 7.4 | 保留 | - |
 | `tests/meta/test_public_surface_guards.py` | Assurance | Phase 6 | 保留 | thin shell after public-surface topicization |
 | `tests/meta/test_service_translation_sync.py` | Assurance | Phase 6 | 保留 | - |

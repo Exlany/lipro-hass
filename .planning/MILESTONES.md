@@ -9,11 +9,11 @@ contract_name: governance-route
 active_milestone:
   version: v1.23
   name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
-  status: Phase 87 execution-ready (2026-03-27)
+  status: Phase 87 complete (2026-03-27)
   phase: '87'
   phase_title: Assurance hotspot decomposition and no-regrowth guards
   phase_dir: 87-assurance-hotspot-decomposition-and-no-regrowth-guards
-  route_mode: Phase 87 execution-ready
+  route_mode: Phase 87 complete
 latest_archived:
   version: v1.22
   name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
@@ -29,8 +29,8 @@ previous_archived:
   name: Governance Bootstrap Truth Hardening & Planning Route Automation
   evidence_path: .planning/reviews/V1_21_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.23 active route / Phase 87 execution-ready / latest archived baseline = v1.22
-  default_next_command: $gsd-execute-phase 87
+  current_route: v1.23 active route / Phase 87 complete / latest archived baseline = v1.22
+  default_next_command: $gsd-discuss-phase 88
   latest_archived_evidence_pointer: .planning/reviews/V1_22_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->

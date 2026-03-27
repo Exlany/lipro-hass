@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.23
 milestone_name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
 current_phase: `Phase 87`
-status: Phase 87 in progress
-last_updated: "2026-03-27T09:45:01.807Z"
+status: Phase 87 complete
+last_updated: "2026-03-27T10:28:00.000Z"
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 11
-  completed_plans: 9
+  completed_plans: 11
 ---
 
 # Project State
@@ -20,14 +20,14 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.23 Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze`
 **Core value:** 用 `v1.22` archived baseline 作为唯一可信起点，对全仓 remaining hotspot / residual / governance drift 做一次终局审计与可验证收口，而不是继续把非阻塞问题留给未来模糊 carry-forward。
-**Current mode:** `Phase 87 in progress`
+**Current mode:** `Phase 87 complete`
 
 ## Current Position
 
-- `Phase 85 -> 86` 已完成 terminal audit 与 production residual closeout；`Phase 87` 已执行 `87-01`，将 diagnostics API hotspot topicize 为 OTA/history/cloud concern-local suites，当前进入 in-progress 状态。
+- `Phase 85 -> 87` 已完成 terminal audit、production residual closeout 与 assurance hotspot topicization / no-regrowth freeze；`Phase 88` 现作为下一条 pending 路线等待 discuss-phase 启动。
 - latest archived baseline 固定为 `v1.22`；latest archived evidence index 继续是 `.planning/reviews/V1_22_EVIDENCE_INDEX.md`；`v1.21` 继续承担 previous archived baseline。
-- 本轮默认下一步仍是 `$gsd-execute-phase 87`；remaining work 必须直接消费 `V1_23_TERMINAL_AUDIT.md` / `FILE_MATRIX.md` / `RESIDUAL_LEDGER.md` / `KILL_LIST.md`、`87-CONTEXT.md`、`87-RESEARCH.md`、`87-01-SUMMARY.md` 与 `87-02~04-PLAN.md` 的 routed truth。
-- `Phase 86` 的 closeout summaries 已落盘；`Phase 87` 现已拥有 `.planning/phases/87-assurance-hotspot-decomposition-and-no-regrowth-guards/87-01-SUMMARY.md` 作为首个执行产物，下一跳继续执行 `87-02~04`。
+- 本轮默认下一步已切换到 `$gsd-discuss-phase 88`；后续只需在 `Phase 87` 已冻结的热点拓扑、verification truth 与 residual closeout 之上完成 governance sync / quality proof / milestone freeze。
+- `Phase 86` 的 closeout summaries 已落盘；`Phase 87` 的 `87-01 ~ 87-04` summaries 也已全部生成，`$gsd-next` 的下一跳应前推到 `Phase 88` discuss route。
 
 <!-- governance-route-contract:start -->
 
@@ -37,11 +37,11 @@ contract_name: governance-route
 active_milestone:
   version: v1.23
   name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
-  status: Phase 87 in progress (2026-03-27)
+  status: Phase 87 complete (2026-03-27)
   phase: '87'
   phase_title: Assurance hotspot decomposition and no-regrowth guards
   phase_dir: 87-assurance-hotspot-decomposition-and-no-regrowth-guards
-  route_mode: Phase 87 in progress
+  route_mode: Phase 87 complete
 latest_archived:
   version: v1.22
   name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
@@ -57,8 +57,8 @@ previous_archived:
   name: Governance Bootstrap Truth Hardening & Planning Route Automation
   evidence_path: .planning/reviews/V1_21_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.23 active route / Phase 87 in progress / latest archived baseline = v1.22
-  default_next_command: $gsd-execute-phase 87
+  current_route: v1.23 active route / Phase 87 complete / latest archived baseline = v1.22
+  default_next_command: $gsd-discuss-phase 88
   latest_archived_evidence_pointer: .planning/reviews/V1_22_EVIDENCE_INDEX.md
 ```
 
@@ -69,11 +69,11 @@ bootstrap:
 - **Milestone:** `v1.23 Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze`
 - **Phase range:** `85 -> 88`
 - **Current phase:** `Phase 87`
-- **Current phase status:** `Phase 87 in progress (2026-03-27)`
+- **Current phase status:** `Phase 87 complete (2026-03-27)`
 - **Phase 85 closeout summaries:** `.planning/phases/85-terminal-audit-refresh-and-residual-routing/{85-01-SUMMARY.md,85-02-SUMMARY.md,85-03-SUMMARY.md}`
 - **Phase 86 closeout summaries:** `.planning/phases/86-production-residual-eradication-and-boundary-re-tightening/{86-01-SUMMARY.md,86-02-SUMMARY.md,86-03-SUMMARY.md,86-04-SUMMARY.md}`
 - **Phase 87 planning bundle:** `.planning/phases/87-assurance-hotspot-decomposition-and-no-regrowth-guards/{87-CONTEXT.md,87-RESEARCH.md,87-01-PLAN.md,87-02-PLAN.md,87-03-PLAN.md,87-04-PLAN.md}`
-- **Phase 87 executed summary:** `.planning/phases/87-assurance-hotspot-decomposition-and-no-regrowth-guards/87-01-SUMMARY.md`
+- **Phase 87 executed summaries:** `.planning/phases/87-assurance-hotspot-decomposition-and-no-regrowth-guards/{87-01-SUMMARY.md,87-02-SUMMARY.md,87-03-SUMMARY.md,87-04-SUMMARY.md}`
 - **Latest archived baseline:** `v1.22`
 - **Milestone starting evidence:** `.planning/v1.22-MILESTONE-AUDIT.md`, `.planning/reviews/V1_22_EVIDENCE_INDEX.md`, `.planning/milestones/v1.22-ROADMAP.md`, `.planning/milestones/v1.22-REQUIREMENTS.md`
 - **Current audit artifact:** `.planning/reviews/V1_23_TERMINAL_AUDIT.md`
@@ -99,8 +99,8 @@ bootstrap:
 ## Recommended Next Command
 
 1. `$gsd-progress` —— 快速复盘当前 milestone / phase 状态并确认下一跳命令
-2. `$gsd-execute-phase 87` —— 执行 `Phase 87` 的 assurance hotspot decomposition / no-regrowth guards 计划束
-3. `$gsd-next` —— 在 `Phase 87` 执行完成后自动前推到下一逻辑步骤
+2. `$gsd-discuss-phase 88` —— 启动 `Phase 88` 的 governance sync / quality proof / milestone freeze 讨论与上下文收集
+3. `$gsd-next` —— 在 `Phase 88` 建立 discuss/context 后自动前推到下一逻辑步骤
 4. `uv run pytest -q tests/meta/test_governance*.py tests/meta/test_version_sync.py` —— 复核 current-route / archived-baseline / governance guards
 5. `uv run python scripts/check_file_matrix.py --check` —— 复核 planning / baseline / review / archive assets 契约
 6. `uv run python scripts/check_architecture_policy.py --check` —— 复核 north-star structural constraints

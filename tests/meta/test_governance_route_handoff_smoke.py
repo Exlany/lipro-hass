@@ -96,21 +96,21 @@ def test_gsd_fast_path_matches_current_active_route_story() -> None:
 
     state = _run_gsd_tools('state', 'json')
     assert _as_str(state['milestone']) == CURRENT_MILESTONE
-    assert _as_str(state['status']) == 'Phase 87 execution-ready'
+    assert _as_str(state['status']) == 'Phase 87 complete'
     assert _as_mapping(state['progress']) == {
         'total_phases': '4',
-        'completed_phases': '2',
+        'completed_phases': '3',
         'total_plans': '11',
-        'completed_plans': '7',
+        'completed_plans': '11',
     }
     assert progress['phase_count'] == len(phases)
-    assert progress['completed_count'] == 2
-    current_phase = _as_mapping(progress['current_phase'])
-    assert _as_str(current_phase['number']) == '87'
-    assert _as_str(current_phase['status']) == 'in_progress'
-    assert current_phase['plan_count'] == 4
-    assert current_phase['summary_count'] == 0
-    assert progress['next_phase'] is None
+    assert progress['completed_count'] == 3
+    assert progress['current_phase'] is None
+    next_phase = _as_mapping(progress['next_phase'])
+    assert _as_str(next_phase['number']) == '88'
+    assert _as_str(next_phase['status']) == 'not_started'
+    assert next_phase['plan_count'] == 0
+    assert next_phase['summary_count'] == 0
 
     plan_init = _run_gsd_tools('init', 'plan-phase', '87')
     assert _as_bool(plan_init['phase_found']) is True
@@ -131,15 +131,15 @@ def test_gsd_fast_path_matches_current_active_route_story() -> None:
     assert phase_86_index['incomplete'] == []
 
     phase_87 = next(phase for phase in phases if _as_str(phase['number']) == '87')
-    assert _as_str(phase_87['status']) == 'in_progress'
+    assert _as_str(phase_87['status']) == 'complete'
     assert phase_87['plan_count'] == 4
-    assert phase_87['summary_count'] == 0
+    assert phase_87['summary_count'] == 4
 
     phase_87_index = _run_gsd_tools('phase-plan-index', '87')
     assert _as_str(phase_87_index['phase']) == '87'
     phase_87_plans = _as_mapping_list(phase_87_index['plans'])
     assert [_as_str(plan['id']) for plan in phase_87_plans] == ['87-01', '87-02', '87-03', '87-04']
-    assert phase_87_index['incomplete'] == ['87-01', '87-02', '87-03', '87-04']
+    assert phase_87_index['incomplete'] == []
 
 
 def test_recent_governance_closeout_assets_are_promoted_without_planning_traces() -> None:

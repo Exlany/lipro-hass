@@ -12,11 +12,10 @@ _None currently registered._
 
 | Finding | Scope | Verdict | Owner phase | Exit condition | Evidence |
 |--------|-------|---------|-------------|----------------|----------|
-| giant assurance carriers (`test_api_diagnostics_service.py`, `test_protocol_contract_matrix.py`, `test_mqtt_runtime.py`) | Assurance | route next | Phase 87 | suites 完成 concern-local topicization / thin-root 化，且 guard coverage 不下降 | `.planning/reviews/V1_23_TERMINAL_AUDIT.md` |
+| giant assurance carriers (`test_api_diagnostics_service.py`, `test_protocol_contract_matrix.py`, `test_mqtt_runtime.py`) | Assurance | closed in Phase 87 | Phase 87 | concern-local suites、thin roots 与 focused no-regrowth guards 已落地 | `.planning/reviews/V1_23_TERMINAL_AUDIT.md`; `.planning/phases/87-assurance-hotspot-decomposition-and-no-regrowth-guards/{87-01-SUMMARY.md,87-02-SUMMARY.md,87-03-SUMMARY.md}`; `tests/meta/test_phase87_assurance_hotspot_guards.py` |
 
 - `ShareWorkerClient` compat submit / JSON aliases 已在 `Phase 86` 关闭：`_safe_read_json()` alias 与 bool `submit_share_payload()` shim 已删除；production/tests 只承认 `safe_read_json()` 与 `submit_share_payload_with_outcome()`。
 - `runtime_infra.py` orchestration hotspot 已在 `Phase 86` 关闭：`runtime_infra.py` 继续是 outward formal home，`runtime_infra_device_registry.py` 仅承担 support-only inward helper 身份。
-| giant assurance carriers (`test_api_diagnostics_service.py`, `test_protocol_contract_matrix.py`, `test_mqtt_runtime.py`) | Assurance | route next | Phase 87 | suites 完成 concern-local topicization / thin-root 化，且 guard coverage 不下降 | `.planning/reviews/V1_23_TERMINAL_AUDIT.md` |
 
 - `TARGET_TOPOLOGY.md`、`DEPENDENCY_MATRIX.md`、`ARCHITECTURE_POLICY.md` 与 `docs/developer_architecture.md` 的 `Phase 85 close now` 真源同步，已记录在 `.planning/reviews/V1_23_TERMINAL_AUDIT.md`；它们属于当前 phase 的 close-now truth sync，不是新的 active residual family。
 - `.planning/reviews/V1_22_EVIDENCE_INDEX.md` 与 `.planning/v1.22-MILESTONE-AUDIT.md` 继续是 explicitly-keep historical evidence；后续 phase 只能 pull 其结论，不得把 archived-only truth 回写成 active debt。
@@ -489,6 +488,12 @@ _None currently registered._
 - 无新增 active residual family。
 - focused governance / open-source guards 现已冻结 active-route、docs-entry、template evidence、release / version link 与 promoted closeout truth；后续只能进入 milestone closeout，不得再回退到 `Phase 83` current story。
 - `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / VERIFICATION_MATRIX / PROMOTED_PHASE_ASSETS` 现共同承认 `Phase 84 complete / next = $gsd-new-milestone`。
+
+## Phase 87 Residual Delta
+
+- 无新增 active residual family。
+- `Phase 85` route-next 的 giant assurance carriers 已在本 phase 关闭：`test_api_diagnostics_service.py`、`test_protocol_contract_matrix.py` 与 `test_mqtt_runtime.py` 现分别退化为 thin anchor / thin shell，concern-local topical suites 与 focused guard 共同冻结新的 verification topology。
+- hotspot closeout truth 已回写到 `FILE_MATRIX.md`、`VERIFICATION_MATRIX.md` 与 `tests/meta/test_phase87_assurance_hotspot_guards.py`；后续若继续精修，只允许沿既有 topical homes 收口，不得把 bulk assertions 写回 root carriers。
 
 ## v1.21 Milestone Closeout Delta
 
