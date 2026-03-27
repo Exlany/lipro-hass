@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 668
+**Python files total:** 669
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -55,7 +55,7 @@
 | `custom_components/lipro/core/anonymous_share/registry.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/report_builder.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/sanitize.py` | Protocol | Phase 2.6 | 保留 | - |
-| `custom_components/lipro/core/anonymous_share/share_client.py` | Protocol | Phase 2.6 / 85 | 保留 | `Phase 85` audit: `_safe_read_json()` alias + bool submit shim routed to `Phase 86` outcome-native cleanup |
+| `custom_components/lipro/core/anonymous_share/share_client.py` | Protocol | Phase 2.6 / 85 / 86 | 保留 | `Phase 86` closeout: `_safe_read_json()` alias 与 bool `submit_share_payload()` shim 已删除；文件继续作为 anonymous-share worker client formal home |
 | `custom_components/lipro/core/anonymous_share/share_client_flows.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/share_client_ports.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/share_client_refresh.py` | Protocol | Phase 2.6 | 保留 | - |
@@ -278,7 +278,8 @@
 | `custom_components/lipro/helpers/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/helpers/platform.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/light.py` | Domain | Phase 4 | 保留 | - |
-| `custom_components/lipro/runtime_infra.py` | Control | Phase 3 / 85 | 保留 | `Phase 85` audit: formal home retained; listener/reload/bootstrap hotspot routed to `Phase 86` inward split |
+| `custom_components/lipro/runtime_infra.py` | Control | Phase 3 / 85 / 86 | 保留 | `Phase 86` closeout: outward formal home retained；listener / reload / pending-task mechanics inward split 到 `runtime_infra_device_registry.py` |
+| `custom_components/lipro/runtime_infra_device_registry.py` | Control | Phase 86 | 保留 | support-only inward helper；只允许被 `runtime_infra.py` 在 production 路径中导入 |
 | `custom_components/lipro/runtime_types.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/select.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/select_internal/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |

@@ -27,7 +27,8 @@ _LINE_BUDGETS = {
     "control/entry_lifecycle_controller.py": 210,
     "control/entry_lifecycle_support.py": 250,
     "control/runtime_access.py": 340,
-    "runtime_infra.py": 440,
+    "runtime_infra.py": 220,
+    "runtime_infra_device_registry.py": 330,
 }
 _FUNCTION_BUDGETS = {
     ("custom_components/lipro/core/coordinator/coordinator.py", "__init__"): 90,
@@ -45,9 +46,16 @@ _FUNCTION_BUDGETS = {
         "custom_components/lipro/control/runtime_access.py",
         "build_runtime_diagnostics_projection",
     ): 25,
-    ("custom_components/lipro/runtime_infra.py", "async_setup_device_registry_listener"): 50,
     (
         "custom_components/lipro/runtime_infra.py",
+        "async_setup_device_registry_listener",
+    ): 20,
+    (
+        "custom_components/lipro/runtime_infra_device_registry.py",
+        "async_setup_device_registry_listener",
+    ): 50,
+    (
+        "custom_components/lipro/runtime_infra_device_registry.py",
         "_schedule_reloads_for_device_update",
     ): 35,
 }
@@ -66,6 +74,9 @@ _PRODUCTION_IMPORT_LOCALITY = {
     },
     "custom_components.lipro.control.runtime_access_support": {
         "custom_components/lipro/control/runtime_access.py",
+    },
+    "custom_components.lipro.runtime_infra_device_registry": {
+        "custom_components/lipro/runtime_infra.py",
     },
 }
 _ROUTE_TESTS = (
@@ -92,15 +103,12 @@ def _resolve_target(relative_path: str) -> Path:
     return _PRODUCTION_ROOT / relative_path
 
 
-
 def _relative_repo_path(path: Path) -> str:
     return path.relative_to(_ROOT).as_posix()
 
 
-
 def _iter_production_sources() -> list[Path]:
     return sorted((_ROOT / "custom_components").rglob("*.py"))
-
 
 
 def _module_name_for_path(path: Path) -> str:
@@ -108,7 +116,6 @@ def _module_name_for_path(path: Path) -> str:
     if parts[-1] == "__init__":
         parts = parts[:-1]
     return ".".join(parts)
-
 
 
 def _resolve_imported_module(path: Path, node: ast.ImportFrom) -> str | None:
@@ -123,7 +130,6 @@ def _resolve_imported_module(path: Path, node: ast.ImportFrom) -> str | None:
     return ".".join(anchor) if anchor else None
 
 
-
 def _import_users(module_name: str) -> set[str]:
     users: set[str] = set()
     for path in _iter_production_sources():
@@ -131,7 +137,8 @@ def _import_users(module_name: str) -> set[str]:
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 if any(
-                    alias.name == module_name or alias.name.startswith(f"{module_name}.")
+                    alias.name == module_name
+                    or alias.name.startswith(f"{module_name}.")
                     for alias in node.names
                 ):
                     users.add(_relative_repo_path(path))
@@ -146,26 +153,28 @@ def _import_users(module_name: str) -> set[str]:
     return users
 
 
-
 def _function_length(relative_path: str, function_name: str) -> int:
     path = _ROOT / relative_path
     tree = ast.parse(path.read_text(encoding="utf-8"), filename=path.as_posix())
     for node in ast.walk(tree):
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == function_name:
+        if (
+            isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+            and node.name == function_name
+        ):
             assert node.end_lineno is not None
             return node.end_lineno - node.lineno + 1
     msg = f"Could not find {function_name} in {relative_path}"
     raise AssertionError(msg)
 
 
-
 def test_phase72_runtime_bootstrap_line_budgets_hold() -> None:
     for relative_path, budget in _LINE_BUDGETS.items():
-        line_count = len(_resolve_target(relative_path).read_text(encoding="utf-8").splitlines())
+        line_count = len(
+            _resolve_target(relative_path).read_text(encoding="utf-8").splitlines()
+        )
         assert line_count <= budget, (
             f"{relative_path} grew beyond Phase 72 budget: {line_count} > {budget}"
         )
-
 
 
 def test_phase72_runtime_bootstrap_function_budgets_hold() -> None:
@@ -176,18 +185,15 @@ def test_phase72_runtime_bootstrap_function_budgets_hold() -> None:
         )
 
 
-
 def test_phase72_runtime_bootstrap_internal_modules_keep_local_importers() -> None:
     for module_name, allowed_users in _PRODUCTION_IMPORT_LOCALITY.items():
         assert _import_users(module_name) == allowed_users
-
 
 
 def test_phase72_route_tests_use_shared_current_truth_helper() -> None:
     for relative_path in _ROUTE_TESTS:
         text = (_ROOT / relative_path).read_text(encoding="utf-8")
         assert "governance_current_truth" in text
-
 
 
 def test_phase72_current_route_truth_replaces_stale_route_story() -> None:
@@ -211,7 +217,6 @@ def test_phase72_current_route_truth_replaces_stale_route_story() -> None:
 
     for stale_projection in _PROJECT_STALE_ARCHIVE_PROJECTIONS:
         assert stale_projection not in project_text
-
 
 
 def test_phase72_developer_architecture_points_to_real_runtime_root_tests() -> None:

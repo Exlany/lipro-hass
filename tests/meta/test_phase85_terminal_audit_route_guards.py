@@ -31,6 +31,9 @@ def test_phase85_terminal_audit_artifact_covers_required_areas_and_routing_colum
         "test_mqtt_runtime.py",
     ):
         assert routed_item in audit_text
+    assert "| `custom_components/lipro/core/anonymous_share/share_client.py` | Medium | closed in Phase 86 |" in audit_text
+    assert "| `custom_components/lipro/runtime_infra.py` | Medium | closed in Phase 86 |" in audit_text
+    assert "| `tests/core/api/test_api_diagnostics_service.py` | Medium | route next | `Phase 87`" in audit_text
 
 
 def test_phase85_baseline_refresh_truth_blocks_stale_topology_and_backoff_stories() -> None:

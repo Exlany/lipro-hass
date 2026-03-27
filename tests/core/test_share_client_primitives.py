@@ -1,9 +1,10 @@
 """Topicized ShareWorkerClient primitive and token-shape tests."""
-# ruff: noqa: F403, F405, I001
+# ruff: noqa: F403, F405
 
 from __future__ import annotations
 
 from .test_share_client_support import *
+
 
 def test_build_upload_headers_and_parse_retry_after() -> None:
     headers = ShareWorkerClient.build_upload_headers()
@@ -19,6 +20,7 @@ def test_build_upload_headers_and_parse_retry_after() -> None:
     assert ShareWorkerClient.parse_retry_after({"Retry-After": "bad"}) is None
     assert ShareWorkerClient.parse_retry_after(object()) is None
 
+
 def test_parse_retry_after_supports_http_date() -> None:
     from datetime import UTC, datetime, timedelta
 
@@ -29,6 +31,7 @@ def test_parse_retry_after_supports_http_date() -> None:
 
     assert result is not None
     assert 55 <= result <= 65
+
 
 def test_apply_token_payload_and_clear_install_token() -> None:
     client = ShareWorkerClient()
@@ -55,6 +58,7 @@ def test_apply_token_payload_and_clear_install_token() -> None:
     assert client.token_expires_at == 0
     assert client.token_refresh_after == 0
 
+
 def test_apply_token_payload_coerces_invalid_timestamps_safely() -> None:
     client = ShareWorkerClient()
 
@@ -72,6 +76,7 @@ def test_apply_token_payload_coerces_invalid_timestamps_safely() -> None:
     assert client.token_expires_at == 0
     assert client.token_refresh_after == 0
 
+
 async def test_safe_read_json_handles_missing_reader_and_reader_errors() -> None:
     client = ShareWorkerClient()
 
@@ -82,4 +87,3 @@ async def test_safe_read_json_handles_missing_reader_and_reader_errors() -> None
 
     list_response = _response(status=200, payload=[1, 2, 3], async_json=False)
     assert await client.safe_read_json(list_response) is None
-    assert await client._safe_read_json(list_response) is None

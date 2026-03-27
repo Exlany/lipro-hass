@@ -12,7 +12,8 @@ _PRODUCTION_ROOT = _ROOT / "custom_components" / "lipro"
 
 _LINE_BUDGETS = {
     "control/runtime_access_support.py": 480,
-    "runtime_infra.py": 440,
+    "runtime_infra.py": 220,
+    "runtime_infra_device_registry.py": 330,
     "services/schedule.py": 350,
     "core/api/client.py": 15,
     "core/api/endpoint_surface.py": 350,
@@ -25,6 +26,9 @@ _PRODUCTION_IMPORT_LOCALITY = {
     },
     "custom_components.lipro.runtime_infra": {
         "custom_components/lipro/__init__.py",
+    },
+    "custom_components.lipro.runtime_infra_device_registry": {
+        "custom_components/lipro/runtime_infra.py",
     },
     "custom_components.lipro.services.schedule": {
         "custom_components/lipro/control/service_router_handlers.py",
@@ -91,16 +95,16 @@ def _import_users(module_name: str) -> set[str]:
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 if any(
-                    alias.name == module_name or alias.name.startswith(f"{module_name}.")
+                    alias.name == module_name
+                    or alias.name.startswith(f"{module_name}.")
                     for alias in node.names
                 ):
                     users.add(_relative_repo_path(path))
             elif isinstance(node, ast.ImportFrom):
                 imported_modules = _imported_module_names(path, node)
                 if any(
-                    imported_module == module_name or imported_module.startswith(
-                        f"{module_name}."
-                    )
+                    imported_module == module_name
+                    or imported_module.startswith(f"{module_name}.")
                     for imported_module in imported_modules
                 ):
                     users.add(_relative_repo_path(path))
@@ -109,7 +113,9 @@ def _import_users(module_name: str) -> set[str]:
 
 def test_phase69_residual_line_budgets_hold() -> None:
     for relative_path, budget in _LINE_BUDGETS.items():
-        line_count = len(_resolve_target(relative_path).read_text(encoding="utf-8").splitlines())
+        line_count = len(
+            _resolve_target(relative_path).read_text(encoding="utf-8").splitlines()
+        )
         assert line_count <= budget, (
             f"{relative_path} grew beyond Phase 69 budget: {line_count} > {budget}"
         )
@@ -121,9 +127,9 @@ def test_phase69_residual_modules_keep_local_importers() -> None:
 
 
 def test_phase69_runtime_access_support_stays_formal_home_locality_only() -> None:
-    runtime_access_text = (_PRODUCTION_ROOT / "control" / "runtime_access.py").read_text(
-        encoding="utf-8"
-    )
+    runtime_access_text = (
+        _PRODUCTION_ROOT / "control" / "runtime_access.py"
+    ).read_text(encoding="utf-8")
     telemetry_surface_text = (
         _PRODUCTION_ROOT / "control" / "telemetry_surface.py"
     ).read_text(encoding="utf-8")

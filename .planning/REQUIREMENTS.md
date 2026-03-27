@@ -8,8 +8,8 @@
 
 - [x] **AUD-04**: 必须基于当前仓库真相，对 `custom_components`、`tests`、`scripts`、docs、workflows 与 planning/baseline/review assets 做一次 terminal repo-wide audit，产出 file-level verdict、hotspot ranking 与 live residual inventory。
 - [x] **GOV-62**: audit 结论必须同步到 current-story docs 与 baseline/review truth；不得把已关闭 residual 误写回 active family，也不得留下 conversation-only verdict。
-- [ ] **HOT-37**: audit 确认的 production residual / hotspot carriers 必须被删除、拆薄或压回 formal/local helper home；正式目录中不得继续保留 empty shell、stale alias 或 compat folklore。
-- [ ] **ARC-22**: residual eradication 过程中，protocol / runtime / control / domain 仍各自保持单一正式主链；不得引入 second root、backdoor 或 helper-owned public truth。
+- [x] **HOT-37**: audit 确认的 production residual / hotspot carriers 已被删除、拆薄并压回 formal/local helper home；正式目录中不再保留 empty shell、stale alias 或 compat folklore。
+- [x] **ARC-22**: residual eradication 完成后，protocol / runtime / control / domain 继续保持单一正式主链；未引入 second root、backdoor 或 helper-owned public truth。
 - [ ] **HOT-38**: audit 确认的 assurance/tooling hotspots 必须停止承担 giant truth-carrier 职责；需要进一步 topicization、thin-root 化或 inward decomposition。
 - [ ] **TST-27**: 每个被消灭或收窄的 residual family / hotspot 都必须补齐 focused regressions、meta guards 或 no-regrowth checks，保证删除后不会回流。
 - [ ] **GOV-63**: `FILE_MATRIX / RESIDUAL_LEDGER / KILL_LIST / PUBLIC_SURFACES / developer_architecture` 必须共同冻结 post-eradication topology、ownership 与 delete-gate truth。
@@ -21,8 +21,8 @@
 |-------------|---------------|--------|
 | AUD-04 | Phase 85 | Completed |
 | GOV-62 | Phase 85 | Completed |
-| HOT-37 | Phase 86 | Planned |
-| ARC-22 | Phase 86 | Planned |
+| HOT-37 | Phase 86 | Completed |
+| ARC-22 | Phase 86 | Completed |
 | HOT-38 | Phase 87 | Planned |
 | TST-27 | Phase 87 | Planned |
 | GOV-63 | Phase 88 | Planned |
@@ -31,8 +31,8 @@
 **Current Coverage:**
 - v1.23 routed requirements: 8 total
 - Current mapped: 8
-- Current complete: 2
-- Current pending: 6
+- Current complete: 4
+- Current pending: 4
 - Current unmapped: 0 ✓
 
 <!-- governance-route-contract:start -->
@@ -42,16 +42,16 @@ contract_name: governance-route
 active_milestone:
   version: v1.23
   name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
-  status: Phase 85 complete (2026-03-27)
-  phase: "85"
-  phase_title: Terminal audit refresh and residual routing
-  phase_dir: 85-terminal-audit-refresh-and-residual-routing
-  route_mode: Phase 85 complete
+  status: Phase 87 execution-ready (2026-03-27)
+  phase: '87'
+  phase_title: Assurance hotspot decomposition and no-regrowth guards
+  phase_dir: 87-assurance-hotspot-decomposition-and-no-regrowth-guards
+  route_mode: Phase 87 execution-ready
 latest_archived:
   version: v1.22
   name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
   status: archived / evidence-ready (2026-03-27)
-  phase: "84"
+  phase: '84'
   phase_title: Governance/open-source guard coverage and milestone truth freeze
   phase_dir: 84-governance-open-source-guard-coverage-and-milestone-truth-freeze
   audit_path: .planning/v1.22-MILESTONE-AUDIT.md
@@ -62,8 +62,8 @@ previous_archived:
   name: Governance Bootstrap Truth Hardening & Planning Route Automation
   evidence_path: .planning/reviews/V1_21_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.23 active route / Phase 85 complete / latest archived baseline = v1.22
-  default_next_command: $gsd-plan-phase 86
+  current_route: v1.23 active route / Phase 87 execution-ready / latest archived baseline = v1.22
+  default_next_command: $gsd-execute-phase 87
   latest_archived_evidence_pointer: .planning/reviews/V1_22_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->

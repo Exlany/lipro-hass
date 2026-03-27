@@ -1,4 +1,5 @@
 """Worker client for anonymous sharing uploads."""
+
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable, Mapping
@@ -25,6 +26,7 @@ from .share_client_support import (
 )
 
 _LOGGER = logging.getLogger(__package__ or __name__)
+
 
 class ShareWorkerClient:
     """HTTP client for submitting anonymous share payloads to the Worker."""
@@ -59,7 +61,7 @@ class ShareWorkerClient:
         }
         try:
             seconds = parse_http_retry_after(normalized_headers)
-        except (AttributeError, TypeError, ValueError):
+        except AttributeError, TypeError, ValueError:
             return None
         if seconds is None:
             return None
@@ -81,15 +83,15 @@ class ShareWorkerClient:
         self.token_refresh_after = token_payload.get("token_refresh_after", 0)
         return True
 
-    async def safe_read_json(self, response: JsonReadableResponse) -> WorkerResponsePayload | None:
+    async def safe_read_json(
+        self, response: JsonReadableResponse
+    ) -> WorkerResponsePayload | None:
         """Best-effort JSON parsing for Worker responses."""
         return await _safe_read_json_flow(response)
 
-    async def _safe_read_json(self, response: JsonReadableResponse) -> WorkerResponsePayload | None:
-        """Backward-compatible alias for the formal JSON reader method."""
-        return await self.safe_read_json(response)
-
-    async def refresh_install_token_with_outcome(self, session: aiohttp.ClientSession) -> OperationOutcome:
+    async def refresh_install_token_with_outcome(
+        self, session: aiohttp.ClientSession
+    ) -> OperationOutcome:
         """Refresh install token via `/api/token/refresh` with typed outcome."""
         return await _refresh_install_token_with_outcome_flow(
             self,
@@ -121,21 +123,3 @@ class ShareWorkerClient:
             now=time.time,
             build_lite_variant=build_lite_report,
         )
-
-    async def submit_share_payload(
-        self,
-        session: aiohttp.ClientSession,
-        report: SharePayload,
-        *,
-        label: str,
-        ensure_loaded: Callable[[], Awaitable[None]],
-    ) -> bool:
-        """Submit one payload to share endpoint with legacy bool compatibility."""
-        return (
-            await self.submit_share_payload_with_outcome(
-                session,
-                report,
-                label=label,
-                ensure_loaded=ensure_loaded,
-            )
-        ).is_success

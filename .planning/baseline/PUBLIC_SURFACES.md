@@ -44,7 +44,7 @@
 
 - `custom_components/lipro/control/runtime_access.py` 现在同时固定 typed diagnostics/system-health projection 与 entry-scoped runtime lookup；control consumers 不再混搭 coordinator internals / ad-hoc mapping reads。
 - `custom_components/lipro/control/service_router_support.py` 是 service callback 热路径里唯一正式 `(device, coordinator)` bridge；`custom_components/lipro/services/device_lookup.py` 只保留 service-facing `device_id` resolution，不再拥有 runtime truth。
-- `custom_components/lipro/runtime_infra.py` 成为 device-registry listener、pending reload task cleanup 与 reload coordination 的正式 home；`custom_components/lipro/services/maintenance.py` 只保留消费 control 注入 runtime provider 的 `refresh_devices` thin adapter。
+- `custom_components/lipro/runtime_infra.py` 继续是 device-registry listener 的 outward formal home；`custom_components/lipro/runtime_infra_device_registry.py` 只承接 listener / reload / pending-task mechanics 的 inward collaborator 身份；`custom_components/lipro/services/maintenance.py` 只保留消费 control 注入 runtime provider 的 `refresh_devices` thin adapter。
 - `custom_components/lipro/control/service_router.py` 继续是 public callback home；`custom_components/lipro/control/service_registry.py` 是唯一正式 service-registration owner，仓库中不再保留 `services/registrations.py` 这类 compat import/binding shell。
 
 ## Phase 48 Formal-Root Hotspot Decomposition Notes
@@ -233,7 +233,7 @@
 ## Phase 54 Helper-Hotspot Formalization Notes
 
 - `custom_components/lipro/core/anonymous_share/manager.py` 继续是 aggregate/scoped anonymous-share public home；`custom_components/lipro/core/anonymous_share/manager_support.py` 只允许作为 scope-state / cache / report-submit mechanics 的 support-only seam 存在。
-- `custom_components/lipro/core/anonymous_share/share_client.py` 继续是 worker transport home；`custom_components/lipro/core/anonymous_share/share_client_support.py` 只承接 token / submit-attempt / outcome mechanics，不得被讲成第二 transport story。
+- `custom_components/lipro/core/anonymous_share/share_client.py` 继续是 worker transport home，且不再暴露 `_safe_read_json()` / bool `submit_share_payload()` compat surface；`custom_components/lipro/core/anonymous_share/share_client_support.py` 只承接 token / submit-attempt / outcome mechanics，不得被讲成第二 transport story。
 - `custom_components/lipro/control/service_router.py` 继续是 diagnostics public handler home；`custom_components/lipro/services/diagnostics/helpers.py` 只保留 focused diagnostics import home 身份，并只消费 control 注入的 runtime-entry / telemetry ports；`custom_components/lipro/services/diagnostics/helper_support.py` 只能作为 report / feedback / capability / response mechanics seam inward 使用。
 - `custom_components/lipro/core/api/request_policy.py` 继续是 `429` / busy / pacing truth 的 formal home；`custom_components/lipro/core/api/request_policy_support.py` 只允许作为 pacing/backoff support seam 存在，generic `compute_exponential_retry_wait_time()` cross-plane leak 若继续保留，必须继续在 residual ledger 显式登记。
 
@@ -260,7 +260,7 @@
 - `custom_components/lipro/core/device/extras.py` 继续是 `DeviceExtras` formal home；`custom_components/lipro/core/device/extras_support.py` 只承接 payload / panel parsing support mechanics，名称已与 `extras*` family 对齐，但它不是新的 public root。
 - `custom_components/lipro/core/api/endpoint_surface.py` 继续只作为 REST endpoint operations localized collaborator 存在；尽管名称保留历史写法，它仍不是第二 façade、第二 public surface 或 package export。
 - diagnostics public/import story 不变：`custom_components/lipro/control/service_router.py` 继续是 diagnostics public handler home，`helpers.py` 继续是 focused diagnostics import home，而 `feedback_handlers.py`、`command_result_handlers.py`、`capability_handlers.py` 与 `helper_support.py` 都只作为 inward collaborators / mechanics seams 存在。
-- `manager.py` / `share_client.py` / `candidate.py` / `select.py` 的 outward-home truth 不变；`manager_submission.py`、`share_client_flows.py`、`candidate_support.py` 与 `select_internal/gear.py` 继续只以 inward collaborator 身份存在。
+- `manager.py` / `share_client.py` / `candidate.py` / `select.py` 的 outward-home truth 不变；`manager_submission.py`、`share_client_{flows,ports,refresh,submit}.py`、`candidate_support.py` 与 `select_internal/gear.py` 继续只以 inward collaborator 身份存在。
 - public discoverability 继续保持单一路由：`README(.md/.zh)` 负责 public first hop，`docs/README.md` 负责 canonical docs map，`docs/MAINTAINER_RELEASE_RUNBOOK.md` 继续是 maintainer-only appendix。
 
 

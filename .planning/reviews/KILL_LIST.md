@@ -27,8 +27,6 @@
 
 | Target | Current carrier | Owner | Earliest delete phase | Delete when | Phase 85 verdict |
 |--------|------------------|-------|-----------------------|-------------|------------------|
-| `_safe_read_json()` backward-compatible alias | `custom_components/lipro/core/anonymous_share/share_client.py` | `Phase 86 anonymous-share outcome-native cleanup` | Phase 86 | tests / callers no longer need legacy alias, and only the formal JSON reader method remains | route next |
-| `submit_share_payload()` bool compatibility shim | `custom_components/lipro/core/anonymous_share/share_client.py` | `Phase 86 anonymous-share outcome-native cleanup` | Phase 86 | share submission callers/tests fully consume `OperationOutcome` and no longer require bool-only projection | route next |
 
 ## Deletion Gate
 
@@ -378,5 +376,5 @@
 ## Phase 85 Status Update
 
 - 本 phase **无新增 file-level kill target**；repo-wide terminal audit 冻结的是 verdict / routing truth，不是新的 file-delete campaign。
-- `custom_components/lipro/core/anonymous_share/share_client.py` 当前只登记 `_safe_read_json()` alias 与 `submit_share_payload()` bool shim 这两个 symbol-level delete gates；文件本身仍是正式 anonymous-share worker client home。
-- `custom_components/lipro/runtime_infra.py` 与 giant assurance carriers（`tests/core/api/test_api_diagnostics_service.py`、`tests/core/api/test_protocol_contract_matrix.py`、`tests/core/coordinator/runtime/test_mqtt_runtime.py`）只允许沿 `Phase 86/87` 做 inward split / topicization，不得被叙述成未来 file-level kill target。
+- `custom_components/lipro/core/anonymous_share/share_client.py` 的 `_safe_read_json()` alias 与 `submit_share_payload()` bool shim 已在 `Phase 86` 关闭；文件本身继续是正式 anonymous-share worker client home。
+- `custom_components/lipro/runtime_infra.py` 已在 `Phase 86` 完成 inward split closeout；giant assurance carriers（`tests/core/api/test_api_diagnostics_service.py`、`tests/core/api/test_protocol_contract_matrix.py`、`tests/core/coordinator/runtime/test_mqtt_runtime.py`）继续只允许沿 `Phase 87` 做 topicization，不得被叙述成未来 file-level kill target。

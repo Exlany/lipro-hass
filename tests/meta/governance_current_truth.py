@@ -27,11 +27,11 @@ PLANNING_ROUTE_CONTRACT: dict[str, object] = {
     "active_milestone": {
         "version": "v1.23",
         "name": "Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze",
-        "status": "Phase 85 complete (2026-03-27)",
-        "phase": "85",
-        "phase_title": "Terminal audit refresh and residual routing",
-        "phase_dir": "85-terminal-audit-refresh-and-residual-routing",
-        "route_mode": "Phase 85 complete",
+        "status": "Phase 87 execution-ready (2026-03-27)",
+        "phase": "87",
+        "phase_title": "Assurance hotspot decomposition and no-regrowth guards",
+        "phase_dir": "87-assurance-hotspot-decomposition-and-no-regrowth-guards",
+        "route_mode": "Phase 87 execution-ready",
     },
     "latest_archived": {
         "version": "v1.22",
@@ -50,8 +50,8 @@ PLANNING_ROUTE_CONTRACT: dict[str, object] = {
         "evidence_path": ".planning/reviews/V1_21_EVIDENCE_INDEX.md",
     },
     "bootstrap": {
-        "current_route": "v1.23 active route / Phase 85 complete / latest archived baseline = v1.22",
-        "default_next_command": "$gsd-plan-phase 86",
+        "current_route": "v1.23 active route / Phase 87 execution-ready / latest archived baseline = v1.22",
+        "default_next_command": "$gsd-execute-phase 87",
         "latest_archived_evidence_pointer": ".planning/reviews/V1_22_EVIDENCE_INDEX.md",
     },
 }
@@ -174,6 +174,7 @@ CURRENT_ROUTE_PROSE_FORBIDDEN = (
     "v1.21 active route / Phase 80 complete / latest archived baseline = v1.20",
     "v1.22 active route / Phase 83 complete / latest archived baseline = v1.21",
     "v1.22 active route / Phase 84 complete / latest archived baseline = v1.21",
+    "v1.23 active route / Phase 85 complete / latest archived baseline = v1.22",
     "v1.23 active route / Phase 85 planning-ready / latest archived baseline = v1.22",
     "no active milestone route / latest archived baseline = v1.20",
     "no active milestone route / latest archived baseline = v1.21",

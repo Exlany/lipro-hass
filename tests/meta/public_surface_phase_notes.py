@@ -129,7 +129,7 @@ def test_phase_43_public_surface_notes_capture_typed_runtime_and_thin_helpers() 
         "services/device_lookup.py` 只保留 service-facing `device_id` resolution"
         in public_surfaces
     )
-    assert "runtime_infra.py` 成为 device-registry listener" in public_surfaces
+    assert "runtime_infra.py` 继续是 device-registry listener 的 outward formal home" in public_surfaces
 
 
 def test_phase_49_file_matrix_tracks_topicized_test_topology() -> None:

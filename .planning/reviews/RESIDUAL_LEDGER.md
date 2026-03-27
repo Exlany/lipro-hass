@@ -12,8 +12,10 @@ _None currently registered._
 
 | Finding | Scope | Verdict | Owner phase | Exit condition | Evidence |
 |--------|-------|---------|-------------|----------------|----------|
-| `ShareWorkerClient` compat submit / JSON aliases | Protocol | route next | Phase 86 | `_safe_read_json()` alias 与 bool-only `submit_share_payload()` compatibility shim 删除或 inward 收口；production/tests 只承认 outcome-native path | `.planning/reviews/V1_23_TERMINAL_AUDIT.md` |
-| `runtime_infra.py` orchestration hotspot | Control | route next | Phase 86 | listener / reload / task orchestration 继续 inward split，且 formal home 不漂移 | `.planning/reviews/V1_23_TERMINAL_AUDIT.md` |
+| giant assurance carriers (`test_api_diagnostics_service.py`, `test_protocol_contract_matrix.py`, `test_mqtt_runtime.py`) | Assurance | route next | Phase 87 | suites 完成 concern-local topicization / thin-root 化，且 guard coverage 不下降 | `.planning/reviews/V1_23_TERMINAL_AUDIT.md` |
+
+- `ShareWorkerClient` compat submit / JSON aliases 已在 `Phase 86` 关闭：`_safe_read_json()` alias 与 bool `submit_share_payload()` shim 已删除；production/tests 只承认 `safe_read_json()` 与 `submit_share_payload_with_outcome()`。
+- `runtime_infra.py` orchestration hotspot 已在 `Phase 86` 关闭：`runtime_infra.py` 继续是 outward formal home，`runtime_infra_device_registry.py` 仅承担 support-only inward helper 身份。
 | giant assurance carriers (`test_api_diagnostics_service.py`, `test_protocol_contract_matrix.py`, `test_mqtt_runtime.py`) | Assurance | route next | Phase 87 | suites 完成 concern-local topicization / thin-root 化，且 guard coverage 不下降 | `.planning/reviews/V1_23_TERMINAL_AUDIT.md` |
 
 - `TARGET_TOPOLOGY.md`、`DEPENDENCY_MATRIX.md`、`ARCHITECTURE_POLICY.md` 与 `docs/developer_architecture.md` 的 `Phase 85 close now` 真源同步，已记录在 `.planning/reviews/V1_23_TERMINAL_AUDIT.md`；它们属于当前 phase 的 close-now truth sync，不是新的 active residual family。

@@ -1,5 +1,5 @@
 """Topicized ShareWorkerClient submission and outcome tests."""
-# ruff: noqa: F403, F405, I001
+# ruff: noqa: F403, F405
 
 from __future__ import annotations
 
@@ -7,8 +7,11 @@ import typing
 
 from .test_share_client_support import *
 
+
 @pytest.mark.asyncio
-async def test_submit_share_payload_backoff_and_missing_installation_id() -> None:
+async def test_submit_share_payload_with_outcome_surfaces_backoff_and_missing_installation_id() -> (
+    None
+):
     client = ShareWorkerClient()
     session = MagicMock()
     ensure_loaded = AsyncMock()
@@ -18,43 +21,39 @@ async def test_submit_share_payload_backoff_and_missing_installation_id() -> Non
         "custom_components.lipro.core.anonymous_share.share_client.time.time",
         return_value=100.0,
     ):
-        assert (
-            await client.submit_share_payload(
-                session,
-                _make_report(),
-                label="Anonymous share",
-                ensure_loaded=ensure_loaded,
-            )
-            is False
+        backoff_outcome = await client.submit_share_payload_with_outcome(
+            session,
+            _make_report(),
+            label="Anonymous share",
+            ensure_loaded=ensure_loaded,
         )
+
+    assert backoff_outcome.is_success is False
+    assert backoff_outcome.kind == "skipped"
+    assert backoff_outcome.reason_code == "backoff_active"
     ensure_loaded.assert_awaited_once()
     session.post.assert_not_called()
 
     ensure_loaded = AsyncMock()
     client.next_upload_attempt_at = 0.0
-    assert (
-        await client.submit_share_payload(
-            session,
-            {"errors": []},
-            label="Anonymous share",
-            ensure_loaded=ensure_loaded,
-        )
-        is False
-    )
-    ensure_loaded.assert_awaited_once()
-    session.post.assert_not_called()
-
     missing_installation_id = await client.submit_share_payload_with_outcome(
         session,
         {"errors": []},
         label="Anonymous share",
-        ensure_loaded=AsyncMock(),
+        ensure_loaded=ensure_loaded,
     )
+    assert missing_installation_id.is_success is False
     assert missing_installation_id.kind == "failed"
     assert missing_installation_id.reason_code == "missing_installation_id"
+    assert missing_installation_id.failure_summary["handling_policy"] == "inspect"
+    ensure_loaded.assert_awaited_once()
+    session.post.assert_not_called()
+
 
 @pytest.mark.asyncio
-async def test_submit_share_payload_refreshes_token_before_upload() -> None:
+async def test_submit_share_payload_with_outcome_refreshes_token_before_upload() -> (
+    None
+):
     client = ShareWorkerClient()
     client.install_token = "tok-old"
     client.token_refresh_after = 150
@@ -83,14 +82,18 @@ async def test_submit_share_payload_refreshes_token_before_upload() -> None:
             new=refresh_install_token_with_outcome,
         ),
     ):
-        result = await client.submit_share_payload(
+        outcome = await client.submit_share_payload_with_outcome(
             session,
             _make_report(),
             label="Anonymous share",
             ensure_loaded=AsyncMock(),
         )
 
-    assert result is False
+    assert outcome.is_success is False
+    assert outcome.kind == "failed"
+    assert outcome.reason_code == "invalid_schema"
+    assert outcome.http_status == 400
+    assert outcome.failure_summary["handling_policy"] == "inspect"
     refresh_install_token_with_outcome.assert_awaited_once_with(session)
 
 
@@ -162,8 +165,11 @@ async def test_submit_share_payload_with_outcome_surfaces_refresh_failures_when_
     assert session.post.call_args is not None
     assert session.post.call_args.args[0] == SHARE_TOKEN_REFRESH_URL
 
+
 @pytest.mark.asyncio
-async def test_submit_share_payload_retries_with_lite_variant_after_413() -> None:
+async def test_submit_share_payload_with_outcome_retries_with_lite_variant_after_413() -> (
+    None
+):
     client = ShareWorkerClient()
     session = MagicMock()
     full_report = _make_report()
@@ -180,23 +186,24 @@ async def test_submit_share_payload_retries_with_lite_variant_after_413() -> Non
         "custom_components.lipro.core.anonymous_share.share_client.build_lite_report",
         return_value=lite_report,
     ) as build_lite:
-        assert (
-            await client.submit_share_payload(
-                session,
-                full_report,
-                label="Anonymous share",
-                ensure_loaded=AsyncMock(),
-            )
-            is True
+        outcome = await client.submit_share_payload_with_outcome(
+            session,
+            full_report,
+            label="Anonymous share",
+            ensure_loaded=AsyncMock(),
         )
 
+    assert outcome.is_success is True
+    assert outcome.kind == "success"
+    assert outcome.reason_code == "submitted_lite_payload"
     assert session.post.call_count == 2
     assert session.post.call_args_list[0].kwargs["json"] == full_report
     assert session.post.call_args_list[1].kwargs["json"] == lite_report
     build_lite.assert_called_once_with(full_report)
 
+
 @pytest.mark.asyncio
-async def test_submit_share_payload_handles_401_token_fallback_and_no_token_reject() -> (
+async def test_submit_share_payload_with_outcome_handles_401_token_fallback_and_no_token_reject() -> (
     None
 ):
     client = ShareWorkerClient()
@@ -209,15 +216,15 @@ async def test_submit_share_payload_handles_401_token_fallback_and_no_token_reje
         ]
     )
 
-    assert (
-        await client.submit_share_payload(
-            session,
-            _make_report(),
-            label="Anonymous share",
-            ensure_loaded=AsyncMock(),
-        )
-        is True
+    outcome = await client.submit_share_payload_with_outcome(
+        session,
+        _make_report(),
+        label="Anonymous share",
+        ensure_loaded=AsyncMock(),
     )
+    assert outcome.is_success is True
+    assert outcome.kind == "success"
+    assert outcome.reason_code == "submitted"
     assert client.install_token is None
     first_headers = session.post.call_args_list[0].kwargs["headers"]
     second_headers = session.post.call_args_list[1].kwargs["headers"]
@@ -231,18 +238,23 @@ async def test_submit_share_payload_handles_401_token_fallback_and_no_token_reje
             _response(status=401, payload={"code": "TOKEN_MISSING"})
         )
     )
-    assert (
-        await client.submit_share_payload(
-            session,
-            _make_report(),
-            label="Anonymous share",
-            ensure_loaded=AsyncMock(),
-        )
-        is False
+    no_token_outcome = await client.submit_share_payload_with_outcome(
+        session,
+        _make_report(),
+        label="Anonymous share",
+        ensure_loaded=AsyncMock(),
     )
+    assert no_token_outcome.is_success is False
+    assert no_token_outcome.kind == "failed"
+    assert no_token_outcome.reason_code == "token_rejected"
+    assert no_token_outcome.http_status == 401
+    assert no_token_outcome.failure_summary["handling_policy"] == "reauth"
+
 
 @pytest.mark.asyncio
-async def test_submit_share_payload_handles_429_and_invalid_schema() -> None:
+async def test_submit_share_payload_with_outcome_handles_429_and_invalid_schema() -> (
+    None
+):
     client = ShareWorkerClient()
     session_429 = MagicMock()
     session_429.post = MagicMock(
@@ -258,15 +270,17 @@ async def test_submit_share_payload_handles_429_and_invalid_schema() -> None:
         "custom_components.lipro.core.anonymous_share.share_client.time.time",
         return_value=10.0,
     ):
-        assert (
-            await client.submit_share_payload(
-                session_429,
-                _make_report(),
-                label="Anonymous share",
-                ensure_loaded=AsyncMock(),
-            )
-            is False
+        rate_limited = await client.submit_share_payload_with_outcome(
+            session_429,
+            _make_report(),
+            label="Anonymous share",
+            ensure_loaded=AsyncMock(),
         )
+    assert rate_limited.is_success is False
+    assert rate_limited.kind == "failed"
+    assert rate_limited.reason_code == "rate_limited"
+    assert rate_limited.retry_after_seconds == 120.0
+    assert rate_limited.failure_summary["handling_policy"] == "retry"
     assert client.next_upload_attempt_at == 70.0
 
     session_400 = MagicMock()
@@ -275,15 +289,18 @@ async def test_submit_share_payload_handles_429_and_invalid_schema() -> None:
             _response(status=400, payload={"code": "INVALID_SCHEMA"})
         )
     )
-    assert (
-        await client.submit_share_payload(
-            session_400,
-            _make_report(),
-            label="Anonymous share",
-            ensure_loaded=AsyncMock(),
-        )
-        is False
+    invalid_schema = await client.submit_share_payload_with_outcome(
+        session_400,
+        _make_report(),
+        label="Anonymous share",
+        ensure_loaded=AsyncMock(),
     )
+    assert invalid_schema.is_success is False
+    assert invalid_schema.kind == "failed"
+    assert invalid_schema.reason_code == "invalid_schema"
+    assert invalid_schema.http_status == 400
+    assert invalid_schema.failure_summary["handling_policy"] == "inspect"
+
 
 @pytest.mark.asyncio
 async def test_submit_share_payload_with_outcome_exposes_lite_variant_reason() -> None:
@@ -312,6 +329,7 @@ async def test_submit_share_payload_with_outcome_exposes_lite_variant_reason() -
 
     assert outcome.kind == "success"
     assert outcome.reason_code == "submitted_lite_payload"
+
 
 @pytest.mark.asyncio
 async def test_submit_share_payload_with_outcome_exposes_rate_limit_reason() -> None:
@@ -342,8 +360,11 @@ async def test_submit_share_payload_with_outcome_exposes_rate_limit_reason() -> 
     assert outcome.reason_code == "rate_limited"
     assert outcome.retry_after_seconds == 120.0
 
+
 @pytest.mark.asyncio
-async def test_submit_share_payload_with_outcome_exposes_token_rejected_reason() -> None:
+async def test_submit_share_payload_with_outcome_exposes_token_rejected_reason() -> (
+    None
+):
     client = ShareWorkerClient()
     client.install_token = cast(str | None, "tok-old")
     session = MagicMock()
@@ -368,8 +389,11 @@ async def test_submit_share_payload_with_outcome_exposes_token_rejected_reason()
     assert session.post.call_count == 2
     assert all(call.args[0] == SHARE_REPORT_URL for call in session.post.call_args_list)
 
+
 @pytest.mark.asyncio
-async def test_submit_share_payload_with_outcome_keeps_413_fallback_terminal_reason() -> None:
+async def test_submit_share_payload_with_outcome_keeps_413_fallback_terminal_reason() -> (
+    None
+):
     client = ShareWorkerClient()
     session = MagicMock()
     session.post = MagicMock(
@@ -392,8 +416,11 @@ async def test_submit_share_payload_with_outcome_keeps_413_fallback_terminal_rea
     assert session.post.call_count == 2
     assert all(call.args[0] == SHARE_REPORT_URL for call in session.post.call_args_list)
 
+
 @pytest.mark.asyncio
-async def test_submit_share_payload_logs_failure_when_no_variant_succeeds() -> None:
+async def test_submit_share_payload_with_outcome_logs_failure_when_no_variant_succeeds() -> (
+    None
+):
     client = ShareWorkerClient()
     session = MagicMock()
     session.post = MagicMock(
@@ -406,16 +433,18 @@ async def test_submit_share_payload_logs_failure_when_no_variant_succeeds() -> N
     with patch(
         "custom_components.lipro.core.anonymous_share.share_client._LOGGER.warning"
     ) as warning:
-        assert (
-            await client.submit_share_payload(
-                session,
-                _make_report(),
-                label="Anonymous share",
-                ensure_loaded=AsyncMock(),
-            )
-            is False
+        outcome = await client.submit_share_payload_with_outcome(
+            session,
+            _make_report(),
+            label="Anonymous share",
+            ensure_loaded=AsyncMock(),
         )
 
+    assert outcome.is_success is False
+    assert outcome.kind == "failed"
+    assert outcome.reason_code == "http_error"
+    assert outcome.http_status == 500
+    assert outcome.failure_summary["handling_policy"] == "inspect"
     assert session.post.call_count == 2
     warning.assert_any_call("%s upload failed with status %s", "Anonymous share", 500)
     assert warning.call_args_list[-1].args == (
@@ -426,21 +455,40 @@ async def test_submit_share_payload_logs_failure_when_no_variant_succeeds() -> N
 
 
 @pytest.mark.parametrize(
-    ("exc", "expected"),
+    ("exc", "expected", "expected_reason", "expected_policy"),
     [
-        (TimeoutError(), ("%s upload timed out", "Anonymous share")),
+        (
+            TimeoutError(),
+            ("%s upload timed out", "Anonymous share"),
+            "timeout",
+            "retry",
+        ),
         (
             aiohttp.ClientError("network"),
             ("%s upload failed: %s", "Anonymous share", ANY),
+            "client_error",
+            "retry",
         ),
-        (OSError("io"), ("Unexpected error during %s upload", "anonymous share")),
-        (ValueError("bad"), ("Unexpected error during %s upload", "anonymous share")),
+        (
+            OSError("io"),
+            ("Unexpected error during %s upload", "anonymous share"),
+            "os_error",
+            "retry",
+        ),
+        (
+            ValueError("bad"),
+            ("Unexpected error during %s upload", "anonymous share"),
+            "value_error",
+            "inspect",
+        ),
     ],
 )
 @pytest.mark.asyncio
-async def test_submit_share_payload_handles_exceptions(
+async def test_submit_share_payload_with_outcome_handles_exceptions(
     exc: Exception,
     expected: tuple[typing.Any, ...],
+    expected_reason: str,
+    expected_policy: str,
 ) -> None:
     client = ShareWorkerClient()
     session = MagicMock()
@@ -455,16 +503,17 @@ async def test_submit_share_payload_handles_exceptions(
             "custom_components.lipro.core.anonymous_share.share_client._LOGGER.exception"
         ) as exception,
     ):
-        assert (
-            await client.submit_share_payload(
-                session,
-                _make_report(),
-                label="Anonymous share",
-                ensure_loaded=ensure_loaded,
-            )
-            is False
+        outcome = await client.submit_share_payload_with_outcome(
+            session,
+            _make_report(),
+            label="Anonymous share",
+            ensure_loaded=ensure_loaded,
         )
 
+    assert outcome.is_success is False
+    assert outcome.kind == "failed"
+    assert outcome.reason_code == expected_reason
+    assert outcome.failure_summary["handling_policy"] == expected_policy
     ensure_loaded.assert_awaited_once()
     if isinstance(exc, (TimeoutError, aiohttp.ClientError)):
         warning.assert_called()

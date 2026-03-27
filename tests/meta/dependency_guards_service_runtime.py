@@ -1,4 +1,5 @@
 """Service and runtime dependency-story guards."""
+
 from __future__ import annotations
 
 from .dependency_guard_helpers import _ROOT
@@ -10,11 +11,14 @@ def test_phase_40_schedule_services_reuse_shared_execution_contract() -> None:
     ).read_text(encoding="utf-8")
 
     assert "from .execution import" in schedule_text
-    assert ("AuthenticatedCoordinator" in schedule_text) or ("LiproCoordinator" in schedule_text)
+    assert ("AuthenticatedCoordinator" in schedule_text) or (
+        "LiproCoordinator" in schedule_text
+    )
     assert "async_execute_coordinator_call" in schedule_text
     assert "_async_execute_schedule_coordinator_call" not in schedule_text
     assert "protocol_call" in schedule_text
     assert "client_call" not in schedule_text
+
 
 def test_phase_40_schedule_services_use_shared_execution_contract() -> None:
     schedule_text = (
@@ -35,6 +39,7 @@ def test_phase_40_schedule_services_use_shared_execution_contract() -> None:
     ):
         assert stale_signal not in schedule_text
     assert "async_execute_coordinator_call" in execution_text
+
 
 def test_phase_43_control_service_boundary_stays_one_way_and_explicit() -> None:
     diagnostics_text = (
@@ -65,16 +70,29 @@ def test_phase_43_control_service_boundary_stays_one_way_and_explicit() -> None:
         _ROOT / "custom_components" / "lipro" / "services" / "registrations.py"
     )
     diagnostics_helpers_text = (
-        _ROOT / "custom_components" / "lipro" / "services" / "diagnostics" / "helpers.py"
+        _ROOT
+        / "custom_components"
+        / "lipro"
+        / "services"
+        / "diagnostics"
+        / "helpers.py"
     ).read_text(encoding="utf-8")
     diagnostics_feedback_handlers_text = (
-        _ROOT / "custom_components" / "lipro" / "services" / "diagnostics" / "feedback_handlers.py"
+        _ROOT
+        / "custom_components"
+        / "lipro"
+        / "services"
+        / "diagnostics"
+        / "feedback_handlers.py"
     ).read_text(encoding="utf-8")
     control_service_registry_text = (
         _ROOT / "custom_components" / "lipro" / "control" / "service_registry.py"
     ).read_text(encoding="utf-8")
     runtime_infra_text = (
         _ROOT / "custom_components" / "lipro" / "runtime_infra.py"
+    ).read_text(encoding="utf-8")
+    runtime_infra_device_registry_text = (
+        _ROOT / "custom_components" / "lipro" / "runtime_infra_device_registry.py"
     ).read_text(encoding="utf-8")
     dependency_text = (
         _ROOT / ".planning" / "baseline" / "DEPENDENCY_MATRIX.md"
@@ -123,8 +141,13 @@ def test_phase_43_control_service_boundary_stays_one_way_and_explicit() -> None:
     assert "SERVICE_REGISTRATIONS" in control_service_registry_text
 
     assert "async_setup_device_registry_listener" in runtime_infra_text
-    assert "device_registry_updated" in runtime_infra_text
+    assert "runtime_infra_device_registry" in runtime_infra_text
+    assert "device_registry_updated" not in runtime_infra_text
     assert "async_handle_refresh_devices" not in runtime_infra_text
+
+    assert "device_registry_updated" in runtime_infra_device_registry_text
+    assert "_schedule_reloads_for_device_update" in runtime_infra_device_registry_text
+    assert "support-only" in runtime_infra_device_registry_text.lower()
 
     for runtime_reader_text in (
         diagnostics_text,
@@ -138,6 +161,7 @@ def test_phase_43_control_service_boundary_stays_one_way_and_explicit() -> None:
     ):
         assert ".runtime_data" not in runtime_reader_text
         assert "runtime_access_support" not in runtime_reader_text
+
 
 def test_phase_50_diagnostics_helpers_reuse_shared_execution_auth_chain() -> None:
     helpers_text = (
@@ -168,6 +192,7 @@ def test_phase_50_diagnostics_helpers_reuse_shared_execution_auth_chain() -> Non
     assert "async_capture_coordinator_call" in execution_text
     assert "async_execute_coordinator_call" in execution_text
 
+
 def test_phase_53_dependency_story_keeps_runtime_and_entry_support_helpers_internal() -> (
     None
 ):
@@ -197,10 +222,11 @@ def test_phase_53_dependency_story_keeps_runtime_and_entry_support_helpers_inter
     assert "support-only" in lifecycle_support_text.lower()
     assert "support-only" in entry_root_wiring_text.lower()
 
+
 def test_phase_68_dependency_notes_keep_boundary_and_inward_helpers_local() -> None:
-    dependency_text = (_ROOT / ".planning" / "baseline" / "DEPENDENCY_MATRIX.md").read_text(
-        encoding="utf-8"
-    )
+    dependency_text = (
+        _ROOT / ".planning" / "baseline" / "DEPENDENCY_MATRIX.md"
+    ).read_text(encoding="utf-8")
     topics_text = (
         _ROOT / "custom_components" / "lipro" / "core" / "mqtt" / "topics.py"
     ).read_text(encoding="utf-8")
@@ -212,6 +238,8 @@ def test_phase_68_dependency_notes_keep_boundary_and_inward_helpers_local() -> N
     assert "mqtt_decoder.py" in dependency_text
     assert "boundary-backed adapter" in dependency_text
     assert "runtime_access_support.py" in dependency_text
-    assert 'import_module("custom_components.lipro.core.protocol.boundary")' in topics_text
+    assert (
+        'import_module("custom_components.lipro.core.protocol.boundary")' in topics_text
+    )
     assert 'topic.split("/")' not in topics_text
     assert "from . import runtime_access_support as _support" in runtime_access_text
