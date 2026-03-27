@@ -1,72 +1,66 @@
 # Project: Lipro-HASS North Star Evolution
 
 
-**Status:** `v1.23 active route`
-**Current route:** `v1.23 active route / Phase 88 complete / latest archived baseline = v1.22`；latest archived evidence index = `.planning/reviews/V1_22_EVIDENCE_INDEX.md`.
-**Legacy route-string compatibility:** **Status:** `v1.23 active route / Phase 88 complete / latest archived baseline = v1.22`；latest archived closeout pointer = `.planning/reviews/V1_22_EVIDENCE_INDEX.md`.
+**Status:** `No active milestone route`
+**Current route:** `no active milestone route / latest archived baseline = v1.23`；latest archived evidence index = `.planning/reviews/V1_23_EVIDENCE_INDEX.md`.
+**Legacy route-string compatibility:** **Status:** `no active milestone route / latest archived baseline = v1.23`；latest archived closeout pointer = `.planning/reviews/V1_23_EVIDENCE_INDEX.md`.
 **Goal:** 对全仓 `production / tests / docs / governance / configs` 做一次 terminal audit，并把 remaining residual、hotspot、truth drift 与 delete-gate debt 收口到单一 north-star 主链，避免再次出现“已完成但仍有尾巴”的反复整改。
-**Default next step:** `$gsd-complete-milestone v1.23`
-**Active baseline:** active milestone = `v1.23`；latest archived baseline = `v1.22`；previous archived baseline = `v1.21`。
+**Default next step:** `$gsd-new-milestone`
+**Active baseline:** active milestone = `none`；latest archived baseline = `v1.23`；previous archived baseline = `v1.22`。
+
 
 <!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.23
   name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
-  status: Phase 88 complete (2026-03-27)
+  status: archived / evidence-ready (2026-03-27)
   phase: '88'
   phase_title: Governance sync, quality proof, and milestone freeze
   phase_dir: 88-governance-sync-quality-proof-and-milestone-freeze
-  route_mode: Phase 88 complete
-latest_archived:
-  version: v1.22
-  name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
-  status: archived / evidence-ready (2026-03-27)
-  phase: '84'
-  phase_title: Governance/open-source guard coverage and milestone truth freeze
-  phase_dir: 84-governance-open-source-guard-coverage-and-milestone-truth-freeze
-  audit_path: .planning/v1.22-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_22_EVIDENCE_INDEX.md
+  audit_path: .planning/v1.23-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_23_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.21
-  name: Governance Bootstrap Truth Hardening & Planning Route Automation
-  evidence_path: .planning/reviews/V1_21_EVIDENCE_INDEX.md
+  version: v1.22
+  name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
+  evidence_path: .planning/reviews/V1_22_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.23 active route / Phase 88 complete / latest archived baseline = v1.22
-  default_next_command: $gsd-complete-milestone v1.23
-  latest_archived_evidence_pointer: .planning/reviews/V1_22_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.23
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_23_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
-## Current Milestone (v1.23)
+
+## Latest Archived Milestone (v1.23)
 
 **Name:** `Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze`
 
-**Why now:** `v1.22` 已把 contributor / maintainer / release 路由冻结为最新 archived baseline，但本仓库仍存在适合用“终局审计 + 定向清零”来处理的剩余问题：部分 production files/functions 仍偏大，治理真源与历史叙事仍需持续防漂移，tests/meta 仍承担部分高密度 truth-carrier 责任，且 residual / delete-gate 虽已大幅收敛，但仍缺少一次针对“非阻塞也要诚实归零”的 repo-wide terminal pass。
+**Why now:** `v1.22` 已把 contributor / maintainer / release 路由冻结为最新 archived baseline，但仓库仍存在适合用“终局审计 + 定向清零”处理的剩余问题：production files/functions 局部偏大、治理真源与历史叙事仍需防漂移、tests/meta 仍承担部分高密度 truth-carrier 职责、残留 delete-gate 也需要一次显式 zero-active 裁决。
 
-**North-star fit:** `v1.23` 当前 active route 锁定以下裁决：
+**North-star fit:** `v1.23` 已以 archive promotion 的形式冻结以下裁决：
 
-- 审计必须覆盖 `custom_components/lipro`、`tests`、`docs`、`.planning`、workflow/config entry points，而不是只盯单一平面。
-- 所有 cleanup 都必须服务于正式主链收敛：`protocol / runtime / control / domain / governance` 各自 formal home 更清晰，而不是重开 helper folklore 或第二故事线。
-- non-blocking residual 也要被明确裁决：能删则删、该 freeze 则 freeze、需要继续 carry-forward 时必须 machine-checkable，不接受 silent defer。
-- 任何本轮新增/调整的 truth 都必须同步回写到 `PROJECT / ROADMAP / REQUIREMENTS / STATE / baseline / reviews / focused guards`，避免“代码收口、治理失真”。
+- terminal audit 必须覆盖 `custom_components/lipro`、`tests`、`docs`、`.planning`、workflow/config entry points，而不是只盯单一平面。
+- cleanup 只能服务于正式主链收敛：`protocol / runtime / control / domain / governance` 各自 formal home 更清晰，而不是重开 helper folklore 或第二故事线。
+- non-blocking residual 也必须有明确裁决：能删则删、该 freeze 则 freeze、需要 carry-forward 时必须 machine-checkable；本轮收口结果为 `zero orphan residuals`。
+- 所有新增/调整 truth 都必须同步回写到 `PROJECT / ROADMAP / REQUIREMENTS / STATE / baseline / reviews / focused guards / runbook`，避免“代码收口、治理失真”。
 
-**Current status:** `Phase 88 complete (2026-03-27)`
+**Current status:** `archived / evidence-ready (2026-03-27)`
 **Phase 85 closeout:** `.planning/phases/85-terminal-audit-refresh-and-residual-routing/{85-01-SUMMARY.md,85-02-SUMMARY.md,85-03-SUMMARY.md}`
-**Phase 86 closeout summaries:** `.planning/phases/86-production-residual-eradication-and-boundary-re-tightening/{86-01-SUMMARY.md,86-02-SUMMARY.md,86-03-SUMMARY.md,86-04-SUMMARY.md}`
+**Phase 86 closeout summaries:** `.planning/phases/86-production-residual-eradication-and-boundary-re-tightening/{86-01-SUMMARY.md,86-02-SUMMARY.md,86-03-SUMMARY.md,86-04-SUMMARY.md,86-VALIDATION.md}`
 **Phase 87 closeout summaries:** `.planning/phases/87-assurance-hotspot-decomposition-and-no-regrowth-guards/{87-01-SUMMARY.md,87-02-SUMMARY.md,87-03-SUMMARY.md,87-04-SUMMARY.md}`
-**Phase 88 planning assets:** `.planning/phases/88-governance-sync-quality-proof-and-milestone-freeze/{88-CONTEXT.md,88-DISCUSSION-LOG.md,88-RESEARCH.md,88-01-PLAN.md,88-02-PLAN.md,88-03-PLAN.md}`
-**Phase 88 executed summaries:** `.planning/phases/88-governance-sync-quality-proof-and-milestone-freeze/{88-01-SUMMARY.md,88-02-SUMMARY.md,88-03-SUMMARY.md}`
-**Phase 88 phase evidence:** `.planning/phases/88-governance-sync-quality-proof-and-milestone-freeze/{88-SUMMARY.md,88-VERIFICATION.md,88-VALIDATION.md}`
+**Phase 88 phase evidence:** `.planning/phases/88-governance-sync-quality-proof-and-milestone-freeze/{88-01-SUMMARY.md,88-02-SUMMARY.md,88-03-SUMMARY.md,88-SUMMARY.md,88-VERIFICATION.md,88-VALIDATION.md}`
 **Starting baseline:** `.planning/v1.22-MILESTONE-AUDIT.md`, `.planning/reviews/V1_22_EVIDENCE_INDEX.md`, `.planning/milestones/v1.22-ROADMAP.md`, `.planning/milestones/v1.22-REQUIREMENTS.md`
+**Archive assets:** `.planning/v1.23-MILESTONE-AUDIT.md`, `.planning/reviews/V1_23_EVIDENCE_INDEX.md`, `.planning/milestones/v1.23-ROADMAP.md`, `.planning/milestones/v1.23-REQUIREMENTS.md`
 **Requirements basket:** `AUD-04`, `GOV-62`, `HOT-37`, `ARC-22`, `HOT-38`, `TST-27`, `GOV-63`, `QLT-35`
-**Default next command:** `$gsd-complete-milestone v1.23`
-**Current follow-up target:** milestone closeout / archive promotion readiness
+**Default next command:** `$gsd-new-milestone`
+**Current follow-up target:** next milestone bootstrap / requirements routing
 
-## Latest Archived Milestone (v1.22)
+## Previous Archived Milestone (v1.22)
 
 **Name:** `Maintainer Entry Contracts, Release Operations Closure & Contributor Routing`
 
@@ -85,7 +79,7 @@ bootstrap:
 **Archive assets:** `.planning/v1.22-MILESTONE-AUDIT.md`, `.planning/reviews/V1_22_EVIDENCE_INDEX.md`, `.planning/milestones/v1.22-ROADMAP.md`, `.planning/milestones/v1.22-REQUIREMENTS.md`, `.planning/phases/81-contributor-onramp-route-convergence-and-public-entry-contract/{81-01-SUMMARY.md,81-02-SUMMARY.md,81-03-SUMMARY.md,81-SUMMARY.md,81-VERIFICATION.md,81-VALIDATION.md}`, `.planning/phases/82-release-operations-closure-and-evidence-chain-formalization/{82-01-SUMMARY.md,82-02-SUMMARY.md,82-03-SUMMARY.md,82-SUMMARY.md,82-VERIFICATION.md,82-VALIDATION.md}`, `.planning/phases/83-intake-templates-and-maintainer-stewardship-contract/{83-01-SUMMARY.md,83-02-SUMMARY.md,83-03-SUMMARY.md,83-SUMMARY.md,83-VERIFICATION.md,83-VALIDATION.md}`, `.planning/phases/84-governance-open-source-guard-coverage-and-milestone-truth-freeze/{84-01-SUMMARY.md,84-02-SUMMARY.md,84-03-SUMMARY.md,84-SUMMARY.md,84-VERIFICATION.md,84-VALIDATION.md}`
 **Default next command:** `$gsd-new-milestone`
 
-## Previous Archived Milestone (v1.21)
+## Archived Milestone (v1.21)
 
 **Name:** `v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation`
 

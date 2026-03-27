@@ -1,8 +1,8 @@
 # Requirements: Lipro-HASS North Star Evolution
 
-## Current Milestone (v1.23)
+## Latest Archived Milestone (v1.23)
 
-> `v1.23` 现已作为 active route 建立；以下 requirements / traceability 定义 “全仓终极代码审计与残留清零” 的当前执行范围。它承接 `v1.22` 的 archived baseline，但不复用旧 milestone 的完成态叙事；本轮所有变更都必须服务于单一 north-star 主链与可机器验证的治理真相。
+> `v1.23` 已于 `2026-03-27` 完成 archive promotion；以下 requirements / traceability 保留 `Phase 85 -> 88` 的最终 fulfilled contract，归档快照见 `.planning/milestones/v1.23-REQUIREMENTS.md`，审计裁决见 `.planning/v1.23-MILESTONE-AUDIT.md`，证据索引见 `.planning/reviews/V1_23_EVIDENCE_INDEX.md`；historical closeout route truth = `no active milestone route / latest archived baseline = v1.23`。
 
 ### Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
 
@@ -15,7 +15,7 @@
 - [x] **GOV-63**: `FILE_MATRIX / RESIDUAL_LEDGER / KILL_LIST / PUBLIC_SURFACES / developer_architecture` 必须共同冻结 post-eradication topology、ownership 与 delete-gate truth。
 - [x] **QLT-35**: touched scope 必须通过 repo-wide quality proof，并在 closeout 时实现 `zero orphan residuals`；若仍有 carry-forward，必须显式登记 owner、exit condition 与 evidence。
 
-## Traceability for v1.23 route
+## Traceability for archived v1.23 route
 
 | Requirement | Planned Phase | Status |
 |-------------|---------------|--------|
@@ -35,42 +35,36 @@
 - Current pending: 0
 - Current unmapped: 0 ✓
 
+
 <!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.23
   name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
-  status: Phase 88 complete (2026-03-27)
+  status: archived / evidence-ready (2026-03-27)
   phase: '88'
   phase_title: Governance sync, quality proof, and milestone freeze
   phase_dir: 88-governance-sync-quality-proof-and-milestone-freeze
-  route_mode: Phase 88 complete
-latest_archived:
-  version: v1.22
-  name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
-  status: archived / evidence-ready (2026-03-27)
-  phase: '84'
-  phase_title: Governance/open-source guard coverage and milestone truth freeze
-  phase_dir: 84-governance-open-source-guard-coverage-and-milestone-truth-freeze
-  audit_path: .planning/v1.22-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_22_EVIDENCE_INDEX.md
+  audit_path: .planning/v1.23-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_23_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.21
-  name: Governance Bootstrap Truth Hardening & Planning Route Automation
-  evidence_path: .planning/reviews/V1_21_EVIDENCE_INDEX.md
+  version: v1.22
+  name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
+  evidence_path: .planning/reviews/V1_22_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.23 active route / Phase 88 complete / latest archived baseline = v1.22
-  default_next_command: $gsd-complete-milestone v1.23
-  latest_archived_evidence_pointer: .planning/reviews/V1_22_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.23
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_23_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
-## Latest Archived Milestone (v1.22)
+## Previous Archived Milestone (v1.22)
 
-> `v1.22` 已于 `2026-03-27` 完成 archive promotion；以下 requirements / traceability 保留 `Phase 81 -> 84` 的最终 fulfilled contract，归档快照见 `.planning/milestones/v1.22-REQUIREMENTS.md`，审计裁决见 `.planning/v1.22-MILESTONE-AUDIT.md`，证据索引见 `.planning/reviews/V1_22_EVIDENCE_INDEX.md`；historical closeout route truth = `no active milestone route / latest archived baseline = v1.22`。
+> `v1.22` 已于 `2026-03-27` 完成 archive promotion；以下 requirements / traceability 保留 `Phase 81 -> 84` 的最终 fulfilled contract，归档快照见 `.planning/milestones/v1.22-REQUIREMENTS.md`，审计裁决见 `.planning/v1.22-MILESTONE-AUDIT.md`，证据索引见 `.planning/reviews/V1_22_EVIDENCE_INDEX.md`；historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.22`。
 
 ### Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
 
@@ -103,7 +97,7 @@ bootstrap:
 - Current pending: 0
 - Current unmapped: 0 ✓
 
-## Previous Archived Milestone (v1.21)
+## Archived Milestone (v1.21)
 
 > `v1.21` 已于 `2026-03-26` 完成 archive promotion；以下 requirements / traceability 保留 `Phase 76 -> 80` 的最终 fulfilled contract，归档快照见 `.planning/milestones/v1.21-REQUIREMENTS.md`，审计裁决见 `.planning/v1.21-MILESTONE-AUDIT.md`，证据索引见 `.planning/reviews/V1_21_EVIDENCE_INDEX.md`；historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.21`。
 

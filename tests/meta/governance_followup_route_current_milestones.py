@@ -207,7 +207,7 @@ def test_v1_12_to_v1_13_archived_route_truth_uses_promoted_evidence_only() -> No
     assert ".planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-01-PLAN.md" not in _PROJECT_TEXT
 
 
-def test_machine_readable_route_contracts_point_to_active_v1_23_and_archived_baselines() -> None:
+def test_machine_readable_route_contracts_point_to_archived_v1_23_and_previous_baselines() -> None:
     contracts = assert_machine_readable_route_contracts()
     requirements_contract = _as_mapping(contracts["REQUIREMENTS"])
     requirements_active = _as_optional_mapping(requirements_contract["active_milestone"])
@@ -218,14 +218,11 @@ def test_machine_readable_route_contracts_point_to_active_v1_23_and_archived_bas
     state_contract = _as_mapping(contracts["STATE"])
     state_bootstrap = _as_mapping(state_contract["bootstrap"])
 
-    assert requirements_active is not None
-    assert milestones_active is not None
-    assert requirements_active["version"] == "v1.23"
-    assert requirements_active["phase"] == "88"
-    assert milestones_active["version"] == "v1.23"
-    assert milestones_active["phase"] == "88"
-    assert milestones_latest_archived["version"] == "v1.22"
-    assert milestones_previous_archived["version"] == "v1.21"
+    assert requirements_active is None
+    assert milestones_active is None
+    assert milestones_latest_archived["version"] == "v1.23"
+    assert milestones_latest_archived["phase"] == "88"
+    assert milestones_previous_archived["version"] == "v1.22"
     assert state_bootstrap["default_next_command"] == CURRENT_MILESTONE_DEFAULT_NEXT
     assert state_bootstrap["latest_archived_evidence_pointer"] == LATEST_ARCHIVED_EVIDENCE_PATH
 
@@ -250,13 +247,13 @@ def test_current_v1_23_project_state_and_latest_archive_pointers_align() -> None
     _assert_latest_archived_route_truth(_PROJECT_TEXT, _ROADMAP_TEXT, _STATE_TEXT)
     _assert_contains_all(
         _PROJECT_TEXT,
-        "## Current Milestone (v1.23)",
-        "## Latest Archived Milestone (v1.22)",
-        "## Previous Archived Milestone (v1.21)",
+        "## Latest Archived Milestone (v1.23)",
+        "## Previous Archived Milestone (v1.22)",
+        "## Archived Milestone (v1.21)",
         "## Archived Milestone (v1.17)",
         "## Archived Milestone (v1.16)",
         "## Archived Milestone (v1.15)",
-        "**Current status:** `Phase 88 complete (2026-03-27)`",
+        "**Current status:** `archived / evidence-ready (2026-03-27)`",
     )
     _assert_contains_all(
         _ROADMAP_TEXT,
@@ -265,8 +262,8 @@ def test_current_v1_23_project_state_and_latest_archive_pointers_align() -> None
         "### Phase 87: Assurance hotspot decomposition and no-regrowth guards",
         "### Phase 88: Governance sync, quality proof, and milestone freeze",
         CURRENT_MILESTONE_DEFAULT_NEXT,
-        ".planning/reviews/V1_22_EVIDENCE_INDEX.md",
-        ".planning/milestones/v1.22-ROADMAP.md",
+        ".planning/reviews/V1_23_EVIDENCE_INDEX.md",
+        ".planning/milestones/v1.23-ROADMAP.md",
         "### Phase 84: Governance/open-source guard coverage and milestone truth freeze",
     )
     _assert_contains_all(
@@ -291,8 +288,8 @@ def test_current_v1_23_project_state_and_latest_archive_pointers_align() -> None
         "- Current mapped: 8",
         "- Current complete: 8",
         "- Current pending: 0",
-        "## Latest Archived Milestone (v1.22)",
-        "## Previous Archived Milestone (v1.21)",
+        "## Previous Archived Milestone (v1.22)",
+        "## Archived Milestone (v1.21)",
         "## Previous Archived Milestone (v1.20)",
         "## Traceability for archived v1.16 route",
         "| GOV-52 | Phase 68 | Completed |",
@@ -307,4 +304,4 @@ def test_current_v1_23_project_state_and_latest_archive_pointers_align() -> None
         LATEST_ARCHIVED_EVIDENCE_PATH,
         ".planning/reviews/V1_23_TERMINAL_AUDIT.md",
     )
-    assert CURRENT_MILESTONE_STATUS == "Phase 88 complete (2026-03-27)"
+    assert CURRENT_MILESTONE_STATUS == "archived / evidence-ready (2026-03-27)"

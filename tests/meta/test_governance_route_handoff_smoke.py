@@ -1,4 +1,4 @@
-"""Focused route-handoff smoke guards for closeout-ready fast paths."""
+"""Focused route-handoff smoke guards for archived-only fast paths."""
 
 from __future__ import annotations
 
@@ -96,7 +96,7 @@ def test_gsd_fast_path_matches_current_active_route_story() -> None:
 
     state = _run_gsd_tools('state', 'json')
     assert _as_str(state['milestone']) == CURRENT_MILESTONE
-    assert _as_str(state['status']) == 'Phase 88 complete'
+    assert _as_str(state['status']) == 'archived'
     assert _as_mapping(state['progress']) == {
         'total_phases': '4',
         'completed_phases': '4',

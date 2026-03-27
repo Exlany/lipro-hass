@@ -94,12 +94,13 @@ def test_phase88_public_surface_docs_and_verification_truth_freeze_the_same_stor
     )
 
     assert "## Phase 88 Governance Freeze Notes" in public_text
-    assert "`Phase 88` complete / milestone-closeout handoff" in dev_text
+    assert "`v1.23` archived baseline promotion" in dev_text
     assert "## Phase 88 Governance Sync / Quality Proof / Milestone Freeze" in verification_text
     for token in (
         ".planning/reviews/PROMOTED_PHASE_ASSETS.md",
         "tests/meta/test_phase88_governance_quality_freeze_guards.py",
         "$gsd-complete-milestone v1.23",
+        "$gsd-new-milestone",
         "zero orphan residuals",
     ):
         assert token in verification_text

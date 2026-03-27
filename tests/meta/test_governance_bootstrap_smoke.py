@@ -16,7 +16,7 @@ from .governance_current_truth import (
 )
 
 
-def test_active_route_bootstrap_contract_stays_current() -> None:
+def test_archived_route_bootstrap_contract_stays_current() -> None:
     project_text = (_ROOT / '.planning' / 'PROJECT.md').read_text(encoding='utf-8')
     roadmap_text = (_ROOT / '.planning' / 'ROADMAP.md').read_text(encoding='utf-8')
     state_text = (_ROOT / '.planning' / 'STATE.md').read_text(encoding='utf-8')

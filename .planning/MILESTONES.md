@@ -2,38 +2,61 @@
 
 > Machine-readable bootstrap truth now lives in the shared `governance-route` contract block below; milestone chronology remains human-readable archive history instead of the parser-visible selector.
 
+
 <!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.23
   name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
-  status: Phase 88 complete (2026-03-27)
+  status: archived / evidence-ready (2026-03-27)
   phase: '88'
   phase_title: Governance sync, quality proof, and milestone freeze
   phase_dir: 88-governance-sync-quality-proof-and-milestone-freeze
-  route_mode: Phase 88 complete
-latest_archived:
-  version: v1.22
-  name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
-  status: archived / evidence-ready (2026-03-27)
-  phase: '84'
-  phase_title: Governance/open-source guard coverage and milestone truth freeze
-  phase_dir: 84-governance-open-source-guard-coverage-and-milestone-truth-freeze
-  audit_path: .planning/v1.22-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_22_EVIDENCE_INDEX.md
+  audit_path: .planning/v1.23-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_23_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.21
-  name: Governance Bootstrap Truth Hardening & Planning Route Automation
-  evidence_path: .planning/reviews/V1_21_EVIDENCE_INDEX.md
+  version: v1.22
+  name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
+  evidence_path: .planning/reviews/V1_22_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.23 active route / Phase 88 complete / latest archived baseline = v1.22
-  default_next_command: $gsd-complete-milestone v1.23
-  latest_archived_evidence_pointer: .planning/reviews/V1_22_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.23
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_23_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
+
+
+
+## v1.23 Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze (Shipped: 2026-03-27; Closeout: 2026-03-27)
+
+**Phase range:** `85 -> 88`
+**Phases completed:** 4 phases, 14 plans, 0 tasks
+**Status:** archived / evidence-ready
+**Route truth:** latest archived evidence index = `.planning/reviews/V1_23_EVIDENCE_INDEX.md`
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.23`
+
+**Key accomplishments:**
+- 把 `custom_components/lipro`、tests、docs、planning/baseline/review assets 与 workflow/config entry points 拉进同一份 terminal audit verdict，消除“靠记忆判断还有没有尾巴”的隐性治理模式。
+- 把 production residual / boundary drift 收口回 formal homes，并明确把 giant assurance carriers 退回 concern-local suites + focused guards 的组合，不再让少数 mega files 扛全仓真相。
+- 把 `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES`、baselines、review ledgers、runbook 与 focused governance tests 同步到 archived-only route truth：`no active milestone route / latest archived baseline = v1.23`。
+- 把 `v1.23-MILESTONE-AUDIT.md`、`V1_23_EVIDENCE_INDEX.md` 与 archive snapshots 建成 pull-only closeout bundle，使下一条路线只能从显式的 `$gsd-new-milestone` 启动。
+- archived snapshots created / handoff-ready。
+
+**Closeout assets:**
+- `.planning/v1.23-MILESTONE-AUDIT.md`
+- `.planning/reviews/V1_23_EVIDENCE_INDEX.md`
+- `.planning/milestones/v1.23-ROADMAP.md`
+- `.planning/milestones/v1.23-REQUIREMENTS.md`
+- `.planning/phases/85-terminal-audit-refresh-and-residual-routing/{85-01-SUMMARY.md,85-02-SUMMARY.md,85-03-SUMMARY.md}`
+- `.planning/phases/86-production-residual-eradication-and-boundary-re-tightening/{86-01-SUMMARY.md,86-02-SUMMARY.md,86-03-SUMMARY.md,86-04-SUMMARY.md,86-VALIDATION.md}`
+- `.planning/phases/87-assurance-hotspot-decomposition-and-no-regrowth-guards/{87-01-SUMMARY.md,87-02-SUMMARY.md,87-03-SUMMARY.md,87-04-SUMMARY.md}`
+- `.planning/phases/88-governance-sync-quality-proof-and-milestone-freeze/{88-01-SUMMARY.md,88-02-SUMMARY.md,88-03-SUMMARY.md,88-SUMMARY.md,88-VERIFICATION.md,88-VALIDATION.md}`
+
+---
 
 ## v1.22 Maintainer Entry Contracts, Release Operations Closure & Contributor Routing (Shipped: 2026-03-27; Closeout: 2026-03-27)
 
@@ -46,7 +69,7 @@ bootstrap:
 - 把 contributor-facing README / docs / support / security / contribution 路径收口为统一 public first hop，并新增 `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md` 作为 change-routing / evidence-destination surface。
 - 把 maintainer-facing release runbook、changelog、version-sync triad、release workflow anchors 与 archived evidence pull-chain 收口成单一 maintainer route，不再残留平行 runbook / helper folklore。
 - 把 issue / PR / security intake 与 maintainer stewardship contract 升级为 evidence-first / continuity-aware community-health surface，减少无边界、无复现、无验证命令的维护噪音。
-- 用 focused governance/open-source guards 冻结 `Phase 84 complete` closeout truth，并在 milestone closeout 后稳定切换到 `no active milestone route / latest archived baseline = v1.22`；historical closeout route truth = `no active milestone route / latest archived baseline = v1.22`。
+- 用 focused governance/open-source guards 冻结 `Phase 84 complete` closeout truth，并在 archived-only governance truth 生效后作为 previous archived baseline 保留；historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.22`。
 
 **Closeout assets:**
 - `.planning/v1.22-MILESTONE-AUDIT.md`

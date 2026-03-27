@@ -14,8 +14,8 @@ This repository currently follows a single-maintainer release model. Every tagge
 - Canonical public support/security paths: `README.md`, `README_zh.md`, `CONTRIBUTING.md`, `SUPPORT.md`, `SECURITY.md`
 - Canonical troubleshooting path: `docs/TROUBLESHOOTING.md`
 - Canonical release-notes summary: `CHANGELOG.md` (maintainer-facing release posture summary, not a second runbook)
-- Canonical latest archived evidence index: `.planning/reviews/V1_22_EVIDENCE_INDEX.md`
-- Canonical archived verdict home: `.planning/v1.22-MILESTONE-AUDIT.md` (pull-only evidence verdict, not current route truth)
+- Canonical latest archived evidence index: `.planning/reviews/V1_23_EVIDENCE_INDEX.md`
+- Canonical archived verdict home: `.planning/v1.23-MILESTONE-AUDIT.md` (pull-only evidence verdict, not current route truth)
 - Canonical firmware certification trust-root asset: `custom_components/lipro/firmware_support_manifest.json` (historical filename retained)
 
 Private repositories and forks skip CI HACS validation because HACS only supports public GitHub repositories; do not treat a skipped HACS job as a release blocker in that case.

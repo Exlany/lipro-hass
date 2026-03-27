@@ -364,6 +364,55 @@ def test_v1_22_closeout_assets_exist_and_are_pull_only() -> None:
         "V1_22_EVIDENCE_INDEX.md",
     )
 
+
+def test_v1_23_closeout_assets_exist_and_are_pull_only() -> None:
+    evidence_index = _ROOT / ".planning" / "reviews" / "V1_23_EVIDENCE_INDEX.md"
+    milestone_audit = _ROOT / ".planning" / "v1.23-MILESTONE-AUDIT.md"
+
+    assert evidence_index.exists()
+    assert milestone_audit.exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.23-ROADMAP.md").exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.23-REQUIREMENTS.md").exists()
+    _assert_promoted_phase_assets(
+        "85-terminal-audit-refresh-and-residual-routing",
+        "85-01-SUMMARY.md",
+        "85-02-SUMMARY.md",
+        "85-03-SUMMARY.md",
+    )
+    _assert_promoted_phase_assets(
+        "86-production-residual-eradication-and-boundary-re-tightening",
+        "86-01-SUMMARY.md",
+        "86-02-SUMMARY.md",
+        "86-03-SUMMARY.md",
+        "86-04-SUMMARY.md",
+        "86-VALIDATION.md",
+    )
+    _assert_promoted_phase_assets(
+        "87-assurance-hotspot-decomposition-and-no-regrowth-guards",
+        "87-01-SUMMARY.md",
+        "87-02-SUMMARY.md",
+        "87-03-SUMMARY.md",
+        "87-04-SUMMARY.md",
+    )
+    _assert_promoted_phase_assets(
+        "88-governance-sync-quality-proof-and-milestone-freeze",
+        "88-01-SUMMARY.md",
+        "88-02-SUMMARY.md",
+        "88-03-SUMMARY.md",
+        "88-SUMMARY.md",
+        "88-VERIFICATION.md",
+        "88-VALIDATION.md",
+    )
+
+    assert_pull_only_evidence_index(
+        evidence_index,
+        "85-03-SUMMARY.md",
+        "86-VALIDATION.md",
+        "88-VERIFICATION.md",
+        "archived / evidence-ready",
+        "V1_23_EVIDENCE_INDEX.md",
+    )
+
 def test_v1_21_closeout_assets_exist_and_are_pull_only() -> None:
     evidence_index = _ROOT / ".planning" / "reviews" / "V1_21_EVIDENCE_INDEX.md"
     milestone_audit = _ROOT / ".planning" / "v1.21-MILESTONE-AUDIT.md"

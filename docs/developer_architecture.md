@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `Phase 88` complete / milestone-closeout handoff (`2026-03-27`)
-> **Current route alignment**: `v1.23 / Phase 88 complete -> $gsd-complete-milestone v1.23` (`2026-03-27`)
+> **Last aligned through**: `v1.23` archived baseline promotion (`2026-03-27`)
+> **Current route alignment**: `no active milestone route / latest archived baseline = v1.23` (`2026-03-27`)
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
@@ -11,7 +11,7 @@
 
 ## Phase 88 Freeze Note
 
-- Phase 88 governance freeze treats `V1_23_TERMINAL_AUDIT.md` as historical evidence only; live route truth remains in `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md` and focused governance guards.
+- Phase 88 governance freeze treats `V1_23_TERMINAL_AUDIT.md` as historical evidence only; archived-only route truth now lives in `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`, `.planning/v1.23-MILESTONE-AUDIT.md`, `.planning/reviews/V1_23_EVIDENCE_INDEX.md`, and focused governance guards.
 - `RESIDUAL_LEDGER.md` active residual families 为空、`KILL_LIST.md` 的 `Phase 85 Routed Delete Gates` 为空，都是显式 closeout verdict，而不是待补登记的空白。
 - `.planning/reviews/PROMOTED_PHASE_ASSETS.md` 是 phase evidence allowlist 的唯一 home；developer-facing guidance 只索引它，不私自提升 execution traces。
 

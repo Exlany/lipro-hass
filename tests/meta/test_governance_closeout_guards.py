@@ -87,7 +87,8 @@ def test_phase_88_closeout_contract_aligns_verification_and_file_matrix() -> Non
     ).read_text(encoding="utf-8")
 
     assert "## Phase 88 Governance Sync / Quality Proof / Milestone Freeze" in verification_text
-    assert "default next command on phase completion = `$gsd-complete-milestone v1.23`" in verification_text
+    assert "historical phase-completion next-step = `$gsd-complete-milestone v1.23`" in verification_text
+    assert "default next command = `$gsd-new-milestone`" in verification_text
     assert f"**Latest archived pointer:** `{LATEST_ARCHIVED_EVIDENCE_PATH}`" in verification_text
     for token in (
         "tests/meta/test_governance_bootstrap_smoke.py",

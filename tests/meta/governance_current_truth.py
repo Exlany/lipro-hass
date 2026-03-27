@@ -21,38 +21,31 @@ _ROUTE_CONTRACT_PATHS = {
     "MILESTONES": _ROOT / ".planning" / "MILESTONES.md",
 }
 
+
 PLANNING_ROUTE_CONTRACT: dict[str, object] = {
     "contract_version": 1,
     "contract_name": "governance-route",
-    "active_milestone": {
+    "active_milestone": None,
+    "latest_archived": {
         "version": "v1.23",
         "name": "Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze",
-        "status": "Phase 88 complete (2026-03-27)",
+        "status": "archived / evidence-ready (2026-03-27)",
         "phase": "88",
         "phase_title": "Governance sync, quality proof, and milestone freeze",
         "phase_dir": "88-governance-sync-quality-proof-and-milestone-freeze",
-        "route_mode": "Phase 88 complete",
-    },
-    "latest_archived": {
-        "version": "v1.22",
-        "name": "Maintainer Entry Contracts, Release Operations Closure & Contributor Routing",
-        "status": "archived / evidence-ready (2026-03-27)",
-        "phase": "84",
-        "phase_title": "Governance/open-source guard coverage and milestone truth freeze",
-        "phase_dir": "84-governance-open-source-guard-coverage-and-milestone-truth-freeze",
-        "audit_path": ".planning/v1.22-MILESTONE-AUDIT.md",
-        "evidence_path": ".planning/reviews/V1_22_EVIDENCE_INDEX.md",
+        "audit_path": ".planning/v1.23-MILESTONE-AUDIT.md",
+        "evidence_path": ".planning/reviews/V1_23_EVIDENCE_INDEX.md",
         "evidence_label": "latest archived evidence index",
     },
     "previous_archived": {
-        "version": "v1.21",
-        "name": "Governance Bootstrap Truth Hardening & Planning Route Automation",
-        "evidence_path": ".planning/reviews/V1_21_EVIDENCE_INDEX.md",
+        "version": "v1.22",
+        "name": "Maintainer Entry Contracts, Release Operations Closure & Contributor Routing",
+        "evidence_path": ".planning/reviews/V1_22_EVIDENCE_INDEX.md",
     },
     "bootstrap": {
-        "current_route": "v1.23 active route / Phase 88 complete / latest archived baseline = v1.22",
-        "default_next_command": "$gsd-complete-milestone v1.23",
-        "latest_archived_evidence_pointer": ".planning/reviews/V1_22_EVIDENCE_INDEX.md",
+        "current_route": "no active milestone route / latest archived baseline = v1.23",
+        "default_next_command": "$gsd-new-milestone",
+        "latest_archived_evidence_pointer": ".planning/reviews/V1_23_EVIDENCE_INDEX.md",
     },
 }
 
@@ -179,6 +172,7 @@ CURRENT_ROUTE_PROSE_FORBIDDEN = (
     "v1.23 active route / Phase 87 execution-ready / latest archived baseline = v1.22",
     "v1.23 active route / Phase 87 in progress / latest archived baseline = v1.22",
     "v1.23 active route / Phase 87 complete / latest archived baseline = v1.22",
+    "v1.23 active route / Phase 88 complete / latest archived baseline = v1.22",
     "no active milestone route / latest archived baseline = v1.20",
     "no active milestone route / latest archived baseline = v1.21",
     "no active milestone route / latest archived baseline = v1.22",
@@ -187,11 +181,11 @@ CURRENT_RUNTIME_ROOT_TEST = "tests/core/coordinator/test_runtime_root.py"
 
 HISTORICAL_CLOSEOUT_ROUTE_TRUTH = (
     "historical closeout route truth = "
-    "`no active milestone route / latest archived baseline = v1.22`"
+    "`no active milestone route / latest archived baseline = v1.23`"
 )
 HISTORICAL_ARCHIVE_TRANSITION_ROUTE_TRUTH = (
     "historical archive-transition route truth = "
-    "`no active milestone route / latest archived baseline = v1.21`"
+    "`no active milestone route / latest archived baseline = v1.22`"
 )
 
 

@@ -2,53 +2,48 @@
 
 ## Milestones
 
-- 🚧 **v1.23 Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze** - active route opened on 2026-03-27; `Phase 85 -> 88` complete; latest archived baseline = `v1.22`; latest archived evidence index = `.planning/reviews/V1_22_EVIDENCE_INDEX.md`; default next command = `$gsd-complete-milestone v1.23`
-- ✅ **v1.22 Maintainer Entry Contracts, Release Operations Closure & Contributor Routing** - `Phase 81 -> 84` archived on 2026-03-27; milestone audit: `.planning/v1.22-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_22_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.22-ROADMAP.md` / `.planning/milestones/v1.22-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.22`
+- ✅ **v1.23 Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze** - `Phase 85 -> 88` archived on 2026-03-27; milestone audit: `.planning/v1.23-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_23_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.23-ROADMAP.md` / `.planning/milestones/v1.23-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.23`
+- ✅ **v1.22 Maintainer Entry Contracts, Release Operations Closure & Contributor Routing** - `Phase 81 -> 84` archived on 2026-03-27; milestone audit: `.planning/v1.22-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_22_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.22-ROADMAP.md` / `.planning/milestones/v1.22-REQUIREMENTS.md`; historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.22`
 - ✅ **v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation** - `Phase 76 -> 80` archived on 2026-03-26; milestone audit: `.planning/v1.21-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_21_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.21-ROADMAP.md` / `.planning/milestones/v1.21-REQUIREMENTS.md`; historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.21`
 - 🗂 **Historical archive snapshots** - `.planning/milestones/{v1.1-ROADMAP.md,v1.1-REQUIREMENTS.md,v1.2-ROADMAP.md,v1.2-REQUIREMENTS.md,v1.4-ROADMAP.md,v1.4-REQUIREMENTS.md,v1.5-ROADMAP.md,v1.5-REQUIREMENTS.md,v1.6-ROADMAP.md,v1.6-REQUIREMENTS.md,v1.12-ROADMAP.md,v1.12-REQUIREMENTS.md,v1.13-ROADMAP.md,v1.13-REQUIREMENTS.md,v1.14-ROADMAP.md,v1.14-REQUIREMENTS.md,v1.15-ROADMAP.md,v1.15-REQUIREMENTS.md,v1.16-ROADMAP.md,v1.16-REQUIREMENTS.md,v1.17-ROADMAP.md,v1.17-REQUIREMENTS.md}` 继续保留为 continuity / archive reference。
+
 
 <!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.23
   name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
-  status: Phase 88 complete (2026-03-27)
+  status: archived / evidence-ready (2026-03-27)
   phase: '88'
   phase_title: Governance sync, quality proof, and milestone freeze
   phase_dir: 88-governance-sync-quality-proof-and-milestone-freeze
-  route_mode: Phase 88 complete
-latest_archived:
-  version: v1.22
-  name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
-  status: archived / evidence-ready (2026-03-27)
-  phase: '84'
-  phase_title: Governance/open-source guard coverage and milestone truth freeze
-  phase_dir: 84-governance-open-source-guard-coverage-and-milestone-truth-freeze
-  audit_path: .planning/v1.22-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_22_EVIDENCE_INDEX.md
+  audit_path: .planning/v1.23-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_23_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.21
-  name: Governance Bootstrap Truth Hardening & Planning Route Automation
-  evidence_path: .planning/reviews/V1_21_EVIDENCE_INDEX.md
+  version: v1.22
+  name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
+  evidence_path: .planning/reviews/V1_22_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.23 active route / Phase 88 complete / latest archived baseline = v1.22
-  default_next_command: $gsd-complete-milestone v1.23
-  latest_archived_evidence_pointer: .planning/reviews/V1_22_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.23
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_23_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
 ## v1.23: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
 
-> `v1.23` 当前作为 active route 建立：它承接 `v1.22` 的 archived evidence，目标是对仓库做一次全域 terminal audit，并把 remaining production hotspot、governance drift、non-blocking residual 与 delete-gate debt 一次性收口到可验证、可维护、可归档的单一 north-star 故事。
+> `v1.23` 已于 `2026-03-27` 完成 milestone audit、evidence-index closeout 与 archive promotion：它承接 `v1.22` 的 archived evidence，完成全域 terminal audit、production residual eradication、assurance hotspot no-regrowth freeze 与 governance sync / quality proof / milestone freeze，并把治理状态切换为 `no active milestone route / latest archived baseline = v1.23`。
 
 **Milestone Goal:** 用“先终局审计、再定向清零、最后全域验证”的路径，把全仓剩余结构债、治理债与非阻塞残留收口干净，而不是继续依赖局部修补与后续 carry-forward。
-**Milestone status:** `Phase 88 complete (2026-03-27)`
+**Milestone status:** `archived / evidence-ready (2026-03-27)`
 **Starting baseline:** `.planning/v1.22-MILESTONE-AUDIT.md`, `.planning/reviews/V1_22_EVIDENCE_INDEX.md`, `.planning/milestones/v1.22-ROADMAP.md`, `.planning/milestones/v1.22-REQUIREMENTS.md`
 **Requirements basket:** `AUD-04`, `GOV-62`, `HOT-37`, `ARC-22`, `HOT-38`, `TST-27`, `GOV-63`, `QLT-35`
-**Default next command:** `$gsd-complete-milestone v1.23`
+**Archive assets:** `.planning/v1.23-MILESTONE-AUDIT.md`, `.planning/reviews/V1_23_EVIDENCE_INDEX.md`, `.planning/milestones/v1.23-ROADMAP.md`, `.planning/milestones/v1.23-REQUIREMENTS.md`
+**Default next command:** `$gsd-new-milestone`
 
 ### Phase 85: Terminal audit refresh and residual routing
 
