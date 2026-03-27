@@ -2,55 +2,55 @@
 phase: 87-assurance-hotspot-decomposition-and-no-regrowth-guards
 plan: "03"
 subsystem: testing
-tags: [mqtt-runtime, runtime-facets, pytest, topicization, assurance]
+tags: [mqtt-runtime, runtime-facets, notifications, reconnect, pytest]
 requires:
   - phase: 87-assurance-hotspot-decomposition-and-no-regrowth-guards
-    provides: context/research truth routing for assurance hotspot topicization
+    provides: context/research truth routing for hotspot topicization
 provides:
-  - runtime-facet suites for mqtt runtime initialization, connection, messages, and notifications/reset coverage
-  - local mqtt runtime support helper for shared runtime setup and typed helpers
-  - thin anchor root at tests/core/coordinator/runtime/test_mqtt_runtime.py
-affects: [HOT-38, TST-27, runtime assurance topology, Phase 87 Plan 04]
+  - runtime facet topical suites for init, connection, messages, and notifications/reset
+  - local support helper for shared MqttRuntime fixtures and builders
+  - thin shell root at tests/core/coordinator/runtime/test_mqtt_runtime.py
+affects: [HOT-38, TST-27, assurance, mqtt-runtime]
 tech-stack:
   added: []
-  patterns: [thin anchor shell, runtime-facet topical suites, local inward test support helper]
+  patterns: [thin-shell-root, concern-local-runtime-suites, local-inward-test-support]
 key-files:
   created:
-    - tests/core/coordinator/runtime/test_mqtt_runtime_init.py
     - tests/core/coordinator/runtime/test_mqtt_runtime_connection.py
+    - tests/core/coordinator/runtime/test_mqtt_runtime_init.py
     - tests/core/coordinator/runtime/test_mqtt_runtime_messages.py
     - tests/core/coordinator/runtime/test_mqtt_runtime_notifications.py
     - tests/core/coordinator/runtime/test_mqtt_runtime_support.py
   modified:
     - tests/core/coordinator/runtime/test_mqtt_runtime.py
 key-decisions:
-  - "Kept test_mqtt_runtime.py as a thin anchor so the routed hotspot stops carrying bulk runtime assertions."
-  - "Extracted only shared runtime setup and helper builders into test_mqtt_runtime_support.py to keep helper scope local to the runtime topical family."
+  - "Kept test_mqtt_runtime.py as a thin shell importer so the legacy root path remains discoverable without regaining bulk assertions."
+  - "Extracted shared MqttRuntime fixtures/builders into a same-directory support module instead of introducing a cross-tree helper root."
 patterns-established:
-  - "MQTT runtime topicization: split init/DI, connection/reconnect, messages/dedup, and notifications/reset into sibling suites."
-  - "Runtime support helpers live beside the topical suites and do not create a cross-tree utility root."
+  - "Runtime facet topicization: init, connection, messages, and notification/reset stories live in concern-local suites."
+  - "Local support helpers stay inward-facing beside the topical family and do not become a second runtime truth root."
 requirements-completed: [HOT-38, TST-27]
-duration: 7min
+duration: 4min
 completed: 2026-03-27
 ---
 
 # Phase 87 Plan 03: topicize MQTT runtime assurance suite with inward support helper Summary
 
-**MQTT runtime assurance now fails by init, connection/reconnect, messages/dedup, or notifications/reset concern while the legacy root remains only a thin anchor backed by one local support helper.**
+**MQTT runtime assurance now localizes init, reconnect, message, and notification/reset failures into facet-local suites backed by a same-directory support helper and a thin root shell.**
 
 ## Performance
 
-- **Duration:** 7 min
-- **Started:** 2026-03-27T09:42:00Z
-- **Completed:** 2026-03-27T09:49:10Z
+- **Duration:** 4 min
+- **Started:** 2026-03-27T09:43:52Z
+- **Completed:** 2026-03-27T09:47:13Z
 - **Tasks:** 2
 - **Files modified:** 6
 
 ## Accomplishments
 
-- Split the former `tests/core/coordinator/runtime/test_mqtt_runtime.py` hotspot into `init`, `connection`, `messages`, and `notifications` runtime-facet suites.
-- Reduced `tests/core/coordinator/runtime/test_mqtt_runtime.py` to a thin anchor so failures localize by topical filename instead of a 600+ line carrier.
-- Added `tests/core/coordinator/runtime/test_mqtt_runtime_support.py` as the single inward helper home for shared runtime setup, polling/failure helpers, and property payload builders.
+- Split the former `tests/core/coordinator/runtime/test_mqtt_runtime.py` hotspot into dedicated init, connection, message, and notification/reset topical suites.
+- Reduced `tests/core/coordinator/runtime/test_mqtt_runtime.py` to a thin shell that only re-exports the concern-local runtime suites.
+- Added `tests/core/coordinator/runtime/test_mqtt_runtime_support.py` as the inward-only helper home for shared runtime fixtures, builders, and runtime metric accessors.
 
 ## Task Commits
 
@@ -61,38 +61,25 @@ Each task was committed atomically:
 
 ## Files Created/Modified
 
-- `tests/core/coordinator/runtime/test_mqtt_runtime.py` - thin anchor for the topicized MQTT runtime suites.
-- `tests/core/coordinator/runtime/test_mqtt_runtime_init.py` - initialization and dependency-injection coverage.
-- `tests/core/coordinator/runtime/test_mqtt_runtime_connection.py` - connection, disconnect, transport callback, and reconnect coverage.
-- `tests/core/coordinator/runtime/test_mqtt_runtime_messages.py` - message application, dedup, unknown-device, and group reconciliation coverage.
-- `tests/core/coordinator/runtime/test_mqtt_runtime_notifications.py` - disconnect notification and reset coverage.
-- `tests/core/coordinator/runtime/test_mqtt_runtime_support.py` - local shared runtime setup and helper home.
+- `tests/core/coordinator/runtime/test_mqtt_runtime.py` - thin shell entry that keeps the legacy runtime root path discoverable.
+- `tests/core/coordinator/runtime/test_mqtt_runtime_init.py` - initialization and dependency-injection assertions.
+- `tests/core/coordinator/runtime/test_mqtt_runtime_connection.py` - connect/disconnect, reconnect, and backoff gate assertions.
+- `tests/core/coordinator/runtime/test_mqtt_runtime_messages.py` - message handling, dedup, and typed skip assertions.
+- `tests/core/coordinator/runtime/test_mqtt_runtime_notifications.py` - disconnect notification, background task routing, and reset assertions.
+- `tests/core/coordinator/runtime/test_mqtt_runtime_support.py` - same-directory fixtures, builders, and helper accessors for the topicized suites.
 
 ## Decisions Made
 
-- Kept the original hotspot path as a thin anchor rather than an umbrella importer with local assertions, matching the repository's existing topicized runtime pattern.
-- Moved only shared runtime construction and helper functions into the support module; no production code or cross-tree helper roots were introduced.
+- Kept the root runtime path as a thin import shell so focused verification commands can still include the historical path without restoring a giant truth carrier.
+- Centralized only shared runtime setup and helper accessors in `test_mqtt_runtime_support.py`; all assertions remain in topical suites.
 
 ## Deviations from Plan
 
-### Auto-fixed Issues
-
-**1. [Rule 1 - Bug] Removed leaked module-level asyncio marking from the message suite**
-- **Found during:** Task 1 (split MQTT runtime tests by runtime facet and keep coverage honest)
-- **Issue:** A module-level `pytestmark = pytest.mark.asyncio` leaked through the thin anchor's star imports and marked sync tests as async, producing warning noise.
-- **Fix:** Replaced the module-level mark with per-test `@pytest.mark.asyncio` decorators in the message suite.
-- **Files modified:** `tests/core/coordinator/runtime/test_mqtt_runtime_messages.py`
-- **Verification:** `uv run pytest -q tests/core/coordinator/runtime/test_mqtt_runtime.py tests/core/coordinator/runtime/test_mqtt_runtime_*.py`
-- **Committed in:** `050c312` (part of Task 1 commit)
-
----
-
-**Total deviations:** 1 auto-fixed (1 Rule 1 bug)
-**Impact on plan:** The fix removed warning-only drift from the thin-anchor pattern without changing test coverage or scope.
+None - plan executed exactly as written.
 
 ## Issues Encountered
 
-- The workspace already contained unrelated `Phase 87` planning artifacts and protocol-contract changes; they were left untouched and excluded from this plan's commits.
+None.
 
 ## User Setup Required
 
@@ -100,14 +87,19 @@ None - no external service configuration required.
 
 ## Next Phase Readiness
 
-- MQTT runtime hotspot decomposition is complete and verification-clean.
-- `Phase 87 Plan 04` can now add no-regrowth guards against the facet-local runtime topology without reusing a giant carrier file.
+- MQTT runtime hotspot decomposition is verification-clean and ready for `87-04` governance freezing.
+- Thin-shell root plus same-directory support helper provide a reusable pattern for future runtime assurance topicization without creating a second helper tree.
 
 ## Self-Check: PASSED
 
-- Found `.planning/phases/87-assurance-hotspot-decomposition-and-no-regrowth-guards/87-03-SUMMARY.md`.
-- Found all six touched MQTT runtime suite files on disk.
-- Found task commits `050c312` and `7d1e020` in git history.
+- Found `tests/core/coordinator/runtime/test_mqtt_runtime.py`.
+- Found `tests/core/coordinator/runtime/test_mqtt_runtime_init.py`.
+- Found `tests/core/coordinator/runtime/test_mqtt_runtime_connection.py`.
+- Found `tests/core/coordinator/runtime/test_mqtt_runtime_messages.py`.
+- Found `tests/core/coordinator/runtime/test_mqtt_runtime_notifications.py`.
+- Found `tests/core/coordinator/runtime/test_mqtt_runtime_support.py`.
+- Found commit `050c312`.
+- Found commit `7d1e020`.
 
 ---
 *Phase: 87-assurance-hotspot-decomposition-and-no-regrowth-guards*
