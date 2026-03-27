@@ -155,10 +155,10 @@ def test_reconnect_manager_tracks_backoff_gate_flag():
 
     manager = MqttReconnectManager()
 
-    assert manager.backoff_gate_logged is False
+    assert not manager.backoff_gate_logged
 
     manager.mark_backoff_gate_logged()
-    assert manager.backoff_gate_logged is True
+    assert bool(manager.backoff_gate_logged)
 
     manager.on_reconnect_success()
-    assert manager.backoff_gate_logged is False
+    assert not manager.backoff_gate_logged

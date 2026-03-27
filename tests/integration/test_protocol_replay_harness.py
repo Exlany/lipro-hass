@@ -9,7 +9,7 @@ from custom_components.lipro.core.protocol.contracts import (
     CanonicalScheduleJson,
 )
 from custom_components.lipro.core.protocol.facade import LiproProtocolFacade
-from tests.core.api.test_protocol_contract_matrix import (
+from tests.core.api.test_protocol_contract_boundary_decoders import (
     EXPECTED_DEVICE_LIST_DEVICES,
     EXPECTED_DEVICE_STATUS_ROWS,
     EXPECTED_MESH_GROUP_STATUS_ROWS,

@@ -27,6 +27,9 @@
 
 | Target | Current carrier | Owner | Earliest delete phase | Delete when | Phase 85 verdict |
 |--------|------------------|-------|-----------------------|-------------|------------------|
+_None currently registered._
+
+> **Phase 88 freeze note:** routed delete gates 为空是显式 closeout verdict，不是遗漏登记。若未来出现新的 file-level delete campaign，必须重新登记 target、owner、exit condition 与 evidence。
 
 ## Deletion Gate
 

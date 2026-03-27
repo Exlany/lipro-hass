@@ -12,8 +12,8 @@
 - [x] **ARC-22**: residual eradication 完成后，protocol / runtime / control / domain 继续保持单一正式主链；未引入 second root、backdoor 或 helper-owned public truth。
 - [x] **HOT-38**: audit 确认的 assurance/tooling hotspots 必须停止承担 giant truth-carrier 职责；需要进一步 topicization、thin-root 化或 inward decomposition。
 - [x] **TST-27**: 每个被消灭或收窄的 residual family / hotspot 都必须补齐 focused regressions、meta guards 或 no-regrowth checks，保证删除后不会回流。
-- [ ] **GOV-63**: `FILE_MATRIX / RESIDUAL_LEDGER / KILL_LIST / PUBLIC_SURFACES / developer_architecture` 必须共同冻结 post-eradication topology、ownership 与 delete-gate truth。
-- [ ] **QLT-35**: touched scope 必须通过 repo-wide quality proof，并在 closeout 时实现 `zero orphan residuals`；若仍有 carry-forward，必须显式登记 owner、exit condition 与 evidence。
+- [x] **GOV-63**: `FILE_MATRIX / RESIDUAL_LEDGER / KILL_LIST / PUBLIC_SURFACES / developer_architecture` 必须共同冻结 post-eradication topology、ownership 与 delete-gate truth。
+- [x] **QLT-35**: touched scope 必须通过 repo-wide quality proof，并在 closeout 时实现 `zero orphan residuals`；若仍有 carry-forward，必须显式登记 owner、exit condition 与 evidence。
 
 ## Traceability for v1.23 route
 
@@ -25,14 +25,14 @@
 | ARC-22 | Phase 86 | Completed |
 | HOT-38 | Phase 87 | Completed |
 | TST-27 | Phase 87 | Completed |
-| GOV-63 | Phase 88 | Planned |
-| QLT-35 | Phase 88 | Planned |
+| GOV-63 | Phase 88 | Completed |
+| QLT-35 | Phase 88 | Completed |
 
 **Current Coverage:**
 - v1.23 routed requirements: 8 total
 - Current mapped: 8
-- Current complete: 6
-- Current pending: 2
+- Current complete: 8
+- Current pending: 0
 - Current unmapped: 0 ✓
 
 <!-- governance-route-contract:start -->
@@ -42,11 +42,11 @@ contract_name: governance-route
 active_milestone:
   version: v1.23
   name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
-  status: Phase 87 complete (2026-03-27)
-  phase: '87'
-  phase_title: Assurance hotspot decomposition and no-regrowth guards
-  phase_dir: 87-assurance-hotspot-decomposition-and-no-regrowth-guards
-  route_mode: Phase 87 complete
+  status: Phase 88 complete (2026-03-27)
+  phase: '88'
+  phase_title: Governance sync, quality proof, and milestone freeze
+  phase_dir: 88-governance-sync-quality-proof-and-milestone-freeze
+  route_mode: Phase 88 complete
 latest_archived:
   version: v1.22
   name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
@@ -62,8 +62,8 @@ previous_archived:
   name: Governance Bootstrap Truth Hardening & Planning Route Automation
   evidence_path: .planning/reviews/V1_21_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.23 active route / Phase 87 complete / latest archived baseline = v1.22
-  default_next_command: $gsd-discuss-phase 88
+  current_route: v1.23 active route / Phase 88 complete / latest archived baseline = v1.22
+  default_next_command: $gsd-complete-milestone v1.23
   latest_archived_evidence_pointer: .planning/reviews/V1_22_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->

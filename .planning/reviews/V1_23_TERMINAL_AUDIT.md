@@ -1,9 +1,9 @@
 # v1.23 Terminal Audit
 
 **Purpose:** 将 `v1.23 / Phase 85` repo-wide terminal audit 冻结为 review-ledger-backed truth，而不是会话记忆。  
-**Status:** Active review artifact for `AUD-04` / `GOV-62`  
+**Status:** Historical review artifact for `AUD-04` / `GOV-62`; current closeout truth lives in `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`, `.planning/baseline/VERIFICATION_MATRIX.md`, and `.planning/reviews/{PROMOTED_PHASE_ASSETS,RESIDUAL_LEDGER,KILL_LIST}.md`  
 **Updated:** 2026-03-27  
-**Route truth:** `v1.23 active route / Phase 87 execution-ready / latest archived baseline = v1.22`  
+**Historical route snapshot:** `v1.23 active route / Phase 85 planning-ready / latest archived baseline = v1.22`  
 **Scope:** `custom_components/lipro`, `tests`, `docs`, `.planning`, workflows/config entry surfaces
 
 ## Audit Contract
@@ -17,6 +17,8 @@
 ## Executive Verdict
 
 本轮终局审计没有发现 production 侧 second-root 回流、`LiproClient` / `LiproMqttClient` 复活、或新的 ownerless active residual family；但发现 3 类必须显式登记的事项：
+
+> **Phase 88 freeze note:** 本文件继续记录 `Phase 85` 审计时刻的 routed verdict。`Phase 86` / `Phase 87` 的 closeout 与当前 zero-active posture 以 `.planning/reviews/{PROMOTED_PHASE_ASSETS,RESIDUAL_LEDGER,KILL_LIST}.md` 和 `VERIFICATION_MATRIX.md` 为准。
 
 1. **`Phase 85 close now` 真源漂移**：`TARGET_TOPOLOGY.md`、`DEPENDENCY_MATRIX.md`、`ARCHITECTURE_POLICY.md` 与 `docs/developer_architecture.md` 需要与当前 formal homes / backoff truth / freshness markers 对齐。
 2. **`Phase 86 closed` production carry-forward**：`share_client.py` 的 silent compat alias / bool shim 已删除，`runtime_infra.py` hotspot 已 inward split 为 local helper，同时 formal home 未漂移。

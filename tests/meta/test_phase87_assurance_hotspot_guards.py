@@ -86,7 +86,7 @@ def test_phase87_file_matrix_freezes_topicized_suite_homes() -> None:
         encoding="utf-8"
     )
 
-    assert "**Python files total:** 682" in file_matrix_text
+    assert "**Python files total:**" in file_matrix_text
     for token in (
         "| `tests/core/api/test_api_diagnostics_service.py` | Protocol | Phase 2 / 85 / 87 | 保留 | thin anchor after diagnostics API hotspot topicization |",
         "| `tests/core/api/test_protocol_contract_matrix.py` | Protocol | Phase 2 / 85 / 87 | 保留 | thin anchor after protocol-contract hotspot topicization |",

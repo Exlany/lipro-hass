@@ -26,7 +26,7 @@ class MqttReconnectManager:
             base_delay=base_delay,
             max_delay=max_delay,
         )
-        self._backoff_gate_logged = False
+        self._backoff_gate_logged: bool = False
 
     def should_attempt_reconnect(self, *, current_time: float | None = None) -> bool:
         """Check if reconnection should be attempted now.

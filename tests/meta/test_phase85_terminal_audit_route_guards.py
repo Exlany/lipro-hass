@@ -13,6 +13,9 @@ def test_phase85_terminal_audit_artifact_covers_required_areas_and_routing_colum
 
     assert "v1.23 / Phase 85" in audit_text
     assert "route next" in audit_text
+    assert "Historical review artifact for `AUD-04` / `GOV-62`" in audit_text
+    assert "Historical route snapshot:" in audit_text
+    assert CURRENT_ROUTE not in audit_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT not in audit_text
     for area in ("production", "tests", "tooling", "docs", "governance"):
         assert area in audit_text

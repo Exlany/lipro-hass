@@ -339,6 +339,28 @@ phases:
   - 84-SUMMARY.md
   - 84-VERIFICATION.md
   - 84-VALIDATION.md
+  85-terminal-audit-refresh-and-residual-routing:
+  - 85-01-SUMMARY.md
+  - 85-02-SUMMARY.md
+  - 85-03-SUMMARY.md
+  86-production-residual-eradication-and-boundary-re-tightening:
+  - 86-01-SUMMARY.md
+  - 86-02-SUMMARY.md
+  - 86-03-SUMMARY.md
+  - 86-04-SUMMARY.md
+  - 86-VALIDATION.md
+  87-assurance-hotspot-decomposition-and-no-regrowth-guards:
+  - 87-01-SUMMARY.md
+  - 87-02-SUMMARY.md
+  - 87-03-SUMMARY.md
+  - 87-04-SUMMARY.md
+  88-governance-sync-quality-proof-and-milestone-freeze:
+  - 88-01-SUMMARY.md
+  - 88-02-SUMMARY.md
+  - 88-03-SUMMARY.md
+  - 88-SUMMARY.md
+  - 88-VERIFICATION.md
+  - 88-VALIDATION.md
 ---
 
 # Promoted Phase Assets

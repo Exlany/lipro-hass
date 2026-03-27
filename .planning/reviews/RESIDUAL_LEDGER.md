@@ -6,6 +6,8 @@
 |--------|------------------|-------------|----------------|----------------|
 _None currently registered._
 
+> **Phase 88 freeze note:** 这里的 zero-active posture 是显式 closeout verdict，而不是尚未清点完成的空白。若未来出现新 residual，必须以新的 family 重新登记 owner、exit condition 与 evidence。
+
 ## Phase 85 Audit-Routed Carry-Forward
 
 > 下列条目是 `v1.23 / Phase 85` repo-wide terminal audit 明确登记的 carry-forward，并非重新打开已关闭 residual family。
@@ -19,6 +21,7 @@ _None currently registered._
 
 - `TARGET_TOPOLOGY.md`、`DEPENDENCY_MATRIX.md`、`ARCHITECTURE_POLICY.md` 与 `docs/developer_architecture.md` 的 `Phase 85 close now` 真源同步，已记录在 `.planning/reviews/V1_23_TERMINAL_AUDIT.md`；它们属于当前 phase 的 close-now truth sync，不是新的 active residual family。
 - `.planning/reviews/V1_22_EVIDENCE_INDEX.md` 与 `.planning/v1.22-MILESTONE-AUDIT.md` 继续是 explicitly-keep historical evidence；后续 phase 只能 pull 其结论，不得把 archived-only truth 回写成 active debt。
+- `Phase 85`~`87` 的 closeout summaries 现已由 `.planning/reviews/PROMOTED_PHASE_ASSETS.md` allowlist 明确提升为长期治理证据；本节继续只承担 historical carry-forward closure 说明。
 
 ## Closed Residual Families
 

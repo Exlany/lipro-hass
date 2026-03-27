@@ -83,8 +83,33 @@ BASE_OVERRIDE_TRUTH_FAMILIES = (
         ("tests/meta/test_governance_bootstrap_smoke.py", "focused bootstrap smoke guard home"),
     )),
 
-    OverrideTruthFamily(area="Assurance", owner_phase="Phase 27 / 44 / 49 / 77", fate="保留", rows=(
-        ("tests/meta/test_governance_closeout_guards.py", "closeout + promoted-asset manifest smoke anchor"),
+    OverrideTruthFamily(area="Assurance", owner_phase="Phase 27 / 44 / 49 / 77 / 88", fate="保留", rows=(
+        ("tests/meta/test_governance_closeout_guards.py", "closeout + promoted-asset manifest smoke anchor + phase-88 exit-contract bridge"),
+    )),
+
+    OverrideTruthFamily(area="Assurance", owner_phase="Phase 88", fate="保留", rows=(
+        ("tests/meta/test_phase88_governance_quality_freeze_guards.py", "focused guard home for phase-88 governance/evidence freeze"),
+    )),
+
+    OverrideTruthFamily(area="Protocol", owner_phase="Phase 2 / 85 / 87", fate="保留", rows=(
+        ("tests/core/api/test_api_diagnostics_service.py", "thin anchor after diagnostics API hotspot topicization"),
+        ("tests/core/api/test_protocol_contract_matrix.py", "thin anchor after protocol-contract hotspot topicization"),
+    )),
+
+    OverrideTruthFamily(area="Protocol", owner_phase="Phase 87", fate="保留", rows=(
+        ("tests/core/api/test_api_diagnostics_service_support.py", "local inward helper home for diagnostics API topical suites"),
+    )),
+
+    OverrideTruthFamily(area="Runtime", owner_phase="Phase 5 / 6 / 85 / 87", fate="保留", rows=(
+        ("tests/core/coordinator/runtime/test_mqtt_runtime.py", "thin shell after MQTT runtime hotspot topicization"),
+    )),
+
+    OverrideTruthFamily(area="Runtime", owner_phase="Phase 87", fate="保留", rows=(
+        ("tests/core/coordinator/runtime/test_mqtt_runtime_support.py", "local support helper home for topicized MQTT runtime suites"),
+    )),
+
+    OverrideTruthFamily(area="Assurance", owner_phase="Phase 87", fate="保留", rows=(
+        ("tests/meta/test_phase87_assurance_hotspot_guards.py", "focused no-regrowth guard home for Phase 87 assurance hotspot topicization"),
     )),
 
     OverrideTruthFamily(area="Control", owner_phase="Phase 3", fate="保留", rows=(

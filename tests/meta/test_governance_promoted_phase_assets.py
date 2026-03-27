@@ -423,3 +423,42 @@ def test_phase_84_closeout_assets_exist_and_are_promoted() -> None:
     assert "## Phase 84 Governance / Open-Source Guard Freeze" in verification_text
     assert "## Phase 84 Residual Delta" in residual_text
     assert "## Phase 84 Status Update" in kill_text
+
+
+def test_phase_88_closeout_assets_exist_and_are_promoted() -> None:
+    _assert_promoted_phase_assets(
+        "88-governance-sync-quality-proof-and-milestone-freeze",
+        "88-01-SUMMARY.md",
+        "88-02-SUMMARY.md",
+        "88-03-SUMMARY.md",
+        "88-SUMMARY.md",
+        "88-VERIFICATION.md",
+        "88-VALIDATION.md",
+    )
+    _assert_phase_assets_not_promoted(
+        "88-governance-sync-quality-proof-and-milestone-freeze",
+        "88-CONTEXT.md",
+        "88-DISCUSSION-LOG.md",
+        "88-RESEARCH.md",
+        "88-01-PLAN.md",
+        "88-02-PLAN.md",
+        "88-03-PLAN.md",
+    )
+
+    verification_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    residual_text = (
+        _ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md"
+    ).read_text(encoding="utf-8")
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
+        encoding="utf-8"
+    )
+    audit_text = (_ROOT / ".planning" / "reviews" / "V1_23_TERMINAL_AUDIT.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "## Phase 88 Governance Sync / Quality Proof / Milestone Freeze" in verification_text
+    assert "Phase 88 freeze note" in residual_text
+    assert "## Phase 85 Routed Delete Gates" in kill_text
+    assert "Historical review artifact" in audit_text

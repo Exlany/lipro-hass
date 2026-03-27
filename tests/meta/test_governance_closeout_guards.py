@@ -4,11 +4,7 @@ from __future__ import annotations
 
 from .conftest import _load_frontmatter
 from .governance_contract_helpers import _ROOT
-from .governance_current_truth import (
-    CURRENT_MILESTONE_DEFAULT_NEXT,
-    CURRENT_ROUTE,
-    LATEST_ARCHIVED_EVIDENCE_PATH,
-)
+from .governance_current_truth import LATEST_ARCHIVED_EVIDENCE_PATH
 from .governance_promoted_assets import (
     _PROMOTED_PHASE_ASSETS,
     _assert_exact_promoted_phase_assets,
@@ -82,7 +78,7 @@ def test_promoted_phase_assets_manifest_enforces_explicit_ci_evidence() -> None:
     )
 
 
-def test_phase_84_exit_contract_aligns_verification_and_file_matrix() -> None:
+def test_phase_88_closeout_contract_aligns_verification_and_file_matrix() -> None:
     verification_text = (
         _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
     ).read_text(encoding="utf-8")
@@ -90,9 +86,8 @@ def test_phase_84_exit_contract_aligns_verification_and_file_matrix() -> None:
         _ROOT / ".planning" / "reviews" / "FILE_MATRIX.md"
     ).read_text(encoding="utf-8")
 
-    assert "## Phase 84 Governance / Open-Source Guard Freeze" in verification_text
-    assert f"当前 mutable story = `{CURRENT_ROUTE}`" in verification_text
-    assert f"default next command = `{CURRENT_MILESTONE_DEFAULT_NEXT}`" in verification_text
+    assert "## Phase 88 Governance Sync / Quality Proof / Milestone Freeze" in verification_text
+    assert "default next command on phase completion = `$gsd-complete-milestone v1.23`" in verification_text
     assert f"**Latest archived pointer:** `{LATEST_ARCHIVED_EVIDENCE_PATH}`" in verification_text
     for token in (
         "tests/meta/test_governance_bootstrap_smoke.py",
@@ -104,6 +99,7 @@ def test_phase_84_exit_contract_aligns_verification_and_file_matrix() -> None:
         "tests/meta/test_governance_release_docs.py",
         "tests/meta/test_governance_release_continuity.py",
         "tests/meta/test_governance_milestone_archives.py",
+        "tests/meta/test_phase88_governance_quality_freeze_guards.py",
     ):
         assert token in verification_text
     assert "node \"$HOME/.codex/get-shit-done/bin/gsd-tools.cjs\" init progress" in verification_text
@@ -115,7 +111,8 @@ def test_phase_84_exit_contract_aligns_verification_and_file_matrix() -> None:
         "tests/meta/governance_promoted_assets.py": "shared promoted-phase-asset helper home",
         "tests/meta/test_governance_bootstrap_smoke.py": "focused bootstrap smoke guard home",
         "tests/meta/test_governance_route_handoff_smoke.py": "route-handoff gsd fast-path smoke guard home",
-        "tests/meta/test_governance_closeout_guards.py": "closeout + promoted-asset manifest smoke anchor",
+        "tests/meta/test_governance_closeout_guards.py": "closeout + promoted-asset manifest smoke anchor + phase-88 exit-contract bridge",
+        "tests/meta/test_phase88_governance_quality_freeze_guards.py": "focused guard home for phase-88 governance/evidence freeze",
         "tests/meta/governance_followup_route_current_milestones.py": "governance-route contract + current/latest archive pointer-drift guard",
         "tests/meta/test_governance_release_contract.py": "release/governance workflow anchor suite",
         "tests/meta/test_governance_release_docs.py": "release/docs topic suite home",
@@ -215,3 +212,37 @@ def test_v1_20_promoted_allowlist_does_not_widen_into_execution_traces() -> None
         "75-VERIFICATION.md",
         "75-VALIDATION.md",
     )
+
+
+def test_v1_23_promoted_allowlist_exactly_matches_closeout_bundles() -> None:
+    _assert_exact_promoted_phase_assets(
+        "85-terminal-audit-refresh-and-residual-routing",
+        "85-01-SUMMARY.md",
+        "85-02-SUMMARY.md",
+        "85-03-SUMMARY.md",
+    )
+    _assert_exact_promoted_phase_assets(
+        "86-production-residual-eradication-and-boundary-re-tightening",
+        "86-01-SUMMARY.md",
+        "86-02-SUMMARY.md",
+        "86-03-SUMMARY.md",
+        "86-04-SUMMARY.md",
+        "86-VALIDATION.md",
+    )
+    _assert_exact_promoted_phase_assets(
+        "87-assurance-hotspot-decomposition-and-no-regrowth-guards",
+        "87-01-SUMMARY.md",
+        "87-02-SUMMARY.md",
+        "87-03-SUMMARY.md",
+        "87-04-SUMMARY.md",
+    )
+    _assert_exact_promoted_phase_assets(
+        "88-governance-sync-quality-proof-and-milestone-freeze",
+        "88-01-SUMMARY.md",
+        "88-02-SUMMARY.md",
+        "88-03-SUMMARY.md",
+        "88-SUMMARY.md",
+        "88-VERIFICATION.md",
+        "88-VALIDATION.md",
+    )
+

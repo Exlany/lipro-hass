@@ -2,7 +2,7 @@
 
 **Purpose:** 定义各平面的 canonical public surfaces、过渡公开面与禁止作为正式入口的对象。
 **Status:** Formal baseline asset (`BASE-01` public-surface truth source)
-**Updated:** 2026-03-27 (v1.22 archived-only closeout aligned)
+**Updated:** 2026-03-27 (v1.23 phase-88 governance freeze aligned)
 
 ## Formal Role
 
@@ -282,3 +282,10 @@
 - contributor-facing intake / stewardship surfaces 明确包括 `CONTRIBUTING.md`、`SUPPORT.md`、`SECURITY.md`、`.github/ISSUE_TEMPLATE/*.yml` 与 `.github/pull_request_template.md`；`docs/README.md` 只负责 docs map / contract reachability，不直接暴露 internal governance paths。
 - `.github/CODEOWNERS` 继续是 owner / custody truth source；上述 intake surfaces 只能引用或投影其连续性口径，不能反向覆盖它。
 - contributor-facing docs 可以指向 `.planning/baseline/{PUBLIC_SURFACES,DEPENDENCY_MATRIX,AUTHORITY_MATRIX,VERIFICATION_MATRIX}.md` 与 `.planning/reviews/{FILE_MATRIX,RESIDUAL_LEDGER,KILL_LIST,PROMOTED_PHASE_ASSETS}.md` 作为 evidence destinations，但不得把 active-route / archived-pointer / GSD internal workflow 讲成 public first hop。
+
+## Phase 88 Governance Freeze Notes
+
+- `.planning/reviews/PROMOTED_PHASE_ASSETS.md` 是 `.planning/phases/**` 长期治理 / CI evidence 的唯一 allowlist；`Phase 85`~`87` closeout bundles 已由它正式接管，未被 allowlist 的执行痕迹不得反向升级为 authority。
+- `.planning/reviews/V1_23_TERMINAL_AUDIT.md` 继续只承担 historical audit artifact 身份；当前 active route / default-next / completion posture 仍只由 planning docs、`VERIFICATION_MATRIX.md` 与 focused governance guards 决定。
+- `.planning/reviews/RESIDUAL_LEDGER.md` active residual families 为空、`.planning/reviews/KILL_LIST.md` 的 `Phase 85 Routed Delete Gates` 为空，都是显式 post-eradication truth；任何 future residual 或 delete campaign 都必须重新登记，不能借历史 prose 静默回流。
+- `docs/developer_architecture.md` 继续只是 current-topology guide；它可以记录 freshness / maintainability posture，但不得取代 live route truth home。

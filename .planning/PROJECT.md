@@ -2,10 +2,10 @@
 
 
 **Status:** `v1.23 active route`
-**Current route:** `v1.23 active route / Phase 87 complete / latest archived baseline = v1.22`；latest archived evidence index = `.planning/reviews/V1_22_EVIDENCE_INDEX.md`.
-**Legacy route-string compatibility:** **Status:** `v1.23 active route / Phase 87 complete / latest archived baseline = v1.22`；latest archived closeout pointer = `.planning/reviews/V1_22_EVIDENCE_INDEX.md`.
+**Current route:** `v1.23 active route / Phase 88 complete / latest archived baseline = v1.22`；latest archived evidence index = `.planning/reviews/V1_22_EVIDENCE_INDEX.md`.
+**Legacy route-string compatibility:** **Status:** `v1.23 active route / Phase 88 complete / latest archived baseline = v1.22`；latest archived closeout pointer = `.planning/reviews/V1_22_EVIDENCE_INDEX.md`.
 **Goal:** 对全仓 `production / tests / docs / governance / configs` 做一次 terminal audit，并把 remaining residual、hotspot、truth drift 与 delete-gate debt 收口到单一 north-star 主链，避免再次出现“已完成但仍有尾巴”的反复整改。
-**Default next step:** `$gsd-discuss-phase 88`
+**Default next step:** `$gsd-complete-milestone v1.23`
 **Active baseline:** active milestone = `v1.23`；latest archived baseline = `v1.22`；previous archived baseline = `v1.21`。
 
 <!-- governance-route-contract:start -->
@@ -15,11 +15,11 @@ contract_name: governance-route
 active_milestone:
   version: v1.23
   name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
-  status: Phase 87 complete (2026-03-27)
-  phase: '87'
-  phase_title: Assurance hotspot decomposition and no-regrowth guards
-  phase_dir: 87-assurance-hotspot-decomposition-and-no-regrowth-guards
-  route_mode: Phase 87 complete
+  status: Phase 88 complete (2026-03-27)
+  phase: '88'
+  phase_title: Governance sync, quality proof, and milestone freeze
+  phase_dir: 88-governance-sync-quality-proof-and-milestone-freeze
+  route_mode: Phase 88 complete
 latest_archived:
   version: v1.22
   name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
@@ -35,8 +35,8 @@ previous_archived:
   name: Governance Bootstrap Truth Hardening & Planning Route Automation
   evidence_path: .planning/reviews/V1_21_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.23 active route / Phase 87 complete / latest archived baseline = v1.22
-  default_next_command: $gsd-discuss-phase 88
+  current_route: v1.23 active route / Phase 88 complete / latest archived baseline = v1.22
+  default_next_command: $gsd-complete-milestone v1.23
   latest_archived_evidence_pointer: .planning/reviews/V1_22_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -54,15 +54,17 @@ bootstrap:
 - non-blocking residual 也要被明确裁决：能删则删、该 freeze 则 freeze、需要继续 carry-forward 时必须 machine-checkable，不接受 silent defer。
 - 任何本轮新增/调整的 truth 都必须同步回写到 `PROJECT / ROADMAP / REQUIREMENTS / STATE / baseline / reviews / focused guards`，避免“代码收口、治理失真”。
 
-**Current status:** `Phase 87 complete (2026-03-27)`
+**Current status:** `Phase 88 complete (2026-03-27)`
 **Phase 85 closeout:** `.planning/phases/85-terminal-audit-refresh-and-residual-routing/{85-01-SUMMARY.md,85-02-SUMMARY.md,85-03-SUMMARY.md}`
 **Phase 86 closeout summaries:** `.planning/phases/86-production-residual-eradication-and-boundary-re-tightening/{86-01-SUMMARY.md,86-02-SUMMARY.md,86-03-SUMMARY.md,86-04-SUMMARY.md}`
-**Phase 87 planning assets:** `.planning/phases/87-assurance-hotspot-decomposition-and-no-regrowth-guards/{87-CONTEXT.md,87-RESEARCH.md,87-01-PLAN.md,87-02-PLAN.md,87-03-PLAN.md,87-04-PLAN.md}`
 **Phase 87 closeout summaries:** `.planning/phases/87-assurance-hotspot-decomposition-and-no-regrowth-guards/{87-01-SUMMARY.md,87-02-SUMMARY.md,87-03-SUMMARY.md,87-04-SUMMARY.md}`
+**Phase 88 planning assets:** `.planning/phases/88-governance-sync-quality-proof-and-milestone-freeze/{88-CONTEXT.md,88-DISCUSSION-LOG.md,88-RESEARCH.md,88-01-PLAN.md,88-02-PLAN.md,88-03-PLAN.md}`
+**Phase 88 executed summaries:** `.planning/phases/88-governance-sync-quality-proof-and-milestone-freeze/{88-01-SUMMARY.md,88-02-SUMMARY.md,88-03-SUMMARY.md}`
+**Phase 88 phase evidence:** `.planning/phases/88-governance-sync-quality-proof-and-milestone-freeze/{88-SUMMARY.md,88-VERIFICATION.md,88-VALIDATION.md}`
 **Starting baseline:** `.planning/v1.22-MILESTONE-AUDIT.md`, `.planning/reviews/V1_22_EVIDENCE_INDEX.md`, `.planning/milestones/v1.22-ROADMAP.md`, `.planning/milestones/v1.22-REQUIREMENTS.md`
 **Requirements basket:** `AUD-04`, `GOV-62`, `HOT-37`, `ARC-22`, `HOT-38`, `TST-27`, `GOV-63`, `QLT-35`
-**Default next command:** `$gsd-discuss-phase 88`
-**Current follow-up target:** `Phase 88` governance sync, quality proof, and milestone freeze
+**Default next command:** `$gsd-complete-milestone v1.23`
+**Current follow-up target:** milestone closeout / archive promotion readiness
 
 ## Latest Archived Milestone (v1.22)
 

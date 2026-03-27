@@ -27,11 +27,11 @@ PLANNING_ROUTE_CONTRACT: dict[str, object] = {
     "active_milestone": {
         "version": "v1.23",
         "name": "Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze",
-        "status": "Phase 87 complete (2026-03-27)",
-        "phase": "87",
-        "phase_title": "Assurance hotspot decomposition and no-regrowth guards",
-        "phase_dir": "87-assurance-hotspot-decomposition-and-no-regrowth-guards",
-        "route_mode": "Phase 87 complete",
+        "status": "Phase 88 complete (2026-03-27)",
+        "phase": "88",
+        "phase_title": "Governance sync, quality proof, and milestone freeze",
+        "phase_dir": "88-governance-sync-quality-proof-and-milestone-freeze",
+        "route_mode": "Phase 88 complete",
     },
     "latest_archived": {
         "version": "v1.22",
@@ -50,8 +50,8 @@ PLANNING_ROUTE_CONTRACT: dict[str, object] = {
         "evidence_path": ".planning/reviews/V1_21_EVIDENCE_INDEX.md",
     },
     "bootstrap": {
-        "current_route": "v1.23 active route / Phase 87 complete / latest archived baseline = v1.22",
-        "default_next_command": "$gsd-discuss-phase 88",
+        "current_route": "v1.23 active route / Phase 88 complete / latest archived baseline = v1.22",
+        "default_next_command": "$gsd-complete-milestone v1.23",
         "latest_archived_evidence_pointer": ".planning/reviews/V1_22_EVIDENCE_INDEX.md",
     },
 }
@@ -178,6 +178,7 @@ CURRENT_ROUTE_PROSE_FORBIDDEN = (
     "v1.23 active route / Phase 85 planning-ready / latest archived baseline = v1.22",
     "v1.23 active route / Phase 87 execution-ready / latest archived baseline = v1.22",
     "v1.23 active route / Phase 87 in progress / latest archived baseline = v1.22",
+    "v1.23 active route / Phase 87 complete / latest archived baseline = v1.22",
     "no active milestone route / latest archived baseline = v1.20",
     "no active milestone route / latest archived baseline = v1.21",
     "no active milestone route / latest archived baseline = v1.22",

@@ -64,7 +64,7 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
     assert CURRENT_MILESTONE_DEFAULT_NEXT in roadmap_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in requirements_text
-    assert '## Phase 84 Governance / Open-Source Guard Freeze' in verification_text
+    assert '## Phase 88 Governance Sync / Quality Proof / Milestone Freeze' in verification_text
     assert CURRENT_ROUTE in verification_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in verification_text
     assert LATEST_ARCHIVED_EVIDENCE_PATH in verification_text
@@ -96,28 +96,24 @@ def test_gsd_fast_path_matches_current_active_route_story() -> None:
 
     state = _run_gsd_tools('state', 'json')
     assert _as_str(state['milestone']) == CURRENT_MILESTONE
-    assert _as_str(state['status']) == 'Phase 87 complete'
+    assert _as_str(state['status']) == 'Phase 88 complete'
     assert _as_mapping(state['progress']) == {
         'total_phases': '4',
-        'completed_phases': '3',
-        'total_plans': '11',
-        'completed_plans': '11',
+        'completed_phases': '4',
+        'total_plans': '14',
+        'completed_plans': '14',
     }
     assert progress['phase_count'] == len(phases)
-    assert progress['completed_count'] == 3
+    assert progress['completed_count'] == 4
     assert progress['current_phase'] is None
-    next_phase = _as_mapping(progress['next_phase'])
-    assert _as_str(next_phase['number']) == '88'
-    assert _as_str(next_phase['status']) == 'not_started'
-    assert next_phase['plan_count'] == 0
-    assert next_phase['summary_count'] == 0
+    assert progress['next_phase'] is None
 
-    plan_init = _run_gsd_tools('init', 'plan-phase', '87')
+    plan_init = _run_gsd_tools('init', 'plan-phase', '88')
     assert _as_bool(plan_init['phase_found']) is True
-    assert _as_str(plan_init['phase_number']) == '87'
+    assert _as_str(plan_init['phase_number']) == '88'
     assert _as_bool(plan_init['has_plans']) is True
     assert _as_bool(plan_init['has_research']) is True
-    assert plan_init['plan_count'] == 4
+    assert plan_init['plan_count'] == 3
 
     phase_86 = next(phase for phase in phases if _as_str(phase['number']) == '86')
     assert _as_str(phase_86['status']) == 'complete'
@@ -140,6 +136,17 @@ def test_gsd_fast_path_matches_current_active_route_story() -> None:
     phase_87_plans = _as_mapping_list(phase_87_index['plans'])
     assert [_as_str(plan['id']) for plan in phase_87_plans] == ['87-01', '87-02', '87-03', '87-04']
     assert phase_87_index['incomplete'] == []
+
+    phase_88 = next(phase for phase in phases if _as_str(phase['number']) == '88')
+    assert _as_str(phase_88['status']) == 'complete'
+    assert phase_88['plan_count'] == 3
+    assert phase_88['summary_count'] == 4
+
+    phase_88_index = _run_gsd_tools('phase-plan-index', '88')
+    assert _as_str(phase_88_index['phase']) == '88'
+    phase_88_plans = _as_mapping_list(phase_88_index['plans'])
+    assert [_as_str(plan['id']) for plan in phase_88_plans] == ['88-01', '88-02', '88-03']
+    assert phase_88_index['incomplete'] == []
 
 
 def test_recent_governance_closeout_assets_are_promoted_without_planning_traces() -> None:
@@ -221,4 +228,13 @@ def test_recent_governance_closeout_assets_are_promoted_without_planning_traces(
         '84-SUMMARY.md',
         '84-VERIFICATION.md',
         '84-VALIDATION.md',
+    )
+    _assert_promoted_phase_assets(
+        '88-governance-sync-quality-proof-and-milestone-freeze',
+        '88-01-SUMMARY.md',
+        '88-02-SUMMARY.md',
+        '88-03-SUMMARY.md',
+        '88-SUMMARY.md',
+        '88-VERIFICATION.md',
+        '88-VALIDATION.md',
     )
