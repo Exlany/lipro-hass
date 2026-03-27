@@ -24,7 +24,15 @@ _ROUTE_CONTRACT_PATHS = {
 PLANNING_ROUTE_CONTRACT: dict[str, object] = {
     "contract_version": 1,
     "contract_name": "governance-route",
-    "active_milestone": None,
+    "active_milestone": {
+        "version": "v1.23",
+        "name": "Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze",
+        "status": "Phase 85 complete (2026-03-27)",
+        "phase": "85",
+        "phase_title": "Terminal audit refresh and residual routing",
+        "phase_dir": "85-terminal-audit-refresh-and-residual-routing",
+        "route_mode": "Phase 85 complete",
+    },
     "latest_archived": {
         "version": "v1.22",
         "name": "Maintainer Entry Contracts, Release Operations Closure & Contributor Routing",
@@ -42,11 +50,12 @@ PLANNING_ROUTE_CONTRACT: dict[str, object] = {
         "evidence_path": ".planning/reviews/V1_21_EVIDENCE_INDEX.md",
     },
     "bootstrap": {
-        "current_route": "no active milestone route / latest archived baseline = v1.22",
-        "default_next_command": "$gsd-new-milestone",
+        "current_route": "v1.23 active route / Phase 85 complete / latest archived baseline = v1.22",
+        "default_next_command": "$gsd-plan-phase 86",
         "latest_archived_evidence_pointer": ".planning/reviews/V1_22_EVIDENCE_INDEX.md",
     },
 }
+
 
 
 def _as_mapping(value: object) -> dict[str, object]:
@@ -165,8 +174,10 @@ CURRENT_ROUTE_PROSE_FORBIDDEN = (
     "v1.21 active route / Phase 80 complete / latest archived baseline = v1.20",
     "v1.22 active route / Phase 83 complete / latest archived baseline = v1.21",
     "v1.22 active route / Phase 84 complete / latest archived baseline = v1.21",
+    "v1.23 active route / Phase 85 planning-ready / latest archived baseline = v1.22",
     "no active milestone route / latest archived baseline = v1.20",
     "no active milestone route / latest archived baseline = v1.21",
+    "no active milestone route / latest archived baseline = v1.22",
 )
 CURRENT_RUNTIME_ROOT_TEST = "tests/core/coordinator/test_runtime_root.py"
 

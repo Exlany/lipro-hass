@@ -6,6 +6,19 @@
 |--------|------------------|-------------|----------------|----------------|
 _None currently registered._
 
+## Phase 85 Audit-Routed Carry-Forward
+
+> 下列条目是 `v1.23 / Phase 85` repo-wide terminal audit 明确登记的 carry-forward，并非重新打开已关闭 residual family。
+
+| Finding | Scope | Verdict | Owner phase | Exit condition | Evidence |
+|--------|-------|---------|-------------|----------------|----------|
+| `ShareWorkerClient` compat submit / JSON aliases | Protocol | route next | Phase 86 | `_safe_read_json()` alias 与 bool-only `submit_share_payload()` compatibility shim 删除或 inward 收口；production/tests 只承认 outcome-native path | `.planning/reviews/V1_23_TERMINAL_AUDIT.md` |
+| `runtime_infra.py` orchestration hotspot | Control | route next | Phase 86 | listener / reload / task orchestration 继续 inward split，且 formal home 不漂移 | `.planning/reviews/V1_23_TERMINAL_AUDIT.md` |
+| giant assurance carriers (`test_api_diagnostics_service.py`, `test_protocol_contract_matrix.py`, `test_mqtt_runtime.py`) | Assurance | route next | Phase 87 | suites 完成 concern-local topicization / thin-root 化，且 guard coverage 不下降 | `.planning/reviews/V1_23_TERMINAL_AUDIT.md` |
+
+- `TARGET_TOPOLOGY.md`、`DEPENDENCY_MATRIX.md`、`ARCHITECTURE_POLICY.md` 与 `docs/developer_architecture.md` 的 `Phase 85 close now` 真源同步，已记录在 `.planning/reviews/V1_23_TERMINAL_AUDIT.md`；它们属于当前 phase 的 close-now truth sync，不是新的 active residual family。
+- `.planning/reviews/V1_22_EVIDENCE_INDEX.md` 与 `.planning/v1.22-MILESTONE-AUDIT.md` 继续是 explicitly-keep historical evidence；后续 phase 只能 pull 其结论，不得把 archived-only truth 回写成 active debt。
+
 ## Closed Residual Families
 
 - `Runtime-access mixed helper cluster` 已在 Phase 70 关闭：`custom_components/lipro/control/runtime_access_support.py` 已 inward split 为 `runtime_access_support_{members,telemetry,views,devices}.py`，而 `runtime_access.py` 继续保持唯一 outward runtime read home。

@@ -2,7 +2,8 @@
 
 **Purpose:** 把 north-star 与 baseline 的结构约束翻译成单一、可执行、可扩展的 architecture enforcement baseline。
 **Status:** Formal baseline asset (`ENF-01` / `ENF-02` policy truth source)
-**Updated:** 2026-03-16 (Phase 18 nucleus locality aligned)
+**Updated:** 2026-03-27 (Phase 85 terminal audit truth aligned)
+**Alignment:** `v1.23 / Phase 85` baseline/guard truth verified on `2026-03-27` (rule ids unchanged)
 
 ## Formal Role
 
@@ -10,6 +11,7 @@
 - `scripts/check_architecture_policy.py`、`tests/meta/*guards*.py` 与 CI governance gate 只能消费本文件与上游 baseline，不得各自维护第二套规则真相。
 - 本文件只定义 **规则真源**；helper / script / tests 只是执行与仲裁层。
 - 结构性规则与 targeted regression bans 必须分开：前者表达长期架构边界，后者只阻断已知回归洞位，不得偷偷扩成新架构。
+- `Phase 85` 仅刷新本文件的 freshness / alignment truth：当前 ruleset 继续服务于单一 formal homes、neutral backoff baseline 与 no-legacy-client guard story，不新增第二套 formal home。
 
 ## Taxonomy Overview
 

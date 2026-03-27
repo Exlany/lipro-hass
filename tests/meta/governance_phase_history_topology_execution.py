@@ -81,6 +81,7 @@ def test_phase_12_execution_truth_is_consistent() -> None:
     assert any(
         status in project_text
         for status in (
+            "**Status:** `v1.23 active route`",
             "**Status:** Active",
             "**Status:** Complete",
             "**Status:** Shipped and archived",

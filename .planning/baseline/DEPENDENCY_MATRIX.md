@@ -2,12 +2,14 @@
 
 **Purpose:** 定义允许/禁止的跨平面依赖方向，并作为 architecture guards 的语义真源。
 **Status:** Baseline reference
-**Updated:** 2026-03-24 (Phase 68 hotspot/docs closeout aligned)
+**Updated:** 2026-03-27 (Phase 85 terminal audit aligned)
+**Alignment:** `v1.23 / Phase 85` dependency truth verified on `2026-03-27`
 
 ## Formal Role
 
 - 本文件定义 allowed / forbidden dependency direction 的 baseline truth。
 - `.planning/baseline/ARCHITECTURE_POLICY.md` 把这些语义规则翻译成可执行的 rule ids 与 enforcement chain；两者必须同步演进，不能各写各的 seed 文案。
+- shared exponential-backoff primitive 的正式真源固定为 `custom_components/lipro/core/utils/backoff.py`；本文件不得再保留第二条 `request_policy.py` compat import story。
 
 ## Allowed Dependencies
 
@@ -126,7 +128,7 @@
 
 - `custom_components/lipro/core/protocol/facade.py` 可以 inward 依赖 `protocol_facade_rest_methods.py`、`rest_port.py` 与 `mqtt_facade.py`；它们分别只承担 support-only bound methods、typed REST child ports 与 MQTT child façade home，不得被 runtime/control/tests 讲成 alternative root。
 - `custom_components/lipro/core/api/rest_facade.py` 与 `rest_facade_request_methods.py` 允许 inward 依赖 `request_gateway.py`、`transport_executor.py` 与 `request_policy.py`；其中 `RequestPolicy` 持有 `429` / busy / pacing truth，`RestRequestGateway` 持有 mapping/auth-aware retry-context orchestration，`RestTransportExecutor` 只保留 signed transport execution / response normalization，不得反向长回 second request owner。
-- `custom_components/lipro/core/api/transport_retry.py` 只允许通过 injected `handle_rate_limit` 回调向 `RequestPolicy` 请求决策；`compute_exponential_retry_wait_time()` 若仍被 strict request-policy family 之外的 protocol/runtime/MQTT helpers 共享，必须继续在 residual ledger 中显式登记，直到迁入更诚实的 shared backoff home。
+- `custom_components/lipro/core/api/transport_retry.py` 只允许通过 injected `handle_rate_limit` 回调向 `RequestPolicy` 请求决策；若 strict request-policy family 之外的 protocol/runtime/MQTT helpers 需要共享纯指数退避 primitive，正式真源只能是 `custom_components/lipro/core/utils/backoff.py`，不得再把 `request_policy.py` 讲成 shared compat route。
 
 ## Review Checklist
 
@@ -152,14 +154,14 @@
 ## Phase 54 Helper-Hotspot Clarifications
 
 - `custom_components/lipro/core/anonymous_share/registry.py`、diagnostics services 与 share-service flows 只允许经 `manager.py` / `share_client.py` / `helpers.py` 读取正式 story；`manager_support.py`、`share_client_support.py` 与 `helper_support.py` 只能被对应 formal homes inward 依赖。
-- `custom_components/lipro/core/api/request_policy.py` 可以 inward 依赖 `request_policy_support.py` 承接 pacing/backoff mechanics；`transport_retry.py`、`core/command/result_policy.py`、`core/coordinator/runtime/command/retry.py` 与 `core/mqtt/setup_backoff.py` 若仍复用 `compute_exponential_retry_wait_time()`，只能继续经 `request_policy.py` 这一 compat surface 读取，不得直连 `request_policy_support.py`。
+- `custom_components/lipro/core/api/request_policy.py` 可以 inward 依赖 `request_policy_support.py` 承接 API-local pacing/backoff mechanics；`request_policy_support.py` 只属于 API-plane inward helper，`transport_retry.py`、`core/command/result_policy.py`、`core/coordinator/runtime/command/retry.py` 与 `core/mqtt/setup_backoff.py` 的 shared exponential-backoff primitive 必须直接来自 `core/utils/backoff.py`，不得再把 `request_policy.py` 讲成 shared backoff relay，也不得直连 `request_policy_support.py`。
 - `custom_components/lipro/control/service_router.py` 的 diagnostics callback truth 不变；helpers/support splitting 不得让 services / tests / docs 绕过 router 讲出第二 public callback story。
 
 
 ## Phase 56 Neutral Backoff Clarifications
 
 - `custom_components/lipro/core/utils/backoff.py` 是 neutral shared exponential-backoff primitive home；它只承接 pure delay math，不承担 plane-local retry policy。
-- `custom_components/lipro/core/api/request_policy.py` 已停止导出 `compute_exponential_retry_wait_time()`；API plane 只保留 `429` / busy / pacing decision truth。
+- `custom_components/lipro/core/api/request_policy.py` 已停止导出 `compute_exponential_retry_wait_time()`；API plane 只保留 `429` / busy / pacing decision truth，也不再充当 shared backoff import surface。
 - `custom_components/lipro/core/command/result_policy.py`、`custom_components/lipro/core/coordinator/runtime/command/retry.py` 与 `custom_components/lipro/core/mqtt/setup_backoff.py` 现统一从 `core/utils/backoff.py` import primitive，同时继续保留各自的 local retry semantics。
 
 ## Phase 57 Typed Command-Result Contract Clarifications

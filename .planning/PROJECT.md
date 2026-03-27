@@ -1,18 +1,25 @@
 # Project: Lipro-HASS North Star Evolution
 
 
-**Status:** No active milestone route
-**Current route:** `no active milestone route / latest archived baseline = v1.22`；latest archived evidence index = `.planning/reviews/V1_22_EVIDENCE_INDEX.md`.
-**Legacy route-string compatibility:** **Status:** `no active milestone route / latest archived baseline = v1.22`；latest archived closeout pointer = `.planning/reviews/V1_22_EVIDENCE_INDEX.md`.
-**Goal:** 以 `v1.22` 归档后的 contributor / maintainer / release 单一路由作为下一轮里程碑的稳定起点；现阶段只允许从最新 archived baseline 显式开立新 milestone，而不是回流旧治理故事线。
-**Default next step:** `$gsd-new-milestone`
-**Active baseline:** active milestone = `none`；latest archived baseline = `v1.22`；previous archived baseline = `v1.21`.
+**Status:** `v1.23 active route`
+**Current route:** `v1.23 active route / Phase 85 complete / latest archived baseline = v1.22`；latest archived evidence index = `.planning/reviews/V1_22_EVIDENCE_INDEX.md`.
+**Legacy route-string compatibility:** **Status:** `v1.23 active route / Phase 85 complete / latest archived baseline = v1.22`；latest archived closeout pointer = `.planning/reviews/V1_22_EVIDENCE_INDEX.md`.
+**Goal:** 对全仓 `production / tests / docs / governance / configs` 做一次 terminal audit，并把 remaining residual、hotspot、truth drift 与 delete-gate debt 收口到单一 north-star 主链，避免再次出现“已完成但仍有尾巴”的反复整改。
+**Default next step:** `$gsd-plan-phase 86`
+**Active baseline:** active milestone = `v1.23`；latest archived baseline = `v1.22`；previous archived baseline = `v1.21`。
 
 <!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone: null
+active_milestone:
+  version: v1.23
+  name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
+  status: Phase 85 complete (2026-03-27)
+  phase: "85"
+  phase_title: Terminal audit refresh and residual routing
+  phase_dir: 85-terminal-audit-refresh-and-residual-routing
+  route_mode: Phase 85 complete
 latest_archived:
   version: v1.22
   name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
@@ -28,11 +35,31 @@ previous_archived:
   name: Governance Bootstrap Truth Hardening & Planning Route Automation
   evidence_path: .planning/reviews/V1_21_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.22
-  default_next_command: $gsd-new-milestone
+  current_route: v1.23 active route / Phase 85 complete / latest archived baseline = v1.22
+  default_next_command: $gsd-plan-phase 86
   latest_archived_evidence_pointer: .planning/reviews/V1_22_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
+
+## Current Milestone (v1.23)
+
+**Name:** `Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze`
+
+**Why now:** `v1.22` 已把 contributor / maintainer / release 路由冻结为最新 archived baseline，但本仓库仍存在适合用“终局审计 + 定向清零”来处理的剩余问题：部分 production files/functions 仍偏大，治理真源与历史叙事仍需持续防漂移，tests/meta 仍承担部分高密度 truth-carrier 责任，且 residual / delete-gate 虽已大幅收敛，但仍缺少一次针对“非阻塞也要诚实归零”的 repo-wide terminal pass。
+
+**North-star fit:** `v1.23` 当前 active route 锁定以下裁决：
+
+- 审计必须覆盖 `custom_components/lipro`、`tests`、`docs`、`.planning`、workflow/config entry points，而不是只盯单一平面。
+- 所有 cleanup 都必须服务于正式主链收敛：`protocol / runtime / control / domain / governance` 各自 formal home 更清晰，而不是重开 helper folklore 或第二故事线。
+- non-blocking residual 也要被明确裁决：能删则删、该 freeze 则 freeze、需要继续 carry-forward 时必须 machine-checkable，不接受 silent defer。
+- 任何本轮新增/调整的 truth 都必须同步回写到 `PROJECT / ROADMAP / REQUIREMENTS / STATE / baseline / reviews / focused guards`，避免“代码收口、治理失真”。
+
+**Current status:** `Phase 85 complete (2026-03-27)`
+**Phase 85 closeout:** `.planning/phases/85-terminal-audit-refresh-and-residual-routing/{85-01-SUMMARY.md,85-02-SUMMARY.md,85-03-SUMMARY.md}`
+**Starting baseline:** `.planning/v1.22-MILESTONE-AUDIT.md`, `.planning/reviews/V1_22_EVIDENCE_INDEX.md`, `.planning/milestones/v1.22-ROADMAP.md`, `.planning/milestones/v1.22-REQUIREMENTS.md`
+**Requirements basket:** `AUD-04`, `GOV-62`, `HOT-37`, `ARC-22`, `HOT-38`, `TST-27`, `GOV-63`, `QLT-35`
+**Default next command:** `$gsd-plan-phase 86`
+**Next route after Phase 85:** production residual eradication and boundary re-tightening
 
 ## Latest Archived Milestone (v1.22)
 

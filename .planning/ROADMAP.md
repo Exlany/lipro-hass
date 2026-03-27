@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- 🚧 **v1.23 Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze** - active route opened on 2026-03-27; `Phase 85 -> 88` planned; latest archived baseline = `v1.22`; latest archived evidence index = `.planning/reviews/V1_22_EVIDENCE_INDEX.md`; default next command = `$gsd-plan-phase 86`
 - ✅ **v1.22 Maintainer Entry Contracts, Release Operations Closure & Contributor Routing** - `Phase 81 -> 84` archived on 2026-03-27; milestone audit: `.planning/v1.22-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_22_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.22-ROADMAP.md` / `.planning/milestones/v1.22-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.22`
 - ✅ **v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation** - `Phase 76 -> 80` archived on 2026-03-26; milestone audit: `.planning/v1.21-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_21_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.21-ROADMAP.md` / `.planning/milestones/v1.21-REQUIREMENTS.md`; historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.21`
 - 🗂 **Historical archive snapshots** - `.planning/milestones/{v1.1-ROADMAP.md,v1.1-REQUIREMENTS.md,v1.2-ROADMAP.md,v1.2-REQUIREMENTS.md,v1.4-ROADMAP.md,v1.4-REQUIREMENTS.md,v1.5-ROADMAP.md,v1.5-REQUIREMENTS.md,v1.6-ROADMAP.md,v1.6-REQUIREMENTS.md,v1.12-ROADMAP.md,v1.12-REQUIREMENTS.md,v1.13-ROADMAP.md,v1.13-REQUIREMENTS.md,v1.14-ROADMAP.md,v1.14-REQUIREMENTS.md,v1.15-ROADMAP.md,v1.15-REQUIREMENTS.md,v1.16-ROADMAP.md,v1.16-REQUIREMENTS.md,v1.17-ROADMAP.md,v1.17-REQUIREMENTS.md}` 继续保留为 continuity / archive reference。
@@ -10,7 +11,14 @@
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone: null
+active_milestone:
+  version: v1.23
+  name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
+  status: Phase 85 complete (2026-03-27)
+  phase: "85"
+  phase_title: Terminal audit refresh and residual routing
+  phase_dir: 85-terminal-audit-refresh-and-residual-routing
+  route_mode: Phase 85 complete
 latest_archived:
   version: v1.22
   name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
@@ -26,11 +34,70 @@ previous_archived:
   name: Governance Bootstrap Truth Hardening & Planning Route Automation
   evidence_path: .planning/reviews/V1_21_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.22
-  default_next_command: $gsd-new-milestone
+  current_route: v1.23 active route / Phase 85 complete / latest archived baseline = v1.22
+  default_next_command: $gsd-plan-phase 86
   latest_archived_evidence_pointer: .planning/reviews/V1_22_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
+
+## v1.23: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
+
+> `v1.23` 当前作为 active route 建立：它承接 `v1.22` 的 archived evidence，目标是对仓库做一次全域 terminal audit，并把 remaining production hotspot、governance drift、non-blocking residual 与 delete-gate debt 一次性收口到可验证、可维护、可归档的单一 north-star 故事。
+
+**Milestone Goal:** 用“先终局审计、再定向清零、最后全域验证”的路径，把全仓剩余结构债、治理债与非阻塞残留收口干净，而不是继续依赖局部修补与后续 carry-forward。
+**Milestone status:** `Phase 85 complete (2026-03-27)`
+**Starting baseline:** `.planning/v1.22-MILESTONE-AUDIT.md`, `.planning/reviews/V1_22_EVIDENCE_INDEX.md`, `.planning/milestones/v1.22-ROADMAP.md`, `.planning/milestones/v1.22-REQUIREMENTS.md`
+**Requirements basket:** `AUD-04`, `GOV-62`, `HOT-37`, `ARC-22`, `HOT-38`, `TST-27`, `GOV-63`, `QLT-35`
+**Default next command:** `$gsd-plan-phase 86`
+
+### Phase 85: Terminal audit refresh and residual routing
+
+**Goal:** 先做一轮不留盲点的终局审计，把“是否还有 live residual / hotspot”从印象变成可执行路线。
+**Depends on:** Phase 84
+**Requirements**: [AUD-04, GOV-62]
+**Success Criteria**:
+  1. 维护者可以查看一份覆盖 production / tests / tooling / docs / governance 的 file-level audit verdict。
+  2. 每个新发现的问题都被归类为 `close now / route next / explicitly keep`，不存在无 owner 的模糊项。
+  3. planning/baseline/review truth 对 audit 结论讲同一条故事，不误复活已关闭 residual。
+**Status**: Complete (2026-03-27)
+**Plans**: 3 total / 3 completed / 0 pending
+**Promoted closeout package**: `85-01-SUMMARY.md`, `85-02-SUMMARY.md`, `85-03-SUMMARY.md`
+
+### Phase 86: Production residual eradication and boundary re-tightening
+
+**Goal:** 清掉 audit 确认的 production-path 残留，同时维持 formal roots 与 public surfaces 不漂移。
+**Depends on:** Phase 85
+**Requirements**: [HOT-37, ARC-22]
+**Success Criteria**:
+  1. 维护者在 protocol / runtime / control / domain 热点处不再遇到 empty shell、stale alias、compat glue 或第二故事线。
+  2. 被触及的正式 home 继续保持 single-root / thin-adapter / localized-helper 边界，不出现 backdoor 或 public-surface 回流。
+  3. production residual 的删除/拆薄结果能被 file ownership 与 boundary truth 清楚解释。
+**Status**: Not started
+**Plans**: 0 total / 0 completed / 0 pending
+
+### Phase 87: Assurance hotspot decomposition and no-regrowth guards
+
+**Goal:** 把 audit 确认的 test/tooling/governance 热点继续切薄，让 assurance 真正承担“守边界”而不是“吸附所有故事”。
+**Depends on:** Phase 86
+**Requirements**: [HOT-38, TST-27]
+**Success Criteria**:
+  1. giant 或 thick assurance roots 被 topicize / thin-root 化后，失败能直接定位到具体 concern family。
+  2. 每个被清掉的 hotspot 都有 focused guard 或 regression 锁住，不靠记忆防回流。
+  3. 维护者可以运行更小、更诚实的 suites，而不损失 guard strength。
+**Status**: Not started
+**Plans**: 0 total / 0 completed / 0 pending
+
+### Phase 88: Governance sync, quality proof, and milestone freeze
+
+**Goal:** 把 v1.23 的清理结果冻结成唯一 current truth，并完成 closeout-ready 证明。
+**Depends on:** Phase 87
+**Requirements**: [GOV-63, QLT-35]
+**Success Criteria**:
+  1. `PROJECT / ROADMAP / REQUIREMENTS / STATE / baselines / reviews / docs` 共同承认同一条 post-eradication topology 与 residual verdict。
+  2. 仓库质量门可以证明 touched scope 通过，且不存在 orphan residual / orphan kill target。
+  3. 若仍有 carry-forward，维护者能在 ledgers 中直接看到 owner、exit condition 与证据入口。
+**Status**: Not started
+**Plans**: 0 total / 0 completed / 0 pending
 
 ## v1.22: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
 

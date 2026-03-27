@@ -23,6 +23,13 @@
 | `device_delegation.py` dynamic delegation carrier | `custom_components/lipro/core/device/device_delegation.py` | `13 explicit domain surface` | Phase 13 | device/state 正式表面已改成显式 property / method surface，不再需要独立 delegation carrier | 已关闭（Phase 13：file removed） |
 | `LiproDevice.__getattr__` / `DeviceState.__getattr__` | `custom_components/lipro/core/device/{device.py,state.py}` | `13 explicit domain surface` | Phase 13 | focused tests 锁定 no-`__getattr__` contract，device/state surface 只由显式 façade 定义 | 已关闭（Phase 13：dynamic delegation removed） |
 
+## Phase 85 Routed Delete Gates
+
+| Target | Current carrier | Owner | Earliest delete phase | Delete when | Phase 85 verdict |
+|--------|------------------|-------|-----------------------|-------------|------------------|
+| `_safe_read_json()` backward-compatible alias | `custom_components/lipro/core/anonymous_share/share_client.py` | `Phase 86 anonymous-share outcome-native cleanup` | Phase 86 | tests / callers no longer need legacy alias, and only the formal JSON reader method remains | route next |
+| `submit_share_payload()` bool compatibility shim | `custom_components/lipro/core/anonymous_share/share_client.py` | `Phase 86 anonymous-share outcome-native cleanup` | Phase 86 | share submission callers/tests fully consume `OperationOutcome` and no longer require bool-only projection | route next |
+
 ## Deletion Gate
 
 删除前必须满足：
@@ -367,3 +374,9 @@
 
 - 本次里程碑 closeout **无新增 active kill target**；被关闭的是隐式 active-route story，而不是任何需要回头删除的临时壳层。
 - 后续唯一正式下一步是 `$gsd-new-milestone`；不得再以“补 closeout story”“补 archive pointer”或“补 final governance topicization”为名重开隐性 phase。
+
+## Phase 85 Status Update
+
+- 本 phase **无新增 file-level kill target**；repo-wide terminal audit 冻结的是 verdict / routing truth，不是新的 file-delete campaign。
+- `custom_components/lipro/core/anonymous_share/share_client.py` 当前只登记 `_safe_read_json()` alias 与 `submit_share_payload()` bool shim 这两个 symbol-level delete gates；文件本身仍是正式 anonymous-share worker client home。
+- `custom_components/lipro/runtime_infra.py` 与 giant assurance carriers（`tests/core/api/test_api_diagnostics_service.py`、`tests/core/api/test_protocol_contract_matrix.py`、`tests/core/coordinator/runtime/test_mqtt_runtime.py`）只允许沿 `Phase 86/87` 做 inward split / topicization，不得被叙述成未来 file-level kill target。

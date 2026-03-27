@@ -74,9 +74,9 @@ _ROUTE_TESTS = (
     "tests/meta/test_governance_route_handoff_smoke.py",
     "tests/meta/test_governance_milestone_archives.py",
     "tests/meta/test_version_sync.py",
+    "tests/meta/test_phase85_terminal_audit_route_guards.py",
 )
 _CURRENT_ROUTE_PROSE_PATHS = (
-    ".planning/PROJECT.md",
     ".planning/STATE.md",
     ".planning/baseline/PUBLIC_SURFACES.md",
     ".planning/baseline/AUTHORITY_MATRIX.md",

@@ -1,6 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `Phase 74` (`2026-03-25`)
+> **Last aligned through**: `Phase 85` (`2026-03-27`)
+> **Current route alignment**: `v1.23 / Phase 85` active audit route (`2026-03-27`)
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
@@ -22,6 +23,7 @@
 | Runtime service layer | `custom_components/lipro/core/coordinator/services/` | runtime-facing public collaborators |
 | Domain truth | `custom_components/lipro/core/device/`, `custom_components/lipro/core/capability/` | device aggregate 与 capability truth |
 | Control formal home | `custom_components/lipro/control/` | lifecycle / service router / runtime access / diagnostics / system health |
+| Shared runtime infra | `custom_components/lipro/runtime_infra.py` | device-registry listener / pending reload / shared runtime bootstrap ownership |
 | Control service adapters | `custom_components/lipro/services/` | service declarations、request shaping、thin service helpers |
 | Platform adapters | `custom_components/lipro/*.py` platform files | entity projection / HA platform binding |
 | Assurance | `tests/`, `scripts/`, `.planning/baseline/`, `.planning/reviews/` | tests / guards / governance truth |

@@ -1,5 +1,73 @@
 # Requirements: Lipro-HASS North Star Evolution
 
+## Current Milestone (v1.23)
+
+> `v1.23` 现已作为 active route 建立；以下 requirements / traceability 定义 “全仓终极代码审计与残留清零” 的当前执行范围。它承接 `v1.22` 的 archived baseline，但不复用旧 milestone 的完成态叙事；本轮所有变更都必须服务于单一 north-star 主链与可机器验证的治理真相。
+
+### Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
+
+- [x] **AUD-04**: 必须基于当前仓库真相，对 `custom_components`、`tests`、`scripts`、docs、workflows 与 planning/baseline/review assets 做一次 terminal repo-wide audit，产出 file-level verdict、hotspot ranking 与 live residual inventory。
+- [x] **GOV-62**: audit 结论必须同步到 current-story docs 与 baseline/review truth；不得把已关闭 residual 误写回 active family，也不得留下 conversation-only verdict。
+- [ ] **HOT-37**: audit 确认的 production residual / hotspot carriers 必须被删除、拆薄或压回 formal/local helper home；正式目录中不得继续保留 empty shell、stale alias 或 compat folklore。
+- [ ] **ARC-22**: residual eradication 过程中，protocol / runtime / control / domain 仍各自保持单一正式主链；不得引入 second root、backdoor 或 helper-owned public truth。
+- [ ] **HOT-38**: audit 确认的 assurance/tooling hotspots 必须停止承担 giant truth-carrier 职责；需要进一步 topicization、thin-root 化或 inward decomposition。
+- [ ] **TST-27**: 每个被消灭或收窄的 residual family / hotspot 都必须补齐 focused regressions、meta guards 或 no-regrowth checks，保证删除后不会回流。
+- [ ] **GOV-63**: `FILE_MATRIX / RESIDUAL_LEDGER / KILL_LIST / PUBLIC_SURFACES / developer_architecture` 必须共同冻结 post-eradication topology、ownership 与 delete-gate truth。
+- [ ] **QLT-35**: touched scope 必须通过 repo-wide quality proof，并在 closeout 时实现 `zero orphan residuals`；若仍有 carry-forward，必须显式登记 owner、exit condition 与 evidence。
+
+## Traceability for v1.23 route
+
+| Requirement | Planned Phase | Status |
+|-------------|---------------|--------|
+| AUD-04 | Phase 85 | Completed |
+| GOV-62 | Phase 85 | Completed |
+| HOT-37 | Phase 86 | Planned |
+| ARC-22 | Phase 86 | Planned |
+| HOT-38 | Phase 87 | Planned |
+| TST-27 | Phase 87 | Planned |
+| GOV-63 | Phase 88 | Planned |
+| QLT-35 | Phase 88 | Planned |
+
+**Current Coverage:**
+- v1.23 routed requirements: 8 total
+- Current mapped: 8
+- Current complete: 2
+- Current pending: 6
+- Current unmapped: 0 ✓
+
+<!-- governance-route-contract:start -->
+```yaml
+contract_version: 1
+contract_name: governance-route
+active_milestone:
+  version: v1.23
+  name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
+  status: Phase 85 complete (2026-03-27)
+  phase: "85"
+  phase_title: Terminal audit refresh and residual routing
+  phase_dir: 85-terminal-audit-refresh-and-residual-routing
+  route_mode: Phase 85 complete
+latest_archived:
+  version: v1.22
+  name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
+  status: archived / evidence-ready (2026-03-27)
+  phase: "84"
+  phase_title: Governance/open-source guard coverage and milestone truth freeze
+  phase_dir: 84-governance-open-source-guard-coverage-and-milestone-truth-freeze
+  audit_path: .planning/v1.22-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_22_EVIDENCE_INDEX.md
+  evidence_label: latest archived evidence index
+previous_archived:
+  version: v1.21
+  name: Governance Bootstrap Truth Hardening & Planning Route Automation
+  evidence_path: .planning/reviews/V1_21_EVIDENCE_INDEX.md
+bootstrap:
+  current_route: v1.23 active route / Phase 85 complete / latest archived baseline = v1.22
+  default_next_command: $gsd-plan-phase 86
+  latest_archived_evidence_pointer: .planning/reviews/V1_22_EVIDENCE_INDEX.md
+```
+<!-- governance-route-contract:end -->
+
 ## Latest Archived Milestone (v1.22)
 
 > `v1.22` 已于 `2026-03-27` 完成 archive promotion；以下 requirements / traceability 保留 `Phase 81 -> 84` 的最终 fulfilled contract，归档快照见 `.planning/milestones/v1.22-REQUIREMENTS.md`，审计裁决见 `.planning/v1.22-MILESTONE-AUDIT.md`，证据索引见 `.planning/reviews/V1_22_EVIDENCE_INDEX.md`；historical closeout route truth = `no active milestone route / latest archived baseline = v1.22`。
@@ -34,32 +102,6 @@
 - Current complete: 8
 - Current pending: 0
 - Current unmapped: 0 ✓
-
-<!-- governance-route-contract:start -->
-```yaml
-contract_version: 1
-contract_name: governance-route
-active_milestone: null
-latest_archived:
-  version: v1.22
-  name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
-  status: archived / evidence-ready (2026-03-27)
-  phase: "84"
-  phase_title: Governance/open-source guard coverage and milestone truth freeze
-  phase_dir: 84-governance-open-source-guard-coverage-and-milestone-truth-freeze
-  audit_path: .planning/v1.22-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_22_EVIDENCE_INDEX.md
-  evidence_label: latest archived evidence index
-previous_archived:
-  version: v1.21
-  name: Governance Bootstrap Truth Hardening & Planning Route Automation
-  evidence_path: .planning/reviews/V1_21_EVIDENCE_INDEX.md
-bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.22
-  default_next_command: $gsd-new-milestone
-  latest_archived_evidence_pointer: .planning/reviews/V1_22_EVIDENCE_INDEX.md
-```
-<!-- governance-route-contract:end -->
 
 ## Previous Archived Milestone (v1.21)
 

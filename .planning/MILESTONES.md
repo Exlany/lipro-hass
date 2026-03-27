@@ -6,7 +6,14 @@
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone: null
+active_milestone:
+  version: v1.23
+  name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
+  status: Phase 85 complete (2026-03-27)
+  phase: "85"
+  phase_title: Terminal audit refresh and residual routing
+  phase_dir: 85-terminal-audit-refresh-and-residual-routing
+  route_mode: Phase 85 complete
 latest_archived:
   version: v1.22
   name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
@@ -22,8 +29,8 @@ previous_archived:
   name: Governance Bootstrap Truth Hardening & Planning Route Automation
   evidence_path: .planning/reviews/V1_21_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.22
-  default_next_command: $gsd-new-milestone
+  current_route: v1.23 active route / Phase 85 complete / latest archived baseline = v1.22
+  default_next_command: $gsd-plan-phase 86
   latest_archived_evidence_pointer: .planning/reviews/V1_22_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
