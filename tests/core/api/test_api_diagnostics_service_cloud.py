@@ -2,20 +2,14 @@
 
 from __future__ import annotations
 
-from typing import cast
 from unittest.mock import AsyncMock
 
 import pytest
 
 from custom_components.lipro.const.api import PATH_QUERY_USER_CLOUD
 from custom_components.lipro.core.api.diagnostics_api_service import query_user_cloud
-from custom_components.lipro.core.api.types import JsonObject
 
-
-def _require_mapping_response(_path: str, payload: object) -> JsonObject:
-    if isinstance(payload, dict):
-        return cast(JsonObject, payload)
-    return {}
+from .test_api_diagnostics_service_support import _require_mapping_response
 
 
 @pytest.mark.asyncio

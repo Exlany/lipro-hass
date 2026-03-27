@@ -20,21 +20,7 @@ from custom_components.lipro.core.api.diagnostics_api_service import (
 )
 from custom_components.lipro.core.api.types import OtaInfoRow
 
-
-class DummyApiError(Exception):
-    """Dummy API error used to trigger error branches in tests."""
-
-    def __init__(self, message: str, code: str | int | None = None) -> None:
-        super().__init__(message)
-        self.code = code
-
-
-def _extract_rows(payload: object) -> list[object]:
-    if isinstance(payload, dict):
-        rows = payload.get("rows")
-        if isinstance(rows, list):
-            return rows
-    return []
+from .test_api_diagnostics_service_support import DummyApiError, _extract_rows
 
 
 def test_build_rich_ota_v2_payload_requires_enabled_flag_and_iot_name() -> None:

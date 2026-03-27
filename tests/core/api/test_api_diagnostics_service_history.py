@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import cast
 from unittest.mock import AsyncMock
 
 import pytest
@@ -14,19 +13,10 @@ from custom_components.lipro.core.api.diagnostics_api_service import (
 )
 from custom_components.lipro.core.api.types import JsonObject
 
-
-class DummyApiError(Exception):
-    """Dummy API error used to trigger error branches in tests."""
-
-    def __init__(self, message: str, code: str | int | None = None) -> None:
-        super().__init__(message)
-        self.code = code
-
-
-def _require_mapping_response(_path: str, payload: object) -> JsonObject:
-    if isinstance(payload, dict):
-        return cast(JsonObject, payload)
-    return {}
+from .test_api_diagnostics_service_support import (
+    DummyApiError,
+    _require_mapping_response,
+)
 
 
 @pytest.mark.asyncio
