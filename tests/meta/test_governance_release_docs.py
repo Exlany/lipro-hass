@@ -43,7 +43,7 @@ def test_contributor_contract_matches_ci_language() -> None:
     assert {"lint", "governance", "test", "benchmark", "validate", "release"} <= set(
         contributing_bullets
     )
-    assert {"lint", "governance", "test", "benchmark"} <= set(pr_checklist)
+    assert {"lint", "governance", "test", "benchmark", "docs/navigation"} <= set(pr_checklist)
     assert "uv run python scripts/check_translations.py" in contributing_bullets["lint"]
     assert "tests/meta/test_governance*.py" in contributing_bullets["governance"]
     assert "tests/meta/test_toolchain_truth.py" in contributing_bullets["governance"]
@@ -134,7 +134,7 @@ def test_contributor_architecture_change_map_is_linked_and_scope_honest() -> Non
     assert _CONTRIBUTOR_CHANGE_MAP.exists()
     change_map_text = _CONTRIBUTOR_CHANGE_MAP.read_text(encoding="utf-8")
 
-    for path in (_README, _README_ZH, _DOCS_README, _CONTRIBUTING):
+    for path in (_README, _README_ZH, _DOCS_README, _CONTRIBUTING, _SUPPORT, _SECURITY, _PR_TEMPLATE):
         assert "docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md" in path.read_text(encoding="utf-8")
 
     for token in (
@@ -156,6 +156,10 @@ def test_contributor_architecture_change_map_is_linked_and_scope_honest() -> Non
     assert "$gsd-" not in change_map_text
     assert "phase 81" not in lowered
     assert "latest archived baseline" not in lowered
+
+    pr_template_text = _PR_TEMPLATE.read_text(encoding="utf-8")
+    assert "docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md" in pr_template_text
+    assert "protocol / runtime / control / external-boundary / governance" in pr_template_text
 
 
 def test_change_type_validation_guidance_is_consistent() -> None:
