@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🚧 **v1.23 Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze** - active route opened on 2026-03-27; `Phase 85 -> 86` complete, `Phase 87` execution-ready, `Phase 88` pending; latest archived baseline = `v1.22`; latest archived evidence index = `.planning/reviews/V1_22_EVIDENCE_INDEX.md`; default next command = `$gsd-execute-phase 87`
+- 🚧 **v1.23 Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze** - active route opened on 2026-03-27; `Phase 85 -> 86` complete, `Phase 87` in progress, `Phase 88` pending; latest archived baseline = `v1.22`; latest archived evidence index = `.planning/reviews/V1_22_EVIDENCE_INDEX.md`; default next command = `$gsd-execute-phase 87`
 - ✅ **v1.22 Maintainer Entry Contracts, Release Operations Closure & Contributor Routing** - `Phase 81 -> 84` archived on 2026-03-27; milestone audit: `.planning/v1.22-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_22_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.22-ROADMAP.md` / `.planning/milestones/v1.22-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.22`
 - ✅ **v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation** - `Phase 76 -> 80` archived on 2026-03-26; milestone audit: `.planning/v1.21-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_21_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.21-ROADMAP.md` / `.planning/milestones/v1.21-REQUIREMENTS.md`; historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.21`
 - 🗂 **Historical archive snapshots** - `.planning/milestones/{v1.1-ROADMAP.md,v1.1-REQUIREMENTS.md,v1.2-ROADMAP.md,v1.2-REQUIREMENTS.md,v1.4-ROADMAP.md,v1.4-REQUIREMENTS.md,v1.5-ROADMAP.md,v1.5-REQUIREMENTS.md,v1.6-ROADMAP.md,v1.6-REQUIREMENTS.md,v1.12-ROADMAP.md,v1.12-REQUIREMENTS.md,v1.13-ROADMAP.md,v1.13-REQUIREMENTS.md,v1.14-ROADMAP.md,v1.14-REQUIREMENTS.md,v1.15-ROADMAP.md,v1.15-REQUIREMENTS.md,v1.16-ROADMAP.md,v1.16-REQUIREMENTS.md,v1.17-ROADMAP.md,v1.17-REQUIREMENTS.md}` 继续保留为 continuity / archive reference。
@@ -14,11 +14,11 @@ contract_name: governance-route
 active_milestone:
   version: v1.23
   name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
-  status: Phase 87 execution-ready (2026-03-27)
+  status: Phase 87 in progress (2026-03-27)
   phase: '87'
   phase_title: Assurance hotspot decomposition and no-regrowth guards
   phase_dir: 87-assurance-hotspot-decomposition-and-no-regrowth-guards
-  route_mode: Phase 87 execution-ready
+  route_mode: Phase 87 in progress
 latest_archived:
   version: v1.22
   name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
@@ -34,7 +34,7 @@ previous_archived:
   name: Governance Bootstrap Truth Hardening & Planning Route Automation
   evidence_path: .planning/reviews/V1_21_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.23 active route / Phase 87 execution-ready / latest archived baseline = v1.22
+  current_route: v1.23 active route / Phase 87 in progress / latest archived baseline = v1.22
   default_next_command: $gsd-execute-phase 87
   latest_archived_evidence_pointer: .planning/reviews/V1_22_EVIDENCE_INDEX.md
 ```
@@ -45,7 +45,7 @@ bootstrap:
 > `v1.23` 当前作为 active route 建立：它承接 `v1.22` 的 archived evidence，目标是对仓库做一次全域 terminal audit，并把 remaining production hotspot、governance drift、non-blocking residual 与 delete-gate debt 一次性收口到可验证、可维护、可归档的单一 north-star 故事。
 
 **Milestone Goal:** 用“先终局审计、再定向清零、最后全域验证”的路径，把全仓剩余结构债、治理债与非阻塞残留收口干净，而不是继续依赖局部修补与后续 carry-forward。
-**Milestone status:** `Phase 87 execution-ready (2026-03-27)`
+**Milestone status:** `Phase 87 in progress (2026-03-27)`
 **Starting baseline:** `.planning/v1.22-MILESTONE-AUDIT.md`, `.planning/reviews/V1_22_EVIDENCE_INDEX.md`, `.planning/milestones/v1.22-ROADMAP.md`, `.planning/milestones/v1.22-REQUIREMENTS.md`
 **Requirements basket:** `AUD-04`, `GOV-62`, `HOT-37`, `ARC-22`, `HOT-38`, `TST-27`, `GOV-63`, `QLT-35`
 **Default next command:** `$gsd-execute-phase 87`
@@ -85,9 +85,10 @@ bootstrap:
   1. giant 或 thick assurance roots 被 topicize / thin-root 化后，失败能直接定位到具体 concern family。
   2. 每个被清掉的 hotspot 都有 focused guard 或 regression 锁住，不靠记忆防回流。
   3. 维护者可以运行更小、更诚实的 suites，而不损失 guard strength。
-**Status**: Execution-ready (2026-03-27)
-**Plans**: 4 total / 0 completed / 4 pending
+**Status**: In progress (2026-03-27)
+**Plans**: 4 total / 1 completed / 3 pending
 **Planning assets**: `.planning/phases/87-assurance-hotspot-decomposition-and-no-regrowth-guards/{87-CONTEXT.md,87-RESEARCH.md,87-01-PLAN.md,87-02-PLAN.md,87-03-PLAN.md,87-04-PLAN.md}`
+**Executed summaries**: `.planning/phases/87-assurance-hotspot-decomposition-and-no-regrowth-guards/87-01-SUMMARY.md`
 
 ### Phase 88: Governance sync, quality proof, and milestone freeze
 

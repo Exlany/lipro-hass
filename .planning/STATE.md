@@ -2,13 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.23
 milestone_name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
-status: Phase 87 execution-ready
-last_updated: "2026-03-27T00:00:00Z"
+current_phase: `Phase 87`
+status: Phase 87 in progress
+last_updated: "2026-03-27T09:45:01.807Z"
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 11
-  completed_plans: 7
+  completed_plans: 9
 ---
 
 # Project State
@@ -19,27 +20,28 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.23 Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze`
 **Core value:** 用 `v1.22` archived baseline 作为唯一可信起点，对全仓 remaining hotspot / residual / governance drift 做一次终局审计与可验证收口，而不是继续把非阻塞问题留给未来模糊 carry-forward。
-**Current mode:** `Phase 87 execution-ready`
+**Current mode:** `Phase 87 in progress`
 
 ## Current Position
 
-- `Phase 85 -> 86` 已完成 terminal audit 与 production residual closeout；`Phase 87` 已完成 context / research / 4-plan bundle 收口，当前处于 execution-ready 状态。
+- `Phase 85 -> 86` 已完成 terminal audit 与 production residual closeout；`Phase 87` 已执行 `87-01`，将 diagnostics API hotspot topicize 为 OTA/history/cloud concern-local suites，当前进入 in-progress 状态。
 - latest archived baseline 固定为 `v1.22`；latest archived evidence index 继续是 `.planning/reviews/V1_22_EVIDENCE_INDEX.md`；`v1.21` 继续承担 previous archived baseline。
-- 本轮默认下一步是 `$gsd-execute-phase 87`；`Phase 87` 必须直接消费 `V1_23_TERMINAL_AUDIT.md` / `FILE_MATRIX.md` / `RESIDUAL_LEDGER.md` / `KILL_LIST.md`、`87-CONTEXT.md`、`87-RESEARCH.md` 与 `87-01~04-PLAN.md` 的 routed truth。
-- `Phase 86` 的 closeout summaries 已落盘；`Phase 87` 的 execution-ready bundle 已落盘到 `.planning/phases/87-assurance-hotspot-decomposition-and-no-regrowth-guards/{87-CONTEXT.md,87-RESEARCH.md,87-01-PLAN.md,87-02-PLAN.md,87-03-PLAN.md,87-04-PLAN.md}`；下一跳应进入 `$gsd-execute-phase 87`。
+- 本轮默认下一步仍是 `$gsd-execute-phase 87`；remaining work 必须直接消费 `V1_23_TERMINAL_AUDIT.md` / `FILE_MATRIX.md` / `RESIDUAL_LEDGER.md` / `KILL_LIST.md`、`87-CONTEXT.md`、`87-RESEARCH.md`、`87-01-SUMMARY.md` 与 `87-02~04-PLAN.md` 的 routed truth。
+- `Phase 86` 的 closeout summaries 已落盘；`Phase 87` 现已拥有 `.planning/phases/87-assurance-hotspot-decomposition-and-no-regrowth-guards/87-01-SUMMARY.md` 作为首个执行产物，下一跳继续执行 `87-02~04`。
 
 <!-- governance-route-contract:start -->
+
 ```yaml
 contract_version: 1
 contract_name: governance-route
 active_milestone:
   version: v1.23
   name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
-  status: Phase 87 execution-ready (2026-03-27)
+  status: Phase 87 in progress (2026-03-27)
   phase: '87'
   phase_title: Assurance hotspot decomposition and no-regrowth guards
   phase_dir: 87-assurance-hotspot-decomposition-and-no-regrowth-guards
-  route_mode: Phase 87 execution-ready
+  route_mode: Phase 87 in progress
 latest_archived:
   version: v1.22
   name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
@@ -55,10 +57,11 @@ previous_archived:
   name: Governance Bootstrap Truth Hardening & Planning Route Automation
   evidence_path: .planning/reviews/V1_21_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.23 active route / Phase 87 execution-ready / latest archived baseline = v1.22
+  current_route: v1.23 active route / Phase 87 in progress / latest archived baseline = v1.22
   default_next_command: $gsd-execute-phase 87
   latest_archived_evidence_pointer: .planning/reviews/V1_22_EVIDENCE_INDEX.md
 ```
+
 <!-- governance-route-contract:end -->
 
 ## Current Milestone (v1.23)
@@ -66,10 +69,11 @@ bootstrap:
 - **Milestone:** `v1.23 Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze`
 - **Phase range:** `85 -> 88`
 - **Current phase:** `Phase 87`
-- **Current phase status:** `Phase 87 execution-ready (2026-03-27)`
+- **Current phase status:** `Phase 87 in progress (2026-03-27)`
 - **Phase 85 closeout summaries:** `.planning/phases/85-terminal-audit-refresh-and-residual-routing/{85-01-SUMMARY.md,85-02-SUMMARY.md,85-03-SUMMARY.md}`
 - **Phase 86 closeout summaries:** `.planning/phases/86-production-residual-eradication-and-boundary-re-tightening/{86-01-SUMMARY.md,86-02-SUMMARY.md,86-03-SUMMARY.md,86-04-SUMMARY.md}`
 - **Phase 87 planning bundle:** `.planning/phases/87-assurance-hotspot-decomposition-and-no-regrowth-guards/{87-CONTEXT.md,87-RESEARCH.md,87-01-PLAN.md,87-02-PLAN.md,87-03-PLAN.md,87-04-PLAN.md}`
+- **Phase 87 executed summary:** `.planning/phases/87-assurance-hotspot-decomposition-and-no-regrowth-guards/87-01-SUMMARY.md`
 - **Latest archived baseline:** `v1.22`
 - **Milestone starting evidence:** `.planning/v1.22-MILESTONE-AUDIT.md`, `.planning/reviews/V1_22_EVIDENCE_INDEX.md`, `.planning/milestones/v1.22-ROADMAP.md`, `.planning/milestones/v1.22-REQUIREMENTS.md`
 - **Current audit artifact:** `.planning/reviews/V1_23_TERMINAL_AUDIT.md`
