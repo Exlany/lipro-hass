@@ -31,6 +31,10 @@ from .governance_contract_helpers import (
     assert_docs_readme_public_contract,
     assert_issue_docs_entry_contact_link,
 )
+from .governance_current_truth import (
+    LATEST_ARCHIVED_AUDIT_PATH,
+    LATEST_ARCHIVED_EVIDENCE_PATH,
+)
 
 _CODEQL_WORKFLOW = _ROOT / ".github" / "workflows" / "codeql.yml"
 _GOVERNANCE_REGISTRY = _ROOT / ".planning" / "baseline" / "GOVERNANCE_REGISTRY.json"
@@ -277,9 +281,9 @@ def test_maintainer_appendix_routes_to_latest_archived_evidence_without_pollutin
     ):
         assert token in docs_readme_text
 
-    assert ".planning/reviews/V1_21_EVIDENCE_INDEX.md" not in docs_readme_text
-    assert ".planning/v1.21-MILESTONE-AUDIT.md" not in docs_readme_text
-    assert ".planning/reviews/V1_21_EVIDENCE_INDEX.md" not in readme_text
-    assert ".planning/reviews/V1_21_EVIDENCE_INDEX.md" not in readme_zh_text
-    assert ".planning/v1.21-MILESTONE-AUDIT.md" not in readme_text
-    assert ".planning/v1.21-MILESTONE-AUDIT.md" not in readme_zh_text
+    assert LATEST_ARCHIVED_EVIDENCE_PATH not in docs_readme_text
+    assert LATEST_ARCHIVED_AUDIT_PATH not in docs_readme_text
+    assert LATEST_ARCHIVED_EVIDENCE_PATH not in readme_text
+    assert LATEST_ARCHIVED_EVIDENCE_PATH not in readme_zh_text
+    assert LATEST_ARCHIVED_AUDIT_PATH not in readme_text
+    assert LATEST_ARCHIVED_AUDIT_PATH not in readme_zh_text

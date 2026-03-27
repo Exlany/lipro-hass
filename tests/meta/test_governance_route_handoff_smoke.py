@@ -73,7 +73,7 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
     assert 'route-handoff gsd fast-path smoke guard home' in file_matrix_text
 
 
-def test_gsd_fast_path_matches_current_active_route_story() -> None:
+def test_gsd_fast_path_matches_current_archived_route_story() -> None:
     progress = _run_gsd_tools('init', 'progress')
     phases = _as_mapping_list(progress['phases'])
     phase_84 = next(phase for phase in phases if _as_str(phase['number']) == '84')
@@ -88,7 +88,7 @@ def test_gsd_fast_path_matches_current_active_route_story() -> None:
 
     state = _run_gsd_tools('state', 'json')
     assert _as_str(state['milestone']) == CURRENT_MILESTONE
-    assert _as_str(state['status']) == 'active'
+    assert _as_str(state['status']) == 'v1.22 milestone complete'
     assert _as_mapping(state['progress']) == {
         'total_phases': '4',
         'completed_phases': '4',

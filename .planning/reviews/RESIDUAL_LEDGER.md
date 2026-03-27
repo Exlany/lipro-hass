@@ -473,7 +473,7 @@ _None currently registered._
 
 - 无新增 active residual family。
 - focused governance / open-source guards 现已冻结 active-route、docs-entry、template evidence、release / version link 与 promoted closeout truth；后续只能进入 milestone closeout，不得再回退到 `Phase 83` current story。
-- `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / VERIFICATION_MATRIX / PROMOTED_PHASE_ASSETS` 现共同承认 `Phase 84 complete / next = $gsd-complete-milestone v1.22`。
+- `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / VERIFICATION_MATRIX / PROMOTED_PHASE_ASSETS` 现共同承认 `Phase 84 complete / next = $gsd-new-milestone`。
 
 ## v1.21 Milestone Closeout Delta
 

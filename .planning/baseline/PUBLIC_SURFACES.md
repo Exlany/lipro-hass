@@ -2,7 +2,7 @@
 
 **Purpose:** 定义各平面的 canonical public surfaces、过渡公开面与禁止作为正式入口的对象。
 **Status:** Formal baseline asset (`BASE-01` public-surface truth source)
-**Updated:** 2026-03-26 (v1.21 archived-only closeout aligned)
+**Updated:** 2026-03-27 (v1.22 archived-only closeout aligned)
 
 ## Formal Role
 
@@ -33,7 +33,7 @@
 ## Phase 40 Governance Truth Surface Notes
 
 - `.planning/baseline/GOVERNANCE_REGISTRY.json` 是 governance-only 的 machine-readable baseline asset：它只承载 active governance facts（版本、安装、support routing、release trust、continuity、community-health intake contract），不是 runtime / control / protocol 的 public API。
-- `.planning/MILESTONES.md`、`.planning/milestones/*.md`、`.planning/v1.12-MILESTONE-AUDIT.md`、`.planning/v1.13-MILESTONE-AUDIT.md`、`.planning/v1.14-MILESTONE-AUDIT.md`、`.planning/v1.15-MILESTONE-AUDIT.md`、`.planning/v1.16-MILESTONE-AUDIT.md`、`.planning/v1.17-MILESTONE-AUDIT.md`、`.planning/v1.18-MILESTONE-AUDIT.md`、`.planning/v1.19-MILESTONE-AUDIT.md`、`.planning/v1.20-MILESTONE-AUDIT.md`、`.planning/v1.21-MILESTONE-AUDIT.md`、`.planning/v1.6-MILESTONE-AUDIT.md` 与 `.planning/reviews/V1_12_EVIDENCE_INDEX.md` / `.planning/reviews/V1_13_EVIDENCE_INDEX.md` / `.planning/reviews/V1_14_EVIDENCE_INDEX.md` / `.planning/reviews/V1_15_EVIDENCE_INDEX.md` / `.planning/reviews/V1_16_EVIDENCE_INDEX.md` / `.planning/reviews/V1_17_EVIDENCE_INDEX.md` / `.planning/reviews/V1_18_EVIDENCE_INDEX.md` / `.planning/reviews/V1_19_EVIDENCE_INDEX.md` / `.planning/reviews/V1_20_EVIDENCE_INDEX.md` / `.planning/reviews/V1_21_EVIDENCE_INDEX.md` / `.planning/reviews/V1_6_EVIDENCE_INDEX.md` / `.planning/reviews/V1_5_EVIDENCE_INDEX.md` 继续只承担 archive / audit / handoff 身份；它们可以作为历史证据被引用，但不得回流为 current governance truth。
+- `.planning/MILESTONES.md`、`.planning/milestones/*.md`、`.planning/v1.12-MILESTONE-AUDIT.md`、`.planning/v1.13-MILESTONE-AUDIT.md`、`.planning/v1.14-MILESTONE-AUDIT.md`、`.planning/v1.15-MILESTONE-AUDIT.md`、`.planning/v1.16-MILESTONE-AUDIT.md`、`.planning/v1.17-MILESTONE-AUDIT.md`、`.planning/v1.18-MILESTONE-AUDIT.md`、`.planning/v1.19-MILESTONE-AUDIT.md`、`.planning/v1.20-MILESTONE-AUDIT.md`、`.planning/v1.21-MILESTONE-AUDIT.md`、`.planning/v1.22-MILESTONE-AUDIT.md`、`.planning/v1.6-MILESTONE-AUDIT.md` 与 `.planning/reviews/V1_12_EVIDENCE_INDEX.md` / `.planning/reviews/V1_13_EVIDENCE_INDEX.md` / `.planning/reviews/V1_14_EVIDENCE_INDEX.md` / `.planning/reviews/V1_15_EVIDENCE_INDEX.md` / `.planning/reviews/V1_16_EVIDENCE_INDEX.md` / `.planning/reviews/V1_17_EVIDENCE_INDEX.md` / `.planning/reviews/V1_18_EVIDENCE_INDEX.md` / `.planning/reviews/V1_19_EVIDENCE_INDEX.md` / `.planning/reviews/V1_20_EVIDENCE_INDEX.md` / `.planning/reviews/V1_21_EVIDENCE_INDEX.md` / `.planning/reviews/V1_22_EVIDENCE_INDEX.md` / `.planning/reviews/V1_6_EVIDENCE_INDEX.md` / `.planning/reviews/V1_5_EVIDENCE_INDEX.md` 继续只承担 archive / audit / handoff 身份；它们可以作为历史证据被引用，但不得回流为 current governance truth。
 - `docs/README.md` 只保留 public docs map 与 maintainer appendix 指针；archive-ready closeout pointer、current route 与 next GSD action 只允许留在 maintainer-facing governance truth 中。
 - `custom_components/lipro/control/runtime_access.py` 是 control/services 读取 runtime entry 枚举、device lookup 与 snapshot projection 的唯一正式 read-model home。
 - `custom_components/lipro/services/execution.py` 同时保持 `formal shared service execution facade` 身份；`schedule.py` 复用它的 shared executor，而不是维护第二条 auth/error 执行链。

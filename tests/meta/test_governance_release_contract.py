@@ -18,6 +18,10 @@ from .conftest import (
     _as_str_list,
     _load_yaml,
 )
+from .governance_current_truth import (
+    LATEST_ARCHIVED_AUDIT_PATH,
+    LATEST_ARCHIVED_EVIDENCE_PATH,
+)
 
 _CODEQL_WORKFLOW = _ROOT / ".github" / "workflows" / "codeql.yml"
 _GOVERNANCE_REGISTRY = _ROOT / ".planning" / "baseline" / "GOVERNANCE_REGISTRY.json"
@@ -342,8 +346,8 @@ def test_runbook_docs_appendix_and_changelog_share_single_release_story() -> Non
     changelog_text = (_ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
 
     for token in (
-        ".planning/reviews/V1_21_EVIDENCE_INDEX.md",
-        ".planning/v1.21-MILESTONE-AUDIT.md",
+        LATEST_ARCHIVED_EVIDENCE_PATH,
+        LATEST_ARCHIVED_AUDIT_PATH,
         "CHANGELOG.md",
     ):
         assert token in runbook_text
@@ -356,8 +360,8 @@ def test_runbook_docs_appendix_and_changelog_share_single_release_story() -> Non
     ):
         assert token in docs_readme_text
 
-    assert ".planning/reviews/V1_21_EVIDENCE_INDEX.md" not in docs_readme_text
-    assert ".planning/v1.21-MILESTONE-AUDIT.md" not in docs_readme_text
+    assert LATEST_ARCHIVED_EVIDENCE_PATH not in docs_readme_text
+    assert LATEST_ARCHIVED_AUDIT_PATH not in docs_readme_text
 
     for token in (
         "CI reuse",

@@ -14,8 +14,8 @@ This repository currently follows a single-maintainer release model. Every tagge
 - Canonical public support/security paths: `README.md`, `README_zh.md`, `CONTRIBUTING.md`, `SUPPORT.md`, `SECURITY.md`
 - Canonical troubleshooting path: `docs/TROUBLESHOOTING.md`
 - Canonical release-notes summary: `CHANGELOG.md` (maintainer-facing release posture summary, not a second runbook)
-- Canonical latest archived evidence index: `.planning/reviews/V1_21_EVIDENCE_INDEX.md`
-- Canonical archived verdict home: `.planning/v1.21-MILESTONE-AUDIT.md` (pull-only evidence verdict, not current route truth)
+- Canonical latest archived evidence index: `.planning/reviews/V1_22_EVIDENCE_INDEX.md`
+- Canonical archived verdict home: `.planning/v1.22-MILESTONE-AUDIT.md` (pull-only evidence verdict, not current route truth)
 - Canonical firmware certification trust-root asset: `custom_components/lipro/firmware_support_manifest.json` (historical filename retained)
 
 Private repositories and forks skip CI HACS validation because HACS only supports public GitHub repositories; do not treat a skipped HACS job as a release blocker in that case.
@@ -53,7 +53,7 @@ Before creating or publishing a tag:
 1. Working tree is clean and all intended docs/code changes are committed.
 2. Version truth is synchronized across `pyproject.toml`, `manifest.json`, and `const/base.py`.
 3. Public navigation is synchronized across `README.md` / `README_zh.md` / `CONTRIBUTING.md` / `SUPPORT.md` / `SECURITY.md` / troubleshooting docs.
-4. Residual/governance closeout tables, `CHANGELOG.md`, `.planning/reviews/V1_21_EVIDENCE_INDEX.md`, and `.planning/v1.21-MILESTONE-AUDIT.md` are updated when the release carries architectural cleanup or release-route wording changes.
+4. Residual/governance closeout tables, `CHANGELOG.md`, `.planning/reviews/V1_22_EVIDENCE_INDEX.md`, and `.planning/v1.22-MILESTONE-AUDIT.md` are updated when the release carries architectural cleanup or release-route wording changes.
 5. Release custody, custody-restoration rules, freeze conditions, and rollback posture are reviewed before the tag is pushed; do not assume a delegate exists unless `.github/CODEOWNERS` and this runbook explicitly document one.
 6. The following commands pass locally whenever the change scope justifies a release:
 
@@ -106,7 +106,7 @@ uv run pytest -q tests/meta/test_governance*.py tests/meta/test_toolchain_truth.
 - Spot-check one asset with `cosign verify-blob --bundle ...` and confirm the certificate identity matches `.github/workflows/release.yml` for the tagged release path only, even when the workflow was manually re-run for that same tag.
 - Spot-check README / README_zh / CONTRIBUTING / SUPPORT / SECURITY links on the rendered release page.
 - Review the workflow summary and confirm the release artifact install smoke passed against the temporary Home Assistant-style target tree before trusting the published zip/install pair.
-- If the release contains troubleshooting, public-entry, or runbook changes, ensure those docs still point at each other, at `.planning/reviews/V1_21_EVIDENCE_INDEX.md`, at `.planning/v1.21-MILESTONE-AUDIT.md`, and at the canonical public entry points.
+- If the release contains troubleshooting, public-entry, or runbook changes, ensure those docs still point at each other, at `.planning/reviews/V1_22_EVIDENCE_INDEX.md`, at `.planning/v1.22-MILESTONE-AUDIT.md`, and at the canonical public entry points.
 
 ## Maintainer-Unavailable Drill / Continuity Drill Checklist
 

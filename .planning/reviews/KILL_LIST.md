@@ -361,7 +361,7 @@
 ## Phase 84 Status Update
 
 - 本 phase **无新增 active kill target**；focused guard coverage 与 current-route closeout-ready freeze 收口的是 governance truth / docs-entry / promoted-evidence drift，而不是 file-level cleanup campaign。
-- `v1.22` 当前已进入 `Phase 84 complete / closeout-ready`；后续唯一正式下一步是 `$gsd-complete-milestone v1.22`，不得再以“补 guard”“补 starter truth”之名重开隐性 phase。
+- `v1.22` 当前已进入 `Phase 84 complete / closeout-ready`；后续唯一正式下一步是 `$gsd-new-milestone`，不得再以“补 guard”“补 starter truth”之名重开隐性 phase。
 
 ## v1.21 Milestone Closeout Status
 

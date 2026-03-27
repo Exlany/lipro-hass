@@ -1,21 +1,21 @@
 # Requirements: Lipro-HASS North Star Evolution
 
-## Current Milestone (v1.22)
+## Latest Archived Milestone (v1.22)
 
-> `v1.22` 已于 `2026-03-27` 从 `v1.21` archived baseline 正式开立；本轮只承认一条 active route：`v1.22 active route / Phase 84 complete / latest archived baseline = v1.21`。目标不是重开内部治理第二故事线，而是把既有治理真相外化为 maintainer / contributor / release 一体化协作契约。
+> `v1.22` 已于 `2026-03-27` 完成 archive promotion；以下 requirements / traceability 保留 `Phase 81 -> 84` 的最终 fulfilled contract，归档快照见 `.planning/milestones/v1.22-REQUIREMENTS.md`，审计裁决见 `.planning/v1.22-MILESTONE-AUDIT.md`，证据索引见 `.planning/reviews/V1_22_EVIDENCE_INDEX.md`；historical closeout route truth = `no active milestone route / latest archived baseline = v1.22`。
 
 ### Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
 
-- [x] **GOV-60**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / tests/meta` 已共享单一 active-route、default-next-command 与 latest archived evidence pointer；`v1.22` 未回退到 archived-only bootstrap story，也没有把 public docs 写成第二套 current governance truth。
-- [x] **OSS-10**: `README.md`、`README_zh.md`、`CONTRIBUTING.md`、`SUPPORT.md`、`SECURITY.md` 与 `docs/README.md` 必须共同提供一条清晰的 contributor / maintainer first-hop，并互相交叉链接到同一入口矩阵。
-- [x] **DOC-08**: 仓库必须提供 contributor-facing 架构变更地图，明确 protocol / runtime / control / external-boundary / governance 各自的允许改动边界、必要证据与回写位置。
+- [x] **GOV-60**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / tests/meta` 现共同承认 `no active milestone route / latest archived baseline = v1.22`、`.planning/reviews/V1_22_EVIDENCE_INDEX.md` latest pull-only archived evidence index、`v1.21` previous archived baseline 与 `v1.20` historical archived baseline；下一条正式路线只能通过 `$gsd-new-milestone` 显式建立。
+- [x] **OSS-10**: `README.md`、`README_zh.md`、`CONTRIBUTING.md`、`SUPPORT.md`、`SECURITY.md` 与 `docs/README.md` 已共同提供一条清晰的 contributor / maintainer first-hop，并互相交叉链接到同一入口矩阵。
+- [x] **DOC-08**: contributor-facing 架构变更地图已明确 protocol / runtime / control / external-boundary / governance 各自的允许改动边界、必要证据与回写位置。
 - [x] **ARC-21**: release / changelog / version sync / archived evidence 现只讲一条发布主链；未残留 helper-owned release folklore、parallel runbook 或脱离 archived evidence pointer 的发版说明。
-- [x] **GOV-61**: issue / PR / security intake 模板必须收集最小充分证据：复现步骤、影响边界家族、风险/影响面、验证命令与 disclosure route，避免无上下文请求重新制造维护噪音。
-- [x] **OSS-11**: maintainer ownership / triage contract 必须明确 support boundary、review expectations、handoff / continuity 路线与 bus-factor 降噪策略；开源协作不再默认依赖隐性口头知识。
-- [x] **TST-26**: focused guards 必须验证 public entry docs、community-health templates、release / evidence links、active milestone route truth 与 latest archived pointer 的一致性。
-- [x] **QLT-34**: touched scope 必须通过 `uv run python scripts/check_file_matrix.py --check`、focused governance/open-source pytest、必要的 version-sync / release-contract 守卫；新增文档与模板调整不能牺牲 current-truth honesty。
+- [x] **GOV-61**: issue / PR / security intake 模板已收集最小充分证据：复现步骤、影响边界家族、风险/影响面、验证命令与 disclosure route，避免无上下文请求重新制造维护噪音。
+- [x] **OSS-11**: maintainer ownership / triage contract 已明确 support boundary、review expectations、handoff / continuity 路线与 bus-factor 降噪策略；开源协作不再默认依赖隐性口头知识。
+- [x] **TST-26**: focused guards 继续验证 public entry docs、community-health templates、release / evidence links、route truth 与 latest archived pointer 的一致性。
+- [x] **QLT-34**: touched scope 已通过 `uv run python scripts/check_file_matrix.py --check`、focused governance/open-source pytest、version-sync / release-contract 守卫与 GSD fast-path proof；新增文档与模板调整没有牺牲 current-truth honesty。
 
-## Traceability for active v1.22 route
+## Traceability for archived v1.22 route
 
 | Requirement | Planned Phase | Status |
 |-------------|---------------|--------|
@@ -29,7 +29,7 @@
 | QLT-34 | Phase 84 | Completed |
 
 **Current Coverage:**
-- v1.22 requirements: 8 total
+- v1.22 routed requirements: 8 total
 - Current mapped: 8
 - Current complete: 8
 - Current pending: 0
@@ -39,50 +39,44 @@
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.22
   name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
-  status: Phase 84 complete (2026-03-27)
+  status: archived / evidence-ready (2026-03-27)
   phase: "84"
   phase_title: Governance/open-source guard coverage and milestone truth freeze
-  route_mode: Phase 84 complete
-latest_archived:
-  version: v1.21
-  name: Governance Bootstrap Truth Hardening & Planning Route Automation
-  status: archived / evidence-ready (2026-03-26)
-  phase: "80"
-  phase_title: Governance typing closure and final meta-suite hotspot topicization
-  phase_dir: 80-governance-typing-closure-and-final-meta-suite-hotspot-topicization
-  audit_path: .planning/v1.21-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_21_EVIDENCE_INDEX.md
+  phase_dir: 84-governance-open-source-guard-coverage-and-milestone-truth-freeze
+  audit_path: .planning/v1.22-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_22_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.20
-  name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
-  evidence_path: .planning/reviews/V1_20_EVIDENCE_INDEX.md
+  version: v1.21
+  name: Governance Bootstrap Truth Hardening & Planning Route Automation
+  evidence_path: .planning/reviews/V1_21_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.22 active route / Phase 84 complete / latest archived baseline = v1.21
-  default_next_command: $gsd-complete-milestone v1.22
-  latest_archived_evidence_pointer: .planning/reviews/V1_21_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.22
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_22_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
-## Latest Archived Milestone (v1.21)
+## Previous Archived Milestone (v1.21)
 
-> `v1.21` 已于 `2026-03-26` 完成 archive promotion；以下 requirements / traceability 保留 `Phase 76 -> 80` 的最终 fulfilled contract，归档快照见 `.planning/milestones/v1.21-REQUIREMENTS.md`，审计裁决见 `.planning/v1.21-MILESTONE-AUDIT.md`，证据索引见 `.planning/reviews/V1_21_EVIDENCE_INDEX.md`；historical closeout route truth = `no active milestone route / latest archived baseline = v1.21`。
+> `v1.21` 已于 `2026-03-26` 完成 archive promotion；以下 requirements / traceability 保留 `Phase 76 -> 80` 的最终 fulfilled contract，归档快照见 `.planning/milestones/v1.21-REQUIREMENTS.md`，审计裁决见 `.planning/v1.21-MILESTONE-AUDIT.md`，证据索引见 `.planning/reviews/V1_21_EVIDENCE_INDEX.md`；historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.21`。
 
 ### Governance Bootstrap Truth Hardening & Planning Route Automation
 
-- [x] **GOV-57**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / tests/meta` 必须共享单一 deterministic current-route 与 next-milestone seed；当前 archived-only 真相已冻结为 `no active milestone route / latest archived baseline = v1.21`，后续不得再依赖 accidental heading order、hidden parser assumptions 或大段 prose 复制。
-- [x] **ARC-20**: 历史 milestone body 可以继续保留 audit / archive 身份，但不得再在 current-route 之前以 parser-visible 形式伪装成 active/current milestone 候选。
-- [x] **DOC-04**: planning docs 必须显式区分 human-readable narrative 与 machine-readable bootstrap contract，并在不污染 public docs 的前提下诚实声明 latest archived baseline / previous archived baseline / next step。
-- [x] **TST-23**: focused governance guards 必须覆盖 active-route 历史真相、latest-archive projection、historical-route demotion 与 literal-drift freeze，避免同一 current-story 在多份 suites 中手工散写。
-- [x] **QLT-31**: 开启下一条正式路线必须成为可重复验证的质量门；`v1.21` closeout 已证明 GSD smoke、focused route guards、file-matrix / architecture / repo-wide gates 共同完成 archived-only handoff，而非一次性修复。
-- [x] **GOV-58**: live planning/governance truth 已诚实记录 `v1.21` 纳入 `Phase 79` 的 closeout-ready 中间态，并在 archive promotion 后不再遗留第二条 current story。
+- [x] **GOV-57**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / tests/meta` 继续保留 `v1.21` closeout 当时的 archived-only route truth，并作为 `v1.22` 的 previous archived baseline 被 pull；它不再承担 latest archived baseline 身份。
+- [x] **ARC-20**: historical milestone body 可以继续保留 audit / archive 身份，但不得再在 current-route 之前以 parser-visible 形式伪装成 active/current milestone 候选。
+- [x] **DOC-04**: planning docs 继续显式区分 human-readable narrative 与 machine-readable bootstrap contract，并在不污染 public docs 的前提下诚实声明 latest archived baseline / previous archived baseline / next step。
+- [x] **TST-23**: focused governance guards 继续覆盖 active-route 历史真相、latest-archive projection、historical-route demotion 与 literal-drift freeze，避免同一 current-story 在多份 suites 中手工散写。
+- [x] **QLT-31**: 开启下一条正式路线已成为可重复验证的质量门；`v1.21` closeout 继续保留 archived-only handoff 证据，但不再充当 latest archived pointer。
+- [x] **GOV-58**: live planning/governance truth 已诚实记录 `v1.21` 的 closeout-ready 中间态，并在 archive promotion 后不再遗留第二条 current story。
 - [x] **HOT-35**: `scripts/check_file_matrix_registry.py` 不得再保留 monolithic hotspot；分类逻辑已拆到更薄、更清晰的 governed homes。
-- [x] **TST-24**: release-contract governance coverage 必须 topicize 到更清晰的 docs / continuity concern homes，同时保留稳定 anchor suite。
-- [x] **QLT-32**: touched governance/tooling scope 必须通过 focused lint / matrix / architecture / pytest proof，并证明 registry hotspot 的复杂度已下降。
-- [x] **GOV-59**: live planning/governance truth 已诚实记录 `v1.21` 纳入 `Phase 80`，并在 archive promotion 后稳定回到 `no active milestone route / latest archived baseline = v1.21` / `$gsd-new-milestone` 的单一路线。
+- [x] **TST-24**: release-contract governance coverage 已 topicize 到更清晰的 docs / continuity concern homes，同时保留稳定 anchor suite。
+- [x] **QLT-32**: touched governance/tooling scope 已通过 focused lint / matrix / architecture / pytest proof，并证明 registry hotspot 的复杂度已下降。
+- [x] **GOV-59**: live planning/governance truth 已诚实记录 `Phase 80 complete`，并在 archive promotion 后稳定回到 `no active milestone route / latest archived baseline = v1.21` / `$gsd-new-milestone` 的单一路线。
 - [x] **TYP-22**: governance/tooling touched roots 必须回到 `mypy`-clean 状态，且类型边界只能通过显式导出与 typed JSON helper 收口。
 - [x] **HOT-36**: remaining giant governance tests 必须停止承担单体 truth carrier 职责，failure localization 与编辑可维护性必须同步提升。
 - [x] **TST-25**: focused governance suites 必须在 giant-test 拆分后继续覆盖 current route 历史、archived baseline、release workflow 与 follow-up truth。
@@ -108,12 +102,11 @@ bootstrap:
 | QLT-33 | Phase 80 | Completed |
 
 **Current Coverage:**
-- v1.21 requirements: 14 total
+- v1.21 routed requirements: 14 total
 - Current mapped: 14
 - Current complete: 14
 - Current pending: 0
 - Current unmapped: 0 ✓
-
 
 ## Previous Archived Milestone (v1.20)
 
@@ -348,7 +341,7 @@ bootstrap:
 **Coverage:**
 - v1.14 routed requirements: 27 total
 - Current mapped: 27
-- Current complete: 67
+- Current complete: 27
 - Current pending: 0
 - Current unmapped: 0 ✓
 
@@ -582,7 +575,7 @@ bootstrap:
 **Seed Coverage:**
 - v1.3 routed requirements: 29 total
 - Current mapped: 29
-- Current complete: 69
+- Current complete: 29
 - Current pending: 0
 - Current unmapped: 0 ✓
 

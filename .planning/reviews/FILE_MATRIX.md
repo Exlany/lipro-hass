@@ -566,10 +566,10 @@
 | `tests/meta/dependency_guards_review_ledgers.py` | Assurance | Phase 48 / 49 / 54 / 55 / 56 / 58 / 62 | 保留 | dependency-note / verification / naming topic guard family |
 | `tests/meta/dependency_guards_service_runtime.py` | Assurance | Phase 40 / 43 / 50 / 53 / 68 | 保留 | service/runtime dependency-story guard family |
 | `tests/meta/governance_contract_helpers.py` | Assurance | Phase 6 / 77 / 79 / 84 | 保留 | shared governance route/doc helper home + docs-entry / template-evidence assertion home |
-| `tests/meta/governance_current_truth.py` | Assurance | Phase 6 / 77 / 79 / 82 / 84 | 保留 | governance-route contract + shared current/latest archive truth helper + final v1.22 closeout-ready freeze |
+| `tests/meta/governance_current_truth.py` | Assurance | Phase 6 / 77 / 79 / 82 / 84 | 保留 | governance-route contract + shared current/latest archive truth helper + final v1.22 archived-only freeze |
 | `tests/meta/governance_followup_route_closeouts.py` | Assurance | Phase 59 | 保留 | followup-route closeout topic home |
 | `tests/meta/governance_followup_route_continuation.py` | Assurance | Phase 59 | 保留 | followup-route continuation topic home |
-| `tests/meta/governance_followup_route_current_milestones.py` | Assurance | Phase 77 / 79 / 82 / 84 | 保留 | governance-route contract + current/latest archive pointer-drift guard + final v1.22 closeout-ready truth |
+| `tests/meta/governance_followup_route_current_milestones.py` | Assurance | Phase 77 / 79 / 82 / 84 | 保留 | governance-route contract + current/latest archive pointer-drift guard + final v1.22 archived-only truth |
 | `tests/meta/governance_milestone_archives_assets.py` | Assurance | Phase 49 | 保留 | milestone-archive asset existence topic home |
 | `tests/meta/governance_milestone_archives_ordering.py` | Assurance | Phase 49 / 77 / 80 | 保留 | milestone-archive snapshot ordering + historical-route topic home |
 | `tests/meta/governance_milestone_archives_truth.py` | Assurance | Phase 49 / 77 / 80 | 保留 | milestone-archive authority/pointer truth topic home |

@@ -2,49 +2,46 @@
 
 ## Milestones
 
-- 🚧 **v1.22 Maintainer Entry Contracts, Release Operations Closure & Contributor Routing** - opened on 2026-03-27 from `v1.21` archived baseline; current phase = `84`; status: `Phase 84 complete (2026-03-27)`; next step: `$gsd-complete-milestone v1.22`
-- ✅ **v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation** - `Phase 76 -> 80` archived on 2026-03-26; milestone audit: `.planning/v1.21-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_21_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.21-ROADMAP.md` / `.planning/milestones/v1.21-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.21`
+- ✅ **v1.22 Maintainer Entry Contracts, Release Operations Closure & Contributor Routing** - `Phase 81 -> 84` archived on 2026-03-27; milestone audit: `.planning/v1.22-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_22_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.22-ROADMAP.md` / `.planning/milestones/v1.22-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.22`
+- ✅ **v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation** - `Phase 76 -> 80` archived on 2026-03-26; milestone audit: `.planning/v1.21-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_21_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.21-ROADMAP.md` / `.planning/milestones/v1.21-REQUIREMENTS.md`; historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.21`
 - 🗂 **Historical archive snapshots** - `.planning/milestones/{v1.1-ROADMAP.md,v1.1-REQUIREMENTS.md,v1.2-ROADMAP.md,v1.2-REQUIREMENTS.md,v1.4-ROADMAP.md,v1.4-REQUIREMENTS.md,v1.5-ROADMAP.md,v1.5-REQUIREMENTS.md,v1.6-ROADMAP.md,v1.6-REQUIREMENTS.md,v1.12-ROADMAP.md,v1.12-REQUIREMENTS.md,v1.13-ROADMAP.md,v1.13-REQUIREMENTS.md,v1.14-ROADMAP.md,v1.14-REQUIREMENTS.md,v1.15-ROADMAP.md,v1.15-REQUIREMENTS.md,v1.16-ROADMAP.md,v1.16-REQUIREMENTS.md,v1.17-ROADMAP.md,v1.17-REQUIREMENTS.md}` 继续保留为 continuity / archive reference。
 
 <!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.22
   name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
-  status: Phase 84 complete (2026-03-27)
+  status: archived / evidence-ready (2026-03-27)
   phase: "84"
   phase_title: Governance/open-source guard coverage and milestone truth freeze
-  route_mode: Phase 84 complete
-latest_archived:
-  version: v1.21
-  name: Governance Bootstrap Truth Hardening & Planning Route Automation
-  status: archived / evidence-ready (2026-03-26)
-  phase: "80"
-  phase_title: Governance typing closure and final meta-suite hotspot topicization
-  phase_dir: 80-governance-typing-closure-and-final-meta-suite-hotspot-topicization
-  audit_path: .planning/v1.21-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_21_EVIDENCE_INDEX.md
+  phase_dir: 84-governance-open-source-guard-coverage-and-milestone-truth-freeze
+  audit_path: .planning/v1.22-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_22_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.20
-  name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
-  evidence_path: .planning/reviews/V1_20_EVIDENCE_INDEX.md
+  version: v1.21
+  name: Governance Bootstrap Truth Hardening & Planning Route Automation
+  evidence_path: .planning/reviews/V1_21_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.22 active route / Phase 84 complete / latest archived baseline = v1.21
-  default_next_command: $gsd-complete-milestone v1.22
-  latest_archived_evidence_pointer: .planning/reviews/V1_21_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.22
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_22_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
 ## v1.22: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
 
+> `v1.22` 已于 `2026-03-27` 完成 milestone audit、evidence-index closeout 与 archive promotion：它承接 `v1.21` 的 archived evidence，完成 contributor docs first-hop convergence、maintainer release-route closure、community-health intake / stewardship contract formalization 与 focused governance/open-source guard freeze，并把治理状态切换为 `no active milestone route / latest archived baseline = v1.22`。
+
 **Milestone Goal:** 把 `v1.21` 已归档冻结的治理/证据链外化为 contributor / maintainer / release 一体化协作契约，统一入口叙事、发布证据链、intake 模板与 ownership / triage 路由。
-**Milestone status:** `Phase 84 complete (2026-03-27)`
+**Milestone status:** `archived / evidence-ready (2026-03-27)`
 **Starting baseline:** `.planning/v1.21-MILESTONE-AUDIT.md`, `.planning/reviews/V1_21_EVIDENCE_INDEX.md`, `.planning/milestones/v1.21-ROADMAP.md`, `.planning/milestones/v1.21-REQUIREMENTS.md`
 **Requirements basket:** `GOV-60`, `OSS-10`, `DOC-08`, `ARC-21`, `GOV-61`, `OSS-11`, `TST-26`, `QLT-34`
-**Default next command:** `$gsd-complete-milestone v1.22`
+**Archive assets:** `.planning/v1.22-MILESTONE-AUDIT.md`, `.planning/reviews/V1_22_EVIDENCE_INDEX.md`, `.planning/milestones/v1.22-ROADMAP.md`, `.planning/milestones/v1.22-REQUIREMENTS.md`
+**Default next command:** `$gsd-new-milestone`
 
 ### Phase 81: Contributor onramp route convergence and public entry contract
 

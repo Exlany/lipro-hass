@@ -310,6 +310,60 @@ def test_v1_20_closeout_assets_exist_and_are_pull_only() -> None:
         "V1_20_EVIDENCE_INDEX.md",
     )
 
+def test_v1_22_closeout_assets_exist_and_are_pull_only() -> None:
+    evidence_index = _ROOT / ".planning" / "reviews" / "V1_22_EVIDENCE_INDEX.md"
+    milestone_audit = _ROOT / ".planning" / "v1.22-MILESTONE-AUDIT.md"
+
+    assert evidence_index.exists()
+    assert milestone_audit.exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.22-ROADMAP.md").exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.22-REQUIREMENTS.md").exists()
+    _assert_promoted_phase_assets(
+        "81-contributor-onramp-route-convergence-and-public-entry-contract",
+        "81-01-SUMMARY.md",
+        "81-02-SUMMARY.md",
+        "81-03-SUMMARY.md",
+        "81-SUMMARY.md",
+        "81-VERIFICATION.md",
+        "81-VALIDATION.md",
+    )
+    _assert_promoted_phase_assets(
+        "82-release-operations-closure-and-evidence-chain-formalization",
+        "82-01-SUMMARY.md",
+        "82-02-SUMMARY.md",
+        "82-03-SUMMARY.md",
+        "82-SUMMARY.md",
+        "82-VERIFICATION.md",
+        "82-VALIDATION.md",
+    )
+    _assert_promoted_phase_assets(
+        "83-intake-templates-and-maintainer-stewardship-contract",
+        "83-01-SUMMARY.md",
+        "83-02-SUMMARY.md",
+        "83-03-SUMMARY.md",
+        "83-SUMMARY.md",
+        "83-VERIFICATION.md",
+        "83-VALIDATION.md",
+    )
+    _assert_promoted_phase_assets(
+        "84-governance-open-source-guard-coverage-and-milestone-truth-freeze",
+        "84-01-SUMMARY.md",
+        "84-02-SUMMARY.md",
+        "84-03-SUMMARY.md",
+        "84-SUMMARY.md",
+        "84-VERIFICATION.md",
+        "84-VALIDATION.md",
+    )
+
+    assert_pull_only_evidence_index(
+        evidence_index,
+        "81-VERIFICATION.md",
+        "82-VERIFICATION.md",
+        "84-VALIDATION.md",
+        "archived / evidence-ready",
+        "V1_22_EVIDENCE_INDEX.md",
+    )
+
 def test_v1_21_closeout_assets_exist_and_are_pull_only() -> None:
     evidence_index = _ROOT / ".planning" / "reviews" / "V1_21_EVIDENCE_INDEX.md"
     milestone_audit = _ROOT / ".planning" / "v1.21-MILESTONE-AUDIT.md"

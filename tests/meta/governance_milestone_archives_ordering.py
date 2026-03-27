@@ -101,9 +101,9 @@ def test_machine_readable_roadmap_latest_archived_entry_comes_first() -> None:
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     archived_match = re.search(r"^-\s+✅\s+\*\*v(\d+(?:\.\d+)+)\s+([^*]+)\*\*", roadmap_text, re.MULTILINE)
     assert archived_match is not None
-    assert archived_match.group(1) == "1.21"
+    assert archived_match.group(1) == "1.22"
     assert archived_match.group(2).strip() == (
-        "Governance Bootstrap Truth Hardening & Planning Route Automation"
+        "Maintainer Entry Contracts, Release Operations Closure & Contributor Routing"
     )
 
 def test_machine_readable_milestones_latest_archived_baseline_comes_first() -> None:
@@ -115,9 +115,9 @@ def test_machine_readable_milestones_latest_archived_baseline_comes_first() -> N
         re.MULTILINE,
     )
     assert shipped_match is not None
-    assert shipped_match.group(1) == "v1.21"
+    assert shipped_match.group(1) == "v1.22"
     assert shipped_match.group(2).strip() == (
-        "Governance Bootstrap Truth Hardening & Planning Route Automation"
+        "Maintainer Entry Contracts, Release Operations Closure & Contributor Routing"
     )
 
 def test_historical_route_truth_is_demoted_to_archive_context() -> None:

@@ -1,71 +1,59 @@
 # Project: Lipro-HASS North Star Evolution
 
 
-**Status:** Active
-**Current route:** `v1.22 active route / Phase 84 complete / latest archived baseline = v1.21`；latest archived evidence index = `.planning/reviews/V1_21_EVIDENCE_INDEX.md`.
-**Legacy route-string compatibility:** **Status:** `v1.22 active route / Phase 84 complete / latest archived baseline = v1.21`；latest archived closeout pointer = `.planning/reviews/V1_21_EVIDENCE_INDEX.md`.
-**Goal:** 把 `v1.21` 已归档完成的治理/证据链外化为贡献者与维护者都能直接执行的单一协作、审查与发布运营路线。
-**Default next step:** `$gsd-complete-milestone v1.22`
-**Active baseline:** active milestone = `v1.22`；latest archived baseline = `v1.21`；previous archived baseline = `v1.20`.
+**Status:** No active milestone route
+**Current route:** `no active milestone route / latest archived baseline = v1.22`；latest archived evidence index = `.planning/reviews/V1_22_EVIDENCE_INDEX.md`.
+**Legacy route-string compatibility:** **Status:** `no active milestone route / latest archived baseline = v1.22`；latest archived closeout pointer = `.planning/reviews/V1_22_EVIDENCE_INDEX.md`.
+**Goal:** 以 `v1.22` 归档后的 contributor / maintainer / release 单一路由作为下一轮里程碑的稳定起点；现阶段只允许从最新 archived baseline 显式开立新 milestone，而不是回流旧治理故事线。
+**Default next step:** `$gsd-new-milestone`
+**Active baseline:** active milestone = `none`；latest archived baseline = `v1.22`；previous archived baseline = `v1.21`.
 
 <!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.22
   name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
-  status: Phase 84 complete (2026-03-27)
+  status: archived / evidence-ready (2026-03-27)
   phase: "84"
   phase_title: Governance/open-source guard coverage and milestone truth freeze
-  route_mode: Phase 84 complete
-latest_archived:
-  version: v1.21
-  name: Governance Bootstrap Truth Hardening & Planning Route Automation
-  status: archived / evidence-ready (2026-03-26)
-  phase: "80"
-  phase_title: Governance typing closure and final meta-suite hotspot topicization
-  phase_dir: 80-governance-typing-closure-and-final-meta-suite-hotspot-topicization
-  audit_path: .planning/v1.21-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_21_EVIDENCE_INDEX.md
+  phase_dir: 84-governance-open-source-guard-coverage-and-milestone-truth-freeze
+  audit_path: .planning/v1.22-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_22_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.20
-  name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
-  evidence_path: .planning/reviews/V1_20_EVIDENCE_INDEX.md
+  version: v1.21
+  name: Governance Bootstrap Truth Hardening & Planning Route Automation
+  evidence_path: .planning/reviews/V1_21_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.22 active route / Phase 84 complete / latest archived baseline = v1.21
-  default_next_command: $gsd-complete-milestone v1.22
-  latest_archived_evidence_pointer: .planning/reviews/V1_21_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.22
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_22_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
-## Current Milestone (v1.22)
+## Latest Archived Milestone (v1.22)
 
 **Name:** `Maintainer Entry Contracts, Release Operations Closure & Contributor Routing`
 
-**Goal:** 把 `v1.21` 已归档冻结的内部治理/证据链压缩成贡献者与维护者都能直接遵循的单一路由：统一入口文档、模板化 intake、发布运营证据链与所有权/分诊契约。
+**Why now:** `v1.21` 已把 governance bootstrap truth、route-handoff quality gate 与 archive evidence pull-chain 冻结成 archived baseline，但 contributor / maintainer / release 的公开协作入口仍存在隐性知识、平行叙事与 maintainer-only folklore。`Phase 81 -> 84` 已将 public first hop、release operations、community-health intake 与 focused governance/open-source guard coverage 收口为可公开协作、可维护交接、可审计 closeout 的单一路由，并在 milestone closeout 后固定为 `no active milestone route / latest archived baseline = v1.22`。
 
-**Target features:**
+**North-star fit:** `v1.22` 归档后继续确认以下裁决：
 
-- 统一 `README*`、`CONTRIBUTING.md`、`SUPPORT.md`、`SECURITY.md`、issue/PR 模板与 release runbook 的入口叙事与交叉链接。
-- 把 release gate、changelog / version sync、archive evidence pointer 收口为一条可审计的发布主链。
-- 输出 contributor-facing 架构变更地图，明确 protocol / runtime / control / external-boundary 各自允许改什么、证据落哪里。
-- 把 issue / PR / security intake 升级为带证据的路由器，要求复现、边界家族、影响面与验证命令。
-- 增补 maintainer ownership / triage 契约，降低 bus factor，避免治理知识继续只藏在 `.planning/` 内部。
+- contributor-facing docs、community-health templates、release runbook 与 changelog 现在讲同一条 maintainer / contributor / release story，不再需要靠隐藏背景知识完成路由。
+- planning governance-route contract family 继续是 machine-readable current/latest archive truth 的唯一 formal home；`.planning/reviews/V1_22_EVIDENCE_INDEX.md` 与 `.planning/v1.22-MILESTONE-AUDIT.md` 只保留 archived / pull-only verdict 身份。
+- `docs/README.md` 继续只承担 docs map 与 maintainer appendix 指针；public first hop 不再泄漏 internal GSD route、milestone closeout pointer 或 archive-only workflow prose。
+- `.github/ISSUE_TEMPLATE/*.yml`、`.github/pull_request_template.md`、`SUPPORT.md`、`SECURITY.md` 与 `.github/CODEOWNERS` 已冻结 evidence-first intake、best-effort stewardship 与 custody continuity contract。
 
-**Key context:**
-
-- `v1.21` 已清空 active residual family 与 active kill target；继续拆 runtime 主链的收益已低于风险。
-- 新一轮最高价值增量不再是继续 topicize 内向治理，而是把稳定真相外化为开源维护入口与发布运营能力。
-- 范围锚点参考 GitHub 官方 community health / issue forms / security policy / releases 文档，以及 Home Assistant Integration Quality Scale 的 contributor-facing 约束。
-
-**Current status:** `Phase 84 complete (2026-03-27)`（focused governance/open-source guard coverage、ledger writeback 与 closeout-ready truth freeze 已完成）
+**Current status:** `archived / evidence-ready (2026-03-27)`
 **Starting baseline:** `.planning/v1.21-MILESTONE-AUDIT.md`, `.planning/reviews/V1_21_EVIDENCE_INDEX.md`, `.planning/milestones/v1.21-ROADMAP.md`, `.planning/milestones/v1.21-REQUIREMENTS.md`
 **Requirements basket:** `GOV-60`, `OSS-10`, `DOC-08`, `ARC-21`, `GOV-61`, `OSS-11`, `TST-26`, `QLT-34`
-**Default next command:** `$gsd-complete-milestone v1.22`
+**Archive assets:** `.planning/v1.22-MILESTONE-AUDIT.md`, `.planning/reviews/V1_22_EVIDENCE_INDEX.md`, `.planning/milestones/v1.22-ROADMAP.md`, `.planning/milestones/v1.22-REQUIREMENTS.md`, `.planning/phases/81-contributor-onramp-route-convergence-and-public-entry-contract/{81-01-SUMMARY.md,81-02-SUMMARY.md,81-03-SUMMARY.md,81-SUMMARY.md,81-VERIFICATION.md,81-VALIDATION.md}`, `.planning/phases/82-release-operations-closure-and-evidence-chain-formalization/{82-01-SUMMARY.md,82-02-SUMMARY.md,82-03-SUMMARY.md,82-SUMMARY.md,82-VERIFICATION.md,82-VALIDATION.md}`, `.planning/phases/83-intake-templates-and-maintainer-stewardship-contract/{83-01-SUMMARY.md,83-02-SUMMARY.md,83-03-SUMMARY.md,83-SUMMARY.md,83-VERIFICATION.md,83-VALIDATION.md}`, `.planning/phases/84-governance-open-source-guard-coverage-and-milestone-truth-freeze/{84-01-SUMMARY.md,84-02-SUMMARY.md,84-03-SUMMARY.md,84-SUMMARY.md,84-VERIFICATION.md,84-VALIDATION.md}`
+**Default next command:** `$gsd-new-milestone`
 
-## Latest Archived Milestone (v1.21)
+## Previous Archived Milestone (v1.21)
 
 **Name:** `v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation`
 
@@ -74,17 +62,17 @@ bootstrap:
 **North-star fit:** `v1.21` 归档后继续确认以下裁决：
 
 - machine-readable route contract 继续是 parser-stable 单一 selector；human-readable milestone body 只保留 archive / audit 身份。
-- `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / baselines / reviews / tests/meta` 共同承认 `no active milestone route / latest archived baseline = v1.21`，不再为 closeout 补写第二套 current story。
+- `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / baselines / reviews / tests/meta` 共同承认 historical closeout route truth = `no active milestone route / latest archived baseline = v1.21`，而当前 latest archived baseline 已前推到 `v1.22`。
 - governance/tooling maintainability hotspot、release-contract mega-suite 与 typed JSON boundary 已完成 inward cleanup，不重开生产热点主链。
-- latest archived evidence index 现已固定为 `.planning/reviews/V1_21_EVIDENCE_INDEX.md`；`v1.21` 成为 latest archived baseline，`v1.20` 退为 previous archived baseline；下一条正式路线只能通过 `$gsd-new-milestone` 显式建立。
+- `.planning/reviews/V1_21_EVIDENCE_INDEX.md` 现在是 previous archived baseline 的 closeout pointer；后续只作为历史证据被 pull，不再承担 latest archive identity。
 
 **Current status:** `archived / evidence-ready (2026-03-26)`
 **Starting baseline:** `.planning/v1.20-MILESTONE-AUDIT.md`, `.planning/reviews/V1_20_EVIDENCE_INDEX.md`, `.planning/milestones/v1.20-ROADMAP.md`, `.planning/milestones/v1.20-REQUIREMENTS.md`, `.planning/phases/75-access-mode-truth-closure-evidence-promotion-formalization-and-thin-adapter-typing-hardening/{75-01-SUMMARY.md,75-02-SUMMARY.md,75-03-SUMMARY.md,75-04-SUMMARY.md,75-VERIFICATION.md,75-VALIDATION.md}`
 **Requirements basket:** `GOV-57`, `ARC-20`, `DOC-04`, `TST-23`, `QLT-31`, `GOV-58`, `HOT-35`, `TST-24`, `QLT-32`, `GOV-59`, `TYP-22`, `HOT-36`, `TST-25`, `QLT-33`
-**Archive assets:** .planning/v1.21-MILESTONE-AUDIT.md, .planning/reviews/V1_21_EVIDENCE_INDEX.md, .planning/milestones/v1.21-ROADMAP.md, .planning/milestones/v1.21-REQUIREMENTS.md, .planning/phases/76-governance-bootstrap-truth-hardening-archive-seed-determinism-and-active-route-activation/{76-01-SUMMARY.md,76-02-SUMMARY.md,76-03-SUMMARY.md,76-VERIFICATION.md,76-VALIDATION.md}, .planning/phases/77-governance-guard-topicization-bootstrap-smoke-coverage-and-literal-drift-reduction/{77-01-SUMMARY.md,77-02-SUMMARY.md,77-03-SUMMARY.md,77-VERIFICATION.md,77-VALIDATION.md}, .planning/phases/78-quality-gate-formalization-route-handoff-ergonomics-and-milestone-closeout-readiness/{78-01-SUMMARY.md,78-02-SUMMARY.md,78-03-SUMMARY.md,78-SUMMARY.md,78-VERIFICATION.md,78-VALIDATION.md}, .planning/phases/79-governance-tooling-hotspot-decomposition-and-release-contract-topicization/{79-01-SUMMARY.md,79-02-SUMMARY.md,79-03-SUMMARY.md,79-SUMMARY.md,79-VERIFICATION.md,79-VALIDATION.md}, .planning/phases/80-governance-typing-closure-and-final-meta-suite-hotspot-topicization/{80-01-SUMMARY.md,80-02-SUMMARY.md,80-03-SUMMARY.md,80-SUMMARY.md,80-VERIFICATION.md,80-VALIDATION.md}
+**Archive assets:** `.planning/v1.21-MILESTONE-AUDIT.md`, `.planning/reviews/V1_21_EVIDENCE_INDEX.md`, `.planning/milestones/v1.21-ROADMAP.md`, `.planning/milestones/v1.21-REQUIREMENTS.md`, `.planning/phases/76-governance-bootstrap-truth-hardening-archive-seed-determinism-and-active-route-activation/{76-01-SUMMARY.md,76-02-SUMMARY.md,76-03-SUMMARY.md,76-VERIFICATION.md,76-VALIDATION.md}`, `.planning/phases/77-governance-guard-topicization-bootstrap-smoke-coverage-and-literal-drift-reduction/{77-01-SUMMARY.md,77-02-SUMMARY.md,77-03-SUMMARY.md,77-VERIFICATION.md,77-VALIDATION.md}`, `.planning/phases/78-quality-gate-formalization-route-handoff-ergonomics-and-milestone-closeout-readiness/{78-01-SUMMARY.md,78-02-SUMMARY.md,78-03-SUMMARY.md,78-SUMMARY.md,78-VERIFICATION.md,78-VALIDATION.md}`, `.planning/phases/79-governance-tooling-hotspot-decomposition-and-release-contract-topicization/{79-01-SUMMARY.md,79-02-SUMMARY.md,79-03-SUMMARY.md,79-SUMMARY.md,79-VERIFICATION.md,79-VALIDATION.md}`, `.planning/phases/80-governance-typing-closure-and-final-meta-suite-hotspot-topicization/{80-01-SUMMARY.md,80-02-SUMMARY.md,80-03-SUMMARY.md,80-SUMMARY.md,80-VERIFICATION.md,80-VALIDATION.md}`
 **Default next command:** `$gsd-new-milestone`
 
-## Previous Archived Milestone (v1.20)
+## Archived Milestone (v1.20)
 
 **Name:** `v1.20 Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement`
 

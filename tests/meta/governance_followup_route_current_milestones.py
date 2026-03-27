@@ -13,6 +13,7 @@ from .governance_current_truth import (
     HISTORICAL_CLOSEOUT_ROUTE_TRUTH,
     LATEST_ARCHIVED_AUDIT_PATH,
     LATEST_ARCHIVED_EVIDENCE_PATH,
+    _as_optional_mapping,
     assert_machine_readable_route_contracts,
 )
 from .governance_promoted_assets import _assert_promoted_closeout_package
@@ -206,18 +207,19 @@ def test_v1_12_to_v1_13_archived_route_truth_uses_promoted_evidence_only() -> No
     assert ".planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-01-PLAN.md" not in _PROJECT_TEXT
 
 
-def test_machine_readable_route_contracts_point_to_active_v1_22_and_archived_v1_21() -> None:
+def test_machine_readable_route_contracts_point_to_archived_only_v1_22_and_previous_v1_21() -> None:
     contracts = assert_machine_readable_route_contracts()
     requirements_contract = _as_mapping(contracts["REQUIREMENTS"])
-    requirements_active = _as_mapping(requirements_contract["active_milestone"])
+    requirements_active = _as_optional_mapping(requirements_contract["active_milestone"])
     milestones_contract = _as_mapping(contracts["MILESTONES"])
     milestones_latest_archived = _as_mapping(milestones_contract["latest_archived"])
+    milestones_previous_archived = _as_mapping(milestones_contract["previous_archived"])
     state_contract = _as_mapping(contracts["STATE"])
     state_bootstrap = _as_mapping(state_contract["bootstrap"])
 
-    assert requirements_active["version"] == "v1.22"
-    assert requirements_active["phase"] == "84"
-    assert milestones_latest_archived["version"] == "v1.21"
+    assert requirements_active is None
+    assert milestones_latest_archived["version"] == "v1.22"
+    assert milestones_previous_archived["version"] == "v1.21"
     assert state_bootstrap["default_next_command"] == CURRENT_MILESTONE_DEFAULT_NEXT
     assert state_bootstrap["latest_archived_evidence_pointer"] == LATEST_ARCHIVED_EVIDENCE_PATH
 
@@ -242,12 +244,12 @@ def test_current_v1_22_project_state_and_latest_archive_pointers_align() -> None
     _assert_latest_archived_route_truth(_PROJECT_TEXT, _ROADMAP_TEXT, _STATE_TEXT)
     _assert_contains_all(
         _PROJECT_TEXT,
-        "## Current Milestone (v1.22)",
-        "## Latest Archived Milestone (v1.21)",
+        "## Latest Archived Milestone (v1.22)",
+        "## Previous Archived Milestone (v1.21)",
         "## Archived Milestone (v1.17)",
         "## Archived Milestone (v1.16)",
         "## Archived Milestone (v1.15)",
-        "**Current status:** `Phase 84 complete (2026-03-27)`",
+        "**Current status:** `archived / evidence-ready (2026-03-27)`",
     )
     _assert_contains_all(
         _ROADMAP_TEXT,
@@ -276,11 +278,11 @@ def test_current_v1_22_project_state_and_latest_archive_pointers_align() -> None
         "| OSS-11 | Phase 83 | Completed |",
         "| TST-26 | Phase 84 | Completed |",
         "| QLT-34 | Phase 84 | Completed |",
-        "- v1.22 requirements: 8 total",
+        "- v1.22 routed requirements: 8 total",
         "- Current mapped: 8",
-        "- Current complete: 6",
+        "- Current complete: 8",
         "- Current pending: 0",
-        "## Latest Archived Milestone (v1.21)",
+        "## Previous Archived Milestone (v1.21)",
         "## Previous Archived Milestone (v1.20)",
         "## Traceability for archived v1.16 route",
         "| GOV-52 | Phase 68 | Completed |",
@@ -294,4 +296,4 @@ def test_current_v1_22_project_state_and_latest_archive_pointers_align() -> None
         LATEST_ARCHIVED_AUDIT_PATH,
         LATEST_ARCHIVED_EVIDENCE_PATH,
     )
-    assert CURRENT_MILESTONE_STATUS == "Phase 84 complete (2026-03-27)"
+    assert CURRENT_MILESTONE_STATUS == "archived / evidence-ready (2026-03-27)"
