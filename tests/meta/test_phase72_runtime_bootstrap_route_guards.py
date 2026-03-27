@@ -81,6 +81,11 @@ _CURRENT_ROUTE_PROSE_PATHS = (
     ".planning/baseline/PUBLIC_SURFACES.md",
     ".planning/baseline/AUTHORITY_MATRIX.md",
 )
+_PROJECT_STALE_ARCHIVE_PROJECTIONS = (
+    "latest archived evidence index 已升级为 `.planning/reviews/V1_21_EVIDENCE_INDEX.md`；`v1.20` 现固定为 previous archived baseline",
+    "当前治理状态已切换为 `no active milestone route / latest archived baseline = v1.21`，并把 `v1.20` 固定为 previous archived baseline。",
+    "latest archived evidence index 已升级为 `.planning/reviews/V1_21_EVIDENCE_INDEX.md`；`.planning/reviews/V1_19_EVIDENCE_INDEX.md` 继续只承担 historical / pull-only 身份。",
+)
 
 
 def _resolve_target(relative_path: str) -> Path:
@@ -203,6 +208,9 @@ def test_phase72_current_route_truth_replaces_stale_route_story() -> None:
         text = (_ROOT / relative_path).read_text(encoding="utf-8")
         for forbidden in CURRENT_ROUTE_PROSE_FORBIDDEN:
             assert forbidden not in text, relative_path
+
+    for stale_projection in _PROJECT_STALE_ARCHIVE_PROJECTIONS:
+        assert stale_projection not in project_text
 
 
 

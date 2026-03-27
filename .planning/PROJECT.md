@@ -62,7 +62,7 @@ bootstrap:
 **North-star fit:** `v1.21` 归档后继续确认以下裁决：
 
 - machine-readable route contract 继续是 parser-stable 单一 selector；human-readable milestone body 只保留 archive / audit 身份。
-- `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / baselines / reviews / tests/meta` 共同承认 historical closeout route truth = `no active milestone route / latest archived baseline = v1.21`，而当前 latest archived baseline 已前推到 `v1.22`。
+- `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / baselines / reviews / tests/meta` 共同承认 `v1.21` 的 archived-only closeout truth 已冻结在对应 audit / archive assets 中；当前 latest archived baseline 已前推到 `v1.22`，而 `.planning/reviews/V1_21_EVIDENCE_INDEX.md` 仅继续承担 previous archived baseline 的 pull-only 指针。
 - governance/tooling maintainability hotspot、release-contract mega-suite 与 typed JSON boundary 已完成 inward cleanup，不重开生产热点主链。
 - `.planning/reviews/V1_21_EVIDENCE_INDEX.md` 现在是 previous archived baseline 的 closeout pointer；后续只作为历史证据被 pull，不再承担 latest archive identity。
 
@@ -83,7 +83,7 @@ bootstrap:
 - bootstrap / lifecycle / runtime-access 只能回收到现有 `control/` 与 runtime formal homes，不得新建 orchestration root、builder folklore 或 shadow bootstrap chain。
 - service-family / diagnostics/helper / schedule / entity runtime strategy 只能做 inward deduplication 与 formal-home clarification，不得恢复 helper-owned second story。
 - auth legacy snapshot / compatibility wrapper 只能继续退役并缩窄 outward contract，不得引入新的 legacy alias / compat root。
-- latest archived evidence index 已升级为 `.planning/reviews/V1_21_EVIDENCE_INDEX.md`；`v1.20` 现固定为 previous archived baseline，`.planning/reviews/V1_20_EVIDENCE_INDEX.md` 继续只承担历史 pull-only 身份。
+- latest archived evidence index 已前推为 `.planning/reviews/V1_22_EVIDENCE_INDEX.md`；`v1.20` 现固定为 historical archived baseline，而 `.planning/reviews/V1_20_EVIDENCE_INDEX.md` 继续只承担历史 pull-only 身份。
 
 **Current status:** `archived / evidence-ready (2026-03-25)`
 **Archive assets:** .planning/v1.20-MILESTONE-AUDIT.md, .planning/reviews/V1_20_EVIDENCE_INDEX.md, .planning/milestones/v1.20-ROADMAP.md, .planning/milestones/v1.20-REQUIREMENTS.md, .planning/phases/72-runtime-bootstrap-convergence-lifecycle-orchestration-and-runtime-access-probe-retirement/{72-01-SUMMARY.md,72-02-SUMMARY.md,72-03-SUMMARY.md,72-04-SUMMARY.md,72-VERIFICATION.md,72-VALIDATION.md}, .planning/phases/73-service-family-deduplication-diagnostics-helper-convergence-and-runtime-surface-formalization/{73-01-SUMMARY.md,73-02-SUMMARY.md,73-03-SUMMARY.md,73-04-SUMMARY.md,73-VERIFICATION.md,73-VALIDATION.md}, .planning/phases/74-legacy-auth-residual-retirement-test-topicization-and-milestone-closeout/{74-01-SUMMARY.md,74-02-SUMMARY.md,74-03-SUMMARY.md,74-04-SUMMARY.md,74-VERIFICATION.md,74-VALIDATION.md}
@@ -98,8 +98,8 @@ bootstrap:
 **North-star fit:** `v1.19` 的 archived contract 继续确认以下裁决：
 
 - OTA / firmware update / anonymous-share / request pacing / command runtime 只允许 inward decomposition，不得新增 outward root、compat shell 或 second story。
-- `PROJECT / ROADMAP / REQUIREMENTS / STATE / docs / meta guards` 在 `v1.19` archive promotion 当时共同承认 archived-only transition truth；当前治理状态已切换为 `no active milestone route / latest archived baseline = v1.21`，并把 `v1.20` 固定为 previous archived baseline。
-- latest archived evidence index 已升级为 `.planning/reviews/V1_21_EVIDENCE_INDEX.md`；`.planning/reviews/V1_19_EVIDENCE_INDEX.md` 继续只承担 historical / pull-only 身份。
+- `PROJECT / ROADMAP / REQUIREMENTS / STATE / docs / meta guards` 在 `v1.19` archive promotion 当时共同承认 archived-only transition truth；而在 `v1.21` 与 `v1.22` successive archive promotions 之后，当前治理状态已收口为 latest archived baseline = `v1.22`、previous archived baseline = `v1.21`、historical archived baseline = `v1.20`。
+- latest archived evidence index 已前推为 `.planning/reviews/V1_22_EVIDENCE_INDEX.md`；`.planning/reviews/V1_19_EVIDENCE_INDEX.md` 继续只承担 historical / pull-only 身份。
 - `Phase 71` 留下的 focused no-growth guards 持续冻结 touched scope，防止 function-density 与 route drift 在 archived closeout 之后回流。
 
 **Current status:** `archived / evidence-ready (2026-03-25)`
