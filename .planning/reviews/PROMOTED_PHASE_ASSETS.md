@@ -324,6 +324,14 @@ phases:
   - 82-SUMMARY.md
   - 82-VERIFICATION.md
   - 82-VALIDATION.md
+
+  83-intake-templates-and-maintainer-stewardship-contract:
+  - 83-01-SUMMARY.md
+  - 83-02-SUMMARY.md
+  - 83-03-SUMMARY.md
+  - 83-SUMMARY.md
+  - 83-VERIFICATION.md
+  - 83-VALIDATION.md
 ---
 
 # Promoted Phase Assets

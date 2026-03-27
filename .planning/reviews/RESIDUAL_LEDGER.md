@@ -450,6 +450,25 @@ _None currently registered._
 - governance/tooling typing closure、final meta-suite hotspot topicization 与 live route truth 已在本 phase 冻结；后续 milestone closeout 只消费这些既有 closeout assets，不得再回头重开 giant-test 或类型诚实性热点。
 
 
+
+## Phase 81 Residual Delta
+
+- 无新增 active residual family。
+- public first-hop、canonical docs map、contributor architecture change map 与 maintainer appendix boundary 已在本 phase 收口；后续只允许继续补 focused guards，不得重开第二条 docs-entry 故事线。
+- contributor-facing docs 现在可直接路由 protocol / runtime / control / external-boundary / governance 改动；后续若再精修，只能沿既有 evidence destinations 同步更新。
+
+## Phase 82 Residual Delta
+
+- 无新增 active residual family。
+- maintainer-facing release route、version-sync triad、changelog 与 archived evidence pointer 已共享一条发布主链；后续只能补强 guard / rehearsal truth，不得回流平行 runbook 或 helper folklore。
+- archive evidence 继续保持 historical-only 身份；后续若再改 release continuity，只能沿既有 maintainer appendix / governance chain 收口。
+
+## Phase 83 Residual Delta
+
+- 无新增 active residual family。
+- issue / PR / security intake 与 contributor stewardship surfaces 现已共享 evidence-first routing、best-effort triage 与 custody restoration truth；后续只允许继续扩 guard，不得把 undocumented delegate / hidden maintainer folklore 写回 live contract。
+- `docs/README.md` 继续只承担 docs map / contract reachability；`CONTRIBUTING.md`、`SUPPORT.md`、`SECURITY.md`、`.github/ISSUE_TEMPLATE/*.yml`、`.github/pull_request_template.md` 与 `.github/CODEOWNERS` 现共同构成 formal intake / stewardship surface family。
+
 ## v1.21 Milestone Closeout Delta
 
 - 无新增 active residual family。

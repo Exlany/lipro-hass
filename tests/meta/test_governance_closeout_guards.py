@@ -82,7 +82,7 @@ def test_promoted_phase_assets_manifest_enforces_explicit_ci_evidence() -> None:
     )
 
 
-def test_phase_80_exit_contract_aligns_verification_and_file_matrix() -> None:
+def test_phase_83_exit_contract_aligns_verification_and_file_matrix() -> None:
     verification_text = (
         _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
     ).read_text(encoding="utf-8")
@@ -90,22 +90,22 @@ def test_phase_80_exit_contract_aligns_verification_and_file_matrix() -> None:
         _ROOT / ".planning" / "reviews" / "FILE_MATRIX.md"
     ).read_text(encoding="utf-8")
 
-    assert "## Phase 80 Exit Contract" in verification_text
+    assert "## Phase 83 Intake / Stewardship Contract" in verification_text
     assert f"当前 mutable story = `{CURRENT_ROUTE}`" in verification_text
     assert f"default next command = `{CURRENT_MILESTONE_DEFAULT_NEXT}`" in verification_text
     assert f"**Latest archived pointer:** `{LATEST_ARCHIVED_EVIDENCE_PATH}`" in verification_text
-    assert (
-        "tests/meta/test_governance_release_contract.py "
-        "tests/meta/test_governance_release_docs.py "
-        "tests/meta/test_governance_release_continuity.py"
-    ) in verification_text
-    assert (
-        "uv run pytest -q tests/meta/test_governance_route_handoff_smoke.py "
-        "tests/meta/test_governance_milestone_archives.py "
-        "tests/meta/governance_followup_route_current_milestones.py "
-        "tests/meta/test_phase75_governance_closeout_guards.py "
-        "tests/meta/test_governance_promoted_phase_assets.py"
-    ) in verification_text
+    for token in (
+        "tests/meta/test_governance_bootstrap_smoke.py",
+        "tests/meta/test_governance_closeout_guards.py",
+        "tests/meta/test_governance_promoted_phase_assets.py",
+        "tests/meta/test_governance_route_handoff_smoke.py",
+        "tests/meta/governance_followup_route_current_milestones.py",
+        "tests/meta/test_governance_release_contract.py",
+        "tests/meta/test_governance_release_docs.py",
+        "tests/meta/test_governance_release_continuity.py",
+        "tests/meta/test_governance_milestone_archives.py",
+    ):
+        assert token in verification_text
     assert "node \"$HOME/.codex/get-shit-done/bin/gsd-tools.cjs\" init progress" in verification_text
     assert "uv run python scripts/check_file_matrix.py --check" in verification_text
 

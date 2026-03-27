@@ -81,7 +81,14 @@ Please do **not** open a public GitHub issue for security vulnerabilities.
 - Policy landing page with the same access caveat / 带同样访问前提的安全策略入口：`https://github.com/Exlany/lipro-hass/security/policy`
 - If those GitHub security routes are not reachable in your current access mode, do not infer a public fallback from this private repository; keep the report private and return to this policy once a repository-access path is actually available.
 - 若这些 GitHub 安全入口在你当前访问模式下不可达，不要把当前 private repository 误读为已经提供公开替代路径；请继续保持私密，并在真实可达的仓库访问路径出现后回到本策略执行。
-- Include / 请附带：integration version、Home Assistant version、reproduction steps、impact assessment、redacted logs
+- Include / 请附带：
+  - affected version(s) and install path / 受影响版本与安装路径（例如 tagged release、`latest`、`ARCHIVE_TAG=main`、manual zip、mirror、fork）
+  - integration version plus Home Assistant version / 集成版本与 Home Assistant 版本
+  - trigger, reproduction, or detection steps / 触发、复现或检测步骤
+  - impact and severity assessment / 影响范围与严重性评估
+  - validation or detection signal / 验证或检测信号（如日志、告警、失败检查、命令输出）
+  - workaround, mitigation, or redacted evidence / 临时规避、缓解措施或脱敏后的证据
+- Incomplete reports may be asked for more evidence before triage can continue. / 若报告证据不足，维护者可能会先请求补充证据，再继续分流与研判。
 
 ## Private Disclosure Process / 私密披露流程
 

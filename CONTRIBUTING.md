@@ -258,8 +258,19 @@ async def async_turn_on(self, **kwargs: Any) -> None:
 4. **Submit Pull Request / 提交 Pull Request**
    - Provide a clear description of the changes
    - 提供更改的清晰描述
+   - Cover the affected boundary family, impact/risk, and validation command or equivalent proof in the PR description
+   - 在 PR 描述中覆盖受影响的 boundary family、impact/risk，以及验证命令或等价证明
    - Reference any related issues
    - 引用任何相关问题
+
+### Review / Triage Expectations / Review / 分诊预期
+
+- This repository currently follows a single-maintainer review model; reviews and triage are asynchronous and best effort rather than queue-backed or SLA-backed.
+  本仓库当前采用 single-maintainer review model；review / triage 以异步、尽力而为为准，不承诺排队式或 SLA 式响应。
+- Review is evidence-first: use the PR template to explain boundary, impact, validation, and any support/security/doc follow-up needed for the change.
+  Review 采用 evidence-first：请按 PR 模板说明 boundary、impact、validation，以及这次改动是否需要 support/security/doc 跟进。
+- If the PR description or linked intake is missing the minimum evidence, maintainers may route it back to the template or the relevant support/security intake before deeper review.
+  若 PR 描述或关联 intake 缺少最小充分证据，维护者可能先引导你回到模板或对应的 support/security intake 补齐，再进入更深入的 review。
 
 ### Commit Message Format / 提交信息格式
 

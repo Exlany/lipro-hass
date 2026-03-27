@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🚧 **v1.22 Maintainer Entry Contracts, Release Operations Closure & Contributor Routing** - opened on 2026-03-27 from `v1.21` archived baseline; current phase = `82`; status: `Phase 82 complete (2026-03-27)`; next step: `$gsd-discuss-phase 83`
+- 🚧 **v1.22 Maintainer Entry Contracts, Release Operations Closure & Contributor Routing** - opened on 2026-03-27 from `v1.21` archived baseline; current phase = `83`; status: `Phase 83 complete (2026-03-27)`; next step: `$gsd-discuss-phase 84`
 - ✅ **v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation** - `Phase 76 -> 80` archived on 2026-03-26; milestone audit: `.planning/v1.21-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_21_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.21-ROADMAP.md` / `.planning/milestones/v1.21-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.21`
 - 🗂 **Historical archive snapshots** - `.planning/milestones/{v1.1-ROADMAP.md,v1.1-REQUIREMENTS.md,v1.2-ROADMAP.md,v1.2-REQUIREMENTS.md,v1.4-ROADMAP.md,v1.4-REQUIREMENTS.md,v1.5-ROADMAP.md,v1.5-REQUIREMENTS.md,v1.6-ROADMAP.md,v1.6-REQUIREMENTS.md,v1.12-ROADMAP.md,v1.12-REQUIREMENTS.md,v1.13-ROADMAP.md,v1.13-REQUIREMENTS.md,v1.14-ROADMAP.md,v1.14-REQUIREMENTS.md,v1.15-ROADMAP.md,v1.15-REQUIREMENTS.md,v1.16-ROADMAP.md,v1.16-REQUIREMENTS.md,v1.17-ROADMAP.md,v1.17-REQUIREMENTS.md}` 继续保留为 continuity / archive reference。
 
@@ -13,10 +13,10 @@ contract_name: governance-route
 active_milestone:
   version: v1.22
   name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
-  status: Phase 82 complete (2026-03-27)
-  phase: "82"
-  phase_title: Release operations closure and evidence-chain formalization
-  route_mode: Phase 82 complete
+  status: Phase 83 complete (2026-03-27)
+  phase: "83"
+  phase_title: Intake templates and maintainer stewardship contract
+  route_mode: Phase 83 complete
 latest_archived:
   version: v1.21
   name: Governance Bootstrap Truth Hardening & Planning Route Automation
@@ -32,8 +32,8 @@ previous_archived:
   name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
   evidence_path: .planning/reviews/V1_20_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.22 active route / Phase 82 complete / latest archived baseline = v1.21
-  default_next_command: $gsd-discuss-phase 83
+  current_route: v1.22 active route / Phase 83 complete / latest archived baseline = v1.21
+  default_next_command: $gsd-discuss-phase 84
   latest_archived_evidence_pointer: .planning/reviews/V1_21_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -41,10 +41,10 @@ bootstrap:
 ## v1.22: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
 
 **Milestone Goal:** 把 `v1.21` 已归档冻结的治理/证据链外化为 contributor / maintainer / release 一体化协作契约，统一入口叙事、发布证据链、intake 模板与 ownership / triage 路由。
-**Milestone status:** `Phase 82 complete (2026-03-27)`
+**Milestone status:** `Phase 83 complete (2026-03-27)`
 **Starting baseline:** `.planning/v1.21-MILESTONE-AUDIT.md`, `.planning/reviews/V1_21_EVIDENCE_INDEX.md`, `.planning/milestones/v1.21-ROADMAP.md`, `.planning/milestones/v1.21-REQUIREMENTS.md`
 **Requirements basket:** `GOV-60`, `OSS-10`, `DOC-08`, `ARC-21`, `GOV-61`, `OSS-11`, `TST-26`, `QLT-34`
-**Default next command:** `$gsd-discuss-phase 83`
+**Default next command:** `$gsd-discuss-phase 84`
 
 ### Phase 81: Contributor onramp route convergence and public entry contract
 
@@ -93,13 +93,15 @@ Plans:
   1. issue / PR / security templates 要求最小充分证据，减少无边界、无复现、无验证命令的输入。
   2. maintainer ownership / triage contract 明确 review expectations、support boundary、handoff / continuity 与单维护者现实约束。
   3. public collaboration surfaces 能把问题路由到正确边界家族，而不是把 maintainer 负担回推为隐性知识。
-**Status**: Planned
-**Plans**: 3 total / 0 completed / 3 pending
+**Status**: Complete (2026-03-27)
+**Plans**: 3 total / 3 completed / 0 pending
 
 Plans:
-- [ ] 83-01: upgrade issue, pull-request, and security intake templates into evidence-first routers
-- [ ] 83-02: formalize maintainer ownership, triage expectations, and continuity rules in contributor-facing docs
-- [ ] 83-03: freeze stewardship and intake truth across templates, support docs, and governance ledgers
+- [x] 83-01: upgrade issue, pull-request, and security intake templates into evidence-first routers (completed 2026-03-27)
+- [x] 83-02: formalize maintainer ownership, triage expectations, and continuity rules in contributor-facing docs (completed 2026-03-27)
+- [x] 83-03: freeze stewardship and intake truth across templates, support docs, and governance ledgers (completed 2026-03-27)
+**Focused evidence:** `.planning/phases/83-intake-templates-and-maintainer-stewardship-contract/{83-01-SUMMARY.md,83-02-SUMMARY.md,83-03-SUMMARY.md}`
+**Closeout evidence:** `.planning/phases/83-intake-templates-and-maintainer-stewardship-contract/{83-SUMMARY.md,83-VERIFICATION.md,83-VALIDATION.md}`
 
 ### Phase 84: Governance/open-source guard coverage and milestone truth freeze
 
@@ -1710,4 +1712,3 @@ Plans:
 - [x] 66-04: freeze Phase 66 current-story, verification, and residual ledgers after execution (completed 2026-03-23)
 **Focused evidence:** `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-01-SUMMARY.md`, `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-02-SUMMARY.md`, `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-03-SUMMARY.md`, `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-04-SUMMARY.md`
 **Closeout evidence:** `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-SUMMARY.md`, `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-VERIFICATION.md`
-

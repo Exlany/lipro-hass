@@ -61,6 +61,26 @@ def test_contributor_contract_matches_ci_language() -> None:
     assert "threshold warning" in contributing_bullets["benchmark"]
     assert "no-regression gate" in contributing_bullets["benchmark"]
 
+def test_community_health_contract_and_pr_sections_are_discoverable() -> None:
+    docs_text = _DOCS_README.read_text(encoding="utf-8")
+    contributing_text = _CONTRIBUTING.read_text(encoding="utf-8")
+    support_text = _SUPPORT.read_text(encoding="utf-8")
+    pr_text = _PR_TEMPLATE.read_text(encoding="utf-8")
+
+    assert "Community-Health Contract" in docs_text
+    assert "CONTRIBUTING.md" in docs_text
+    assert "SUPPORT.md" in docs_text
+    assert "SECURITY.md" in docs_text
+    assert "Review / Triage Expectations" in contributing_text
+    assert "Triage Expectations" in support_text
+    for heading in (
+        "## Affected boundary / scope",
+        "## Risk / impact",
+        "## Validation commands",
+    ):
+        assert heading in pr_text
+
+
 def test_supported_shell_installer_path_uses_verified_release_assets() -> None:
     install_text = (_ROOT / "install.sh").read_text(encoding="utf-8")
     readme_text = _README.read_text(encoding="utf-8")
@@ -129,6 +149,30 @@ def test_readme_exposes_community_and_governance_entrypoints() -> None:
             ".devcontainer.json",
         ):
             assert asset in readme_text
+
+
+def test_community_health_contract_surfaces_stay_visible() -> None:
+    docs_text = _DOCS_README.read_text(encoding="utf-8")
+    contributing_text = _CONTRIBUTING.read_text(encoding="utf-8")
+    support_text = _SUPPORT.read_text(encoding="utf-8")
+    pr_text = _PR_TEMPLATE.read_text(encoding="utf-8")
+
+    community_section = _extract_markdown_section(docs_text, "Community-Health Contract")
+    for token in ("CONTRIBUTING.md", "SUPPORT.md", "SECURITY.md"):
+        assert token in community_section
+
+    _extract_markdown_section(
+        contributing_text,
+        "Review / Triage Expectations",
+    )
+    _extract_markdown_section(support_text, "Triage Expectations")
+    _extract_markdown_section(support_text, "Response Expectations")
+    for heading in (
+        "Affected boundary / scope",
+        "Risk / impact",
+        "Validation commands",
+    ):
+        assert f"## {heading}" in pr_text
 
 def test_contributor_architecture_change_map_is_linked_and_scope_honest() -> None:
     assert _CONTRIBUTOR_CHANGE_MAP.exists()

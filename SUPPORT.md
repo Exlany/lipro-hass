@@ -68,6 +68,20 @@ This repository currently follows a single-maintainer review model. No documente
 - Security-sensitive reports: use the private path in `SECURITY.md`, not a public Issue.
 - Maintainer-only release / packaging / custody work: `docs/MAINTAINER_RELEASE_RUNBOOK.md` (not part of the public first hop).
 
+## Triage Expectations / 分诊预期
+
+- Security-sensitive reports that stay on the private disclosure path in `SECURITY.md` are triaged first.
+  仍走 `SECURITY.md` 私密披露路径的安全问题拥有最高优先级。
+- Reproducible regressions with clear diagnostics, boundary, and validation evidence are the highest-priority public intake after private security reports.
+  除私密安全披露外，带有明确 diagnostics、boundary 与 validation 证据的可复现 regression 属于最高优先级的公开 intake。
+- Incomplete intake may be routed back for missing reproduction steps, diagnostics, logs, or validation proof before deeper review.
+  若 intake 缺少 reproduction steps、diagnostics、logs 或 validation proof，维护者可能先要求补齐，再进入更深入的 review。
+
 ## Response Expectations
 
-Best effort support is provided for verified bugs and well-scoped regressions. Feature requests may be deferred when they conflict with the project's architecture or maintenance budget, but unresolved high-risk issues must be documented explicitly instead of being silently carried forward.
+- Best effort support is provided for verified bugs and well-scoped regressions that fit the supported-version boundary above.
+  对于落在上方 supported-version boundary 内、且已验证的 bug / well-scoped regression，支持仍以 best effort 为准。
+- Feature requests remain best effort and may be deferred or declined when they conflict with the project architecture or maintenance budget.
+  Feature request 仍是 best effort；若与项目 architecture 或 maintenance budget 冲突，可能被延后或拒绝。
+- The single-maintainer / no-documented-delegate continuity truth above does not change the current support boundary or create a hidden backup path.
+  上文 single-maintainer / no-documented-delegate 的 continuity truth 不会改变当前 support boundary，也不会凭空产生 hidden backup path。

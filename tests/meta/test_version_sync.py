@@ -21,6 +21,7 @@ _MANIFEST = _ROOT / "custom_components" / "lipro" / "manifest.json"
 _HACS = _ROOT / "hacs.json"
 _BASE_CONST = _ROOT / "custom_components" / "lipro" / "const" / "base.py"
 _BUG_TEMPLATE = _ROOT / ".github" / "ISSUE_TEMPLATE" / "bug.yml"
+_FEATURE_TEMPLATE = _ROOT / ".github" / "ISSUE_TEMPLATE" / "feature_request.yml"
 _README = _ROOT / "README.md"
 _README_ZH = _ROOT / "README_zh.md"
 _CONTRIBUTING = _ROOT / "CONTRIBUTING.md"
@@ -30,6 +31,7 @@ _TROUBLESHOOTING = _ROOT / "docs" / "TROUBLESHOOTING.md"
 _RUNBOOK = _ROOT / "docs" / "MAINTAINER_RELEASE_RUNBOOK.md"
 _CI_WORKFLOW = _ROOT / ".github" / "workflows" / "ci.yml"
 _ISSUE_CONFIG = _ROOT / ".github" / "ISSUE_TEMPLATE" / "config.yml"
+_PR_TEMPLATE = _ROOT / ".github" / "pull_request_template.md"
 _GOVERNANCE_REGISTRY = _ROOT / ".planning" / "baseline" / "GOVERNANCE_REGISTRY.json"
 
 _BASE_VERSION_RE = re.compile(r'^VERSION:\s+Final\s*=\s*"(?P<version>[^"]+)"\s*$')
@@ -52,6 +54,16 @@ def _load_governance_registry() -> dict[str, Any]:
     registry = json.loads(_GOVERNANCE_REGISTRY.read_text(encoding="utf-8"))
     assert isinstance(registry, dict)
     return registry
+
+
+def _template_field_ids(path: Path) -> set[str]:
+    body = _load_yaml(path)["body"]
+    assert isinstance(body, list)
+    return {
+        item["id"]
+        for item in body
+        if isinstance(item, dict) and isinstance(item.get("id"), str)
+    }
 
 
 def _read_python_requires() -> str:
@@ -168,6 +180,65 @@ def test_governance_registry_projection_targets_are_current() -> None:
         ".github/pull_request_template.md",
     ]
     for relative_path in registry["continuity"]["projection_targets"]:
+        assert (_ROOT / relative_path).exists()
+
+
+def test_community_health_registry_tracks_intake_contract_surfaces() -> None:
+    registry = _load_governance_registry()
+    community_health = registry["community_health"]
+    assert isinstance(community_health, dict)
+
+    bug_required_ids = {
+        "problem-type",
+        "device-type",
+        "affected-area",
+        "description",
+        "steps",
+        "impact-scope",
+        "ha-version",
+        "integration-version",
+        "install-method",
+        "troubleshooting-tried",
+        "logs",
+    }
+    feature_required_ids = {
+        "feature-type",
+        "device-type",
+        "affected-area",
+        "solution",
+        "use-case-impact",
+        "acceptance-signal",
+    }
+
+    assert set(community_health["pr_sections"]) == {
+        "Affected boundary / scope",
+        "Risk / impact",
+        "Validation commands",
+    }
+    assert bug_required_ids <= set(community_health["bug_form_required_ids"])
+    assert feature_required_ids <= set(community_health["feature_form_required_ids"])
+    assert community_health["projection_targets"] == [
+        "CONTRIBUTING.md",
+        "SUPPORT.md",
+        "SECURITY.md",
+        "docs/README.md",
+        ".github/ISSUE_TEMPLATE/bug.yml",
+        ".github/ISSUE_TEMPLATE/feature_request.yml",
+        ".github/pull_request_template.md",
+    ]
+
+    assert set(community_health["bug_form_required_ids"]) <= _template_field_ids(_BUG_TEMPLATE)
+    assert set(community_health["feature_form_required_ids"]) <= _template_field_ids(
+        _FEATURE_TEMPLATE
+    )
+
+    security_text = _SECURITY.read_text(encoding="utf-8")
+    pr_text = _PR_TEMPLATE.read_text(encoding="utf-8")
+    for token in community_health["security_intake_evidence"]:
+        assert token in security_text
+    for heading in community_health["pr_sections"]:
+        assert f"## {heading}" in pr_text
+    for relative_path in community_health["projection_targets"]:
         assert (_ROOT / relative_path).exists()
 
 

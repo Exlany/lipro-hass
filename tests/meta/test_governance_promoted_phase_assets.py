@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from .governance_promoted_assets import _ROOT, _assert_promoted_phase_assets
+from .governance_promoted_assets import (
+    _ROOT,
+    _assert_phase_assets_not_promoted,
+    _assert_promoted_phase_assets,
+)
 
 
 def test_phase_43_closeout_assets_exist_and_are_promoted() -> None:
@@ -349,3 +353,38 @@ def test_phase_80_closeout_assets_exist_and_are_promoted() -> None:
     assert "## Phase 80 Exit Contract" in verification_text
     assert "## Phase 80 Residual Delta" in residual_text
     assert "## Phase 80 Status Update" in kill_text
+
+
+
+def test_phase_83_closeout_assets_exist_and_are_promoted() -> None:
+    _assert_promoted_phase_assets(
+        "83-intake-templates-and-maintainer-stewardship-contract",
+        "83-01-SUMMARY.md",
+        "83-02-SUMMARY.md",
+        "83-03-SUMMARY.md",
+        "83-SUMMARY.md",
+        "83-VERIFICATION.md",
+        "83-VALIDATION.md",
+    )
+    _assert_phase_assets_not_promoted(
+        "83-intake-templates-and-maintainer-stewardship-contract",
+        "83-CONTEXT.md",
+        "83-RESEARCH.md",
+        "83-01-PLAN.md",
+        "83-02-PLAN.md",
+        "83-03-PLAN.md",
+    )
+
+    verification_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    residual_text = (
+        _ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md"
+    ).read_text(encoding="utf-8")
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "## Phase 83 Intake / Stewardship Contract" in verification_text
+    assert "## Phase 83 Residual Delta" in residual_text
+    assert "## Phase 83 Status Update" in kill_text

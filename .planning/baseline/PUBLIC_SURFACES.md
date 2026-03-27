@@ -32,12 +32,13 @@
 
 ## Phase 40 Governance Truth Surface Notes
 
-- `.planning/baseline/GOVERNANCE_REGISTRY.json` 是 governance-only 的 machine-readable baseline asset：它只承载 active governance facts（版本、安装、support routing、release trust、continuity），不是 runtime / control / protocol 的 public API。
+- `.planning/baseline/GOVERNANCE_REGISTRY.json` 是 governance-only 的 machine-readable baseline asset：它只承载 active governance facts（版本、安装、support routing、release trust、continuity、community-health intake contract），不是 runtime / control / protocol 的 public API。
 - `.planning/MILESTONES.md`、`.planning/milestones/*.md`、`.planning/v1.12-MILESTONE-AUDIT.md`、`.planning/v1.13-MILESTONE-AUDIT.md`、`.planning/v1.14-MILESTONE-AUDIT.md`、`.planning/v1.15-MILESTONE-AUDIT.md`、`.planning/v1.16-MILESTONE-AUDIT.md`、`.planning/v1.17-MILESTONE-AUDIT.md`、`.planning/v1.18-MILESTONE-AUDIT.md`、`.planning/v1.19-MILESTONE-AUDIT.md`、`.planning/v1.20-MILESTONE-AUDIT.md`、`.planning/v1.21-MILESTONE-AUDIT.md`、`.planning/v1.6-MILESTONE-AUDIT.md` 与 `.planning/reviews/V1_12_EVIDENCE_INDEX.md` / `.planning/reviews/V1_13_EVIDENCE_INDEX.md` / `.planning/reviews/V1_14_EVIDENCE_INDEX.md` / `.planning/reviews/V1_15_EVIDENCE_INDEX.md` / `.planning/reviews/V1_16_EVIDENCE_INDEX.md` / `.planning/reviews/V1_17_EVIDENCE_INDEX.md` / `.planning/reviews/V1_18_EVIDENCE_INDEX.md` / `.planning/reviews/V1_19_EVIDENCE_INDEX.md` / `.planning/reviews/V1_20_EVIDENCE_INDEX.md` / `.planning/reviews/V1_21_EVIDENCE_INDEX.md` / `.planning/reviews/V1_6_EVIDENCE_INDEX.md` / `.planning/reviews/V1_5_EVIDENCE_INDEX.md` 继续只承担 archive / audit / handoff 身份；它们可以作为历史证据被引用，但不得回流为 current governance truth。
 - `docs/README.md` 只保留 public docs map 与 maintainer appendix 指针；archive-ready closeout pointer、current route 与 next GSD action 只允许留在 maintainer-facing governance truth 中。
 - `custom_components/lipro/control/runtime_access.py` 是 control/services 读取 runtime entry 枚举、device lookup 与 snapshot projection 的唯一正式 read-model home。
 - `custom_components/lipro/services/execution.py` 同时保持 `formal shared service execution facade` 身份；`schedule.py` 复用它的 shared executor，而不是维护第二条 auth/error 执行链。
 - `docs/README.md` 只负责解释当前可读入口与 active-vs-archive 边界，不得把 milestone snapshots 或 phase workspace assets 重新讲成对外 current source。
+- contributor-facing intake / stewardship surfaces 收敛到 `CONTRIBUTING.md`、`SUPPORT.md`、`SECURITY.md`、`.github/ISSUE_TEMPLATE/*.yml` 与 `.github/pull_request_template.md`；`docs/README.md` 只负责 docs map 与 contract reachability，不直接暴露 internal governance paths。
 
 ## Phase 43 Control / Runtime Boundary Notes
 
@@ -277,5 +278,7 @@
 ## Phase 81 Contributor Route Surface Notes
 
 - `README.md` / `README_zh.md` 继续只是 public first hop；`docs/README.md` 现明确承担 canonical docs map 身份，而 `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md` 是 contributor-facing change-routing surface，不是新的 authority source。
-- `CONTRIBUTING.md` 继续是 contributor workflow / CI contract home；`SUPPORT.md` 与 `SECURITY.md` 继续分别承担公开支持分流与私密披露职责；`docs/MAINTAINER_RELEASE_RUNBOOK.md` 仍是 maintainer-only appendix。
+- `CONTRIBUTING.md` 继续是 contributor workflow / CI contract home；`SUPPORT.md` 与 `SECURITY.md` 继续分别承担公开支持分流与私密披露职责；`.github/ISSUE_TEMPLATE/*.yml` 与 `.github/pull_request_template.md` 继续承担 contributor-facing intake / evidence-first router 身份；`docs/MAINTAINER_RELEASE_RUNBOOK.md` 仍是 maintainer-only appendix。
+- contributor-facing intake / stewardship surfaces 明确包括 `CONTRIBUTING.md`、`SUPPORT.md`、`SECURITY.md`、`.github/ISSUE_TEMPLATE/*.yml` 与 `.github/pull_request_template.md`；`docs/README.md` 只负责 docs map / contract reachability，不直接暴露 internal governance paths。
+- `.github/CODEOWNERS` 继续是 owner / custody truth source；上述 intake surfaces 只能引用或投影其连续性口径，不能反向覆盖它。
 - contributor-facing docs 可以指向 `.planning/baseline/{PUBLIC_SURFACES,DEPENDENCY_MATRIX,AUTHORITY_MATRIX,VERIFICATION_MATRIX}.md` 与 `.planning/reviews/{FILE_MATRIX,RESIDUAL_LEDGER,KILL_LIST,PROMOTED_PHASE_ASSETS}.md` 作为 evidence destinations，但不得把 active-route / archived-pointer / GSD internal workflow 讲成 public first hop。

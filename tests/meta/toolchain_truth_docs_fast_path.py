@@ -224,7 +224,10 @@ def test_docs_index_and_retired_tooling_contract_are_machine_readable() -> None:
     assert "docs-first" in docs_link["about"]
     assert "access mode" in discussions_link["about"].lower()
     assert "access mode" in security_link["about"].lower()
-    assert ".planning/baseline/GOVERNANCE_REGISTRY.json" in docs_text
+    assert "Community-Health Contract" in docs_text
+    assert "private-access" in docs_text
+    assert "maintainer appendix" in docs_text.lower()
+    assert "internal governance paths" in docs_text
     assert ".planning/baseline/GOVERNANCE_REGISTRY.json" in contributing_text
     assert "private-access" in docs_text
     assert "private-access" in contributing_text

@@ -9,10 +9,10 @@ contract_name: governance-route
 active_milestone:
   version: v1.22
   name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
-  status: Phase 82 complete (2026-03-27)
-  phase: "82"
-  phase_title: Release operations closure and evidence-chain formalization
-  route_mode: Phase 82 complete
+  status: Phase 83 complete (2026-03-27)
+  phase: "83"
+  phase_title: Intake templates and maintainer stewardship contract
+  route_mode: Phase 83 complete
 latest_archived:
   version: v1.21
   name: Governance Bootstrap Truth Hardening & Planning Route Automation
@@ -28,8 +28,8 @@ previous_archived:
   name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
   evidence_path: .planning/reviews/V1_20_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.22 active route / Phase 82 complete / latest archived baseline = v1.21
-  default_next_command: $gsd-discuss-phase 83
+  current_route: v1.22 active route / Phase 83 complete / latest archived baseline = v1.21
+  default_next_command: $gsd-discuss-phase 84
   latest_archived_evidence_pointer: .planning/reviews/V1_21_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->

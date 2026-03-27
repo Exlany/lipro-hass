@@ -64,7 +64,7 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
     assert CURRENT_MILESTONE_DEFAULT_NEXT in roadmap_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in requirements_text
-    assert '## Phase 80 Exit Contract' in verification_text
+    assert '## Phase 83 Intake / Stewardship Contract' in verification_text
     assert CURRENT_ROUTE in verification_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in verification_text
     assert LATEST_ARCHIVED_EVIDENCE_PATH in verification_text
@@ -76,40 +76,40 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
 def test_gsd_fast_path_matches_current_active_route_story() -> None:
     progress = _run_gsd_tools('init', 'progress')
     phases = _as_mapping_list(progress['phases'])
-    phase_82 = next(phase for phase in phases if _as_str(phase['number']) == '82')
-    phase_82_plan_count = phase_82['plan_count']
-    phase_82_summary_count = phase_82['summary_count']
-    assert isinstance(phase_82_plan_count, int)
-    assert isinstance(phase_82_summary_count, int)
-    assert _as_str(phase_82['status']) == 'complete'
-    assert phase_82_plan_count == 3
-    assert phase_82_summary_count == 4
+    phase_83 = next(phase for phase in phases if _as_str(phase['number']) == '83')
+    phase_83_plan_count = phase_83['plan_count']
+    phase_83_summary_count = phase_83['summary_count']
+    assert isinstance(phase_83_plan_count, int)
+    assert isinstance(phase_83_summary_count, int)
+    assert _as_str(phase_83['status']) == 'complete'
+    assert phase_83_plan_count == 3
+    assert phase_83_summary_count == 4
     next_phase = _as_mapping(progress['next_phase'])
-    assert _as_str(next_phase['number']) == '83'
+    assert _as_str(next_phase['number']) == '84'
 
     state = _run_gsd_tools('state', 'json')
     assert _as_str(state['milestone']) == CURRENT_MILESTONE
     assert _as_str(state['status']) == 'active'
     assert _as_mapping(state['progress']) == {
         'total_phases': '4',
-        'completed_phases': '2',
+        'completed_phases': '3',
         'total_plans': '12',
-        'completed_plans': '6',
+        'completed_plans': '9',
     }
     assert progress['phase_count'] == len(phases)
-    assert progress['completed_count'] == 2
+    assert progress['completed_count'] == 3
     assert progress['current_phase'] is None
 
-    phase_index = _run_gsd_tools('phase-plan-index', '82')
-    assert _as_str(phase_index['phase']) == '82'
+    phase_index = _run_gsd_tools('phase-plan-index', '83')
+    assert _as_str(phase_index['phase']) == '83'
     plans = _as_mapping_list(phase_index['plans'])
-    assert [ _as_str(plan['id']) for plan in plans ] == ['82-01', '82-02', '82-03']
+    assert [_as_str(plan['id']) for plan in plans] == ['83-01', '83-02', '83-03']
     assert all(_as_bool(plan['has_summary']) for plan in plans)
     assert phase_index['incomplete'] == []
     assert _as_bool(phase_index['has_checkpoints']) is False
 
 
-def test_phase_80_closeout_assets_are_promoted_without_planning_traces() -> None:
+def test_recent_governance_closeout_assets_are_promoted_without_planning_traces() -> None:
     _assert_promoted_phase_assets(
         '76-governance-bootstrap-truth-hardening-archive-seed-determinism-and-active-route-activation',
         '76-01-SUMMARY.md',
@@ -170,4 +170,13 @@ def test_phase_80_closeout_assets_are_promoted_without_planning_traces() -> None
         '82-SUMMARY.md',
         '82-VERIFICATION.md',
         '82-VALIDATION.md',
+    )
+    _assert_promoted_phase_assets(
+        '83-intake-templates-and-maintainer-stewardship-contract',
+        '83-01-SUMMARY.md',
+        '83-02-SUMMARY.md',
+        '83-03-SUMMARY.md',
+        '83-SUMMARY.md',
+        '83-VERIFICATION.md',
+        '83-VALIDATION.md',
     )

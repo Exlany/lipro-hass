@@ -14,5 +14,23 @@
 > If this PR touches protocol / runtime / control / external-boundary / governance boundaries, link the relevant decisions or call out how this change follows `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md`.
 > 若本 PR 涉及 protocol / runtime / control / external-boundary / governance 边界，请说明它遵循了 `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md` 的哪一段决策或约束。
 
+## Affected boundary / scope
+<!-- Route this PR to the closest boundary family and name the concrete surfaces changed. / 请把本 PR 路由到最接近的边界家族，并写清具体受影响 surface。 -->
+- Boundary family / 边界家族:
+- Affected surfaces or files / 受影响 surface 或文件:
+- Install / source / release path changes / 安装、来源或发布路径变化:
+
+## Risk / impact
+<!-- Describe user impact, maintainer impact, regressions, migrations, or release/security implications. -->
+- User or maintainer impact / 对用户或维护者的影响:
+- Risk, regressions, or rollback notes / 风险、回归面或回滚说明:
+- Security-sensitive follow-up / 安全敏感后续:
+  - [ ] Not security-sensitive / 不涉及安全敏感细节
+  - [ ] Security-sensitive details stay out of this PR and are handled through `SECURITY.md` / 安全敏感细节不写进此 PR，改按 `SECURITY.md` 私密处理
+
+## Validation commands
+<!-- List the exact commands or equivalent evidence used to validate this change. / 请列出精确验证命令或等价证据。 -->
+- `uv run ...`
+
 ## Testing
-<!-- What tests were run? Paste relevant output or describe coverage. -->
+<!-- Paste relevant output, summarize coverage, or explain why a command could not run. / 粘贴关键输出、总结覆盖，或说明未执行某命令的原因。 -->

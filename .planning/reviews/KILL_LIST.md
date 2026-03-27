@@ -342,6 +342,22 @@
 - 后续唯一正式下一步是 `$gsd-complete-milestone v1.21`；不得再以“补 mypy”或“补测试拆分”为名重开隐性 phase。
 
 
+
+## Phase 81 Status Update
+
+- 本 phase **无新增 active kill target**；public first-hop convergence 与 contributor change-map publication 收口的是 docs-entry drift，而不是 file-level delete campaign。
+- maintainer appendix 继续保持 maintainer-only 身份；后续 docs 优化只能沿现有入口矩阵同步，不得制造临时 route shell。
+
+## Phase 82 Status Update
+
+- 本 phase **无新增 active kill target**；release route / archived evidence chain formalization 通过 docs / guards 收口，不需要新增 delete-gated 过渡物。
+- latest archived pointer 与 milestone audit 继续保持 historical-only 身份；后续 release 工作只能沿既有 maintainer route 加强验证，不得回流平行 release folklore。
+
+## Phase 83 Status Update
+
+- 本 phase **无新增 active kill target**；evidence-first intake 与 stewardship contract 收口的是模板 / 文档 / registry drift，而不是 file-level cleanup campaign。
+- `.github/CODEOWNERS` 继续是唯一 owner / custody truth source；issue / PR / support / security surfaces 只能投影它，不能暗示 hidden delegate、backup maintainer 或 public security fallback。
+
 ## v1.21 Milestone Closeout Status
 
 - 本次里程碑 closeout **无新增 active kill target**；被关闭的是隐式 active-route story，而不是任何需要回头删除的临时壳层。

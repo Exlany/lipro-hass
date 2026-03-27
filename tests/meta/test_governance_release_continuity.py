@@ -18,6 +18,7 @@ from .conftest import (
     _as_mapping,
     _as_mapping_list,
     _as_str,
+    _extract_markdown_section,
     _load_json,
     _load_yaml,
     _parse_codeowners_handles,
@@ -69,6 +70,8 @@ def test_manifest_codeowners_match_repo_codeowners() -> None:
     )
 
 def test_release_runbook_and_support_docs_expose_continuity_truth() -> None:
+    registry = _load_json(_GOVERNANCE_REGISTRY)
+    continuity = _as_mapping(registry["continuity"])
     runbook_text = _RUNBOOK.read_text(encoding="utf-8")
     support_text = _SUPPORT.read_text(encoding="utf-8")
     security_text = _SECURITY.read_text(encoding="utf-8")
@@ -94,6 +97,31 @@ def test_release_runbook_and_support_docs_expose_continuity_truth() -> None:
     assert "release custodian" in codeowners_text
     assert "maintainer-unavailable drill" in codeowners_text.lower()
     assert "restore custody only after" in codeowners_text
+
+    for text in (support_text, security_text):
+        assert ".github/CODEOWNERS" in text
+        assert _as_str(continuity["restore_phrase"]) in text.lower()
+
+    for drill_text in (
+        _extract_markdown_section(support_text, "Maintainer-Unavailable Drill"),
+        _extract_markdown_section(security_text, "Maintainer-Unavailable Drill"),
+    ):
+        numbered_lines = [
+            line.strip()
+            for line in drill_text.splitlines()
+            if line.strip().startswith(("1. ", "2. ", "3. ", "4. "))
+        ]
+        assert len(numbered_lines) == 4
+        assert any(
+            _as_str(continuity["freeze_phrase"]).lower() in line.lower()
+            for line in numbered_lines
+        )
+        assert any("private" in line.lower() and "path" in line.lower() for line in numbered_lines)
+        assert any("continuity gap" in line.lower() for line in numbered_lines)
+        assert any(
+            _as_str(continuity["restore_phrase"]).lower() in line.lower()
+            for line in numbered_lines
+        )
 
 def test_support_and_issue_routing_are_consistent() -> None:
     support_text = _SUPPORT.read_text(encoding="utf-8")
@@ -133,6 +161,9 @@ def test_templates_and_governance_docs_keep_continuity_contract() -> None:
     bug_text = (_ROOT / ".github" / "ISSUE_TEMPLATE" / "bug.yml").read_text(
         encoding="utf-8"
     )
+    feature_text = (_ROOT / ".github" / "ISSUE_TEMPLATE" / "feature_request.yml").read_text(
+        encoding="utf-8"
+    )
     pr_text = _PR_TEMPLATE.read_text(encoding="utf-8")
     support_text = _SUPPORT.read_text(encoding="utf-8")
     security_text = _SECURITY.read_text(encoding="utf-8")
@@ -144,6 +175,11 @@ def test_templates_and_governance_docs_keep_continuity_contract() -> None:
     assert "do not transfer release custody" in support_text
     assert "do not by themselves transfer release custody" in security_text
     assert "issue/PR template text" in security_text
+    assert "single-maintainer" in feature_text
+    assert "best-effort" in feature_text
+    assert "affected area" in feature_text.lower()
+    assert "acceptance signal" in feature_text.lower()
+    assert "maintenance budget" in feature_text
     assert "docs/README.md" in pr_text
     assert "docs/MAINTAINER_RELEASE_RUNBOOK.md" in pr_text
     assert ".github/CODEOWNERS" in pr_text
@@ -151,6 +187,38 @@ def test_templates_and_governance_docs_keep_continuity_contract() -> None:
     assert "maintainer-unavailable drill" in pr_text.lower()
     assert "undocumented delegate" in pr_text
     assert "do not transfer custody" in codeowners_text
+
+
+def test_codeowners_keeps_single_wildcard_owner() -> None:
+    codeowners_text = _CODEOWNERS.read_text(encoding="utf-8")
+    wildcard_lines = [
+        line.strip() for line in codeowners_text.splitlines() if line.strip().startswith("* ")
+    ]
+
+    assert len(wildcard_lines) == 1
+    assert _parse_codeowners_handles(codeowners_text) == ["@Exlany"]
+
+def test_support_and_security_share_four_step_maintainer_unavailable_shape() -> None:
+    support_section = _extract_markdown_section(
+        _SUPPORT.read_text(encoding="utf-8"),
+        "Maintainer-Unavailable Drill",
+    )
+    security_section = _extract_markdown_section(
+        _SECURITY.read_text(encoding="utf-8"),
+        "Maintainer-Unavailable Drill",
+    )
+
+    for section in (support_section, security_section):
+        numbered_lines = [
+            line.strip()
+            for line in section.splitlines()
+            if line.strip().startswith(("1. ", "2. ", "3. ", "4. "))
+        ]
+        assert len(numbered_lines) == 4
+        assert ".github/CODEOWNERS" in section
+        assert "docs/MAINTAINER_RELEASE_RUNBOOK.md" in section
+        assert "restore custody only after" in section.lower()
+
 
 def test_runbook_and_pr_template_capture_break_glass_and_rehearsal_truth() -> None:
     registry = _load_json(_GOVERNANCE_REGISTRY)

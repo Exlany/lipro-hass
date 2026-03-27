@@ -36,6 +36,9 @@ body:
         对大多数公开 Bug 报告，diagnostics 就是第一优先证据；developer report / 一键反馈是升级排障路径，而不是硬门槛。
         For most public bug reports, diagnostics are the first-line evidence; developer report / one-click feedback is an escalation path, not a hard gate.
 
+        为了把问题尽快路由到正确边界，请尽量补齐最小充分证据：受影响区域、影响范围，以及你已经尝试过的排障或验证；若暂时不确定，可以明确写“不确定”。
+        To route the issue quickly, please include the minimum-sufficient evidence: affected area, impact scope, and troubleshooting or validation already tried; if you are unsure, say so explicitly.
+
   - type: checkboxes
     attributes:
       label: Checklist / 检查清单
@@ -84,6 +87,21 @@ body:
     validations:
       required: true
 
+  - type: dropdown
+    id: affected-area
+    attributes:
+      label: Affected Area / Boundary Family / 受影响区域 / 边界家族
+      description: Route this bug to the closest boundary family; choose "Not sure" if you cannot tell yet. / 请把问题先路由到最接近的边界家族；若暂时无法判断，请选择“不确定”。
+      options:
+        - "Protocol / 协议面 (API / MQTT / auth / discovery)"
+        - "Runtime / 运行面 (coordinator / state sync)"
+        - "Control / 控制面 (config flow / services / diagnostics)"
+        - "External boundary / 外部边界 (installer / firmware metadata / release asset)"
+        - "Docs / governance / 文档或治理入口"
+        - "Not sure / 不确定"
+    validations:
+      required: true
+
   - type: textarea
     id: description
     attributes:
@@ -104,6 +122,22 @@ body:
         1.
         2.
         3.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: impact-scope
+    attributes:
+      label: Impact Scope / 影响范围
+      description: How wide is the impact when this bug happens? / 这个问题发生时，影响范围有多大？
+      options:
+        - "Single device / 单个设备"
+        - "One device family / 单一设备家族"
+        - "One Home Assistant instance / 单个 Home Assistant 实例"
+        - "Install or update path only / 仅安装或升级路径"
+        - "Multiple homes or users / 多个家庭或用户"
+        - "Most or all devices in the integration / 集成内大多数或全部设备"
+        - "Not sure / 不确定"
     validations:
       required: true
 
@@ -142,6 +176,28 @@ body:
         - "Shell / SSH installer / SSH 安装脚本"
         - "shell_command"
         - "Manual / 手动安装"
+    validations:
+      required: true
+
+  - type: input
+    id: install-source-path
+    attributes:
+      label: Install / Source Path Details / 安装 / 来源路径细节
+      description: Optional but useful when the bug depends on the install route; mention tagged release, `latest`, `ARCHIVE_TAG=main`, manual zip, mirror, or fork if relevant. / 若问题与安装路径有关，这里请补充 tagged release、`latest`、`ARCHIVE_TAG=main`、手动 zip、mirror 或 fork 等细节。
+      placeholder: "e.g., Release v1.22.0 / latest / ARCHIVE_TAG=main / manual zip / fork commit"
+    validations:
+      required: false
+
+  - type: textarea
+    id: troubleshooting-tried
+    attributes:
+      label: Troubleshooting or Validation Tried / 已尝试的排障或验证
+      description: Tell us which docs, commands, reloads, or comparisons you already tried, and what each attempt showed. / 请说明你已尝试过哪些文档步骤、命令、重载或对比动作，以及每一步看到的结果。
+      placeholder: |
+        - Read `docs/TROUBLESHOOTING.md` / 已阅读 `docs/TROUBLESHOOTING.md`
+        - Reloaded the integration or restarted Home Assistant / 已重载集成或重启 Home Assistant
+        - Ran a command or service / 执行过的命令或服务：
+        - What changed or did not change / 结果与未变化之处：
     validations:
       required: true
 

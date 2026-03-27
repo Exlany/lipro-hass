@@ -73,6 +73,51 @@
       ".github/pull_request_template.md"
     ]
   },
+  "community_health": {
+    "pr_sections": [
+      "Affected boundary / scope",
+      "Risk / impact",
+      "Validation commands"
+    ],
+    "bug_form_required_ids": [
+      "problem-type",
+      "device-type",
+      "affected-area",
+      "description",
+      "steps",
+      "impact-scope",
+      "ha-version",
+      "integration-version",
+      "install-method",
+      "troubleshooting-tried",
+      "logs"
+    ],
+    "feature_form_required_ids": [
+      "feature-type",
+      "device-type",
+      "affected-area",
+      "solution",
+      "use-case-impact",
+      "acceptance-signal"
+    ],
+    "security_intake_evidence": [
+      "affected version(s) and install path",
+      "integration version plus Home Assistant version",
+      "trigger, reproduction, or detection steps",
+      "impact and severity assessment",
+      "validation or detection signal",
+      "workaround, mitigation, or redacted evidence"
+    ],
+    "projection_targets": [
+      "CONTRIBUTING.md",
+      "SUPPORT.md",
+      "SECURITY.md",
+      "docs/README.md",
+      ".github/ISSUE_TEMPLATE/bug.yml",
+      ".github/ISSUE_TEMPLATE/feature_request.yml",
+      ".github/pull_request_template.md"
+    ]
+  },
   "docs": {
     "index_route": "docs/README.md",
     "public_fast_path": [
