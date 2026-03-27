@@ -26,6 +26,7 @@ See: `.planning/PROJECT.md`
 - `Phase 85` 已完成 repo-wide terminal audit、baseline/review truth refresh 与 focused no-regrowth guards；下一跳进入 `Phase 86` production residual eradication and boundary re-tightening。
 - latest archived baseline 固定为 `v1.22`；latest archived evidence index 继续是 `.planning/reviews/V1_22_EVIDENCE_INDEX.md`；`v1.21` 继续承担 previous archived baseline。
 - 本轮默认下一步是 `$gsd-plan-phase 86`；`Phase 85` 的 closeout evidence 已固定，后续 production cleanup 必须直接消费 `V1_23_TERMINAL_AUDIT.md` / `FILE_MATRIX.md` / `RESIDUAL_LEDGER.md` / `KILL_LIST.md` 的 routed truth。
+- `Phase 86` 的 discuss/context 已落盘到 `.planning/phases/86-production-residual-eradication-and-boundary-re-tightening/86-CONTEXT.md`；下一跳可直接进入 `$gsd-plan-phase 86`。
 
 <!-- governance-route-contract:start -->
 ```yaml
@@ -106,7 +107,8 @@ If resuming, read in this order:
 3. `.planning/ROADMAP.md`
 4. `.planning/REQUIREMENTS.md`
 5. `.planning/STATE.md`
-6. `.planning/reviews/V1_23_TERMINAL_AUDIT.md`
+6. `.planning/phases/86-production-residual-eradication-and-boundary-re-tightening/86-CONTEXT.md`
+7. `.planning/reviews/V1_23_TERMINAL_AUDIT.md`
 7. `.planning/reviews/V1_22_EVIDENCE_INDEX.md`
 8. `.planning/v1.22-MILESTONE-AUDIT.md`
 8. `.planning/milestones/v1.22-ROADMAP.md`
