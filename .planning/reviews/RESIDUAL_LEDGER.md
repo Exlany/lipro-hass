@@ -469,6 +469,12 @@ _None currently registered._
 - issue / PR / security intake 与 contributor stewardship surfaces 现已共享 evidence-first routing、best-effort triage 与 custody restoration truth；后续只允许继续扩 guard，不得把 undocumented delegate / hidden maintainer folklore 写回 live contract。
 - `docs/README.md` 继续只承担 docs map / contract reachability；`CONTRIBUTING.md`、`SUPPORT.md`、`SECURITY.md`、`.github/ISSUE_TEMPLATE/*.yml`、`.github/pull_request_template.md` 与 `.github/CODEOWNERS` 现共同构成 formal intake / stewardship surface family。
 
+## Phase 84 Residual Delta
+
+- 无新增 active residual family。
+- focused governance / open-source guards 现已冻结 active-route、docs-entry、template evidence、release / version link 与 promoted closeout truth；后续只能进入 milestone closeout，不得再回退到 `Phase 83` current story。
+- `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / VERIFICATION_MATRIX / PROMOTED_PHASE_ASSETS` 现共同承认 `Phase 84 complete / next = $gsd-complete-milestone v1.22`。
+
 ## v1.21 Milestone Closeout Delta
 
 - 无新增 active residual family。

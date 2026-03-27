@@ -149,7 +149,7 @@ def test_v1_11_closeout_package_and_project_pointers_are_consistent() -> None:
         "| GOV-42 | Phase 58 | Complete |",
         "- v1.11 routed requirements: 4 total",
         "- Current mapped: 4",
-        "- Current complete: 6",
+        "- Current complete: 8",
         "- Current pending: 0",
     )
 
@@ -216,7 +216,7 @@ def test_machine_readable_route_contracts_point_to_active_v1_22_and_archived_v1_
     state_bootstrap = _as_mapping(state_contract["bootstrap"])
 
     assert requirements_active["version"] == "v1.22"
-    assert requirements_active["phase"] == "83"
+    assert requirements_active["phase"] == "84"
     assert milestones_latest_archived["version"] == "v1.21"
     assert state_bootstrap["default_next_command"] == CURRENT_MILESTONE_DEFAULT_NEXT
     assert state_bootstrap["latest_archived_evidence_pointer"] == LATEST_ARCHIVED_EVIDENCE_PATH
@@ -247,7 +247,7 @@ def test_current_v1_22_project_state_and_latest_archive_pointers_align() -> None
         "## Archived Milestone (v1.17)",
         "## Archived Milestone (v1.16)",
         "## Archived Milestone (v1.15)",
-        "**Current status:** `Phase 83 complete (2026-03-27)`",
+        "**Current status:** `Phase 84 complete (2026-03-27)`",
     )
     _assert_contains_all(
         _ROADMAP_TEXT,
@@ -255,6 +255,8 @@ def test_current_v1_22_project_state_and_latest_archive_pointers_align() -> None
         "### Phase 84: Governance/open-source guard coverage and milestone truth freeze",
         "83-03: freeze stewardship and intake truth across templates, support docs, and governance ledgers",
         CURRENT_MILESTONE_DEFAULT_NEXT,
+        "84-03: freeze v1.22 starter truth after focused validation and guard updates (completed 2026-03-27)",
+        ".planning/phases/84-governance-open-source-guard-coverage-and-milestone-truth-freeze/{84-01-SUMMARY.md,84-02-SUMMARY.md,84-03-SUMMARY.md}",
     )
     _assert_contains_all(
         _REQUIREMENTS_TEXT,
@@ -264,20 +266,20 @@ def test_current_v1_22_project_state_and_latest_archive_pointers_align() -> None
         "- [x] **ARC-21**",
         "- [x] **GOV-61**",
         "- [x] **OSS-11**",
-        "- [ ] **TST-26**",
-        "- [ ] **QLT-34**",
+        "- [x] **TST-26**",
+        "- [x] **QLT-34**",
         "| GOV-60 | Phase 82 | Completed |",
         "| OSS-10 | Phase 81 | Completed |",
         "| DOC-08 | Phase 81 | Completed |",
         "| ARC-21 | Phase 82 | Completed |",
         "| GOV-61 | Phase 83 | Completed |",
         "| OSS-11 | Phase 83 | Completed |",
-        "| TST-26 | Phase 84 | Planned |",
-        "| QLT-34 | Phase 84 | Planned |",
+        "| TST-26 | Phase 84 | Completed |",
+        "| QLT-34 | Phase 84 | Completed |",
         "- v1.22 requirements: 8 total",
         "- Current mapped: 8",
         "- Current complete: 6",
-        "- Current pending: 2",
+        "- Current pending: 0",
         "## Latest Archived Milestone (v1.21)",
         "## Previous Archived Milestone (v1.20)",
         "## Traceability for archived v1.16 route",
@@ -292,4 +294,4 @@ def test_current_v1_22_project_state_and_latest_archive_pointers_align() -> None
         LATEST_ARCHIVED_AUDIT_PATH,
         LATEST_ARCHIVED_EVIDENCE_PATH,
     )
-    assert CURRENT_MILESTONE_STATUS == "Phase 83 complete (2026-03-27)"
+    assert CURRENT_MILESTONE_STATUS == "Phase 84 complete (2026-03-27)"

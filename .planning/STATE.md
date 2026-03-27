@@ -6,9 +6,9 @@ status: active
 last_updated: "2026-03-27T00:00:00Z"
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 12
-  completed_plans: 9
+  completed_plans: 12
 ---
 
 # Project State
@@ -19,13 +19,13 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.22 Maintainer Entry Contracts, Release Operations Closure & Contributor Routing`
 **Core value:** 把 `v1.21` archived baseline 与 `.planning/reviews/V1_21_EVIDENCE_INDEX.md` latest pull-only closeout pointer 外化为 maintainer / contributor / release 的单一协作路线；不再把下一轮增量浪费在重开内部治理第二故事线。
-**Current mode:** `Phase 83 complete`
+**Current mode:** `Phase 84 complete`
 
 ## Current Position
 
-- `v1.22` 已于 `2026-03-27` 从 `v1.21` archived baseline 正式开立；`Phase 83` 现已完成 intake templates / maintainer stewardship contract 收口，下一步是 `$gsd-discuss-phase 84`。
+- `v1.22` 已于 `2026-03-27` 从 `v1.21` archived baseline 正式开立；`Phase 84` 现已完成 focused governance / open-source guard coverage 与 milestone truth freeze，下一步是 `$gsd-complete-milestone v1.22`。
 - latest archived baseline 固定为 `v1.21`；latest archived evidence index 继续是 `.planning/reviews/V1_21_EVIDENCE_INDEX.md`；`v1.20` 继续承担 previous archived baseline。
-- 当前最高价值工作集中在 focused governance / community-health guard coverage 与 milestone truth freeze；已完成的 intake / stewardship contract 不再回退成 undocumented maintainer folklore。
+- `Phase 81`~`84` 已共同把 public-entry、release operations、community-health intake 与 current-route closeout-ready truth 收口为单一协作路线；后续不再回退成 undocumented maintainer folklore。
 
 <!-- governance-route-contract:start -->
 ```yaml
@@ -34,10 +34,10 @@ contract_name: governance-route
 active_milestone:
   version: v1.22
   name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
-  status: Phase 83 complete (2026-03-27)
-  phase: "83"
-  phase_title: Intake templates and maintainer stewardship contract
-  route_mode: Phase 83 complete
+  status: Phase 84 complete (2026-03-27)
+  phase: "84"
+  phase_title: Governance/open-source guard coverage and milestone truth freeze
+  route_mode: Phase 84 complete
 latest_archived:
   version: v1.21
   name: Governance Bootstrap Truth Hardening & Planning Route Automation
@@ -53,8 +53,8 @@ previous_archived:
   name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
   evidence_path: .planning/reviews/V1_20_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.22 active route / Phase 83 complete / latest archived baseline = v1.21
-  default_next_command: $gsd-discuss-phase 84
+  current_route: v1.22 active route / Phase 84 complete / latest archived baseline = v1.21
+  default_next_command: $gsd-complete-milestone v1.22
   latest_archived_evidence_pointer: .planning/reviews/V1_21_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -85,9 +85,9 @@ bootstrap:
 
 ## Recommended Next Command
 
-1. `$gsd-discuss-phase 84` —— 为 `Phase 84` 收集 focused governance / community-health guards 与 milestone truth freeze 的精确边界
+1. `$gsd-complete-milestone v1.22` —— 为 `Phase 84` 收集 focused governance / community-health guards 与 milestone truth freeze 的精确边界
 2. `$gsd-plan-phase 84` —— 若无需讨论，直接把 `Phase 84` 细化成可执行计划
-3. `$gsd-progress` —— 查看 `v1.22 active route / Phase 83 complete / latest archived baseline = v1.21` 的当前状态
+3. `$gsd-progress` —— 查看 `v1.22 active route / Phase 84 complete / latest archived baseline = v1.21` 的当前状态
 4. `uv run python scripts/check_file_matrix.py --check` —— 复核 planning / baseline / review / archive assets 契约
 5. `uv run pytest -q tests/meta/test_governance_bootstrap_smoke.py tests/meta/test_governance_closeout_guards.py tests/meta/test_governance_promoted_phase_assets.py tests/meta/test_governance_route_handoff_smoke.py tests/meta/governance_followup_route_current_milestones.py tests/meta/test_governance_release_contract.py tests/meta/test_governance_release_docs.py tests/meta/test_governance_release_continuity.py tests/meta/test_governance_milestone_archives.py tests/meta/test_version_sync.py` —— 复核 active route / intake stewardship / promoted closeout 守卫
 ## Session Continuity
@@ -110,14 +110,17 @@ If resuming, read in this order:
 14. `.planning/reviews/V1_19_TERMINAL_AUDIT.md`
 15. `.planning/reviews/V1_19_EVIDENCE_INDEX.md`
 16. `.planning/milestones/v1.19-REQUIREMENTS.md`
-17. `.planning/phases/83-intake-templates-and-maintainer-stewardship-contract/83-SUMMARY.md`
-18. `.planning/phases/83-intake-templates-and-maintainer-stewardship-contract/83-VERIFICATION.md`
-19. `.planning/phases/83-intake-templates-and-maintainer-stewardship-contract/83-VALIDATION.md`
-20. `.planning/phases/82-release-operations-closure-and-evidence-chain-formalization/82-SUMMARY.md`
-21. `.planning/phases/82-release-operations-closure-and-evidence-chain-formalization/82-VERIFICATION.md`
-22. `.planning/phases/82-release-operations-closure-and-evidence-chain-formalization/82-VALIDATION.md`
-23. `.planning/phases/81-contributor-onramp-route-convergence-and-public-entry-contract/81-SUMMARY.md`
-24. `.planning/phases/81-contributor-onramp-route-convergence-and-public-entry-contract/81-VERIFICATION.md`
+17. `.planning/phases/84-governance-open-source-guard-coverage-and-milestone-truth-freeze/84-SUMMARY.md`
+18. `.planning/phases/84-governance-open-source-guard-coverage-and-milestone-truth-freeze/84-VERIFICATION.md`
+19. `.planning/phases/84-governance-open-source-guard-coverage-and-milestone-truth-freeze/84-VALIDATION.md`
+20. `.planning/phases/83-intake-templates-and-maintainer-stewardship-contract/83-SUMMARY.md`
+21. `.planning/phases/83-intake-templates-and-maintainer-stewardship-contract/83-VERIFICATION.md`
+22. `.planning/phases/83-intake-templates-and-maintainer-stewardship-contract/83-VALIDATION.md`
+23. `.planning/phases/82-release-operations-closure-and-evidence-chain-formalization/82-SUMMARY.md`
+24. `.planning/phases/82-release-operations-closure-and-evidence-chain-formalization/82-VERIFICATION.md`
+25. `.planning/phases/82-release-operations-closure-and-evidence-chain-formalization/82-VALIDATION.md`
+26. `.planning/phases/81-contributor-onramp-route-convergence-and-public-entry-contract/81-SUMMARY.md`
+27. `.planning/phases/81-contributor-onramp-route-convergence-and-public-entry-contract/81-VERIFICATION.md`
 25. `.planning/phases/81-contributor-onramp-route-convergence-and-public-entry-contract/81-VALIDATION.md`
 26. `.planning/phases/80-governance-typing-closure-and-final-meta-suite-hotspot-topicization/80-SUMMARY.md`
 27. `.planning/phases/80-governance-typing-closure-and-final-meta-suite-hotspot-topicization/80-VERIFICATION.md`

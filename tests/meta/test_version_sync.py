@@ -170,6 +170,31 @@ def test_docs_index_route_is_consistent() -> None:
     assert docs_link["url"].endswith("/docs/README.md")
 
 
+def test_public_fast_path_and_documentation_contact_link_stay_aligned() -> None:
+    registry = _load_governance_registry()
+    docs = registry["docs"]
+    assert isinstance(docs, dict)
+
+    assert docs["public_fast_path"] == [
+        "README.md",
+        "README_zh.md",
+        "CONTRIBUTING.md",
+        "docs/TROUBLESHOOTING.md",
+        "SUPPORT.md",
+        "SECURITY.md",
+    ]
+    for relative_path in docs["public_fast_path"]:
+        assert (_ROOT / relative_path).exists()
+
+    issue_config = _load_yaml(_ISSUE_CONFIG)
+    docs_link = next(
+        link for link in issue_config["contact_links"] if "Documentation" in link["name"]
+    )
+    assert docs_link["url"].endswith(f"/{docs['index_route']}")
+    assert "docs-first route stays canonical" in docs_link["about"]
+    assert "repository access" in docs_link["about"]
+
+
 def test_governance_registry_projection_targets_are_current() -> None:
     registry = _load_governance_registry()
 

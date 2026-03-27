@@ -358,6 +358,11 @@
 - 本 phase **无新增 active kill target**；evidence-first intake 与 stewardship contract 收口的是模板 / 文档 / registry drift，而不是 file-level cleanup campaign。
 - `.github/CODEOWNERS` 继续是唯一 owner / custody truth source；issue / PR / support / security surfaces 只能投影它，不能暗示 hidden delegate、backup maintainer 或 public security fallback。
 
+## Phase 84 Status Update
+
+- 本 phase **无新增 active kill target**；focused guard coverage 与 current-route closeout-ready freeze 收口的是 governance truth / docs-entry / promoted-evidence drift，而不是 file-level cleanup campaign。
+- `v1.22` 当前已进入 `Phase 84 complete / closeout-ready`；后续唯一正式下一步是 `$gsd-complete-milestone v1.22`，不得再以“补 guard”“补 starter truth”之名重开隐性 phase。
+
 ## v1.21 Milestone Closeout Status
 
 - 本次里程碑 closeout **无新增 active kill target**；被关闭的是隐式 active-route story，而不是任何需要回头删除的临时壳层。

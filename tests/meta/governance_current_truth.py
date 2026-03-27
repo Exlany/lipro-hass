@@ -27,10 +27,10 @@ PLANNING_ROUTE_CONTRACT: dict[str, object] = {
     "active_milestone": {
         "version": "v1.22",
         "name": "Maintainer Entry Contracts, Release Operations Closure & Contributor Routing",
-        "status": "Phase 83 complete (2026-03-27)",
-        "phase": "83",
-        "phase_title": "Intake templates and maintainer stewardship contract",
-        "route_mode": "Phase 83 complete",
+        "status": "Phase 84 complete (2026-03-27)",
+        "phase": "84",
+        "phase_title": "Governance/open-source guard coverage and milestone truth freeze",
+        "route_mode": "Phase 84 complete",
     },
     "latest_archived": {
         "version": "v1.21",
@@ -49,8 +49,8 @@ PLANNING_ROUTE_CONTRACT: dict[str, object] = {
         "evidence_path": ".planning/reviews/V1_20_EVIDENCE_INDEX.md",
     },
     "bootstrap": {
-        "current_route": "v1.22 active route / Phase 83 complete / latest archived baseline = v1.21",
-        "default_next_command": "$gsd-discuss-phase 84",
+        "current_route": "v1.22 active route / Phase 84 complete / latest archived baseline = v1.21",
+        "default_next_command": "$gsd-complete-milestone v1.22",
         "latest_archived_evidence_pointer": ".planning/reviews/V1_21_EVIDENCE_INDEX.md",
     },
 }
@@ -170,6 +170,7 @@ CURRENT_ROUTE_PROSE_FORBIDDEN = (
     "v1.21 active route / Phase 78 complete / latest archived baseline = v1.20",
     "v1.21 active route / Phase 79 complete / latest archived baseline = v1.20",
     "v1.21 active route / Phase 80 complete / latest archived baseline = v1.20",
+    "v1.22 active route / Phase 83 complete / latest archived baseline = v1.21",
     "no active milestone route / latest archived baseline = v1.20",
 )
 CURRENT_RUNTIME_ROOT_TEST = "tests/core/coordinator/test_runtime_root.py"

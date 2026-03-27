@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🚧 **v1.22 Maintainer Entry Contracts, Release Operations Closure & Contributor Routing** - opened on 2026-03-27 from `v1.21` archived baseline; current phase = `83`; status: `Phase 83 complete (2026-03-27)`; next step: `$gsd-discuss-phase 84`
+- 🚧 **v1.22 Maintainer Entry Contracts, Release Operations Closure & Contributor Routing** - opened on 2026-03-27 from `v1.21` archived baseline; current phase = `84`; status: `Phase 84 complete (2026-03-27)`; next step: `$gsd-complete-milestone v1.22`
 - ✅ **v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation** - `Phase 76 -> 80` archived on 2026-03-26; milestone audit: `.planning/v1.21-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_21_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.21-ROADMAP.md` / `.planning/milestones/v1.21-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.21`
 - 🗂 **Historical archive snapshots** - `.planning/milestones/{v1.1-ROADMAP.md,v1.1-REQUIREMENTS.md,v1.2-ROADMAP.md,v1.2-REQUIREMENTS.md,v1.4-ROADMAP.md,v1.4-REQUIREMENTS.md,v1.5-ROADMAP.md,v1.5-REQUIREMENTS.md,v1.6-ROADMAP.md,v1.6-REQUIREMENTS.md,v1.12-ROADMAP.md,v1.12-REQUIREMENTS.md,v1.13-ROADMAP.md,v1.13-REQUIREMENTS.md,v1.14-ROADMAP.md,v1.14-REQUIREMENTS.md,v1.15-ROADMAP.md,v1.15-REQUIREMENTS.md,v1.16-ROADMAP.md,v1.16-REQUIREMENTS.md,v1.17-ROADMAP.md,v1.17-REQUIREMENTS.md}` 继续保留为 continuity / archive reference。
 
@@ -13,10 +13,10 @@ contract_name: governance-route
 active_milestone:
   version: v1.22
   name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
-  status: Phase 83 complete (2026-03-27)
-  phase: "83"
-  phase_title: Intake templates and maintainer stewardship contract
-  route_mode: Phase 83 complete
+  status: Phase 84 complete (2026-03-27)
+  phase: "84"
+  phase_title: Governance/open-source guard coverage and milestone truth freeze
+  route_mode: Phase 84 complete
 latest_archived:
   version: v1.21
   name: Governance Bootstrap Truth Hardening & Planning Route Automation
@@ -32,8 +32,8 @@ previous_archived:
   name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
   evidence_path: .planning/reviews/V1_20_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.22 active route / Phase 83 complete / latest archived baseline = v1.21
-  default_next_command: $gsd-discuss-phase 84
+  current_route: v1.22 active route / Phase 84 complete / latest archived baseline = v1.21
+  default_next_command: $gsd-complete-milestone v1.22
   latest_archived_evidence_pointer: .planning/reviews/V1_21_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -41,10 +41,10 @@ bootstrap:
 ## v1.22: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
 
 **Milestone Goal:** 把 `v1.21` 已归档冻结的治理/证据链外化为 contributor / maintainer / release 一体化协作契约，统一入口叙事、发布证据链、intake 模板与 ownership / triage 路由。
-**Milestone status:** `Phase 83 complete (2026-03-27)`
+**Milestone status:** `Phase 84 complete (2026-03-27)`
 **Starting baseline:** `.planning/v1.21-MILESTONE-AUDIT.md`, `.planning/reviews/V1_21_EVIDENCE_INDEX.md`, `.planning/milestones/v1.21-ROADMAP.md`, `.planning/milestones/v1.21-REQUIREMENTS.md`
 **Requirements basket:** `GOV-60`, `OSS-10`, `DOC-08`, `ARC-21`, `GOV-61`, `OSS-11`, `TST-26`, `QLT-34`
-**Default next command:** `$gsd-discuss-phase 84`
+**Default next command:** `$gsd-complete-milestone v1.22`
 
 ### Phase 81: Contributor onramp route convergence and public entry contract
 
@@ -111,15 +111,16 @@ Plans:
 **Success Criteria**:
   1. focused guards 能发现 active-route、public-entry docs、template evidence fields、release / version links 与 archived pointer drift。
   2. touched docs / governance helpers / templates 在必要的 local quality gates 下继续绿色。
-  3. `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / VERIFICATION_MATRIX / governance_current_truth.py` 共同冻结 `v1.22` 的 planning-ready current story。
-**Status**: Planned
-**Plans**: 3 total / 0 completed / 3 pending
+  3. `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / VERIFICATION_MATRIX / governance_current_truth.py` 共同冻结 `v1.22` 的 closeout-ready current story。
+**Status**: Complete (2026-03-27)
+**Plans**: 3 total / 3 completed / 0 pending
 
 Plans:
-- [ ] 84-01: add focused governance and community-health guards for active-route, docs-entry, and template evidence drift
-- [ ] 84-02: align verification matrix and related ledgers with the v1.22 planning-ready route truth
-- [ ] 84-03: freeze v1.22 starter truth after focused validation and guard updates
-
+- [x] 84-01: add focused governance and community-health guards for active-route, docs-entry, and template evidence drift (completed 2026-03-27)
+- [x] 84-02: align verification matrix and related ledgers with the v1.22 planning-ready route truth (completed 2026-03-27)
+- [x] 84-03: freeze v1.22 starter truth after focused validation and guard updates (completed 2026-03-27)
+**Focused evidence:** `.planning/phases/84-governance-open-source-guard-coverage-and-milestone-truth-freeze/{84-01-SUMMARY.md,84-02-SUMMARY.md,84-03-SUMMARY.md}`
+**Closeout evidence:** `.planning/phases/84-governance-open-source-guard-coverage-and-milestone-truth-freeze/{84-SUMMARY.md,84-VERIFICATION.md,84-VALIDATION.md}`
 
 ## v1.21: Governance Bootstrap Truth Hardening & Planning Route Automation
 

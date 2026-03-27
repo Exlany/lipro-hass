@@ -82,7 +82,7 @@ def test_promoted_phase_assets_manifest_enforces_explicit_ci_evidence() -> None:
     )
 
 
-def test_phase_83_exit_contract_aligns_verification_and_file_matrix() -> None:
+def test_phase_84_exit_contract_aligns_verification_and_file_matrix() -> None:
     verification_text = (
         _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
     ).read_text(encoding="utf-8")
@@ -90,7 +90,7 @@ def test_phase_83_exit_contract_aligns_verification_and_file_matrix() -> None:
         _ROOT / ".planning" / "reviews" / "FILE_MATRIX.md"
     ).read_text(encoding="utf-8")
 
-    assert "## Phase 83 Intake / Stewardship Contract" in verification_text
+    assert "## Phase 84 Governance / Open-Source Guard Freeze" in verification_text
     assert f"当前 mutable story = `{CURRENT_ROUTE}`" in verification_text
     assert f"default next command = `{CURRENT_MILESTONE_DEFAULT_NEXT}`" in verification_text
     assert f"**Latest archived pointer:** `{LATEST_ARCHIVED_EVIDENCE_PATH}`" in verification_text

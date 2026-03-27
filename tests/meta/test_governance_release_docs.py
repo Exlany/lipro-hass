@@ -8,6 +8,7 @@ from .conftest import (
     _CONTRIBUTING,
     _DEVCONTAINER,
     _DOCS_README,
+    _ISSUE_CONFIG,
     _PR_TEMPLATE,
     _QUALITY_SCALE,
     _README,
@@ -25,6 +26,10 @@ from .conftest import (
     _extract_markdown_section,
     _load_json,
     _load_yaml,
+)
+from .governance_contract_helpers import (
+    assert_docs_readme_public_contract,
+    assert_issue_docs_entry_contact_link,
 )
 
 _CODEQL_WORKFLOW = _ROOT / ".github" / "workflows" / "codeql.yml"
@@ -79,6 +84,14 @@ def test_community_health_contract_and_pr_sections_are_discoverable() -> None:
         "## Validation commands",
     ):
         assert heading in pr_text
+
+
+def test_docs_readme_and_issue_contact_links_keep_docs_first_contract() -> None:
+    docs_text = _DOCS_README.read_text(encoding='utf-8')
+    issue_config = _load_yaml(_ISSUE_CONFIG)
+
+    assert_docs_readme_public_contract(docs_text)
+    assert_issue_docs_entry_contact_link(issue_config)
 
 
 def test_supported_shell_installer_path_uses_verified_release_assets() -> None:

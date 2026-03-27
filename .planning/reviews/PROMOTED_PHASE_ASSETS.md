@@ -332,6 +332,13 @@ phases:
   - 83-SUMMARY.md
   - 83-VERIFICATION.md
   - 83-VALIDATION.md
+  84-governance-open-source-guard-coverage-and-milestone-truth-freeze:
+  - 84-01-SUMMARY.md
+  - 84-02-SUMMARY.md
+  - 84-03-SUMMARY.md
+  - 84-SUMMARY.md
+  - 84-VERIFICATION.md
+  - 84-VALIDATION.md
 ---
 
 # Promoted Phase Assets

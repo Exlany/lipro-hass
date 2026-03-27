@@ -146,6 +146,44 @@ def _assert_public_docs_hide_internal_route_story(
         assert token not in docs_text
 
 
+def assert_docs_readme_public_contract(docs_text: str) -> None:
+    """Assert docs/README keeps the public-first-hop and community-health contract visible."""
+    for token in (
+        "## Public Fast Path",
+        "README.md",
+        "README_zh.md",
+        "docs/README.md",
+        "## Community-Health Contract",
+        "CONTRIBUTING.md",
+        "SUPPORT.md",
+        "SECURITY.md",
+        "Current access-mode truth",
+        "conditional surfaces",
+    ):
+        assert token in docs_text
+
+
+def assert_issue_docs_entry_contact_link(issue_config: dict[str, object]) -> None:
+    """Assert issue contact links keep routing readers back to docs/README first."""
+    contact_links = issue_config.get("contact_links")
+    assert isinstance(contact_links, list)
+    docs_link = next(
+        link
+        for link in contact_links
+        if isinstance(link, dict)
+        and isinstance(link.get("name"), str)
+        and "Documentation" in link["name"]
+    )
+    assert isinstance(docs_link, dict)
+    url = docs_link.get("url")
+    about = docs_link.get("about")
+    assert isinstance(url, str)
+    assert isinstance(about, str)
+    assert url.endswith("/docs/README.md")
+    assert "docs-first route" in about
+    assert "repository access" in about
+
+
 __all__ = [
     '_ROOT',
     '_assert_current_route_truth',
@@ -154,6 +192,8 @@ __all__ = [
     '_assert_public_docs_hide_internal_route_story',
     '_assert_state_keeps_forward_progress_commands',
     '_assert_state_reflects_post_v1_4_continuation',
+    'assert_docs_readme_public_contract',
+    'assert_issue_docs_entry_contact_link',
     'assert_pull_only_evidence_index',
     'assert_runbook_points_to_latest_evidence',
 ]

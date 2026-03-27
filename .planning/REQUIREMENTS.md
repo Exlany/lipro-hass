@@ -2,7 +2,7 @@
 
 ## Current Milestone (v1.22)
 
-> `v1.22` 已于 `2026-03-27` 从 `v1.21` archived baseline 正式开立；本轮只承认一条 active route：`v1.22 active route / Phase 83 complete / latest archived baseline = v1.21`。目标不是重开内部治理第二故事线，而是把既有治理真相外化为 maintainer / contributor / release 一体化协作契约。
+> `v1.22` 已于 `2026-03-27` 从 `v1.21` archived baseline 正式开立；本轮只承认一条 active route：`v1.22 active route / Phase 84 complete / latest archived baseline = v1.21`。目标不是重开内部治理第二故事线，而是把既有治理真相外化为 maintainer / contributor / release 一体化协作契约。
 
 ### Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
 
@@ -12,8 +12,8 @@
 - [x] **ARC-21**: release / changelog / version sync / archived evidence 现只讲一条发布主链；未残留 helper-owned release folklore、parallel runbook 或脱离 archived evidence pointer 的发版说明。
 - [x] **GOV-61**: issue / PR / security intake 模板必须收集最小充分证据：复现步骤、影响边界家族、风险/影响面、验证命令与 disclosure route，避免无上下文请求重新制造维护噪音。
 - [x] **OSS-11**: maintainer ownership / triage contract 必须明确 support boundary、review expectations、handoff / continuity 路线与 bus-factor 降噪策略；开源协作不再默认依赖隐性口头知识。
-- [ ] **TST-26**: focused guards 必须验证 public entry docs、community-health templates、release / evidence links、active milestone route truth 与 latest archived pointer 的一致性。
-- [ ] **QLT-34**: touched scope 必须通过 `uv run python scripts/check_file_matrix.py --check`、focused governance/open-source pytest、必要的 version-sync / release-contract 守卫；新增文档与模板调整不能牺牲 current-truth honesty。
+- [x] **TST-26**: focused guards 必须验证 public entry docs、community-health templates、release / evidence links、active milestone route truth 与 latest archived pointer 的一致性。
+- [x] **QLT-34**: touched scope 必须通过 `uv run python scripts/check_file_matrix.py --check`、focused governance/open-source pytest、必要的 version-sync / release-contract 守卫；新增文档与模板调整不能牺牲 current-truth honesty。
 
 ## Traceability for active v1.22 route
 
@@ -25,14 +25,14 @@
 | ARC-21 | Phase 82 | Completed |
 | GOV-61 | Phase 83 | Completed |
 | OSS-11 | Phase 83 | Completed |
-| TST-26 | Phase 84 | Planned |
-| QLT-34 | Phase 84 | Planned |
+| TST-26 | Phase 84 | Completed |
+| QLT-34 | Phase 84 | Completed |
 
 **Current Coverage:**
 - v1.22 requirements: 8 total
 - Current mapped: 8
-- Current complete: 6
-- Current pending: 2
+- Current complete: 8
+- Current pending: 0
 - Current unmapped: 0 ✓
 
 <!-- governance-route-contract:start -->
@@ -42,10 +42,10 @@ contract_name: governance-route
 active_milestone:
   version: v1.22
   name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
-  status: Phase 83 complete (2026-03-27)
-  phase: "83"
-  phase_title: Intake templates and maintainer stewardship contract
-  route_mode: Phase 83 complete
+  status: Phase 84 complete (2026-03-27)
+  phase: "84"
+  phase_title: Governance/open-source guard coverage and milestone truth freeze
+  route_mode: Phase 84 complete
 latest_archived:
   version: v1.21
   name: Governance Bootstrap Truth Hardening & Planning Route Automation
@@ -61,8 +61,8 @@ previous_archived:
   name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
   evidence_path: .planning/reviews/V1_20_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.22 active route / Phase 83 complete / latest archived baseline = v1.21
-  default_next_command: $gsd-discuss-phase 84
+  current_route: v1.22 active route / Phase 84 complete / latest archived baseline = v1.21
+  default_next_command: $gsd-complete-milestone v1.22
   latest_archived_evidence_pointer: .planning/reviews/V1_21_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->

@@ -388,3 +388,38 @@ def test_phase_83_closeout_assets_exist_and_are_promoted() -> None:
     assert "## Phase 83 Intake / Stewardship Contract" in verification_text
     assert "## Phase 83 Residual Delta" in residual_text
     assert "## Phase 83 Status Update" in kill_text
+
+
+def test_phase_84_closeout_assets_exist_and_are_promoted() -> None:
+    _assert_promoted_phase_assets(
+        "84-governance-open-source-guard-coverage-and-milestone-truth-freeze",
+        "84-01-SUMMARY.md",
+        "84-02-SUMMARY.md",
+        "84-03-SUMMARY.md",
+        "84-SUMMARY.md",
+        "84-VERIFICATION.md",
+        "84-VALIDATION.md",
+    )
+    _assert_phase_assets_not_promoted(
+        "84-governance-open-source-guard-coverage-and-milestone-truth-freeze",
+        "84-CONTEXT.md",
+        "84-DISCUSSION-LOG.md",
+        "84-RESEARCH.md",
+        "84-01-PLAN.md",
+        "84-02-PLAN.md",
+        "84-03-PLAN.md",
+    )
+
+    verification_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    residual_text = (
+        _ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md"
+    ).read_text(encoding="utf-8")
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "## Phase 84 Governance / Open-Source Guard Freeze" in verification_text
+    assert "## Phase 84 Residual Delta" in residual_text
+    assert "## Phase 84 Status Update" in kill_text

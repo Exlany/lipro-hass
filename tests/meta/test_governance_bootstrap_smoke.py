@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
-from .conftest import _DOCS_README, _ROOT
+from .conftest import _DOCS_README, _ISSUE_CONFIG, _ROOT, _load_yaml
 from .governance_contract_helpers import (
     _assert_latest_archived_route_truth,
     _assert_public_docs_hide_internal_route_story,
+    assert_docs_readme_public_contract,
+    assert_issue_docs_entry_contact_link,
 )
 from .governance_current_truth import (
     CURRENT_MILESTONE_DEFAULT_NEXT,
@@ -28,7 +30,7 @@ def test_active_route_bootstrap_contract_stays_current() -> None:
     assert CURRENT_MILESTONE_DEFAULT_NEXT in project_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in roadmap_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
-    assert '## Phase 83 Intake / Stewardship Contract' in verification_text
+    assert '## Phase 84 Governance / Open-Source Guard Freeze' in verification_text
     assert CURRENT_ROUTE in verification_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in verification_text
     assert f'**Latest archived pointer:** `{LATEST_ARCHIVED_EVIDENCE_PATH}`' in verification_text
@@ -39,3 +41,11 @@ def test_active_route_bootstrap_contract_stays_current() -> None:
 def test_public_docs_keep_internal_bootstrap_story_hidden() -> None:
     docs_text = _DOCS_README.read_text(encoding='utf-8')
     _assert_public_docs_hide_internal_route_story(docs_text)
+
+
+def test_docs_entry_contract_stays_in_sync_with_issue_documentation_link() -> None:
+    docs_text = _DOCS_README.read_text(encoding='utf-8')
+    issue_config = _load_yaml(_ISSUE_CONFIG)
+
+    assert_docs_readme_public_contract(docs_text)
+    assert_issue_docs_entry_contact_link(issue_config)

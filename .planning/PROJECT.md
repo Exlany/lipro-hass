@@ -2,10 +2,10 @@
 
 
 **Status:** Active
-**Current route:** `v1.22 active route / Phase 83 complete / latest archived baseline = v1.21`；latest archived evidence index = `.planning/reviews/V1_21_EVIDENCE_INDEX.md`.
-**Legacy route-string compatibility:** **Status:** `v1.22 active route / Phase 83 complete / latest archived baseline = v1.21`；latest archived closeout pointer = `.planning/reviews/V1_21_EVIDENCE_INDEX.md`.
+**Current route:** `v1.22 active route / Phase 84 complete / latest archived baseline = v1.21`；latest archived evidence index = `.planning/reviews/V1_21_EVIDENCE_INDEX.md`.
+**Legacy route-string compatibility:** **Status:** `v1.22 active route / Phase 84 complete / latest archived baseline = v1.21`；latest archived closeout pointer = `.planning/reviews/V1_21_EVIDENCE_INDEX.md`.
 **Goal:** 把 `v1.21` 已归档完成的治理/证据链外化为贡献者与维护者都能直接执行的单一协作、审查与发布运营路线。
-**Default next step:** `$gsd-discuss-phase 84`
+**Default next step:** `$gsd-complete-milestone v1.22`
 **Active baseline:** active milestone = `v1.22`；latest archived baseline = `v1.21`；previous archived baseline = `v1.20`.
 
 <!-- governance-route-contract:start -->
@@ -15,10 +15,10 @@ contract_name: governance-route
 active_milestone:
   version: v1.22
   name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
-  status: Phase 83 complete (2026-03-27)
-  phase: "83"
-  phase_title: Intake templates and maintainer stewardship contract
-  route_mode: Phase 83 complete
+  status: Phase 84 complete (2026-03-27)
+  phase: "84"
+  phase_title: Governance/open-source guard coverage and milestone truth freeze
+  route_mode: Phase 84 complete
 latest_archived:
   version: v1.21
   name: Governance Bootstrap Truth Hardening & Planning Route Automation
@@ -34,8 +34,8 @@ previous_archived:
   name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
   evidence_path: .planning/reviews/V1_20_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.22 active route / Phase 83 complete / latest archived baseline = v1.21
-  default_next_command: $gsd-discuss-phase 84
+  current_route: v1.22 active route / Phase 84 complete / latest archived baseline = v1.21
+  default_next_command: $gsd-complete-milestone v1.22
   latest_archived_evidence_pointer: .planning/reviews/V1_21_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -60,10 +60,10 @@ bootstrap:
 - 新一轮最高价值增量不再是继续 topicize 内向治理，而是把稳定真相外化为开源维护入口与发布运营能力。
 - 范围锚点参考 GitHub 官方 community health / issue forms / security policy / releases 文档，以及 Home Assistant Integration Quality Scale 的 contributor-facing 约束。
 
-**Current status:** `Phase 83 complete (2026-03-27)`
+**Current status:** `Phase 84 complete (2026-03-27)`（focused governance/open-source guard coverage、ledger writeback 与 closeout-ready truth freeze 已完成）
 **Starting baseline:** `.planning/v1.21-MILESTONE-AUDIT.md`, `.planning/reviews/V1_21_EVIDENCE_INDEX.md`, `.planning/milestones/v1.21-ROADMAP.md`, `.planning/milestones/v1.21-REQUIREMENTS.md`
 **Requirements basket:** `GOV-60`, `OSS-10`, `DOC-08`, `ARC-21`, `GOV-61`, `OSS-11`, `TST-26`, `QLT-34`
-**Default next command:** `$gsd-discuss-phase 84`
+**Default next command:** `$gsd-complete-milestone v1.22`
 
 ## Latest Archived Milestone (v1.21)
 
