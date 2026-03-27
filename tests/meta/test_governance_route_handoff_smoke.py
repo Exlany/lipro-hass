@@ -1,4 +1,4 @@
-"""Focused route-handoff smoke guards for archived-only fast paths and latest-archive promotion truth."""
+"""Focused route-handoff smoke guards for the active-route handoff and latest-archive truth."""
 
 from __future__ import annotations
 
@@ -76,38 +76,40 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
 def test_gsd_fast_path_matches_current_active_route_story() -> None:
     progress = _run_gsd_tools('init', 'progress')
     phases = _as_mapping_list(progress['phases'])
-    phase_89 = next(phase for phase in phases if _as_str(phase['number']) == '89')
+    phase_90 = next(phase for phase in phases if _as_str(phase['number']) == '90')
 
-    assert _as_str(phase_89['status']) == 'complete'
-    assert phase_89['plan_count'] == 4
-    assert phase_89['summary_count'] == 4
-    assert progress['phase_count'] == 1
-    assert progress['completed_count'] == 1
+    assert _as_str(phase_90['status']) == 'not_started'
+    assert phase_90['plan_count'] == 0
+    assert phase_90['summary_count'] == 0
+    assert progress['phase_count'] == 4
+    assert progress['completed_count'] == 0
     assert progress['current_phase'] is None
-    assert progress['next_phase'] is None
+    next_phase = _as_mapping(progress['next_phase'])
+    assert _as_str(next_phase['number']) == '90'
+    assert _as_str(next_phase['status']) == 'not_started'
 
-    phase_index = _run_gsd_tools('phase-plan-index', '89')
-    assert _as_str(phase_index['phase']) == '89'
-    plans = _as_mapping_list(phase_index['plans'])
-    assert [_as_str(plan['id']) for plan in plans] == ['89-01', '89-02', '89-03', '89-04']
+    phase_index = _run_gsd_tools('phase-plan-index', '90')
+    assert _as_str(phase_index['phase']) == '90'
+    assert _as_str(phase_index['error']) == 'Phase not found'
+    assert _as_mapping_list(phase_index['plans']) == []
     assert phase_index['incomplete'] == []
 
     state = _run_gsd_tools('state', 'json')
     assert _as_str(state['milestone']) == CURRENT_MILESTONE
-    assert _as_str(state['status']) == 'archived'
+    assert _as_str(state['status']) == 'planning-ready'
     assert _as_mapping(state['progress']) == {
-        'total_phases': '1',
-        'completed_phases': '1',
-        'total_plans': '4',
-        'completed_plans': '4',
+        'total_phases': '4',
+        'completed_phases': '0',
+        'total_plans': '0',
+        'completed_plans': '0',
     }
 
-    plan_init = _run_gsd_tools('init', 'plan-phase', '89')
+    plan_init = _run_gsd_tools('init', 'plan-phase', '90')
     assert _as_bool(plan_init['phase_found']) is True
-    assert _as_str(plan_init['phase_number']) == '89'
-    assert _as_bool(plan_init['has_plans']) is True
-    assert _as_bool(plan_init['has_research']) is True
-    assert plan_init['plan_count'] == 4
+    assert _as_str(plan_init['phase_number']) == '90'
+    assert _as_bool(plan_init['has_plans']) is False
+    assert _as_bool(plan_init['has_research']) is False
+    assert plan_init['plan_count'] == 0
 
 
 def test_recent_governance_closeout_assets_are_promoted_without_planning_traces() -> None:

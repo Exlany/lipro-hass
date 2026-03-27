@@ -87,6 +87,7 @@ def test_phase_12_execution_truth_is_consistent() -> None:
             "**Status:** Shipped and archived",
             "**Status:** No active milestone route",
             "**Status:** `No active milestone route`",
+            "**Current status:**",
         )
     )
     assert "### 7. Phase 12 Type / Residual / Governance 收口已完成" in project_text

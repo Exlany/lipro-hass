@@ -52,6 +52,7 @@ def _assert_state_keeps_forward_progress_commands(state_text: str) -> None:
     assert (
         "$gsd-plan-milestone-gaps" in state_text
         or "$gsd-new-milestone" in state_text
+        or re.search(r"\$gsd-discuss-phase \d+(?:\.\d+)?", state_text)
         or re.search(r"\$gsd-(?:plan|execute)-phase \d+(?:\.\d+)?", state_text)
         or re.search(r"\$gsd-complete-milestone v\d+\.\d+", state_text)
     )
@@ -60,6 +61,13 @@ def _assert_state_keeps_forward_progress_commands(state_text: str) -> None:
 def _assert_project_allows_post_v1_4_next_step(project_text: str) -> None:
     assert (
         "**Default next step:** `$gsd-new-milestone`" in project_text
+        or re.search(r"\*\*Default next step:\*\* `\$gsd-discuss-phase \d+(?:\.\d+)?`", project_text)
+        is not None
+        or re.search(
+            r"\*\*Default next step:\*\* `\$gsd-discuss-phase \d+(?:\.\d+)?` → `\$gsd-plan-phase \d+(?:\.\d+)?`",
+            project_text,
+        )
+        is not None
         or re.search(r"\*\*Default next step:\*\* `\$gsd-plan-phase \d+(?:\.\d+)?`", project_text)
         is not None
         or re.search(

@@ -1,4 +1,4 @@
-"""Focused bootstrap smoke guards for archived-only route and archive-transition truth."""
+"""Focused bootstrap smoke guards for the active route and archive-transition truth."""
 
 from __future__ import annotations
 

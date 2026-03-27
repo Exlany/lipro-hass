@@ -8,8 +8,8 @@
 
 ## Current Mutable Route
 
-- **Current mutable story:** `no active milestone route / latest archived baseline = v1.24`
-- **Default next command:** `$gsd-new-milestone`
+- **Current mutable story:** `v1.25 active route / Phase 90 planning-ready / latest archived baseline = v1.24`
+- **Default next command:** `$gsd-discuss-phase 90`
 - **Latest archived pointer:** `.planning/reviews/V1_24_EVIDENCE_INDEX.md`
 - **Focused guards:** `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/test_phase89_entry_route_guards.py`, `tests/meta/test_phase89_tooling_decoupling_guards.py`, `tests/meta/test_governance_promoted_phase_assets.py`
 

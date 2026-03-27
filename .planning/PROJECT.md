@@ -1,19 +1,26 @@
 # Project: Lipro-HASS North Star Evolution
 
 
-**Status:** `No active milestone route`
-**Current route:** `no active milestone route / latest archived baseline = v1.24`；latest archived evidence index = `.planning/reviews/V1_24_EVIDENCE_INDEX.md`.
-**Legacy route-string compatibility:** `no active milestone route / latest archived baseline = v1.24`；latest archived closeout pointer = `.planning/reviews/V1_24_EVIDENCE_INDEX.md`.
-**Goal:** `v1.24` 已成为 latest archived baseline；当前任务从“继续收口已完成里程碑”切换为“以归档证据为单一可信起点，显式启动下一条正式路线”，避免把 closeout 结果重新误写成 active work。
-**Default next step:** `$gsd-new-milestone`
-**Active baseline:** active milestone = `none`；latest archived baseline = `v1.24`；previous archived baseline = `v1.23`.
+**Status:** `Active milestone route`
+**Current route:** `v1.25 active route / Phase 90 planning-ready / latest archived baseline = v1.24`；latest archived evidence index = `.planning/reviews/V1_24_EVIDENCE_INDEX.md`.
+**Legacy route-string compatibility:** `v1.25 active route / Phase 90 planning-ready / latest archived baseline = v1.24`；latest archived closeout pointer = `.planning/reviews/V1_24_EVIDENCE_INDEX.md`.
+**Goal:** `以 v1.24 的归档证据为起点，把当前仍集中在 runtime/protocol/control/entity 热点中的复杂度，连同 typed boundary debt 与 redaction drift，一次性路由成新的正式里程碑，而不是继续把这些问题当作零散 residual 处理。`
+**Default next step:** `$gsd-discuss-phase 90` → `$gsd-plan-phase 90`
+**Active baseline:** active milestone = `v1.25`；latest archived baseline = `v1.24`；previous archived baseline = `v1.23`.
 
 
 <!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone: null
+active_milestone:
+  version: v1.25
+  name: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
+  status: planning-ready (2026-03-27)
+  phase: '90'
+  phase_title: Hotspot routing freeze and formal-home decomposition map
+  phase_dir: 90-hotspot-routing-freeze-and-formal-home-decomposition-map
+  route_mode: v1.25 active route / Phase 90 planning-ready / latest archived baseline = v1.24
 latest_archived:
   version: v1.24
   name: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
@@ -29,12 +36,31 @@ previous_archived:
   name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
   evidence_path: .planning/reviews/V1_23_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.24
-  default_next_command: $gsd-new-milestone
+  current_route: v1.25 active route / Phase 90 planning-ready / latest archived baseline = v1.24
+  default_next_command: $gsd-discuss-phase 90
   latest_archived_evidence_pointer: .planning/reviews/V1_24_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
+
+## Current Milestone (v1.25)
+
+**Name:** `Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence`
+
+**Why now:** `v1.24` 已把 runtime boundary tightening、single-wiring convergence、tooling decoupling 与 docs-first entry truth 归档冻结；现在最值得投入的，不再是再做一轮 closeout wording，而是顺着已经稳定的 formal homes，继续 inward split runtime/protocol hotspots、压缩 typed boundary debt，并统一 diagnostics / anonymous-share 的 redaction contract，避免这些点在下一次功能迭代中重新扩大回 giant roots。
+
+**North-star fit:** `v1.25` 将只做三类收敛：
+
+- runtime / protocol / control / entity 继续沿既有 formal homes inward decomposition，不新增 public root，也不让 helper 再长成第二故事线。
+- strict typing 的真实高风险边界会从 `Any`/动态 payload 缩回更窄的 typed contracts，让类型系统与 focused guards 一起阻断 boundary drift。
+- diagnostics / anonymous-share 的脱敏策略会收口到单一可审计 contract；未知 secret-like 字段默认 fail-closed，而不是继续依赖两套 loosely coupled sanitizer。
+
+**Current status:** `planning-ready (2026-03-27)`
+**Phase range:** `Phase 90 -> 93`
+**Starting baseline:** `.planning/v1.24-MILESTONE-AUDIT.md, .planning/reviews/V1_24_EVIDENCE_INDEX.md, .planning/milestones/v1.24-ROADMAP.md, .planning/milestones/v1.24-REQUIREMENTS.md`
+**Requirements basket:** `HOT-40`, `ARC-24`, `TYP-23`, `SEC-01`, `TST-29`, `QLT-37`
+**Default next command:** `$gsd-discuss-phase 90`
+**Current follow-up target:** scope `Phase 90` and freeze the decomposition map before any implementation starts
 
 ## Latest Archived Milestone (v1.24)
 

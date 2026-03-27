@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.24
-milestone_name: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
-current_phase: null
-status: archived
-last_updated: "2026-03-27T18:55:00.000Z"
+milestone: v1.25
+milestone_name: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
+current_phase: '90'
+status: planning-ready
+last_updated: "2026-03-27T20:15:00.000Z"
 progress:
-  total_phases: 1
-  completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
+  total_phases: 4
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
@@ -18,23 +18,30 @@ progress:
 
 See: `.planning/PROJECT.md`
 
-**Current milestone:** `No active milestone route`
-**Active milestone:** `none`
-**Core value:** `v1.24` 已成为 latest archived baseline；当前任务从“继续收口旧问题”切换为“以归档证据为单一可信起点，显式启动下一条正式路线”，避免再把历史 closeout 误写成 active work。
-**Current mode:** `no active milestone route / latest archived baseline = v1.24`
+**Current milestone:** `v1.25 Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence`
+**Active milestone:** `v1.25`
+**Core value:** `在不重开第二故事线的前提下，把当前真正高风险的 hotspots / typed boundaries / redaction contract 收口成可执行的新里程碑。`
+**Current mode:** `v1.25 active route / Phase 90 planning-ready / latest archived baseline = v1.24`
 
 ## Current Position
 
-- `Phase 89` 已完成 runtime boundary tightening、runtime single-wiring convergence、tooling kernel decoupling 与 docs-first open-source entry / route sync；当前 live governance truth 已切换为 `no active milestone route / latest archived baseline = v1.24`。
-- latest archived baseline 固定为 `v1.24`；latest archived evidence index 继续是 `.planning/reviews/V1_24_EVIDENCE_INDEX.md`；`v1.23` 继续承担 previous archived baseline。
-- 默认下一步已切换到 `$gsd-new-milestone`；`$gsd-next` 应直接收口到下一里程碑初始化，而不是继续复写 `v1.24` closeout story。
-- `.planning/v1.24-MILESTONE-AUDIT.md`、`.planning/reviews/V1_24_EVIDENCE_INDEX.md`、`.planning/milestones/v1.24-ROADMAP.md` 与 `.planning/milestones/v1.24-REQUIREMENTS.md` 现共同承担 latest archived baseline 的 pull-only closeout bundle。
+- `v1.24` 继续是 latest archived baseline；新的 mutable route 已前推到 `Phase 90 planning-ready`，聚焦 hotspot decomposition、typed boundary hardening 与 redaction convergence。
+- `.planning/v1.24-MILESTONE-AUDIT.md`、`.planning/reviews/V1_24_EVIDENCE_INDEX.md`、`.planning/milestones/v1.24-ROADMAP.md` 与 `.planning/milestones/v1.24-REQUIREMENTS.md` 继续承担 latest archived baseline 的 pull-only bundle；它们不再承载 current route truth。
+- 当前 opening phase = `Phase 90`；下一步应先收集 / 固化具体切分策略，再进入正式计划与执行。
+- 本里程碑暂不重开新的 delete campaign；若在实施中发现必须清退的 localized compat / naming shell，必须同步回写 `FILE_MATRIX / RESIDUAL_LEDGER / KILL_LIST` 并给出显式 delete gate。
 
 <!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone: null
+active_milestone:
+  version: v1.25
+  name: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
+  status: planning-ready (2026-03-27)
+  phase: '90'
+  phase_title: Hotspot routing freeze and formal-home decomposition map
+  phase_dir: 90-hotspot-routing-freeze-and-formal-home-decomposition-map
+  route_mode: v1.25 active route / Phase 90 planning-ready / latest archived baseline = v1.24
 latest_archived:
   version: v1.24
   name: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
@@ -50,11 +57,24 @@ previous_archived:
   name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
   evidence_path: .planning/reviews/V1_23_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.24
-  default_next_command: $gsd-new-milestone
+  current_route: v1.25 active route / Phase 90 planning-ready / latest archived baseline = v1.24
+  default_next_command: $gsd-discuss-phase 90
   latest_archived_evidence_pointer: .planning/reviews/V1_24_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
+
+## Current Milestone (v1.25)
+
+- **Milestone:** `v1.25 Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence`
+- **Phase range:** `90 -> 93`
+- **Current phase:** `Phase 90`
+- **Milestone status:** `planning-ready (2026-03-27)`
+- **Requirements basket:** `HOT-40`, `ARC-24`, `TYP-23`, `SEC-01`, `TST-29`, `QLT-37`
+- **Latest archived baseline:** `v1.24`
+- **Milestone starting evidence:** `.planning/v1.24-MILESTONE-AUDIT.md, .planning/reviews/V1_24_EVIDENCE_INDEX.md, .planning/milestones/v1.24-ROADMAP.md, .planning/milestones/v1.24-REQUIREMENTS.md`
+- **Current audit artifact:** `.planning/v1.24-MILESTONE-AUDIT.md`
+- **Default next command:** `$gsd-discuss-phase 90`
+- **Current follow-up target:** `Phase 90` discussion / planning-ready decomposition map
 
 ## Latest Archived Milestone (v1.24)
 
@@ -100,13 +120,15 @@ bootstrap:
 
 ## Recommended Next Command
 
-1. `$gsd-new-milestone` —— 启动下一条正式路线，重新定义 fresh requirements / roadmap / phase story
-2. `$gsd-progress` —— 快速复盘 latest archived baseline 与下一步 bootstrap readiness
-3. `$gsd-next` —— 复核自动路由是否稳定收口到下一里程碑初始化
-4. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" init progress` —— 复核 `Phase 89` 仍保持 complete 且无下一 phase
-5. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" state json` —— 复核 parser-stable archived-only current-route / progress truth
-6. `uv run pytest -q tests/meta` —— 复核 governance / archive-pointer / promoted-assets / version-sync guards
-7. `uv run python scripts/check_file_matrix.py --check` —— 复核 planning / baseline / review / archive assets 契约
+1. `$gsd-discuss-phase 90` —— 先固化 `Phase 90` 的 hotspot decomposition map、formal-home 边界与 delete-gate 约束
+2. `$gsd-plan-phase 90` —— 在 discussion 结果确认后生成 `Phase 90` 的详细执行计划
+3. `$gsd-progress` —— 快速复盘 `v1.25 active route`、opening phase 与 archived baseline handoff 状态
+4. `$gsd-next` —— 复核自动路由是否稳定收口到 `Phase 90` discussion / planning fast-path
+5. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" init progress` —— 复核 `Phase 90 -> 93` 处于 not_started / next_phase=`90` 的 planning-ready 真值
+6. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" state json` —— 复核 parser-stable `v1.25 active route / Phase 90 planning-ready / latest archived baseline = v1.24`
+7. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" init plan-phase 90` —— 复核 `Phase 90` 已可直接进入 discuss / plan bootstrap
+8. `uv run pytest -q tests/meta` —— 复核 governance / archive-pointer / promoted-assets / version-sync guards
+9. `uv run python scripts/check_file_matrix.py --check` —— 复核 planning / baseline / review / archive assets 契约
 
 ## Session Continuity
 

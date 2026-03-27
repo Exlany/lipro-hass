@@ -1,4 +1,90 @@
-# Requirements: Lipro-HASS North Star Evolution
+# Requirements: Lipro-HASS v1.25 Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
+
+> `v1.25` 以 `v1.24` archived evidence 为起点，聚焦 runtime/protocol/control/entity hotspots、typed boundary debt 与 redaction drift；目标不是再做一次泛化审计，而是把这些高风险热点正式路由成 4 个可执行 phase。latest archived baseline 继续固定为 `v1.24`，latest archived evidence index = `.planning/reviews/V1_24_EVIDENCE_INDEX.md`。
+
+<!-- governance-route-contract:start -->
+```yaml
+contract_version: 1
+contract_name: governance-route
+active_milestone:
+  version: v1.25
+  name: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
+  status: planning-ready (2026-03-27)
+  phase: '90'
+  phase_title: Hotspot routing freeze and formal-home decomposition map
+  phase_dir: 90-hotspot-routing-freeze-and-formal-home-decomposition-map
+  route_mode: v1.25 active route / Phase 90 planning-ready / latest archived baseline = v1.24
+latest_archived:
+  version: v1.24
+  name: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
+  status: archived / evidence-ready (2026-03-27)
+  phase: '89'
+  phase_title: Runtime boundary tightening, tooling decoupling, and open-source entry convergence
+  phase_dir: 89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence
+  audit_path: .planning/v1.24-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_24_EVIDENCE_INDEX.md
+  evidence_label: latest archived evidence index
+previous_archived:
+  version: v1.23
+  name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
+  evidence_path: .planning/reviews/V1_23_EVIDENCE_INDEX.md
+bootstrap:
+  current_route: v1.25 active route / Phase 90 planning-ready / latest archived baseline = v1.24
+  default_next_command: $gsd-discuss-phase 90
+  latest_archived_evidence_pointer: .planning/reviews/V1_24_EVIDENCE_INDEX.md
+```
+<!-- governance-route-contract:end -->
+
+## Current Milestone (v1.25)
+
+**Milestone Goal:** 把热点拆薄、类型边界收紧与脱敏契约统一成单一 north-star 路线，并为后续 archive promotion 预先铺好 guardable proof。
+**Milestone status:** `planning-ready (2026-03-27)`
+**Latest archived baseline:** `v1.24`
+**Default next command:** `$gsd-discuss-phase 90`
+
+### Hotspot Inward Decomposition
+
+- [ ] **HOT-40**: `custom_components/lipro/core/coordinator/runtime/command_runtime.py`、`custom_components/lipro/core/api/rest_facade.py`、`custom_components/lipro/core/api/request_policy.py`、`custom_components/lipro/core/coordinator/runtime/mqtt_runtime.py`、`custom_components/lipro/core/anonymous_share/manager.py` 等正式热点必须继续按 concern inward split；formal home 保留，禁止新增 public root。
+
+### Thin-Boundary & Typed Contracts
+
+- [ ] **ARC-24**: `custom_components/lipro/__init__.py`、`custom_components/lipro/control/runtime_access.py`、`custom_components/lipro/entities/base.py`、`custom_components/lipro/entities/firmware_update.py` 必须继续保持 thin adapter / projection / typed access 角色，避免重新吸附 orchestration。
+- [ ] **TYP-23**: `custom_components/lipro/runtime_types.py`、`custom_components/lipro/core/coordinator/types.py`、`custom_components/lipro/core/protocol/boundary/rest_decoder_support.py`、`custom_components/lipro/core/protocol/boundary/schema_registry.py`、`custom_components/lipro/core/command/trace.py` 的 `Any` / dynamic payload surface 必须继续缩减，并补 no-growth guard。
+
+### Redaction & Assurance
+
+- [ ] **SEC-01**: `custom_components/lipro/control/redaction.py` 与 `custom_components/lipro/core/anonymous_share/sanitize.py` 必须收口到单一 redaction contract / registry；未知 secret-like 字段默认 fail-closed，diagnostics/share/exporters 不得再维持平行脱敏语义。
+- [ ] **TST-29**: `tests/core/api/test_api_status_service.py`、`tests/core/api/test_api_command_surface_responses.py`、`tests/platforms/test_light_entity_behavior.py`、`tests/services/test_services_diagnostics.py` 必须继续按 concern topicize，并为 hot path / redaction / typed-boundary drift 补 focused regressions。
+- [ ] **QLT-37**: touched scope 必须通过 typing、focused pytest、governance scripts 与必要的 microbenchmark / hotspot budget 守卫；`.planning/codebase/*`、baseline/review docs 与 current-route truth 必须同步冻结新的拓扑和质量故事。
+
+## Traceability for current v1.25 route
+
+| Requirement | Planned Phase | Status |
+|-------------|---------------|--------|
+| HOT-40 | Phase 90 | Planned |
+| ARC-24 | Phase 91 | Planned |
+| TYP-23 | Phase 91 | Planned |
+| SEC-01 | Phase 92 | Planned |
+| TST-29 | Phase 92 | Planned |
+| QLT-37 | Phase 93 | Planned |
+
+**Coverage:**
+- v1.25 routed requirements: 6 total
+- Current mapped: 6
+- Current complete: 0
+- Current pending: 6
+- Current unmapped: 0 ✓
+
+## Future Requirements (Deferred)
+
+- [ ] Open-source continuity / delegate / private-access governance 的进一步 formalization 保持 deferred；本里程碑只在 touched docs/metadata 上做必要同步，不重开 `v1.22 -> v1.24` 已收口的 route story。
+- [ ] `outlet_power` legacy side-car fallback 的最终物理删除 deferred 到形成零命中 /零写回证据之后执行。
+
+## Out of Scope
+
+- 新设备能力或面向终端用户的新功能；本里程碑只处理现有拓扑内的结构债与验证债。
+- 重写 archived evidence bundle 或重新定义 `v1.24` closeout 结论；它仍是 latest archived baseline。
+- 新建第二控制面、第二协议根、第二运行根，或以“为了拆分”名义扩张 public surface。
 
 ## Latest Archived Milestone (v1.24)
 
