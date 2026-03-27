@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -88,7 +87,7 @@ class TestCommandSender:
     async def test_verify_command_delivery_timeout(self, mock_client, mock_device):
         """Test command delivery verification timeout."""
         sender = CommandSender(protocol=mock_client)
-        trace: dict[str, Any] = {}
+        trace: dict[str, object] = {}
 
         # Mock to always return None (no result)
         async def mock_query_once(*args, **kwargs):
@@ -112,7 +111,7 @@ class TestCommandSender:
     ):
         """Test command delivery with confirmed classification."""
         sender = CommandSender(protocol=mock_client)
-        trace: dict[str, Any] = {}
+        trace: dict[str, object] = {}
 
         async def mock_query_once(*args, **kwargs):
             return {"code": 0}
@@ -141,7 +140,7 @@ class TestCommandSender:
     ):
         """Test command delivery with failed classification."""
         sender = CommandSender(protocol=mock_client)
-        trace: dict[str, Any] = {}
+        trace: dict[str, object] = {}
 
         async def mock_query_once(*args, **kwargs):
             return {"code": 1}
@@ -170,7 +169,7 @@ class TestCommandSender:
     ):
         """Test command delivery with pending classification that times out."""
         sender = CommandSender(protocol=mock_client)
-        trace: dict[str, Any] = {}
+        trace: dict[str, object] = {}
 
         async def mock_query_once(*args, **kwargs):
             return {"code": 100000}

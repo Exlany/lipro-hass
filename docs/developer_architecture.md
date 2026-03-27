@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `v1.23` archived baseline promotion (`2026-03-27`)
-> **Current route alignment**: `no active milestone route / latest archived baseline = v1.23` (`2026-03-27`)
+> **Last aligned through**: `v1.24` archived baseline promotion (`2026-03-27`)
+> **Current route alignment**: `no active milestone route / latest archived baseline = v1.24` (`2026-03-27`)
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
@@ -9,9 +9,13 @@
 > 当前治理真源请以 `.planning/ROADMAP.md`、`.planning/REQUIREMENTS.md`、`.planning/STATE.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md` 为准。  
 > `.planning/codebase/*.md` 属于 `derived collaboration maps / 协作图谱 / 派生视图`，帮助协作与定位，但不构成新的 authority chain。
 
-## Phase 88 Freeze Note
+## Phase 88 Historical Freeze Note
 
-- Phase 88 governance freeze treats `V1_23_TERMINAL_AUDIT.md` as historical evidence only; archived-only route truth now lives in `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`, `.planning/v1.23-MILESTONE-AUDIT.md`, `.planning/reviews/V1_23_EVIDENCE_INDEX.md`, and focused governance guards.
+- `v1.23` archived baseline promotion remains the historical freeze anchor for governance-quality closeout semantics; `Phase 89` builds on that archived baseline instead of replacing its evidence-chain meaning.
+
+## Phase 89 Freeze Note
+
+- Phase 89 closeout treats `V1_23_TERMINAL_AUDIT.md` as historical input evidence only; archived-only route truth now lives in `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`, `.planning/v1.24-MILESTONE-AUDIT.md`, `.planning/reviews/V1_24_EVIDENCE_INDEX.md`, and focused governance guards.
 - `RESIDUAL_LEDGER.md` active residual families 为空、`KILL_LIST.md` 的 `Phase 85 Routed Delete Gates` 为空，都是显式 closeout verdict，而不是待补登记的空白。
 - `.planning/reviews/PROMOTED_PHASE_ASSETS.md` 是 phase evidence allowlist 的唯一 home；developer-facing guidance 只索引它，不私自提升 execution traces。
 
@@ -142,7 +146,7 @@ custom_components/lipro/
 
 ### 3. 控制面调用
 
-1. HA service declaration 由 `custom_components/lipro/control/service_registry.py` 作为唯一正式 owner 注册；已不存在额外的 `services/registrations.py` compat import shell
+1. HA service declaration 由 `custom_components/lipro/control/service_registry.py` 作为唯一正式 owner 注册；HA 根适配器只能通过该模块装配服务注册，已不存在额外的 `services/registrations.py` compat import shell
 2. `control/service_router.py` 接管 public callback
 3. `control/service_router_handlers.py` / support helpers 组合 request shaping、runtime lookup、error translation
 4. runtime formal surface 完成实际行为
@@ -150,7 +154,7 @@ custom_components/lipro/
 ## 为什么 `control/` 与 `services/` 同时存在
 
 - `control/` 负责 **formal ownership**：callback home、runtime access、diagnostics/system-health surfaces、lifecycle orchestration。
-- `services/` 负责 **service adapter helpers**：schema/contract constants、request shaping、diagnostics/share/schedule helper implementations；service registration formal owner 已收口到 `control/service_registry.py`。
+- `services/` 负责 **service adapter helpers**：schema/contract constants、request shaping、diagnostics/share/schedule helper implementations；service registration formal owner 已收口到 `control/service_registry.py`，`__init__.py` 也不再直连 `services/registry.py`。
 - 两者不是“双主链”，而是 **formal home + helper surface** 的关系；任何文档或测试不得再把 `services/` 讲成 legacy carrier 或第二 control root。
 
 ## 演进约束

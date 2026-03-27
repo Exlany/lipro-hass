@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from types import MappingProxyType
-from typing import Any, cast
+from typing import cast
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -40,7 +40,7 @@ async def test_coordinator_entry_exposes_native_runtime_services() -> None:
     assert isinstance(coordinator.devices, MappingProxyType)
 
     with pytest.raises(TypeError):
-        cast(Any, coordinator.devices)["dev2"] = device
+        cast(dict[str, object], coordinator.devices)["dev2"] = device
 
     assert coordinator.get_device("dev1") is device
     coordinator.state_service.get_device.assert_called_once_with("dev1")

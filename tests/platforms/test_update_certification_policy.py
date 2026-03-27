@@ -106,7 +106,7 @@ async def test_update_entity_remote_manifest_does_not_certify_on_its_own(
 async def test_update_entity_accepts_newer_locally_certified_version_than_installed(
     mock_coordinator, make_device
 ):
-    """Any certified version newer than current firmware should be treated as certified."""
+    """Every certified version newer than current firmware should be treated as certified."""
     from custom_components.lipro.entities.firmware_update import (
         LiproFirmwareUpdateEntity,
     )

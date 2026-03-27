@@ -163,10 +163,7 @@ class RuntimeOrchestrator:
         self,
         *,
         get_device_by_id: Callable[[str], LiproDevice | None],
-        apply_properties_update: Callable[
-            [LiproDevice, PropertyDict, str],
-            Awaitable[bool],
-        ],
+        apply_properties_update: Callable[[LiproDevice, PropertyDict, str], Awaitable[bool]],
         schedule_listener_update: Callable[[], None],
         request_refresh: Callable[[], Awaitable[None]],
         is_mqtt_connected: Callable[[], bool],
@@ -179,7 +176,7 @@ class RuntimeOrchestrator:
         refresh_device_snapshot: Callable[[], Awaitable[None]],
         polling_updater: PollingIntervalUpdater,
     ) -> CoordinatorBootstrapArtifact:
-        """Build the named bootstrap contract consumed by `Coordinator`."""
+        """Assemble the complete coordinator bootstrap artifact from formal collaborators."""
         state = self.build_state_containers()
         service_layer_ref: dict[str, Any] = {}
         support_services = initialize_support_services(
@@ -200,8 +197,7 @@ class RuntimeOrchestrator:
                 trigger_reauth=support_services.auth_service.async_trigger_reauth,
                 is_mqtt_connected=is_mqtt_connected,
             ),
-            state=state,
-            polling_updater=polling_updater,
+            state=state, polling_updater=polling_updater,
         )
         service_layer = initialize_service_layer(
             runtimes=runtimes,

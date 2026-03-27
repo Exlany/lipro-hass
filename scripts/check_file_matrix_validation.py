@@ -4,13 +4,36 @@ from __future__ import annotations
 
 from pathlib import Path
 import re
+from typing import TYPE_CHECKING
 
-from scripts.check_file_matrix_inventory import iter_python_files
-from scripts.check_file_matrix_markdown import (
-    extract_reported_total,
-    parse_file_matrix_paths,
-)
-from scripts.check_file_matrix_registry import OVERRIDES, iter_override_truth_families
+if TYPE_CHECKING:
+    from scripts.check_file_matrix_inventory import iter_python_files
+    from scripts.check_file_matrix_markdown import (
+        extract_reported_total,
+        parse_file_matrix_paths,
+    )
+    from scripts.check_file_matrix_registry import (
+        OVERRIDES,
+        iter_override_truth_families,
+    )
+elif __package__ in {None, ""}:
+    from check_file_matrix_inventory import iter_python_files
+    from check_file_matrix_markdown import (
+        extract_reported_total,
+        parse_file_matrix_paths,
+    )
+    from check_file_matrix_registry import OVERRIDES, iter_override_truth_families
+else:
+    from scripts.check_file_matrix_inventory import iter_python_files
+    from scripts.check_file_matrix_markdown import (
+        extract_reported_total,
+        parse_file_matrix_paths,
+    )
+    from scripts.check_file_matrix_registry import (
+        OVERRIDES,
+        iter_override_truth_families,
+    )
+
 
 FILE_MATRIX_PATH = Path(".planning/reviews/FILE_MATRIX.md")
 

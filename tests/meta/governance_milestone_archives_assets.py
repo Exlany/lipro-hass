@@ -365,6 +365,34 @@ def test_v1_22_closeout_assets_exist_and_are_pull_only() -> None:
     )
 
 
+
+def test_v1_24_closeout_assets_exist_and_are_pull_only() -> None:
+    evidence_index = _ROOT / ".planning" / "reviews" / "V1_24_EVIDENCE_INDEX.md"
+    milestone_audit = _ROOT / ".planning" / "v1.24-MILESTONE-AUDIT.md"
+
+    assert evidence_index.exists()
+    assert milestone_audit.exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.24-ROADMAP.md").exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.24-REQUIREMENTS.md").exists()
+    _assert_promoted_phase_assets(
+        "89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence",
+        "89-01-SUMMARY.md",
+        "89-02-SUMMARY.md",
+        "89-03-SUMMARY.md",
+        "89-04-SUMMARY.md",
+        "89-VERIFICATION.md",
+        "89-VALIDATION.md",
+    )
+
+    assert_pull_only_evidence_index(
+        evidence_index,
+        "89-04-SUMMARY.md",
+        "89-VERIFICATION.md",
+        "89-VALIDATION.md",
+        "archived / evidence-ready",
+        "V1_24_EVIDENCE_INDEX.md",
+    )
+
 def test_v1_23_closeout_assets_exist_and_are_pull_only() -> None:
     evidence_index = _ROOT / ".planning" / "reviews" / "V1_23_EVIDENCE_INDEX.md"
     milestone_audit = _ROOT / ".planning" / "v1.23-MILESTONE-AUDIT.md"

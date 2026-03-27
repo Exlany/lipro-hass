@@ -49,7 +49,7 @@ Runtime boundary tightening, tooling decoupling, and open-source entry convergen
 1. `custom_components/lipro/entities/base.py` 与 `custom_components/lipro/entities/firmware_update.py` 不再直接使用 `coordinator.command_service`、`coordinator.protocol_service`、`coordinator.get_device_lock(...)`。
 2. `custom_components/lipro/runtime_types.py` 的 entity-facing runtime protocol 以显式 verbs 表达实体允许消费的能力；相关测试夹具同步到新 surface。
 3. `custom_components/lipro/core/coordinator/coordinator.py` 的 runtime services/bootstrap construction 不再与 `RuntimeOrchestrator` 并行讲两套装配故事。
-4. `scripts/check_architecture_policy.py` 不再 import `tests.helpers.*`，且 script-side shared helpers 有正式 home。
+4. `scripts/check_architecture_policy.py` 与 `scripts/check_file_matrix.py` 不再 import `tests.helpers.*` 或依赖 ad-hoc `sys.path` 注入，且 script-side shared helpers / sibling modules 有正式 home。
 5. `README.md`、`docs/README.md`、`.github/ISSUE_TEMPLATE/*.yml`、`custom_components/lipro/manifest.json` 对 distribution / support / issues 的表述彼此一致。
 6. `.planning/codebase/*`、`.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}`、必要 baseline/review docs 与上述变更同步。
 7. 相关 focused pytest、`uv run ruff check .`、`uv run mypy`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check` 全部通过。

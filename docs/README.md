@@ -77,7 +77,7 @@ Current access-mode truth: this repository is private-access. GitHub-hosted Issu
 
 - **Active local entrypoints / 现役入口**：`./scripts/setup`、`./scripts/develop`、`./scripts/lint`
 - **Explicit Python/CI commands / 显式命令真源**：`CONTRIBUTING.md` 中的 `uv run ...` 分组命令
-- **Retired compatibility stubs / 退役兼容壳**：`scripts/agent_worker.py`、`scripts/orchestrator.py` —— 仅保留为 unsupported 的 fail-fast deprecation 入口；请改走 `docs/README.md` 与 `CONTRIBUTING.md`
+- **Retired compatibility stubs / 退役兼容壳**：`scripts/agent_worker.py`、`scripts/orchestrator.py` —— 仅在维护中的文档 / 自动化仍需要这些名称作为 unsupported 的 fail-fast migration hint 时保留；它们不是 supported workflow，请改走 `docs/README.md` 与 `CONTRIBUTING.md`
 
 ## Bilingual Boundary / 双语边界
 

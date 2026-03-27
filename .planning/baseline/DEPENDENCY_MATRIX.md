@@ -92,7 +92,7 @@
 - `custom_components/lipro/control/runtime_access_support.py` 只是 `runtime_access.py` 的 support-only helper cluster；control / diagnostics / system-health / telemetry consumers 仍必须经 `runtime_access.py` 读取正式 runtime truth。
 - `custom_components/lipro/control/telemetry_surface.py` 只能通过 `runtime_access.build_entry_telemetry_exporter()` 取得 exporter；它不得重新导入 private support helper、直接 coordinator lookup 或 `entry.runtime_data`。
 - `custom_components/lipro/core/coordinator/lifecycle.py` 可以承接 `CoordinatorUpdateCycle` 这类 internal collaborator，但 `Coordinator` 仍是唯一 runtime orchestration root；lifecycle helper 不得变成第二入口或 package export。
-- `custom_components/lipro/__init__.py` 继续只保留 lazy alias seam 与 `_build_entry_lifecycle_controller()` 组装入口；`EntryLifecycleController` 仍是 setup / unload / reload 的唯一 control-plane owner。
+- `custom_components/lipro/__init__.py` 继续只保留 lazy alias seam 与 `_build_entry_lifecycle_controller()` / `_build_service_registry()` 组装入口；`EntryLifecycleController` 与 `control/service_registry.py` 仍是唯一正式 control-plane owners，root adapter 不得直连 `services/registry.py`。
 
 ## Phase 27 Protocol-Service Convergence Clarifications
 
@@ -149,7 +149,7 @@
 
 - `custom_components/lipro/core/coordinator/runtime_wiring.py` 可以依赖 runtime services / lifecycle collaborators 以承接 bootstrapping mechanics，但它不能成为第二 runtime root、package export 或 control-facing capability surface。
 - `custom_components/lipro/control/entry_lifecycle_support.py` 只能被 `EntryLifecycleController` inward 使用；`runtime_infra.py` 继续只承载 shared infra/listener outward truth，`runtime_infra_device_registry.py` 不得反向接管 lifecycle ownership。
-- `custom_components/lipro/control/entry_root_wiring.py` 只能被 `custom_components/lipro/__init__.py` 作为 lazy wiring helper 使用；HA root adapter 继续保持 lazy alias seam，不得回退到 eager binding / singleton controller story。
+- `custom_components/lipro/control/entry_root_wiring.py` 只能被 `custom_components/lipro/__init__.py` 作为 lazy wiring helper 使用；HA root adapter 继续保持 lazy alias seam，不得回退到 eager binding / singleton controller story，也不得重新把 service-registry wiring 下沉回 `services/registry.py`。
 
 ## Phase 54 Helper-Hotspot Clarifications
 

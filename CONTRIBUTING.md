@@ -25,7 +25,7 @@ Thank you for your interest in contributing to the Lipro Smart Home integration!
 - Canonical minimum supported Home Assistant version: `2026.3.1` from `hacs.json`, kept in sync with the `pyproject.toml` dev pin (`homeassistant==2026.3.1`).
 - Canonical Python toolchain truth: minimum Python `3.14.2`, with development / CI targeting Python `3.14` (`requires-python`, `mypy`, `ruff`, `pre-commit`, devcontainer, and CI stay aligned under that contract).
 - 唯一 Python 工具链真相：最低 Python `3.14.2`，开发 / CI 目标为 Python `3.14`（`requires-python`、`mypy`、`ruff`、`pre-commit`、devcontainer 与 CI 都遵守这条契约）。
-- 唯一最低支持 Home Assistant 版本真源：`pyproject.toml` 中的 `homeassistant==2026.3.1`。
+- 唯一最低支持 Home Assistant 版本基线来源于 `hacs.json`，并与 `pyproject.toml` 中的开发 pin `homeassistant==2026.3.1` 保持同步。
 - Private repository / fork note: CI skips HACS validation because HACS only supports public GitHub repositories.
 - 私有仓库 / fork 说明：CI 会跳过 HACS validation，因为 HACS 只支持公开 GitHub 仓库。
 
@@ -77,8 +77,8 @@ Need routing help? Use `SUPPORT.md`. Need maintainer continuity or release custo
 Need the full docs map or bilingual boundary? Start with `docs/README.md`. Public troubleshooting / support routing stays on `docs/TROUBLESHOOTING.md` → `SUPPORT.md`, while `docs/MAINTAINER_RELEASE_RUNBOOK.md` remains a maintainer-only appendix.
 如需文档总索引或双语边界，请先看 `docs/README.md`。公开排障 / 支持分流统一走 `docs/TROUBLESHOOTING.md` → `SUPPORT.md`，`docs/MAINTAINER_RELEASE_RUNBOOK.md` 则继续保持 maintainer-only appendix 身份。
 
-Retired compatibility stubs such as `scripts/agent_worker.py` and `scripts/orchestrator.py` remain unsupported fail-fast entrypoints.
-`scripts/agent_worker.py` 与 `scripts/orchestrator.py` 之类退役兼容壳继续作为 unsupported 的 fail-fast 入口保留。
+Retired compatibility stubs such as `scripts/agent_worker.py` and `scripts/orchestrator.py` remain unsupported fail-fast entrypoints only while maintained docs / automation still need those names as migration hints.
+`scripts/agent_worker.py` 与 `scripts/orchestrator.py` 之类退役兼容壳，仅在维护中的文档 / 自动化仍需要这些名称作为迁移提示时继续保留，且始终不是 supported workflow。
 
 ## Navigation Boundaries / 导航边界
 

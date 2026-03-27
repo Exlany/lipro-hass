@@ -1,4 +1,4 @@
-"""Focused bootstrap smoke guards for active-route and archive-transition truth."""
+"""Focused bootstrap smoke guards for archived-only route and archive-transition truth."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ from .governance_current_truth import (
 )
 
 
-def test_active_route_bootstrap_contract_stays_current() -> None:
+def test_archived_only_bootstrap_contract_stays_current() -> None:
     project_text = (_ROOT / '.planning' / 'PROJECT.md').read_text(encoding='utf-8')
     roadmap_text = (_ROOT / '.planning' / 'ROADMAP.md').read_text(encoding='utf-8')
     state_text = (_ROOT / '.planning' / 'STATE.md').read_text(encoding='utf-8')
@@ -30,7 +30,7 @@ def test_active_route_bootstrap_contract_stays_current() -> None:
     assert CURRENT_MILESTONE_DEFAULT_NEXT in project_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in roadmap_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
-    assert 'v1.24 / Phase 89 complete' in verification_text
+    assert CURRENT_ROUTE in verification_text
     assert CURRENT_ROUTE in verification_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in verification_text
     assert f'**Latest archived pointer:** `{LATEST_ARCHIVED_EVIDENCE_PATH}`' in verification_text

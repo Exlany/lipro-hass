@@ -25,35 +25,27 @@ _ROUTE_CONTRACT_PATHS = {
 PLANNING_ROUTE_CONTRACT: dict[str, object] = {
     "contract_version": 1,
     "contract_name": "governance-route",
-    "active_milestone": {
+    "active_milestone": None,
+    "latest_archived": {
         "version": "v1.24",
         "name": "Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence",
-        "status": "active / Phase 89 complete (2026-03-27)",
+        "status": "archived / evidence-ready (2026-03-27)",
         "phase": "89",
         "phase_title": "Runtime boundary tightening, tooling decoupling, and open-source entry convergence",
         "phase_dir": "89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence",
-    },
-    "latest_archived": {
-        "version": "v1.23",
-        "name": "Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze",
-        "status": "archived / evidence-ready (2026-03-27)",
-        "phase": "88",
-        "phase_title": "Governance sync, quality proof, and milestone freeze",
-        "phase_dir": "88-governance-sync-quality-proof-and-milestone-freeze",
-        "audit_path": ".planning/v1.23-MILESTONE-AUDIT.md",
-        "evidence_path": ".planning/reviews/V1_23_EVIDENCE_INDEX.md",
+        "audit_path": ".planning/v1.24-MILESTONE-AUDIT.md",
+        "evidence_path": ".planning/reviews/V1_24_EVIDENCE_INDEX.md",
         "evidence_label": "latest archived evidence index",
     },
     "previous_archived": {
-        "version": "v1.22",
-        "name": "Maintainer Entry Contracts, Release Operations Closure & Contributor Routing",
-        "evidence_path": ".planning/reviews/V1_22_EVIDENCE_INDEX.md",
+        "version": "v1.23",
+        "name": "Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze",
+        "evidence_path": ".planning/reviews/V1_23_EVIDENCE_INDEX.md",
     },
     "bootstrap": {
-        "current_route": "v1.24 / Phase 89 complete",
-        "default_next_command": "$gsd-complete-milestone v1.24",
-        "active_prd": ".planning/phases/89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence/89-PRD.md",
-        "latest_archived_evidence_pointer": ".planning/reviews/V1_23_EVIDENCE_INDEX.md",
+        "current_route": "no active milestone route / latest archived baseline = v1.24",
+        "default_next_command": "$gsd-new-milestone",
+        "latest_archived_evidence_pointer": ".planning/reviews/V1_24_EVIDENCE_INDEX.md",
     },
 }
 
@@ -182,6 +174,7 @@ CURRENT_ROUTE_PROSE_FORBIDDEN = (
     "v1.23 active route / Phase 87 in progress / latest archived baseline = v1.22",
     "v1.23 active route / Phase 87 complete / latest archived baseline = v1.22",
     "v1.23 active route / Phase 88 complete / latest archived baseline = v1.22",
+    "v1.24 / Phase 89 complete",
     "no active milestone route / latest archived baseline = v1.20",
     "no active milestone route / latest archived baseline = v1.21",
     "no active milestone route / latest archived baseline = v1.22",
@@ -190,11 +183,11 @@ CURRENT_RUNTIME_ROOT_TEST = "tests/core/coordinator/test_runtime_root.py"
 
 HISTORICAL_CLOSEOUT_ROUTE_TRUTH = (
     "historical closeout route truth = "
-    "`no active milestone route / latest archived baseline = v1.23`"
+    "`no active milestone route / latest archived baseline = v1.24`"
 )
 HISTORICAL_ARCHIVE_TRANSITION_ROUTE_TRUTH = (
     "historical archive-transition route truth = "
-    "`no active milestone route / latest archived baseline = v1.22`"
+    "`no active milestone route / latest archived baseline = v1.23`"
 )
 
 

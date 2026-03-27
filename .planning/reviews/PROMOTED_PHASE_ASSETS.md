@@ -361,6 +361,13 @@ phases:
   - 88-SUMMARY.md
   - 88-VERIFICATION.md
   - 88-VALIDATION.md
+  89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence:
+  - 89-01-SUMMARY.md
+  - 89-02-SUMMARY.md
+  - 89-03-SUMMARY.md
+  - 89-04-SUMMARY.md
+  - 89-VERIFICATION.md
+  - 89-VALIDATION.md
 ---
 
 # Promoted Phase Assets

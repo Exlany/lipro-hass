@@ -462,3 +462,34 @@ def test_phase_88_closeout_assets_exist_and_are_promoted() -> None:
     assert "Phase 88 freeze note" in residual_text
     assert "## Phase 85 Routed Delete Gates" in kill_text
     assert "Historical review artifact" in audit_text
+
+
+def test_phase_89_closeout_assets_exist_and_are_promoted() -> None:
+    _assert_promoted_phase_assets(
+        "89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence",
+        "89-01-SUMMARY.md",
+        "89-02-SUMMARY.md",
+        "89-03-SUMMARY.md",
+        "89-04-SUMMARY.md",
+        "89-VERIFICATION.md",
+        "89-VALIDATION.md",
+    )
+    _assert_phase_assets_not_promoted(
+        "89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence",
+        "89-CONTEXT.md",
+        "89-PRD.md",
+        "89-RESEARCH.md",
+        "89-01-PLAN.md",
+        "89-02-PLAN.md",
+        "89-03-PLAN.md",
+        "89-04-PLAN.md",
+    )
+
+    verification_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
+
+    assert (
+        "## Phase 89 Runtime Boundary Tightening / Tooling Kernel Decoupling / Open-Source Entry Convergence"
+        in verification_text
+    )

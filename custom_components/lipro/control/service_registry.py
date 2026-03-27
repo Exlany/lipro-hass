@@ -9,7 +9,11 @@ from typing import Final, Protocol
 from homeassistant.core import HomeAssistant, SupportsResponse
 
 from ..services import contracts as _contracts
-from ..services.registry import ServiceRegistration
+from ..services.registry import (
+    ServiceRegistration,
+    async_setup_services as _async_setup_services_impl,
+    remove_services as _remove_services_impl,
+)
 from .runtime_access import (
     has_debug_mode_runtime_entry,
     is_debug_mode_enabled_for_entry,
@@ -146,6 +150,27 @@ class ServiceRegistryLike(Protocol):
         """Remove all registered services for the domain."""
 
 
+def build_default_service_registry(
+    *,
+    domain: str,
+    public_registrations: ServiceRegistrations,
+    developer_registrations: ServiceRegistrations,
+    service_registrations: ServiceRegistrations,
+    get_runtime_infra_lock: GetRuntimeInfraLockFn,
+) -> ServiceRegistry:
+    """Build the formal service registry with the helper-home wiring localized here."""
+    return ServiceRegistry(
+        domain=domain,
+        public_registrations=public_registrations,
+        developer_registrations=developer_registrations,
+        service_registrations=service_registrations,
+        async_setup_services=_async_setup_services_impl,
+        remove_services=_remove_services_impl,
+        has_debug_mode_runtime_entry=has_debug_mode_runtime_entry,
+        get_runtime_infra_lock=get_runtime_infra_lock,
+    )
+
+
 class ServiceRegistry:
     """Own service registration, debug gating, and synchronization."""
 
@@ -217,6 +242,7 @@ __all__ = [
     'SERVICE_REGISTRATIONS',
     'ServiceRegistry',
     'ServiceRegistryLike',
+    'build_default_service_registry',
     'has_debug_mode_runtime_entry',
     'is_debug_mode_enabled_for_entry',
 ]

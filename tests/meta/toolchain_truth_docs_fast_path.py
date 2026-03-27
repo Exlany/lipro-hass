@@ -173,6 +173,8 @@ def test_governance_registry_keeps_continuity_truth_machine_readable() -> None:
     assert registry["continuity"]["documented_delegate"] is False
     assert registry["docs"]["index_route"] == "docs/README.md"
     assert registry["tooling"]["retired_stub_exit_code"] == 2
+    assert registry["tooling"]["compatibility_stub_role"] == "retired fail-fast migration hint only"
+    assert "migration hints" in registry["tooling"]["compatibility_stub_delete_gate"]
     for token in registry["continuity"]["sync_sources"]:
         assert token in {
             "SUPPORT.md",
@@ -236,6 +238,8 @@ def test_docs_index_and_retired_tooling_contract_are_machine_readable() -> None:
     for token in registry["tooling"]["compatibility_stubs"]:
         assert token in docs_text
     assert "docs/README.md" in contributing_text
+    assert "maintained docs / automation still need those names as migration hints" in contributing_text
+    assert "migration hint" in docs_text
     assert "return 2" in worker_text
     assert "return 2" in orchestrator_text
     assert "Use docs/README.md and CONTRIBUTING.md" in worker_text

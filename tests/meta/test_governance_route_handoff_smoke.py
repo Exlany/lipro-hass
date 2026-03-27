@@ -1,4 +1,4 @@
-"""Focused route-handoff smoke guards for archived-only fast paths."""
+"""Focused route-handoff smoke guards for archived-only fast paths and latest-archive promotion truth."""
 
 from __future__ import annotations
 
@@ -64,7 +64,7 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
     assert CURRENT_MILESTONE_DEFAULT_NEXT in roadmap_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in requirements_text
-    assert '## Phase 88 Governance Sync / Quality Proof / Milestone Freeze' in verification_text
+    assert '## Phase 89 Runtime Boundary Tightening / Tooling Kernel Decoupling / Open-Source Entry Convergence' in verification_text
     assert CURRENT_ROUTE in verification_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in verification_text
     assert LATEST_ARCHIVED_EVIDENCE_PATH in verification_text
@@ -94,7 +94,7 @@ def test_gsd_fast_path_matches_current_active_route_story() -> None:
 
     state = _run_gsd_tools('state', 'json')
     assert _as_str(state['milestone']) == CURRENT_MILESTONE
-    assert _as_str(state['status']) == 'complete'
+    assert _as_str(state['status']) == 'archived'
     assert _as_mapping(state['progress']) == {
         'total_phases': '1',
         'completed_phases': '1',

@@ -18,7 +18,6 @@ from .control.entry_root_wiring import (
     EntryLifecycleControllerLike as _EntryLifecycleControllerLike,
     build_entry_lifecycle_controller as _build_entry_lifecycle_controller_impl,
     build_entry_lifecycle_controller_dependencies as _build_entry_lifecycle_controller_dependencies_impl,
-    build_service_registry as _build_service_registry_impl,
 )
 from .entry_options import (
     async_reload_entry_if_options_changed as _async_reload_entry_if_options_changed_impl,
@@ -33,7 +32,6 @@ from .runtime_infra import (
     setup_device_registry_listener,
 )
 from .runtime_types import LiproRuntimeCoordinator
-from .services.registry import async_setup_services, remove_services
 
 if TYPE_CHECKING:
     from homeassistant.helpers.typing import ConfigType
@@ -97,13 +95,21 @@ class _EntryAuthModule(Protocol):
 
 
 class _ServiceRegistrationsModule(Protocol):
-    """Runtime-loaded service registration table surface."""
+    """Runtime-loaded formal control-plane service-registry surface."""
 
     PUBLIC_SERVICE_REGISTRATIONS: Sequence[object]
     DEVELOPER_SERVICE_REGISTRATIONS: Sequence[object]
     SERVICE_REGISTRATIONS: Sequence[object]
 
-    def has_debug_mode_runtime_entry(self, hass: HomeAssistant) -> bool: ...
+    def build_default_service_registry(
+        self,
+        *,
+        domain: str,
+        public_registrations: Sequence[object],
+        developer_registrations: Sequence[object],
+        service_registrations: Sequence[object],
+        get_runtime_infra_lock: Callable[[HomeAssistant], object],
+    ) -> ServiceRegistry: ...
 
 
 LiproProtocolFacade: Callable[..., object]
@@ -297,11 +303,12 @@ async_reload_entry_if_options_changed = _async_reload_entry_if_options_changed
 
 
 def _build_service_registry() -> ServiceRegistry:
-    return _build_service_registry_impl(
+    registrations = _service_registrations_module()
+    return registrations.build_default_service_registry(
         domain=DOMAIN,
-        registrations=_service_registrations_module(),
-        async_setup_services=async_setup_services,
-        remove_services=remove_services,
+        public_registrations=registrations.PUBLIC_SERVICE_REGISTRATIONS,
+        developer_registrations=registrations.DEVELOPER_SERVICE_REGISTRATIONS,
+        service_registrations=registrations.SERVICE_REGISTRATIONS,
         get_runtime_infra_lock=get_runtime_infra_lock,
     )
 

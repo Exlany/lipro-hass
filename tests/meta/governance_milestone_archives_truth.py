@@ -100,7 +100,7 @@ def test_governance_truth_registers_v1_14_archive_lineage() -> None:
     assert "## v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure" in milestones_text
     assert ".planning/reviews/V1_14_EVIDENCE_INDEX.md" in milestones_text
 
-def test_governance_truth_registers_v1_23_latest_archive_pointer() -> None:
+def test_governance_truth_registers_v1_24_latest_archive_pointer() -> None:
     authority_text = (
         _ROOT / ".planning" / "baseline" / "AUTHORITY_MATRIX.md"
     ).read_text(encoding="utf-8")
@@ -121,11 +121,12 @@ def test_governance_truth_registers_v1_23_latest_archive_pointer() -> None:
     assert "V1_21_EVIDENCE_INDEX.md" in authority_text
     assert "V1_22_EVIDENCE_INDEX.md" in authority_text
     assert "V1_23_EVIDENCE_INDEX.md" in authority_text
-    assert "v1.23-MILESTONE-AUDIT.md" in authority_text
-    assert "V1_23_EVIDENCE_INDEX.md" in public_text
-    assert "## v1.22 Maintainer Entry Contracts, Release Operations Closure & Contributor Routing" in milestones_text
+    assert "V1_24_EVIDENCE_INDEX.md" in authority_text
+    assert "v1.24-MILESTONE-AUDIT.md" in authority_text
+    assert "V1_24_EVIDENCE_INDEX.md" in public_text
     assert "## v1.23 Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze" in milestones_text
-    assert ".planning/reviews/V1_23_EVIDENCE_INDEX.md" in milestones_text
+    assert "## v1.24 Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence" in milestones_text
+    assert ".planning/reviews/V1_24_EVIDENCE_INDEX.md" in milestones_text
     _assert_public_docs_hide_internal_route_story(docs_text)
     assert_runbook_points_to_latest_evidence(
         runbook_text,

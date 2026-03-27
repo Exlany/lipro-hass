@@ -3,8 +3,21 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
-from scripts.check_file_matrix_registry_shared import FileGovernanceRow, row_for_path
+if TYPE_CHECKING:
+    from scripts.check_file_matrix_registry_shared import (
+        FileGovernanceRow,
+        row_for_path,
+    )
+elif __package__ in {None, ""}:
+    from check_file_matrix_registry_shared import FileGovernanceRow, row_for_path
+else:
+    from scripts.check_file_matrix_registry_shared import (
+        FileGovernanceRow,
+        row_for_path,
+    )
+
 
 type ExactRule = tuple[str, tuple[str, str, str, str]]
 type PrefixRule = tuple[str, tuple[str, str, str, str]]

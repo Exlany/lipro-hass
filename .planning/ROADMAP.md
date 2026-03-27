@@ -2,8 +2,8 @@
 
 ## Milestones
 
-- ✅ **v1.24 Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence** - `Phase 89` complete on 2026-03-27; starting baseline: `.planning/v1.23-MILESTONE-AUDIT.md` + `.planning/reviews/V1_23_EVIDENCE_INDEX.md`; phase dir: `.planning/phases/89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence`; default next command: `$gsd-complete-milestone v1.24`
-- ✅ **v1.23 Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze** - `Phase 85 -> 88` archived on 2026-03-27; milestone audit: `.planning/v1.23-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_23_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.23-ROADMAP.md` / `.planning/milestones/v1.23-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.23`
+- ✅ **v1.24 Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence** - `Phase 89` archived on 2026-03-27; milestone audit: `.planning/v1.24-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_24_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.24-ROADMAP.md` / `.planning/milestones/v1.24-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.24`
+- ✅ **v1.23 Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze** - `Phase 85 -> 88` archived on 2026-03-27; milestone audit: `.planning/v1.23-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_23_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.23-ROADMAP.md` / `.planning/milestones/v1.23-REQUIREMENTS.md`; historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.23`
 - ✅ **v1.22 Maintainer Entry Contracts, Release Operations Closure & Contributor Routing** - `Phase 81 -> 84` archived on 2026-03-27; milestone audit: `.planning/v1.22-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_22_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.22-ROADMAP.md` / `.planning/milestones/v1.22-REQUIREMENTS.md`; historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.22`
 - ✅ **v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation** - `Phase 76 -> 80` archived on 2026-03-26; milestone audit: `.planning/v1.21-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_21_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.21-ROADMAP.md` / `.planning/milestones/v1.21-REQUIREMENTS.md`; historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.21`
 - 🗂 **Historical archive snapshots** - `.planning/milestones/{v1.1-ROADMAP.md,v1.1-REQUIREMENTS.md,v1.2-ROADMAP.md,v1.2-REQUIREMENTS.md,v1.4-ROADMAP.md,v1.4-REQUIREMENTS.md,v1.5-ROADMAP.md,v1.5-REQUIREMENTS.md,v1.6-ROADMAP.md,v1.6-REQUIREMENTS.md,v1.12-ROADMAP.md,v1.12-REQUIREMENTS.md,v1.13-ROADMAP.md,v1.13-REQUIREMENTS.md,v1.14-ROADMAP.md,v1.14-REQUIREMENTS.md,v1.15-ROADMAP.md,v1.15-REQUIREMENTS.md,v1.16-ROADMAP.md,v1.16-REQUIREMENTS.md,v1.17-ROADMAP.md,v1.17-REQUIREMENTS.md}` 继续保留为 continuity / archive reference。
@@ -13,44 +13,38 @@
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.24
   name: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
-  status: active / Phase 89 complete (2026-03-27)
+  status: archived / evidence-ready (2026-03-27)
   phase: '89'
   phase_title: Runtime boundary tightening, tooling decoupling, and open-source entry convergence
   phase_dir: 89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence
-latest_archived:
-  version: v1.23
-  name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
-  status: archived / evidence-ready (2026-03-27)
-  phase: '88'
-  phase_title: Governance sync, quality proof, and milestone freeze
-  phase_dir: 88-governance-sync-quality-proof-and-milestone-freeze
-  audit_path: .planning/v1.23-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_23_EVIDENCE_INDEX.md
+  audit_path: .planning/v1.24-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_24_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.22
-  name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
-  evidence_path: .planning/reviews/V1_22_EVIDENCE_INDEX.md
+  version: v1.23
+  name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
+  evidence_path: .planning/reviews/V1_23_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.24 / Phase 89 complete
-  default_next_command: $gsd-complete-milestone v1.24
-  active_prd: .planning/phases/89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence/89-PRD.md
-  latest_archived_evidence_pointer: .planning/reviews/V1_23_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.24
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_24_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
 ## v1.24: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
 
-> `v1.24` 基于 `v1.23` archived baseline 重新开启一条 fresh active route：它不重开已关闭 residual，而是把新一轮 terminal-grade review 发现的 boundary leakage、dual wiring、tooling coupling 与 open-source entry drift 转化为单 phase 可执行收敛路线。
+> `v1.24` 已于 `2026-03-27` 完成 milestone audit、evidence-index closeout 与 archive promotion：它承接 `v1.23` 的 archived evidence，完成 runtime boundary tightening、runtime single-wiring convergence、tooling kernel decoupling，以及 docs-first open-source entry / governance-route sync，并把治理状态切换为 `no active milestone route / latest archived baseline = v1.24`。
 
-**Milestone Goal:** 把“代码已经很强但仍有结构性边角”的问题集中收口：实体/平台不再直摸 runtime internals，runtime 装配归回单一 wiring root，governance 工具链脱离 `tests.helpers`，对外入口文档/metadata 讲同一条公开协作故事。
-**Milestone status:** `active / Phase 89 complete (2026-03-27)`
+**Milestone Goal:** 把“代码已经很强但仍有结构性边角”的问题集中收口：实体/平台不再直摸 runtime internals，runtime 装配归回单一 wiring root，governance 工具链脱离 `tests.helpers` / ad-hoc `sys.path`，对外入口文档/metadata 讲同一条公开协作故事。
+**Milestone status:** `archived / evidence-ready (2026-03-27)`
 **Starting baseline:** `.planning/v1.23-MILESTONE-AUDIT.md`, `.planning/reviews/V1_23_EVIDENCE_INDEX.md`, `.planning/milestones/v1.23-ROADMAP.md`, `.planning/milestones/v1.23-REQUIREMENTS.md`
 **Requirements basket:** `ARC-23`, `RUN-09`, `GOV-64`, `HOT-39`, `OSS-12`, `QLT-36`, `TST-28`
-**Default next command:** `$gsd-complete-milestone v1.24`
+**Archive assets:** `.planning/v1.24-MILESTONE-AUDIT.md`, `.planning/reviews/V1_24_EVIDENCE_INDEX.md`, `.planning/milestones/v1.24-ROADMAP.md`, `.planning/milestones/v1.24-REQUIREMENTS.md`
+**Default next command:** `$gsd-new-milestone`
 
 ### Phase 89: Runtime boundary tightening, tooling decoupling, and open-source entry convergence
 
@@ -65,6 +59,13 @@ bootstrap:
   5. 代码地图、治理文档与 focused regression/guards 与上述变化同步更新，phase closeout 时不留下新的 drift 或隐性 carry-forward。
 **Status**: Complete (2026-03-27)
 **Plans**: 4/4 complete
+**Promoted closeout package**: `89-01-SUMMARY.md`, `89-02-SUMMARY.md`, `89-03-SUMMARY.md`, `89-04-SUMMARY.md`, `89-VERIFICATION.md`, `89-VALIDATION.md`
+
+Plans:
+- [x] 89-01: entity-facing runtime verbs and OTA seam closure (completed 2026-03-27)
+- [x] 89-02: runtime bootstrap single-wiring convergence (completed 2026-03-27)
+- [x] 89-03: tooling helper ownership decoupling across architecture/file-matrix governance CLI roots (completed 2026-03-27)
+- [x] 89-04: docs-first public entry and governance-route truth sync (completed 2026-03-27)
 
 ## v1.23: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
 

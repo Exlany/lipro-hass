@@ -1,4 +1,4 @@
-"""Current-route and archived-baseline follow-up truth guards spanning v1.8-v1.23."""
+"""Current-route and archived-baseline follow-up truth guards spanning v1.8-v1.24."""
 
 from __future__ import annotations
 
@@ -207,7 +207,7 @@ def test_v1_12_to_v1_13_archived_route_truth_uses_promoted_evidence_only() -> No
     assert ".planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-01-PLAN.md" not in _PROJECT_TEXT
 
 
-def test_machine_readable_route_contracts_point_to_active_v1_24_and_archived_baselines() -> None:
+def test_machine_readable_route_contracts_point_to_archived_only_v1_24_and_previous_baselines() -> None:
     contracts = assert_machine_readable_route_contracts()
     requirements_contract = _as_mapping(contracts["REQUIREMENTS"])
     requirements_active = _as_optional_mapping(requirements_contract["active_milestone"])
@@ -218,15 +218,11 @@ def test_machine_readable_route_contracts_point_to_active_v1_24_and_archived_bas
     state_contract = _as_mapping(contracts["STATE"])
     state_bootstrap = _as_mapping(state_contract["bootstrap"])
 
-    assert requirements_active is not None
-    assert milestones_active is not None
-    assert requirements_active["version"] == "v1.24"
-    assert requirements_active["phase"] == "89"
-    assert milestones_active["version"] == "v1.24"
-    assert milestones_active["phase"] == "89"
-    assert milestones_latest_archived["version"] == "v1.23"
-    assert milestones_latest_archived["phase"] == "88"
-    assert milestones_previous_archived["version"] == "v1.22"
+    assert requirements_active is None
+    assert milestones_active is None
+    assert milestones_latest_archived["version"] == "v1.24"
+    assert milestones_latest_archived["phase"] == "89"
+    assert milestones_previous_archived["version"] == "v1.23"
     assert state_bootstrap["default_next_command"] == CURRENT_MILESTONE_DEFAULT_NEXT
     assert state_bootstrap["latest_archived_evidence_pointer"] == LATEST_ARCHIVED_EVIDENCE_PATH
 
@@ -251,24 +247,24 @@ def test_current_v1_24_project_state_and_latest_archive_pointers_align() -> None
     _assert_latest_archived_route_truth(_PROJECT_TEXT, _ROADMAP_TEXT, _STATE_TEXT)
     _assert_contains_all(
         _PROJECT_TEXT,
-        "## Current Milestone (v1.24)",
-        "## Latest Archived Milestone (v1.23)",
-        "## Previous Archived Milestone (v1.22)",
+        "## Latest Archived Milestone (v1.24)",
+        "## Previous Archived Milestone (v1.23)",
+        "## Archived Milestone (v1.22)",
         "## Archived Milestone (v1.21)",
-        "**Current status:** `active / Phase 89 complete (2026-03-27)`",
-        "**Default next command:** `$gsd-complete-milestone v1.24`",
+        "**Current status:** `archived / evidence-ready (2026-03-27)`",
+        "**Default next command:** `$gsd-new-milestone`",
     )
     _assert_contains_all(
         _ROADMAP_TEXT,
         "## v1.24: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence",
         "### Phase 89: Runtime boundary tightening, tooling decoupling, and open-source entry convergence",
         CURRENT_MILESTONE_DEFAULT_NEXT,
-        ".planning/reviews/V1_23_EVIDENCE_INDEX.md",
-        ".planning/milestones/v1.23-ROADMAP.md",
+        ".planning/reviews/V1_24_EVIDENCE_INDEX.md",
+        ".planning/milestones/v1.24-ROADMAP.md",
     )
     _assert_contains_all(
         _REQUIREMENTS_TEXT,
-        "## Current Milestone (v1.24)",
+        "## Latest Archived Milestone (v1.24)",
         "| ARC-23 | Phase 89 | Completed |",
         "| RUN-09 | Phase 89 | Completed |",
         "| GOV-64 | Phase 89 | Completed |",
@@ -288,6 +284,6 @@ def test_current_v1_24_project_state_and_latest_archive_pointers_align() -> None
         CURRENT_MILESTONE_DEFAULT_NEXT,
         LATEST_ARCHIVED_AUDIT_PATH,
         LATEST_ARCHIVED_EVIDENCE_PATH,
-        ".planning/reviews/V1_23_TERMINAL_AUDIT.md",
+        ".planning/v1.24-MILESTONE-AUDIT.md",
     )
-    assert CURRENT_MILESTONE_STATUS == "active / Phase 89 complete (2026-03-27)"
+    assert CURRENT_MILESTONE_STATUS == "archived / evidence-ready (2026-03-27)"

@@ -379,7 +379,7 @@ _None currently registered._
 ## Phase 47 Residual Delta
 
 - 本轮 **无新增 active residual family**；关闭的是 docs/tooling discoverability 与 release-signature identity 过宽 contract，而不是开启新的架构故事线。
-- `scripts/agent_worker.py` 与 `scripts/orchestrator.py` 仍保留为 explicit retired compatibility stubs，但它们现在只是 fail-fast deprecation entry，不再伪装成可继续成功执行的 active tooling。
+- `scripts/agent_worker.py` 与 `scripts/orchestrator.py` 仍保留为 explicit retired compatibility stubs，但它们现在只是 fail-fast deprecation entry，不再伪装成可继续成功执行的 active tooling；delete gate 已明确收口为“仅在维护中的文档 / 自动化仍需要这些名称作为 migration hint 时保留”。
 - runtime hotspot、mega-test topicization 与 REST typed-surface debt 仍已诚实路由到 `Phase 48 -> 50`，不作为 silent defer 继续漂浮。
 
 ## Phase 52 Residual Delta

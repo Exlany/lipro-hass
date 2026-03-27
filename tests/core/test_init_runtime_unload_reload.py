@@ -142,7 +142,7 @@ class TestInitUnloadAndReloadBehavior(_InitRuntimeBehaviorBase):
             patch(
                 "custom_components.lipro.has_other_runtime_entries", return_value=False
             ),
-            patch("custom_components.lipro.remove_services") as mock_remove_services,
+            patch("custom_components.lipro.control.service_registry._remove_services_impl") as mock_remove_services,
             patch(
                 "custom_components.lipro.remove_device_registry_listener"
             ) as mock_remove_listener,

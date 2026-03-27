@@ -5,10 +5,10 @@ subsystem: tooling
 tags: [tooling, governance, scripts, tests, decoupling]
 requires: []
 provides:
-  - script-owned helper home for architecture policy tooling
+  - script-owned helper home for architecture/file-matrix governance tooling
   - thin tests helper shims
   - focused tooling-decoupling guards
-affects: [scripts/check_architecture_policy.py, scripts/lib, tests/helpers, tests/meta]
+affects: [scripts/check_architecture_policy.py, scripts/check_file_matrix.py, scripts/lib, tests/helpers, tests/meta]
 tech-stack:
   added: []
   patterns:
@@ -21,12 +21,13 @@ key-files:
     - tests/meta/test_phase89_tooling_decoupling_guards.py
   modified:
     - scripts/check_architecture_policy.py
+    - scripts/check_file_matrix.py
     - tests/helpers/architecture_policy.py
     - tests/helpers/ast_guard_utils.py
     - tests/meta/public_surface_architecture_policy.py
     - tests/meta/test_governance_release_contract.py
 key-decisions:
-  - "Keep `scripts/check_architecture_policy.py` runnable both as a package module and as a direct script, but only against script-owned helpers."
+  - "Keep `scripts/check_architecture_policy.py` and `scripts/check_file_matrix.py` runnable both as package modules and as direct scripts, but only against script-owned helpers or sibling modules."
   - "Retain `tests.helpers.*` as compatibility consumers, not as the implementation authority."
 patterns-established:
   - "Governance checkers may depend on `scripts.lib.*`; tests may re-export that same implementation, but must not own it."
@@ -41,19 +42,20 @@ completed: 2026-03-27
 
 # Summary 89-03
 
-**Architecture-policy tooling now owns its helper kernel under `scripts/lib`, while tests consume the same implementation through thin shims instead of acting as the CLI's source of truth.**
+**Architecture/file-matrix governance tooling now relies on script-owned helpers or sibling modules, while tests consume the same implementation through thin shims instead of acting as the CLI source of truth.**
 
 ## Outcome
 
-- `scripts/check_architecture_policy.py` no longer imports `tests.helpers.*` and no longer relies on `sys.path.insert(...)` hacks.
+- `scripts/check_architecture_policy.py` and `scripts/check_file_matrix.py` no longer rely on `tests.helpers.*` or `sys.path.insert(...)` hacks.
 - `scripts/lib/architecture_policy.py` and `scripts/lib/ast_guard_utils.py` now hold the real policy/AST helper implementation.
 - `tests/helpers/architecture_policy.py` and `tests/helpers/ast_guard_utils.py` were demoted to thin re-export shims.
-- Governance/public-surface tests were updated to assert the new ownership model.
-- `tests/meta/test_phase89_tooling_decoupling_guards.py` was added to block script → tests helper backflow and to prove the new helper home remains authoritative.
+- Governance/public-surface tests were updated to assert the new ownership model across architecture/file-matrix checker roots.
+- `tests/meta/test_phase89_tooling_decoupling_guards.py` now blocks script → tests helper backflow, `sys.path` reinjection, and file-matrix checker regressions.
 
 ## Verification
 
 - `uv run python scripts/check_architecture_policy.py --check`
+- `uv run python scripts/check_file_matrix.py --check`
 - `uv run pytest -q tests/meta/public_surface_architecture_policy.py tests/meta/test_governance_release_contract.py tests/meta/test_dependency_guards.py tests/meta/toolchain_truth_testing_governance.py tests/meta/test_phase89_tooling_decoupling_guards.py`
 
 ## Task Commits

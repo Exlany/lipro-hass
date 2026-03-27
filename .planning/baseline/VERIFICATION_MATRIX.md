@@ -2,16 +2,16 @@
 
 **Purpose:** 建立 requirement → artifact → test → doc → phase acceptance / handoff 的统一验证闭环。
 **Status:** Formal baseline asset (`BASE-03` phase acceptance truth source)
-**Updated:** 2026-03-27 (v1.24 active route / Phase 89 complete aligned)
+**Updated:** 2026-03-27 (v1.24 milestone archive promotion aligned)
 
 ## Formal Role
 
 ## Current Mutable Route
 
-- **Current mutable story:** `v1.24 / Phase 89 complete`
-- **Default next command:** `$gsd-complete-milestone v1.24`
-- **Latest archived pointer:** `.planning/reviews/V1_23_EVIDENCE_INDEX.md`
-- **Focused guards:** `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/test_phase89_entry_route_guards.py`
+- **Current mutable story:** `no active milestone route / latest archived baseline = v1.24`
+- **Default next command:** `$gsd-new-milestone`
+- **Latest archived pointer:** `.planning/reviews/V1_24_EVIDENCE_INDEX.md`
+- **Focused guards:** `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/test_phase89_entry_route_guards.py`, `tests/meta/test_phase89_tooling_decoupling_guards.py`, `tests/meta/test_governance_promoted_phase_assets.py`
 
 - 本文件是 `Phase 1.5` 及其下游 phases 的正式 acceptance truth；phase docs / summaries 只能引用、实例化或扩展，不得平行定义 exit contract。
 - 任一 phase 只有同时交付 requirement evidence、artifact updates、verification proof 与 governance disposition，才可宣称完成。
@@ -492,3 +492,10 @@
 - **Required governance proof:** 当前 archived-only route truth 必须是 `no active milestone route / latest archived baseline = v1.23`；default next command = `$gsd-new-milestone`；historical phase-completion next-step = `$gsd-complete-milestone v1.23`；`.planning/reviews/V1_23_TERMINAL_AUDIT.md` 只保留 historical route snapshot 身份；`.planning/v1.23-MILESTONE-AUDIT.md` 与 `.planning/reviews/V1_23_EVIDENCE_INDEX.md` 共同承担 latest archived verdict / pointer truth；`.planning/reviews/PROMOTED_PHASE_ASSETS.md` 继续承担 phase evidence allowlist；`tests/meta/test_phase88_governance_quality_freeze_guards.py` 是 focused freeze guard home；`.planning/reviews/RESIDUAL_LEDGER.md` 与 `.planning/reviews/KILL_LIST.md` 必须显式冻结 `zero orphan residuals` / zero active delete gates；`PROJECT.md`、`ROADMAP.md`、`REQUIREMENTS.md`、`STATE.md`、`MILESTONES.md` 与 focused governance guards 必须共同承认 archive promotion 完成后唯一下一步为 `$gsd-new-milestone`；**Latest archived pointer:** `.planning/reviews/V1_23_EVIDENCE_INDEX.md`。
 - **Required runnable proof:** `uv run ruff check .`、`uv run mypy`、`uv run python scripts/check_file_matrix.py --check`、`uv run python scripts/check_architecture_policy.py --check`、`uv run pytest -q tests/meta`、`uv run pytest -q tests/core/api/test_api_diagnostics_service.py tests/core/api/test_api_diagnostics_service_*.py tests/core/api/test_protocol_contract_matrix.py tests/core/api/test_protocol_contract_*.py tests/core/coordinator/runtime/test_mqtt_runtime.py tests/core/coordinator/runtime/test_mqtt_runtime_*.py`、`uv run pytest -q tests/ --ignore=tests/benchmarks`、`node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" init progress`、`node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" state json`、`node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" phase-plan-index 88`。
 - **Unblock effect:** `GOV-63` / `QLT-35` 的 closeout-ready proof bundle 已升级为 archived baseline truth；当前唯一下一跳是 `$gsd-new-milestone`，不再依赖人工记忆维护 governance handoff。
+
+## Phase 89 Runtime Boundary Tightening / Tooling Kernel Decoupling / Open-Source Entry Convergence
+
+- **Required artifacts:** `.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md,MILESTONES.md}`、`.planning/baseline/{PUBLIC_SURFACES.md,AUTHORITY_MATRIX.md,VERIFICATION_MATRIX.md}`、`.planning/reviews/{PROMOTED_PHASE_ASSETS.md,V1_24_EVIDENCE_INDEX.md,FILE_MATRIX.md,RESIDUAL_LEDGER.md,KILL_LIST.md}`、`.planning/{v1.24-MILESTONE-AUDIT.md}`、`.planning/milestones/{v1.24-ROADMAP.md,v1.24-REQUIREMENTS.md}`、`docs/{developer_architecture.md,MAINTAINER_RELEASE_RUNBOOK.md}`、`scripts/{check_architecture_policy.py,check_file_matrix.py}`、`scripts/lib/{architecture_policy.py,ast_guard_utils.py}`、`tests/meta/{governance_current_truth.py,governance_followup_route_current_milestones.py,governance_milestone_archives_truth.py,governance_milestone_archives_assets.py,test_governance_bootstrap_smoke.py,test_governance_route_handoff_smoke.py,test_governance_promoted_phase_assets.py,test_governance_release_contract.py,test_phase89_runtime_boundary_guards.py,test_phase89_runtime_wiring_guards.py,test_phase89_tooling_decoupling_guards.py,test_phase89_entry_route_guards.py,test_version_sync.py}`、`.planning/phases/89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence/{89-01-SUMMARY.md,89-02-SUMMARY.md,89-03-SUMMARY.md,89-04-SUMMARY.md,89-VERIFICATION.md,89-VALIDATION.md}`。
+- **Required governance proof:** 当前 archived-only route truth 必须是 `no active milestone route / latest archived baseline = v1.24`；default next command = `$gsd-new-milestone`；historical phase-completion next-step = `$gsd-complete-milestone v1.24`；`.planning/v1.24-MILESTONE-AUDIT.md` 与 `.planning/reviews/V1_24_EVIDENCE_INDEX.md` 共同承担 latest archived verdict / pointer truth；`.planning/reviews/PROMOTED_PHASE_ASSETS.md` 必须 allowlist `Phase 89` closeout bundle；`PROJECT.md`、`ROADMAP.md`、`REQUIREMENTS.md`、`STATE.md`、`MILESTONES.md` 与 focused governance guards 必须共同承认 archive promotion 完成后唯一下一步为 `$gsd-new-milestone`；**Latest archived pointer:** `.planning/reviews/V1_24_EVIDENCE_INDEX.md`。
+- **Required runnable proof:** `uv run ruff check .`、`uv run mypy`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、`uv run pytest -q tests/meta`、`node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" init progress`、`node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" state json`、`node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" phase-plan-index 89`。
+- **Unblock effect:** `ARC-23` / `RUN-09` / `GOV-64` / `HOT-39` / `OSS-12` / `QLT-36` / `TST-28` 的 closeout proof bundle 已升级为 latest archived baseline truth；当前唯一下一跳是 `$gsd-new-milestone`，不再依赖人工记忆维护 milestone handoff。

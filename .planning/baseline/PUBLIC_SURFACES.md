@@ -2,7 +2,7 @@
 
 **Purpose:** 定义各平面的 canonical public surfaces、过渡公开面与禁止作为正式入口的对象。
 **Status:** Formal baseline asset (`BASE-01` public-surface truth source)
-**Updated:** 2026-03-27 (v1.23 phase-88 governance freeze aligned)
+**Updated:** 2026-03-27 (v1.24 archive promotion aligned)
 
 ## Formal Role
 
@@ -33,7 +33,7 @@
 ## Phase 40 Governance Truth Surface Notes
 
 - `.planning/baseline/GOVERNANCE_REGISTRY.json` 是 governance-only 的 machine-readable baseline asset：它只承载 active governance facts（版本、安装、support routing、release trust、continuity、community-health intake contract），不是 runtime / control / protocol 的 public API。
-- `.planning/MILESTONES.md`、`.planning/milestones/*.md`、`.planning/v1.12-MILESTONE-AUDIT.md`、`.planning/v1.13-MILESTONE-AUDIT.md`、`.planning/v1.14-MILESTONE-AUDIT.md`、`.planning/v1.15-MILESTONE-AUDIT.md`、`.planning/v1.16-MILESTONE-AUDIT.md`、`.planning/v1.17-MILESTONE-AUDIT.md`、`.planning/v1.18-MILESTONE-AUDIT.md`、`.planning/v1.19-MILESTONE-AUDIT.md`、`.planning/v1.20-MILESTONE-AUDIT.md`、`.planning/v1.21-MILESTONE-AUDIT.md`、`.planning/v1.22-MILESTONE-AUDIT.md`、`.planning/v1.23-MILESTONE-AUDIT.md`、`.planning/v1.6-MILESTONE-AUDIT.md` 与 `.planning/reviews/V1_12_EVIDENCE_INDEX.md` / `.planning/reviews/V1_13_EVIDENCE_INDEX.md` / `.planning/reviews/V1_14_EVIDENCE_INDEX.md` / `.planning/reviews/V1_15_EVIDENCE_INDEX.md` / `.planning/reviews/V1_16_EVIDENCE_INDEX.md` / `.planning/reviews/V1_17_EVIDENCE_INDEX.md` / `.planning/reviews/V1_18_EVIDENCE_INDEX.md` / `.planning/reviews/V1_19_EVIDENCE_INDEX.md` / `.planning/reviews/V1_20_EVIDENCE_INDEX.md` / `.planning/reviews/V1_21_EVIDENCE_INDEX.md` / `.planning/reviews/V1_22_EVIDENCE_INDEX.md` / `.planning/reviews/V1_23_EVIDENCE_INDEX.md` / `.planning/reviews/V1_6_EVIDENCE_INDEX.md` / `.planning/reviews/V1_5_EVIDENCE_INDEX.md` 继续只承担 archive / audit / handoff 身份；它们可以作为历史证据被引用，但不得回流为 current governance truth。
+- `.planning/MILESTONES.md`、`.planning/milestones/*.md`、`.planning/v1.12-MILESTONE-AUDIT.md`、`.planning/v1.13-MILESTONE-AUDIT.md`、`.planning/v1.14-MILESTONE-AUDIT.md`、`.planning/v1.15-MILESTONE-AUDIT.md`、`.planning/v1.16-MILESTONE-AUDIT.md`、`.planning/v1.17-MILESTONE-AUDIT.md`、`.planning/v1.18-MILESTONE-AUDIT.md`、`.planning/v1.19-MILESTONE-AUDIT.md`、`.planning/v1.20-MILESTONE-AUDIT.md`、`.planning/v1.21-MILESTONE-AUDIT.md`、`.planning/v1.22-MILESTONE-AUDIT.md`、`.planning/v1.23-MILESTONE-AUDIT.md`、`.planning/v1.24-MILESTONE-AUDIT.md`、`.planning/v1.6-MILESTONE-AUDIT.md` 与 `.planning/reviews/V1_12_EVIDENCE_INDEX.md` / `.planning/reviews/V1_13_EVIDENCE_INDEX.md` / `.planning/reviews/V1_14_EVIDENCE_INDEX.md` / `.planning/reviews/V1_15_EVIDENCE_INDEX.md` / `.planning/reviews/V1_16_EVIDENCE_INDEX.md` / `.planning/reviews/V1_17_EVIDENCE_INDEX.md` / `.planning/reviews/V1_18_EVIDENCE_INDEX.md` / `.planning/reviews/V1_19_EVIDENCE_INDEX.md` / `.planning/reviews/V1_20_EVIDENCE_INDEX.md` / `.planning/reviews/V1_21_EVIDENCE_INDEX.md` / `.planning/reviews/V1_22_EVIDENCE_INDEX.md` / `.planning/reviews/V1_23_EVIDENCE_INDEX.md` / `.planning/reviews/V1_24_EVIDENCE_INDEX.md` / `.planning/reviews/V1_6_EVIDENCE_INDEX.md` / `.planning/reviews/V1_5_EVIDENCE_INDEX.md` 继续只承担 archive / audit / handoff 身份；它们可以作为历史证据被引用，但不得回流为 current governance truth。
 - `docs/README.md` 只保留 public docs map 与 maintainer appendix 指针；archive-ready closeout pointer、current route 与 next GSD action 只允许留在 maintainer-facing governance truth 中。
 - `custom_components/lipro/control/runtime_access.py` 是 control/services 读取 runtime entry 枚举、device lookup 与 snapshot projection 的唯一正式 read-model home。
 - `custom_components/lipro/services/execution.py` 同时保持 `formal shared service execution facade` 身份；`schedule.py` 复用它的 shared executor，而不是维护第二条 auth/error 执行链。
@@ -45,7 +45,7 @@
 - `custom_components/lipro/control/runtime_access.py` 现在同时固定 typed diagnostics/system-health projection 与 entry-scoped runtime lookup；control consumers 不再混搭 coordinator internals / ad-hoc mapping reads。
 - `custom_components/lipro/control/service_router_support.py` 是 service callback 热路径里唯一正式 `(device, coordinator)` bridge；`custom_components/lipro/services/device_lookup.py` 只保留 service-facing `device_id` resolution，不再拥有 runtime truth。
 - `custom_components/lipro/runtime_infra.py` 继续是 device-registry listener 的 outward formal home；`custom_components/lipro/runtime_infra_device_registry.py` 只承接 listener / reload / pending-task mechanics 的 inward collaborator 身份；`custom_components/lipro/services/maintenance.py` 只保留消费 control 注入 runtime provider 的 `refresh_devices` thin adapter。
-- `custom_components/lipro/control/service_router.py` 继续是 public callback home；`custom_components/lipro/control/service_registry.py` 是唯一正式 service-registration owner，仓库中不再保留 `services/registrations.py` 这类 compat import/binding shell。
+- `custom_components/lipro/control/service_router.py` 继续是 public callback home；`custom_components/lipro/control/service_registry.py` 是唯一正式 service-registration owner，HA root adapter 只能经它与 `control/entry_root_wiring.py` 组装服务注册，不得直连 `services/registry.py`。
 
 ## Phase 48 Formal-Root Hotspot Decomposition Notes
 
@@ -285,7 +285,8 @@
 
 ## Phase 88 Governance Freeze Notes
 
+- `Phase 89` closeout 在不破坏 `Phase 88` freeze contract 的前提下继续前推 archived-only route truth；以下条目同时服务 `v1.23` historical freeze continuity 与 `v1.24` latest archived closeout sync。
 - `.planning/reviews/PROMOTED_PHASE_ASSETS.md` 是 `.planning/phases/**` 长期治理 / CI evidence 的唯一 allowlist；`Phase 85`~`87` closeout bundles 已由它正式接管，未被 allowlist 的执行痕迹不得反向升级为 authority。
-- `.planning/reviews/V1_23_TERMINAL_AUDIT.md` 继续只承担 historical audit artifact 身份；当前 archived-only route / default-next / closeout posture 由 planning docs、`.planning/v1.23-MILESTONE-AUDIT.md`、`.planning/reviews/V1_23_EVIDENCE_INDEX.md`、`VERIFICATION_MATRIX.md` 与 focused governance guards 共同冻结。
+- `.planning/reviews/V1_23_TERMINAL_AUDIT.md` 继续只承担 historical audit artifact 身份；当前 archived-only route / default-next / closeout posture 由 planning docs、`.planning/v1.24-MILESTONE-AUDIT.md`、`.planning/reviews/V1_24_EVIDENCE_INDEX.md`、`VERIFICATION_MATRIX.md` 与 focused governance guards 共同冻结。
 - `.planning/reviews/RESIDUAL_LEDGER.md` active residual families 为空、`.planning/reviews/KILL_LIST.md` 的 `Phase 85 Routed Delete Gates` 为空，都是显式 post-eradication truth；任何 future residual 或 delete campaign 都必须重新登记，不能借历史 prose 静默回流。
 - `docs/developer_architecture.md` 继续只是 current-topology guide；它可以记录 freshness / maintainability posture，但不得取代 live route truth home。

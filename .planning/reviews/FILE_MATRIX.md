@@ -308,7 +308,7 @@
 | `custom_components/lipro/system_health.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/update.py` | Domain | Phase 4 | 保留 | - |
 | `scripts/__init__.py` | Assurance | Phase 6 / 7 | 保留 | - |
-| `scripts/agent_worker.py` | Assurance | Phase 6 / 7 | 保留 | - |
+| `scripts/agent_worker.py` | Assurance | Phase 6 / 7 | 保留 | retired fail-fast migration stub only; delete gate: delete after maintained docs and automation no longer rely on the stub names as migration hints |
 | `scripts/check_architecture_policy.py` | Assurance | Phase 7.2 | 保留 | - |
 | `scripts/check_benchmark_baseline.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `scripts/check_file_matrix.py` | Assurance | Phase 6 / 7 / 60 | 保留 | thin governance checker root; sibling modules own inventory/classification/markdown/validation truth families |
@@ -325,7 +325,7 @@
 | `scripts/lib/__init__.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `scripts/lib/architecture_policy.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `scripts/lib/ast_guard_utils.py` | Assurance | Phase 6 / 7 | 保留 | - |
-| `scripts/orchestrator.py` | Assurance | Phase 6 / 7 | 保留 | - |
+| `scripts/orchestrator.py` | Assurance | Phase 6 / 7 | 保留 | retired fail-fast migration stub only; not the runtime orchestrator; delete gate: delete after maintained docs and automation no longer rely on the stub names as migration hints |
 | `scripts/refactor_tools.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `tests/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/benchmarks/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |

@@ -9,6 +9,8 @@ from .governance_current_truth import (
     CURRENT_ROUTE_MODE,
     HISTORICAL_ARCHIVE_TRANSITION_ROUTE_TRUTH,
     HISTORICAL_CLOSEOUT_ROUTE_TRUTH,
+    LATEST_ARCHIVED_MILESTONE,
+    LATEST_ARCHIVED_MILESTONE_NAME,
 )
 
 
@@ -51,6 +53,8 @@ def test_milestone_archive_snapshots_exist_and_are_referenced() -> None:
         _ROOT / ".planning" / "milestones" / "v1.22-REQUIREMENTS.md",
         _ROOT / ".planning" / "milestones" / "v1.23-ROADMAP.md",
         _ROOT / ".planning" / "milestones" / "v1.23-REQUIREMENTS.md",
+        _ROOT / ".planning" / "milestones" / "v1.24-ROADMAP.md",
+        _ROOT / ".planning" / "milestones" / "v1.24-REQUIREMENTS.md",
     )
 
     for path in archive_paths:
@@ -85,6 +89,8 @@ def test_milestone_archive_snapshots_exist_and_are_referenced() -> None:
         "v1.22-REQUIREMENTS.md",
         "v1.23-ROADMAP.md",
         "v1.23-REQUIREMENTS.md",
+        "v1.24-ROADMAP.md",
+        "v1.24-REQUIREMENTS.md",
     ):
         assert needle in roadmap_text
         assert needle in requirements_text or needle in project_text or needle in milestones_text
@@ -113,10 +119,8 @@ def test_machine_readable_roadmap_latest_archived_entry_comes_first() -> None:
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     archived_match = re.search(r"^-\s+✅\s+\*\*v(\d+(?:\.\d+)+)\s+([^*]+)\*\*", roadmap_text, re.MULTILINE)
     assert archived_match is not None
-    assert archived_match.group(1) == "1.23"
-    assert archived_match.group(2).strip() == (
-        "Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze"
-    )
+    assert archived_match.group(1) == LATEST_ARCHIVED_MILESTONE.removeprefix("v")
+    assert archived_match.group(2).strip() == LATEST_ARCHIVED_MILESTONE_NAME
 
 def test_machine_readable_milestones_latest_archived_baseline_comes_first() -> None:
     milestones_text = (_ROOT / ".planning" / "MILESTONES.md").read_text(encoding="utf-8")
@@ -127,10 +131,8 @@ def test_machine_readable_milestones_latest_archived_baseline_comes_first() -> N
         re.MULTILINE,
     )
     assert shipped_match is not None
-    assert shipped_match.group(1) == "v1.23"
-    assert shipped_match.group(2).strip() == (
-        "Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze"
-    )
+    assert shipped_match.group(1) == LATEST_ARCHIVED_MILESTONE
+    assert shipped_match.group(2).strip() == LATEST_ARCHIVED_MILESTONE_NAME
 
 def test_historical_route_truth_is_demoted_to_archive_context() -> None:
     milestones_text = (_ROOT / ".planning" / "MILESTONES.md").read_text(

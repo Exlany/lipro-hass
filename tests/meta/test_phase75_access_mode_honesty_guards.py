@@ -36,7 +36,7 @@ def test_private_access_metadata_avoids_public_interactive_routes() -> None:
     assert "Discussions" not in urls
     assert "Issues" not in urls
     assert manifest["documentation"].endswith("/docs/README.md")
-    assert manifest["issue_tracker"].endswith("/docs/README.md")
+    assert manifest["issue_tracker"].endswith("/SUPPORT.md")
 
     for url in (*urls.values(), manifest["issue_tracker"]):
         assert "/discussions" not in url

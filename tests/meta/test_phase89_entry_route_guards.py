@@ -15,6 +15,9 @@ _README_ZH = _ROOT / "README_zh.md"
 _DOCS = _ROOT / "docs" / "README.md"
 _MANIFEST = _ROOT / "custom_components" / "lipro" / "manifest.json"
 _REGISTRY = _ROOT / ".planning" / "baseline" / "GOVERNANCE_REGISTRY.json"
+_FILE_MATRIX = _ROOT / ".planning" / "reviews" / "FILE_MATRIX.md"
+_RESIDUAL_LEDGER = _ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md"
+_KILL_LIST = _ROOT / ".planning" / "reviews" / "KILL_LIST.md"
 _BUG = _ROOT / ".github" / "ISSUE_TEMPLATE" / "bug.yml"
 _FEATURE = _ROOT / ".github" / "ISSUE_TEMPLATE" / "feature_request.yml"
 
@@ -61,3 +64,17 @@ def test_phase89_manifest_and_registry_route_bug_support_honestly() -> None:
     assert 'docs/TROUBLESHOOTING.md' in bug_text
     assert 'SUPPORT.md' in bug_text
     assert 'SUPPORT.md' in feature_text
+
+
+def test_phase89_retired_stub_governance_keeps_delete_gate_explicit() -> None:
+    registry = json.loads(_REGISTRY.read_text(encoding="utf-8"))
+    file_matrix_text = _FILE_MATRIX.read_text(encoding="utf-8")
+    residual_text = _RESIDUAL_LEDGER.read_text(encoding="utf-8")
+    kill_list_text = _KILL_LIST.read_text(encoding="utf-8")
+    delete_gate = registry["tooling"]["compatibility_stub_delete_gate"]
+
+    assert registry["tooling"]["compatibility_stub_role"] == "retired fail-fast migration hint only"
+    assert delete_gate in kill_list_text
+    assert "retired fail-fast migration stub only" in file_matrix_text
+    assert "not the runtime orchestrator" in file_matrix_text
+    assert "migration hint" in residual_text

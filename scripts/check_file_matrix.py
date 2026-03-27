@@ -3,25 +3,51 @@
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
 import sys
+from typing import TYPE_CHECKING
 
-if __package__ in {None, ""}:
-    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from scripts.check_file_matrix_inventory import iter_python_files, repo_root
-from scripts.check_file_matrix_markdown import (
-    extract_reported_total,
-    generate_file_matrix_markdown,
-    parse_file_matrix_paths,
-)
-from scripts.check_file_matrix_registry import FileGovernanceRow, classify_path
-from scripts.check_file_matrix_validation import (
-    FILE_MATRIX_PATH,
-    VERIFICATION_MATRIX_PATH,
-    run_checks,
-    validate_verification_matrix_paths,
-)
+if TYPE_CHECKING:
+    from scripts.check_file_matrix_inventory import iter_python_files, repo_root
+    from scripts.check_file_matrix_markdown import (
+        extract_reported_total,
+        generate_file_matrix_markdown,
+        parse_file_matrix_paths,
+    )
+    from scripts.check_file_matrix_registry import FileGovernanceRow, classify_path
+    from scripts.check_file_matrix_validation import (
+        FILE_MATRIX_PATH,
+        VERIFICATION_MATRIX_PATH,
+        run_checks,
+        validate_verification_matrix_paths,
+    )
+elif __package__ in {None, ""}:
+    from check_file_matrix_inventory import iter_python_files, repo_root
+    from check_file_matrix_markdown import (
+        extract_reported_total,
+        generate_file_matrix_markdown,
+        parse_file_matrix_paths,
+    )
+    from check_file_matrix_registry import FileGovernanceRow, classify_path
+    from check_file_matrix_validation import (
+        FILE_MATRIX_PATH,
+        VERIFICATION_MATRIX_PATH,
+        run_checks,
+        validate_verification_matrix_paths,
+    )
+else:
+    from scripts.check_file_matrix_inventory import iter_python_files, repo_root
+    from scripts.check_file_matrix_markdown import (
+        extract_reported_total,
+        generate_file_matrix_markdown,
+        parse_file_matrix_paths,
+    )
+    from scripts.check_file_matrix_registry import FileGovernanceRow, classify_path
+    from scripts.check_file_matrix_validation import (
+        FILE_MATRIX_PATH,
+        VERIFICATION_MATRIX_PATH,
+        run_checks,
+        validate_verification_matrix_paths,
+    )
 
 __all__ = [
     "FILE_MATRIX_PATH",

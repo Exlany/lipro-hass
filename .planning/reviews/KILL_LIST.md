@@ -258,7 +258,7 @@ _None currently registered._
 ## Phase 47 Status Update
 
 - 本 phase **无新增 active kill target**；docs index formalization、signature-regex tighten 与 verification-matrix drift guard 都属于 current-truth hardening，不是新的 delete campaign。
-- `scripts/agent_worker.py` 与 `scripts/orchestrator.py` 暂仍保留，因为需要为潜在历史自动化提供显式失败与迁移指引；它们不是 active tooling，也不得继续被当作成功路径。
+- `scripts/agent_worker.py` 与 `scripts/orchestrator.py` 暂仍保留，因为维护中的文档 / 自动化仍需要这些名称提供显式失败与迁移指引；delete after maintained docs and automation no longer rely on the stub names as migration hints。它们不是 active tooling，也不得继续被当作成功路径。
 
 ## Phase 52 Status Update
 

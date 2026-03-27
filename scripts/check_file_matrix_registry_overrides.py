@@ -2,7 +2,15 @@
 
 from __future__ import annotations
 
-from scripts.check_file_matrix_registry_shared import OverrideTruthFamily
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from scripts.check_file_matrix_registry_shared import OverrideTruthFamily
+elif __package__ in {None, ""}:
+    from check_file_matrix_registry_shared import OverrideTruthFamily
+else:
+    from scripts.check_file_matrix_registry_shared import OverrideTruthFamily
+
 
 BASE_OVERRIDE_TRUTH_FAMILIES = (
     OverrideTruthFamily(area="Protocol", owner_phase="Phase 14", fate="保留", rows=(

@@ -4,13 +4,18 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 import re
+from typing import TYPE_CHECKING
 
-from scripts.check_file_matrix_registry import classify_path
+if TYPE_CHECKING:
+    from scripts.check_file_matrix_registry import classify_path
+elif __package__ in {None, ""}:
+    from check_file_matrix_registry import classify_path
+else:
+    from scripts.check_file_matrix_registry import classify_path
 
 FILE_MATRIX_HEADER_PATTERN = re.compile(r"\*\*Python files total:\*\*\s+(\d+)")
 
 FILE_MATRIX_ROW_PATTERN = re.compile(r"^\| `([^`]+\.py)` \|", re.MULTILINE)
-
 
 
 def generate_file_matrix_markdown(files: Iterable[str]) -> str:
@@ -35,11 +40,9 @@ def generate_file_matrix_markdown(files: Iterable[str]) -> str:
     return "\n".join(lines) + "\n"
 
 
-
 def parse_file_matrix_paths(text: str) -> list[str]:
     """Extract Python file paths from the file-matrix markdown table."""
     return FILE_MATRIX_ROW_PATTERN.findall(text)
-
 
 
 def extract_reported_total(text: str) -> int:

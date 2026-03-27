@@ -2,17 +2,44 @@
 
 from __future__ import annotations
 
-from scripts.check_file_matrix_registry_classifiers import (
-    classify_component_path,
-    classify_script_path,
-    classify_test_path,
-)
-from scripts.check_file_matrix_registry_overrides import OVERRIDE_TRUTH_FAMILIES
-from scripts.check_file_matrix_registry_shared import (
-    FileGovernanceRow,
-    OverrideTruthFamily,
-    row_for_path,
-)
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from scripts.check_file_matrix_registry_classifiers import (
+        classify_component_path,
+        classify_script_path,
+        classify_test_path,
+    )
+    from scripts.check_file_matrix_registry_overrides import OVERRIDE_TRUTH_FAMILIES
+    from scripts.check_file_matrix_registry_shared import (
+        FileGovernanceRow,
+        OverrideTruthFamily,
+        row_for_path,
+    )
+elif __package__ in {None, ""}:
+    from check_file_matrix_registry_classifiers import (
+        classify_component_path,
+        classify_script_path,
+        classify_test_path,
+    )
+    from check_file_matrix_registry_overrides import OVERRIDE_TRUTH_FAMILIES
+    from check_file_matrix_registry_shared import (
+        FileGovernanceRow,
+        OverrideTruthFamily,
+        row_for_path,
+    )
+else:
+    from scripts.check_file_matrix_registry_classifiers import (
+        classify_component_path,
+        classify_script_path,
+        classify_test_path,
+    )
+    from scripts.check_file_matrix_registry_overrides import OVERRIDE_TRUTH_FAMILIES
+    from scripts.check_file_matrix_registry_shared import (
+        FileGovernanceRow,
+        OverrideTruthFamily,
+        row_for_path,
+    )
 
 
 def _family_key(family: OverrideTruthFamily) -> str:

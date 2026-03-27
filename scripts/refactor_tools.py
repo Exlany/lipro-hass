@@ -6,11 +6,14 @@ import argparse
 from dataclasses import dataclass
 from pathlib import Path
 import sys
+from typing import TYPE_CHECKING
 
-if __package__ in {None, ""}:
-    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-
-from scripts.coverage_diff import load_percent
+if TYPE_CHECKING:
+    from scripts.coverage_diff import load_percent
+elif __package__ in {None, ""}:
+    from coverage_diff import load_percent
+else:
+    from scripts.coverage_diff import load_percent
 
 
 @dataclass(slots=True)
