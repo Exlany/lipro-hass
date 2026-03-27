@@ -3,6 +3,15 @@
 Thank you for your interest in contributing to the Lipro Smart Home integration!
 感谢您有兴趣为 Lipro 智能家居集成做出贡献！
 
+## First Hop / 首先看这里
+
+- Start with `docs/README.md` for the canonical docs map, bilingual boundary, and contributor routing.
+- Before changing protocol / runtime / control / external-boundary / governance surfaces, read `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md`.
+- For public troubleshooting use `docs/TROUBLESHOOTING.md` → `SUPPORT.md`; for private disclosure use `SECURITY.md`; for maintainer-only release/custody work use `docs/MAINTAINER_RELEASE_RUNBOOK.md`.
+- 先看 `docs/README.md`，获取 canonical docs map、双语边界与贡献入口矩阵。
+- 若要修改 protocol / runtime / control / external-boundary / governance，请先阅读 `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md`。
+- 公开排障请走 `docs/TROUBLESHOOTING.md` → `SUPPORT.md`，私密披露请走 `SECURITY.md`，维护者专用发版 / custody 事项请看 `docs/MAINTAINER_RELEASE_RUNBOOK.md`。
+
 ## Development Setup / 开发环境设置
 
 ### Prerequisites / 前置条件
@@ -77,6 +86,7 @@ Retired compatibility stubs such as `scripts/agent_worker.py` and `scripts/orche
 
 - Public overview and first hop: `README.md`, `README_zh.md` → `docs/README.md`
 - Contributor workflow and PR contract: `CONTRIBUTING.md` → `.github/pull_request_template.md`
+- Architecture change boundaries and evidence map: `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md`
 - Troubleshooting and routing: `docs/TROUBLESHOOTING.md` → `SUPPORT.md`
 - Private vulnerability disclosure: `SECURITY.md`
 
@@ -92,6 +102,7 @@ Current access-mode note: this repository is private-access. Treat the docs file
 
 - `README.md` 与 `README_zh.md` 必须保持镜像的 public entry navigation / release-install contract。
 - `CONTRIBUTING.md`、`SUPPORT.md` 与 `SECURITY.md` 必须保持等价的 contributor/support/security guidance，即使具体实现为单文件双语结构。
+- `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md` 必须保持 contributor-facing 语义，不得泄露 active-route / archived-pointer / GSD internal workflow。
 - `docs/MAINTAINER_RELEASE_RUNBOOK.md` 与 `.planning/*` 可保持 maintainer-only；公开入口可按需显式链接过去，但不得取代 public first hop。
 
 - If you touch `README.md` / `README_zh.md` / `CONTRIBUTING.md` / `SUPPORT.md` / `SECURITY.md` / `.github/*` / release workflow, update `docs/README.md`, `docs/TROUBLESHOOTING.md`, `docs/MAINTAINER_RELEASE_RUNBOOK.md`, and `.planning/baseline/GOVERNANCE_REGISTRY.json` together, and do not leave silent defer behind.

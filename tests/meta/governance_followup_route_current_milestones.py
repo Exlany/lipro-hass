@@ -247,7 +247,7 @@ def test_current_v1_22_project_state_and_latest_archive_pointers_align() -> None
         "## Archived Milestone (v1.17)",
         "## Archived Milestone (v1.16)",
         "## Archived Milestone (v1.15)",
-        "**Current status:** `planning-ready (2026-03-27)`",
+        "**Current status:** `Phase 81 complete (2026-03-27)`",
     )
     _assert_contains_all(
         _ROADMAP_TEXT,
@@ -259,16 +259,16 @@ def test_current_v1_22_project_state_and_latest_archive_pointers_align() -> None
     _assert_contains_all(
         _REQUIREMENTS_TEXT,
         "- [ ] **GOV-60**",
-        "- [ ] **OSS-10**",
-        "- [ ] **DOC-08**",
+        "- [x] **OSS-10**",
+        "- [x] **DOC-08**",
         "- [ ] **ARC-21**",
         "- [ ] **GOV-61**",
         "- [ ] **OSS-11**",
         "- [ ] **TST-26**",
         "- [ ] **QLT-34**",
         "| GOV-60 | Phase 82 | Planned |",
-        "| OSS-10 | Phase 81 | Planned |",
-        "| DOC-08 | Phase 81 | Planned |",
+        "| OSS-10 | Phase 81 | Completed |",
+        "| DOC-08 | Phase 81 | Completed |",
         "| ARC-21 | Phase 82 | Planned |",
         "| GOV-61 | Phase 83 | Planned |",
         "| OSS-11 | Phase 83 | Planned |",
@@ -276,8 +276,8 @@ def test_current_v1_22_project_state_and_latest_archive_pointers_align() -> None
         "| QLT-34 | Phase 84 | Planned |",
         "- v1.22 requirements: 8 total",
         "- Current mapped: 8",
-        "- Current complete: 0",
-        "- Current pending: 8",
+        "- Current complete: 2",
+        "- Current pending: 6",
         "## Latest Archived Milestone (v1.21)",
         "## Previous Archived Milestone (v1.20)",
         "## Traceability for archived v1.16 route",
@@ -292,4 +292,4 @@ def test_current_v1_22_project_state_and_latest_archive_pointers_align() -> None
         LATEST_ARCHIVED_AUDIT_PATH,
         LATEST_ARCHIVED_EVIDENCE_PATH,
     )
-    assert CURRENT_MILESTONE_STATUS == "planning-ready (2026-03-27)"
+    assert CURRENT_MILESTONE_STATUS == "Phase 81 complete (2026-03-27)"

@@ -81,29 +81,30 @@ def test_gsd_fast_path_matches_current_active_route_story() -> None:
     phase_81_summary_count = phase_81['summary_count']
     assert isinstance(phase_81_plan_count, int)
     assert isinstance(phase_81_summary_count, int)
-    assert _as_str(phase_81['status']) == 'not_started'
-    assert phase_81_plan_count == 0
-    assert phase_81_summary_count == 0
+    assert _as_str(phase_81['status']) == 'complete'
+    assert phase_81_plan_count == 3
+    assert phase_81_summary_count == 4
     next_phase = _as_mapping(progress['next_phase'])
-    assert _as_str(next_phase['number']) == '81'
+    assert _as_str(next_phase['number']) == '82'
 
     state = _run_gsd_tools('state', 'json')
     assert _as_str(state['milestone']) == CURRENT_MILESTONE
     assert _as_str(state['status']) == 'active'
     assert _as_mapping(state['progress']) == {
         'total_phases': '4',
-        'completed_phases': '0',
+        'completed_phases': '1',
         'total_plans': '12',
-        'completed_plans': '0',
+        'completed_plans': '3',
     }
     assert progress['phase_count'] == len(phases)
-    assert progress['completed_count'] == 0
+    assert progress['completed_count'] == 1
     assert progress['current_phase'] is None
 
     phase_index = _run_gsd_tools('phase-plan-index', '81')
     assert _as_str(phase_index['phase']) == '81'
-    assert _as_str(phase_index['error']) == 'Phase not found'
-    assert phase_index['plans'] == []
+    plans = _as_mapping_list(phase_index['plans'])
+    assert [ _as_str(plan['id']) for plan in plans ] == ['81-01', '81-02', '81-03']
+    assert all(_as_bool(plan['has_summary']) for plan in plans)
     assert phase_index['incomplete'] == []
     assert _as_bool(phase_index['has_checkpoints']) is False
 

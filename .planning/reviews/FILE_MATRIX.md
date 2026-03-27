@@ -600,8 +600,8 @@
 | `tests/meta/test_governance_promoted_phase_assets.py` | Assurance | Phase 49 | 保留 | promoted-asset topic suite |
 | `tests/meta/test_governance_release_continuity.py` | Assurance | Phase 79 | 保留 | release continuity/custody topic suite home |
 | `tests/meta/test_governance_release_contract.py` | Assurance | Phase 33 / 77 / 79 | 保留 | release/governance workflow anchor suite |
-| `tests/meta/test_governance_release_docs.py` | Assurance | Phase 79 | 保留 | release/docs topic suite home |
-| `tests/meta/test_governance_route_handoff_smoke.py` | Assurance | Phase 79 | 保留 | route-handoff gsd fast-path smoke guard home |
+| `tests/meta/test_governance_release_docs.py` | Assurance | Phase 79 / 81 | 保留 | release/docs topic suite home + contributor-route docs guard |
+| `tests/meta/test_governance_route_handoff_smoke.py` | Assurance | Phase 79 / 81 | 保留 | route-handoff gsd fast-path smoke guard home + phase-81 completion truth |
 | `tests/meta/test_install_sh_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_modularization_surfaces.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase31_runtime_budget_guards.py` | Assurance | Phase 6 | 保留 | - |

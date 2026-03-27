@@ -310,6 +310,13 @@ phases:
   - 80-SUMMARY.md
   - 80-VERIFICATION.md
   - 80-VALIDATION.md
+  81-contributor-onramp-route-convergence-and-public-entry-contract:
+  - 81-01-SUMMARY.md
+  - 81-02-SUMMARY.md
+  - 81-03-SUMMARY.md
+  - 81-SUMMARY.md
+  - 81-VERIFICATION.md
+  - 81-VALIDATION.md
 ---
 
 # Promoted Phase Assets

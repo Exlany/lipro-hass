@@ -14,6 +14,17 @@ Home Assistant 集成，用于控制 Lipro 智能家居设备。
 
 访问模式说明：当前仓库仍是 private-access。下文提到的 HACS / GitHub Releases / GitHub Issues / GitHub Discussions / GitHub Security Advisory 路径，只有在你已经具备仓库访问权限，或未来存在保持同一契约的 public mirror 时才成立。
 
+## 从这里开始
+
+| 角色 | 首先查看 | 用途 |
+| --- | --- | --- |
+| 用户 / 评估者 | `docs/README.md` | canonical docs map、双语边界，以及安装 / 排障 / 支持入口总览 |
+| 贡献者 | `CONTRIBUTING.md` | 开发环境、CI 契约、PR 约定与贡献流程 |
+| 架构改动贡献者 | `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md` | 允许改动的家族边界、禁止越界项、证据回写位置与定向验证建议 |
+| 支持 / 缺陷反馈者 | `docs/TROUBLESHOOTING.md` → `SUPPORT.md` | diagnostics-first 排障与公开分流 |
+| 安全报告者 | `SECURITY.md` | 私密披露路径与安全支持契约 |
+| 维护者 | `docs/MAINTAINER_RELEASE_RUNBOOK.md` | 仅维护者使用的发版 / rehearsal / custody 附录，不属于 public first hop |
+
 ## 功能特性
 
 - 🔌 支持多种 Lipro 设备类型
@@ -379,6 +390,7 @@ data:
 
 - 先看 `docs/README.md`，获取 canonical docs map 与双语边界
 - 再看 `CONTRIBUTING.md`，获取环境搭建、定向测试、CI 命令组与 PR 约定
+- 如要修改 protocol / runtime / control / external-boundary / governance，请先读 `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md`
 - 公开排障 / 分流请走 `docs/TROUBLESHOOTING.md` → `SUPPORT.md`；私密披露请走 `SECURITY.md`
 - `docs/MAINTAINER_RELEASE_RUNBOOK.md` 仅供维护者处理发版 / rehearsal / custody 工作
 
@@ -396,6 +408,7 @@ data:
 - `docs/TROUBLESHOOTING.md` - 规范排障、诊断与安全分享入口
 - `SUPPORT.md` - 支持路由、分流预期与提问方式
 - `SECURITY.md` - 私密漏洞披露策略
+- `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md` - 面向贡献者的变更边界、证据落点与定向验证地图
 - `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` / `docs/developer_architecture.md` - 权威架构基线与当前代码布局
 - `docs/adr/README.md` - 长期架构决策与取舍记录
 - `docs/MAINTAINER_RELEASE_RUNBOOK.md` - 维护者专用的发版 / rehearsal / custody 附录

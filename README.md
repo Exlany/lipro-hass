@@ -14,6 +14,17 @@ Docs fast path: start with `docs/README.md`, then follow the canonical docs-firs
 
 Access-mode note: this repository is currently private-access. The HACS / GitHub Releases / GitHub Issues / GitHub Discussions / GitHub Security Advisory routes mentioned below only apply when you already have repository access or when a future public mirror preserves the same contract.
 
+## Start Here
+
+| Role | Start here | Why |
+| --- | --- | --- |
+| User / evaluator | `docs/README.md` | Canonical docs map, bilingual boundary, and the shortest route to install / troubleshooting / support surfaces |
+| Contributor | `CONTRIBUTING.md` | Development setup, CI contract, PR expectations, and contributor workflow |
+| Architecture contributor | `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md` | Allowed change families, do-not-cross boundaries, evidence destinations, and focused validation guidance |
+| Support / bug reporter | `docs/TROUBLESHOOTING.md` → `SUPPORT.md` | Diagnostics-first troubleshooting and public routing |
+| Security reporter | `SECURITY.md` | Private disclosure route and security support contract |
+| Maintainer | `docs/MAINTAINER_RELEASE_RUNBOOK.md` | Maintainer-only release / rehearsal / custody appendix; not part of the public first hop |
+
 ## Features
 
 - 🔌 Support for multiple Lipro device types
@@ -378,6 +389,7 @@ This integration is implemented by reverse engineering the Lipro cloud API and i
 
 - Start with `docs/README.md` for the canonical docs map and bilingual boundary
 - Use `CONTRIBUTING.md` for setup, targeted tests, CI command groups, and PR expectations
+- Read `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md` before changing protocol / runtime / control / external-boundary / governance surfaces
 - Use `docs/TROUBLESHOOTING.md` → `SUPPORT.md` for public troubleshooting / routing, and `SECURITY.md` for private disclosure
 - Use `docs/MAINTAINER_RELEASE_RUNBOOK.md` only for maintainer-only release / rehearsal / custody work
 
@@ -395,6 +407,7 @@ This integration is implemented by reverse engineering the Lipro cloud API and i
 - `docs/TROUBLESHOOTING.md` - troubleshooting, diagnostics, and safe-sharing path
 - `SUPPORT.md` - support routing, triage expectations, and question handling
 - `SECURITY.md` - private vulnerability disclosure policy
+- `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md` - contributor-facing change boundaries, evidence destinations, and focused validation map
 - `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` / `docs/developer_architecture.md` - authority baseline and current package layout
 - `docs/adr/README.md` - long-lived architecture decisions and trade-offs
 - `docs/MAINTAINER_RELEASE_RUNBOOK.md` - maintainer-only release / rehearsal / custody appendix

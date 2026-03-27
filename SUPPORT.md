@@ -6,10 +6,11 @@
 | --- | --- | --- |
 | Repository / documentation map | `docs/README.md` | First hop for docs index, contributor routing, and bilingual boundary |
 | Usage help / expected behavior | `docs/TROUBLESHOOTING.md`, then `SUPPORT.md` | Start here for setup questions and “is this expected?” checks; GitHub Discussions only apply when your current access mode exposes them or a future public mirror preserves the same route |
+| Architecture or boundary change | `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md`, then `CONTRIBUTING.md` | Use this path when you need to know where protocol / runtime / control / external-boundary / governance changes belong and which evidence must be updated |
 | Confirmed bug / regression | `docs/TROUBLESHOOTING.md`, then the bug template | Include diagnostics first; GitHub issue forms are access-mode dependent rather than the universal default for this private-access repo |
 | Security-sensitive report | `SECURITY.md` | Use private disclosure; the GitHub security UI is also access-mode-aware rather than a guaranteed public route |
 
-Current access-mode truth: this repository is private-access. If you only need user / contributor routing, stop at the docs files above: `docs/README.md` is the docs map, `docs/TROUBLESHOOTING.md` handles troubleshooting, and `SECURITY.md` handles private disclosure. GitHub-hosted Issues / Discussions / Security UI only apply when your current access mode exposes them or when a future public mirror preserves the same contract. `docs/MAINTAINER_RELEASE_RUNBOOK.md` stays maintainer-only for release / packaging / custody work.
+Current access-mode truth: this repository is private-access. If you only need user / contributor routing, stop at the docs files above: `docs/README.md` is the docs map, `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md` explains change boundaries, `docs/TROUBLESHOOTING.md` handles troubleshooting, and `SECURITY.md` handles private disclosure. GitHub-hosted Issues / Discussions / Security UI only apply when your current access mode exposes them or when a future public mirror preserves the same contract. `docs/MAINTAINER_RELEASE_RUNBOOK.md` stays maintainer-only for release / packaging / custody work.
 
 ## Version & Validation Truth
 

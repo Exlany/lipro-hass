@@ -22,6 +22,9 @@ Supported shell/manual installs should start from verified GitHub Release assets
 默认支持的 shell / 手动安装路径应从经过校验的 GitHub Release 资产（`install.sh` + release zip + `SHA256SUMS`）开始；`ARCHIVE_TAG=main`、branch fallback 与 mirror 安装仅属于尽力而为的预览路径。若安装脚本以 remote 模式运行且未显式指定 archive/tag，则默认解析最新 tagged release（`latest`）；但这种便利性不会削弱经过校验的稳定安装契约。
 
 Access-mode note: this repository is currently private-access. The GitHub security policy page and private advisory UI below therefore only work when your current access mode exposes them or when a future public mirror preserves the same security contract.
+
+If you are planning a non-security code change, start with `docs/README.md` and `CONTRIBUTING.md`; when the change touches protocol / runtime / control / external-boundary / governance boundaries, read `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md` before editing code or docs.
+若你准备的是非安全类代码改动，请先阅读 `docs/README.md` 与 `CONTRIBUTING.md`；若改动涉及 protocol / runtime / control / external-boundary / governance 边界，请在修改代码或文档前先阅读 `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md`。
 访问模式说明：当前仓库仍是 private-access。下文的 GitHub security policy 页面与私密 advisory UI 因此只有在你当前访问模式可见，或未来 public mirror 保持同一安全契约时才成立。
 
 Current release trust evidence includes published `SHA256SUMS`, `SBOM`, GitHub artifact `attestation` / `provenance`, keyless `cosign` signature bundles, the tagged runtime `pip-audit` gate, and a fail-closed tagged `CodeQL` gate. Artifact attestation / provenance is still release-identity evidence; `cosign` bundles are the artifact-signing layer.
@@ -36,7 +39,8 @@ For private repositories or forks, CI skips HACS validation because HACS only su
 This repository currently follows a single-maintainer security review model; acknowledgement and remediation timing are therefore best effort. No documented delegate or backup maintainer exists today in `.github/CODEOWNERS`.
 本仓库当前采用单维护者安全审查模式，因此确认与修复节奏均为 best effort；`.github/CODEOWNERS` 中当前没有已文档化的 delegate 或备用维护者。
 
-If your report is not security-sensitive, use `docs/TROUBLESHOOTING.md` and `SUPPORT.md` instead of the private disclosure path.
+If your report is not security-sensitive, use `docs/TROUBLESHOOTING.md` and `SUPPORT.md` instead of the private disclosure path. For contributor routing and boundary-aware code changes, use `docs/README.md`, `CONTRIBUTING.md`, and `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md`.
+若问题并非安全敏感，请优先使用 `docs/TROUBLESHOOTING.md` 与 `SUPPORT.md`，不要占用私密披露通道。若你需要贡献路由或边界感知的代码改动说明，请结合 `docs/README.md`、`CONTRIBUTING.md` 与 `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md`。
 若问题并非安全敏感，请优先使用 `docs/TROUBLESHOOTING.md` 与 `SUPPORT.md`，不要占用私密披露通道。
 
 The disclosure fast path ends above. The continuity section below is a maintainer appendix for custody / delegate / freeze truth; the public documentation index lives in `docs/README.md`.

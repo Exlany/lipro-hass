@@ -29,6 +29,7 @@ from .conftest import (
 
 _CODEQL_WORKFLOW = _ROOT / ".github" / "workflows" / "codeql.yml"
 _GOVERNANCE_REGISTRY = _ROOT / ".planning" / "baseline" / "GOVERNANCE_REGISTRY.json"
+_CONTRIBUTOR_CHANGE_MAP = _ROOT / "docs" / "CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md"
 
 def test_contributor_contract_matches_ci_language() -> None:
     contributing_bullets = _extract_labeled_bullets(
@@ -123,10 +124,39 @@ def test_readme_exposes_community_and_governance_entrypoints() -> None:
             "SECURITY.md",
             "CODE_OF_CONDUCT.md",
             "docs/README.md",
+            "docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md",
             "custom_components/lipro/quality_scale.yaml",
             ".devcontainer.json",
         ):
             assert asset in readme_text
+
+def test_contributor_architecture_change_map_is_linked_and_scope_honest() -> None:
+    assert _CONTRIBUTOR_CHANGE_MAP.exists()
+    change_map_text = _CONTRIBUTOR_CHANGE_MAP.read_text(encoding="utf-8")
+
+    for path in (_README, _README_ZH, _DOCS_README, _CONTRIBUTING):
+        assert "docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md" in path.read_text(encoding="utf-8")
+
+    for token in (
+        "Protocol",
+        "Runtime",
+        "Control",
+        "External-boundary",
+        "Governance / docs",
+        "docs/NORTH_STAR_TARGET_ARCHITECTURE.md",
+        "docs/developer_architecture.md",
+        ".planning/baseline/PUBLIC_SURFACES.md",
+        ".planning/baseline/VERIFICATION_MATRIX.md",
+        ".planning/reviews/FILE_MATRIX.md",
+        ".planning/reviews/PROMOTED_PHASE_ASSETS.md",
+    ):
+        assert token in change_map_text
+
+    lowered = change_map_text.lower()
+    assert "$gsd-" not in change_map_text
+    assert "phase 81" not in lowered
+    assert "latest archived baseline" not in lowered
+
 
 def test_change_type_validation_guidance_is_consistent() -> None:
     contributing_text = _CONTRIBUTING.read_text(encoding="utf-8")

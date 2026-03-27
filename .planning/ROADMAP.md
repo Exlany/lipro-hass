@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🚧 **v1.22 Maintainer Entry Contracts, Release Operations Closure & Contributor Routing** - opened on 2026-03-27 from `v1.21` archived baseline; current phase = `81`; status: `planning-ready (2026-03-27)`; next step: `$gsd-discuss-phase 81`
+- 🚧 **v1.22 Maintainer Entry Contracts, Release Operations Closure & Contributor Routing** - opened on 2026-03-27 from `v1.21` archived baseline; current phase = `81`; status: `planning-ready (2026-03-27)`; next step: `$gsd-discuss-phase 82`
 - ✅ **v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation** - `Phase 76 -> 80` archived on 2026-03-26; milestone audit: `.planning/v1.21-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_21_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.21-ROADMAP.md` / `.planning/milestones/v1.21-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.21`
 - 🗂 **Historical archive snapshots** - `.planning/milestones/{v1.1-ROADMAP.md,v1.1-REQUIREMENTS.md,v1.2-ROADMAP.md,v1.2-REQUIREMENTS.md,v1.4-ROADMAP.md,v1.4-REQUIREMENTS.md,v1.5-ROADMAP.md,v1.5-REQUIREMENTS.md,v1.6-ROADMAP.md,v1.6-REQUIREMENTS.md,v1.12-ROADMAP.md,v1.12-REQUIREMENTS.md,v1.13-ROADMAP.md,v1.13-REQUIREMENTS.md,v1.14-ROADMAP.md,v1.14-REQUIREMENTS.md,v1.15-ROADMAP.md,v1.15-REQUIREMENTS.md,v1.16-ROADMAP.md,v1.16-REQUIREMENTS.md,v1.17-ROADMAP.md,v1.17-REQUIREMENTS.md}` 继续保留为 continuity / archive reference。
 
@@ -13,10 +13,10 @@ contract_name: governance-route
 active_milestone:
   version: v1.22
   name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
-  status: planning-ready (2026-03-27)
+  status: Phase 81 complete (2026-03-27)
   phase: "81"
   phase_title: Contributor onramp route convergence and public entry contract
-  route_mode: Phase 81 planning-ready
+  route_mode: Phase 81 complete
 latest_archived:
   version: v1.21
   name: Governance Bootstrap Truth Hardening & Planning Route Automation
@@ -32,8 +32,8 @@ previous_archived:
   name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
   evidence_path: .planning/reviews/V1_20_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.22 active route / Phase 81 planning-ready / latest archived baseline = v1.21
-  default_next_command: $gsd-discuss-phase 81
+  current_route: v1.22 active route / Phase 81 complete / latest archived baseline = v1.21
+  default_next_command: $gsd-discuss-phase 82
   latest_archived_evidence_pointer: .planning/reviews/V1_21_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -41,10 +41,10 @@ bootstrap:
 ## v1.22: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
 
 **Milestone Goal:** 把 `v1.21` 已归档冻结的治理/证据链外化为 contributor / maintainer / release 一体化协作契约，统一入口叙事、发布证据链、intake 模板与 ownership / triage 路由。
-**Milestone status:** `planning-ready (2026-03-27)`
+**Milestone status:** `Phase 81 complete (2026-03-27)`
 **Starting baseline:** `.planning/v1.21-MILESTONE-AUDIT.md`, `.planning/reviews/V1_21_EVIDENCE_INDEX.md`, `.planning/milestones/v1.21-ROADMAP.md`, `.planning/milestones/v1.21-REQUIREMENTS.md`
 **Requirements basket:** `GOV-60`, `OSS-10`, `DOC-08`, `ARC-21`, `GOV-61`, `OSS-11`, `TST-26`, `QLT-34`
-**Default next command:** `$gsd-discuss-phase 81`
+**Default next command:** `$gsd-discuss-phase 82`
 
 ### Phase 81: Contributor onramp route convergence and public entry contract
 
@@ -55,13 +55,15 @@ bootstrap:
   1. `README.md`、`README_zh.md`、`docs/README.md`、`CONTRIBUTING.md`、`SUPPORT.md` 与 `SECURITY.md` 对外讲同一条 first-hop story。
   2. contributor-facing 架构变更地图清楚声明 protocol / runtime / control / external-boundary / governance 的 allowed change story 与 evidence destinations。
   3. public docs 保持隐藏 internal bootstrap folklore，但 contributor / maintainer route 不再散落、重复或互相矛盾。
-**Status**: Planned
-**Plans**: 3 total / 0 completed / 3 pending
+**Status**: Complete (2026-03-27)
+**Plans**: 3 total / 3 completed / 0 pending
 
 Plans:
-- [ ] 81-01: converge README, README_zh, docs index, CONTRIBUTING, SUPPORT, and SECURITY into one contributor / maintainer first-hop
-- [ ] 81-02: publish a contributor-facing architecture change map and evidence destinations for protocol / runtime / control / external-boundary work
-- [ ] 81-03: freeze public-entry and contributor-route truth in planning docs and focused guards
+- [x] 81-01: converge README, README_zh, docs index, CONTRIBUTING, SUPPORT, and SECURITY into one contributor / maintainer first-hop (completed 2026-03-27)
+- [x] 81-02: publish a contributor-facing architecture change map and evidence destinations for protocol / runtime / control / external-boundary work (completed 2026-03-27)
+- [x] 81-03: freeze public-entry and contributor-route truth in planning docs and focused guards (completed 2026-03-27)
+**Focused evidence:** `.planning/phases/81-contributor-onramp-route-convergence-and-public-entry-contract/{81-01-SUMMARY.md,81-02-SUMMARY.md,81-03-SUMMARY.md}`
+**Closeout evidence:** `.planning/phases/81-contributor-onramp-route-convergence-and-public-entry-contract/{81-SUMMARY.md,81-VERIFICATION.md,81-VALIDATION.md}`
 
 ### Phase 82: Release operations closure and evidence-chain formalization
 

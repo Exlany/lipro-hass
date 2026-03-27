@@ -274,3 +274,8 @@
 
 - `custom_components/lipro/control/runtime_access.py` 继续是 control-plane 唯一 outward runtime read home；`runtime_access_support.py` 与 `runtime_access_support_{members,telemetry,views,devices}.py` 仅组成 inward helper cluster，不构成新的 control public surface。
 - `custom_components/lipro/core/anonymous_share/{manager.py,share_client.py}` 与 `custom_components/lipro/core/api/diagnostics_api_ota.py` 继续承担 outward formal-home 角色；`share_client_flows.py`、`share_client_{ports,refresh,submit}.py` 与 `custom_components/lipro/core/ota/query_support.py` 只允许作为 inward collaborators / shared helpers 存在。
+## Phase 81 Contributor Route Surface Notes
+
+- `README.md` / `README_zh.md` 继续只是 public first hop；`docs/README.md` 现明确承担 canonical docs map 身份，而 `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md` 是 contributor-facing change-routing surface，不是新的 authority source。
+- `CONTRIBUTING.md` 继续是 contributor workflow / CI contract home；`SUPPORT.md` 与 `SECURITY.md` 继续分别承担公开支持分流与私密披露职责；`docs/MAINTAINER_RELEASE_RUNBOOK.md` 仍是 maintainer-only appendix。
+- contributor-facing docs 可以指向 `.planning/baseline/{PUBLIC_SURFACES,DEPENDENCY_MATRIX,AUTHORITY_MATRIX,VERIFICATION_MATRIX}.md` 与 `.planning/reviews/{FILE_MATRIX,RESIDUAL_LEDGER,KILL_LIST,PROMOTED_PHASE_ASSETS}.md` 作为 evidence destinations，但不得把 active-route / archived-pointer / GSD internal workflow 讲成 public first hop。

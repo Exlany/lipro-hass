@@ -9,6 +9,8 @@
   Public first hop from overview into the canonical docs map and bilingual boundary.
 - `CONTRIBUTING.md` → `.github/pull_request_template.md`：贡献闭环、CI 契约与 PR 约定。  
   Contribution workflow, CI contract, and PR expectations.
+- `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md`：面向贡献者的架构变更地图，解释允许改动边界、证据落点与 focused validation。  
+  Contributor-facing architecture change map for allowed change families, evidence destinations, and focused validation.
 - `docs/TROUBLESHOOTING.md` → `SUPPORT.md`：排障、diagnostics 与支持分流。  
   Troubleshooting, diagnostics, and support routing.
 - `SECURITY.md`：私密漏洞披露。  
@@ -17,12 +19,24 @@
 Current access-mode truth: this repository is private-access. GitHub-hosted Issues / Discussions / Releases / Security UI are therefore conditional surfaces, while the docs files above remain the only guaranteed first hop for every reader of this checkout.
 当前访问模式真相：本仓库是 private-access，因此 GitHub 承载的 Issues / Discussions / Releases / Security UI 都只是条件性入口；上面的文档文件才是当前 checkout 内对所有读者都保证成立的 first hop。
 
+## Start Here by Role / 按角色分流
+
+| Role / 角色 | Primary entry / 首选入口 | Next stop / 下一站 |
+| --- | --- | --- |
+| User / evaluator | `README.md` / `README_zh.md` | `docs/TROUBLESHOOTING.md` → `SUPPORT.md` |
+| Contributor | `CONTRIBUTING.md` | `.github/pull_request_template.md` |
+| Architecture contributor | `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md` | `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` / `docs/developer_architecture.md` |
+| Security reporter | `SECURITY.md` | private advisory route when reachable |
+| Maintainer | `docs/MAINTAINER_RELEASE_RUNBOOK.md` | `.planning/*` governance truth |
+
 ## Current Docs / 当前文档
 
 - `NORTH_STAR_TARGET_ARCHITECTURE.md`：北极星目标架构与长期裁决基线。  
   North-star target architecture and long-term authority baseline.
 - `developer_architecture.md`：当前代码分层、主链、边界与开发者入口。  
   Current code layering, main chain, boundaries, and developer entrypoints.
+- `CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md`：面向贡献者的变更边界、证据回写位置与验证入口。  
+  Contributor-facing change boundaries, evidence destinations, and validation entrypoints.
 - `TROUBLESHOOTING.md`：用户与贡献者共用的规范排障入口。  
   Shared troubleshooting entry for users and contributors.
 - `MAINTAINER_RELEASE_RUNBOOK.md`：单维护者发布、打包与 release gate 运行手册。  
