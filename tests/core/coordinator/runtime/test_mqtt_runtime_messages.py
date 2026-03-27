@@ -6,9 +6,9 @@ from unittest.mock import Mock
 
 import pytest
 
-from .test_mqtt_runtime_init import build_property_dict
+from .test_mqtt_runtime_support import build_property_dict
 
-pytest_plugins = ("tests.core.coordinator.runtime.test_mqtt_runtime_init",)
+pytest_plugins = ("tests.core.coordinator.runtime.test_mqtt_runtime_support",)
 
 
 class TestMqttRuntimeMessageHandling:

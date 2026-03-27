@@ -7,13 +7,13 @@ from datetime import timedelta
 
 import pytest
 
-from .test_mqtt_runtime_init import (
+from .test_mqtt_runtime_support import (
     create_mqtt_runtime,
     get_failure_summary,
     get_polling_updater,
 )
 
-pytest_plugins = ("tests.core.coordinator.runtime.test_mqtt_runtime_init",)
+pytest_plugins = ("tests.core.coordinator.runtime.test_mqtt_runtime_support",)
 
 
 class TestMqttRuntimeConnection:

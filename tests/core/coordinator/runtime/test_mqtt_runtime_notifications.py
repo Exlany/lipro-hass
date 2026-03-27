@@ -7,9 +7,9 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from .test_mqtt_runtime_init import build_property_dict, create_mqtt_runtime
+from .test_mqtt_runtime_support import build_property_dict, create_mqtt_runtime
 
-pytest_plugins = ("tests.core.coordinator.runtime.test_mqtt_runtime_init",)
+pytest_plugins = ("tests.core.coordinator.runtime.test_mqtt_runtime_support",)
 
 
 class TestMqttRuntimeDisconnectNotification:
