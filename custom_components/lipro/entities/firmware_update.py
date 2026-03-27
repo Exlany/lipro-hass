@@ -308,10 +308,8 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
 
     async def _query_ota_rows_from_cloud(self) -> list[OtaRow]:
         """Query OTA rows once and normalize unknown payload variants."""
-        rows = await self.coordinator.protocol_service.async_query_ota_info(
-            device_id=self.device.serial,
-            device_type=self.device.device_type_hex,
-            iot_name=self.device.iot_name or None,
+        rows = await self.coordinator.async_query_device_ota_info(
+            self.device,
             allow_rich_v2_fallback=self.device.capabilities.is_light,
         )
         return normalize_ota_rows(rows)

@@ -9,6 +9,7 @@ from __future__ import annotations
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 import logging
+from typing import TYPE_CHECKING
 
 from ..device import LiproDevice
 from .factory import CoordinatorRuntimes, CoordinatorStateContainers
@@ -23,16 +24,33 @@ from .runtime_context import (
     RuntimeContext,
 )
 from .services import (
+    CoordinatorAuthService,
     CoordinatorCommandService,
     CoordinatorDeviceRefreshService,
     CoordinatorMqttService,
     CoordinatorPollingService,
+    CoordinatorProtocolService,
     CoordinatorScheduleService,
+    CoordinatorSignalService,
     CoordinatorStateService,
     CoordinatorTelemetryService,
 )
-from .services.protocol_service import CoordinatorProtocolService
-from .services.telemetry_service import CoordinatorSignalService
+
+if TYPE_CHECKING:
+    from homeassistant.config_entries import ConfigEntry
+    from homeassistant.core import HomeAssistant
+
+    from ..auth import LiproAuthManager
+    from ..protocol import LiproProtocolFacade
+
+
+@dataclass(frozen=True, slots=True)
+class CoordinatorSupportServices:
+    """Coordinator-owned support services bound through one bootstrap artifact."""
+
+    auth_service: CoordinatorAuthService
+    protocol_service: CoordinatorProtocolService
+    signal_service: CoordinatorSignalService
 
 
 @dataclass(frozen=True, slots=True)
@@ -68,6 +86,32 @@ def build_runtime_context(
         request_refresh=request_refresh,
         trigger_reauth=trigger_reauth,
         is_mqtt_connected=is_mqtt_connected,
+    )
+
+
+def initialize_support_services(
+    *,
+    hass: HomeAssistant,
+    protocol: LiproProtocolFacade,
+    auth_manager: LiproAuthManager,
+    config_entry: ConfigEntry,
+    telemetry_service_getter: Callable[[], CoordinatorTelemetryService],
+    device_refresh_service_getter: Callable[[], CoordinatorDeviceRefreshService],
+) -> CoordinatorSupportServices:
+    """Build the coordinator-owned support services for one bootstrap artifact."""
+    return CoordinatorSupportServices(
+        auth_service=CoordinatorAuthService(
+            hass=hass,
+            auth_manager=auth_manager,
+            config_entry=config_entry,
+        ),
+        protocol_service=CoordinatorProtocolService(
+            protocol_getter=lambda: protocol,
+        ),
+        signal_service=CoordinatorSignalService(
+            telemetry_service_getter=telemetry_service_getter,
+            device_refresh_service_getter=device_refresh_service_getter,
+        ),
     )
 
 
@@ -164,7 +208,9 @@ def build_update_cycle(
 
 __all__ = [
     "CoordinatorServiceLayer",
+    "CoordinatorSupportServices",
     "build_runtime_context",
     "build_update_cycle",
     "initialize_service_layer",
+    "initialize_support_services",
 ]

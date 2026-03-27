@@ -1,5 +1,38 @@
 # Requirements: Lipro-HASS North Star Evolution
 
+## Current Milestone (v1.24)
+
+> `v1.24` 基于 `v1.23` 的 archived baseline 开启 fresh active route；以下 requirements 来自 2026-03-27 的全仓终审与 refreshed `.planning/codebase/*` 图谱，目标是把 boundary leakage、runtime dual-wiring、tooling coupling 与 open-source entry drift 收口为单 phase 可执行合同。
+
+### Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
+
+- [ ] **ARC-23**: HA entities / platforms 只能消费显式 runtime public verbs；生产路径不再直摸 `command_service`、`protocol_service`、device lock 或其他 runtime internals。
+- [ ] **RUN-09**: `Coordinator` 与 `RuntimeOrchestrator` 的装配职责必须收敛为单一 wiring story；runtime service/bootstrap assembly 不得继续 parallel-owned。
+- [ ] **GOV-64**: architecture/file-matrix 等 governance tooling 必须脱离对 `tests.helpers` 与 ad-hoc `sys.path` 注入的依赖；共享 helper 归回 script-owned home。
+- [ ] **HOT-39**: 本轮审计确认的 runtime/entity/tooling/open-source hotspots 必须通过 inward split、显式命名或 helper-owned honest homes 收窄，而不是继续扩张为 giant roots。
+- [ ] **OSS-12**: `README*`、`docs/README.md`、issue templates、`manifest.json`、`quality_scale.yaml` 与相关 metadata 必须讲同一条 distribution / support / issue-routing story，减少 private-access mixed signal。
+- [ ] **QLT-36**: touched scope 必须保持 `ruff` / `mypy` / governance scripts / focused pytest 全绿，并同步更新 `.planning/codebase/*`、baseline/review docs 与 current-story planning truth。
+- [ ] **TST-28**: 针对新的 runtime verbs、runtime wiring 收敛、tooling helper home 与 docs/metadata route truth 必须补齐 focused regressions / meta guards，防止回流。
+
+## Traceability for active v1.24 route
+
+| Requirement | Planned Phase | Status |
+|-------------|---------------|--------|
+| ARC-23 | Phase 89 | Completed |
+| RUN-09 | Phase 89 | Completed |
+| GOV-64 | Phase 89 | Completed |
+| HOT-39 | Phase 89 | Completed |
+| OSS-12 | Phase 89 | Completed |
+| QLT-36 | Phase 89 | Completed |
+| TST-28 | Phase 89 | Completed |
+
+**Current Coverage:**
+- v1.24 routed requirements: 7 total
+- Current mapped: 7
+- Current complete: 7
+- Current pending: 0
+- Current unmapped: 0 ✓
+
 ## Latest Archived Milestone (v1.23)
 
 > `v1.23` 已于 `2026-03-27` 完成 archive promotion；以下 requirements / traceability 保留 `Phase 85 -> 88` 的最终 fulfilled contract，归档快照见 `.planning/milestones/v1.23-REQUIREMENTS.md`，审计裁决见 `.planning/v1.23-MILESTONE-AUDIT.md`，证据索引见 `.planning/reviews/V1_23_EVIDENCE_INDEX.md`；historical closeout route truth = `no active milestone route / latest archived baseline = v1.23`。
@@ -40,7 +73,13 @@
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone: null
+active_milestone:
+  version: v1.24
+  name: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
+  status: active / Phase 89 complete (2026-03-27)
+  phase: '89'
+  phase_title: Runtime boundary tightening, tooling decoupling, and open-source entry convergence
+  phase_dir: 89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence
 latest_archived:
   version: v1.23
   name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
@@ -56,8 +95,9 @@ previous_archived:
   name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
   evidence_path: .planning/reviews/V1_22_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.23
-  default_next_command: $gsd-new-milestone
+  current_route: v1.24 / Phase 89 complete
+  default_next_command: $gsd-complete-milestone v1.24
+  active_prd: .planning/phases/89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence/89-PRD.md
   latest_archived_evidence_pointer: .planning/reviews/V1_23_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->

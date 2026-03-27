@@ -6,24 +6,53 @@ import argparse
 from itertools import pairwise
 from pathlib import Path
 import sys
+from typing import TYPE_CHECKING
 
-if __package__ in {None, ""}:
-    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-
-from tests.helpers.architecture_policy import (
-    ArchitecturePolicyRule,
-    load_policy_text,
-    load_structural_rules,
-    load_targeted_bans,
-    policy_root,
-    resolve_policy_paths,
-)
-from tests.helpers.ast_guard_utils import (
-    extract_all,
-    extract_property_names,
-    extract_top_level_bindings,
-    find_forbidden_imports,
-)
+if TYPE_CHECKING:
+    from scripts.lib.architecture_policy import (
+        ArchitecturePolicyRule,
+        load_policy_text,
+        load_structural_rules,
+        load_targeted_bans,
+        policy_root,
+        resolve_policy_paths,
+    )
+    from scripts.lib.ast_guard_utils import (
+        extract_all,
+        extract_property_names,
+        extract_top_level_bindings,
+        find_forbidden_imports,
+    )
+elif __package__ in {None, ""}:
+    from lib.architecture_policy import (
+        ArchitecturePolicyRule,
+        load_policy_text,
+        load_structural_rules,
+        load_targeted_bans,
+        policy_root,
+        resolve_policy_paths,
+    )
+    from lib.ast_guard_utils import (
+        extract_all,
+        extract_property_names,
+        extract_top_level_bindings,
+        find_forbidden_imports,
+    )
+else:
+    from scripts.lib.architecture_policy import (
+        ArchitecturePolicyRule,
+        load_policy_text,
+        load_structural_rules,
+        load_targeted_bans,
+        policy_root,
+        resolve_policy_paths,
+    )
+    from scripts.lib.ast_guard_utils import (
+        extract_all,
+        extract_property_names,
+        extract_top_level_bindings,
+        find_forbidden_imports,
+    )
 
 _EXPECTED_STRUCTURAL_RULE_IDS = {
     "ENF-IMP-ENTITY-PROTOCOL-INTERNALS",

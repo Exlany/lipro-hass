@@ -32,6 +32,7 @@ from .runtime_wiring import (
     build_runtime_context,
     build_update_cycle,
     initialize_service_layer,
+    initialize_support_services,
 )
 
 if TYPE_CHECKING:
@@ -42,8 +43,6 @@ if TYPE_CHECKING:
     from ..device import LiproDevice
     from ..protocol import LiproProtocolFacade
     from .runtime.mqtt.connection import PollingIntervalUpdater
-    from .services.protocol_service import CoordinatorProtocolService
-    from .services.telemetry_service import CoordinatorSignalService
     from .types import PropertyDict
 
 _LOGGER = logging.getLogger(__name__)
@@ -163,8 +162,6 @@ class RuntimeOrchestrator:
     def build_bootstrap_artifact(
         self,
         *,
-        signal_service: CoordinatorSignalService,
-        protocol_service: CoordinatorProtocolService,
         get_device_by_id: Callable[[str], LiproDevice | None],
         apply_properties_update: Callable[
             [LiproDevice, PropertyDict, str],
@@ -172,9 +169,7 @@ class RuntimeOrchestrator:
         ],
         schedule_listener_update: Callable[[], None],
         request_refresh: Callable[[], Awaitable[None]],
-        trigger_reauth: Callable[[str], Awaitable[None]],
         is_mqtt_connected: Callable[[], bool],
-        ensure_authenticated: Callable[[], Awaitable[None]],
         async_setup_mqtt: Callable[[], Awaitable[bool]],
         replace_devices: Callable[[dict[str, LiproDevice]], None],
         publish_updated_data: Callable[[dict[str, LiproDevice]], None],
@@ -186,14 +181,23 @@ class RuntimeOrchestrator:
     ) -> CoordinatorBootstrapArtifact:
         """Build the named bootstrap contract consumed by `Coordinator`."""
         state = self.build_state_containers()
+        service_layer_ref: dict[str, Any] = {}
+        support_services = initialize_support_services(
+            hass=self.hass,
+            protocol=self.protocol,
+            auth_manager=self.auth_manager,
+            config_entry=self.config_entry,
+            telemetry_service_getter=lambda: service_layer_ref["value"].telemetry_service,
+            device_refresh_service_getter=lambda: service_layer_ref["value"].device_refresh_service,
+        )
         runtimes = self.build_runtimes(
             context=build_runtime_context(
                 get_device_by_id=get_device_by_id,
                 apply_properties_update=apply_properties_update,
                 schedule_listener_update=schedule_listener_update,
-                signal_service=signal_service,
+                signal_service=support_services.signal_service,
                 request_refresh=request_refresh,
-                trigger_reauth=trigger_reauth,
+                trigger_reauth=support_services.auth_service.async_trigger_reauth,
                 is_mqtt_connected=is_mqtt_connected,
             ),
             state=state,
@@ -202,7 +206,7 @@ class RuntimeOrchestrator:
         service_layer = initialize_service_layer(
             runtimes=runtimes,
             state=state,
-            protocol_service=protocol_service,
+            protocol_service=support_services.protocol_service,
             async_setup_mqtt=async_setup_mqtt,
             replace_devices=replace_devices,
             publish_updated_data=publish_updated_data,
@@ -211,12 +215,14 @@ class RuntimeOrchestrator:
             update_interval_seconds_getter=update_interval_seconds_getter,
             logger=self.logger,
         )
+        service_layer_ref["value"] = service_layer
         return CoordinatorBootstrapArtifact(
             state=state,
             runtimes=runtimes,
+            support_services=support_services,
             service_layer=service_layer,
             update_cycle=build_update_cycle(
-                ensure_authenticated=ensure_authenticated,
+                ensure_authenticated=support_services.auth_service.async_ensure_authenticated,
                 should_refresh_device_list=runtimes.device.should_refresh_device_list,
                 refresh_device_snapshot=refresh_device_snapshot,
                 has_mqtt_transport=lambda: runtimes.mqtt.has_transport,

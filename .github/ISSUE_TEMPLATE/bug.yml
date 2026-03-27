@@ -6,38 +6,23 @@ body:
   - type: markdown
     attributes:
       value: |
-        感谢你提交 Bug 报告！请尽量详细描述问题，以便我们快速定位和修复。
-        Thanks for taking the time to fill out this bug report!
+        感谢你提交 Bug 报告！先走 docs-first 首跳：`docs/README.md` → `docs/TROUBLESHOOTING.md` → `SUPPORT.md`。这个表单只是后续的 issue intake，只有在你当前访问模式已经暴露仓库访问权限时才成立；若未来 public mirror 出现，也必须沿同一条 docs-first 路由。
+        Thanks for taking the time to fill out this bug report! Start with the docs-first first hop: `docs/README.md` → `docs/TROUBLESHOOTING.md` → `SUPPORT.md`. This form is only the follow-up issue-intake step when your current access mode already exposes repository access; any future public mirror must preserve the same docs-first route.
 
         若你要报告的是安全漏洞，请不要使用此公开表单；请改走 `SECURITY.md` 中的私密披露路径。
         If you are reporting a security vulnerability, do not use this public form; follow the private disclosure path in `SECURITY.md`.
 
-        最低支持的 Home Assistant 版本真源为 `pyproject.toml` 中的 `2026.3.1`。
-        The canonical minimum supported Home Assistant version is `2026.3.1` from `pyproject.toml`.
+        最低支持的 Home Assistant 版本真源为 `pyproject.toml` 中的 `2026.3.1`。若当前仓库或 fork 为私有，CI 会跳过 HACS validation。HACS only supports public GitHub repositories，因此它不是当前 private-access 仓库对所有读者都保证存在的默认入口。
+        The canonical minimum supported Home Assistant version is `2026.3.1` from `pyproject.toml`. If this repository or fork is private, CI skips HACS validation. HACS only supports public GitHub repositories, so it is not a guaranteed default route for every reader of the current private-access repository.
 
-        当前仓库是 private-access；这个 GitHub 表单只对已经具备仓库访问权限的读者成立。规范 first hop 仍是 `docs/README.md` → `docs/TROUBLESHOOTING.md` → `SUPPORT.md`；若未来 public mirror 出现，也必须沿同一条 docs-first 路由。
-        This repository is currently private-access, so this GitHub form only applies to readers who already have repository access. The canonical first hop still stays `docs/README.md` → `docs/TROUBLESHOOTING.md` → `SUPPORT.md`; any future public mirror must follow the same docs-first route.
+        若安装脚本以 remote 模式运行且未显式指定 archive/tag，则默认会解析最新 tagged release（`latest`）；若你使用了 `ARCHIVE_TAG=main` / branch fallback / mirror 之类预览路径，请在报告里明确写出。若你还没开始系统排障，请先从 `docs/README.md` 进入文档总索引，再阅读 `docs/TROUBLESHOOTING.md`；若问题涉及发版/打包，请维护者参考 `docs/MAINTAINER_RELEASE_RUNBOOK.md`。
+        If the installer runs in remote mode without a pinned archive/tag, it resolves the latest tagged release (`latest`) by default; if you used `ARCHIVE_TAG=main`, branch fallback, or a mirror-backed preview path, say so explicitly. If you have not started structured troubleshooting yet, enter through the `docs/README.md` documentation index first, then read `docs/TROUBLESHOOTING.md`; maintainer-only release/package issues belong in `docs/MAINTAINER_RELEASE_RUNBOOK.md`.
 
-        若当前仓库或 fork 为私有，CI 会跳过 HACS validation。HACS 只支持公开 GitHub 仓库，因此它不是当前 private-access 仓库对所有读者都保证存在的默认入口。
-        If this repository or fork is private, CI skips HACS validation. HACS only supports public GitHub repositories, so it is not a guaranteed default route for every reader of the current private-access repository.
+        公开 Bug、Discussion、diagnostics 升级与 developer report 只会增加排障证据，不会自动转移 release custody，也不代表存在未公开的 delegate（undocumented delegate）。本仓库当前仍采用 single-maintainer 模式；维护者不可用演练（maintainer-unavailable drill）要求在维护者暂不可用时 freeze new tagged releases and new release promises，但公开 bug intake 与私密安全披露路径仍保持诚实可见。
+        Public bugs, Discussions, diagnostics escalations, and developer reports increase debugging evidence only; they do not transfer release custody or imply an undocumented delegate. This repository still follows a single-maintainer model; the maintainer-unavailable drill says to freeze new tagged releases and new release promises when the maintainer is unavailable, while keeping public bug intake and the private security path visibly honest.
 
-        若安装脚本以 remote 模式运行且未显式指定 archive/tag，则默认会解析最新 tagged release（`latest`）；若你使用了 `ARCHIVE_TAG=main` / branch fallback / mirror 之类预览路径，请在报告里明确写出。
-        If the installer runs in remote mode without a pinned archive/tag, it resolves the latest tagged release (`latest`) by default; if you used `ARCHIVE_TAG=main`, branch fallback, or a mirror-backed preview path, say so explicitly in the report.
-
-        若你还没开始系统排障，请先从 `docs/README.md` 进入文档总索引，再阅读 `docs/TROUBLESHOOTING.md`；若问题涉及发版/打包，请维护者参考 `docs/MAINTAINER_RELEASE_RUNBOOK.md`。
-        If you have not started structured troubleshooting yet, enter through the `docs/README.md` documentation index first, then read `docs/TROUBLESHOOTING.md`; maintainer-only release/package issues belong in `docs/MAINTAINER_RELEASE_RUNBOOK.md`.
-
-        公开 Bug、Discussion、diagnostics 升级与 developer report 只会增加排障证据，不会自动转移 release custody，也不代表存在未公开的 delegate。
-        Public bugs, Discussions, diagnostics escalations, and developer reports increase debugging evidence only; they do not transfer release custody or imply an undocumented delegate.
-
-        本仓库当前仍采用 single-maintainer 模式；维护者不可用演练（maintainer-unavailable drill）要求在维护者暂不可用时冻结新的 tagged release 与新的 release promises，但公开 bug intake 与私密安全披露路径仍保持诚实可见。
-        This repository still follows a single-maintainer model; the maintainer-unavailable drill says to freeze new tagged releases and new release promises when the maintainer is unavailable, while keeping public bug intake and the private security path visibly honest.
-
-        对大多数公开 Bug 报告，diagnostics 就是第一优先证据；developer report / 一键反馈是升级排障路径，而不是硬门槛。
-        For most public bug reports, diagnostics are the first-line evidence; developer report / one-click feedback is an escalation path, not a hard gate.
-
-        为了把问题尽快路由到正确边界，请尽量补齐最小充分证据：受影响区域、影响范围，以及你已经尝试过的排障或验证；若暂时不确定，可以明确写“不确定”。
-        To route the issue quickly, please include the minimum-sufficient evidence: affected area, impact scope, and troubleshooting or validation already tried; if you are unsure, say so explicitly.
+        对大多数公开 Bug 报告，diagnostics 就是第一优先证据；developer report / 一键反馈是升级排障路径，而不是硬门槛。为了把问题尽快路由到正确边界，请尽量补齐最小充分证据：受影响区域、影响范围，以及你已经尝试过的排障或验证；若暂时不确定，可以明确写“不确定”。
+        For most public bug reports, diagnostics are the first-line evidence; developer report / one-click feedback is an escalation path, not a hard gate. To route the issue quickly, please include the minimum-sufficient evidence: affected area, impact scope, and troubleshooting or validation already tried; if you are unsure, say so explicitly.
 
   - type: checkboxes
     attributes:

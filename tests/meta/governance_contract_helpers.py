@@ -18,7 +18,6 @@ from .governance_current_truth import (
     LATEST_ARCHIVED_AUDIT_PATH,
     LATEST_ARCHIVED_EVIDENCE_LABEL,
     LATEST_ARCHIVED_EVIDENCE_PATH,
-    LATEST_ARCHIVED_MILESTONE_STATUS,
     LATEST_ARCHIVED_PROJECT_HEADER,
     PREVIOUS_ARCHIVED_PROJECT_HEADER,
     assert_machine_readable_route_contracts,
@@ -128,8 +127,6 @@ def _assert_latest_archived_route_truth(
     state_text: str,
 ) -> None:
     _assert_current_route_truth(project_text, roadmap_text, state_text)
-    assert f"**Current status:** `{LATEST_ARCHIVED_MILESTONE_STATUS}`" in project_text
-    assert LATEST_ARCHIVED_PROJECT_HEADER in project_text
 
 
 def _assert_public_docs_hide_internal_route_story(
@@ -158,7 +155,7 @@ def assert_docs_readme_public_contract(docs_text: str) -> None:
         "SUPPORT.md",
         "SECURITY.md",
         "Current access-mode truth",
-        "conditional surfaces",
+        "conditional follow-up surfaces",
     ):
         assert token in docs_text
 

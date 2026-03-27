@@ -16,8 +16,19 @@
 - `SECURITY.md`：私密漏洞披露。
   Private vulnerability disclosure.
 
-Current access-mode truth: this repository is private-access. GitHub-hosted Issues / Discussions / Releases / Security UI are therefore conditional surfaces, while the docs files above remain the only guaranteed first hop for every reader of this checkout.
-当前访问模式真相：本仓库是 private-access，因此 GitHub 承载的 Issues / Discussions / Releases / Security UI 都只是条件性入口；上面的文档文件才是当前 checkout 内对所有读者都保证成立的 first hop。
+## First-Hop Matrix / 首跳矩阵
+
+- **Distribution / install / docs map / 分发、安装与文档总览**：`README.md` / `README_zh.md` → `docs/README.md`
+  Canonical docs-first entry for every reader of this checkout.
+- **Troubleshooting / bug triage / 排障与 Bug 分流**：`docs/TROUBLESHOOTING.md` → `SUPPORT.md`
+  Issue forms are follow-up intake only when the current access mode exposes them.
+- **Feature ideas / usage questions / 功能想法与使用问题**：`SUPPORT.md`
+  GitHub Discussions are optional and only apply when the route is visible in the current access mode or a future public mirror preserves it.
+- **Security reports / 安全问题**：`SECURITY.md`
+  Private disclosure stays separate from the public bug / support route.
+
+Current access-mode truth: this repository is private-access. GitHub-hosted Issues / Discussions / Releases / Security UI are therefore conditional follow-up surfaces, while the docs files above remain the only guaranteed first hop for every reader of this checkout.
+当前访问模式真相：本仓库是 private-access，因此 GitHub 承载的 Issues / Discussions / Releases / Security UI 都只是条件性的后续入口；上面的文档文件才是当前 checkout 内对所有读者都保证成立的 first hop。
 
 ## Community-Health Contract / 社区协作契约
 
@@ -32,7 +43,7 @@ Current access-mode truth: this repository is private-access. GitHub-hosted Issu
 
 | Role / 角色 | Primary entry / 首选入口 | Next stop / 下一站 |
 | --- | --- | --- |
-| User / evaluator | `README.md` / `README_zh.md` | `docs/TROUBLESHOOTING.md` → `SUPPORT.md` |
+| User / evaluator | `README.md` / `README_zh.md` | `docs/README.md` → `docs/TROUBLESHOOTING.md` → `SUPPORT.md` |
 | Contributor | `CONTRIBUTING.md` | `.github/pull_request_template.md` |
 | Architecture contributor | `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md` | `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` / `docs/developer_architecture.md` |
 | Security reporter | `SECURITY.md` | private advisory route when reachable |

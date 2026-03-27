@@ -166,7 +166,7 @@ def test_docs_index_route_is_consistent() -> None:
     assert registry["continuity"]["drill_name"] == "maintainer-unavailable drill"
     assert pyproject["project"]["urls"]["Documentation"].endswith("/docs/README.md")
     assert manifest["documentation"].endswith("/docs/README.md")
-    assert manifest["issue_tracker"].endswith("/docs/README.md")
+    assert manifest["issue_tracker"].endswith("/SUPPORT.md")
     assert docs_link["url"].endswith("/docs/README.md")
 
 

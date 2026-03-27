@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 683
+**Python files total:** 690
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -322,6 +322,9 @@
 | `scripts/check_translations.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `scripts/coverage_diff.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `scripts/export_ai_debug_evidence_pack.py` | Assurance | Phase 8 | 保留 | - |
+| `scripts/lib/__init__.py` | Assurance | Phase 6 / 7 | 保留 | - |
+| `scripts/lib/architecture_policy.py` | Assurance | Phase 6 / 7 | 保留 | - |
+| `scripts/lib/ast_guard_utils.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `scripts/orchestrator.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `scripts/refactor_tools.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `tests/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -634,6 +637,10 @@
 | `tests/meta/test_phase85_terminal_audit_route_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase87_assurance_hotspot_guards.py` | Assurance | Phase 87 | 保留 | focused no-regrowth guard home for Phase 87 assurance hotspot topicization |
 | `tests/meta/test_phase88_governance_quality_freeze_guards.py` | Assurance | Phase 88 | 保留 | focused guard home for phase-88 governance/evidence freeze |
+| `tests/meta/test_phase89_entry_route_guards.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_phase89_runtime_boundary_guards.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_phase89_runtime_wiring_guards.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_phase89_tooling_decoupling_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_protocol_replay_assets.py` | Assurance | Phase 7.4 | 保留 | - |
 | `tests/meta/test_public_surface_guards.py` | Assurance | Phase 6 | 保留 | thin shell after public-surface topicization |
 | `tests/meta/test_service_translation_sync.py` | Assurance | Phase 6 | 保留 | - |

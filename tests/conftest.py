@@ -223,6 +223,18 @@ class _CoordinatorDouble:
         self.get_device_by_id.side_effect = self._lookup_get_device_by_id
         self.get_device_lock: Any = MagicMock(side_effect=self._get_device_lock)
 
+        async def _async_apply_optimistic_state(
+            device: Any,
+            properties: Mapping[str, object],
+        ) -> None:
+            device_lock = self._get_device_lock(device.serial)
+            async with device_lock:
+                device.update_properties(dict(properties))
+
+        self.async_apply_optimistic_state: Any = AsyncMock(
+            side_effect=_async_apply_optimistic_state
+        )
+
         self.auth_service: Any = MagicMock(
             async_ensure_authenticated=AsyncMock(),
             async_trigger_reauth=AsyncMock(),
@@ -269,6 +281,26 @@ class _CoordinatorDouble:
             return await self.protocol.fetch_door_sensor_history(**kwargs)
 
         self.async_query_ota_info = AsyncMock(side_effect=_async_query_ota_info)
+
+        async def _async_query_device_ota_info(
+            device: Any,
+            *,
+            allow_rich_v2_fallback: bool | None = None,
+        ) -> Any:
+            return await self.protocol.query_ota_info(
+                device_id=device.serial,
+                device_type=device.device_type_hex,
+                iot_name=device.iot_name or None,
+                allow_rich_v2_fallback=(
+                    device.capabilities.is_light
+                    if allow_rich_v2_fallback is None
+                    else allow_rich_v2_fallback
+                ),
+            )
+
+        self.async_query_device_ota_info = AsyncMock(
+            side_effect=_async_query_device_ota_info
+        )
         self.async_query_command_result = AsyncMock(
             side_effect=_async_query_command_result
         )

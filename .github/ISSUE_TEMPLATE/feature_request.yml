@@ -6,8 +6,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        感谢你的建议！当前仓库是 private-access，请先按 `docs/README.md` → `SUPPORT.md` 走 docs-first 路由。开放式想法与使用讨论只有在你当前访问模式可见 GitHub Discussions，或未来 public mirror 保留该入口时，才建议走 Discussions；若你已经有明确、可执行的改进提案，再使用这个表单。
-        Thanks for suggesting a new feature! This repository is currently private-access, so start with the docs-first route `docs/README.md` → `SUPPORT.md`. Prefer GitHub Discussions for open-ended ideas only when your current access mode exposes Discussions or when a future public mirror preserves that route; use this form when you already have a concrete, actionable proposal.
+        感谢你的建议！先走 docs-first 首跳：`docs/README.md` → `SUPPORT.md`。开放式想法与使用讨论只有在你当前访问模式可见 GitHub Discussions，或未来 public mirror 保留该入口时，才建议走 Discussions；若你已经有明确、可执行的改进提案，再使用这个表单。若你要报告的是确认过的 bug / regression，请改走 `docs/TROUBLESHOOTING.md` → `SUPPORT.md` → bug form。
+        Thanks for suggesting a new feature! Start with the docs-first first hop: `docs/README.md` → `SUPPORT.md`. Prefer GitHub Discussions for open-ended ideas only when your current access mode exposes Discussions or when a future public mirror preserves that route; use this form when you already have a concrete, actionable proposal. If you are reporting a confirmed bug or regression, use `docs/TROUBLESHOOTING.md` → `SUPPORT.md` → the bug form instead.
 
         当前仍是 single-maintainer、best-effort 项目；提案若缺少受影响区域、真实 use case / user impact 与可验证的 acceptance signal，维护者通常还需要追问才能判断是否值得推进。任何功能提案也都需要符合现有 architecture 与 maintenance budget。
         This is still a single-maintainer, best-effort project. If a proposal does not name the affected area, real use case / user impact, and a validation signal, maintainers usually need more follow-up before they can evaluate it. Any accepted feature also needs to fit the existing architecture and maintenance budget.

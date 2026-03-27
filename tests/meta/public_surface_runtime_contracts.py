@@ -177,3 +177,23 @@ def test_phase_30_control_contracts_stay_private_and_system_health_minimal() -> 
         "get_entry_telemetry_exporter",
     ):
         assert token not in control_exports
+
+
+def test_phase89_runtime_protocol_exposes_entity_verbs_instead_of_service_handles() -> None:
+    runtime_types_text = (
+        _ROOT / "custom_components" / "lipro" / "runtime_types.py"
+    ).read_text(encoding="utf-8")
+    runtime_protocol_block = runtime_types_text.split(
+        "class LiproRuntimeCoordinator(Protocol):",
+        maxsplit=1,
+    )[1].split(
+        "class LiproCoordinator(LiproRuntimeCoordinator, Protocol):",
+        maxsplit=1,
+    )[0]
+
+    assert "async_send_command(" in runtime_protocol_block
+    assert "async_apply_optimistic_state(" in runtime_protocol_block
+    assert "async_query_device_ota_info(" in runtime_protocol_block
+    assert "command_service" not in runtime_protocol_block
+    assert "protocol_service" not in runtime_protocol_block
+    assert "get_device_lock" not in runtime_protocol_block

@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- ✅ **v1.24 Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence** - `Phase 89` complete on 2026-03-27; starting baseline: `.planning/v1.23-MILESTONE-AUDIT.md` + `.planning/reviews/V1_23_EVIDENCE_INDEX.md`; phase dir: `.planning/phases/89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence`; default next command: `$gsd-complete-milestone v1.24`
 - ✅ **v1.23 Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze** - `Phase 85 -> 88` archived on 2026-03-27; milestone audit: `.planning/v1.23-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_23_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.23-ROADMAP.md` / `.planning/milestones/v1.23-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.23`
 - ✅ **v1.22 Maintainer Entry Contracts, Release Operations Closure & Contributor Routing** - `Phase 81 -> 84` archived on 2026-03-27; milestone audit: `.planning/v1.22-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_22_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.22-ROADMAP.md` / `.planning/milestones/v1.22-REQUIREMENTS.md`; historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.22`
 - ✅ **v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation** - `Phase 76 -> 80` archived on 2026-03-26; milestone audit: `.planning/v1.21-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_21_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.21-ROADMAP.md` / `.planning/milestones/v1.21-REQUIREMENTS.md`; historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.21`
@@ -12,7 +13,13 @@
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone: null
+active_milestone:
+  version: v1.24
+  name: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
+  status: active / Phase 89 complete (2026-03-27)
+  phase: '89'
+  phase_title: Runtime boundary tightening, tooling decoupling, and open-source entry convergence
+  phase_dir: 89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence
 latest_archived:
   version: v1.23
   name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
@@ -28,11 +35,36 @@ previous_archived:
   name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
   evidence_path: .planning/reviews/V1_22_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.23
-  default_next_command: $gsd-new-milestone
+  current_route: v1.24 / Phase 89 complete
+  default_next_command: $gsd-complete-milestone v1.24
+  active_prd: .planning/phases/89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence/89-PRD.md
   latest_archived_evidence_pointer: .planning/reviews/V1_23_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
+
+## v1.24: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
+
+> `v1.24` 基于 `v1.23` archived baseline 重新开启一条 fresh active route：它不重开已关闭 residual，而是把新一轮 terminal-grade review 发现的 boundary leakage、dual wiring、tooling coupling 与 open-source entry drift 转化为单 phase 可执行收敛路线。
+
+**Milestone Goal:** 把“代码已经很强但仍有结构性边角”的问题集中收口：实体/平台不再直摸 runtime internals，runtime 装配归回单一 wiring root，governance 工具链脱离 `tests.helpers`，对外入口文档/metadata 讲同一条公开协作故事。
+**Milestone status:** `active / Phase 89 complete (2026-03-27)`
+**Starting baseline:** `.planning/v1.23-MILESTONE-AUDIT.md`, `.planning/reviews/V1_23_EVIDENCE_INDEX.md`, `.planning/milestones/v1.23-ROADMAP.md`, `.planning/milestones/v1.23-REQUIREMENTS.md`
+**Requirements basket:** `ARC-23`, `RUN-09`, `GOV-64`, `HOT-39`, `OSS-12`, `QLT-36`, `TST-28`
+**Default next command:** `$gsd-complete-milestone v1.24`
+
+### Phase 89: Runtime boundary tightening, tooling decoupling, and open-source entry convergence
+
+**Goal:** 基于本轮全仓终审结论，继续沿单一 north-star 主链收窄 entity/runtime/protocol 边界、消除 runtime dual-wiring、去掉 tooling↔tests helper coupling，并统一 README/docs/templates/manifest 的公开入口信号。
+**Depends on:** Phase 88 / latest archived baseline `v1.23`
+**Requirements**: [ARC-23, RUN-09, GOV-64, HOT-39, OSS-12, QLT-36, TST-28]
+**Success Criteria**:
+  1. `entities/*` 与平台实体只消费显式 runtime verbs，不再直接依赖 `command_service`、`protocol_service` 或 `get_device_lock`。
+  2. `Coordinator` 的 service/bootstrap 装配不再和 `RuntimeOrchestrator` 并行讲两套故事；正式 wiring root 更单一、更可测试。
+  3. governance/tooling CLI 不再通过 `sys.path` 注入去消费 `tests.helpers`；共享逻辑回到 script-owned helper home。
+  4. `README*`、`docs/README.md`、issue templates、`manifest.json` 与 related metadata 对 distribution/support/issues 的表述保持一致，减少 private-access mixed signal。
+  5. 代码地图、治理文档与 focused regression/guards 与上述变化同步更新，phase closeout 时不留下新的 drift 或隐性 carry-forward。
+**Status**: Complete (2026-03-27)
+**Plans**: 4/4 complete
 
 ## v1.23: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
 

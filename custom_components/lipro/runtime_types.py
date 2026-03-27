@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import asyncio
 from collections.abc import Callable, Iterable, Mapping
 from datetime import timedelta
 from typing import TYPE_CHECKING, Any, Protocol
@@ -226,12 +225,6 @@ class LiproRuntimeCoordinator(Protocol):
     last_update_success: bool
 
     @property
-    def command_service(self) -> CommandServiceLike: ...
-
-    @property
-    def protocol_service(self) -> ProtocolServiceLike: ...
-
-    @property
     def devices(self) -> Mapping[str, LiproDevice]: ...
 
     def iter_devices(self) -> Iterable[LiproDevice]: ...
@@ -245,11 +238,22 @@ class LiproRuntimeCoordinator(Protocol):
         properties: list[dict[str, str]] | None = None,
     ) -> bool: ...
 
+    async def async_apply_optimistic_state(
+        self,
+        device: LiproDevice,
+        properties: Mapping[str, object],
+    ) -> None: ...
+
+    async def async_query_device_ota_info(
+        self,
+        device: LiproDevice,
+        *,
+        allow_rich_v2_fallback: bool | None = None,
+    ) -> list[OtaInfoRow]: ...
+
     def get_device(self, device_id: str) -> LiproDevice | None: ...
 
     def get_device_by_id(self, device_id: str) -> LiproDevice | None: ...
-
-    def get_device_lock(self, device_id: str) -> asyncio.Lock: ...
 
     def register_entity(self, entity: LiproEntityProtocol) -> None: ...
 

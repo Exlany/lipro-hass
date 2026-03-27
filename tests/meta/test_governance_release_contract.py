@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import ast
+
 from .conftest import (
     _AGENTS,
     _CI_WORKFLOW,
@@ -41,6 +43,21 @@ def _step_run(steps: list[dict[str, object]], name: str) -> str:
 def _assert_run_contains(run: str, *tokens: str) -> None:
     for token in tokens:
         assert token in run
+
+
+def _import_modules(path) -> set[str]:
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=path.as_posix())
+    modules: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            modules.update(alias.name for alias in node.names)
+            continue
+        if isinstance(node, ast.ImportFrom):
+            module = node.module or ""
+            dotted = f"{'.' * node.level}{module}" if node.level else module
+            if dotted:
+                modules.add(dotted)
+    return modules
 
 
 def test_ci_governance_job_runs_meta_version_and_toolchain_guards() -> None:
@@ -218,6 +235,30 @@ def test_codeql_tag_workflow_matches_release_scanning_contract() -> None:
     assert "push" in codeql_on
     codeql_push = _as_mapping(codeql_on["push"])
     assert "v*" in _as_str_list(codeql_push["tags"])
+
+
+def test_architecture_policy_checker_consumes_script_owned_helpers() -> None:
+    checker_path = _ROOT / "scripts" / "check_architecture_policy.py"
+    checker_text = checker_path.read_text(encoding="utf-8")
+    checker_imports = _import_modules(checker_path)
+
+    assert "sys.path.insert" not in checker_text
+    assert "tests.helpers.architecture_policy" not in checker_imports
+    assert "tests.helpers.ast_guard_utils" not in checker_imports
+    assert (_ROOT / "scripts" / "lib" / "architecture_policy.py").exists()
+    assert (_ROOT / "scripts" / "lib" / "ast_guard_utils.py").exists()
+
+    architecture_helper_text = (_ROOT / "tests" / "helpers" / "architecture_policy.py").read_text(
+        encoding="utf-8"
+    )
+    ast_helper_text = (_ROOT / "tests" / "helpers" / "ast_guard_utils.py").read_text(
+        encoding="utf-8"
+    )
+    assert "from scripts.lib.architecture_policy import" in architecture_helper_text
+    assert "from scripts.lib.ast_guard_utils import" in ast_helper_text
+    assert "@dataclass" not in architecture_helper_text
+    assert "def policy_root" not in architecture_helper_text
+    assert "def iter_import_modules" not in ast_helper_text
 
 
 def test_governance_closeout_suite_is_wired_into_daily_gate_commands() -> None:

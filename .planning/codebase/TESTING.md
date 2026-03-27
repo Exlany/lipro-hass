@@ -1,121 +1,196 @@
-# TESTING
+# Testing Patterns
+
+**Analysis Date:** 2026-03-27
+
 > Snapshot: `2026-03-27`
-> Freshness: no active milestone route / latest archived baseline = v1.23；仅按 `AGENTS.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md`、`.planning/v1.23-MILESTONE-AUDIT.md`、`.planning/milestones/v1.23-*.md`、`docs/developer_architecture.md` 与当前 CI/release/public-doc truth 截面成立。上述真源变更后，本图谱必须同步刷新或标记过时。
-> Scope: `tests/**/*.py`、CI/pre-commit、fixtures/readmes、governance baselines 中的测试策略与质量门禁
-> Derived collaboration map: 本文件是受约束的协作图谱 / 派生视图，仅用于导航、协作与局部审阅。
-> Authority: 若与 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md` 或 `docs/developer_architecture.md` 冲突，以后者为准；本图谱不得反向充当当前治理真源，且必须同步回写、标记为过时，或注明历史观察。
+> Freshness: 基于 `tests/**`、`pyproject.toml`、`.github/workflows/{ci,release}.yml`、`scripts/{lint,check_architecture_policy.py,check_file_matrix.py}` 与 `.planning/baseline/VERIFICATION_MATRIX.md` 的当前截面。
+> Derived collaboration map: 本文件是受约束的协作图谱 / 派生视图，仅用于导航、审阅与后续实现对齐。
+> Authority: 若与 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md}`、`.planning/baseline/*.md`、`.planning/reviews/*.md` 或 `docs/developer_architecture.md` 冲突，以后者为准；本文件不得反向充当当前治理真源。
 
-## 1. Mapping Sources
+## Test Framework
 
-本次测试映射综合了以下真源：
+**Runner:**
+- `pytest` with config in `pyproject.toml`.
+- Async support comes from `pytest-asyncio`; Home Assistant integration fixtures come from `pytest-homeassistant-custom-component`.
+- Snapshot coverage uses `syrupy`; performance lanes use `pytest-benchmark`; coverage gates use `pytest-cov` plus `scripts/coverage_diff.py`.
 
-- `AGENTS.md`
-- `pyproject.toml`
-- `.pre-commit-config.yaml`
-- `.github/workflows/ci.yml`
-- `.github/workflows/release.yml`
-- `README.md`
-- `CONTRIBUTING.md`
-- `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`
-- `docs/developer_architecture.md`
-- `.planning/baseline/ARCHITECTURE_POLICY.md`
-- `.planning/baseline/VERIFICATION_MATRIX.md`
-- `.planning/reviews/FILE_MATRIX.md`
-- `.planning/reviews/RESIDUAL_LEDGER.md`
-- `tests/**/*.py`
-- `tests/fixtures/**/README.md`
+**Assertion Library:**
+- Plain `pytest` assertions, `pytest.raises`, `AsyncMock`/`MagicMock` checks from `unittest.mock`, and `syrupy` snapshots in `tests/snapshots/test_api_snapshots.py`.
 
-## 2. Executive Snapshot
+**Run Commands:**
+```bash
+uv run pytest -q
+uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro --cov-fail-under=95 --cov-report=json --cov-report=xml --cov-report=term-missing
+./scripts/lint --full
+```
 
-- 测试栈完整：`pytest`、`pytest-asyncio`、`pytest-cov`、`pytest-homeassistant-custom-component`、`pytest-benchmark`、`syrupy`、`mypy`、`xdist` 全部进入 dev 依赖。证据：`pyproject.toml:33`。
-- CI 把质量拆成 `lint`、`governance`、`security`、`test`、`benchmark`、`validate` 六道门，release 先复用 CI，再做版本校验与打包。证据：`.github/workflows/ci.yml:22`, `.github/workflows/release.yml:25`, `tests/meta/test_governance_guards.py:185`。
-- 当前仓库共有 `287` 个 `test_*.py` 文件；其中 `44` 个 meta guard、`5` 个 integration、`4` 个 benchmark、`4` 个 snapshot 文件；另有 `5` 个 fixture family readme 维护 authority/用途说明。
-- Coverage gate 是硬门槛：主测试 job 以 `95%` 为下限，snapshot coverage 已包含在主 `tests/` lane 中；`coverage_diff.py` 默认执行 floor-only check，只有显式提供 baseline 才会产出 diff；benchmark 则作为 baseline-governed artifact lane 产出 `.benchmarks/benchmark.json`，并区分 threshold warning 与 no-regression gate。证据：`.github/workflows/ci.yml:177`, `CONTRIBUTING.md:94`。
-- `Phase 55` 已把 `test_api_command_surface.py`、`test_transport_runtime.py`、`test_{light,fan,select,switch}.py` 收敛成 thin shell，并引入 `16` 个 named topic files，failure localization 直接落到 command/response、MQTT lifecycle/subscription、以及各平台 model/behavior concern。
-- 本轮继续把 `tests/core/api/test_api_device_surface.py` 与 `tests/core/api/test_api_transport_and_schedule.py` 收窄成 thin shell roots，并引入按 device-status / mesh-group / connect-status / outlet-power / optional-capability / MQTT-config / schedule concern 划分的 sibling suites；显式根入口保持不变，但 API 回归的编辑与定位半径继续缩小。
-- `Phase 59` 再把 `tests/meta/{test_public_surface_guards.py,test_governance_phase_history.py,test_governance_followup_route.py}` 收窄成 thin shell roots，并引入 `9` 个 named truth-family modules；同时让 `tests/core/test_device_refresh.py` 退场，由 `tests/core/test_device_refresh_{parsing,filter,snapshot,runtime}.py` 承接 focused verification。
-- `Phase 60` 再把 `scripts/check_file_matrix.py` 收窄成 thin checker root，并引入 `scripts/check_file_matrix_inventory.py`、`scripts/check_file_matrix_registry.py`、`scripts/check_file_matrix_markdown.py` 与 `scripts/check_file_matrix_validation.py`；同时把 `tests/meta/test_toolchain_truth.py` 收窄成 thin daily root，并引入 `tests/meta/toolchain_truth_python_stack.py`、`tests/meta/toolchain_truth_release_contract.py`、`tests/meta/toolchain_truth_docs_fast_path.py`、`tests/meta/toolchain_truth_ci_contract.py`、`tests/meta/toolchain_truth_testing_governance.py` 与 `tests/meta/toolchain_truth_checker_paths.py`，daily command 仍保持单入口。
-- `Phase 74` 再把 `tests/core/test_share_client.py` 与 `tests/core/coordinator/runtime/test_command_runtime.py` 收窄成 thin shell roots，并引入 `tests/core/test_share_client_{boundary,primitives,refresh,submit,support}.py` 与 `tests/core/coordinator/runtime/test_command_runtime_{builder_retry,confirmation,orchestration,sender,support}.py`；full collection 继续只保留单入口，同时 mixed explicit collection 也避免重复收集。
-- 当前治理层再把 `tests/meta/test_dependency_guards.py` 与 `tests/meta/test_governance_milestone_archives.py` 收窄成 thin shell roots，并引入 `dependency_guards_*` / `governance_milestone_archives_*` sibling modules；daily runnable entrypoints 保持不变，但 failure localization 与 merge-conflict 半径继续下降。
-- 本轮再把 `tests/meta/test_governance_phase_history_topology.py` 收窄成 thin shell root，并引入 `governance_phase_history_topology_{foundations,execution,closeouts}.py`；phase-history 仍保持单入口可执行，但 archived-route / closeout / promoted-asset drift 现已分落到更窄的 concern 家族。
-- repo-wide typing truth 现按 `production_any`、`production_type_ignore`、`tests_any_non_meta`、`meta_guard_any_literals`、`meta_support_any`、`tests_type_ignore` 与 `meta_guard_type_ignore_literals` 分桶叙述；production no-growth 继续保持 hard fail。
+## Test File Organization
 
-## 3. 测试分层图谱
+**Location:**
+- Tests live in a dedicated `tests/` tree, not beside production files.
+- Current topology is broad and intentional: `tests/core`, `tests/services`, `tests/flows`, `tests/platforms`, `tests/entities`, `tests/meta`, `tests/integration`, `tests/snapshots`, `tests/benchmarks`, `tests/harness`, and `tests/fixtures`.
+- Repository counts from current scanning: `367` Python files under `tests`, `291` runnable `test_*.py` files, `48` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
 
-| 分层 | 目录 | 角色 | 证据 |
-|---|---|---|---|
-| 核心单测 | `tests/core/**` | 运行时、协议、设备域、MQTT、OTA、telemetry 等局部行为验证 | `docs/developer_architecture.md:513`, `tests/core/test_exceptions.py:18`, `tests/core/api/test_protocol_contract_matrix.py:1` |
-| 实体/平台层 | `tests/entities/**`, `tests/platforms/**` | HA projection、描述符、平台规则与边界行为 | `docs/developer_architecture.md:516` |
-| Flow / 生命周期 | `tests/flows/**` | `config_flow`、reauth、reconfigure、options 流程 | `docs/developer_architecture.md:517`, `CONTRIBUTING.md:85` |
-| 服务层 | `tests/services/**` | service router、registry、diagnostics/share 等控制面契约 | `AGENTS.md:243`, `tests/services/test_service_resilience.py:264` |
-| Integration | `tests/integration/**` | replay harness、MQTT coordinator、AI evidence pack 等 assurance mainline | `tests/integration/test_protocol_replay_harness.py:46`, `tests/integration/test_ai_debug_evidence_pack.py:21`, `tests/integration/test_mqtt_coordinator_integration.py:143` |
-| Snapshot | `tests/snapshots/**` | 稳定输出面快照：API contract、device facade、coordinator public surface | `tests/snapshots/test_api_snapshots.py:42`, `tests/snapshots/test_coordinator_public_snapshots.py:13`, `tests/snapshots/test_device_snapshots.py:34` |
-| Benchmark | `tests/benchmarks/**` | 性能 smoke + correctness 守护，覆盖 command/device refresh/MQTT/coordinator hotspots | `tests/benchmarks/test_command_benchmark.py:8`, `tests/benchmarks/test_device_refresh_benchmark.py:8`, `tests/benchmarks/test_mqtt_benchmark.py:10`, `tests/benchmarks/test_coordinator_performance.py:55` |
-| Meta guards | `tests/meta/**` | 架构依赖、public surface、governance inventory/release/phase-history、版本同步、外部边界 authority，与 milestone closeout/archive/handoff 守卫 | `tests/meta/dependency_guards_policy.py:1`, `tests/meta/public_surface_architecture_policy.py:1`, `tests/meta/test_governance_guards.py:1`, `tests/meta/test_governance_release_contract.py:1`, `tests/meta/governance_phase_history_current_milestones.py:1`, `tests/meta/test_governance_phase_history_runtime.py:1`, `tests/meta/test_governance_phase_history_topology.py:1`, `tests/meta/test_phase50_rest_typed_budget_guards.py:1` |
-| Harness / fixtures | `tests/harness/**`, `tests/fixtures/**` | replay/evidence pack 基础设施与正式测试真源 | `tests/fixtures/api_contracts/README.md:5`, `tests/fixtures/protocol_replay/README.md:7`, `tests/fixtures/evidence_pack/README.md:3` |
+**Naming:**
+- Use `test_*.py` everywhere.
+- Keep thin roots stable and push detailed concerns into sibling files, e.g. `tests/meta/test_dependency_guards.py` re-exports `tests/meta/dependency_guards_*.py`, and `tests/core/api/test_protocol_contract_matrix.py` remains a thin anchor while fixtures and adjacent suites carry the real protocol contract detail.
 
-## 4. Fixture 与测试数据策略
+**Structure:**
+```text
+tests/
+├── conftest.py
+├── core/
+├── services/
+├── flows/
+├── platforms/
+├── entities/
+├── meta/
+├── integration/
+├── snapshots/
+├── benchmarks/
+├── fixtures/
+└── harness/
+```
 
-- `tests/conftest.py` 是主 fixture 入口：`make_device()` 统一生成 `LiproDevice`，`_CoordinatorDouble` 提供只读设备表面与 protocol doubles，避免每个测试文件各造一套 coordinator fake。证据：`tests/conftest.py:76`, `tests/conftest.py:113`。
-- `tests/conftest_shared.py` 承接 API-shaped payload builder 与 runtime helper，例如 `make_api_device()`、`make_device_page()`、`refresh_and_sync_devices()`。证据：`tests/conftest_shared.py:15`, `tests/conftest_shared.py:61`, `tests/conftest_shared.py:73`。
-- fixture 目录不是“素材堆”，而是 authority contract：
-  - `api_contracts/` 保存高漂移 REST 边界金样本。证据：`tests/fixtures/api_contracts/README.md:5`。
-  - `protocol_boundary/` 保存 replay-ready decoder family fixtures。证据：`tests/fixtures/protocol_boundary/README.md:5`。
-  - `protocol_replay/` 只记录 scenario manifest，authority payload 必须引用正式真源，不得复制第二份 payload。证据：`tests/fixtures/protocol_replay/README.md:7`。
-  - `external_boundaries/` 保存 support/share/firmware 等外部边界样本。证据：`tests/fixtures/external_boundaries/README.md:1`。
-  - `evidence_pack/` 规定 AI evidence pack 只能 pull 正式真源，且严禁泄露 token / secret / `password_hash`。证据：`tests/fixtures/evidence_pack/README.md:3`。
-- 这套 fixture/readme 结构与北极星“authority 单一真源”一致，避免 contract、replay、diagnostics 各自维护分叉样本。证据：`AGENTS.md:126`, `.planning/baseline/ARCHITECTURE_POLICY.md:21`, `tests/core/api/test_protocol_contract_matrix.py:345`。
-- `scripts/*.py` 与 `tests.*` 的耦合已被显式裁决为受限 helper-only / pull-only 边界：`scripts/check_architecture_policy.py` 只允许 pull `tests/helpers/{architecture_policy,ast_guard_utils}.py`；`scripts/export_ai_debug_evidence_pack.py` 只允许 pull `tests/harness/evidence_pack/*`。除此之外，新增 `scripts/*.py -> tests.*` 依赖前必须同步更新治理守卫与本图谱说明。
+## Test Structure
 
-## 5. Meta Guards 与治理门禁
+**Suite Organization:**
+```python
+"""Thin shell for topicized dependency-guard suites."""
 
-- dependency guards 从 baseline 规则表派生，并用 AST/import 扫描阻止 entity/control 绕过正式边界。证据：`tests/meta/dependency_guards_policy.py:1`, `.planning/baseline/ARCHITECTURE_POLICY.md:31`。
-- public-surface guards 把 allowed/forbidden exports 固化为断言，防止 compat shell、backdoor property、legacy naming 回流。证据：`tests/meta/public_surface_architecture_policy.py:1`, `tests/meta/public_surface_runtime_contracts.py:1`, `.planning/baseline/ARCHITECTURE_POLICY.md:48`。
-- governance guards 现已进一步 topicize：`test_governance_guards.py` 承接 inventory / policy truth，`test_governance_release_contract.py` 承接 CI/release/productization 合同，`governance_phase_history_{archive_execution,mid_closeouts,current_milestones}.py` 与 `governance_followup_route_{continuation,closeouts,current_milestones}.py` 共同承接 phase-history / route truth。证据：`tests/meta/test_governance_guards.py:1`, `tests/meta/test_governance_release_contract.py:1`, `tests/meta/governance_phase_history_current_milestones.py:1`, `tests/meta/governance_followup_route_current_milestones.py:1`。
-- `Phase 75` 新增 `test_phase75_access_mode_honesty_guards.py` 与 `test_phase75_governance_closeout_guards.py` 两个 focused suites：前者冻结 private-access docs / metadata honesty，后者冻结 promoted evidence allowlist、Phase 75 exit contract 与 current-route closeout-ready truth。
-- pre-push 不是跑全量，而是挑“最容易把治理打穿”的诊断三测 + governance 三测。证据：`.pre-commit-config.yaml:31`, `.pre-commit-config.yaml:43`, `CONTRIBUTING.md:80`。
-- CI governance job 先跑 policy/file-matrix checker，再跑 meta guards，形成 fail-fast。证据：`.github/workflows/ci.yml:61`, `.github/workflows/ci.yml:82`, `.planning/baseline/ARCHITECTURE_POLICY.md:38`。
+from .dependency_guards_policy import *
+from .dependency_guards_protocol_contracts import *
+from .dependency_guards_review_ledgers import *
+from .dependency_guards_service_runtime import *
+```
 
-## 6. Snapshot / Integration / Benchmark 策略
+**Patterns:**
+- Use topicized suites to keep failure localization narrow. This pattern appears in `tests/meta/test_dependency_guards.py`, `tests/meta/test_governance_milestone_archives.py`, and multiple API/runtime roots described in the planning baselines.
+- Prefer explicit fixture-driven setup over ad-hoc inline state creation. `tests/conftest.py` remains the main shared fixture home and also manages thin-shell collection rules.
+- Keep async tests as plain `async def test_*` functions; current scanning finds `367` async tests, matching the repo's async integration style.
+- Use file-reading assertions for governance/docs/workflow truth instead of mocking the filesystem. Example: `tests/meta/test_governance_release_contract.py` reads `.github/workflows/*.yml`, `CONTRIBUTING.md`, and governance docs directly.
 
-### 6.1 Snapshot
+## Mocking
 
-- 快照故意做窄而稳：当前 `tests/snapshots/` 只有 `4` 个文件、`5` 个测试，用来锁定 API typed payload、protocol contract baseline、device facade 与 coordinator public snapshot。证据：`tests/snapshots/test_api_snapshots.py:42`, `tests/snapshots/test_api_snapshots.py:67`, `tests/snapshots/test_device_facade_snapshot.py:10`, `tests/snapshots/test_coordinator_public_snapshots.py:13`。
-- 快照不承担“覆盖一切”的职责，而是服务于高价值、序列化稳定的 public surfaces。证据：`.github/workflows/ci.yml:188`。
+**Framework:** `unittest.mock`.
 
-### 6.2 Integration
+**Patterns:**
+```python
+with patch("custom_components.lipro.config_flow.LiproProtocolFacade", autospec=True) as mock_client_class:
+    mock_client = mock_client_class.return_value
+    mock_client.login = AsyncMock(return_value={"access_token": "test_access_token"})
+```
 
-- integration 层不是打真实云，而是验证 formal path 是否串起来：replay harness 走 `LiproProtocolFacade`/boundary path，AI evidence pack 走 exporter/harness formal truth，MQTT coordinator 走 mocked transport + real coordinator wiring。证据：`tests/integration/test_protocol_replay_harness.py:46`, `tests/integration/test_ai_debug_evidence_pack.py:21`, `tests/integration/test_mqtt_coordinator_integration.py:143`, `tests/fixtures/protocol_replay/README.md:9`。
-- replay harness 不只验 canonical output，还校验 telemetry alignment 与 structured run summary。证据：`tests/integration/test_protocol_replay_harness.py:74`, `tests/integration/test_protocol_replay_harness.py:94`。
+- Mock Home Assistant adapters, protocol façades, auth managers, and coordinator seams; examples live in `tests/conftest.py`, `tests/core/test_init.py`, and `tests/flows/test_options_flow.py`.
+- Keep governance truth tests mostly unmocked. Files such as `tests/meta/dependency_guards_protocol_contracts.py` and `tests/meta/toolchain_truth_docs_fast_path.py` read repository files directly to catch real drift.
 
-### 6.3 Benchmark
+**What to Mock:**
+- Home Assistant services and config entry interactions.
+- Protocol and auth collaborators (`LiproProtocolFacade`, auth managers, MQTT façade seams).
+- Coordinator side effects and network responses.
 
-- benchmark 覆盖 command classification、device property update、MQTT message processing、identity index / device runtime hotspot，并且大多附带 correctness assertion。证据：`tests/benchmarks/test_command_benchmark.py:8`, `tests/benchmarks/test_device_refresh_benchmark.py:8`, `tests/benchmarks/test_mqtt_benchmark.py:10`, `tests/benchmarks/test_coordinator_performance.py:55`。
-- benchmark job 默认只在 `schedule` / `workflow_dispatch` 运行，不阻塞普通 PR，但 lane 内已经执行 baseline compare、threshold warning 与 no-regression gate。证据：`.github/workflows/ci.yml:206`, `CONTRIBUTING.md:98`。
+**What NOT to Mock:**
+- Fixture truth in `tests/fixtures/api_contracts`, `tests/fixtures/protocol_boundary`, `tests/fixtures/protocol_replay`, and `tests/fixtures/evidence_pack`.
+- Docs/workflow/governance files in `tests/meta`, because those suites intentionally validate the committed files themselves.
 
-## 7. Bright Spots
+## Fixtures and Factories
 
-- **CI / docs / pre-commit 三方口径一致**：贡献文档、pre-push 钩子、CI workflow、governance guards 写的是同一套命令组与门禁顺序。证据：`.pre-commit-config.yaml:31`, `.github/workflows/ci.yml:61`, `CONTRIBUTING.md:89`, `tests/meta/test_governance_guards.py:213`。
-- **架构治理已经测试化**：不是“写了 ADR 就算完成”，而是 `dependency/public-surface/governance/version-sync` 都能在 PR 上自动阻断回退。证据：`tests/meta/dependency_guards_policy.py:1`, `tests/meta/public_surface_runtime_contracts.py:1`, `tests/meta/test_governance_guards.py:127`, `.github/workflows/ci.yml:88`。
-- **fixture authority 意识很强**：contract / replay / evidence pack / external boundary 都有 README 解释“为什么存在、谁是 owner、不能复制什么”。证据：`tests/fixtures/api_contracts/README.md:30`, `tests/fixtures/protocol_replay/README.md:7`, `tests/fixtures/evidence_pack/README.md:3`。
-- **诊断与脱敏回归被前移到 pre-push**：相比只靠全量 CI，这能更早发现支持面泄密或快照漂移。证据：`.pre-commit-config.yaml:31`, `tests/core/test_diagnostics_config_entry.py:204`, `tests/core/test_diagnostics_redaction.py:1`, `tests/core/test_diagnostics_device.py:1`。
-- **coverage gate 很硬**：主测试 job 把 `95%` 作为底线，并额外跑 coverage diff 与 refactor smoke，减少“大改后回归网破洞”的概率。证据：`.github/workflows/ci.yml:177`, `.github/workflows/ci.yml:191`, `.github/workflows/ci.yml:194`。
+**Test Data:**
+```python
+@pytest.fixture
+def make_device():
+    def _make(kind: str = "light", **overrides: Any) -> Any:
+        from custom_components.lipro.core.device import LiproDevice
+        return LiproDevice(...)
+    return _make
+```
 
-## 8. Gaps 与改进空间
+- Shared factories and doubles live in `tests/conftest.py`, including `make_device`, `_CoordinatorDouble`, `mock_lipro_api_client`, and `mock_auth_manager`.
+- Fixture README files explain authority and ownership instead of letting payloads become folklore: `tests/fixtures/api_contracts/README.md`, `tests/fixtures/protocol_boundary/README.md`, `tests/fixtures/protocol_replay/README.md`, and `tests/fixtures/evidence_pack/README.md`.
 
-- **pytest marker registry 已 truthfully 退场**：`pyproject.toml` 不再声明 dead markers；当前套件切分主要靠目录与 CI lane，而不是伪选择器。证据：`pyproject.toml:73`, `tests/meta/test_toolchain_truth.py:268`。
-- **benchmark 不是 PR hard gate，但已是受治理的独立 lane**：CI 只在 `schedule` / `workflow_dispatch` 跑 benchmark，并输出 `.benchmarks/benchmark.json` artifact；lane 内会对 baseline manifest 做比对，threshold warning 只提供维护者信号，failure threshold 则触发 no-regression gate。证据：`.github/workflows/ci.yml:206`, `.github/workflows/ci.yml:228`。
-- **coverage diff 语义已显式化**：CI 调用 `scripts/coverage_diff.py` 时会同时传 `--minimum 95`、`--changed-files .coverage-changed-files` 与 `--changed-minimum 95`，因此 blocking contract 是 total floor + changed measured files floor；只有显式提供 baseline 文件时才比较“相对退步”。证据：`.github/workflows/ci.yml:222`, `scripts/coverage_diff.py:46`。
-- 上述测试文件统计与 scripts/tests 边界由 `tests/meta/test_toolchain_truth.py`、`tests/meta/test_public_surface_guards.py` 与 `tests/meta/test_evidence_pack_authority.py` 显式守护；新增测试目录或 helper-only / pull-only 例外时，必须同步刷新本图谱。
-- **工具依赖有前瞻性，但尚未 fully exploited**：`pytest-mypy-plugins` 与 `pytest-xdist` 已进入 dev 依赖，但仓库内没有对应 type-checking plugin case，也未在 CI 中并行运行测试。证据：`pyproject.toml:45`, `pyproject.toml:46`, `.github/workflows/ci.yml:177`。
-- **快照覆盖仍然很克制**：这有利于稳定，但 control-plane 输出、服务响应体、evidence-pack markdown index 等仍主要依赖常规断言，而非 snapshot 守护。证据：`tests/snapshots/test_api_snapshots.py:42`, `tests/integration/test_ai_debug_evidence_pack.py:21`。
+**Location:**
+- Shared fixtures: `tests/conftest.py`
+- Fixture payloads: `tests/fixtures/**`
+- Reusable harness helpers: `tests/harness/**`
+- Small utility helpers: `tests/helpers/**`
 
-## 9. Current Minimal Suite Guidance
+## Coverage
 
-- Protocol / API / boundary 变更：先跑 `tests/core/api/**` + `tests/snapshots/test_api_snapshots.py`。证据：`AGENTS.md:233`, `docs/developer_architecture.md:513`。
-- Unified protocol root / MQTT 变更：加跑 `tests/core/mqtt/**` + `tests/integration/test_mqtt_coordinator_integration.py`。证据：`AGENTS.md:236`, `docs/developer_architecture.md:515`。
-- Control-plane / flow / services 变更：至少覆盖 `tests/core/test_control_plane.py`、`tests/core/test_init*.py`、`tests/core/test_init_runtime_bootstrap.py`、`tests/core/test_init_service_handlers*.py`、`tests/core/test_diagnostics*.py`、`tests/core/test_system_health.py`、`tests/services/**`、`tests/flows/**`；若改动 governance phase-history closeout，还应补跑 `tests/meta/test_governance_phase_history*.py`。证据：`AGENTS.md:243`, `CONTRIBUTING.md:85`。
-- 架构/治理/public-surface 变更：先跑 meta guards，再跑全量。证据：`AGENTS.md:246`, `CONTRIBUTING.md:95`, `.github/workflows/ci.yml:88`。
-- Tooling / file-governance / docs fast-path 变更：至少覆盖 `uv run python scripts/check_file_matrix.py --check` 与 `uv run pytest -q tests/meta/test_toolchain_truth.py tests/meta/toolchain_truth_ci_contract.py`；thin checker root 与 thin daily root 继续承担 outward single-home，registry truth families 与 focused toolchain guards 负责 concern-local truth。
-- Milestone closeout / archive / handoff 真相变更：至少覆盖 `tests/meta/test_governance*.py`（其中应包含 `tests/meta/test_governance_bootstrap_smoke.py`、`tests/meta/test_governance_promoted_phase_assets.py`、`tests/meta/test_governance_followup_route.py`、`tests/meta/governance_followup_route_current_milestones.py`、`tests/meta/test_governance_milestone_archives.py`、`tests/meta/test_governance_closeout_guards.py`、`tests/meta/test_governance_route_handoff_smoke.py`、`tests/meta/test_governance_release_contract.py`、`tests/meta/test_governance_release_docs.py`、`tests/meta/test_governance_release_continuity.py` 与 `tests/meta/test_phase88_governance_quality_freeze_guards.py`）以及 `tests/meta/test_toolchain_truth.py`，并同步 `FILE_MATRIX.md` / `TESTING.md` / `VERIFICATION_MATRIX.md`。
-- 性能相关改动：只在性能是需求的一部分时追加 benchmark；若运行 benchmark，应同时检查 baseline manifest compare、threshold warning 与 no-regression gate 结果。证据：`CONTRIBUTING.md:98`, `.github/workflows/ci.yml:206`。
+**Requirements:**
+- Total coverage floor is `95%` in `.github/workflows/ci.yml`, `scripts/lint`, and `CONTRIBUTING.md`.
+- Changed-surface coverage floor is also `95%` via `scripts/coverage_diff.py` and `.coverage-changed-files`.
+- Snapshot coverage is folded into the main `tests/` lane; benchmark coverage is deliberately excluded from the blocking test lane.
+- Typing-budget governance remains part of the testing story: `production_any`, `production_type_ignore`, `tests_any_non_meta`, `meta_guard_any_literals`, `meta_support_any`, `tests_type_ignore`, and `meta_guard_type_ignore_literals` stay documented in `.planning/baseline/VERIFICATION_MATRIX.md` and must remain explainable from this testing map.
+
+**View Coverage:**
+```bash
+uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro --cov-fail-under=95 --cov-report=json --cov-report=xml --cov-report=term-missing
+uv run python scripts/coverage_diff.py coverage.json --minimum 95 --changed-files .coverage-changed-files --changed-minimum 95
+uv run python scripts/refactor_tools.py --coverage-json coverage.json --minimum-coverage 95
+```
+
+## Test Types
+
+**Unit Tests:**
+- Most behavior tests live in `tests/core`, `tests/services`, `tests/flows`, `tests/platforms`, and `tests/entities`.
+- These suites mirror the production planes and adapters instead of mixing every concern into one directory.
+
+**Integration Tests:**
+- Integration-style tests live in `tests/integration`, including MQTT coordinator behavior, headless consumer proof, telemetry exporter, replay harness, and AI evidence pack flows.
+
+**E2E Tests:**
+- Full UI/browser E2E is not used.
+- The closest equivalents are Home Assistant integration tests plus repository validation jobs such as Hassfest/HACS validation in `.github/workflows/ci.yml`.
+
+**Governance / Meta Tests:**
+- `tests/meta` is a first-class layer, not a sidecar. It validates architecture guards, docs routing, workflow contracts, version sync, promoted phase assets, and governance current-truth rules.
+- Focused guards such as `tests/meta/test_phase89_tooling_decoupling_guards.py` keep script-owned helper truth local to `scripts/check_architecture_policy.py` while `tests/helpers/*` stay thin consumers.
+- If you change docs, workflows, release contracts, planning truth, or architecture ledgers, add or update meta tests rather than relying only on runtime assertions.
+
+**Performance Tests:**
+- Benchmarks live in `tests/benchmarks`, use `@pytest.mark.benchmark`, and are governed by `tests/benchmarks/benchmark_baselines.json` plus `scripts/check_benchmark_baseline.py`.
+- CI only runs benchmarks on `schedule` or `workflow_dispatch`; the benchmark lane is governed but not part of normal PR blocking.
+
+## CI and Quality Gates
+
+**CI lanes:**
+- `lint` runs Ruff, formatter check, mypy, translations, and shellcheck from `.github/workflows/ci.yml`.
+- `governance` runs `scripts/check_architecture_policy.py`, `scripts/check_file_matrix.py`, and focused `tests/meta` guards.
+- `security` exports runtime requirements and runs blocking runtime `pip-audit`; dev-environment audit is advisory only on scheduled/manual runs.
+- `test` runs the full non-benchmark suite with coverage, changed-surface coverage checks, and `scripts/refactor_tools.py`.
+- `benchmark` and `compatibility_preview` are schedule/manual-only lanes.
+- `release` reuses `ci.yml` first, then adds tagged security, CodeQL, smoke install, SBOM, attestation, signing, and signature verification in `.github/workflows/release.yml`.
+
+**Pre-commit / local gates:**
+- `.pre-commit-config.yaml` mirrors the same contract family with local Ruff, mypy, translations, architecture/file-matrix scripts, focused diagnostics tests, and governance guards.
+- `scripts/lint` is the closest local umbrella entrypoint; default mode skips pytest/governance, while `--full` mirrors the heavy CI path.
+
+## Common Patterns
+
+**Async Testing:**
+```python
+@pytest.mark.asyncio
+async def test_protocol_contract_baseline_snapshots(snapshot: SnapshotAssertion) -> None:
+    ...
+    assert {"mqtt_config": ..., "get_city": ..., "query_user_cloud": ...} == snapshot
+```
+
+**Error Testing:**
+```python
+with pytest.raises(ServiceValidationError):
+    await service_call(...)
+```
+
+- `pytest.raises` appears heavily across the suite; current grep count is `208` occurrences.
+- Parametrization is used, but selectively (`46` occurrences), so new table-driven coverage should usually land in targeted concern files rather than giant omnibus tests.
+
+## Recommendations
+
+- Prefer adding new assertions to concern-local sibling suites instead of enlarging current hotspots such as `tests/conftest.py`, `tests/core/test_auth.py`, `tests/core/api/test_api_status_service.py`, `tests/platforms/test_light_entity_behavior.py`, or `tests/services/test_services_diagnostics.py`.
+- When changing workflows, docs routes, release semantics, or governance truth, add or update `tests/meta/*` in the same patch; this repo treats docs and CI contracts as testable behavior.
+- When changing protocol payloads or replay behavior, update the owning fixture README and the fixture-backed tests together so authority stays explicit.
+- Keep benchmark edits inside `tests/benchmarks` plus `benchmark_baselines.json`; do not mix performance-only assertions into the main blocking suite unless the behavior is a correctness concern.
+
+---
+
+*Testing analysis: 2026-03-27*

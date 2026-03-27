@@ -25,12 +25,12 @@
   "support": {
     "diagnostics_first": true,
     "developer_report_optional": true,
-    "usage_route": "docs/TROUBLESHOOTING.md -> GitHub Discussions",
-    "bug_route": "GitHub Issues",
+    "usage_route": "docs/TROUBLESHOOTING.md -> SUPPORT.md",
+    "bug_route": "docs/TROUBLESHOOTING.md -> SUPPORT.md -> GitHub Issues (conditional)",
     "security_route": "SECURITY.md",
     "maintainer_release_route": "docs/MAINTAINER_RELEASE_RUNBOOK.md",
     "documentation_route": "docs/README.md",
-    "feature_route": "GitHub Discussions (preferred) / feature_request issue form"
+    "feature_route": "SUPPORT.md -> GitHub Discussions (conditional) / feature_request issue form"
   },
   "release": {
     "identity_artifacts": [

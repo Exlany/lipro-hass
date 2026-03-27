@@ -13,10 +13,6 @@ _PUBLIC_SURFACES = _ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md"
 _RULES = load_targeted_bans(_ROOT)
 
 _ALLOWED_SCRIPT_TEST_IMPORT_PREFIXES = {
-    "scripts/check_architecture_policy.py": (
-        "tests.helpers.architecture_policy",
-        "tests.helpers.ast_guard_utils",
-    ),
     "scripts/export_ai_debug_evidence_pack.py": ("tests.harness.evidence_pack",),
 }
 

@@ -13,13 +13,17 @@ from custom_components.lipro.core.coordinator.factory import (
 )
 from custom_components.lipro.core.coordinator.runtime_wiring import (
     CoordinatorServiceLayer,
+    CoordinatorSupportServices,
 )
 from custom_components.lipro.core.coordinator.services import (
+    CoordinatorAuthService,
     CoordinatorCommandService,
     CoordinatorDeviceRefreshService,
     CoordinatorMqttService,
     CoordinatorPollingService,
+    CoordinatorProtocolService,
     CoordinatorScheduleService,
+    CoordinatorSignalService,
     CoordinatorStateService,
     CoordinatorTelemetryService,
 )
@@ -63,9 +67,19 @@ class TestCoordinatorRuntimeRoot:
                 MagicMock(name="telemetry_service"),
             ),
         )
+        support_services = CoordinatorSupportServices(
+            auth_service=cast("CoordinatorAuthService", MagicMock(name="auth_service")),
+            protocol_service=cast(
+                "CoordinatorProtocolService", MagicMock(name="protocol_service")
+            ),
+            signal_service=cast(
+                "CoordinatorSignalService", MagicMock(name="signal_service")
+            ),
+        )
         artifact = CoordinatorBootstrapArtifact(
             state=state,
             runtimes=runtimes,
+            support_services=support_services,
             service_layer=service_layer,
             update_cycle=update_cycle,
         )
@@ -82,14 +96,14 @@ class TestCoordinatorRuntimeRoot:
             )
 
         assert build_bootstrap.call_count == 1
-        assert build_bootstrap.call_args.kwargs["signal_service"] is coordinator.signal_service
-        assert (
-            build_bootstrap.call_args.kwargs["protocol_service"]
-            is coordinator.protocol_service
-        )
+        assert "signal_service" not in build_bootstrap.call_args.kwargs
+        assert "protocol_service" not in build_bootstrap.call_args.kwargs
         assert build_bootstrap.call_args.kwargs["polling_updater"] is coordinator
         assert coordinator._state is state
         assert coordinator._runtimes is runtimes
+        assert coordinator.auth_service is support_services.auth_service
+        assert coordinator.protocol_service is support_services.protocol_service
+        assert coordinator.signal_service is support_services.signal_service
         assert coordinator.command_service is service_layer.command_service
         assert coordinator.mqtt_service is service_layer.mqtt_service
         assert coordinator.state_service is service_layer.state_service
@@ -242,7 +256,21 @@ class TestCoordinatorRuntimeRoot:
 
         assert device is not None
         assert coordinator.get_device_by_id(serial) is device
-        assert coordinator.get_device_lock(serial) is coordinator.get_device_lock(serial)
+
+        await coordinator.async_apply_optimistic_state(device, {"powerState": "1"})
+        assert device.properties["powerState"] == "1"
+
+        coordinator.protocol.query_ota_info = AsyncMock(return_value=[])
+        await coordinator.async_query_device_ota_info(
+            device,
+            allow_rich_v2_fallback=False,
+        )
+        coordinator.protocol.query_ota_info.assert_awaited_once_with(
+            device_id=serial,
+            device_type=device.device_type_hex,
+            iot_name=device.iot_name or None,
+            allow_rich_v2_fallback=False,
+        )
 
     @pytest.mark.asyncio
     async def test_apply_properties_update_skips_stale_pending_values(

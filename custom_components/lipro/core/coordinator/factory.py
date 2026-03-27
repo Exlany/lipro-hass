@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     from ..device import LiproDevice
     from .entity_protocol import LiproEntityProtocol
     from .lifecycle import CoordinatorUpdateCycle
-    from .runtime_wiring import CoordinatorServiceLayer
+    from .runtime_wiring import CoordinatorServiceLayer, CoordinatorSupportServices
 
 
 def normalize_device_key(device_id: str) -> str:
@@ -66,5 +66,6 @@ class CoordinatorBootstrapArtifact:
 
     state: CoordinatorStateContainers
     runtimes: CoordinatorRuntimes
+    support_services: CoordinatorSupportServices
     service_layer: CoordinatorServiceLayer
     update_cycle: CoordinatorUpdateCycle

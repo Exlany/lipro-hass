@@ -25,7 +25,14 @@ _ROUTE_CONTRACT_PATHS = {
 PLANNING_ROUTE_CONTRACT: dict[str, object] = {
     "contract_version": 1,
     "contract_name": "governance-route",
-    "active_milestone": None,
+    "active_milestone": {
+        "version": "v1.24",
+        "name": "Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence",
+        "status": "active / Phase 89 complete (2026-03-27)",
+        "phase": "89",
+        "phase_title": "Runtime boundary tightening, tooling decoupling, and open-source entry convergence",
+        "phase_dir": "89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence",
+    },
     "latest_archived": {
         "version": "v1.23",
         "name": "Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze",
@@ -43,8 +50,9 @@ PLANNING_ROUTE_CONTRACT: dict[str, object] = {
         "evidence_path": ".planning/reviews/V1_22_EVIDENCE_INDEX.md",
     },
     "bootstrap": {
-        "current_route": "no active milestone route / latest archived baseline = v1.23",
-        "default_next_command": "$gsd-new-milestone",
+        "current_route": "v1.24 / Phase 89 complete",
+        "default_next_command": "$gsd-complete-milestone v1.24",
+        "active_prd": ".planning/phases/89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence/89-PRD.md",
         "latest_archived_evidence_pointer": ".planning/reviews/V1_23_EVIDENCE_INDEX.md",
     },
 }
@@ -145,7 +153,8 @@ if HAS_ACTIVE_MILESTONE:
     CURRENT_PHASE = _as_str(_ACTIVE["phase"])
     CURRENT_PHASE_TITLE = _as_str(_ACTIVE["phase_title"])
     CURRENT_PHASE_HEADING = f"### Phase {CURRENT_PHASE}: {CURRENT_PHASE_TITLE}"
-    CURRENT_ROUTE_MODE = _as_str(_ACTIVE["route_mode"])
+    route_mode = _ACTIVE.get("route_mode", CURRENT_ROUTE)
+    CURRENT_ROUTE_MODE = _as_str(route_mode)
 else:
     CURRENT_MILESTONE = LATEST_ARCHIVED_MILESTONE
     CURRENT_MILESTONE_NAME = LATEST_ARCHIVED_MILESTONE_NAME

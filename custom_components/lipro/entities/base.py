@@ -194,11 +194,22 @@ class LiproEntity(CoordinatorEntity[Any]):
         properties: list[dict[str, str]] | None = None,
     ) -> bool:
         """Dispatch one command through the formal runtime command surface."""
-        return await self.coordinator.command_service.async_send_command(
+        return await self.coordinator.async_send_command(
             self.device,
             command,
             properties,
         )
+
+    async def _async_apply_optimistic_state(
+        self,
+        optimistic_state: Mapping[str, object],
+    ) -> None:
+        """Apply optimistic state through the formal runtime state verb."""
+        await self.coordinator.async_apply_optimistic_state(
+            self.device,
+            optimistic_state,
+        )
+        self.async_write_ha_state()
 
     async def async_send_command(
         self,
@@ -226,10 +237,7 @@ class LiproEntity(CoordinatorEntity[Any]):
 
         # Apply optimistic state update immediately
         if optimistic_state:
-            device_lock = self.coordinator.get_device_lock(self.device.serial)
-            async with device_lock:
-                self.device.update_properties(optimistic_state)
-            self.async_write_ha_state()
+            await self._async_apply_optimistic_state(optimistic_state)
 
         success = await self._async_dispatch_runtime_command(
             command,
@@ -270,11 +278,7 @@ class LiproEntity(CoordinatorEntity[Any]):
 
         # Apply optimistic state update immediately (no debounce for UI feedback)
         if optimistic_state:
-            # Use the same lock mechanism as coordinator to prevent race conditions
-            device_lock = self.coordinator.get_device_lock(self.device.serial)
-            async with device_lock:
-                self.device.update_properties(optimistic_state)
-            self.async_write_ha_state()
+            await self._async_apply_optimistic_state(optimistic_state)
 
             # Set protection window to prevent coordinator from overwriting
             # these properties during slider drag

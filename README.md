@@ -10,9 +10,9 @@ Home Assistant integration for controlling Lipro Smart Home devices.
 
 Release trust signals: blocking CI + architecture/governance guards, CodeQL, SBOM/attestation/cosign-backed release pipeline, and explicit security/support fast paths.
 
-Docs fast path: start with `docs/README.md`, then follow the canonical docs-first route to `CONTRIBUTING.md`, `docs/TROUBLESHOOTING.md`, `SUPPORT.md`, and `SECURITY.md`.
+Docs first hop: start with `docs/README.md`, then route distribution / install guidance through the docs map, bug triage through `docs/TROUBLESHOOTING.md` → `SUPPORT.md`, and private disclosure through `SECURITY.md`.
 
-Access-mode note: this repository is currently private-access. The HACS / GitHub Releases / GitHub Issues / GitHub Discussions / GitHub Security Advisory routes mentioned below only apply when you already have repository access or when a future public mirror preserves the same contract.
+Access-mode note: this repository is currently private-access. GitHub Issues / Discussions / Releases / Security UI are conditional follow-up surfaces rather than the guaranteed first hop, so only use them when your current access mode exposes them or when a future public mirror preserves the same contract.
 
 ## Start Here
 
@@ -21,7 +21,7 @@ Access-mode note: this repository is currently private-access. The HACS / GitHub
 | User / evaluator | `docs/README.md` | Canonical docs map, bilingual boundary, and the shortest route to install / troubleshooting / support surfaces |
 | Contributor | `CONTRIBUTING.md` | Development setup, CI contract, PR expectations, and contributor workflow |
 | Architecture contributor | `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md` | Allowed change families, do-not-cross boundaries, evidence destinations, and focused validation guidance |
-| Support / bug reporter | `docs/TROUBLESHOOTING.md` → `SUPPORT.md` | Diagnostics-first troubleshooting and public routing |
+| Support / bug reporter | `docs/TROUBLESHOOTING.md` → `SUPPORT.md` | Diagnostics-first troubleshooting, then issue intake only when the route is actually visible |
 | Security reporter | `SECURITY.md` | Private disclosure route and security support contract |
 | Maintainer | `docs/MAINTAINER_RELEASE_RUNBOOK.md` | Maintainer-only release / rehearsal / custody appendix; not part of the public first hop |
 
@@ -395,7 +395,7 @@ This integration is implemented by reverse engineering the Lipro cloud API and i
 
 ## Contributing
 
-- Bug reports and pull requests: start with `CONTRIBUTING.md`; GitHub issue / PR templates apply when your current access mode exposes them
+- Bug reports and pull requests: start with `CONTRIBUTING.md`; for bugs, go `docs/TROUBLESHOOTING.md` → `SUPPORT.md` first, then use the GitHub bug form only when your current access mode exposes it
 - Usage questions and idea discussion: start with `SUPPORT.md`; use GitHub Discussions only when that route is visible in your current access mode or a future public mirror preserves it
 - Security issues: follow `SECURITY.md`; use the private GitHub advisory UI first only when it is reachable in your current access mode
 - Community expectations: `CODE_OF_CONDUCT.md`

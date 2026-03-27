@@ -16,7 +16,7 @@ _TESTING_MAP = _ROOT / ".planning" / "codebase" / "TESTING.md"
 
 
 _TESTING_COUNTS_RE = re.compile(
-    r"当前仓库共有 `(?P<total>\d+)` 个 `test_\*\.py` 文件；其中 `(?P<meta>\d+)` 个 meta guard、`(?P<integration>\d+)` 个 integration、`(?P<benchmark>\d+)` 个 benchmark、`(?P<snapshot>\d+)` 个 snapshot 文件；另有 `(?P<fixture_readmes>\d+)` 个 fixture family readme"
+    r"Repository counts from current scanning: `\d+` Python files under `tests`, `(?P<total>\d+)` runnable `test_\*\.py` files, `(?P<meta>\d+)` meta suites, `(?P<integration>\d+)` integration suites, `(?P<snapshot>\d+)` snapshot suites, `(?P<benchmark>\d+)` benchmark suites, and `(?P<fixture_readmes>\d+)` fixture family READMEs\."
 )
 
 
@@ -53,23 +53,16 @@ def test_testing_map_counts_and_script_boundary_notes_match_repo_facts() -> None
     documented = {key: int(value) for key, value in match.groupdict().items()}
     assert documented == _count_testing_inventory()
     assert "scripts/check_architecture_policy.py" in testing_text
-    assert "scripts/export_ai_debug_evidence_pack.py" in testing_text
-    assert "tests/core/test_init_service_handlers*.py" in testing_text
-    assert "tests/core/test_init_runtime_bootstrap.py" in testing_text
-    assert "tests/meta/test_governance_phase_history_runtime.py" in testing_text
-    assert "tests/meta/test_governance_phase_history_topology.py" in testing_text
-    assert "tests/meta/test_governance_closeout_guards.py" in testing_text
-    assert "tests/meta/test_governance_promoted_phase_assets.py" in testing_text
-    assert "tests/meta/test_governance_followup_route.py" in testing_text
+    assert "scripts/check_file_matrix.py" in testing_text
+    assert "tests/conftest.py" in testing_text
+    assert "tests/core/test_init.py" in testing_text
+    assert "tests/meta/test_dependency_guards.py" in testing_text
     assert "tests/meta/test_governance_milestone_archives.py" in testing_text
-    assert "helper-only / pull-only" in testing_text
-    assert "tests/meta/test_toolchain_truth.py" in testing_text
-    assert "scripts/check_file_matrix_inventory.py" in testing_text
-    assert "scripts/check_file_matrix_validation.py" in testing_text
-    assert "tests/meta/toolchain_truth_python_stack.py" in testing_text
-    assert "tests/meta/toolchain_truth_checker_paths.py" in testing_text
-    assert "thin checker root" in testing_text
-    assert "thin daily root" in testing_text
+    assert "tests/meta/test_governance_release_contract.py" in testing_text
+    assert "tests/meta/toolchain_truth_docs_fast_path.py" in testing_text
+    assert "tests/meta/test_phase89_tooling_decoupling_guards.py" in testing_text
+    assert "script-owned helper truth" in testing_text
+    assert "focused `tests/meta` guards" in testing_text
 
 
 

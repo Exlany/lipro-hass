@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.23
-milestone_name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
-current_phase: null
-status: archived
-last_updated: "2026-03-27T14:07:09.000Z"
+milestone: v1.24
+milestone_name: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
+current_phase: '89'
+status: complete
+last_updated: "2026-03-27T17:45:00.000Z"
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 14
-  completed_plans: 14
+  total_phases: 1
+  completed_phases: 1
+  total_plans: 4
+  completed_plans: 4
 ---
 
 # Project State
@@ -18,22 +18,28 @@ progress:
 
 See: `.planning/PROJECT.md`
 
-**Current milestone:** `No active milestone route`
-**Core value:** `v1.23` 已成为 latest archived baseline；当前任务从“继续收口旧问题”切换为“以归档证据为单一可信起点，显式启动下一条正式路线”，避免再把历史 closeout 误写成 active work。
-**Current mode:** `no active milestone route / latest archived baseline = v1.23`
+**Current milestone:** `v1.24 Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence`
+**Core value:** 以 `v1.23` archived baseline 为唯一可信起点，把本轮全仓终审确认的 boundary leakage、runtime dual-wiring、tooling coupling 与 open-source entry drift 收口到单一 north-star 主链，不让归档后的“非阻塞问题”重新堆回 active story。
+**Current mode:** `v1.24 / Phase 89 complete`
 
 ## Current Position
 
-- `Phase 85 -> 88` 已完成 terminal audit、production residual closeout、assurance hotspot no-regrowth freeze 与 governance sync / quality proof / milestone freeze；当前 live governance truth 已切换为 `no active milestone route / latest archived baseline = v1.23`。
-- latest archived baseline 固定为 `v1.23`；latest archived evidence index 继续是 `.planning/reviews/V1_23_EVIDENCE_INDEX.md`；`v1.22` 继续承担 previous archived baseline。
-- 默认下一步已切换到 `$gsd-new-milestone`；`$gsd-next` 应直接收口到下一里程碑初始化，而不是继续复写 `v1.23` closeout story。
-- `.planning/v1.23-MILESTONE-AUDIT.md`、`.planning/reviews/V1_23_EVIDENCE_INDEX.md`、`.planning/milestones/v1.23-ROADMAP.md` 与 `.planning/milestones/v1.23-REQUIREMENTS.md` 现共同承担 latest archived baseline 的 pull-only closeout bundle。
+- `v1.24` 已从 `v1.23` archived baseline 启动 fresh route；当前 active phase = `Phase 89`，状态 = `complete`。
+- 本轮 route 的核心输入来自 `.planning/reviews/V1_23_TERMINAL_AUDIT.md` 与 refreshed `.planning/codebase/{ARCHITECTURE,STRUCTURE,STACK,INTEGRATIONS,CONVENTIONS,TESTING,CONCERNS}.md`，重点收敛 entity/runtime/protocol boundary honesty、runtime wiring single-root、tooling helper home 与 open-source entry consistency。
+- latest archived baseline 仍固定为 `v1.23`；latest archived evidence index = `.planning/reviews/V1_23_EVIDENCE_INDEX.md`；`v1.22` 继续承担 previous archived baseline。
+- 默认下一步已切换到 `$gsd-complete-milestone v1.24`；`$gsd-next` 应直接收口到当前里程碑的 closeout / archive 路由，而不是继续停留在 planning-ready story。
 
 <!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone: null
+active_milestone:
+  version: v1.24
+  name: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
+  status: active / Phase 89 complete (2026-03-27)
+  phase: '89'
+  phase_title: Runtime boundary tightening, tooling decoupling, and open-source entry convergence
+  phase_dir: 89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence
 latest_archived:
   version: v1.23
   name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
@@ -49,11 +55,22 @@ previous_archived:
   name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
   evidence_path: .planning/reviews/V1_22_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.23
-  default_next_command: $gsd-new-milestone
+  current_route: v1.24 / Phase 89 complete
+  default_next_command: $gsd-complete-milestone v1.24
+  active_prd: .planning/phases/89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence/89-PRD.md
   latest_archived_evidence_pointer: .planning/reviews/V1_23_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
+
+## Active Milestone (v1.24)
+
+- **Milestone:** `v1.24 Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence`
+- **Active phase:** `Phase 89`
+- **Status:** `Phase 89 complete (2026-03-27)`
+- **Starting baseline:** `.planning/v1.23-MILESTONE-AUDIT.md`, `.planning/reviews/V1_23_EVIDENCE_INDEX.md`, `.planning/milestones/v1.23-ROADMAP.md`, `.planning/milestones/v1.23-REQUIREMENTS.md`
+- **Planning input:** `.planning/phases/89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence/89-PRD.md`
+- **Audit inputs:** `.planning/reviews/V1_23_TERMINAL_AUDIT.md`, `.planning/codebase/{ARCHITECTURE,STRUCTURE,STACK,INTEGRATIONS,CONVENTIONS,TESTING,CONCERNS}.md`
+- **Default next command:** `$gsd-complete-milestone v1.24`
 
 ## Latest Archived Milestone (v1.23)
 

@@ -7,7 +7,13 @@
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone: null
+active_milestone:
+  version: v1.24
+  name: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
+  status: active / Phase 89 complete (2026-03-27)
+  phase: '89'
+  phase_title: Runtime boundary tightening, tooling decoupling, and open-source entry convergence
+  phase_dir: 89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence
 latest_archived:
   version: v1.23
   name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
@@ -23,13 +29,23 @@ previous_archived:
   name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
   evidence_path: .planning/reviews/V1_22_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.23
-  default_next_command: $gsd-new-milestone
+  current_route: v1.24 / Phase 89 complete
+  default_next_command: $gsd-complete-milestone v1.24
+  active_prd: .planning/phases/89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence/89-PRD.md
   latest_archived_evidence_pointer: .planning/reviews/V1_23_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
 
+## Active Milestone (v1.24)
+
+- **Milestone:** `v1.24 Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence`
+- **Active phase:** `Phase 89`
+- **Status:** `Phase 89 complete (2026-03-27)`
+- **Starting baseline:** `.planning/v1.23-MILESTONE-AUDIT.md`, `.planning/reviews/V1_23_EVIDENCE_INDEX.md`, `.planning/milestones/v1.23-ROADMAP.md`, `.planning/milestones/v1.23-REQUIREMENTS.md`
+- **Planning input:** `.planning/phases/89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence/89-PRD.md`
+- **Audit inputs:** `.planning/reviews/V1_23_TERMINAL_AUDIT.md`, `.planning/codebase/{ARCHITECTURE,STRUCTURE,STACK,INTEGRATIONS,CONVENTIONS,TESTING,CONCERNS}.md`
+- **Default next command:** `$gsd-complete-milestone v1.24`
 
 ## v1.23 Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze (Shipped: 2026-03-27; Closeout: 2026-03-27)
 

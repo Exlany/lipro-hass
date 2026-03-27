@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 from collections.abc import Mapping
 from datetime import timedelta
 import logging
@@ -19,17 +18,13 @@ from .lifecycle import (
     async_shutdown as coordinator_async_shutdown,
 )
 from .orchestrator import RuntimeOrchestrator
-from .services import (
-    CoordinatorAuthService,
-    CoordinatorCommandService,
-    CoordinatorProtocolService,
-    CoordinatorSignalService,
-)
+from .services import CoordinatorCommandService
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
 
+    from ..api.types import OtaInfoRow
     from ..auth import LiproAuthManager
     from ..device import LiproDevice
     from .entity_protocol import LiproEntityProtocol
@@ -85,34 +80,12 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             logger=_LOGGER,
         )
 
-        # Build state containers
-        self._state = orchestrator.build_state_containers()
-
-        # Formal runtime service surfaces
-        self.auth_service = CoordinatorAuthService(
-            hass=hass,
-            auth_manager=auth_manager,
-            config_entry=config_entry,
-        )
-        self.protocol_service = CoordinatorProtocolService(
-            protocol_getter=lambda: self.protocol,
-        )
-
-        self.signal_service = CoordinatorSignalService(
-            telemetry_service_getter=lambda: self.telemetry_service,
-            device_refresh_service_getter=lambda: self.device_refresh_service,
-        )
-
         bootstrap = orchestrator.build_bootstrap_artifact(
-            signal_service=self.signal_service,
-            protocol_service=self.protocol_service,
             get_device_by_id=self._get_device_by_id,
             apply_properties_update=self._apply_properties_update,
             schedule_listener_update=self._schedule_listener_update,
             request_refresh=self.async_request_refresh,
-            trigger_reauth=self.auth_service.async_trigger_reauth,
             is_mqtt_connected=self._is_mqtt_connected,
-            ensure_authenticated=self.auth_service.async_ensure_authenticated,
             async_setup_mqtt=self.async_setup_mqtt,
             replace_devices=self._replace_devices,
             publish_updated_data=self.async_set_updated_data,
@@ -124,6 +97,9 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         )
         self._state = bootstrap.state
         self._runtimes = bootstrap.runtimes
+        self.auth_service = bootstrap.support_services.auth_service
+        self.protocol_service = bootstrap.support_services.protocol_service
+        self.signal_service = bootstrap.support_services.signal_service
         self.command_service = bootstrap.service_layer.command_service
         self.mqtt_service = bootstrap.service_layer.mqtt_service
         self.state_service = bootstrap.service_layer.state_service
@@ -240,20 +216,6 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
 
         self._runtimes.state.unregister_entity_instance(entity)
 
-    def get_device_lock(self, device_serial: str) -> asyncio.Lock:
-        """Get the lock for a specific device.
-
-        This allows entities to use the same lock as the coordinator
-        for device property updates, preventing race conditions.
-
-        Args:
-            device_serial: Device serial number
-
-        Returns:
-            Lock for the device
-        """
-        return self.state_service.get_device_lock(device_serial)
-
     async def async_send_command(
         self,
         device: LiproDevice,
@@ -286,6 +248,37 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             raise ConfigEntryAuthFailed(reauth_reason)
 
         return False
+
+    async def async_apply_optimistic_state(
+        self,
+        device: LiproDevice,
+        properties: Mapping[str, object],
+    ) -> None:
+        """Apply one optimistic property projection using runtime-owned locking."""
+        if not properties:
+            return
+
+        device_lock = self.state_service.get_device_lock(device.serial)
+        async with device_lock:
+            device.update_properties(dict(properties))
+
+    async def async_query_device_ota_info(
+        self,
+        device: LiproDevice,
+        *,
+        allow_rich_v2_fallback: bool | None = None,
+    ) -> list[OtaInfoRow]:
+        """Query OTA metadata for one device through the formal runtime verb."""
+        return await self.protocol_service.async_query_ota_info(
+            device_id=device.serial,
+            device_type=device.device_type_hex,
+            iot_name=device.iot_name or None,
+            allow_rich_v2_fallback=(
+                device.capabilities.is_light
+                if allow_rich_v2_fallback is None
+                else allow_rich_v2_fallback
+            ),
+        )
 
     async def async_refresh_devices(self) -> dict[str, LiproDevice]:
         """Force a full device snapshot refresh and publish the latest state."""
