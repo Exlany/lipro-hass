@@ -204,3 +204,25 @@ def test_quality_scale_and_devcontainer_truth_are_in_sync() -> None:
     vscode = _as_mapping(customizations["vscode"])
     settings = _as_mapping(vscode["settings"])
     assert _as_str(settings["python.defaultInterpreterPath"]).endswith("/.venv/bin/python")
+
+
+
+def test_maintainer_appendix_routes_to_latest_archived_evidence_without_polluting_public_first_hop() -> None:
+    docs_readme_text = _DOCS_README.read_text(encoding="utf-8")
+    readme_text = _README.read_text(encoding="utf-8")
+    readme_zh_text = _README_ZH.read_text(encoding="utf-8")
+
+    for token in (
+        "docs/MAINTAINER_RELEASE_RUNBOOK.md",
+        "latest archived evidence index",
+        "archived milestone audit",
+        "maintainer appendix",
+    ):
+        assert token in docs_readme_text
+
+    assert ".planning/reviews/V1_21_EVIDENCE_INDEX.md" not in docs_readme_text
+    assert ".planning/v1.21-MILESTONE-AUDIT.md" not in docs_readme_text
+    assert ".planning/reviews/V1_21_EVIDENCE_INDEX.md" not in readme_text
+    assert ".planning/reviews/V1_21_EVIDENCE_INDEX.md" not in readme_zh_text
+    assert ".planning/v1.21-MILESTONE-AUDIT.md" not in readme_text
+    assert ".planning/v1.21-MILESTONE-AUDIT.md" not in readme_zh_text

@@ -317,6 +317,13 @@ phases:
   - 81-SUMMARY.md
   - 81-VERIFICATION.md
   - 81-VALIDATION.md
+  82-release-operations-closure-and-evidence-chain-formalization:
+  - 82-01-SUMMARY.md
+  - 82-02-SUMMARY.md
+  - 82-03-SUMMARY.md
+  - 82-SUMMARY.md
+  - 82-VERIFICATION.md
+  - 82-VALIDATION.md
 ---
 
 # Promoted Phase Assets

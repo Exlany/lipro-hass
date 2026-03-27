@@ -74,6 +74,8 @@ Current access-mode truth: this repository is private-access. GitHub-hosted Issu
   Maintainer-only release, rehearsal, and custody appendix; not part of the public first hop.
 - `.planning/baseline/GOVERNANCE_REGISTRY.json`：registry-backed maintainer routing / rehearsal metadata，会投影到 contributor docs 与 GitHub templates 以降低 drift。  
   Registry-backed maintainer routing / rehearsal metadata projected into contributor docs and GitHub templates to reduce drift.
+- **Archived evidence route / 归档证据路由**：latest archived evidence index 与 archived milestone audit 继续由 `docs/MAINTAINER_RELEASE_RUNBOOK.md` 维护；docs index 只保留 maintainer appendix reachability，不直接暴露 internal governance paths。  
+  The latest archived evidence index and archived milestone audit stay routed through `docs/MAINTAINER_RELEASE_RUNBOOK.md`; the docs index keeps appendix reachability without exposing internal governance paths directly.
 - **Package semver / 包版本真源**：release-compatible package version 必须同步于 `pyproject.toml`、`custom_components/lipro/manifest.json` 与 `custom_components/lipro/const/base.py`。  
   Release/package semver must stay synchronized across `pyproject.toml`, `custom_components/lipro/manifest.json`, and `custom_components/lipro/const/base.py`.
 - **Internal governance milestones / 内部治理里程碑**：`.planning` 中的 `v1.20`、`Phase 74` 之类标识只表示内部治理路线，不表示 package release semver，也不能替代 Git tag / package version。  

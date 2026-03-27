@@ -76,34 +76,34 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
 def test_gsd_fast_path_matches_current_active_route_story() -> None:
     progress = _run_gsd_tools('init', 'progress')
     phases = _as_mapping_list(progress['phases'])
-    phase_81 = next(phase for phase in phases if _as_str(phase['number']) == '81')
-    phase_81_plan_count = phase_81['plan_count']
-    phase_81_summary_count = phase_81['summary_count']
-    assert isinstance(phase_81_plan_count, int)
-    assert isinstance(phase_81_summary_count, int)
-    assert _as_str(phase_81['status']) == 'complete'
-    assert phase_81_plan_count == 3
-    assert phase_81_summary_count == 4
+    phase_82 = next(phase for phase in phases if _as_str(phase['number']) == '82')
+    phase_82_plan_count = phase_82['plan_count']
+    phase_82_summary_count = phase_82['summary_count']
+    assert isinstance(phase_82_plan_count, int)
+    assert isinstance(phase_82_summary_count, int)
+    assert _as_str(phase_82['status']) == 'complete'
+    assert phase_82_plan_count == 3
+    assert phase_82_summary_count == 4
     next_phase = _as_mapping(progress['next_phase'])
-    assert _as_str(next_phase['number']) == '82'
+    assert _as_str(next_phase['number']) == '83'
 
     state = _run_gsd_tools('state', 'json')
     assert _as_str(state['milestone']) == CURRENT_MILESTONE
     assert _as_str(state['status']) == 'active'
     assert _as_mapping(state['progress']) == {
         'total_phases': '4',
-        'completed_phases': '1',
+        'completed_phases': '2',
         'total_plans': '12',
-        'completed_plans': '3',
+        'completed_plans': '6',
     }
     assert progress['phase_count'] == len(phases)
-    assert progress['completed_count'] == 1
+    assert progress['completed_count'] == 2
     assert progress['current_phase'] is None
 
-    phase_index = _run_gsd_tools('phase-plan-index', '81')
-    assert _as_str(phase_index['phase']) == '81'
+    phase_index = _run_gsd_tools('phase-plan-index', '82')
+    assert _as_str(phase_index['phase']) == '82'
     plans = _as_mapping_list(phase_index['plans'])
-    assert [ _as_str(plan['id']) for plan in plans ] == ['81-01', '81-02', '81-03']
+    assert [ _as_str(plan['id']) for plan in plans ] == ['82-01', '82-02', '82-03']
     assert all(_as_bool(plan['has_summary']) for plan in plans)
     assert phase_index['incomplete'] == []
     assert _as_bool(phase_index['has_checkpoints']) is False
@@ -152,4 +152,22 @@ def test_phase_80_closeout_assets_are_promoted_without_planning_traces() -> None
         '80-SUMMARY.md',
         '80-VERIFICATION.md',
         '80-VALIDATION.md',
+    )
+    _assert_promoted_phase_assets(
+        '81-contributor-onramp-route-convergence-and-public-entry-contract',
+        '81-01-SUMMARY.md',
+        '81-02-SUMMARY.md',
+        '81-03-SUMMARY.md',
+        '81-SUMMARY.md',
+        '81-VERIFICATION.md',
+        '81-VALIDATION.md',
+    )
+    _assert_promoted_phase_assets(
+        '82-release-operations-closure-and-evidence-chain-formalization',
+        '82-01-SUMMARY.md',
+        '82-02-SUMMARY.md',
+        '82-03-SUMMARY.md',
+        '82-SUMMARY.md',
+        '82-VERIFICATION.md',
+        '82-VALIDATION.md',
     )

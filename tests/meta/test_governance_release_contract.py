@@ -333,3 +333,38 @@ def test_preview_lane_and_release_identity_keep_stable_contract_separate() -> No
         assert "schedule" in lowered
         assert "workflow_dispatch" in lowered
         assert "advisory" in lowered
+
+
+
+def test_runbook_docs_appendix_and_changelog_share_single_release_story() -> None:
+    runbook_text = _RUNBOOK.read_text(encoding="utf-8")
+    docs_readme_text = (_ROOT / "docs" / "README.md").read_text(encoding="utf-8")
+    changelog_text = (_ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+
+    for token in (
+        ".planning/reviews/V1_21_EVIDENCE_INDEX.md",
+        ".planning/v1.21-MILESTONE-AUDIT.md",
+        "CHANGELOG.md",
+    ):
+        assert token in runbook_text
+
+    for token in (
+        "docs/MAINTAINER_RELEASE_RUNBOOK.md",
+        "latest archived evidence index",
+        "archived milestone audit",
+        "not part of the public first hop",
+    ):
+        assert token in docs_readme_text
+
+    assert ".planning/reviews/V1_21_EVIDENCE_INDEX.md" not in docs_readme_text
+    assert ".planning/v1.21-MILESTONE-AUDIT.md" not in docs_readme_text
+
+    for token in (
+        "CI reuse",
+        "CodeQL",
+        "SBOM",
+        "cosign",
+        "release identity",
+        "compatibility preview",
+    ):
+        assert token in changelog_text

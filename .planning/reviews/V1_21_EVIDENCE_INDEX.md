@@ -2,14 +2,14 @@
 
 **Purpose:** 为 `v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation` 提供机器友好的 `archived / evidence-ready` closeout 入口，集中索引 bootstrap truth activation、governance guard topicization、route-handoff quality gates、governance-tooling hotspot decomposition，以及 typing closure / final meta-suite topicization 的正式证据指针。
 **Status:** Pull-only archived closeout index (`archived / evidence-ready`)
-**Updated:** 2026-03-26
+**Updated:** 2026-03-27
 
 ## Pull Contract
 
 - 本文件只索引正式真源、promoted phase closeout bundles、milestone audit 与 archive snapshots；它不是新的 authority source。
 - 后续任何新 milestone 都必须从这里 pull `v1.21` 已登记证据，不得重新扫描仓库拼装第二套 closeout / governance 故事。
 - `.planning/v1.21-MILESTONE-AUDIT.md` 是 `v1.21` 的 verdict home；`.planning/milestones/v1.21-ROADMAP.md` 与 `.planning/milestones/v1.21-REQUIREMENTS.md` 只保留历史快照，不反向定义未来 active story。
-- `Phase 76 / 77 / 78 / 79 / 80` 的 closeout bundles 已通过 `.planning/reviews/PROMOTED_PHASE_ASSETS.md` 成为长期治理 / CI evidence；`v1.21` closeout 后，当前治理状态固定为 `no active milestone route / latest archived baseline = v1.21`，下一条正式路线只能通过 `$gsd-new-milestone` 显式建立。
+- `Phase 76 / 77 / 78 / 79 / 80` 的 closeout bundles 已通过 `.planning/reviews/PROMOTED_PHASE_ASSETS.md` 成为长期治理 / CI evidence；在 `v1.21` closeout 当时，archived-only route truth 固定为 `no active milestone route / latest archived baseline = v1.21`，后续 active route 必须改由 active planning governance-route contract family 单独承载。
 
 ## Evidence Families
 
@@ -33,4 +33,4 @@
 
 - latest archive-ready closeout pointer 现已提升到 `.planning/reviews/V1_21_EVIDENCE_INDEX.md`；`v1.20` 退为 previous archived baseline。
 - `archived / evidence-ready` 判断以 `.planning/v1.21-MILESTONE-AUDIT.md` 为 verdict home；本索引只负责把证据指针收在一起。
-- 当前治理状态为 `no active milestone route / latest archived baseline = v1.21`；下一条正式路线必须通过 `$gsd-new-milestone` 显式建立，而不是把 `Phase 80` execution truth 回写成新的 active route。
+- historical closeout route truth（`v1.21` archive promotion 当时）为 `no active milestone route / latest archived baseline = v1.21`，且下一步通过 `$gsd-new-milestone` 建立新 milestone；当前 active route 不由本索引定义。

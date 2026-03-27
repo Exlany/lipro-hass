@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🚧 **v1.22 Maintainer Entry Contracts, Release Operations Closure & Contributor Routing** - opened on 2026-03-27 from `v1.21` archived baseline; current phase = `81`; status: `planning-ready (2026-03-27)`; next step: `$gsd-discuss-phase 82`
+- 🚧 **v1.22 Maintainer Entry Contracts, Release Operations Closure & Contributor Routing** - opened on 2026-03-27 from `v1.21` archived baseline; current phase = `82`; status: `Phase 82 complete (2026-03-27)`; next step: `$gsd-discuss-phase 83`
 - ✅ **v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation** - `Phase 76 -> 80` archived on 2026-03-26; milestone audit: `.planning/v1.21-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_21_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.21-ROADMAP.md` / `.planning/milestones/v1.21-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.21`
 - 🗂 **Historical archive snapshots** - `.planning/milestones/{v1.1-ROADMAP.md,v1.1-REQUIREMENTS.md,v1.2-ROADMAP.md,v1.2-REQUIREMENTS.md,v1.4-ROADMAP.md,v1.4-REQUIREMENTS.md,v1.5-ROADMAP.md,v1.5-REQUIREMENTS.md,v1.6-ROADMAP.md,v1.6-REQUIREMENTS.md,v1.12-ROADMAP.md,v1.12-REQUIREMENTS.md,v1.13-ROADMAP.md,v1.13-REQUIREMENTS.md,v1.14-ROADMAP.md,v1.14-REQUIREMENTS.md,v1.15-ROADMAP.md,v1.15-REQUIREMENTS.md,v1.16-ROADMAP.md,v1.16-REQUIREMENTS.md,v1.17-ROADMAP.md,v1.17-REQUIREMENTS.md}` 继续保留为 continuity / archive reference。
 
@@ -13,10 +13,10 @@ contract_name: governance-route
 active_milestone:
   version: v1.22
   name: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
-  status: Phase 81 complete (2026-03-27)
-  phase: "81"
-  phase_title: Contributor onramp route convergence and public entry contract
-  route_mode: Phase 81 complete
+  status: Phase 82 complete (2026-03-27)
+  phase: "82"
+  phase_title: Release operations closure and evidence-chain formalization
+  route_mode: Phase 82 complete
 latest_archived:
   version: v1.21
   name: Governance Bootstrap Truth Hardening & Planning Route Automation
@@ -32,8 +32,8 @@ previous_archived:
   name: Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
   evidence_path: .planning/reviews/V1_20_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.22 active route / Phase 81 complete / latest archived baseline = v1.21
-  default_next_command: $gsd-discuss-phase 82
+  current_route: v1.22 active route / Phase 82 complete / latest archived baseline = v1.21
+  default_next_command: $gsd-discuss-phase 83
   latest_archived_evidence_pointer: .planning/reviews/V1_21_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -41,10 +41,10 @@ bootstrap:
 ## v1.22: Maintainer Entry Contracts, Release Operations Closure & Contributor Routing
 
 **Milestone Goal:** 把 `v1.21` 已归档冻结的治理/证据链外化为 contributor / maintainer / release 一体化协作契约，统一入口叙事、发布证据链、intake 模板与 ownership / triage 路由。
-**Milestone status:** `Phase 81 complete (2026-03-27)`
+**Milestone status:** `Phase 82 complete (2026-03-27)`
 **Starting baseline:** `.planning/v1.21-MILESTONE-AUDIT.md`, `.planning/reviews/V1_21_EVIDENCE_INDEX.md`, `.planning/milestones/v1.21-ROADMAP.md`, `.planning/milestones/v1.21-REQUIREMENTS.md`
 **Requirements basket:** `GOV-60`, `OSS-10`, `DOC-08`, `ARC-21`, `GOV-61`, `OSS-11`, `TST-26`, `QLT-34`
-**Default next command:** `$gsd-discuss-phase 82`
+**Default next command:** `$gsd-discuss-phase 83`
 
 ### Phase 81: Contributor onramp route convergence and public entry contract
 
@@ -74,13 +74,15 @@ Plans:
   1. release / changelog / version-sync / archived evidence 只承认一条 maintainer-facing route，不再残留平行 runbook 或 helper folklore。
   2. governance docs、release workflow anchors 与 archived evidence pointer 对同一 milestone / version 讲同一条故事。
   3. maintainer runbook 明确何时查看 milestone audit、evidence index、version sync 与 release artifacts。
-**Status**: Planned
-**Plans**: 3 total / 0 completed / 3 pending
+**Status**: Complete (2026-03-27)
+**Plans**: 3 total / 3 completed / 0 pending
 
 Plans:
-- [ ] 82-01: align release runbook, changelog, version sync, and archived evidence pointers under one maintainer route
-- [ ] 82-02: harden release-facing docs and workflow anchors against parallel or stale release stories
-- [ ] 82-03: freeze release-operations truth across planning docs, governance helpers, and focused release guards
+- [x] 82-01: align release runbook, changelog, version sync, and archived evidence pointers under one maintainer route (completed 2026-03-27)
+- [x] 82-02: harden release-facing docs and workflow anchors against parallel or stale release stories (completed 2026-03-27)
+- [x] 82-03: freeze release-operations truth across planning docs, governance helpers, and focused release guards (completed 2026-03-27)
+**Focused evidence:** `.planning/phases/82-release-operations-closure-and-evidence-chain-formalization/{82-01-SUMMARY.md,82-02-SUMMARY.md,82-03-SUMMARY.md}`
+**Closeout evidence:** `.planning/phases/82-release-operations-closure-and-evidence-chain-formalization/{82-SUMMARY.md,82-VERIFICATION.md,82-VALIDATION.md}`
 
 ### Phase 83: Intake templates and maintainer stewardship contract
 

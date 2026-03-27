@@ -13,6 +13,7 @@
 - 设备诊断报告导出，并增强诊断脱敏相关测试覆盖。
 - `rest.device-list` / `rest.device-status` / `rest.mesh-group-status` 的 canonical boundary contracts 与 replay/contract fixtures。
 - `AuthSessionSnapshot` formal auth/session contract，供 `config_flow` / `entry_auth` / control adapters 统一消费。
+- 维护者附录现已显式指向 latest archived evidence index（`.planning/reviews/V1_21_EVIDENCE_INDEX.md`）与 archived milestone audit（`.planning/v1.21-MILESTONE-AUDIT.md`），保持 release pull-chain 单一路由。
 
 ### 变更（Changed）
 
@@ -31,6 +32,8 @@
 - `core/__init__.py` 不再导出 `Coordinator`；HA runtime-home public surface 固定为 `custom_components/lipro/coordinator_entry.py`。
 - control adapters 改为消费 formal auth/session/result contracts，而不是依赖 raw login dict shape。
 - governance / replay / meta guards 已同步到 `Phase 10 completed` 口径，future-host 叙事仅允许建立在 formal boundary/auth/device nucleus 之上。
+- maintainer-facing release route 现统一承认 `docs/README.md` maintainer appendix → `docs/MAINTAINER_RELEASE_RUNBOOK.md` → version-sync triad / tagged workflows / archived evidence pointer 的单一路径。
+- release notes 已补齐 CI reuse、tagged `pip-audit` / `CodeQL`、`SBOM` / attestation / `cosign` / release identity manifest、verify-only / non-publish rehearsal 与 compatibility preview advisory lane 的同一故事。
 
 ### 修复（Fixed）
 
@@ -47,6 +50,7 @@
 - 加固 bool-like coercion 的 debug 日志，避免记录原始异常值。
 - 加固敏感信息脱敏：覆盖国际化手机号与数值型 `user_id`/`biz_id`，并在 UI 中遮罩 reauth phone 占位符。
 - 减少状态兜底流程中冗余的全量 batch 重试，降低可重试批量失败时的重复 API 调用。
+- `v1.21` archived evidence index 与 milestone audit 不再冒充当前 active-route / default-next truth，历史 closeout 语态已退回 archive-only 身份。
 
 ## [1.0.0] - 2026-02-08
 
