@@ -1,46 +1,41 @@
-# Requirements: Lipro-HASS v1.25 Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
+# Requirements: Lipro-HASS v1.25 Archived Closeout Snapshot
 
-> `v1.25` 以 `v1.24` archived evidence 为起点，聚焦 runtime/protocol/control/entity hotspots、typed boundary debt 与 redaction drift；目标不是再做一次泛化审计，而是把这些高风险热点正式路由成 4 个可执行 phase。latest archived baseline 继续固定为 `v1.24`，latest archived evidence index = `.planning/reviews/V1_24_EVIDENCE_INDEX.md`。
+> `v1.25` 已于 `2026-03-28` 完成 archive-ready closeout；latest archived baseline 现固定为 `v1.25`，latest archived evidence index = `.planning/reviews/V1_25_EVIDENCE_INDEX.md`。本文件保留最新归档里程碑的 requirements / traceability / carry-forward notes，供下一里程碑直接 pull。
 
 <!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.25
   name: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
-  status: Phase 93 complete (2026-03-28)
+  status: archived / evidence-ready (2026-03-28)
   phase: '93'
   phase_title: Assurance topicization and quality freeze
   phase_dir: 93-assurance-topicization-and-quality-freeze
-  route_mode: v1.25 active route / Phase 93 complete / latest archived baseline = v1.24
-latest_archived:
-  version: v1.24
-  name: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
-  status: archived / evidence-ready (2026-03-27)
-  phase: '89'
-  phase_title: Runtime boundary tightening, tooling decoupling, and open-source entry convergence
-  phase_dir: 89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence
-  audit_path: .planning/v1.24-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_24_EVIDENCE_INDEX.md
+  audit_path: .planning/v1.25-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_25_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.23
-  name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
-  evidence_path: .planning/reviews/V1_23_EVIDENCE_INDEX.md
+  version: v1.24
+  name: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
+  evidence_path: .planning/reviews/V1_24_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.25 active route / Phase 93 complete / latest archived baseline = v1.24
-  default_next_command: $gsd-complete-milestone v1.25
-  latest_archived_evidence_pointer: .planning/reviews/V1_24_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.25
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_25_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
-## Current Milestone (v1.25)
+## Latest Archived Milestone (v1.25)
 
-**Milestone Goal:** 把热点拆薄、类型边界收紧与脱敏契约统一成单一 north-star 路线，并为后续 archive promotion 预先铺好 guardable proof。
-**Milestone status:** `Phase 93 complete (2026-03-28)`
-**Latest archived baseline:** `v1.24`
-**Default next command:** `$gsd-complete-milestone v1.25`
+**Milestone Goal:** 把热点拆薄、类型边界收紧与脱敏契约统一成单一 north-star 路线，并把最终 assurance freeze 归档为可长期复用的 baseline。
+**Milestone status:** `archived / evidence-ready (2026-03-28)`
+**Latest archived baseline:** `v1.25`
+**Default next command:** `$gsd-new-milestone`
+**Archive assets:** `.planning/v1.25-MILESTONE-AUDIT.md`, `.planning/reviews/V1_25_EVIDENCE_INDEX.md`, `.planning/milestones/v1.25-ROADMAP.md`, `.planning/milestones/v1.25-REQUIREMENTS.md`
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.25`
 
 ### Hotspot Inward Decomposition
 
@@ -55,9 +50,9 @@ bootstrap:
 
 - [x] **SEC-01**: `custom_components/lipro/core/utils/redaction.py` 现已成为 shared redaction contract / registry；`custom_components/lipro/control/redaction.py`、`custom_components/lipro/core/anonymous_share/sanitize.py`、`custom_components/lipro/core/telemetry/{json_payloads.py,exporter.py}` 统一复用该真源，未知 secret-like 字段默认 fail-closed。
 - [x] **TST-29**: `tests/core/api/test_api_status_service.py`、`tests/core/api/test_api_command_surface_responses.py`、`tests/platforms/test_light_entity_behavior.py`、`tests/services/test_services_diagnostics.py` 现已保持 thin shell / sibling-suite topology，并为 redaction/topicization drift 补 focused regressions 与 closeout guards。
-- [x] **QLT-37**: touched scope 必须通过 typing、focused pytest、governance scripts 与必要的 microbenchmark / hotspot budget 守卫；`.planning/codebase/*`、baseline/review docs 与 current-route truth 必须同步冻结新的拓扑和质量故事。
+- [x] **QLT-37**: touched scope 已通过 typing、focused pytest、governance scripts、`tests/meta` 与 full-suite proof；`.planning/codebase/*`、baseline/review docs 与 closeout truth 现已同步冻结新的拓扑和质量故事。
 
-## Traceability for current v1.25 route
+## Traceability for archived v1.25 route
 
 | Requirement | Planned Phase | Status |
 |-------------|---------------|--------|
@@ -75,20 +70,20 @@ bootstrap:
 - Current pending: 0
 - Current unmapped: 0 ✓
 
-## Future Requirements (Deferred)
+## Carry-Forward Notes (Deferred to next milestone)
 
-- [ ] Open-source continuity / delegate / private-access governance 的进一步 formalization 保持 deferred；本里程碑只在 touched docs/metadata 上做必要同步，不重开 `v1.22 -> v1.24` 已收口的 route story。
-- [ ] `outlet_power` legacy side-car fallback 的最终物理删除 deferred 到形成零命中 /零写回证据之后执行。
+- [ ] 开源 continuity / delegate / private-access governance 的进一步 formalization 继续 deferred；下一里程碑若触达协作入口，再从 `v1.25` archived bundle 拉起。
+- [ ] `outlet_power` legacy side-car fallback 的最终物理删除仍需基于零命中 / 零写回证据执行，不在本轮 closeout 内强推。
 
 ## Out of Scope
 
-- 新设备能力或面向终端用户的新功能；本里程碑只处理现有拓扑内的结构债与验证债。
-- 重写 archived evidence bundle 或重新定义 `v1.24` closeout 结论；它仍是 latest archived baseline。
+- 新设备能力或面向终端用户的新功能；`v1.25` 只处理现有拓扑内的结构债与验证债。
+- 重写 archived evidence bundle 或重开 `v1.24` closeout 结论；它现已退为 previous archived baseline。
 - 新建第二控制面、第二协议根、第二运行根，或以“为了拆分”名义扩张 public surface。
 
-## Latest Archived Milestone (v1.24)
+## Previous Archived Milestone (v1.24)
 
-> `v1.24` 已于 `2026-03-27` 完成 archive promotion；以下 requirements / traceability 保留 `Phase 89` 的最终 fulfilled contract，归档快照见 `.planning/milestones/v1.24-REQUIREMENTS.md`，审计裁决见 `.planning/v1.24-MILESTONE-AUDIT.md`，证据索引见 `.planning/reviews/V1_24_EVIDENCE_INDEX.md`；historical closeout route truth = `no active milestone route / latest archived baseline = v1.24`。
+> `v1.24` 已于 `2026-03-27` 完成 archive promotion；以下 requirements / traceability 保留 `Phase 89` 的最终 fulfilled contract，归档快照见 `.planning/milestones/v1.24-REQUIREMENTS.md`，审计裁决见 `.planning/v1.24-MILESTONE-AUDIT.md`，证据索引见 `.planning/reviews/V1_24_EVIDENCE_INDEX.md`；historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.24`。
 
 ### Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
 

@@ -368,6 +368,30 @@ phases:
   - 89-04-SUMMARY.md
   - 89-VERIFICATION.md
   - 89-VALIDATION.md
+  90-hotspot-routing-freeze-and-formal-home-decomposition-map:
+  - 90-01-SUMMARY.md
+  - 90-02-SUMMARY.md
+  - 90-03-SUMMARY.md
+  - 90-VERIFICATION.md
+  - 90-VALIDATION.md
+  91-protocol-runtime-decomposition-and-typed-boundary-hardening:
+  - 91-01-SUMMARY.md
+  - 91-02-SUMMARY.md
+  - 91-03-SUMMARY.md
+  - 91-VERIFICATION.md
+  - 91-VALIDATION.md
+  92-control-entity-thin-boundary-and-redaction-convergence:
+  - 92-01-SUMMARY.md
+  - 92-02-SUMMARY.md
+  - 92-03-SUMMARY.md
+  - 92-VERIFICATION.md
+  - 92-VALIDATION.md
+  93-assurance-topicization-and-quality-freeze:
+  - 93-01-SUMMARY.md
+  - 93-02-SUMMARY.md
+  - 93-03-SUMMARY.md
+  - 93-VERIFICATION.md
+  - 93-VALIDATION.md
 ---
 
 # Promoted Phase Assets

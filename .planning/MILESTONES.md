@@ -7,35 +7,55 @@
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.25
   name: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
-  status: Phase 93 complete (2026-03-28)
+  status: archived / evidence-ready (2026-03-28)
   phase: '93'
   phase_title: Assurance topicization and quality freeze
   phase_dir: 93-assurance-topicization-and-quality-freeze
-  route_mode: v1.25 active route / Phase 93 complete / latest archived baseline = v1.24
-latest_archived:
-  version: v1.24
-  name: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
-  status: archived / evidence-ready (2026-03-27)
-  phase: '89'
-  phase_title: Runtime boundary tightening, tooling decoupling, and open-source entry convergence
-  phase_dir: 89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence
-  audit_path: .planning/v1.24-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_24_EVIDENCE_INDEX.md
+  audit_path: .planning/v1.25-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_25_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.23
-  name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
-  evidence_path: .planning/reviews/V1_23_EVIDENCE_INDEX.md
+  version: v1.24
+  name: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
+  evidence_path: .planning/reviews/V1_24_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.25 active route / Phase 93 complete / latest archived baseline = v1.24
-  default_next_command: $gsd-complete-milestone v1.25
-  latest_archived_evidence_pointer: .planning/reviews/V1_24_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.25
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_25_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
+
+## v1.25 Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence (Shipped: 2026-03-28; Closeout: 2026-03-28)
+
+**Phase range:** `90 -> 93`
+**Phases completed:** 4 phases, 12 plans, 0 tasks
+**Status:** archived / evidence-ready
+**Route truth:** latest archived evidence index = `.planning/reviews/V1_25_EVIDENCE_INDEX.md`
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.25`
+
+**Key accomplishments:**
+- 把五个 hotspots 与四个 outward shells 的正式归属冻结到 planning、baseline、review 与 derived maps，formal home / delete gate / shell 身份不再依赖口头共识。
+- 将 protocol live path 收敛到 `LiproProtocolFacade` 的 canonical boundary truth，runtime 只消费标准化 contract，不再混用 raw payload 与重复归一化故事。
+- 把 typed-boundary、decode result、schema registry、runtime telemetry 与 trace 收口到共享 typed spine，明显压缩 `Any` 漂移与 payload alias 残留。
+- 把 diagnostics、anonymous-share、telemetry 的脱敏真相统一到 shared redaction registry，并在同一轮修复最后 9 个 full-suite regressions。
+- 用 topicized sibling suites、route smokes、`FILE_MATRIX` / `TESTING.md` / `VERIFICATION_MATRIX.md` 同步与 repo-wide quality gates 完成 assurance freeze。
+
+**Closeout assets:**
+- `.planning/v1.25-MILESTONE-AUDIT.md`
+- `.planning/reviews/V1_25_EVIDENCE_INDEX.md`
+- `.planning/milestones/v1.25-ROADMAP.md`
+- `.planning/milestones/v1.25-REQUIREMENTS.md`
+- `.planning/phases/90-hotspot-routing-freeze-and-formal-home-decomposition-map/{90-01-SUMMARY.md,90-02-SUMMARY.md,90-03-SUMMARY.md,90-VERIFICATION.md,90-VALIDATION.md}`
+- `.planning/phases/91-protocol-runtime-decomposition-and-typed-boundary-hardening/{91-01-SUMMARY.md,91-02-SUMMARY.md,91-03-SUMMARY.md,91-VERIFICATION.md,91-VALIDATION.md}`
+- `.planning/phases/92-control-entity-thin-boundary-and-redaction-convergence/{92-01-SUMMARY.md,92-02-SUMMARY.md,92-03-SUMMARY.md,92-VERIFICATION.md,92-VALIDATION.md}`
+- `.planning/phases/93-assurance-topicization-and-quality-freeze/{93-01-SUMMARY.md,93-02-SUMMARY.md,93-03-SUMMARY.md,93-VERIFICATION.md,93-VALIDATION.md}`
+
+---
 
 ## v1.24 Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence (Shipped: 2026-03-27; Closeout: 2026-03-27)
 
@@ -43,7 +63,7 @@ bootstrap:
 **Phases completed:** 1 phase, 4 plans, 0 tasks
 **Status:** archived / evidence-ready
 **Route truth:** latest archived evidence index = `.planning/reviews/V1_24_EVIDENCE_INDEX.md`
-**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.24`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.24`
 
 **Key accomplishments:**
 - 把 entity-facing runtime surface 收窄成命名 verbs，移除了 service/lock awareness 对实体层的渗透。

@@ -393,6 +393,58 @@ def test_v1_24_closeout_assets_exist_and_are_pull_only() -> None:
         "V1_24_EVIDENCE_INDEX.md",
     )
 
+def test_v1_25_closeout_assets_exist_and_are_pull_only() -> None:
+    evidence_index = _ROOT / ".planning" / "reviews" / "V1_25_EVIDENCE_INDEX.md"
+    milestone_audit = _ROOT / ".planning" / "v1.25-MILESTONE-AUDIT.md"
+
+    assert evidence_index.exists()
+    assert milestone_audit.exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.25-ROADMAP.md").exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.25-REQUIREMENTS.md").exists()
+    _assert_promoted_phase_assets(
+        "90-hotspot-routing-freeze-and-formal-home-decomposition-map",
+        "90-01-SUMMARY.md",
+        "90-02-SUMMARY.md",
+        "90-03-SUMMARY.md",
+        "90-VERIFICATION.md",
+        "90-VALIDATION.md",
+    )
+    _assert_promoted_phase_assets(
+        "91-protocol-runtime-decomposition-and-typed-boundary-hardening",
+        "91-01-SUMMARY.md",
+        "91-02-SUMMARY.md",
+        "91-03-SUMMARY.md",
+        "91-VERIFICATION.md",
+        "91-VALIDATION.md",
+    )
+    _assert_promoted_phase_assets(
+        "92-control-entity-thin-boundary-and-redaction-convergence",
+        "92-01-SUMMARY.md",
+        "92-02-SUMMARY.md",
+        "92-03-SUMMARY.md",
+        "92-VERIFICATION.md",
+        "92-VALIDATION.md",
+    )
+    _assert_promoted_phase_assets(
+        "93-assurance-topicization-and-quality-freeze",
+        "93-01-SUMMARY.md",
+        "93-02-SUMMARY.md",
+        "93-03-SUMMARY.md",
+        "93-VERIFICATION.md",
+        "93-VALIDATION.md",
+    )
+
+    assert_pull_only_evidence_index(
+        evidence_index,
+        "90-VERIFICATION.md",
+        "91-VERIFICATION.md",
+        "92-VERIFICATION.md",
+        "93-VERIFICATION.md",
+        "93-VALIDATION.md",
+        "archived / evidence-ready",
+        "V1_25_EVIDENCE_INDEX.md",
+    )
+
 def test_v1_23_closeout_assets_exist_and_are_pull_only() -> None:
     evidence_index = _ROOT / ".planning" / "reviews" / "V1_23_EVIDENCE_INDEX.md"
     milestone_audit = _ROOT / ".planning" / "v1.23-MILESTONE-AUDIT.md"

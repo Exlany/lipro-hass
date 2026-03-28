@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.25
 milestone_name: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
-current_phase: '93'
+current_phase: null
 status: complete
-last_updated: "2026-03-28T00:00:00.000Z"
+last_updated: "2026-03-28T12:00:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 4
@@ -18,65 +18,58 @@ progress:
 
 See: `.planning/PROJECT.md`
 
-**Current milestone:** `v1.25 Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence`
-**Active milestone:** `v1.25`
-**Core value:** `在不重开第二故事线的前提下，把当前真正高风险的 hotspots / typed boundaries / redaction contract 收口成可执行的新里程碑。`
-**Current mode:** `v1.25 active route / Phase 93 complete / latest archived baseline = v1.24`
+**Current milestone:** `No active milestone route`
+**Active milestone:** `none`
+**Core value:** `以 v1.25 的 archived baseline 作为下一里程碑唯一 north-star 起点，避免 hotfix 式重开第二故事线。`
+**Current mode:** `no active milestone route / latest archived baseline = v1.25`
 
 ## Current Position
 
-- `v1.24` 继续是 latest archived baseline；当前 mutable route 已完成 `Phase 93` 的 assurance topicization、typing budget burn-down 与 final quality freeze，当前里程碑已进入 milestone closeout-ready 状态。
-- `.planning/v1.24-MILESTONE-AUDIT.md`、`.planning/reviews/V1_24_EVIDENCE_INDEX.md`、`.planning/milestones/v1.24-ROADMAP.md` 与 `.planning/milestones/v1.24-REQUIREMENTS.md` 继续承担 latest archived baseline 的 pull-only bundle；它们不再承载 current route truth。
-- 当前已完成 phase = `Phase 93`；下一步应执行 milestone closeout / archive-promotion handoff，而不是继续新增实现 phase。
-- 本里程碑仍不重开新的 delete campaign；若在后续 phases 发现必须清退的 localized compat / naming shell，必须同步回写 `FILE_MATRIX / RESIDUAL_LEDGER / KILL_LIST` 并给出显式 delete gate。
+- `v1.25` 已完成 `Phase 90 -> 93` 全部计划、focused closeout proof、repo-wide quality gates 与 milestone audit，现已升级为 latest archived baseline。
+- `.planning/v1.25-MILESTONE-AUDIT.md`、`.planning/reviews/V1_25_EVIDENCE_INDEX.md`、`.planning/milestones/v1.25-ROADMAP.md` 与 `.planning/milestones/v1.25-REQUIREMENTS.md` 共同承担 latest archived baseline 的 pull-only bundle；它们不再承载 active route truth，而是作为下一里程碑的唯一起点。
+- 当前没有 active phase；下一步应通过 `$gsd-new-milestone` 显式启动新的 milestone，而不是在 `v1.25` 上继续堆叠临时实现。
+- 若下一里程碑发现必须清退的 localized compat / naming shell，仍必须同步回写 `FILE_MATRIX / RESIDUAL_LEDGER / KILL_LIST` 并给出显式 delete gate。
 
 <!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.25
   name: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
-  status: Phase 93 complete (2026-03-28)
+  status: archived / evidence-ready (2026-03-28)
   phase: '93'
   phase_title: Assurance topicization and quality freeze
   phase_dir: 93-assurance-topicization-and-quality-freeze
-  route_mode: v1.25 active route / Phase 93 complete / latest archived baseline = v1.24
-latest_archived:
-  version: v1.24
-  name: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
-  status: archived / evidence-ready (2026-03-27)
-  phase: '89'
-  phase_title: Runtime boundary tightening, tooling decoupling, and open-source entry convergence
-  phase_dir: 89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence
-  audit_path: .planning/v1.24-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_24_EVIDENCE_INDEX.md
+  audit_path: .planning/v1.25-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_25_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.23
-  name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
-  evidence_path: .planning/reviews/V1_23_EVIDENCE_INDEX.md
+  version: v1.24
+  name: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
+  evidence_path: .planning/reviews/V1_24_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.25 active route / Phase 93 complete / latest archived baseline = v1.24
-  default_next_command: $gsd-complete-milestone v1.25
-  latest_archived_evidence_pointer: .planning/reviews/V1_24_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.25
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_25_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
-## Current Milestone (v1.25)
+## Latest Archived Milestone (v1.25)
 
 - **Milestone:** `v1.25 Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence`
 - **Phase range:** `90 -> 93`
-- **Current phase:** `Phase 93`
-- **Milestone status:** `Phase 93 complete (2026-03-28)`
+- **Latest archived phase:** `Phase 93`
+- **Milestone status:** `archived / evidence-ready (2026-03-28)`
 - **Requirements basket:** `HOT-40`, `ARC-24`, `TYP-23`, `SEC-01`, `TST-29`, `QLT-37`
-- **Latest archived baseline:** `v1.24`
-- **Milestone starting evidence:** `.planning/v1.24-MILESTONE-AUDIT.md, .planning/reviews/V1_24_EVIDENCE_INDEX.md, .planning/milestones/v1.24-ROADMAP.md, .planning/milestones/v1.24-REQUIREMENTS.md`
-- **Current audit artifact:** `.planning/v1.24-MILESTONE-AUDIT.md`
-- **Default next command:** `$gsd-complete-milestone v1.25`
-- **Current follow-up target:** milestone closeout / archive-promotion proof for `v1.25`
+- **Milestone starting evidence:** `.planning/v1.24-MILESTONE-AUDIT.md`, `.planning/reviews/V1_24_EVIDENCE_INDEX.md`, `.planning/milestones/v1.24-ROADMAP.md`, `.planning/milestones/v1.24-REQUIREMENTS.md`
+- **Milestone closeout assets:** `.planning/v1.25-MILESTONE-AUDIT.md`, `.planning/reviews/V1_25_EVIDENCE_INDEX.md`, `.planning/milestones/v1.25-ROADMAP.md`, `.planning/milestones/v1.25-REQUIREMENTS.md`
+- **Current audit artifact:** `.planning/v1.25-MILESTONE-AUDIT.md`
+- **Default next command:** `$gsd-new-milestone`
+- **Current follow-up target:** next milestone bootstrap / fresh requirements routing from the archived v1.25 bundle
 
-## Latest Archived Milestone (v1.24)
+## Previous Archived Milestone (v1.24)
 
 - **Milestone:** `v1.24 Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence`
 - **Phase range:** `89 -> 89`
@@ -120,11 +113,11 @@ bootstrap:
 
 ## Recommended Next Command
 
-1. `$gsd-complete-milestone v1.25` —— 进入 `v1.25` milestone closeout / archive-promotion workflow
-2. `$gsd-next` —— 复核自动路由是否稳定收口到 milestone closeout fast-path
-3. `$gsd-progress` —— 快速复盘 `v1.25 active route / Phase 93 complete / latest archived baseline = v1.24` 与 archived baseline handoff 状态
+1. `$gsd-new-milestone` —— 从 `v1.25` archived bundle 显式启动下一条正式里程碑路线
+2. `$gsd-next` —— 复核自动路由是否稳定收口到 `$gsd-new-milestone`
+3. `$gsd-progress` —— 快速复盘 `no active milestone route / latest archived baseline = v1.25` 与 archived baseline handoff 状态
 4. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" init progress` —— 复核 `Phase 90 -> 93` 全部 complete，summary_count=`12`
-5. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" state json` —— 复核 parser-stable `v1.25 active route / Phase 93 complete / latest archived baseline = v1.24`
+5. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" state json` —— 复核 parser-stable `no active milestone route / latest archived baseline = v1.25`
 6. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" phase-plan-index 93` —— 复核 `Phase 93` 三份计划均已拥有 closeout summary
 7. `uv run pytest -q tests/meta` —— 复核 governance / archive-pointer / promoted-assets / version-sync guards
 8. `uv run python scripts/check_file_matrix.py --check` —— 复核 planning / baseline / review / archive assets 契约
@@ -140,17 +133,17 @@ If resuming, read in this order:
 3. `.planning/ROADMAP.md`
 4. `.planning/REQUIREMENTS.md`
 5. `.planning/STATE.md`
-6. `.planning/v1.24-MILESTONE-AUDIT.md`
-7. `.planning/reviews/V1_24_EVIDENCE_INDEX.md`
-8. `.planning/milestones/v1.24-ROADMAP.md`
-9. `.planning/milestones/v1.24-REQUIREMENTS.md`
-10. `.planning/phases/89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence/89-04-SUMMARY.md`
-11. `.planning/phases/89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence/89-VERIFICATION.md`
-12. `.planning/phases/89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence/89-VALIDATION.md`
-13. `.planning/v1.23-MILESTONE-AUDIT.md`
-14. `.planning/reviews/V1_23_EVIDENCE_INDEX.md`
-15. `.planning/milestones/v1.23-ROADMAP.md`
-16. `.planning/milestones/v1.23-REQUIREMENTS.md`
+6. `.planning/v1.25-MILESTONE-AUDIT.md`
+7. `.planning/reviews/V1_25_EVIDENCE_INDEX.md`
+8. `.planning/milestones/v1.25-ROADMAP.md`
+9. `.planning/milestones/v1.25-REQUIREMENTS.md`
+10. `.planning/phases/93-assurance-topicization-and-quality-freeze/93-03-SUMMARY.md`
+11. `.planning/phases/93-assurance-topicization-and-quality-freeze/93-VERIFICATION.md`
+12. `.planning/phases/93-assurance-topicization-and-quality-freeze/93-VALIDATION.md`
+13. `.planning/v1.24-MILESTONE-AUDIT.md`
+14. `.planning/reviews/V1_24_EVIDENCE_INDEX.md`
+15. `.planning/milestones/v1.24-ROADMAP.md`
+16. `.planning/milestones/v1.24-REQUIREMENTS.md`
 17. `.planning/reviews/RESIDUAL_LEDGER.md`
 18. `.planning/reviews/KILL_LIST.md`
 19. `.planning/reviews/FILE_MATRIX.md`

@@ -77,11 +77,11 @@ def test_phase90_closeout_docs_and_derived_maps_keep_the_freeze_visible() -> Non
     state_text = _STATE.read_text(encoding="utf-8")
     dev_arch_text = _DEV_ARCH.read_text(encoding="utf-8")
 
-    assert "**Phase 90 closeout:**" in project_text
+    assert ".planning/phases/90-hotspot-routing-freeze-and-formal-home-decomposition-map/" in project_text
     assert "### Phase 90: Hotspot routing freeze and formal-home decomposition map" in roadmap_text
     assert "| HOT-40 | Phase 90 | Complete |" in requirements_text
-    assert "Phase 93 complete" in state_text
-    assert "$gsd-complete-milestone v1.25" in state_text
+    assert "no active milestone route / latest archived baseline = v1.25" in state_text
+    assert "$gsd-new-milestone" in state_text
     assert "## Phase 90 Freeze Notes" in dev_arch_text
 
     for path in (_CODEBASE_ARCH, _CODEBASE_STRUCTURE, _CODEBASE_CONCERNS, _CODEBASE_CONVENTIONS):

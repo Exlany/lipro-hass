@@ -1,45 +1,31 @@
-# Roadmap: Lipro-HASS North Star Evolution
+# Roadmap
 
-## Milestones
-
-- 🚧 **v1.25 Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence** - `Phase 93 complete (2026-03-28); milestone closeout pending`; latest archived baseline = `v1.24`; default next command = `$gsd-complete-milestone v1.25`
-- ✅ **v1.24 Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence** - `Phase 89` archived on 2026-03-27; milestone audit: `.planning/v1.24-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_24_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.24-ROADMAP.md` / `.planning/milestones/v1.24-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.24`
-- ✅ **v1.23 Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze** - `Phase 85 -> 88` archived on 2026-03-27; milestone audit: `.planning/v1.23-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_23_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.23-ROADMAP.md` / `.planning/milestones/v1.23-REQUIREMENTS.md`; historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.23`
-- ✅ **v1.22 Maintainer Entry Contracts, Release Operations Closure & Contributor Routing** - `Phase 81 -> 84` archived on 2026-03-27; milestone audit: `.planning/v1.22-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_22_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.22-ROADMAP.md` / `.planning/milestones/v1.22-REQUIREMENTS.md`; historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.22`
-- ✅ **v1.21 Governance Bootstrap Truth Hardening & Planning Route Automation** - `Phase 76 -> 80` archived on 2026-03-26; milestone audit: `.planning/v1.21-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_21_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.21-ROADMAP.md` / `.planning/milestones/v1.21-REQUIREMENTS.md`; historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.21`
-- 🗂 **Historical archive snapshots** - `.planning/milestones/{v1.1-ROADMAP.md,v1.1-REQUIREMENTS.md,v1.2-ROADMAP.md,v1.2-REQUIREMENTS.md,v1.4-ROADMAP.md,v1.4-REQUIREMENTS.md,v1.5-ROADMAP.md,v1.5-REQUIREMENTS.md,v1.6-ROADMAP.md,v1.6-REQUIREMENTS.md,v1.12-ROADMAP.md,v1.12-REQUIREMENTS.md,v1.13-ROADMAP.md,v1.13-REQUIREMENTS.md,v1.14-ROADMAP.md,v1.14-REQUIREMENTS.md,v1.15-ROADMAP.md,v1.15-REQUIREMENTS.md,v1.16-ROADMAP.md,v1.16-REQUIREMENTS.md,v1.17-ROADMAP.md,v1.17-REQUIREMENTS.md}` 继续保留为 continuity / archive reference。
-
+- ✅ **v1.25 Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence** - `Phase 90 -> 93` archived on 2026-03-28; milestone audit: `.planning/v1.25-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_25_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.25-ROADMAP.md` / `.planning/milestones/v1.25-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.25`
+- ✅ **v1.24 Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence** - `Phase 89` archived on 2026-03-27; milestone audit: `.planning/v1.24-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_24_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.24-ROADMAP.md` / `.planning/milestones/v1.24-REQUIREMENTS.md`; historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.24`
 
 <!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.25
   name: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
-  status: Phase 93 complete (2026-03-28)
+  status: archived / evidence-ready (2026-03-28)
   phase: '93'
   phase_title: Assurance topicization and quality freeze
   phase_dir: 93-assurance-topicization-and-quality-freeze
-  route_mode: v1.25 active route / Phase 93 complete / latest archived baseline = v1.24
-latest_archived:
-  version: v1.24
-  name: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
-  status: archived / evidence-ready (2026-03-27)
-  phase: '89'
-  phase_title: Runtime boundary tightening, tooling decoupling, and open-source entry convergence
-  phase_dir: 89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence
-  audit_path: .planning/v1.24-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_24_EVIDENCE_INDEX.md
+  audit_path: .planning/v1.25-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_25_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.23
-  name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
-  evidence_path: .planning/reviews/V1_23_EVIDENCE_INDEX.md
+  version: v1.24
+  name: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
+  evidence_path: .planning/reviews/V1_24_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.25 active route / Phase 93 complete / latest archived baseline = v1.24
-  default_next_command: $gsd-complete-milestone v1.25
-  latest_archived_evidence_pointer: .planning/reviews/V1_24_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.25
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_25_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
@@ -48,12 +34,14 @@ bootstrap:
 > `v1.25` 不再重开 archived-only closeout 或 docs entry 清点，而是把当前最高收益的技术债路由成四个连续 phase：先冻结 hotspot decomposition map，再 inward split protocol/runtime hotspots，随后收紧 control/entity/redaction contract，最后用 typing/topicized tests/quality gates 收口为可长期维持的新基线。
 
 **Milestone Goal:** 把 runtime/protocol/control/entity 的 remaining hotspot concentration、typed boundary debt 与 redaction drift 收口成可分层实现、可 machine-check、不会长出第二 root 的正式路线。
-**Milestone status:** `Phase 93 complete (2026-03-28)`
+**Milestone status:** `archived / evidence-ready (2026-03-28)`
 **Starting baseline:** `.planning/v1.24-MILESTONE-AUDIT.md, .planning/reviews/V1_24_EVIDENCE_INDEX.md, .planning/milestones/v1.24-ROADMAP.md, .planning/milestones/v1.24-REQUIREMENTS.md`
 **Requirements basket:** `HOT-40`, `ARC-24`, `TYP-23`, `SEC-01`, `TST-29`, `QLT-37`
-**Latest archived baseline:** `v1.24`
-**Latest archived pointer:** `.planning/reviews/V1_24_EVIDENCE_INDEX.md`
-**Default next command:** `$gsd-complete-milestone v1.25`
+**Latest archived baseline:** `v1.25`
+**Latest archived pointer:** `.planning/reviews/V1_25_EVIDENCE_INDEX.md`
+**Default next command:** `$gsd-new-milestone`
+**Archive assets:** `.planning/v1.25-MILESTONE-AUDIT.md`, `.planning/reviews/V1_25_EVIDENCE_INDEX.md`, `.planning/milestones/v1.25-ROADMAP.md`, `.planning/milestones/v1.25-REQUIREMENTS.md`
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.25`
 
 ### Phase 90: Hotspot routing freeze and formal-home decomposition map
 
@@ -913,6 +901,8 @@ Plans:
 - [x] 24-04: repair control-plane contract regressions and restore closeout gates
 - [x] 24-05: resync reopened phase-24 closeout truth with fresh gate evidence
 
+**Archive-ready outputs:** `.planning/v1.2-MILESTONE-AUDIT.md`, `.planning/reviews/V1_2_EVIDENCE_INDEX.md`, `.planning/milestones/v1.2-ROADMAP.md`, `.planning/milestones/v1.2-REQUIREMENTS.md`, `.planning/v1.3-HANDOFF.md`
+
 ## Next Milestone Seed
 
 ### 🚧 v1.3: Quality-10 Remediation & Productization
@@ -1098,7 +1088,7 @@ Plans:
 
 ## v1.4: Sustainment, Trust Gates & Final Hotspot Burn-down
 
-> `v1.3` milestone audit 已确认 `no critical gaps` 但保留显式 retained tech debt；`Phase 34 -> 39` 已将这批问题按单一北极星主链完成收口，并在 `2026-03-19` 通过 `v1.4` milestone audit 后正式进入 archived / evidence-ready 状态。
+> `v1.3` milestone audit 已确认 `no critical gaps` 但保留显式 retained tech debt；`Phase 34 -> 39` 已将这批问题按单一北极星主链完成收口，并在 `2026-03-19` 通过 `v1.4` milestone audit 后正式进入 archived / evidence-ready 状态。archive snapshots 见 `.planning/milestones/v1.4-ROADMAP.md` / `.planning/milestones/v1.4-REQUIREMENTS.md`，审计裁决见 `.planning/v1.4-MILESTONE-AUDIT.md`，证据入口见 `.planning/reviews/V1_4_EVIDENCE_INDEX.md`。
 
 ### Phase 34: Continuity and hard release gates
 **Goal**: 把单维护者连续性与 release trust 从“诚实说明”推进到“可演练、可阻断、可审计”：建立真实的 continuity / custody / freeze contract，并为 artifact signing 与 hard code-scanning gate 做最终路由。

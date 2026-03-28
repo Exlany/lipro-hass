@@ -1,78 +1,70 @@
 # Project: Lipro-HASS North Star Evolution
 
 
-**Status:** `Active milestone route`
-**Current route:** `v1.25 active route / Phase 93 complete / latest archived baseline = v1.24`；latest archived evidence index = `.planning/reviews/V1_24_EVIDENCE_INDEX.md`.
-**Legacy route-string compatibility:** `v1.25 active route / Phase 93 complete / latest archived baseline = v1.24`；latest archived closeout pointer = `.planning/reviews/V1_24_EVIDENCE_INDEX.md`.
-**Goal:** `以 v1.24 的归档证据为起点，把当前仍集中在 runtime/protocol/control/entity 热点中的复杂度，连同 typed boundary debt 与 redaction drift，一次性路由成新的正式里程碑，而不是继续把这些问题当作零散 residual 处理。`
-**Default next step:** `$gsd-complete-milestone v1.25` → `$gsd-next`
-**Active baseline:** active milestone = `v1.25`；latest archived baseline = `v1.24`；previous archived baseline = `v1.23`.
+**Status:** `No active milestone route`
+**Current route:** `no active milestone route / latest archived baseline = v1.25`；latest archived evidence index = `.planning/reviews/V1_25_EVIDENCE_INDEX.md`.
+**Legacy route-string compatibility:** `no active milestone route / latest archived baseline = v1.25`；latest archived closeout pointer = `.planning/reviews/V1_25_EVIDENCE_INDEX.md`.
+**Goal:** `保持 v1.25 的 archived / evidence-ready closeout 真相稳定可拉取，并为下一条正式里程碑路线提供唯一北极星起点。`
+**Default next step:** `$gsd-new-milestone`
+**Active baseline:** latest archived baseline = `v1.25`；previous archived baseline = `v1.24`.
 
 
 <!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.25
   name: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
-  status: Phase 93 complete (2026-03-28)
+  status: archived / evidence-ready (2026-03-28)
   phase: '93'
   phase_title: Assurance topicization and quality freeze
   phase_dir: 93-assurance-topicization-and-quality-freeze
-  route_mode: v1.25 active route / Phase 93 complete / latest archived baseline = v1.24
-latest_archived:
-  version: v1.24
-  name: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
-  status: archived / evidence-ready (2026-03-27)
-  phase: '89'
-  phase_title: Runtime boundary tightening, tooling decoupling, and open-source entry convergence
-  phase_dir: 89-runtime-boundary-tightening-tooling-decoupling-and-open-source-entry-convergence
-  audit_path: .planning/v1.24-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_24_EVIDENCE_INDEX.md
+  audit_path: .planning/v1.25-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_25_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.23
-  name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
-  evidence_path: .planning/reviews/V1_23_EVIDENCE_INDEX.md
+  version: v1.24
+  name: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
+  evidence_path: .planning/reviews/V1_24_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.25 active route / Phase 93 complete / latest archived baseline = v1.24
-  default_next_command: $gsd-complete-milestone v1.25
-  latest_archived_evidence_pointer: .planning/reviews/V1_24_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.25
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_25_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
 
-## Current Milestone (v1.25)
+## Latest Archived Milestone (v1.25)
 
 **Name:** `Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence`
 
-**Why now:** `v1.24` 已把 runtime boundary tightening、single-wiring convergence、tooling decoupling 与 docs-first entry truth 归档冻结；现在最值得投入的，不再是再做一轮 closeout wording，而是顺着已经稳定的 formal homes，继续 inward split runtime/protocol hotspots、压缩 typed boundary debt，并统一 diagnostics / anonymous-share 的 redaction contract，避免这些点在下一次功能迭代中重新扩大回 giant roots。
+**Why it mattered:** `v1.25` 没有重开第二故事线，而是把当前真正高收益的结构债压缩成四段连续路线：先冻结 hotspot formal-home map，再 inward split protocol/runtime hotspots，然后收敛 control/entity/redaction truth，最后用 assurance freeze 把质量与治理一起封口。
 
-**North-star fit:** `v1.25` 将只做三类收敛：
+**North-star fit:** `v1.25` 以单 protocol root、单 runtime root、thin adapters、shared redaction truth 与 typed boundary spine 作为唯一正式裁决，不接受 helper-owned public truth、raw payload 回流或“测试能过即可”的临时兼容故事。
 
-- runtime / protocol / control / entity 继续沿既有 formal homes inward decomposition，不新增 public root，也不让 helper 再长成第二故事线。
-- strict typing 的真实高风险边界会从 `Any`/动态 payload 缩回更窄的 typed contracts，让类型系统与 focused guards 一起阻断 boundary drift。
-- diagnostics / anonymous-share 的脱敏策略会收口到单一可审计 contract；未知 secret-like 字段默认 fail-closed，而不是继续依赖两套 loosely coupled sanitizer。
-
-**Current status:** `Phase 93 complete (2026-03-28)`
+**Current status:** `archived / evidence-ready (2026-03-28)`
 **Phase range:** `Phase 90 -> 93`
 **Starting baseline:** `.planning/v1.24-MILESTONE-AUDIT.md, .planning/reviews/V1_24_EVIDENCE_INDEX.md, .planning/milestones/v1.24-ROADMAP.md, .planning/milestones/v1.24-REQUIREMENTS.md`
 **Requirements basket:** `HOT-40`, `ARC-24`, `TYP-23`, `SEC-01`, `TST-29`, `QLT-37`
-**Default next command:** `$gsd-complete-milestone v1.25`
-**Current follow-up target:** prepare milestone closeout / archive-promotion proof from the now-frozen assurance baseline
-**Phase 90 planning assets:** `.planning/phases/90-hotspot-routing-freeze-and-formal-home-decomposition-map/{90-CONTEXT.md,90-RESEARCH.md,90-01-PLAN.md,90-02-PLAN.md,90-03-PLAN.md}`
+**Archive assets:** `.planning/v1.25-MILESTONE-AUDIT.md`, `.planning/reviews/V1_25_EVIDENCE_INDEX.md`, `.planning/milestones/v1.25-ROADMAP.md`, `.planning/milestones/v1.25-REQUIREMENTS.md`
 **Phase 90 closeout:** `.planning/phases/90-hotspot-routing-freeze-and-formal-home-decomposition-map/{90-01-SUMMARY.md,90-02-SUMMARY.md,90-03-SUMMARY.md,90-VERIFICATION.md,90-VALIDATION.md}`
-**Phase 91 planning assets:** `.planning/phases/91-protocol-runtime-decomposition-and-typed-boundary-hardening/{91-CONTEXT.md,91-RESEARCH.md,91-01-PLAN.md,91-02-PLAN.md,91-03-PLAN.md}`
 **Phase 91 closeout:** `.planning/phases/91-protocol-runtime-decomposition-and-typed-boundary-hardening/{91-01-SUMMARY.md,91-02-SUMMARY.md,91-03-SUMMARY.md,91-VERIFICATION.md,91-VALIDATION.md}`
-
-**Phase 92 planning assets:** `.planning/phases/92-control-entity-thin-boundary-and-redaction-convergence/{92-CONTEXT.md,92-RESEARCH.md,92-01-PLAN.md,92-02-PLAN.md,92-03-PLAN.md}`
 **Phase 92 closeout:** `.planning/phases/92-control-entity-thin-boundary-and-redaction-convergence/{92-01-SUMMARY.md,92-02-SUMMARY.md,92-03-SUMMARY.md,92-VERIFICATION.md,92-VALIDATION.md}`
-
-**Phase 93 planning assets:** `.planning/phases/93-assurance-topicization-and-quality-freeze/{93-CONTEXT.md,93-RESEARCH.md,93-01-PLAN.md,93-02-PLAN.md,93-03-PLAN.md}`
 **Phase 93 closeout:** `.planning/phases/93-assurance-topicization-and-quality-freeze/{93-01-SUMMARY.md,93-02-SUMMARY.md,93-03-SUMMARY.md,93-VERIFICATION.md,93-VALIDATION.md}`
+**Default next command:** `$gsd-new-milestone`
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.25`
 
-## Latest Archived Milestone (v1.24)
+**Key accomplishments:**
+- 将 hotspot formal-home freeze、thin-shell line 与 delete-gate policy 同步冻结到 planning / baseline / review / derived maps，消除口头共识式治理漂移。
+- 统一 route truth、public-surface notes、dependency notes、review ledgers 与 no-regrowth guards，使 Phase 90–93 的完成态与下一跳可 machine-check。
+- 把 `LiproProtocolFacade` 固化为单一 canonical boundary truth，runtime 只消费标准化 contract，不再回退到 raw REST payload folklore。
+- 把 typed-boundary、decode result、schema registry、runtime telemetry、trace 与 OTA 投影收敛到共享 typed spine，压缩 `Any` 漂移与重复 alias。
+- 把 diagnostics / anonymous-share / telemetry 的 redaction truth 下沉到统一真源，并在 full-suite 中清零最后 9 个行为回归。
+- 用 topicized sibling suites、governance sync 与 repo-wide quality gates 完成 assurance freeze，使 v1.25 成为真正的 archived baseline。
+
+## Previous Archived Milestone (v1.24)
 
 **Name:** `Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence`
 

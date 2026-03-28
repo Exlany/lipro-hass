@@ -15,6 +15,7 @@ from .governance_current_truth import (
     CURRENT_PHASE_HEADING,
     CURRENT_ROUTE,
     CURRENT_ROUTE_MODE,
+    HAS_ACTIVE_MILESTONE,
     LATEST_ARCHIVED_AUDIT_PATH,
     LATEST_ARCHIVED_EVIDENCE_LABEL,
     LATEST_ARCHIVED_EVIDENCE_PATH,
@@ -113,7 +114,8 @@ def _assert_current_route_truth(
         f"`{LATEST_ARCHIVED_EVIDENCE_PATH}`."
     ) in project_text
     assert CURRENT_MILESTONE_HEADER in project_text
-    assert LATEST_ARCHIVED_PROJECT_HEADER in project_text
+    if HAS_ACTIVE_MILESTONE:
+        assert LATEST_ARCHIVED_PROJECT_HEADER in project_text
     assert PREVIOUS_ARCHIVED_PROJECT_HEADER in project_text
     assert f"**Current status:** `{CURRENT_MILESTONE_STATUS}`" in project_text
     assert f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`" in project_text
