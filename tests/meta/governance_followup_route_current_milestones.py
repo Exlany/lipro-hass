@@ -237,11 +237,11 @@ def test_machine_readable_route_contracts_point_to_active_v1_27_and_archived_v1_
 
     assert requirements_active is not None
     assert requirements_active["version"] == "v1.27"
-    assert requirements_active["phase"] == "99"
+    assert requirements_active["phase"] == "100"
     assert requirements_active["route_mode"] == CURRENT_ROUTE_MODE
     assert milestones_active is not None
     assert milestones_active["version"] == "v1.27"
-    assert milestones_active["phase"] == "99"
+    assert milestones_active["phase"] == "100"
     assert milestones_active["route_mode"] == CURRENT_ROUTE_MODE
     assert milestones_latest_archived["version"] == "v1.26"
     assert milestones_latest_archived["phase"] == "97"
@@ -291,10 +291,12 @@ def test_current_v1_27_project_state_and_archive_pointers_align() -> None:
         "## v1.27: Final Carry-Forward Eradication & Route Reactivation",
         "### Phase 98: Carry-forward eradication, route reactivation, and closeout proof",
         "### Phase 99: Runtime hotspot support extraction and terminal audit freeze",
+        "### Phase 100: MQTT runtime and schedule service support extraction freeze",
         CURRENT_MILESTONE_DEFAULT_NEXT,
         ".planning/reviews/V1_26_EVIDENCE_INDEX.md",
         ".planning/phases/98-carry-forward-eradication-route-reactivation-and-closeout-proof/{98-01-SUMMARY.md,98-02-SUMMARY.md,98-03-SUMMARY.md,98-VERIFICATION.md,98-VALIDATION.md}",
         ".planning/phases/99-runtime-hotspot-support-extraction-and-terminal-audit-freeze/{99-01-SUMMARY.md,99-02-SUMMARY.md,99-03-SUMMARY.md,99-VERIFICATION.md,99-VALIDATION.md}",
+        ".planning/phases/100-mqtt-runtime-and-schedule-service-support-extraction-freeze/{100-01-SUMMARY.md,100-02-SUMMARY.md,100-03-SUMMARY.md,100-VERIFICATION.md,100-VALIDATION.md}",
     )
     _assert_contains_all(
         _REQUIREMENTS_TEXT,
@@ -304,9 +306,13 @@ def test_current_v1_27_project_state_and_archive_pointers_align() -> None:
         "| GOV-65 | Phase 99 | Complete |",
         "| TST-31 | Phase 99 | Complete |",
         "| QLT-39 | Phase 99 | Complete |",
-        "- v1.27 routed requirements: 5 total",
-        "- Current mapped: 5",
-        "- Current complete: 5",
+        "| HOT-42 | Phase 100 | Complete |",
+        "| GOV-66 | Phase 100 | Complete |",
+        "| TST-32 | Phase 100 | Complete |",
+        "| QLT-40 | Phase 100 | Complete |",
+        "- v1.27 routed requirements: 9 total",
+        "- Current mapped: 9",
+        "- Current complete: 9",
         "- Current pending: 0",
         "## Latest Archived Milestone (v1.26)",
     )

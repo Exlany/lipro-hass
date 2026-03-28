@@ -7,10 +7,10 @@ components without inheriting from _CoordinatorBase.
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable, Callable, Mapping
+from collections.abc import Mapping
 import logging
 from time import monotonic
-from typing import TYPE_CHECKING, Protocol, TypeVar
+from typing import TYPE_CHECKING, Protocol
 
 from homeassistant.helpers.issue_registry import (
     IssueSeverity,
@@ -18,7 +18,6 @@ from homeassistant.helpers.issue_registry import (
     async_delete_issue,
 )
 
-from ....const.api import MQTT_DISCONNECT_NOTIFY_THRESHOLD
 from ....const.base import DOMAIN
 from ...telemetry.models import (
     FailureSummary,
@@ -39,17 +38,26 @@ from .mqtt.connection import MqttConnectionManager, PollingIntervalUpdater
 from .mqtt.dedup import MqttDedupManager
 from .mqtt.message_handler import MqttMessageHandler
 from .mqtt.reconnect import MqttReconnectManager
+from .mqtt_runtime_support import (
+    build_runtime_metrics,
+    consume_background_task_exception,
+    disconnect_notification_minutes,
+    finalize_connect_attempt,
+    had_disconnect_state,
+    require_transport,
+    run_transport_operation,
+)
 
 if TYPE_CHECKING:
-    from collections.abc import Coroutine
+    from collections.abc import Callable, Coroutine
 
     from homeassistant.core import HomeAssistant
 
     from ...protocol import MqttTransportFacade
     from ..types import PropertyValue, RuntimeMetrics
+    from .mqtt_runtime_support import _TransportFacadeProtocol
 
 _LOGGER = logging.getLogger(__name__)
-_ResultT = TypeVar("_ResultT")
 
 
 class BackgroundTaskManagerProtocol(Protocol):
@@ -86,23 +94,7 @@ class MqttRuntime:
         reconnect_max_delay: float = 60.0,
         background_task_manager: BackgroundTaskManagerProtocol | None = None,
     ) -> None:
-        """Initialize MQTT runtime with all dependencies injected at construction.
-
-        Args:
-            hass: Home Assistant instance
-            mqtt_transport: MQTT transport instance (can be None initially)
-            base_scan_interval: Base polling interval in seconds
-            device_resolver: Device resolution protocol implementation
-            property_applier: Property application protocol implementation
-            listener_notifier: Listener notification protocol implementation
-            connect_state_tracker: Connect state tracking protocol implementation
-            group_reconciler: Group reconciliation protocol implementation
-            polling_multiplier: Multiplier for relaxed polling when MQTT connected
-            dedup_window: Deduplication time window in seconds
-            reconnect_base_delay: Base delay for reconnection backoff
-            reconnect_max_delay: Maximum delay for reconnection backoff
-            background_task_manager: Optional background task manager for tracking tasks
-        """
+        """Initialize MQTT runtime with all dependencies injected at construction."""
         self._hass = hass
         self._mqtt_transport = mqtt_transport
         self._base_scan_interval = base_scan_interval
@@ -124,80 +116,12 @@ class MqttRuntime:
             polling_multiplier=polling_multiplier,
             logger=_LOGGER,
         )
-
         self._dedup_manager = MqttDedupManager(dedup_window=dedup_window)
-
         self._reconnect_manager = MqttReconnectManager(
             base_delay=reconnect_base_delay,
             max_delay=reconnect_max_delay,
         )
-
         self._message_handler = self._create_message_handler()
-
-    async def _async_run_transport_operation(
-        self,
-        *,
-        stage: str,
-        action: str,
-        operation: Callable[[], Awaitable[_ResultT]],
-    ) -> tuple[bool, _ResultT | None]:
-        """Run one transport operation with explicit failure recording."""
-        try:
-            return True, await operation()
-        except asyncio.CancelledError:
-            raise
-        except (
-            TimeoutError,
-            OSError,
-            RuntimeError,
-            ValueError,
-            TypeError,
-            LookupError,
-        ) as err:
-            self.handle_transport_error(err, stage=stage)
-            _LOGGER.exception("MQTT %s failed", action)
-            return False, None
-
-    def _require_transport(
-        self,
-        *,
-        log_missing: bool = False,
-    ) -> MqttTransportFacade | None:
-        """Return the bound transport when available."""
-        if self._mqtt_transport is not None:
-            return self._mqtt_transport
-        if log_missing:
-            _LOGGER.error("MQTT transport not initialized")
-        return None
-
-    def _finalize_connect_attempt(self, *, connected: bool) -> bool:
-        """Record reconnect bookkeeping for one connect attempt."""
-        if connected:
-            return True
-        self._reconnect_manager.on_reconnect_failure()
-        return False
-
-    def _disconnect_notification_minutes(
-        self,
-        *,
-        current_time: float | None = None,
-    ) -> int | None:
-        """Return disconnect duration in minutes once notification threshold is met."""
-        if self._connection_manager.is_connected or self._connection_manager.disconnect_notified:
-            return None
-        disconnect_time = self._connection_manager.disconnect_time
-        if disconnect_time is None:
-            return None
-        elapsed = (monotonic() if current_time is None else current_time) - disconnect_time
-        if elapsed < MQTT_DISCONNECT_NOTIFY_THRESHOLD:
-            return None
-        return int(elapsed // 60)
-
-    @staticmethod
-    def _consume_background_task_exception(task: asyncio.Task[object]) -> None:
-        """Consume background-task exceptions so they surface deterministically."""
-        if not task.cancelled():
-            task.exception()
 
     def bind_transport(self, mqtt_transport: MqttTransportFacade) -> None:
         """Bind one protocol-owned MQTT transport to this runtime."""
@@ -229,7 +153,7 @@ class MqttRuntime:
     async def _await_transport_connection(
         self,
         *,
-        mqtt_transport: MqttTransportFacade,
+        mqtt_transport: _TransportFacadeProtocol,
         device_ids: list[str],
     ) -> bool:
         """Run the concrete transport connect sequence through the runtime guard."""
@@ -239,10 +163,12 @@ class MqttRuntime:
             await mqtt_transport.sync_subscriptions(set(device_ids))
             return await mqtt_transport.wait_until_connected()
 
-        ok, connected = await self._async_run_transport_operation(
-            stage="connect",
-            action="connection",
+        ok, connected = await run_transport_operation(
+            stage='connect',
+            action='connection',
             operation=_connect_sequence,
+            handle_transport_error=lambda err: self.handle_transport_error(err, stage='connect'),
+            logger=_LOGGER,
         )
         return bool(ok and connected)
 
@@ -251,53 +177,54 @@ class MqttRuntime:
         *,
         device_ids: list[str],
     ) -> bool:
-        """Start the MQTT background loop and wait for real transport connection.
-
-        Args:
-            device_ids: List of device identifiers to subscribe to.
-
-        Returns:
-            True if startup succeeded and the broker handshake completed.
-        """
-        mqtt_transport = self._require_transport(log_missing=True)
+        """Start the MQTT background loop and wait for real transport connection."""
+        mqtt_transport = require_transport(
+            self._mqtt_transport,
+            logger=_LOGGER,
+            log_missing=True,
+        )
         if mqtt_transport is None:
             return False
         connected = await self._await_transport_connection(
             mqtt_transport=mqtt_transport,
             device_ids=device_ids,
         )
-        return self._finalize_connect_attempt(connected=connected)
+        return finalize_connect_attempt(
+            connected=connected,
+            reconnect_manager=self._reconnect_manager,
+        )
 
     async def sync_subscriptions(self, device_ids: list[str] | set[str]) -> bool:
         """Synchronize the desired MQTT subscription set without reconnecting."""
-        mqtt_transport = self._require_transport()
+        mqtt_transport = require_transport(self._mqtt_transport, logger=_LOGGER)
         if mqtt_transport is None:
             return False
 
         async def _sync_operation() -> None:
             await mqtt_transport.sync_subscriptions(set(device_ids))
 
-        ok, _ = await self._async_run_transport_operation(
-            stage="sync_subscriptions",
-            action="subscription sync",
+        ok, _ = await run_transport_operation(
+            stage='sync_subscriptions',
+            action='subscription sync',
             operation=_sync_operation,
+            handle_transport_error=lambda err: self.handle_transport_error(err, stage='sync_subscriptions'),
+            logger=_LOGGER,
         )
-        if not ok:
-            return False
-
-        return True
+        return bool(ok)
 
     async def disconnect(self) -> None:
         """Stop the MQTT background loop."""
-        mqtt_transport = self._require_transport()
+        mqtt_transport = require_transport(self._mqtt_transport, logger=_LOGGER)
         if mqtt_transport is None:
             return
 
         try:
-            await self._async_run_transport_operation(
-                stage="disconnect",
-                action="disconnect",
+            await run_transport_operation(
+                stage='disconnect',
+                action='disconnect',
                 operation=mqtt_transport.stop,
+                handle_transport_error=lambda err: self.handle_transport_error(err, stage='disconnect'),
+                logger=_LOGGER,
             )
         finally:
             self.on_transport_disconnected()
@@ -309,13 +236,12 @@ class MqttRuntime:
     ) -> OperationOutcome:
         """Handle incoming MQTT message and return one typed application outcome."""
         current_time = monotonic()
-
         if self._dedup_manager.is_duplicate(
             device_id, properties, current_time=current_time
         ):
             return build_operation_outcome(
-                kind="skipped",
-                reason_code="duplicate_message",
+                kind='skipped',
+                reason_code='duplicate_message',
             )
 
         outcome = await self._message_handler.handle_message(
@@ -326,23 +252,16 @@ class MqttRuntime:
         self._dedup_manager.cleanup(current_time=current_time)
         return outcome
 
-    def _had_disconnect_state(self) -> bool:
-        """Return whether the runtime still carries disconnect-side effects."""
-        return (
-            self._connection_manager.disconnect_notified
-            or self._connection_manager.disconnect_time is not None
-        )
-
     def on_transport_connected(self) -> None:
         """Apply coordinator-facing state changes after a real broker handshake."""
-        had_disconnect_state = self._had_disconnect_state()
+        had_disconnect = had_disconnect_state(self._connection_manager)
         if not self._connection_manager.is_connected:
             self._connection_manager.on_connect()
         self._reconnect_manager.on_reconnect_success()
-        if had_disconnect_state:
+        if had_disconnect:
             self._track_background_task(
                 self.clear_disconnect_notification(),
-                name="lipro_mqtt_clear_issue",
+                name='lipro_mqtt_clear_issue',
             )
 
     def on_transport_disconnected(self) -> None:
@@ -358,27 +277,23 @@ class MqttRuntime:
         self,
         err: Exception,
         *,
-        stage: str = "transport",
+        stage: str = 'transport',
     ) -> None:
         """Record transport-level errors for diagnostics without mutating state."""
         self._last_transport_error = err
         self._last_transport_error_stage = stage
         self._failure_summary = build_failure_summary_from_exception(
             err,
-            failure_origin="runtime.mqtt",
+            failure_origin='runtime.mqtt',
         )
         _LOGGER.debug(
-            "MQTT transport reported error (%s) during %s",
+            'MQTT transport reported error (%s) during %s',
             type(err).__name__,
             stage,
         )
 
     def should_attempt_reconnect(self) -> bool:
-        """Check if reconnection should be attempted.
-
-        Returns:
-            True if reconnection should be attempted, False if in backoff period
-        """
+        """Check if reconnection should be attempted."""
         return self._reconnect_manager.should_attempt_reconnect()
 
     def _schedule_disconnect_notification(self, minutes: int) -> None:
@@ -386,12 +301,14 @@ class MqttRuntime:
         self._connection_manager.mark_disconnect_notified()
         self._track_background_task(
             self._async_show_mqtt_disconnect_notification(minutes),
-            name="lipro_mqtt_disconnect_issue",
+            name='lipro_mqtt_disconnect_issue',
         )
 
     def check_disconnect_notification(self) -> None:
         """Check if disconnect notification should be sent."""
-        minutes = self._disconnect_notification_minutes()
+        minutes = disconnect_notification_minutes(
+            connection_manager=self._connection_manager,
+        )
         if minutes is None:
             return
         self._schedule_disconnect_notification(minutes)
@@ -401,16 +318,16 @@ class MqttRuntime:
         async_create_issue(
             self._hass,
             domain=DOMAIN,
-            issue_id="mqtt_disconnected",
+            issue_id='mqtt_disconnected',
             is_fixable=False,
             severity=IssueSeverity.WARNING,
-            translation_key="mqtt_disconnected",
-            translation_placeholders={"minutes": str(minutes)},
+            translation_key='mqtt_disconnected',
+            translation_placeholders={'minutes': str(minutes)},
         )
 
     async def clear_disconnect_notification(self) -> None:
         """Clear MQTT disconnect notification."""
-        async_delete_issue(self._hass, domain=DOMAIN, issue_id="mqtt_disconnected")
+        async_delete_issue(self._hass, domain=DOMAIN, issue_id='mqtt_disconnected')
 
     def reset(self) -> None:
         """Reset all runtime state."""
@@ -428,19 +345,14 @@ class MqttRuntime:
 
     def get_runtime_metrics(self) -> RuntimeMetrics:
         """Return lightweight MQTT runtime telemetry."""
-        last_transport_error = self._last_transport_error
-        return {
-            "has_transport": self.has_transport,
-            "is_connected": self._connection_manager.is_connected,
-            "disconnect_time": self._connection_manager.disconnect_time,
-            "disconnect_notified": self._connection_manager.disconnect_notified,
-            "last_transport_error": (
-                type(last_transport_error).__name__ if last_transport_error is not None else None
-            ),
-            "last_transport_error_stage": self._last_transport_error_stage,
-            "failure_summary": dict(self._failure_summary),
-            "backoff_gate_logged": self._reconnect_manager.backoff_gate_logged,
-        }
+        return build_runtime_metrics(
+            has_transport=self.has_transport,
+            connection_manager=self._connection_manager,
+            last_transport_error=self._last_transport_error,
+            last_transport_error_stage=self._last_transport_error_stage,
+            failure_summary=self._failure_summary,
+            reconnect_manager=self._reconnect_manager,
+        )
 
     def _track_background_task(
         self,
@@ -457,7 +369,7 @@ class MqttRuntime:
             return
 
         task = asyncio.create_task(coro, name=name)
-        task.add_done_callback(self._consume_background_task_exception)
+        task.add_done_callback(consume_background_task_exception)
 
 
-__all__ = ["MqttRuntime"]
+__all__ = ['MqttRuntime']

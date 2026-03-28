@@ -2,8 +2,8 @@
 
 
 **Status:** `Active milestone route`
-**Current route:** `v1.27 active route / Phase 99 complete / latest archived baseline = v1.26`；latest archived evidence index = `.planning/reviews/V1_26_EVIDENCE_INDEX.md`.
-**Goal:** `沿 v1.26 archived baseline 的唯一 north-star 起点，把 Phase 98 的 route reactivation 与 Phase 99 的 runtime hotspot support extraction / terminal audit freeze 收口成一条诚实的 closeout-ready 主线。`
+**Current route:** `v1.27 active route / Phase 100 complete / latest archived baseline = v1.26`；latest archived evidence index = `.planning/reviews/V1_26_EVIDENCE_INDEX.md`.
+**Goal:** `沿 v1.26 archived baseline 的唯一 north-star 起点，把 Phase 98 的 route reactivation、Phase 99 的 runtime hotspot support extraction，以及 Phase 100 的 MQTT runtime / schedule-service support extraction freeze 收口成一条诚实的 closeout-ready 主线。`
 **Default next step:** `$gsd-complete-milestone v1.27`
 **Active baseline:** latest archived baseline = `v1.26`；previous archived baseline = `v1.25`.
 
@@ -16,10 +16,10 @@ active_milestone:
   version: v1.27
   name: Final Carry-Forward Eradication & Route Reactivation
   status: active / closeout-ready (2026-03-28)
-  phase: '99'
-  phase_title: Runtime hotspot support extraction and terminal audit freeze
-  phase_dir: 99-runtime-hotspot-support-extraction-and-terminal-audit-freeze
-  route_mode: v1.27 active route / Phase 99 complete / latest archived baseline = v1.26
+  phase: '100'
+  phase_title: MQTT runtime and schedule service support extraction freeze
+  phase_dir: 100-mqtt-runtime-and-schedule-service-support-extraction-freeze
+  route_mode: v1.27 active route / Phase 100 complete / latest archived baseline = v1.26
 latest_archived:
   version: v1.26
   name: Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition
@@ -35,7 +35,7 @@ previous_archived:
   name: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
   evidence_path: .planning/reviews/V1_25_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.27 active route / Phase 99 complete / latest archived baseline = v1.26
+  current_route: v1.27 active route / Phase 100 complete / latest archived baseline = v1.26
   default_next_command: $gsd-complete-milestone v1.27
   latest_archived_evidence_pointer: .planning/reviews/V1_26_EVIDENCE_INDEX.md
 ```
@@ -46,25 +46,27 @@ bootstrap:
 
 **Name:** `Final Carry-Forward Eradication & Route Reactivation`
 
-**Why now:** `Phase 98` 虽已恢复 current-route honesty，但 terminal audit 仍明确指向 `status_fallback.py` 与 `command_runtime.py` 两处 formal-home hotspot；若直接 closeout，最后一层“热点 support extraction / governance freeze”会再次退回 conversation-only debt。
+**Why now:** `Phase 98` 虽已恢复 current-route honesty，`Phase 99` 也已把 `status_fallback.py` / `command_runtime.py` 收口回更薄的 formal homes，但 `mqtt_runtime.py` 与 `schedule_service.py` 仍是 terminal audit 明确点名的剩余热点；若直接 closeout，最后一层 runtime / schedule support extraction 会再次退回 conversation-only debt。
 
-**North-star fit:** `v1.27` 继续不重开新功能，而是沿 `v1.26` archived baseline 的唯一 north-star 起点，把 `Phase 98` 的 carry-forward closure 与 `Phase 99` 的 hotspot support extraction 一起冻结到单一路线；所有收口都发生在既有 formal homes 内部，不恢复第二条合法架构。
+**North-star fit:** `v1.27` 继续不重开新功能，而是沿 `v1.26` archived baseline 的唯一 north-star 起点，把 `Phase 98` 的 carry-forward closure、`Phase 99` 的 hotspot support extraction 与 `Phase 100` 的 runtime/schedule support extraction 一起冻结到单一路线；所有收口都发生在既有 formal homes 内部，不恢复第二条合法架构。
 
 **Current status:** `active / closeout-ready (2026-03-28)`
-**Phase range:** `Phase 98 -> 99`
+**Phase range:** `Phase 98 -> 100`
 **Starting baseline:** `.planning/v1.26-MILESTONE-AUDIT.md, .planning/reviews/V1_26_EVIDENCE_INDEX.md, .planning/milestones/v1.26-ROADMAP.md, .planning/milestones/v1.26-REQUIREMENTS.md`
-**Requirements basket:** `RES-15`, `HOT-41`, `GOV-65`, `TST-31`, `QLT-39`
+**Requirements basket:** `RES-15`, `HOT-41`, `HOT-42`, `GOV-65`, `GOV-66`, `TST-31`, `TST-32`, `QLT-39`, `QLT-40`
 **Latest archived baseline:** `v1.26`
 **Latest archived pointer:** `.planning/reviews/V1_26_EVIDENCE_INDEX.md`
-**Current route mode:** `v1.27 active route / Phase 99 complete / latest archived baseline = v1.26`
+**Current route mode:** `v1.27 active route / Phase 100 complete / latest archived baseline = v1.26`
 **Default next command:** `$gsd-complete-milestone v1.27`
-**Current follow-up target:** archive `v1.27` without regressing `Phase 98` predecessor truth、`Phase 99` support seams、或 `v1.26` latest archived baseline truth。
+**Current follow-up target:** archive `v1.27` without regressing `Phase 98` predecessor truth、`Phase 99` predecessor truth、`Phase 100` support seams、或 `v1.26` latest archived baseline truth。
 
 **Key accomplishments:**
 - `Phase 98` 已把 `outlet_power` legacy side-car fallback 的物理删除、route reactivation、focused guards 与 planning closeout bundle 重新织回 active story。
 - `Phase 99` 已把 `custom_components/lipro/core/api/status_fallback.py` slim 成 outward public home，并把 binary-split recursion/logging mechanics inward split 到 `status_fallback_support.py`。
 - `Phase 99` 已把 `custom_components/lipro/core/coordinator/runtime/command_runtime.py` slim 成 orchestration home，并把请求/失败 support block 外提到 `command_runtime_support.py`。
-- planning docs、developer guide、maps/ledgers、focused meta guards 与 GSD parser-facing assets 现共同承认 `v1.27 active route / Phase 99 complete / latest archived baseline = v1.26`。
+- `Phase 100` 已把 `custom_components/lipro/core/coordinator/runtime/mqtt_runtime.py` slim 成 orchestration home，并把 transport / notification / background-task helpers inward split 到 `mqtt_runtime_support.py`。
+- `Phase 100` 已把 `custom_components/lipro/core/api/schedule_service.py` slim 成 outward helper home，并把 candidate batching / timeout / request helpers inward split 到 `schedule_service_support.py`。
+- planning docs、developer guide、maps/ledgers、focused meta guards 与 GSD parser-facing assets 现共同承认 `v1.27 active route / Phase 100 complete / latest archived baseline = v1.26`。
 - `v1.26` closeout assets 继续保持 pull-only latest archived baseline 身份，而不是被回写成 live current story。
 
 ## Latest Archived Milestone (v1.26)

@@ -9,8 +9,10 @@ from tests.helpers.repo_root import repo_root
 _ROOT = repo_root(Path(__file__))
 _SCHEDULE_SERVICE = _ROOT / "custom_components" / "lipro" / "core" / "api" / "schedule_service.py"
 _SCHEDULE_ENDPOINTS = _ROOT / "custom_components" / "lipro" / "core" / "api" / "endpoints" / "schedule.py"
+_SCHEDULE_SUPPORT = _ROOT / "custom_components" / "lipro" / "core" / "api" / "schedule_service_support.py"
 _COMMAND_RUNTIME = _ROOT / "custom_components" / "lipro" / "core" / "coordinator" / "runtime" / "command_runtime.py"
 _MQTT_RUNTIME = _ROOT / "custom_components" / "lipro" / "core" / "coordinator" / "runtime" / "mqtt_runtime.py"
+_MQTT_RUNTIME_SUPPORT = _ROOT / "custom_components" / "lipro" / "core" / "coordinator" / "runtime" / "mqtt_runtime_support.py"
 _AUTH_RECOVERY = _ROOT / "custom_components" / "lipro" / "core" / "api" / "auth_recovery.py"
 _PHASE_DIR = _ROOT / ".planning" / "phases" / "95-schedule-runtime-and-boundary-hotspot-inward-decomposition"
 _PHASE_VERIFICATION = _PHASE_DIR / "95-VERIFICATION.md"
@@ -26,15 +28,17 @@ def _read(path: Path) -> str:
 
 def test_phase95_schedule_hotspot_helpers_stay_localized() -> None:
     schedule_text = _read(_SCHEDULE_SERVICE)
+    schedule_support_text = _read(_SCHEDULE_SUPPORT)
     endpoints_text = _read(_SCHEDULE_ENDPOINTS)
 
+    assert "def _next_mesh_schedule_id(" in schedule_text
     for needle in (
-        "def _collect_schedule_rows_from_batch(",
-        "def _add_mesh_schedule_for_candidate(",
-        "def _delete_mesh_schedule_batch(",
-        "def _refresh_mesh_schedule_rows(",
+        "async def collect_schedule_rows_from_batch(",
+        "async def add_mesh_schedule_for_candidate(",
+        "async def delete_mesh_schedule_batch(",
+        "async def refresh_mesh_schedule_rows(",
     ):
-        assert needle in schedule_text
+        assert needle in schedule_support_text
 
     assert "async def _typed_iot_request" not in endpoints_text
     assert "iot_request=self._schedule_iot_request" in endpoints_text
@@ -43,6 +47,7 @@ def test_phase95_schedule_hotspot_helpers_stay_localized() -> None:
 def test_phase95_runtime_and_auth_hotspots_keep_single_root_story() -> None:
     command_text = _read(_COMMAND_RUNTIME)
     mqtt_text = _read(_MQTT_RUNTIME)
+    mqtt_support_text = _read(_MQTT_RUNTIME_SUPPORT)
     auth_text = _read(_AUTH_RECOVERY)
 
     for needle in (
@@ -56,10 +61,14 @@ def test_phase95_runtime_and_auth_hotspots_keep_single_root_story() -> None:
     for needle in (
         "def _await_transport_connection(",
         "def _schedule_disconnect_notification(",
-        "def _finalize_connect_attempt(",
     ):
         assert needle in mqtt_text
-    assert mqtt_text.count("def _disconnect_notification_minutes(") == 1
+    for needle in (
+        "def finalize_connect_attempt(",
+        "def disconnect_notification_minutes(",
+        "def run_transport_operation(",
+    ):
+        assert needle in mqtt_support_text
 
     for needle in (
         "def _resolve_result_message(",

@@ -77,7 +77,7 @@ _BROAD_CATCH_BUDGET: dict[str, _BroadCatchBudgetEntry] = {
             '_LOGGER.exception("Unexpected update failure")': 1,
         },
     },
-    "core/coordinator/runtime/mqtt_runtime.py": {
+    "core/coordinator/runtime/mqtt_runtime_support.py": {
         "expected_count": 0,
         "semantic_markers": {
             "MQTT %s failed": 1,

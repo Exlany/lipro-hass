@@ -49,6 +49,8 @@ def test_active_route_bootstrap_contract_stays_current() -> None:
     )
     assert "tests/meta/test_phase98_route_reactivation_guards.py" in verification_text
     assert "tests/meta/test_phase99_runtime_hotspot_support_guards.py" in verification_text
+    assert "tests/meta/test_phase100_runtime_schedule_support_guards.py" in verification_text
+    assert "tests/meta/test_phase100_runtime_schedule_support_guards.py" in verification_text
 
 
 def test_public_docs_keep_internal_bootstrap_story_hidden() -> None:

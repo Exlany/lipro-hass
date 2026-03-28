@@ -1,0 +1,3 @@
+- `custom_components/lipro/core/api/schedule_service.py` 已收窄为 `183` 行 explicit REST helper home，继续保留 typed aliases、`_next_mesh_schedule_id()`、candidate-query/mutation outward contract 与 schedule-endpoint consumer import home。
+- candidate batching / timeout / request orchestration / refresh mechanics 已 inward split 到 `custom_components/lipro/core/api/schedule_service_support.py`，没有改变 external import contract，也没有把 helper collaborator 反向提升为第二条 protocol story。
+- focused schedule suites、`ruff` 与 focused `mypy` 已通过，证明 helper home、support collaborator 与 endpoint consumer 仍保持一致。

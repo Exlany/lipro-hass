@@ -41,10 +41,10 @@ def test_phase98_bundle_stays_visible_as_completed_predecessor() -> None:
     phase98_verification = _read(_PHASE98_DIR / "98-VERIFICATION.md")
     phase98_validation = _read(_PHASE98_DIR / "98-VALIDATION.md")
 
-    assert "v1.27 active route / Phase 99 complete / latest archived baseline = v1.26" in project_text
+    assert "v1.27 active route / Phase 100 complete / latest archived baseline = v1.26" in project_text
     assert "### Phase 98: Carry-forward eradication, route reactivation, and closeout proof" in roadmap_text
     assert "| RES-15 | Phase 98 | Complete |" in requirements_text
-    assert "Phase 99" in state_text
+    assert "Phase 100" in state_text
     assert "`Phase 98`: carry-forward eradication, route reactivation, and closeout proof ✅" in milestones_text
     assert "Phase 98 Route Reactivation / Carry-Forward Closure Note" in dev_arch_text
     assert "# Phase 98 Verification" in phase98_verification
@@ -58,12 +58,12 @@ def test_phase98_maps_keep_predecessor_guard_footprint() -> None:
 
     assert "tests/meta/test_phase98_route_reactivation_guards.py" in file_matrix_text
     assert "focused predecessor guard home for Phase 98 reactivation / carry-forward closure" in file_matrix_text
-    assert "`392` Python files under `tests`" in testing_text
-    assert "`312` runnable `test_*.py` files" in testing_text
-    assert "`57` meta suites" in testing_text
+    assert "`393` Python files under `tests`" in testing_text
+    assert "`313` runnable `test_*.py` files" in testing_text
+    assert "`58` meta suites" in testing_text
     assert "tests/meta/test_phase98_route_reactivation_guards.py" in verification_text
     assert "## Phase 98 Carry-Forward Eradication / Route Reactivation / Closeout Proof" in verification_text
-    assert "## Phase 99 Runtime Hotspot Support Extraction / Terminal Audit Freeze" in verification_text
+    assert "## Phase 100 MQTT Runtime / Schedule Service Support Extraction Freeze" in verification_text
 
 
 def test_phase98_outlet_power_formal_primitive_has_no_live_legacy_fallback_story() -> None:
