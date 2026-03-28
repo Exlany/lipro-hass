@@ -27,28 +27,27 @@ PLANNING_ROUTE_CONTRACT: dict[str, object] = {
     "contract_name": "governance-route",
     "active_milestone": None,
     "latest_archived": {
-        "version": "v1.27",
-        "name": "Final Carry-Forward Eradication & Route Reactivation",
+        "version": "v1.28",
+        "name": "Governance Portability, Verification Stratification & Open-Source Continuity Hardening",
         "status": "archived / evidence-ready (2026-03-28)",
-        "phase": "101",
-        "phase_title": "Anonymous-share manager and REST decoder hotspot decomposition freeze",
-        "phase_dir": "101-anonymous-share-manager-and-rest-decoder-hotspot-decomposition-freeze",
-        "audit_path": ".planning/v1.27-MILESTONE-AUDIT.md",
-        "evidence_path": ".planning/reviews/V1_27_EVIDENCE_INDEX.md",
+        "phase": "102",
+        "phase_title": "Governance portability, verification stratification, and open-source continuity hardening",
+        "phase_dir": "102-governance-portability-verification-stratification-and-open-source-continuity-hardening",
+        "audit_path": ".planning/v1.28-MILESTONE-AUDIT.md",
+        "evidence_path": ".planning/reviews/V1_28_EVIDENCE_INDEX.md",
         "evidence_label": "latest archived evidence index",
     },
     "previous_archived": {
-        "version": "v1.26",
-        "name": "Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition",
-        "evidence_path": ".planning/reviews/V1_26_EVIDENCE_INDEX.md",
+        "version": "v1.27",
+        "name": "Final Carry-Forward Eradication & Route Reactivation",
+        "evidence_path": ".planning/reviews/V1_27_EVIDENCE_INDEX.md",
     },
     "bootstrap": {
-        "current_route": "no active milestone route / latest archived baseline = v1.27",
+        "current_route": "no active milestone route / latest archived baseline = v1.28",
         "default_next_command": "$gsd-new-milestone",
-        "latest_archived_evidence_pointer": ".planning/reviews/V1_27_EVIDENCE_INDEX.md",
+        "latest_archived_evidence_pointer": ".planning/reviews/V1_28_EVIDENCE_INDEX.md",
     },
 }
-
 
 
 def _as_mapping(value: object) -> dict[str, object]:
@@ -170,6 +169,31 @@ else:
     CURRENT_PHASE_HEADING = LATEST_ARCHIVED_PHASE_HEADING
     CURRENT_ROUTE_MODE = CURRENT_ROUTE
 
+CURRENT_MILESTONE_PHASES = (CURRENT_PHASE,)
+CURRENT_MILESTONE_PLAN_COUNT = 3
+CURRENT_MILESTONE_SUMMARY_COUNT = 3
+CURRENT_ROUTE_FOCUSED_GUARDS = (
+    "tests/meta/test_governance_bootstrap_smoke.py",
+    "tests/meta/test_governance_route_handoff_smoke.py",
+    "tests/meta/test_phase90_hotspot_map_guards.py",
+    "tests/meta/test_phase91_typed_boundary_guards.py",
+    "tests/meta/test_phase92_redaction_convergence_guards.py",
+    "tests/meta/test_phase94_typed_boundary_guards.py",
+    "tests/meta/test_phase95_hotspot_decomposition_guards.py",
+    "tests/meta/test_phase96_sanitizer_burndown_guards.py",
+    "tests/meta/test_phase97_governance_assurance_freeze_guards.py",
+    "tests/meta/test_phase98_route_reactivation_guards.py",
+    "tests/meta/test_phase99_runtime_hotspot_support_guards.py",
+    "tests/meta/test_phase100_runtime_schedule_support_guards.py",
+    "tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py",
+    "tests/meta/test_phase102_governance_portability_guards.py",
+    "tests/meta/test_public_surface_guards.py",
+    "tests/meta/test_dependency_guards.py",
+)
+TESTS_PYTHON_FILE_COUNT = 395
+TESTS_RUNNABLE_FILE_COUNT = 315
+TESTS_META_SUITE_COUNT = 60
+
 CURRENT_ROUTE_PROSE_FORBIDDEN = (
     "v1.20 active route / Phase 75 complete / latest archived baseline = v1.19",
     "v1.21 active route / Phase 76 execution-ready / latest archived baseline = v1.20",
@@ -197,7 +221,6 @@ CURRENT_ROUTE_PROSE_FORBIDDEN = (
     "v1.27 active route / Phase 99 complete / latest archived baseline = v1.26",
     "v1.27 active route / Phase 100 complete / latest archived baseline = v1.26",
     "v1.27 active route / Phase 101 complete / latest archived baseline = v1.26",
-    "v1.24 / Phase 89 complete",
     "no active milestone route / latest archived baseline = v1.20",
     "no active milestone route / latest archived baseline = v1.21",
     "no active milestone route / latest archived baseline = v1.22",
@@ -205,16 +228,18 @@ CURRENT_ROUTE_PROSE_FORBIDDEN = (
     "no active milestone route / latest archived baseline = v1.24",
     "no active milestone route / latest archived baseline = v1.25",
     "no active milestone route / latest archived baseline = v1.26",
+    "no active milestone route / latest archived baseline = v1.27",
+    "v1.24 / Phase 89 complete",
 )
 CURRENT_RUNTIME_ROOT_TEST = "tests/core/coordinator/test_runtime_root.py"
 
 HISTORICAL_CLOSEOUT_ROUTE_TRUTH = (
     "historical closeout route truth = "
-    "`no active milestone route / latest archived baseline = v1.27`"
+    "`no active milestone route / latest archived baseline = v1.28`"
 )
 HISTORICAL_ARCHIVE_TRANSITION_ROUTE_TRUTH = (
     "historical archive-transition route truth = "
-    "`no active milestone route / latest archived baseline = v1.26`"
+    "`no active milestone route / latest archived baseline = v1.27`"
 )
 
 
@@ -224,13 +249,17 @@ __all__ = [
     "CURRENT_MILESTONE_HEADER",
     "CURRENT_MILESTONE_LABEL",
     "CURRENT_MILESTONE_NAME",
+    "CURRENT_MILESTONE_PHASES",
+    "CURRENT_MILESTONE_PLAN_COUNT",
     "CURRENT_MILESTONE_ROADMAP_HEADER",
     "CURRENT_MILESTONE_STATE_LABEL",
     "CURRENT_MILESTONE_STATUS",
+    "CURRENT_MILESTONE_SUMMARY_COUNT",
     "CURRENT_PHASE",
     "CURRENT_PHASE_HEADING",
     "CURRENT_PHASE_TITLE",
     "CURRENT_ROUTE",
+    "CURRENT_ROUTE_FOCUSED_GUARDS",
     "CURRENT_ROUTE_MODE",
     "CURRENT_ROUTE_PROSE_FORBIDDEN",
     "CURRENT_RUNTIME_ROOT_TEST",
@@ -257,6 +286,9 @@ __all__ = [
     "PREVIOUS_ARCHIVED_MILESTONE",
     "PREVIOUS_ARCHIVED_MILESTONE_NAME",
     "PREVIOUS_ARCHIVED_PROJECT_HEADER",
+    "TESTS_META_SUITE_COUNT",
+    "TESTS_PYTHON_FILE_COUNT",
+    "TESTS_RUNNABLE_FILE_COUNT",
     "assert_machine_readable_route_contracts",
     "load_planning_route_contract",
     "load_planning_route_contracts",

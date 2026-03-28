@@ -11,18 +11,6 @@ phases:
   - 08-02-SUMMARY.md
   - 08-VALIDATION.md
   - 08-VERIFICATION.md
-  100-mqtt-runtime-and-schedule-service-support-extraction-freeze:
-  - 100-01-SUMMARY.md
-  - 100-02-SUMMARY.md
-  - 100-03-SUMMARY.md
-  - 100-VERIFICATION.md
-  - 100-VALIDATION.md
-  101-anonymous-share-manager-and-rest-decoder-hotspot-decomposition-freeze:
-  - 101-01-SUMMARY.md
-  - 101-02-SUMMARY.md
-  - 101-03-SUMMARY.md
-  - 101-VERIFICATION.md
-  - 101-VALIDATION.md
   15-support-feedback-contract-hardening-governance-truth-repair-and-maintainability-follow-through:
   - 15-01-SUMMARY.md
   - 15-02-SUMMARY.md
@@ -430,6 +418,24 @@ phases:
   - 99-03-SUMMARY.md
   - 99-VERIFICATION.md
   - 99-VALIDATION.md
+  100-mqtt-runtime-and-schedule-service-support-extraction-freeze:
+  - 100-01-SUMMARY.md
+  - 100-02-SUMMARY.md
+  - 100-03-SUMMARY.md
+  - 100-VERIFICATION.md
+  - 100-VALIDATION.md
+  101-anonymous-share-manager-and-rest-decoder-hotspot-decomposition-freeze:
+  - 101-01-SUMMARY.md
+  - 101-02-SUMMARY.md
+  - 101-03-SUMMARY.md
+  - 101-VERIFICATION.md
+  - 101-VALIDATION.md
+  102-governance-portability-verification-stratification-and-open-source-continuity-hardening:
+  - 102-01-SUMMARY.md
+  - 102-02-SUMMARY.md
+  - 102-03-SUMMARY.md
+  - 102-VERIFICATION.md
+  - 102-VALIDATION.md
 policy:
   default_identity: execution-trace
   promotion_contract: Only assets listed under `phases` count as long-term governance/CI
@@ -448,38 +454,3 @@ policy:
 - 仅 frontmatter `phases` 下列出的 phase 资产，才视为长期治理 / CI 证据。
 - 未列出的 `*-PLAN.md`、`*-CONTEXT.md`、`*-RESEARCH.md`、`*-PRD.md`、`*-ARCHITECTURE.md`、`*-UAT.md`，以及未被 allowlist 显式列出的 `*-SUMMARY.md`、`*-VERIFICATION.md`、`*-VALIDATION.md`，默认仍是执行痕迹。
 - 若未来要把新的 phase 资产纳入长期守卫，必须先在 `ROADMAP` / `VERIFICATION_MATRIX` / 里程碑文档 / reviews 文档中显式拉升，再更新此清单。
-
-  71-audit-driven-final-hotspot-decomposition-and-governance-truth-projection:
-    - 71-01-SUMMARY.md
-    - 71-02-SUMMARY.md
-    - 71-03-SUMMARY.md
-    - 71-04-SUMMARY.md
-    - 71-05-SUMMARY.md
-    - 71-SUMMARY.md
-    - 71-VERIFICATION.md
-    - 71-VALIDATION.md
-
-98-carry-forward-eradication-route-reactivation-and-closeout-proof:
-- 98-01-SUMMARY.md
-- 98-02-SUMMARY.md
-- 98-03-SUMMARY.md
-- 98-VERIFICATION.md
-- 98-VALIDATION.md
-99-runtime-hotspot-support-extraction-and-terminal-audit-freeze:
-- 99-01-SUMMARY.md
-- 99-02-SUMMARY.md
-- 99-03-SUMMARY.md
-- 99-VERIFICATION.md
-- 99-VALIDATION.md
-100-mqtt-runtime-and-schedule-service-support-extraction-freeze:
-- 100-01-SUMMARY.md
-- 100-02-SUMMARY.md
-- 100-03-SUMMARY.md
-- 100-VERIFICATION.md
-- 100-VALIDATION.md
-101-anonymous-share-manager-and-rest-decoder-hotspot-decomposition-freeze:
-- 101-01-SUMMARY.md
-- 101-02-SUMMARY.md
-- 101-03-SUMMARY.md
-- 101-VERIFICATION.md
-- 101-VALIDATION.md

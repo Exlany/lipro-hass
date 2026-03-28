@@ -1,4 +1,4 @@
-"""Focused bootstrap smoke guards for the active route and archive-transition truth."""
+"""Focused bootstrap smoke guards for the archived-only route and archive-transition truth."""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ from .conftest import _DOCS_README, _ISSUE_CONFIG, _ROOT, _load_yaml
 from .governance_contract_helpers import (
     _assert_current_route_truth,
     _assert_public_docs_hide_internal_route_story,
+    assert_current_route_focused_guards,
     assert_docs_readme_public_contract,
     assert_issue_docs_entry_contact_link,
 )
@@ -36,21 +37,7 @@ def test_active_route_bootstrap_contract_stays_current() -> None:
         f"**Latest archived pointer:** `{LATEST_ARCHIVED_EVIDENCE_PATH}`"
         in verification_text
     )
-    assert "tests/meta/test_governance_bootstrap_smoke.py" in verification_text
-    assert "tests/meta/test_governance_route_handoff_smoke.py" in verification_text
-    assert "tests/meta/test_phase94_typed_boundary_guards.py" in verification_text
-    assert (
-        "tests/meta/test_phase95_hotspot_decomposition_guards.py" in verification_text
-    )
-    assert "tests/meta/test_phase96_sanitizer_burndown_guards.py" in verification_text
-    assert (
-        "tests/meta/test_phase97_governance_assurance_freeze_guards.py"
-        in verification_text
-    )
-    assert "tests/meta/test_phase98_route_reactivation_guards.py" in verification_text
-    assert "tests/meta/test_phase99_runtime_hotspot_support_guards.py" in verification_text
-    assert "tests/meta/test_phase100_runtime_schedule_support_guards.py" in verification_text
-    assert "tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py" in verification_text
+    assert_current_route_focused_guards(verification_text)
 
 
 def test_public_docs_keep_internal_bootstrap_story_hidden() -> None:

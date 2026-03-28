@@ -6,6 +6,8 @@ from pathlib import Path
 
 from tests.helpers.repo_root import repo_root
 
+from .governance_contract_helpers import assert_testing_inventory_snapshot
+
 _ROOT = repo_root(Path(__file__))
 _PROJECT = _ROOT / ".planning" / "PROJECT.md"
 _ROADMAP = _ROOT / ".planning" / "ROADMAP.md"
@@ -24,7 +26,7 @@ def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def test_phase97_closeout_bundle_stays_pull_only_after_v1_27_reactivation() -> None:
+def test_phase97_closeout_bundle_stays_pull_only_after_v1_28_archived_handoff() -> None:
     project_text = _read(_PROJECT)
     roadmap_text = _read(_ROADMAP)
     requirements_text = _read(_REQUIREMENTS)
@@ -39,8 +41,7 @@ def test_phase97_closeout_bundle_stays_pull_only_after_v1_27_reactivation() -> N
     for text in (project_text, roadmap_text, requirements_text, milestones_text):
         assert "historical closeout route truth = `no active milestone route / latest archived baseline = v1.26`" in text
 
-    assert "no active milestone route / latest archived baseline = v1.27" in state_text
-
+    assert "no active milestone route / latest archived baseline = v1.28" in state_text
     assert ".planning/v1.26-MILESTONE-AUDIT.md" in project_text
     assert ".planning/reviews/V1_26_EVIDENCE_INDEX.md" in project_text
     assert "archived / evidence-ready (2026-03-28)" in project_text
@@ -58,7 +59,5 @@ def test_phase97_file_testing_and_verification_maps_keep_historical_freeze_visib
 
     assert "tests/meta/test_phase97_governance_assurance_freeze_guards.py" in file_matrix_text
     assert "focused closeout guard home for Phase 97 governance / assurance freeze" in file_matrix_text
-    assert "`394` Python files under `tests`" in testing_text
-    assert "`314` runnable `test_*.py` files" in testing_text
-    assert "`59` meta suites" in testing_text
+    assert_testing_inventory_snapshot(testing_text)
     assert "## Phase 97 Governance / Open-Source Contract Sync and Assurance Freeze" in verification_text

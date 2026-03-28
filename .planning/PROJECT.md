@@ -2,10 +2,10 @@
 
 
 **Status:** `No active milestone route`
-**Current route:** `no active milestone route / latest archived baseline = v1.27`；latest archived evidence index = `.planning/reviews/V1_27_EVIDENCE_INDEX.md`.
-**Goal:** `保持 v1.27 archived bundle 作为唯一 pull-only north-star baseline，并把下一条正式路线收缩回 fresh milestone bootstrap / requirements routing。`
+**Current route:** `no active milestone route / latest archived baseline = v1.28`；latest archived evidence index = `.planning/reviews/V1_28_EVIDENCE_INDEX.md`.
+**Goal:** `保持 v1.28 archived bundle 作为唯一 pull-only north-star baseline，并把下一条正式路线收缩回 fresh milestone bootstrap / requirements routing。`
 **Default next step:** `$gsd-new-milestone`
-**Active baseline:** latest archived baseline = `v1.27`；previous archived baseline = `v1.26`.
+**Active baseline:** latest archived baseline = `v1.28`；previous archived baseline = `v1.27`.
 
 
 <!-- governance-route-contract:start -->
@@ -14,56 +14,69 @@ contract_version: 1
 contract_name: governance-route
 active_milestone: null
 latest_archived:
-  version: v1.27
-  name: Final Carry-Forward Eradication & Route Reactivation
+  version: v1.28
+  name: Governance Portability, Verification Stratification & Open-Source Continuity Hardening
   status: archived / evidence-ready (2026-03-28)
-  phase: '101'
-  phase_title: Anonymous-share manager and REST decoder hotspot decomposition freeze
-  phase_dir: 101-anonymous-share-manager-and-rest-decoder-hotspot-decomposition-freeze
-  audit_path: .planning/v1.27-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_27_EVIDENCE_INDEX.md
+  phase: '102'
+  phase_title: Governance portability, verification stratification, and open-source continuity hardening
+  phase_dir: 102-governance-portability-verification-stratification-and-open-source-continuity-hardening
+  audit_path: .planning/v1.28-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_28_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.26
-  name: Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition
-  evidence_path: .planning/reviews/V1_26_EVIDENCE_INDEX.md
+  version: v1.27
+  name: Final Carry-Forward Eradication & Route Reactivation
+  evidence_path: .planning/reviews/V1_27_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.27
+  current_route: no active milestone route / latest archived baseline = v1.28
   default_next_command: $gsd-new-milestone
-  latest_archived_evidence_pointer: .planning/reviews/V1_27_EVIDENCE_INDEX.md
+  latest_archived_evidence_pointer: .planning/reviews/V1_28_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
+## Latest Archived Milestone (v1.28)
 
-## Latest Archived Milestone (v1.27)
+**Name:** `Governance Portability, Verification Stratification & Open-Source Continuity Hardening`
+
+**Why it mattered:** `v1.28` 不再把 governance/meta smoke 对本机 `node` / `gsd-tools` 的脆弱耦合、verification matrix 当前真相与历史 closeout note 的混排，以及 docs-first / maintainer appendix continuity 口径留在“下次顺手整理”的非阻塞残留里，而是一次性把 archived-only closeout 路线、portable smoke guard 与 archive evidence bundle 同步冻结。`
+
+**North-star fit:** `v1.28` 继续不引入第二条业务主链、不改写已冻结的生产 formal homes，而是沿 `v1.27` archived baseline 的唯一 north-star 起点，把治理 portability、verification stratification、open-source continuity wording 与 closeout evidence routing 一次性压回单一 archived-only baseline。`
+
+**Current status:** `archived / evidence-ready (2026-03-28)`
+**Phase range:** `Phase 102`
+**Starting baseline:** `.planning/v1.27-MILESTONE-AUDIT.md`, `.planning/reviews/V1_27_EVIDENCE_INDEX.md`, `.planning/milestones/v1.27-ROADMAP.md`, `.planning/milestones/v1.27-REQUIREMENTS.md`
+**Requirements basket:** `GOV-68`, `TST-34`, `OSS-13`, `QLT-42`
+**Latest archived baseline:** `v1.28`
+**Latest archived pointer:** `.planning/reviews/V1_28_EVIDENCE_INDEX.md`
+**Current route mode:** `no active milestone route / latest archived baseline = v1.28`
+**Default next command:** `$gsd-new-milestone`
+**Archive assets:** `.planning/v1.28-MILESTONE-AUDIT.md`, `.planning/reviews/V1_28_EVIDENCE_INDEX.md`, `.planning/milestones/v1.28-ROADMAP.md`, `.planning/milestones/v1.28-REQUIREMENTS.md`
+**Current follow-up target:** next milestone bootstrap / fresh requirements routing，同时保持 `v1.28` closeout bundle 作为 pull-only baseline。
+
+**Key accomplishments:**
+- `Phase 102` 已把 governance smoke 对本机 `node` / `gsd-tools.cjs` 的硬依赖收口为 capability-aware fast-path proof；缺工具时只跳过 fast-path，不跳过 route/docs/baseline truth。
+- `tests/meta/governance_current_truth.py` 已继续作为 route contract / latest archived / previous archived / phase plan-count / focused guard 常量真源，降低后续 baseline flip 的 literal drift。
+- `.planning/baseline/VERIFICATION_MATRIX.md` 已明确拆分 current archived-only truth、Phase 102 latest archived closeout 与 historical phase closeout reference，不再把当前真相与旧 closeout note 混排。
+- `docs/README.md`、`docs/TROUBLESHOOTING.md`、`docs/MAINTAINER_RELEASE_RUNBOOK.md`、`CHANGELOG.md` 与 maintainer appendix routing 现共同承认 docs-first / access-mode-aware / pull-only archive evidence 的单一路径。
+- `.planning/v1.28-MILESTONE-AUDIT.md`、`.planning/reviews/V1_28_EVIDENCE_INDEX.md`、archive snapshots 与 `Phase 102` promoted closeout bundle 已共同冻结最新 archived baseline。
+- `v1.27` closeout assets 继续保持 previous archived baseline 身份，而不是被回写成 live story。
+
+## Previous Archived Milestone (v1.27)
 
 **Name:** `Final Carry-Forward Eradication & Route Reactivation`
 
-**Why it mattered:** `v1.27` 没有把 carry-forward closure、runtime/schedule predecessor freeze 与 anonymous-share / REST-boundary hotspot decomposition 继续留在“closeout-ready 但未真正闭档”的半状态里，而是把终审剩余热点与治理 handoff 一次性冻结成 latest archived baseline。`
+**Why it mattered:** `v1.27` 没有把 carry-forward closure、runtime/schedule predecessor freeze 与 anonymous-share / REST-boundary hotspot decomposition 继续留在“closeout-ready 但未真正闭档”的半状态里，而是把终审剩余热点与治理 handoff 一次性冻结成 previous archived baseline。`
 
-**North-star fit:** `v1.27` 继续不引入新功能、不重开第二主链，而是沿 `v1.26` archived baseline 的唯一 north-star 起点，把 `Phase 98 -> 101` 的所有收口都压回既有 formal homes / inward collaborators，并在 archive promotion 后切回 `no active milestone route / latest archived baseline = v1.27`。
+**North-star fit:** `v1.27` 继续不引入新功能、不重开第二主链，而是沿 `v1.26` archived baseline 的唯一 north-star 起点，把 `Phase 98 -> 101` 的所有收口都压回既有 formal homes / inward collaborators，并在 archive promotion 后退回 previous archived baseline。`
 
-**Current status:** `archived / evidence-ready (2026-03-28)`
+**Milestone status:** `archived / evidence-ready (2026-03-28)`
 **Phase range:** `Phase 98 -> 101`
-**Starting baseline:** `.planning/v1.26-MILESTONE-AUDIT.md, .planning/reviews/V1_26_EVIDENCE_INDEX.md, .planning/milestones/v1.26-ROADMAP.md, .planning/milestones/v1.26-REQUIREMENTS.md`
-**Requirements basket:** `RES-15`, `HOT-41`, `HOT-42`, `HOT-43`, `GOV-65`, `GOV-66`, `GOV-67`, `TST-31`, `TST-32`, `TST-33`, `QLT-39`, `QLT-40`, `QLT-41`
 **Latest archived baseline:** `v1.27`
-**Latest archived pointer:** `.planning/reviews/V1_27_EVIDENCE_INDEX.md`
-**Current route mode:** `no active milestone route / latest archived baseline = v1.27`
-**Default next command:** `$gsd-new-milestone`
 **Archive assets:** `.planning/v1.27-MILESTONE-AUDIT.md`, `.planning/reviews/V1_27_EVIDENCE_INDEX.md`, `.planning/milestones/v1.27-ROADMAP.md`, `.planning/milestones/v1.27-REQUIREMENTS.md`
-**Current follow-up target:** next milestone bootstrap / fresh requirements routing，同时保持 `v1.27` closeout bundle 作为 pull-only baseline。
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.27`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.26`
 
-**Key accomplishments:**
-- `Phase 98` 已把 `outlet_power` legacy side-car fallback 的物理删除、route reactivation、focused guards 与 planning closeout bundle 重新织回 predecessor story，并作为 archived bundle 的第一段证据保留。
-- `Phase 99` 已把 `status_fallback.py` / `command_runtime.py` 的 hotspot support seams inward split 到 local collaborators，并冻结为 predecessor evidence。
-- `Phase 100` 已把 `mqtt_runtime.py` / `schedule_service.py` 的 remaining support seams inward split 到 local collaborators，并与 `Phase 99` 一起形成稳定 predecessor chain。
-- `Phase 101` 已让 `custom_components/lipro/core/anonymous_share/manager.py` 保持 formal manager home，同时移除 accessor re-export、aggregate outcome/client drift 与无语义 double wrappers；`manager_submission.py` / `manager_support.py` 则继续只保留 inward collaborator 身份。
-- `Phase 101` 已把 `rest_decoder.py` / `rest_decoder_support.py` 收口成更单一的 REST boundary decode authority，统一 offset / fallback-property truth，并让 `mqtt_api_service.py` 复用 boundary MQTT-config decode。
-- `.planning/*`、developer guide、maps/ledgers、focused meta guards 与 GSD parser-facing assets 现共同承认 `no active milestone route / latest archived baseline = v1.27`。
-- `v1.26` closeout assets 继续保持 previous archived baseline 身份，而不是被回写成 live story。
-
-## Previous Archived Milestone (v1.26)
+## Historical Archived Milestone (v1.26)
 
 **Name:** `Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition`
 

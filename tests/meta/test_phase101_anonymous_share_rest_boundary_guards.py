@@ -1,10 +1,12 @@
-"""Focused latest-archived guards for Phase 101 anonymous-share and REST-boundary freeze."""
+"""Focused predecessor guards for Phase 101 anonymous-share and REST-boundary freeze."""
 
 from __future__ import annotations
 
 from pathlib import Path
 
 from tests.helpers.repo_root import repo_root
+
+from .governance_contract_helpers import assert_testing_inventory_snapshot
 
 _ROOT = repo_root(Path(__file__))
 _PROJECT = _ROOT / ".planning" / "PROJECT.md"
@@ -39,7 +41,7 @@ def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def test_phase101_current_route_docs_and_closeout_bundle_align() -> None:
+def test_phase101_previous_archived_docs_and_closeout_bundle_align() -> None:
     project_text = _read(_PROJECT)
     roadmap_text = _read(_ROADMAP)
     requirements_text = _read(_REQUIREMENTS)
@@ -56,12 +58,13 @@ def test_phase101_current_route_docs_and_closeout_bundle_align() -> None:
         requirements_text,
         state_text,
         milestones_text,
-        audit_text,
         verification_text,
     ):
-        assert "no active milestone route / latest archived baseline = v1.27" in text or text is audit_text
+        assert "no active milestone route / latest archived baseline = v1.28" in text
         assert "$gsd-new-milestone" in text
 
+    assert "Final Carry-Forward Eradication & Route Reactivation" in audit_text
+    assert "v1.27 active route / Phase 101 complete / latest archived baseline = v1.26" in audit_text
     assert "$gsd-complete-milestone v1.27" not in audit_text
     assert "[To be planned]" not in roadmap_text
     assert "**Plans:** 0 plans" not in roadmap_text
@@ -70,7 +73,7 @@ def test_phase101_current_route_docs_and_closeout_bundle_align() -> None:
     assert "Phase 101" in phase101_summary
 
 
-def test_phase101_maps_and_ledgers_project_new_hotspot_truth() -> None:
+def test_phase101_maps_and_ledgers_project_previous_archived_hotspot_truth() -> None:
     file_matrix_text = _read(_FILE_MATRIX)
     testing_text = _read(_TESTING)
     verification_text = _read(_VERIFICATION_MATRIX)
@@ -79,10 +82,8 @@ def test_phase101_maps_and_ledgers_project_new_hotspot_truth() -> None:
     dependency_text = _read(_DEPENDENCY_MATRIX)
 
     assert "tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py" in file_matrix_text
-    assert "focused latest-archived guard home for Phase 101 anonymous-share / REST-boundary hotspot decomposition / governance freeze" in file_matrix_text
-    assert "`394` Python files under `tests`" in testing_text
-    assert "`314` runnable `test_*.py` files" in testing_text
-    assert "`59` meta suites" in testing_text
+    assert "focused predecessor guard home for Phase 101 anonymous-share / REST-boundary hotspot decomposition / governance freeze" in file_matrix_text
+    assert_testing_inventory_snapshot(testing_text)
     assert "tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py" in verification_text
     assert "## Phase 101 Anonymous-share Manager / REST Decoder Hotspot Decomposition Freeze" in verification_text
     assert "Phase 101 已把 `anonymous_share/manager.py` 收窄到 435 行 formal manager home" in concerns_text

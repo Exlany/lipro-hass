@@ -1,7 +1,7 @@
 # Codebase Maps
 
-> Snapshot: `2026-03-18`
-> Freshness: Phase 37 对齐刷新；本目录只在 `AGENTS.md`、`.planning/{ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md`、`docs/developer_architecture.md` 与当前 CI/release/public-doc truth 所代表的截面上成立。上述真源一旦变化，本目录必须同步刷新或标记为历史观察。
+> Snapshot: `2026-03-28`
+> Freshness: Phase 102 对齐刷新；本目录只在 `AGENTS.md`、`.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md`、`docs/developer_architecture.md` 与当前 CI/release/public-doc truth 所代表的截面上成立。上述真源一旦变化，本目录必须同步刷新或标记为历史观察。
 > Derived collaboration map: `.planning/codebase/*.md` 是受约束的协作图谱 / 派生视图，用于帮助贡献者快速建立局部心智模型。
 > Authority order: `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` -> `.planning/ROADMAP.md` -> `.planning/REQUIREMENTS.md` -> `.planning/STATE.md` -> `.planning/baseline/*.md` -> `.planning/reviews/*.md` -> `docs/developer_architecture.md` -> `AGENTS.md`。
 > Conflict rule: 若本目录与上述权威链冲突，必须以后者为准；本目录不得自称当前治理真源，并应立即更新或明确标记为历史/过时观察。

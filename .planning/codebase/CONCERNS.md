@@ -19,8 +19,9 @@
 **Runtime / protocol hotspot concentration:**
 - Risk Level: `High`
 - Issue: `Phase 101` 已把 `anonymous_share/manager.py` 收口成 435 行更诚实的 formal home，并把 aggregate outcome/accessor drift 压回 inward seams；`rest_decoder.py` / `rest_decoder_support.py` 也已统一 boundary truth 与 fallback-property semantics。但 runtime/protocol 复杂度仍集中在少数正式文件与 support collaborators：`custom_components/lipro/core/coordinator/runtime/command_runtime.py` (465 行)、`custom_components/lipro/core/anonymous_share/manager.py` (435 行)、`custom_components/lipro/core/protocol/boundary/rest_decoder.py` (425 行)、`custom_components/lipro/core/protocol/boundary/rest_decoder_support.py` (417 行)、`custom_components/lipro/core/api/status_fallback_support.py` (414 行)、`custom_components/lipro/core/api/rest_facade.py` (418 行)、`custom_components/lipro/entities/firmware_update.py` (418 行)。
-- Evidence: `.planning/reviews/FILE_MATRIX.md` 仍将这些文件标为长期正式 home / local support collaborators；`.planning/REQUIREMENTS.md`、`.planning/ROADMAP.md` 与 `.planning/baseline/VERIFICATION_MATRIX.md` 已把 `Phase 100` 退回 predecessor evidence、并把 current-route 前推到 `Phase 101`。
+- Evidence: `.planning/reviews/FILE_MATRIX.md` 仍将这些文件标为长期正式 home / local support collaborators；`.planning/REQUIREMENTS.md`、`.planning/ROADMAP.md` 与 `.planning/baseline/VERIFICATION_MATRIX.md` 已把 `Phase 98 -> 101` 退回 predecessor / previous-archived evidence，并把 archived-only current route 前推到 `Phase 102`。
 - Phase 101 已把 `anonymous_share/manager.py` 收窄到 435 行 formal manager home，并让 `mqtt_api_service.py` 复用 boundary MQTT-config decode truth。
+- Phase 102 没有重开 production formal homes；它只把 governance portability、verification stratification 与 docs/release continuity wording 压回同一条 archived-only baseline。
 - Impact: 命令、状态、MQTT、入口 wiring、OTA 与匿名分享改动的回归半径大，review/triage 成本高，继续拖慢局部演进。
 - Fix approach: 继续沿既有 formal seams inward decomposition，优先拆纯函数/纯策略层，不新增 public root，不让 helper 重新长成第二故事线。
 

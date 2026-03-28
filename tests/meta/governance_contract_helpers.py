@@ -14,6 +14,7 @@ from .governance_current_truth import (
     CURRENT_MILESTONE_STATUS,
     CURRENT_PHASE_HEADING,
     CURRENT_ROUTE,
+    CURRENT_ROUTE_FOCUSED_GUARDS,
     CURRENT_ROUTE_MODE,
     HAS_ACTIVE_MILESTONE,
     LATEST_ARCHIVED_AUDIT_PATH,
@@ -21,6 +22,9 @@ from .governance_current_truth import (
     LATEST_ARCHIVED_EVIDENCE_PATH,
     LATEST_ARCHIVED_PROJECT_HEADER,
     PREVIOUS_ARCHIVED_PROJECT_HEADER,
+    TESTS_META_SUITE_COUNT,
+    TESTS_PYTHON_FILE_COUNT,
+    TESTS_RUNNABLE_FILE_COUNT,
     assert_machine_readable_route_contracts,
 )
 
@@ -45,6 +49,19 @@ def assert_runbook_points_to_latest_evidence(
     assert evidence_filename in runbook_text
     for stale in deprecated:
         assert stale not in runbook_text
+
+
+def assert_current_route_focused_guards(text: str) -> None:
+    """Assert one text mentions every current-route focused guard."""
+    for guard in CURRENT_ROUTE_FOCUSED_GUARDS:
+        assert guard in text
+
+
+def assert_testing_inventory_snapshot(testing_text: str) -> None:
+    """Assert the derived testing map reflects the current repository inventory."""
+    assert f"`{TESTS_PYTHON_FILE_COUNT}` Python files under `tests`" in testing_text
+    assert f"`{TESTS_RUNNABLE_FILE_COUNT}` runnable `test_*.py` files" in testing_text
+    assert f"`{TESTS_META_SUITE_COUNT}` meta suites" in testing_text
 
 
 def _assert_state_keeps_forward_progress_commands(state_text: str) -> None:
@@ -192,15 +209,17 @@ def assert_issue_docs_entry_contact_link(issue_config: dict[str, object]) -> Non
 
 
 __all__ = [
-    '_ROOT',
-    '_assert_current_route_truth',
-    '_assert_latest_archived_route_truth',
-    '_assert_project_allows_post_v1_4_next_step',
-    '_assert_public_docs_hide_internal_route_story',
-    '_assert_state_keeps_forward_progress_commands',
-    '_assert_state_reflects_post_v1_4_continuation',
-    'assert_docs_readme_public_contract',
-    'assert_issue_docs_entry_contact_link',
-    'assert_pull_only_evidence_index',
-    'assert_runbook_points_to_latest_evidence',
+    "_ROOT",
+    "_assert_current_route_truth",
+    "_assert_latest_archived_route_truth",
+    "_assert_project_allows_post_v1_4_next_step",
+    "_assert_public_docs_hide_internal_route_story",
+    "_assert_state_keeps_forward_progress_commands",
+    "_assert_state_reflects_post_v1_4_continuation",
+    "assert_current_route_focused_guards",
+    "assert_docs_readme_public_contract",
+    "assert_issue_docs_entry_contact_link",
+    "assert_pull_only_evidence_index",
+    "assert_runbook_points_to_latest_evidence",
+    "assert_testing_inventory_snapshot",
 ]

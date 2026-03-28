@@ -1,0 +1,3 @@
+- `tests/meta/governance_current_truth.py` 现集中承载 `v1.28 / Phase 102 / previous archived = v1.27` 的 route contract、phase list、plan count、focused guard footprint 与 testing inventory snapshot。
+- `tests/meta/test_governance_route_handoff_smoke.py` 现对本机 `node` / `gsd-tools.cjs` 采取 capability-aware fast-path skip；缺工具时不再误伤 docs / baseline / route truth。
+- `tests/meta/test_phase102_governance_portability_guards.py` 成为 focused latest-archived guard home，冻结 archived-only `v1.28` 终态。

@@ -9,25 +9,49 @@ contract_version: 1
 contract_name: governance-route
 active_milestone: null
 latest_archived:
-  version: v1.27
-  name: Final Carry-Forward Eradication & Route Reactivation
+  version: v1.28
+  name: Governance Portability, Verification Stratification & Open-Source Continuity Hardening
   status: archived / evidence-ready (2026-03-28)
-  phase: '101'
-  phase_title: Anonymous-share manager and REST decoder hotspot decomposition freeze
-  phase_dir: 101-anonymous-share-manager-and-rest-decoder-hotspot-decomposition-freeze
-  audit_path: .planning/v1.27-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_27_EVIDENCE_INDEX.md
+  phase: '102'
+  phase_title: Governance portability, verification stratification, and open-source continuity hardening
+  phase_dir: 102-governance-portability-verification-stratification-and-open-source-continuity-hardening
+  audit_path: .planning/v1.28-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_28_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.26
-  name: Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition
-  evidence_path: .planning/reviews/V1_26_EVIDENCE_INDEX.md
+  version: v1.27
+  name: Final Carry-Forward Eradication & Route Reactivation
+  evidence_path: .planning/reviews/V1_27_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.27
+  current_route: no active milestone route / latest archived baseline = v1.28
   default_next_command: $gsd-new-milestone
-  latest_archived_evidence_pointer: .planning/reviews/V1_27_EVIDENCE_INDEX.md
+  latest_archived_evidence_pointer: .planning/reviews/V1_28_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
+## v1.28 Governance Portability, Verification Stratification & Open-Source Continuity Hardening (Shipped: 2026-03-28; Closeout: 2026-03-28)
+
+**Phase range:** `102 -> 102`
+**Phases completed:** 1 phase, 3 plans, 0 tasks
+**Status:** archived / evidence-ready
+**Route truth:** latest archived evidence index = `.planning/reviews/V1_28_EVIDENCE_INDEX.md`
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.28`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.27`
+**Default next command:** `$gsd-new-milestone`
+
+**Archived phase story:**
+- `Phase 102`: Governance portability, verification stratification, and open-source continuity hardening ✅
+
+**Key accomplishments:**
+- 把 governance/meta smoke 对本机 `node` / `gsd-tools.cjs` 的脆弱耦合收口成 capability-aware fast-path proof，避免 portable review/CI 因环境缺口而误报 route drift。
+- 把 `.planning/baseline/VERIFICATION_MATRIX.md` 当前 archived-only truth、Phase 102 closeout proof 与 historical phase closeout reference 明确分层，不再让最新真相与旧 closeout note 混排。
+- 把 `.planning/v1.28-MILESTONE-AUDIT.md`、`.planning/reviews/V1_28_EVIDENCE_INDEX.md`、archive snapshots 与 promoted closeout bundle 建成最新 pull-only evidence chain，让下一条正式路线只能经 `$gsd-new-milestone` 启动。
+
+**Closeout assets:**
+- `.planning/v1.28-MILESTONE-AUDIT.md`
+- `.planning/reviews/V1_28_EVIDENCE_INDEX.md`
+- `.planning/milestones/v1.28-ROADMAP.md`
+- `.planning/milestones/v1.28-REQUIREMENTS.md`
+- `.planning/phases/102-governance-portability-verification-stratification-and-open-source-continuity-hardening/{102-01-SUMMARY.md,102-02-SUMMARY.md,102-03-SUMMARY.md,102-VERIFICATION.md,102-VALIDATION.md}`
 
 ## v1.27 Final Carry-Forward Eradication & Route Reactivation (Shipped: 2026-03-28; Closeout: 2026-03-28)
 
@@ -36,7 +60,8 @@ bootstrap:
 **Status:** archived / evidence-ready
 **Route truth:** latest archived evidence index = `.planning/reviews/V1_27_EVIDENCE_INDEX.md`
 **Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.27`
-**Default next command:** `$gsd-new-milestone`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.26`
+**Default next command:** `$gsd-new-milestone`（historical closeout command）
 
 **Archived phase story:**
 - `Phase 98`: carry-forward eradication, route reactivation, and closeout proof ✅
@@ -47,8 +72,8 @@ bootstrap:
 **Key accomplishments:**
 - 把 `Phase 98` 的 carry-forward eradication 与 route reactivation bundle 正式冻结为 archived predecessor evidence，不再残留 live route drift。
 - 把 `Phase 99 / 100` 的 runtime / MQTT / schedule support seams inward split 到 local collaborators，并保持 formal homes / predecessor chain 一致。
-- 把 `Phase 101` 的 anonymous-share manager / REST decoder hotspot decomposition、MQTT-config decode reuse 与 governance freeze 一次性收口为 latest archived baseline。
-- 把 `.planning/v1.27-MILESTONE-AUDIT.md`、`.planning/reviews/V1_27_EVIDENCE_INDEX.md` 与 archive snapshots 建成 pull-only closeout bundle，让下一条正式路线只能经 `$gsd-new-milestone` 启动。
+- 把 `Phase 101` 的 anonymous-share manager / REST decoder hotspot decomposition、MQTT-config decode reuse 与 governance freeze 一次性收口为 previous archived baseline。
+- 把 `.planning/v1.27-MILESTONE-AUDIT.md`、`.planning/reviews/V1_27_EVIDENCE_INDEX.md` 与 archive snapshots 建成 pull-only closeout bundle，供 `v1.28` 继续 pull。
 
 **Closeout assets:**
 - `.planning/v1.27-MILESTONE-AUDIT.md`

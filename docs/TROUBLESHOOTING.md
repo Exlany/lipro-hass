@@ -7,7 +7,7 @@
 - Private repositories and forks skip CI HACS validation because HACS only supports public GitHub repositories.
 - Current access mode: this repository is private-access. GitHub Issues / Discussions / Releases / Security UI therefore only apply when your current access mode exposes them or when a future public mirror preserves the same contract.
 - Security reports do **not** belong in public issues; follow `SECURITY.md` instead.
-- Maintainer-facing release and packaging steps live in `docs/MAINTAINER_RELEASE_RUNBOOK.md`.
+- Maintainer-facing release, packaging, and pull-only archived-evidence steps live in `docs/MAINTAINER_RELEASE_RUNBOOK.md`.
 - Supported shell installs should use verified release assets (`install.sh` + release zip + `SHA256SUMS`) that are reachable in your current access mode; `ARCHIVE_TAG=main` is preview-only. If `install.sh` runs in remote mode without a pinned archive/tag, it resolves the latest tagged release by default, but stable guidance still prefers verified release assets over preview paths.
 
 ## Before Opening an Issue

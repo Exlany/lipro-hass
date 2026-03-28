@@ -13,7 +13,7 @@
 - 设备诊断报告导出，并增强诊断脱敏相关测试覆盖。
 - `rest.device-list` / `rest.device-status` / `rest.mesh-group-status` 的 canonical boundary contracts 与 replay/contract fixtures。
 - `AuthSessionSnapshot` formal auth/session contract，供 `config_flow` / `entry_auth` / control adapters 统一消费。
-- 维护者附录现已显式指向 latest archived evidence index（`.planning/reviews/V1_27_EVIDENCE_INDEX.md`）与 archived milestone audit（`.planning/v1.27-MILESTONE-AUDIT.md`），保持 release pull-chain 单一路由。
+- 维护者附录现已显式指向 latest archived evidence index（`.planning/reviews/V1_28_EVIDENCE_INDEX.md`）与 archived milestone audit（`.planning/v1.28-MILESTONE-AUDIT.md`），保持 release pull-chain 单一路由。
 
 ### 变更（Changed）
 
@@ -33,6 +33,7 @@
 - control adapters 改为消费 formal auth/session/result contracts，而不是依赖 raw login dict shape。
 - governance / replay / meta guards 已同步到 `Phase 10 completed` 口径，future-host 叙事仅允许建立在 formal boundary/auth/device nucleus 之上。
 - maintainer-facing release route 现统一承认 `docs/README.md` maintainer appendix → `docs/MAINTAINER_RELEASE_RUNBOOK.md` → version-sync triad / tagged workflows / archived evidence pointer 的单一路径。
+- governance/meta smoke 现改为 capability-aware fast-path proof：缺少本机 `node` 或 `gsd-tools` 时仅跳过 fast-path，不跳过 docs / baseline / route-contract truth。
 - release notes 已补齐 CI reuse、tagged `pip-audit` / `CodeQL`、`SBOM` / attestation / `cosign` / release identity manifest、verify-only / non-publish rehearsal 与 compatibility preview advisory lane 的同一故事。
 
 ### 修复（Fixed）

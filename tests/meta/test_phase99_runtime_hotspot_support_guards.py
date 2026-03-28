@@ -6,10 +6,12 @@ from pathlib import Path
 
 from tests.helpers.repo_root import repo_root
 
+from .governance_contract_helpers import assert_testing_inventory_snapshot
+
 _ROOT = repo_root(Path(__file__))
 _PROJECT = _ROOT / ".planning" / "PROJECT.md"
 _ROADMAP = _ROOT / ".planning" / "ROADMAP.md"
-_REQUIREMENTS = _ROOT / ".planning" / "REQUIREMENTS.md"
+_ARCHIVED_V127_REQUIREMENTS = _ROOT / ".planning" / "milestones" / "v1.27-REQUIREMENTS.md"
 _STATE = _ROOT / ".planning" / "STATE.md"
 _MILESTONES = _ROOT / ".planning" / "MILESTONES.md"
 _VERIFICATION_MATRIX = _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
@@ -36,17 +38,17 @@ def _read(path: Path) -> str:
 def test_phase99_bundle_stays_visible_as_completed_predecessor() -> None:
     project_text = _read(_PROJECT)
     roadmap_text = _read(_ROADMAP)
-    requirements_text = _read(_REQUIREMENTS)
+    requirements_text = _read(_ARCHIVED_V127_REQUIREMENTS)
     state_text = _read(_STATE)
     milestones_text = _read(_MILESTONES)
     dev_arch_text = _read(_DEV_ARCH)
     phase99_verification = _read(_PHASE99_DIR / "99-VERIFICATION.md")
     phase99_validation = _read(_PHASE99_DIR / "99-VALIDATION.md")
 
-    assert "no active milestone route / latest archived baseline = v1.27" in project_text
+    assert "no active milestone route / latest archived baseline = v1.28" in project_text
     assert "### Phase 99: Runtime hotspot support extraction and terminal audit freeze" in roadmap_text
-    assert "| HOT-41 | Phase 99 | Complete |" in requirements_text
-    assert "Phase 101" in state_text
+    assert "| HOT-41 | Phase 99 | Completed |" in requirements_text
+    assert "Phase 102" in state_text
     assert "`Phase 99`: runtime hotspot support extraction and terminal audit freeze ✅" in milestones_text
     assert "Phase 99 Runtime Hotspot Support Extraction / Predecessor Freeze Note" in dev_arch_text
     assert "# Phase 99 Verification" in phase99_verification
@@ -63,12 +65,10 @@ def test_phase99_maps_keep_predecessor_guard_footprint() -> None:
     assert "custom_components/lipro/core/coordinator/runtime/command_runtime_support.py" in file_matrix_text
     assert "tests/meta/test_phase99_runtime_hotspot_support_guards.py" in file_matrix_text
     assert "focused predecessor guard home for Phase 99 runtime hotspot support extraction / governance freeze" in file_matrix_text
-    assert "`394` Python files under `tests`" in testing_text
-    assert "`314` runnable `test_*.py` files" in testing_text
-    assert "`59` meta suites" in testing_text
+    assert_testing_inventory_snapshot(testing_text)
     assert "tests/meta/test_phase99_runtime_hotspot_support_guards.py" in verification_text
     assert "## Phase 99 Runtime Hotspot Support Extraction / Terminal Audit Freeze" in verification_text
-    assert "## Phase 101 Anonymous-share Manager / REST Decoder Hotspot Decomposition Freeze" in verification_text
+    assert "## Phase 102 Governance Portability / Verification Stratification / Open-Source Continuity Hardening" in verification_text
     assert "Phase 101 已把 `anonymous_share/manager.py` 收窄到 435 行 formal manager home" in concerns_text
 
 

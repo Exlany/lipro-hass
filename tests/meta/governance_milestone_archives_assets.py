@@ -393,6 +393,33 @@ def test_v1_24_closeout_assets_exist_and_are_pull_only() -> None:
         "V1_24_EVIDENCE_INDEX.md",
     )
 
+def test_v1_28_closeout_assets_exist_and_are_pull_only() -> None:
+    evidence_index = _ROOT / ".planning" / "reviews" / "V1_28_EVIDENCE_INDEX.md"
+    milestone_audit = _ROOT / ".planning" / "v1.28-MILESTONE-AUDIT.md"
+
+    assert evidence_index.exists()
+    assert milestone_audit.exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.28-ROADMAP.md").exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.28-REQUIREMENTS.md").exists()
+    _assert_promoted_phase_assets(
+        "102-governance-portability-verification-stratification-and-open-source-continuity-hardening",
+        "102-01-SUMMARY.md",
+        "102-02-SUMMARY.md",
+        "102-03-SUMMARY.md",
+        "102-VERIFICATION.md",
+        "102-VALIDATION.md",
+    )
+
+    assert_pull_only_evidence_index(
+        evidence_index,
+        "102-01-SUMMARY.md",
+        "102-VERIFICATION.md",
+        "102-VALIDATION.md",
+        "archived / evidence-ready",
+        "V1_28_EVIDENCE_INDEX.md",
+    )
+
+
 def test_v1_27_closeout_assets_exist_and_are_pull_only() -> None:
     evidence_index = _ROOT / ".planning" / "reviews" / "V1_27_EVIDENCE_INDEX.md"
     milestone_audit = _ROOT / ".planning" / "v1.27-MILESTONE-AUDIT.md"

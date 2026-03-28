@@ -2,16 +2,16 @@
 
 **Purpose:** 建立 requirement → artifact → test → doc → phase acceptance / handoff 的统一验证闭环。
 **Status:** Formal baseline asset (`BASE-03` phase acceptance truth source)
-**Updated:** 2026-03-28 (v1.27 archive promotion / latest-archived closeout aligned)
+**Updated:** 2026-03-28 (v1.28 archive promotion / archived-only closeout aligned)
 
 ## Formal Role
 
-## Current Mutable Route
+## Current Archived-Only Route
 
-- **Current mutable story:** `no active milestone route / latest archived baseline = v1.27`
+- **Current route story:** `no active milestone route / latest archived baseline = v1.28`
 - **Default next command:** `$gsd-new-milestone`
-- **Latest archived pointer:** `.planning/reviews/V1_27_EVIDENCE_INDEX.md`
-- **Focused guards:** `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/test_phase90_hotspot_map_guards.py`, `tests/meta/test_phase91_typed_boundary_guards.py`, `tests/meta/test_phase92_redaction_convergence_guards.py`, `tests/meta/test_phase94_typed_boundary_guards.py`, `tests/meta/test_phase95_hotspot_decomposition_guards.py`, `tests/meta/test_phase96_sanitizer_burndown_guards.py`, `tests/meta/test_phase97_governance_assurance_freeze_guards.py`, `tests/meta/test_phase98_route_reactivation_guards.py`, `tests/meta/test_phase99_runtime_hotspot_support_guards.py`, `tests/meta/test_phase100_runtime_schedule_support_guards.py`, `tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py`, `tests/meta/test_public_surface_guards.py`, `tests/meta/test_dependency_guards.py`
+- **Latest archived pointer:** `.planning/reviews/V1_28_EVIDENCE_INDEX.md`
+- **Focused guards:** `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/test_phase90_hotspot_map_guards.py`, `tests/meta/test_phase91_typed_boundary_guards.py`, `tests/meta/test_phase92_redaction_convergence_guards.py`, `tests/meta/test_phase94_typed_boundary_guards.py`, `tests/meta/test_phase95_hotspot_decomposition_guards.py`, `tests/meta/test_phase96_sanitizer_burndown_guards.py`, `tests/meta/test_phase97_governance_assurance_freeze_guards.py`, `tests/meta/test_phase98_route_reactivation_guards.py`, `tests/meta/test_phase99_runtime_hotspot_support_guards.py`, `tests/meta/test_phase100_runtime_schedule_support_guards.py`, `tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py`, `tests/meta/test_phase102_governance_portability_guards.py`, `tests/meta/test_public_surface_guards.py`, `tests/meta/test_dependency_guards.py`
 
 - 本文件是 `Phase 1.5` 及其下游 phases 的正式 acceptance truth；phase docs / summaries 只能引用、实例化或扩展，不得平行定义 exit contract。
 - 任一 phase 只有同时交付 requirement evidence、artifact updates、verification proof 与 governance disposition，才可宣称完成。
@@ -21,6 +21,12 @@
 - 若 `.planning/reviews/FILE_MATRIX.md`、`.planning/reviews/RESIDUAL_LEDGER.md`、`.planning/reviews/KILL_LIST.md` 无变化，phase summary 也必须明确写出“为何无变化”。
 - `.planning/codebase/*.md` 若被保留，必须通过 `README.md`、统一 derived collaboration map disclaimer、snapshot/freshness/authority 头部与治理守卫声明其从属身份，不能越权成为第二条 authority chain。
 - `.planning/baseline/GOVERNANCE_REGISTRY.json` 若更新，必须同步 public docs / contributor templates / release-contract tests，并明确 `break-glass verify-only` 与 `non-publish rehearsal` 是否新增或变更。
+
+## Phase 102 Governance Portability / Verification Stratification / Open-Source Continuity Hardening
+
+- **Route truth:** latest archived closeout bundle under `no active milestone route / latest archived baseline = v1.28`
+- **Focused guard:** `tests/meta/test_phase102_governance_portability_guards.py`
+- **Proof chain:** focused Phase 102 governance/docs/archive pytest set → `tests/meta` → `check_file_matrix` → `ruff` → `mypy` → `gsd-tools state/progress/init-plan-phase/init-execute-phase/phase-plan-index`
 
 ## Phase 94 Typed Payload Contraction and Domain-Bag Narrowing
 
@@ -48,25 +54,25 @@
 
 ## Phase 98 Carry-Forward Eradication / Route Reactivation / Closeout Proof
 
-- **Route truth:** completed predecessor evidence under archived closeout `v1.27` bundle
+- **Route truth:** completed predecessor evidence under previous archived closeout `v1.27` bundle
 - **Focused guard:** `tests/meta/test_phase98_route_reactivation_guards.py`
 - **Proof chain:** focused Phase 98 governance pytest set → `tests/meta` → `check_file_matrix` → `ruff` → `mypy` → `gsd-tools state/progress/init-plan-phase/init-execute-phase`
 
 ## Phase 99 Runtime Hotspot Support Extraction / Terminal Audit Freeze
 
-- **Route truth:** completed predecessor evidence under archived closeout `v1.27` bundle
+- **Route truth:** completed predecessor evidence under previous archived closeout `v1.27` bundle
 - **Focused guard:** `tests/meta/test_phase99_runtime_hotspot_support_guards.py`
 - **Proof chain:** focused Phase 99 predecessor/runtime pytest set → `tests/meta` → `check_file_matrix` → `ruff` → `mypy` → `gsd-tools state/progress/init-plan-phase/init-execute-phase/phase-plan-index`
 
 ## Phase 100 MQTT Runtime / Schedule Service Support Extraction Freeze
 
-- **Route truth:** completed predecessor evidence under archived closeout `v1.27` bundle
+- **Route truth:** completed predecessor evidence under previous archived closeout `v1.27` bundle
 - **Focused guard:** `tests/meta/test_phase100_runtime_schedule_support_guards.py`
 - **Proof chain:** focused Phase 100 predecessor/runtime/schedule pytest set → `tests/meta` → `check_file_matrix` → `ruff` → `mypy` → `gsd-tools state/progress/init-plan-phase/init-execute-phase/phase-plan-index`
 
 ## Phase 101 Anonymous-share Manager / REST Decoder Hotspot Decomposition Freeze
 
-- **Route truth:** latest archived closeout bundle under `no active milestone route / latest archived baseline = v1.27`
+- **Route truth:** completed predecessor evidence under previous archived closeout `v1.27` bundle
 - **Focused guard:** `tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py`
 - **Proof chain:** focused Phase 101 anonymous-share/protocol/governance pytest set → `tests/meta` → `check_file_matrix` → `ruff` → `mypy` → `gsd-tools state/progress/init-plan-phase/init-execute-phase/phase-plan-index`
 

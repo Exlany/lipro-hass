@@ -6,10 +6,12 @@ from pathlib import Path
 
 from tests.helpers.repo_root import repo_root
 
+from .governance_contract_helpers import assert_testing_inventory_snapshot
+
 _ROOT = repo_root(Path(__file__))
 _PROJECT = _ROOT / ".planning" / "PROJECT.md"
 _ROADMAP = _ROOT / ".planning" / "ROADMAP.md"
-_REQUIREMENTS = _ROOT / ".planning" / "REQUIREMENTS.md"
+_ARCHIVED_V127_REQUIREMENTS = _ROOT / ".planning" / "milestones" / "v1.27-REQUIREMENTS.md"
 _STATE = _ROOT / ".planning" / "STATE.md"
 _MILESTONES = _ROOT / ".planning" / "MILESTONES.md"
 _VERIFICATION_MATRIX = _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
@@ -34,17 +36,20 @@ def _read(path: Path) -> str:
 def test_phase98_bundle_stays_visible_as_completed_predecessor() -> None:
     project_text = _read(_PROJECT)
     roadmap_text = _read(_ROADMAP)
-    requirements_text = _read(_REQUIREMENTS)
+    requirements_text = _read(_ARCHIVED_V127_REQUIREMENTS)
     state_text = _read(_STATE)
     milestones_text = _read(_MILESTONES)
     dev_arch_text = _read(_DEV_ARCH)
     phase98_verification = _read(_PHASE98_DIR / "98-VERIFICATION.md")
     phase98_validation = _read(_PHASE98_DIR / "98-VALIDATION.md")
 
-    assert "no active milestone route / latest archived baseline = v1.27" in project_text
-    assert "### Phase 98: Carry-forward eradication, route reactivation, and closeout proof" in roadmap_text
-    assert "| RES-15 | Phase 98 | Complete |" in requirements_text
-    assert "Phase 101" in state_text
+    assert "no active milestone route / latest archived baseline = v1.28" in project_text
+    assert (
+        "### Phase 98: Carry-forward eradication, route reactivation, and closeout proof"
+        in roadmap_text
+    )
+    assert "| RES-15 | Phase 98 | Completed |" in requirements_text
+    assert "Phase 102" in state_text
     assert "`Phase 98`: carry-forward eradication, route reactivation, and closeout proof ✅" in milestones_text
     assert "Phase 98 Route Reactivation / Carry-Forward Closure Note" in dev_arch_text
     assert "# Phase 98 Verification" in phase98_verification
@@ -58,12 +63,10 @@ def test_phase98_maps_keep_predecessor_guard_footprint() -> None:
 
     assert "tests/meta/test_phase98_route_reactivation_guards.py" in file_matrix_text
     assert "focused predecessor guard home for Phase 98 reactivation / carry-forward closure" in file_matrix_text
-    assert "`394` Python files under `tests`" in testing_text
-    assert "`314` runnable `test_*.py` files" in testing_text
-    assert "`59` meta suites" in testing_text
+    assert_testing_inventory_snapshot(testing_text)
     assert "tests/meta/test_phase98_route_reactivation_guards.py" in verification_text
     assert "## Phase 98 Carry-Forward Eradication / Route Reactivation / Closeout Proof" in verification_text
-    assert "## Phase 101 Anonymous-share Manager / REST Decoder Hotspot Decomposition Freeze" in verification_text
+    assert "## Phase 102 Governance Portability / Verification Stratification / Open-Source Continuity Hardening" in verification_text
 
 
 def test_phase98_outlet_power_formal_primitive_has_no_live_legacy_fallback_story() -> None:
