@@ -421,3 +421,8 @@ _None currently registered._
 
 - 本 phase **无新增 active kill target**；`schedule_service_support.py` 与 `mqtt_runtime_support.py` 代表的是 inward decomposition，不是新的 file-level delete campaign。
 - `custom_components/lipro/core/api/schedule_service.py` 与 `custom_components/lipro/core/coordinator/runtime/mqtt_runtime.py` 继续冻结为 formal homes；remaining large formal homes 仍只允许 inward split / typed narrowing，不得被 retroactively 写成 future kill target。
+
+## Phase 101 Status Update
+
+- 本 phase **无新增 active kill target**；`manager_submission.py`、`manager_support.py`、`rest_decoder_support.py` 与 `mqtt_api_service.py` 代表的是 inward decomposition / boundary truth cleanup，不是新的 file-level delete campaign。
+- `custom_components/lipro/core/anonymous_share/manager.py` 与 `custom_components/lipro/core/protocol/boundary/rest_decoder.py` 继续冻结为 formal homes；remaining large formal homes 仍只允许 inward split / typed narrowing，不得被 retroactively 写成 future kill target。

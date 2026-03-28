@@ -29,12 +29,12 @@ async def get_devices(
     offset: int = 0,
     limit: int = 100,
 ) -> DeviceListResponse:
-    """Return canonical device rows through the explicit device endpoint."""
+    """Return child-facing typed device rows through the explicit device endpoint."""
     return await self._endpoint_surface.get_devices(offset=offset, limit=limit)
 
 
 async def get_product_configs(self: LiproRestFacade) -> list[JsonObject]:
-    """Return canonical product configuration rows."""
+    """Return child-facing typed product configuration rows."""
     return await self._endpoint_surface.get_product_configs()
 
 
@@ -45,7 +45,7 @@ async def query_device_status(
     max_devices_per_query: int = 100,
     on_batch_metric: RecordStatusBatchMetric | None = None,
 ) -> list[DeviceStatusItem]:
-    """Return canonical device-status rows through the explicit status endpoint."""
+    """Return child-facing typed device-status rows through the explicit status endpoint."""
     return await self._endpoint_surface.query_device_status(
         device_ids,
         max_devices_per_query=max_devices_per_query,
@@ -57,7 +57,7 @@ async def query_mesh_group_status(
     self: LiproRestFacade,
     group_ids: list[str],
 ) -> list[JsonObject]:
-    """Return canonical mesh-group status rows."""
+    """Return child-facing typed mesh-group status rows."""
     return await self._endpoint_surface.query_mesh_group_status(group_ids)
 
 

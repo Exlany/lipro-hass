@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 717
+**Python files total:** 718
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -49,8 +49,8 @@
 | `custom_components/lipro/core/anonymous_share/collector.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/const.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/manager.py` | Protocol | Phase 90 | 重构 | formal anonymous-share aggregate manager home with scope-state support collaborators |
-| `custom_components/lipro/core/anonymous_share/manager_submission.py` | Protocol | Phase 2.6 | 保留 | - |
-| `custom_components/lipro/core/anonymous_share/manager_support.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 | 保留 | anonymous-share scope-state / pending aggregation helper home |
+| `custom_components/lipro/core/anonymous_share/manager_submission.py` | Protocol | Phase 101 | 保留 | anonymous-share submit-flow inward collaborator home |
+| `custom_components/lipro/core/anonymous_share/manager_support.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 | 保留 | anonymous-share scope-state / pending aggregation helper home |
 | `custom_components/lipro/core/anonymous_share/models.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/registry.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/report_builder.py` | Protocol | Phase 2.6 | 保留 | - |
@@ -84,7 +84,7 @@
 | `custom_components/lipro/core/api/endpoints/schedule.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/endpoints/status.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/errors.py` | Protocol | Phase 2 | 重构 | - |
-| `custom_components/lipro/core/api/mqtt_api_service.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/mqtt_api_service.py` | Protocol | Phase 101 | 保留 | MQTT-config boundary-truth reuse helper |
 | `custom_components/lipro/core/api/observability.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/power_service.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/request_codec.py` | Protocol | Phase 2 | 重构 | - |
@@ -93,15 +93,15 @@
 | `custom_components/lipro/core/api/request_policy_support.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/response_safety.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/rest_facade.py` | Protocol | Phase 90 | 重构 | canonical REST child-façade composition home |
-| `custom_components/lipro/core/api/rest_facade_endpoint_methods.py` | Protocol | Phase 2 | 重构 | - |
+| `custom_components/lipro/core/api/rest_facade_endpoint_methods.py` | Protocol | Phase 101 | 保留 | REST child-facing typed endpoint wording helper |
 | `custom_components/lipro/core/api/rest_facade_request_methods.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/schedule_codec.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/schedule_endpoint.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/schedule_service.py` | Protocol | Phase 2 / 14 | 重构 | candidate-query / mutation schedule collaborator home after inward split |
-| `custom_components/lipro/core/api/schedule_service_support.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 | 保留 | schedule-service local candidate batching/timeout/request support collaborator |
+| `custom_components/lipro/core/api/schedule_service_support.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 | 保留 | schedule-service local candidate batching/timeout/request support collaborator |
 | `custom_components/lipro/core/api/session_state.py` | Protocol | Phase 2 / 15 / 17 | 重构 | RestSessionState formal REST session-state home |
 | `custom_components/lipro/core/api/status_fallback.py` | Protocol | Phase 14 | 保留 | status fallback outward home with support-backed binary-split implementation |
-| `custom_components/lipro/core/api/status_fallback_support.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 | 保留 | status fallback local recursion/logging support collaborator |
+| `custom_components/lipro/core/api/status_fallback_support.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 | 保留 | status fallback local recursion/logging support collaborator |
 | `custom_components/lipro/core/api/status_service.py` | Protocol | Phase 2 / 13 / 14 | 重构 | public status orchestration home |
 | `custom_components/lipro/core/api/transport_core.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/transport_executor.py` | Protocol | Phase 2 / 35 | 重构 | REST signed transport execution + response normalization home |
@@ -139,7 +139,7 @@
 | `custom_components/lipro/core/coordinator/runtime/command/retry.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/command/sender.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/command_runtime.py` | Runtime | Phase 90 | 重构 | formal command-runtime orchestration home with inward trace / failure helpers and support-backed request / failure helpers |
-| `custom_components/lipro/core/coordinator/runtime/command_runtime_support.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 | 保留 | command-runtime local request/failure support collaborator |
+| `custom_components/lipro/core/coordinator/runtime/command_runtime_support.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 | 保留 | command-runtime local request/failure support collaborator |
 | `custom_components/lipro/core/coordinator/runtime/device/__init__.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/device/batch_optimizer.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/device/filter.py` | Runtime | Phase 5 | 重构 | - |
@@ -154,7 +154,7 @@
 | `custom_components/lipro/core/coordinator/runtime/mqtt/message_handler.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/mqtt/reconnect.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/mqtt_runtime.py` | Runtime | Phase 90 | 重构 | formal MQTT-runtime orchestration home with localized transport / notification helpers |
-| `custom_components/lipro/core/coordinator/runtime/mqtt_runtime_support.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 | 保留 | MQTT-runtime local transport/notification/background-task support collaborator |
+| `custom_components/lipro/core/coordinator/runtime/mqtt_runtime_support.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 | 保留 | MQTT-runtime local transport/notification/background-task support collaborator |
 | `custom_components/lipro/core/coordinator/runtime/outlet_power_runtime.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/state/__init__.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/state/index.py` | Runtime | Phase 5 | 重构 | - |
@@ -228,7 +228,7 @@
 | `custom_components/lipro/core/protocol/__init__.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/protocol/boundary/__init__.py` | Protocol | Phase 7.1 | 保留 | - |
 | `custom_components/lipro/core/protocol/boundary/mqtt_decoder.py` | Protocol | Phase 7.1 | 保留 | canonical MQTT topic/payload decode authority |
-| `custom_components/lipro/core/protocol/boundary/rest_decoder.py` | Protocol | Phase 7.1 | 保留 | - |
+| `custom_components/lipro/core/protocol/boundary/rest_decoder.py` | Protocol | Phase 101 | 保留 | REST boundary decoder family home |
 | `custom_components/lipro/core/protocol/boundary/rest_decoder_support.py` | Protocol | Phase 33 | 保留 | REST decoder canonicalization helper home |
 | `custom_components/lipro/core/protocol/boundary/result.py` | Protocol | Phase 91 | 保留 | typed protocol-boundary decode result home |
 | `custom_components/lipro/core/protocol/boundary/schema_registry.py` | Protocol | Phase 91 | 保留 | typed boundary decoder registry home |
@@ -630,7 +630,8 @@
 | `tests/meta/test_governance_route_handoff_smoke.py` | Assurance | Phase 79 | 保留 | route-handoff gsd fast-path smoke guard home |
 | `tests/meta/test_install_sh_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_modularization_surfaces.py` | Assurance | Phase 6 | 保留 | - |
-| `tests/meta/test_phase100_runtime_schedule_support_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 | 保留 | focused current-route guard home for Phase 100 MQTT/runtime schedule support extraction / governance freeze |
+| `tests/meta/test_phase100_runtime_schedule_support_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 | 保留 | focused predecessor guard home for Phase 100 MQTT/runtime schedule support extraction / governance freeze |
+| `tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 | 保留 | focused latest-archived guard home for Phase 101 anonymous-share / REST-boundary hotspot decomposition / governance freeze |
 | `tests/meta/test_phase31_runtime_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase45_hotspot_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase50_rest_typed_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
@@ -655,12 +656,12 @@
 | `tests/meta/test_phase90_hotspot_map_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase91_typed_boundary_guards.py` | Assurance | Phase 91 | 保留 | focused no-regrowth guard home for Phase 91 typed-boundary hardening |
 | `tests/meta/test_phase92_redaction_convergence_guards.py` | Assurance | Phase 6 | 保留 | - |
-| `tests/meta/test_phase94_typed_boundary_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 | 保留 | focused no-regrowth guard home for Phase 94 typed payload contraction |
-| `tests/meta/test_phase95_hotspot_decomposition_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 | 保留 | focused no-regrowth guard home for Phase 95 hotspot inward decomposition |
-| `tests/meta/test_phase96_sanitizer_burndown_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 | 保留 | focused no-regrowth guard home for Phase 96 sanitizer burn-down |
-| `tests/meta/test_phase97_governance_assurance_freeze_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 | 保留 | focused closeout guard home for Phase 97 governance / assurance freeze |
-| `tests/meta/test_phase98_route_reactivation_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 | 保留 | focused predecessor guard home for Phase 98 reactivation / carry-forward closure |
-| `tests/meta/test_phase99_runtime_hotspot_support_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 | 保留 | focused predecessor guard home for Phase 99 runtime hotspot support extraction / governance freeze |
+| `tests/meta/test_phase94_typed_boundary_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 | 保留 | focused no-regrowth guard home for Phase 94 typed payload contraction |
+| `tests/meta/test_phase95_hotspot_decomposition_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 | 保留 | focused no-regrowth guard home for Phase 95 hotspot inward decomposition |
+| `tests/meta/test_phase96_sanitizer_burndown_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 | 保留 | focused no-regrowth guard home for Phase 96 sanitizer burn-down |
+| `tests/meta/test_phase97_governance_assurance_freeze_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 | 保留 | focused closeout guard home for Phase 97 governance / assurance freeze |
+| `tests/meta/test_phase98_route_reactivation_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 | 保留 | focused predecessor guard home for Phase 98 reactivation / carry-forward closure |
+| `tests/meta/test_phase99_runtime_hotspot_support_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 | 保留 | focused predecessor guard home for Phase 99 runtime hotspot support extraction / governance freeze |
 | `tests/meta/test_protocol_replay_assets.py` | Assurance | Phase 7.4 | 保留 | - |
 | `tests/meta/test_public_surface_guards.py` | Assurance | Phase 6 | 保留 | thin shell after public-surface topicization |
 | `tests/meta/test_service_translation_sync.py` | Assurance | Phase 6 | 保留 | - |

@@ -430,7 +430,7 @@ PHASE_79_OVERRIDE_TRUTH_FAMILIES = (
         ("tests/meta/test_governance_release_docs.py", "release/docs topic suite home"),
         ("tests/meta/test_governance_release_continuity.py", "release continuity/custody topic suite home"),
     )),
-    OverrideTruthFamily(area="Assurance", owner_phase="Phase 94 / 95 / 96 / 97 / 98 / 99 / 100", fate="保留", rows=(
+    OverrideTruthFamily(area="Assurance", owner_phase="Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101", fate="保留", rows=(
         ("custom_components/lipro/core/anonymous_share/manager_support.py", "anonymous-share scope-state / pending aggregation helper home"),
         ("custom_components/lipro/core/api/status_fallback_support.py", "status fallback local recursion/logging support collaborator"),
         ("custom_components/lipro/core/api/schedule_service_support.py", "schedule-service local candidate batching/timeout/request support collaborator"),
@@ -442,7 +442,14 @@ PHASE_79_OVERRIDE_TRUTH_FAMILIES = (
         ("tests/meta/test_phase97_governance_assurance_freeze_guards.py", "focused closeout guard home for Phase 97 governance / assurance freeze"),
         ("tests/meta/test_phase98_route_reactivation_guards.py", "focused predecessor guard home for Phase 98 reactivation / carry-forward closure"),
         ("tests/meta/test_phase99_runtime_hotspot_support_guards.py", "focused predecessor guard home for Phase 99 runtime hotspot support extraction / governance freeze"),
-        ("tests/meta/test_phase100_runtime_schedule_support_guards.py", "focused current-route guard home for Phase 100 MQTT/runtime schedule support extraction / governance freeze"),
+        ("tests/meta/test_phase100_runtime_schedule_support_guards.py", "focused predecessor guard home for Phase 100 MQTT/runtime schedule support extraction / governance freeze"),
+        ("tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py", "focused latest-archived guard home for Phase 101 anonymous-share / REST-boundary hotspot decomposition / governance freeze"),
+    )),
+    OverrideTruthFamily(area="Protocol", owner_phase="Phase 101", fate="保留", rows=(
+        ("custom_components/lipro/core/anonymous_share/manager_submission.py", "anonymous-share submit-flow inward collaborator home"),
+        ("custom_components/lipro/core/protocol/boundary/rest_decoder.py", "REST boundary decoder family home"),
+        ("custom_components/lipro/core/api/mqtt_api_service.py", "MQTT-config boundary-truth reuse helper"),
+        ("custom_components/lipro/core/api/rest_facade_endpoint_methods.py", "REST child-facing typed endpoint wording helper"),
     )),
 )
 

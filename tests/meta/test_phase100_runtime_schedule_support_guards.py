@@ -1,4 +1,4 @@
-"""Focused current-route guards for Phase 100 runtime/schedule support extraction and governance freeze."""
+"""Focused predecessor guards for Phase 100 runtime/schedule support extraction freeze."""
 
 from __future__ import annotations
 
@@ -33,34 +33,27 @@ def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def test_phase100_current_route_docs_and_closeout_bundle_align() -> None:
+def test_phase100_bundle_stays_visible_as_completed_predecessor() -> None:
     project_text = _read(_PROJECT)
     roadmap_text = _read(_ROADMAP)
     requirements_text = _read(_REQUIREMENTS)
     state_text = _read(_STATE)
     milestones_text = _read(_MILESTONES)
-    verification_text = _read(_VERIFICATION_MATRIX)
     dev_arch_text = _read(_DEV_ARCH)
     phase100_verification = _read(_PHASE100_DIR / "100-VERIFICATION.md")
     phase100_validation = _read(_PHASE100_DIR / "100-VALIDATION.md")
 
-    for text in (
-        project_text,
-        roadmap_text,
-        requirements_text,
-        state_text,
-        milestones_text,
-        verification_text,
-    ):
-        assert "v1.27 active route / Phase 100 complete / latest archived baseline = v1.26" in text
-        assert "$gsd-complete-milestone v1.27" in text
-
-    assert "Phase 100 MQTT Runtime / Schedule Service Support Extraction Freeze Note" in dev_arch_text
+    assert "no active milestone route / latest archived baseline = v1.27" in project_text
+    assert "### Phase 100: MQTT runtime and schedule service support extraction freeze" in roadmap_text
+    assert "| HOT-42 | Phase 100 | Complete |" in requirements_text
+    assert "Phase 101" in state_text
+    assert "`Phase 100`: MQTT runtime and schedule service support extraction freeze ✅" in milestones_text
+    assert "Phase 100 MQTT Runtime / Schedule Service Support Extraction / Predecessor Freeze Note" in dev_arch_text
     assert "# Phase 100 Verification" in phase100_verification
     assert "# Phase 100 Validation Contract" in phase100_validation
 
 
-def test_phase100_maps_and_support_collaborators_freeze_new_truth() -> None:
+def test_phase100_maps_keep_predecessor_guard_footprint() -> None:
     file_matrix_text = _read(_FILE_MATRIX)
     testing_text = _read(_TESTING)
     verification_text = _read(_VERIFICATION_MATRIX)
@@ -69,14 +62,14 @@ def test_phase100_maps_and_support_collaborators_freeze_new_truth() -> None:
     assert "custom_components/lipro/core/api/schedule_service_support.py" in file_matrix_text
     assert "custom_components/lipro/core/coordinator/runtime/mqtt_runtime_support.py" in file_matrix_text
     assert "tests/meta/test_phase100_runtime_schedule_support_guards.py" in file_matrix_text
-    assert "focused current-route guard home for Phase 100 MQTT/runtime schedule support extraction / governance freeze" in file_matrix_text
-    assert "`393` Python files under `tests`" in testing_text
-    assert "`313` runnable `test_*.py` files" in testing_text
-    assert "`58` meta suites" in testing_text
+    assert "focused predecessor guard home for Phase 100 MQTT/runtime schedule support extraction / governance freeze" in file_matrix_text
+    assert "`394` Python files under `tests`" in testing_text
+    assert "`314` runnable `test_*.py` files" in testing_text
+    assert "`59` meta suites" in testing_text
     assert "tests/meta/test_phase100_runtime_schedule_support_guards.py" in verification_text
     assert "## Phase 100 MQTT Runtime / Schedule Service Support Extraction Freeze" in verification_text
-    assert "schedule_service.py` 收窄到 183 行 helper home" in concerns_text
-    assert "mqtt_runtime.py` 收窄到 375 行 orchestration home" in concerns_text
+    assert "## Phase 101 Anonymous-share Manager / REST Decoder Hotspot Decomposition Freeze" in verification_text
+    assert "Phase 101 已把 `anonymous_share/manager.py` 收窄到 435 行 formal manager home" in concerns_text
 
 
 def test_phase100_support_seams_preserve_formal_homes() -> None:

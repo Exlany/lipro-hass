@@ -43,10 +43,10 @@ def test_phase99_bundle_stays_visible_as_completed_predecessor() -> None:
     phase99_verification = _read(_PHASE99_DIR / "99-VERIFICATION.md")
     phase99_validation = _read(_PHASE99_DIR / "99-VALIDATION.md")
 
-    assert "v1.27 active route / Phase 100 complete / latest archived baseline = v1.26" in project_text
+    assert "no active milestone route / latest archived baseline = v1.27" in project_text
     assert "### Phase 99: Runtime hotspot support extraction and terminal audit freeze" in roadmap_text
     assert "| HOT-41 | Phase 99 | Complete |" in requirements_text
-    assert "Phase 100" in state_text
+    assert "Phase 101" in state_text
     assert "`Phase 99`: runtime hotspot support extraction and terminal audit freeze ✅" in milestones_text
     assert "Phase 99 Runtime Hotspot Support Extraction / Predecessor Freeze Note" in dev_arch_text
     assert "# Phase 99 Verification" in phase99_verification
@@ -63,13 +63,13 @@ def test_phase99_maps_keep_predecessor_guard_footprint() -> None:
     assert "custom_components/lipro/core/coordinator/runtime/command_runtime_support.py" in file_matrix_text
     assert "tests/meta/test_phase99_runtime_hotspot_support_guards.py" in file_matrix_text
     assert "focused predecessor guard home for Phase 99 runtime hotspot support extraction / governance freeze" in file_matrix_text
-    assert "`393` Python files under `tests`" in testing_text
-    assert "`313` runnable `test_*.py` files" in testing_text
-    assert "`58` meta suites" in testing_text
+    assert "`394` Python files under `tests`" in testing_text
+    assert "`314` runnable `test_*.py` files" in testing_text
+    assert "`59` meta suites" in testing_text
     assert "tests/meta/test_phase99_runtime_hotspot_support_guards.py" in verification_text
     assert "## Phase 99 Runtime Hotspot Support Extraction / Terminal Audit Freeze" in verification_text
-    assert "## Phase 100 MQTT Runtime / Schedule Service Support Extraction Freeze" in verification_text
-    assert "Phase 100 已把 `mqtt_runtime.py` 收窄到 375 行 orchestration home、把 `schedule_service.py` 收窄到 183 行 helper home" in concerns_text
+    assert "## Phase 101 Anonymous-share Manager / REST Decoder Hotspot Decomposition Freeze" in verification_text
+    assert "Phase 101 已把 `anonymous_share/manager.py` 收窄到 435 行 formal manager home" in concerns_text
 
 
 def test_phase99_support_seams_preserve_formal_homes() -> None:

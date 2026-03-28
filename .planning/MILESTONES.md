@@ -7,54 +7,71 @@
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.27
   name: Final Carry-Forward Eradication & Route Reactivation
-  status: active / closeout-ready (2026-03-28)
-  phase: '100'
-  phase_title: MQTT runtime and schedule service support extraction freeze
-  phase_dir: 100-mqtt-runtime-and-schedule-service-support-extraction-freeze
-  route_mode: v1.27 active route / Phase 100 complete / latest archived baseline = v1.26
-latest_archived:
-  version: v1.26
-  name: Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition
   status: archived / evidence-ready (2026-03-28)
-  phase: '97'
-  phase_title: Governance, open-source contract sync, and assurance freeze
-  phase_dir: 97-governance-open-source-contract-sync-and-assurance-freeze
-  audit_path: .planning/v1.26-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_26_EVIDENCE_INDEX.md
+  phase: '101'
+  phase_title: Anonymous-share manager and REST decoder hotspot decomposition freeze
+  phase_dir: 101-anonymous-share-manager-and-rest-decoder-hotspot-decomposition-freeze
+  audit_path: .planning/v1.27-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_27_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.25
-  name: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
-  evidence_path: .planning/reviews/V1_25_EVIDENCE_INDEX.md
+  version: v1.26
+  name: Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition
+  evidence_path: .planning/reviews/V1_26_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.27 active route / Phase 100 complete / latest archived baseline = v1.26
-  default_next_command: $gsd-complete-milestone v1.27
-  latest_archived_evidence_pointer: .planning/reviews/V1_26_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.27
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_27_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
-## v1.27 Final Carry-Forward Eradication & Route Reactivation (Started: 2026-03-28)
+## v1.27 Final Carry-Forward Eradication & Route Reactivation (Shipped: 2026-03-28; Closeout: 2026-03-28)
 
-**Phase range:** `98 -> 100`
-**Status:** `active / closeout-ready (2026-03-28)`
-**Current route:** `v1.27 active route / Phase 100 complete / latest archived baseline = v1.26`
-**Latest archived pointer:** latest archived evidence index = `.planning/reviews/V1_26_EVIDENCE_INDEX.md`
-**Latest archived baseline:** `v1.26`
-**Default next command:** `$gsd-complete-milestone v1.27`
-**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.26`
+**Phase range:** `98 -> 101`
+**Phases completed:** 4 phases, 12 plans, 0 tasks
+**Status:** archived / evidence-ready
+**Route truth:** latest archived evidence index = `.planning/reviews/V1_27_EVIDENCE_INDEX.md`
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.27`
+**Default next command:** `$gsd-new-milestone`
 
-**Why now:**
-- `Phase 98` 已把 current-route honesty 恢复回来，`Phase 99` 又把第一轮 hotspot support extraction 落回 current story，但 terminal audit remaining hotspots 仍明确指向 `mqtt_runtime.py` / `schedule_service.py`。
-- `Phase 100` 只做 inward support extraction、治理同步与 proof chain freeze，不重开新功能，也不把 `v1.26` archived bundle 回写成 live story。
-- `v1.26` closeout 资产必须继续保持 pull-only latest archived baseline 身份，不能被 current-route 文档重新占用。
-
-**Planned phase story:**
+**Archived phase story:**
 - `Phase 98`: carry-forward eradication, route reactivation, and closeout proof ✅
 - `Phase 99`: runtime hotspot support extraction and terminal audit freeze ✅
 - `Phase 100`: MQTT runtime and schedule service support extraction freeze ✅
+- `Phase 101`: Anonymous-share manager and REST decoder hotspot decomposition freeze ✅
+
+**Key accomplishments:**
+- 把 `Phase 98` 的 carry-forward eradication 与 route reactivation bundle 正式冻结为 archived predecessor evidence，不再残留 live route drift。
+- 把 `Phase 99 / 100` 的 runtime / MQTT / schedule support seams inward split 到 local collaborators，并保持 formal homes / predecessor chain 一致。
+- 把 `Phase 101` 的 anonymous-share manager / REST decoder hotspot decomposition、MQTT-config decode reuse 与 governance freeze 一次性收口为 latest archived baseline。
+- 把 `.planning/v1.27-MILESTONE-AUDIT.md`、`.planning/reviews/V1_27_EVIDENCE_INDEX.md` 与 archive snapshots 建成 pull-only closeout bundle，让下一条正式路线只能经 `$gsd-new-milestone` 启动。
+
+**Closeout assets:**
+- `.planning/v1.27-MILESTONE-AUDIT.md`
+- `.planning/reviews/V1_27_EVIDENCE_INDEX.md`
+- `.planning/milestones/v1.27-ROADMAP.md`
+- `.planning/milestones/v1.27-REQUIREMENTS.md`
+- `.planning/phases/98-carry-forward-eradication-route-reactivation-and-closeout-proof/{98-01-SUMMARY.md,98-02-SUMMARY.md,98-03-SUMMARY.md,98-VERIFICATION.md,98-VALIDATION.md}`
+- `.planning/phases/99-runtime-hotspot-support-extraction-and-terminal-audit-freeze/{99-01-SUMMARY.md,99-02-SUMMARY.md,99-03-SUMMARY.md,99-VERIFICATION.md,99-VALIDATION.md}`
+- `.planning/phases/100-mqtt-runtime-and-schedule-service-support-extraction-freeze/{100-01-SUMMARY.md,100-02-SUMMARY.md,100-03-SUMMARY.md,100-VERIFICATION.md,100-VALIDATION.md}`
+- `.planning/phases/101-anonymous-share-manager-and-rest-decoder-hotspot-decomposition-freeze/{101-01-SUMMARY.md,101-02-SUMMARY.md,101-03-SUMMARY.md,101-VERIFICATION.md,101-VALIDATION.md}`
+
+## v1.26 Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition (Shipped: 2026-03-28; Closeout: 2026-03-28)
+
+**Phase range:** `94 -> 97`
+**Phases completed:** 4 phases, 12 plans, 0 tasks
+**Status:** archived / evidence-ready
+**Route truth:** latest archived evidence index = `.planning/reviews/V1_26_EVIDENCE_INDEX.md`
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.26`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.26`
+
+**Key accomplishments:**
+- 把 broad typed seam、schedule/runtime hotspot、shared sanitizer burn-down 与 governance freeze 收口为 `v1.26` archived baseline，而不再依赖口头路由记忆。
+- 把 `.planning/v1.26-MILESTONE-AUDIT.md`、`.planning/reviews/V1_26_EVIDENCE_INDEX.md` 与 archive snapshots 冻结为 pull-only closeout bundle。
 
 ## v1.25 Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence (Shipped: 2026-03-28; Closeout: 2026-03-28)
 

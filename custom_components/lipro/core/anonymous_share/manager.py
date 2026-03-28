@@ -72,6 +72,7 @@ class AnonymousShareManager:
         self._aggregate = _aggregate
         self._registry = {} if _registry is None else _registry
         self._scoped_views: dict[str, AnonymousShareManager] = {}
+        self._aggregate_submit_outcome: OperationOutcome | None = None
 
     def aggregate_view(self) -> AnonymousShareManager:
         """Return an aggregate view sharing the same registry."""
@@ -119,6 +120,16 @@ class AnonymousShareManager:
     def get_primary_submit_state(self) -> _ScopeState:
         """Return the preferred state for aggregate-only submit helpers."""
         return self._primary_state()
+
+    def _primary_manager(self) -> AnonymousShareManager:
+        """Return the scoped manager matching the preferred aggregate submit state."""
+        if not self._aggregate:
+            return self
+        primary_state = self._primary_state()
+        for scope_key, state in self._iter_scope_states():
+            if state is primary_state:
+                return self.for_scope(scope_key)
+        return self.for_scope(_DEFAULT_SCOPE)
 
     @property
     def _collector(self) -> AnonymousShareCollector:
@@ -223,10 +234,15 @@ class AnonymousShareManager:
     @property
     def last_submit_outcome(self) -> OperationOutcome | None:
         """Return the latest typed submit outcome for this manager view."""
+        if self._aggregate:
+            return self._aggregate_submit_outcome
         return self._state.last_submit_outcome
 
     def set_last_submit_outcome(self, outcome: OperationOutcome | None) -> None:
         """Persist the latest typed submit outcome for this manager view."""
+        if self._aggregate:
+            self._aggregate_submit_outcome = outcome
+            return
         self._state.last_submit_outcome = outcome
 
     @property
@@ -251,9 +267,8 @@ class AnonymousShareManager:
 
     def _load_reported_devices(self) -> None:
         """Load previously reported device keys from storage."""
-        keys = load_reported_device_keys_for_state(self._state, logger=_LOGGER)
-        if keys is not None:
-            self._reported_device_keys = keys
+        loaded, keys = load_reported_device_keys_for_state(self._state, logger=_LOGGER)
+        self._reported_device_keys = keys if loaded else set()
 
     def _save_reported_devices(self) -> None:
         """Save reported device keys to storage."""
@@ -326,21 +341,6 @@ class AnonymousShareManager:
             return None
         return self.build_report()
 
-    async def _submit_share_payload_with_outcome(
-        self,
-        session: aiohttp.ClientSession,
-        report: dict[str, object],
-        *,
-        label: str,
-    ) -> OperationOutcome:
-        """Submit one payload through the typed share-client outcome contract."""
-        return await self._share_client.submit_share_payload_with_outcome(
-            session,
-            report,
-            label=label,
-            ensure_loaded=self.async_ensure_loaded,
-        )
-
     async def async_submit_share_payload_with_outcome(
         self,
         session: aiohttp.ClientSession,
@@ -349,27 +349,18 @@ class AnonymousShareManager:
         label: str,
     ) -> OperationOutcome:
         """Submit one prepared payload and return the typed outcome."""
-        return await self._submit_share_payload_with_outcome(
+        if self._aggregate:
+            return await self._primary_manager().async_submit_share_payload_with_outcome(
+                session,
+                report,
+                label=label,
+            )
+        return await self._share_client.submit_share_payload_with_outcome(
             session,
             report,
             label=label,
+            ensure_loaded=self.async_ensure_loaded,
         )
-
-    async def _async_submit_share_payload(
-        self,
-        session: aiohttp.ClientSession,
-        report: dict[str, object],
-        *,
-        label: str,
-    ) -> bool:
-        """Submit one prepared payload through the current scope's share client."""
-        outcome = await self._submit_share_payload_with_outcome(
-            session,
-            report,
-            label=label,
-        )
-        self._state.last_submit_outcome = outcome
-        return outcome.is_success
 
     async def async_submit_share_payload(
         self,
@@ -379,17 +370,19 @@ class AnonymousShareManager:
         label: str,
     ) -> bool:
         """Submit one prepared payload through the current scope's share client."""
-        return await self._async_submit_share_payload(session, report, label=label)
-
-    def _has_pending_report_data(self) -> bool:
-        """Return whether the current scope has reportable pending data."""
-        return has_pending_report_data(self._state, logger=_LOGGER)
+        outcome = await self.async_submit_share_payload_with_outcome(
+            session,
+            report,
+            label=label,
+        )
+        self.set_last_submit_outcome(outcome)
+        return outcome.is_success
 
     def has_pending_report_data(self) -> bool:
         """Return whether the current scope has reportable pending data."""
-        return self._has_pending_report_data()
+        return has_pending_report_data(self._state, logger=_LOGGER)
 
-    def _should_skip_report_submission(self, *, force: bool) -> bool:
+    def should_skip_report_submission(self, *, force: bool) -> bool:
         """Return whether the current scope should skip one upload attempt."""
         return should_skip_report_submission(
             last_upload_time=self._last_upload_time,
@@ -397,12 +390,8 @@ class AnonymousShareManager:
             logger=_LOGGER,
         )
 
-    def should_skip_report_submission(self, *, force: bool) -> bool:
-        """Return whether the current scope should skip one upload attempt."""
-        return self._should_skip_report_submission(force=force)
-
-    async def _async_finalize_successful_submit(self) -> None:
-        """Finalize a successful current-scope anonymous-share submission."""
+    async def async_finalize_successful_submit(self) -> None:
+        """Finalize one successful current-scope anonymous-share submission."""
         device_count, error_count = self.pending_count
         _LOGGER.info(
             "Anonymous share report submitted: %d devices, %d errors",
@@ -414,20 +403,12 @@ class AnonymousShareManager:
         await asyncio.to_thread(self._save_reported_devices)
         self.clear()
 
-    async def async_finalize_successful_submit(self) -> None:
-        """Finalize one successful current-scope anonymous-share submission."""
-        await self._async_finalize_successful_submit()
-
-    def _should_submit_if_needed(self) -> bool:
+    def should_submit_if_needed(self) -> bool:
         """Return whether automatic submission thresholds are currently met."""
         return should_submit_if_needed(
             pending_count=self.pending_count,
             last_upload_time=self._last_upload_time,
         )
-
-    def should_submit_if_needed(self) -> bool:
-        """Return whether automatic submission thresholds are currently met."""
-        return self._should_submit_if_needed()
 
     async def submit_developer_feedback(
         self, session: aiohttp.ClientSession, feedback: dict[str, object]
@@ -451,6 +432,4 @@ class AnonymousShareManager:
         return await _submit_if_needed_flow(self, session)
 
 
-from .registry import _get_root_manager, get_anonymous_share_manager  # noqa: E402
-
-__all__ = ["AnonymousShareManager", "_get_root_manager", "get_anonymous_share_manager"]
+__all__ = ["AnonymousShareManager"]

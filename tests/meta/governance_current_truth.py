@@ -25,37 +25,30 @@ _ROUTE_CONTRACT_PATHS = {
 PLANNING_ROUTE_CONTRACT: dict[str, object] = {
     "contract_version": 1,
     "contract_name": "governance-route",
-    "active_milestone": {
+    "active_milestone": None,
+    "latest_archived": {
         "version": "v1.27",
         "name": "Final Carry-Forward Eradication & Route Reactivation",
-        "status": "active / closeout-ready (2026-03-28)",
-        "phase": "100",
-        "phase_title": "MQTT runtime and schedule service support extraction freeze",
-        "phase_dir": "100-mqtt-runtime-and-schedule-service-support-extraction-freeze",
-        "route_mode": "v1.27 active route / Phase 100 complete / latest archived baseline = v1.26",
-    },
-    "latest_archived": {
-        "version": "v1.26",
-        "name": "Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition",
         "status": "archived / evidence-ready (2026-03-28)",
-        "phase": "97",
-        "phase_title": "Governance, open-source contract sync, and assurance freeze",
-        "phase_dir": "97-governance-open-source-contract-sync-and-assurance-freeze",
-        "audit_path": ".planning/v1.26-MILESTONE-AUDIT.md",
-        "evidence_path": ".planning/reviews/V1_26_EVIDENCE_INDEX.md",
+        "phase": "101",
+        "phase_title": "Anonymous-share manager and REST decoder hotspot decomposition freeze",
+        "phase_dir": "101-anonymous-share-manager-and-rest-decoder-hotspot-decomposition-freeze",
+        "audit_path": ".planning/v1.27-MILESTONE-AUDIT.md",
+        "evidence_path": ".planning/reviews/V1_27_EVIDENCE_INDEX.md",
         "evidence_label": "latest archived evidence index",
     },
     "previous_archived": {
-        "version": "v1.25",
-        "name": "Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence",
-        "evidence_path": ".planning/reviews/V1_25_EVIDENCE_INDEX.md",
+        "version": "v1.26",
+        "name": "Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition",
+        "evidence_path": ".planning/reviews/V1_26_EVIDENCE_INDEX.md",
     },
     "bootstrap": {
-        "current_route": "v1.27 active route / Phase 100 complete / latest archived baseline = v1.26",
-        "default_next_command": "$gsd-complete-milestone v1.27",
-        "latest_archived_evidence_pointer": ".planning/reviews/V1_26_EVIDENCE_INDEX.md",
+        "current_route": "no active milestone route / latest archived baseline = v1.27",
+        "default_next_command": "$gsd-new-milestone",
+        "latest_archived_evidence_pointer": ".planning/reviews/V1_27_EVIDENCE_INDEX.md",
     },
 }
+
 
 
 def _as_mapping(value: object) -> dict[str, object]:
@@ -202,20 +195,26 @@ CURRENT_ROUTE_PROSE_FORBIDDEN = (
     "v1.26 active route / Phase 97 complete / latest archived baseline = v1.25",
     "v1.27 active route / Phase 98 complete / latest archived baseline = v1.26",
     "v1.27 active route / Phase 99 complete / latest archived baseline = v1.26",
+    "v1.27 active route / Phase 100 complete / latest archived baseline = v1.26",
+    "v1.27 active route / Phase 101 complete / latest archived baseline = v1.26",
     "v1.24 / Phase 89 complete",
     "no active milestone route / latest archived baseline = v1.20",
     "no active milestone route / latest archived baseline = v1.21",
     "no active milestone route / latest archived baseline = v1.22",
+    "no active milestone route / latest archived baseline = v1.23",
+    "no active milestone route / latest archived baseline = v1.24",
+    "no active milestone route / latest archived baseline = v1.25",
+    "no active milestone route / latest archived baseline = v1.26",
 )
 CURRENT_RUNTIME_ROOT_TEST = "tests/core/coordinator/test_runtime_root.py"
 
 HISTORICAL_CLOSEOUT_ROUTE_TRUTH = (
     "historical closeout route truth = "
-    "`no active milestone route / latest archived baseline = v1.26`"
+    "`no active milestone route / latest archived baseline = v1.27`"
 )
 HISTORICAL_ARCHIVE_TRANSITION_ROUTE_TRUTH = (
     "historical archive-transition route truth = "
-    "`no active milestone route / latest archived baseline = v1.25`"
+    "`no active milestone route / latest archived baseline = v1.26`"
 )
 
 

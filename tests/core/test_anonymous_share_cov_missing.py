@@ -13,7 +13,7 @@ import aiohttp
 import pytest
 
 from custom_components.lipro.const.base import DOMAIN
-from custom_components.lipro.core.anonymous_share import manager as manager_module
+from custom_components.lipro.core.anonymous_share import registry as manager_registry
 from custom_components.lipro.core.anonymous_share.collector import (
     AnonymousShareCollector,
 )
@@ -61,10 +61,10 @@ def test_get_anonymous_share_manager_without_hass_creates_singleton_when_missing
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """manager.py - cached root manager should be recreated when cache is cleared."""
-    manager_module._get_root_manager.cache_clear()
+    manager_registry._get_root_manager.cache_clear()
 
-    mgr1 = manager_module.get_anonymous_share_manager()
-    mgr2 = manager_module.get_anonymous_share_manager()
+    mgr1 = manager_registry.get_anonymous_share_manager()
+    mgr2 = manager_registry.get_anonymous_share_manager()
 
     assert isinstance(mgr1, AnonymousShareManager)
     assert mgr1 is mgr2
@@ -76,7 +76,7 @@ def test_get_anonymous_share_manager_repairs_corrupt_registry_slots(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """registry.py - corrupt aggregate/scoped slots are repaired in-place."""
-    manager_module._get_root_manager.cache_clear()
+    manager_registry._get_root_manager.cache_clear()
 
     hass = MagicMock()
     hass.data = {
@@ -86,8 +86,8 @@ def test_get_anonymous_share_manager_repairs_corrupt_registry_slots(
         }
     }
 
-    aggregate = manager_module.get_anonymous_share_manager(hass)
-    scoped = manager_module.get_anonymous_share_manager(hass, entry_id="entry-1")
+    aggregate = manager_registry.get_anonymous_share_manager(hass)
+    scoped = manager_registry.get_anonymous_share_manager(hass, entry_id="entry-1")
 
     assert isinstance(aggregate, AnonymousShareManager)
     assert isinstance(scoped, AnonymousShareManager)
@@ -99,13 +99,13 @@ def test_get_anonymous_share_manager_with_corrupt_domain_data_does_not_crash(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """manager.py - corrupted hass domain data falls back to root-scoped views."""
-    manager_module._get_root_manager.cache_clear()
+    manager_registry._get_root_manager.cache_clear()
 
     hass = MagicMock()
     hass.data = {DOMAIN: "not-a-dict"}
 
-    aggregate = manager_module.get_anonymous_share_manager(hass)
-    scoped = manager_module.get_anonymous_share_manager(hass, entry_id="entry-1")
+    aggregate = manager_registry.get_anonymous_share_manager(hass)
+    scoped = manager_registry.get_anonymous_share_manager(hass, entry_id="entry-1")
 
     assert isinstance(aggregate, AnonymousShareManager)
     assert isinstance(scoped, AnonymousShareManager)

@@ -30,7 +30,7 @@ uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro 
 **Location:**
 - Tests live in a dedicated `tests/` tree, not beside production files.
 - Current topology is broad and intentional: `tests/core`, `tests/services`, `tests/flows`, `tests/platforms`, `tests/entities`, `tests/meta`, `tests/integration`, `tests/snapshots`, `tests/benchmarks`, `tests/harness`, and `tests/fixtures`.
-- Repository counts from current scanning: `393` Python files under `tests`, `313` runnable `test_*.py` files, `58` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
+- Repository counts from current scanning: `394` Python files under `tests`, `314` runnable `test_*.py` files, `59` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
 
 **Naming:**
 - Use `test_*.py` everywhere.
@@ -63,7 +63,8 @@ tests/
 - Phase 97: `tests/meta/test_phase97_governance_assurance_freeze_guards.py` 继续作为 focused guard home for v1.26 archived closeout bundle / developer-architecture historical note truth。
 - Phase 98: `tests/meta/test_phase98_route_reactivation_guards.py` 继续作为 focused guard home for predecessor route-reactivation / carry-forward closure truth。
 - Phase 99: `tests/meta/test_phase99_runtime_hotspot_support_guards.py` 继续作为 focused predecessor guard home for runtime hotspot support extraction / governance freeze truth。
-- Phase 100: `tests/meta/test_phase100_runtime_schedule_support_guards.py` 继续作为 focused current-route guard home for MQTT/runtime schedule support extraction / governance freeze truth。
+- Phase 100: `tests/meta/test_phase100_runtime_schedule_support_guards.py` 继续作为 focused predecessor guard home for MQTT/runtime schedule support extraction / governance freeze truth。
+- Phase 101: `tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py` 继续作为 focused current-route guard home for anonymous-share manager / REST-boundary hotspot decomposition truth。
 
 ## Test Structure
 
@@ -242,6 +243,6 @@ with pytest.raises(ServiceValidationError):
 
 ## Phase 98 Testing Freeze
 
-- `tests/meta/test_phase98_route_reactivation_guards.py` 继续冻结 current-route reactivation、developer-architecture current note、matrix/testing counts 与 `Phase 98` bundle / next-step truth；`$gsd-next` 的自然落点必须稳定收口到 `$gsd-complete-milestone v1.27`。
+- `tests/meta/test_phase98_route_reactivation_guards.py` 继续冻结 current-route reactivation、developer-architecture current note、matrix/testing counts 与 `Phase 98` bundle / next-step truth；`$gsd-next` 的自然落点必须稳定收口到 `$gsd-new-milestone`。
 - `tests/meta/test_governance_route_handoff_smoke.py`、`tests/meta/governance_followup_route_current_milestones.py`、`tests/meta/test_phase97_governance_assurance_freeze_guards.py` 与 `tests/meta/test_phase90_hotspot_map_guards.py` 共同保证 current-route prose、machine contract、historical archived truth 与 hotspot freeze notes 不再分叉。
 - Phase 98 verification requires focused governance guards、`tests/meta`、`scripts/check_file_matrix.py --check`、`ruff` 与 `mypy` 一起通过，之后 current route 才允许进入 milestone archive/closeout。

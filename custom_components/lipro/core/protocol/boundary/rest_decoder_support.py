@@ -54,6 +54,52 @@ _CATALOG_OPTIONAL_FIELDS = (
 )
 
 
+_FALLBACK_PROPERTY_EXCLUDED_KEYS = {
+    "category",
+    "data",
+    "deviceName",
+    "deviceType",
+    "devices",
+    "gatewayDeviceId",
+    "group",
+    "iotName",
+    "model",
+    "name",
+    "online",
+    "payload",
+    "physicalModel",
+    "properties",
+    "roomId",
+    "roomName",
+    "serial",
+    "type",
+}
+_FALLBACK_PROPERTY_EXCLUDED_SUFFIXES = ("Id", "Name", "Model")
+
+
+def _normalize_pagination_offset(offset: int) -> int:
+    return max(0, offset)
+
+
+def _is_scalar_property_value(value: object) -> bool:
+    return not isinstance(value, Mapping | list | tuple | set)
+
+
+def _should_include_fallback_property(
+    key: object,
+    value: object,
+    *,
+    excluded_keys: set[str],
+) -> bool:
+    if not isinstance(key, str) or not key:
+        return False
+    if key in excluded_keys or key in _FALLBACK_PROPERTY_EXCLUDED_KEYS:
+        return False
+    if key.endswith(_FALLBACK_PROPERTY_EXCLUDED_SUFFIXES):
+        return False
+    return _is_scalar_property_value(value)
+
+
 def _build_payload_fingerprint(payload: object) -> str:
     """Return a shape-only fingerprint safe for telemetry and replay tags."""
     if isinstance(payload, list):
@@ -136,10 +182,15 @@ def _normalize_properties_payload(
         return _normalize_property_rows(payload)
     if fallback_mapping is None:
         return {}
+    resolved_excluded_keys = excluded_keys or set()
     filtered = {
         key: value
         for key, value in fallback_mapping.items()
-        if key not in (excluded_keys or set())
+        if _should_include_fallback_property(
+            key,
+            value,
+            excluded_keys=resolved_excluded_keys,
+        )
     }
     return cast(DevicePropertyMap, normalize_properties(filtered))
 
@@ -274,7 +325,7 @@ def _decode_list_envelope_canonical(
         return canonical
 
     canonical["total"] = total
-    canonical["has_more"] = offset + len(rows) < total
+    canonical["has_more"] = _normalize_pagination_offset(offset) + len(rows) < total
     return canonical
 
 

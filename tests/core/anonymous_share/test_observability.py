@@ -8,9 +8,9 @@ from unittest.mock import MagicMock
 import pytest
 
 from custom_components.lipro.core import LiproApiError
-from custom_components.lipro.core.anonymous_share import manager as manager_module
-from custom_components.lipro.core.anonymous_share.manager import (
+from custom_components.lipro.core.anonymous_share import (
     get_anonymous_share_manager,
+    registry as manager_registry,
 )
 from custom_components.lipro.core.api import LiproRestFacade
 from custom_components.lipro.core.api.observability import (
@@ -28,7 +28,7 @@ class TestObservabilityScope:
     def test_default_observability_path_still_records_to_default_scope(
         self, monkeypatch
     ):
-        manager_module._get_root_manager.cache_clear()
+        manager_registry._get_root_manager.cache_clear()
         manager = get_anonymous_share_manager()
         manager.set_enabled(True, error_reporting=True, installation_id="default")
 
@@ -41,7 +41,7 @@ class TestObservabilityScope:
         assert errors[0]["endpoint"] == "/api/default"
 
     def test_observability_entry_scope_targets_matching_manager(self, monkeypatch):
-        manager_module._get_root_manager.cache_clear()
+        manager_registry._get_root_manager.cache_clear()
         hass = MagicMock()
         hass.data = {}
 

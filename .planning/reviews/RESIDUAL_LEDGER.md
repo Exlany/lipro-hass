@@ -544,6 +544,11 @@ _None currently registered._
 
 ## Phase 100 Residual Delta
 
-- 无新增 active residual family；Phase 100 收口的是 `schedule_service.py` / `mqtt_runtime.py` 的 hotspot support extraction 与 current-route governance freeze，而不是新的 residual legalization。
+- 无新增 active residual family；Phase 100 收口的是 `schedule_service.py` / `mqtt_runtime.py` 的 hotspot support extraction 与 predecessor freeze，而不是新的 residual legalization。
 - `schedule_service.py` 与 `mqtt_runtime.py` 继续保留 formal homes；新增的 `schedule_service_support.py` / `mqtt_runtime_support.py` 只是 inward collaborators，不是新的 public roots。
 - remaining large formal homes 若未来继续精修，只允许沿既有 formal homes / local support seams inward split，不得把 support collaborator 反向合法化为第二故事线。
+
+## Phase 101 Residual Delta
+
+- 无新增 active residual family；Phase 101 收口的是 anonymous-share manager / REST decoder hotspot decomposition、boundary truth cleanup 与 current-route governance freeze，而不是新的 residual legalization。
+- `manager_submission.py`、`manager_support.py`、`rest_decoder_support.py` 与 `mqtt_api_service.py` 继续只承担 inward collaborator / boundary helper 身份；若未来仍需继续 slim formal homes，只允许沿既有 formal homes / local support seams inward split，不得反向合法化为第二条故事线。

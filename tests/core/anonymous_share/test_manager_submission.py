@@ -293,3 +293,68 @@ async def test_submit_developer_feedback_matches_boundary_fixture() -> None:
         "share_worker",
         "developer_feedback_report.canonical.json",
     )
+
+
+@pytest.mark.asyncio
+async def test_aggregate_submit_report_skips_disabled_scopes() -> None:
+    root_manager = AnonymousShareManager()
+    default_manager = root_manager.for_scope("__default__")
+    disabled_manager = root_manager.for_scope("entry-disabled")
+
+    default_manager.set_enabled(True, installation_id="install-default")
+    disabled_manager.set_enabled(False, installation_id="install-disabled")
+    default_manager.record_device(_make_mock_device(iot_name="lipro_led"))
+
+    response = MagicMock()
+    response.status = 200
+    context = AsyncMock()
+    context.__aenter__ = AsyncMock(return_value=response)
+    context.__aexit__ = AsyncMock(return_value=False)
+    session = MagicMock(post=MagicMock(return_value=context))
+
+    aggregate_manager = root_manager.aggregate_view()
+
+    assert await aggregate_manager.submit_report(session, force=True) is True
+    session.post.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_aggregate_developer_feedback_uses_primary_scope_client_without_overwriting_default_outcome() -> None:
+    root_manager = AnonymousShareManager()
+    default_manager = root_manager.for_scope("__default__")
+    primary_manager = root_manager.for_scope("entry-1")
+
+    default_manager.set_enabled(False, installation_id="install-default")
+    default_manager.set_last_submit_outcome(
+        build_operation_outcome(kind="failed", reason_code="default_scope_outcome")
+    )
+    primary_manager.set_enabled(True, installation_id="install-entry-1")
+    primary_manager._ha_version = "2026.3.0"
+
+    default_submit = AsyncMock(
+        return_value=build_operation_outcome(kind="failed", reason_code="default_client")
+    )
+    primary_submit = AsyncMock(
+        return_value=build_operation_outcome(kind="success", reason_code="submitted")
+    )
+    default_manager._share_client = MagicMock(
+        submit_share_payload_with_outcome=default_submit
+    )
+    primary_manager._share_client = MagicMock(
+        submit_share_payload_with_outcome=primary_submit
+    )
+
+    aggregate_manager = root_manager.aggregate_view()
+
+    result = await aggregate_manager.submit_developer_feedback(
+        MagicMock(),
+        {"source": "test", "reports": []},
+    )
+
+    assert result is True
+    primary_submit.assert_awaited_once()
+    default_submit.assert_not_awaited()
+    assert aggregate_manager.last_submit_outcome is not None
+    assert aggregate_manager.last_submit_outcome.is_success is True
+    assert default_manager.last_submit_outcome is not None
+    assert default_manager.last_submit_outcome.reason_code == "default_scope_outcome"

@@ -330,3 +330,47 @@ def test_rest_boundary_decoder_returns_canonical_mqtt_config_with_metadata() -> 
     assert result.key.label == "rest.mqtt-config@v1"
     assert result.authority == "tests/fixtures/api_contracts/get_mqtt_config.*.json"
     assert result.canonical == EXPECTED_MQTT_CONFIG
+
+
+
+def test_rest_boundary_decoder_normalizes_negative_offset_before_has_more() -> None:
+    payload = {"devices": [{"serial": "03ab5ccd7c000001"}], "total": 1}
+
+    list_result = decode_list_envelope_payload(payload, offset=-5)
+    device_result = decode_device_list_payload(payload, offset=-5)
+
+    assert list_result.canonical["has_more"] is False
+    assert device_result.canonical["has_more"] is False
+
+
+
+def test_rest_boundary_decoder_excludes_nested_and_metadata_fields_from_fallback_properties() -> None:
+    payload = {
+        "data": [
+            {
+                "deviceId": "03ab5ccd7c000001",
+                "deviceName": "Living Light",
+                "powerState": "1",
+                "payload": {"leak": True},
+            }
+        ]
+    }
+
+    result = decode_device_status_payload(payload)
+
+    assert result.canonical == [
+        {
+            "deviceId": "03ab5ccd7c000001",
+            "properties": {"powerState": "1"},
+        }
+    ]
+
+
+
+def test_rest_boundary_decoder_accepts_schedule_payload_wrapper() -> None:
+    payload = {"payload": '{"days":[2],"time":[86340],"evt":[1]}'}
+
+    result = decode_schedule_json_payload(payload)
+
+    assert result.canonical == {"days": [2], "time": [86340], "evt": [1]}
+    assert result.fingerprint == "days:1|time:1|evt:1"

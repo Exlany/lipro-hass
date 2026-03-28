@@ -1,6 +1,6 @@
 # Roadmap
 
-- 🚧 **v1.27 Final Carry-Forward Eradication & Route Reactivation** - `Phase 100` active on 2026-03-28; current route: `v1.27 active route / Phase 100 complete / latest archived baseline = v1.26`; latest archived evidence index: `.planning/reviews/V1_26_EVIDENCE_INDEX.md`; default next command: `$gsd-complete-milestone v1.27`
+- ✅ **v1.27 Final Carry-Forward Eradication & Route Reactivation** - `Phase 98 -> 101` archived on 2026-03-28; milestone audit: `.planning/v1.27-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_27_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.27-ROADMAP.md` / `.planning/milestones/v1.27-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.27`
 - ✅ **v1.26 Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition** - `Phase 94 -> 97` archived on 2026-03-28; milestone audit: `.planning/v1.26-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_26_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.26-ROADMAP.md` / `.planning/milestones/v1.26-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.26`
 - ✅ **v1.25 Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence** - `Phase 90 -> 93` archived on 2026-03-28; milestone audit: `.planning/v1.25-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_25_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.25-ROADMAP.md` / `.planning/milestones/v1.25-REQUIREMENTS.md`; historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.25`
 - ✅ **v1.24 Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence** - `Phase 89` archived on 2026-03-27; milestone audit: `.planning/v1.24-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_24_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.24-ROADMAP.md` / `.planning/milestones/v1.24-REQUIREMENTS.md`; historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.24`
@@ -9,86 +9,73 @@
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.27
   name: Final Carry-Forward Eradication & Route Reactivation
-  status: active / closeout-ready (2026-03-28)
-  phase: '100'
-  phase_title: MQTT runtime and schedule service support extraction freeze
-  phase_dir: 100-mqtt-runtime-and-schedule-service-support-extraction-freeze
-  route_mode: v1.27 active route / Phase 100 complete / latest archived baseline = v1.26
-latest_archived:
-  version: v1.26
-  name: Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition
   status: archived / evidence-ready (2026-03-28)
-  phase: '97'
-  phase_title: Governance, open-source contract sync, and assurance freeze
-  phase_dir: 97-governance-open-source-contract-sync-and-assurance-freeze
-  audit_path: .planning/v1.26-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_26_EVIDENCE_INDEX.md
+  phase: '101'
+  phase_title: Anonymous-share manager and REST decoder hotspot decomposition freeze
+  phase_dir: 101-anonymous-share-manager-and-rest-decoder-hotspot-decomposition-freeze
+  audit_path: .planning/v1.27-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_27_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.25
-  name: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
-  evidence_path: .planning/reviews/V1_25_EVIDENCE_INDEX.md
+  version: v1.26
+  name: Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition
+  evidence_path: .planning/reviews/V1_26_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.27 active route / Phase 100 complete / latest archived baseline = v1.26
-  default_next_command: $gsd-complete-milestone v1.27
-  latest_archived_evidence_pointer: .planning/reviews/V1_26_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.27
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_27_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
 ## v1.27: Final Carry-Forward Eradication & Route Reactivation
 
-> `v1.27` 不是重新发明路线，而是在 `Phase 98` 已完成 route reactivation 之后，把 terminal audit 仍点名的 formal-home hotspots 做最后两轮 inward support extraction：current story 现在同时覆盖 carry-forward closure、support seam slimming、governance freeze 与 closeout proof。
+> `v1.27` 不是重新发明路线，而是在 `Phase 98 -> 100` 已完成 route reactivation 与 predecessor support freeze 之后，把 terminal audit 仍点名的 anonymous-share / REST-boundary hotspots 做最后一轮 inward decomposition，并最终完成 milestone audit、archive promotion 与 archived-only closeout 切换。
 
-**Milestone Goal:** 沿 `v1.26` latest archived baseline 的唯一 north-star 起点，把诚实 carry-forward closure、runtime hotspot support extraction、runtime/schedule support extraction、focused guards、phase assets 与最终 proof chain 压回同一条 `closeout-ready` current story。
-**Milestone status:** `active / closeout-ready (2026-03-28)`
+**Milestone Goal:** 沿 `v1.26` latest archived baseline 的唯一 north-star 起点，把诚实 carry-forward closure、runtime hotspot predecessor freeze、anonymous-share/REST-boundary hotspot decomposition、focused guards、phase assets 与最终 proof chain 压回同一条 archived-only baseline。
+**Milestone status:** `archived / evidence-ready (2026-03-28)`
 **Starting baseline:** `.planning/v1.26-MILESTONE-AUDIT.md, .planning/reviews/V1_26_EVIDENCE_INDEX.md, .planning/milestones/v1.26-ROADMAP.md, .planning/milestones/v1.26-REQUIREMENTS.md`
-**Requirements basket:** `RES-15`, `HOT-41`, `GOV-65`, `TST-31`, `QLT-39`, `HOT-42`, `GOV-66`, `TST-32`, `QLT-40`
-**Latest archived baseline:** `v1.26`
-**Latest archived pointer:** `.planning/reviews/V1_26_EVIDENCE_INDEX.md`
-**Current route mode:** `v1.27 active route / Phase 100 complete / latest archived baseline = v1.26`
-**Default next command:** `$gsd-complete-milestone v1.27`
+**Requirements basket:** `RES-15`, `HOT-41`, `GOV-65`, `TST-31`, `QLT-39`, `HOT-42`, `GOV-66`, `TST-32`, `QLT-40`, `HOT-43`, `GOV-67`, `TST-33`, `QLT-41`
+**Latest archived baseline:** `v1.27`
+**Latest archived pointer:** `.planning/reviews/V1_27_EVIDENCE_INDEX.md`
+**Current route mode:** `no active milestone route / latest archived baseline = v1.27`
+**Default next command:** `$gsd-new-milestone`
+**Archive assets:** `.planning/v1.27-MILESTONE-AUDIT.md`, `.planning/reviews/V1_27_EVIDENCE_INDEX.md`, `.planning/milestones/v1.27-ROADMAP.md`, `.planning/milestones/v1.27-REQUIREMENTS.md`
 
 ### Phase 98: Carry-forward eradication, route reactivation, and closeout proof
 **Goal:** 把已完成的 carry-forward eradication 与 live governance/doc/test truth 重新编织到一条 active / closeout-ready current story 上，并用 focused guards + repo-wide proof chain 证明不再残留 route drift。
 **Depends on:** latest archived baseline `v1.26`
 **Requirements**: [RES-15, GOV-65, TST-31, QLT-39]
-**Success Criteria**:
-  1. `custom_components/lipro/core/device/device.py` 与相关 guards 共同证明 `outlet_power` legacy side-car fallback 已完成物理删除，且不再允许从 `extra_data["power_info"]` 回退。
-  2. `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`、`docs/developer_architecture.md`、`.planning/baseline/VERIFICATION_MATRIX.md`、`.planning/codebase/TESTING.md` 与 focused meta guards 共同承认 `v1.27 active route / Phase 98 complete / latest archived baseline = v1.26`。
-  3. `Phase 98` 的 context / research / plan / summary / verification / validation bundle 完整存在，`gsd-tools init plan-phase 98` 与 `init execute-phase 98` 可稳定解析。
-  4. focused pytest、`uv run pytest -q tests/meta`、`uv run pytest -q`、`uv run python scripts/check_file_matrix.py --check`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_markdown_links.py`、`uv run ruff check .` 与 `uv run mypy` 全部通过。
 **Status**: Complete (2026-03-28)
 **Plans**: 3/3 complete
 **Closeout assets**: `.planning/phases/98-carry-forward-eradication-route-reactivation-and-closeout-proof/{98-01-SUMMARY.md,98-02-SUMMARY.md,98-03-SUMMARY.md,98-VERIFICATION.md,98-VALIDATION.md}`
 
 ### Phase 99: Runtime hotspot support extraction and terminal audit freeze
-**Goal:** 把 `status_fallback.py` 与 `command_runtime.py` 这两处 terminal-audit formal-home hotspot 收口为更窄的 local support collaborator，同时把治理、focused guards、phase assets 与 GSD parser truth 一次性冻结到 `v1.27 active route / Phase 99 complete / latest archived baseline = v1.26`。
+**Goal:** 把 `status_fallback.py` 与 `command_runtime.py` 这两处 terminal-audit formal-home hotspot 收口为更窄的 local support collaborator，同时把治理、focused guards、phase assets 与 GSD parser truth 一次性冻结到 `v1.27` 当前路线。
 **Depends on:** `Phase 98` complete
 **Requirements**: [HOT-41, GOV-65, TST-31, QLT-39]
-**Success Criteria**:
-  1. `custom_components/lipro/core/api/status_fallback.py` 继续保留 outward public home 身份、typed/public anchors 与 monkeypatch-visible constants；binary-split recursion / logging / subset batching mechanics inward split 到 `status_fallback_support.py`。
-  2. `custom_components/lipro/core/coordinator/runtime/command_runtime.py` 继续保留 `CommandRuntime` 作为唯一正式 orchestration home；请求/失败 helper block 外提到 `command_runtime_support.py`，不引入第二条 runtime root。
-  3. `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`、`docs/developer_architecture.md`、`.planning/baseline/VERIFICATION_MATRIX.md`、`.planning/codebase/{TESTING.md,CONCERNS.md}`、`.planning/reviews/{FILE_MATRIX.md,RESIDUAL_LEDGER.md,KILL_LIST.md}` 与 focused meta guards 共同承认 `Phase 99` closeout bundle 已完成，并为下一阶段 current-route handoff 做好准备。
-  4. `Phase 99` 的 context / research / plan / summary / verification / validation bundle 完整存在，`gsd-tools init progress`、`init plan-phase 99`、`init execute-phase 99` 与 `phase-plan-index 99` 可稳定解析。
 **Status**: Complete (2026-03-28)
 **Plans**: 3/3 complete
 **Closeout assets**: `.planning/phases/99-runtime-hotspot-support-extraction-and-terminal-audit-freeze/{99-01-SUMMARY.md,99-02-SUMMARY.md,99-03-SUMMARY.md,99-VERIFICATION.md,99-VALIDATION.md}`
 
 ### Phase 100: MQTT runtime and schedule service support extraction freeze
-**Goal:** 把 `mqtt_runtime.py` 与 `schedule_service.py` 这两处 remaining formal-home hotspot 收口为更窄的 local support collaborator，并把 current-route docs / ledgers / focused guards / GSD parser truth 一次性前推到 `v1.27 active route / Phase 100 complete / latest archived baseline = v1.26`。
+**Goal:** 把 `mqtt_runtime.py` 与 `schedule_service.py` 这两处 remaining formal-home hotspot 收口为更窄的 local support collaborator，并把 current-route docs / ledgers / focused guards / GSD parser truth 一次性前推到 `Phase 100 complete`。
 **Depends on:** `Phase 99` complete
 **Requirements**: [HOT-42, GOV-66, TST-32, QLT-40]
-**Success Criteria**:
-  1. `custom_components/lipro/core/coordinator/runtime/mqtt_runtime.py` 继续保留 `MqttRuntime` 作为唯一正式 MQTT-runtime orchestration home；transport / notification / telemetry helpers inward split 到 `mqtt_runtime_support.py`，不引入第二条 runtime root。
-  2. `custom_components/lipro/core/api/schedule_service.py` 继续保留 outward helper/public contract 与 typed aliases；candidate batching / timeout / request mechanics inward split 到 `schedule_service_support.py`，不把 support collaborator 反向合法化为第二故事线。
-  3. `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`、`docs/developer_architecture.md`、`.planning/baseline/VERIFICATION_MATRIX.md`、`.planning/codebase/{TESTING.md,CONCERNS.md}`、`.planning/reviews/{FILE_MATRIX.md,RESIDUAL_LEDGER.md,KILL_LIST.md}`、`tests/meta/governance_current_truth.py` 与 focused meta guards 共同承认 `v1.27 active route / Phase 100 complete / latest archived baseline = v1.26`。
-  4. `Phase 100` 的 context / research / plan / summary / verification / validation bundle 完整存在，`gsd-tools init progress`、`init plan-phase 100`、`init execute-phase 100` 与 `phase-plan-index 100` 可稳定解析；`$gsd-next` 的自然落点重新收缩为 `$gsd-complete-milestone v1.27`。
 **Status**: Complete (2026-03-28)
 **Plans**: 3/3 complete
 **Closeout assets**: `.planning/phases/100-mqtt-runtime-and-schedule-service-support-extraction-freeze/{100-01-SUMMARY.md,100-02-SUMMARY.md,100-03-SUMMARY.md,100-VERIFICATION.md,100-VALIDATION.md}`
+
+### Phase 101: Anonymous-share manager and REST decoder hotspot decomposition freeze
+**Goal:** 把 `custom_components/lipro/core/anonymous_share/manager.py` 与 `custom_components/lipro/core/protocol/boundary/rest_decoder.py` / `rest_decoder_support.py` 这两处 remaining formal-home / boundary hotspots 收口为更诚实的 formal homes / inward collaborators，并把 current-route docs / ledgers / focused guards / GSD parser truth 一次性前推到 `Phase 101 complete`。
+**Depends on:** `Phase 100` complete
+**Requirements**: [HOT-43, GOV-67, TST-33, QLT-41]
+**Status**: Complete (2026-03-28)
+**Plans**: 3/3 complete
+**Closeout assets**: `.planning/phases/101-anonymous-share-manager-and-rest-decoder-hotspot-decomposition-freeze/{101-01-SUMMARY.md,101-02-SUMMARY.md,101-03-SUMMARY.md,101-VERIFICATION.md,101-VALIDATION.md}`
 
 ## v1.26: Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition
 
@@ -103,6 +90,8 @@ bootstrap:
 **Default next command:** `$gsd-new-milestone`
 **Archive assets:** `.planning/v1.26-MILESTONE-AUDIT.md`, `.planning/reviews/V1_26_EVIDENCE_INDEX.md`, `.planning/milestones/v1.26-ROADMAP.md`, `.planning/milestones/v1.26-REQUIREMENTS.md`
 **Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.26`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.26`
+
 ## v1.25: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
 ## v1.24: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
 

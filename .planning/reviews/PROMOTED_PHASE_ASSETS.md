@@ -1,13 +1,4 @@
 ---
-policy:
-  default_identity: execution-trace
-  promotion_contract: Only assets listed under `phases` count as long-term governance/CI
-    evidence for `.planning/phases/**`.
-  promotion_sources:
-  - .planning/ROADMAP.md
-  - .planning/baseline/VERIFICATION_MATRIX.md
-  - .planning/milestones/*.md
-  - .planning/reviews/*.md
 phases:
   07.5-integration-governance-verification-closeout:
   - 07.5-SUMMARY.md
@@ -20,6 +11,18 @@ phases:
   - 08-02-SUMMARY.md
   - 08-VALIDATION.md
   - 08-VERIFICATION.md
+  100-mqtt-runtime-and-schedule-service-support-extraction-freeze:
+  - 100-01-SUMMARY.md
+  - 100-02-SUMMARY.md
+  - 100-03-SUMMARY.md
+  - 100-VERIFICATION.md
+  - 100-VALIDATION.md
+  101-anonymous-share-manager-and-rest-decoder-hotspot-decomposition-freeze:
+  - 101-01-SUMMARY.md
+  - 101-02-SUMMARY.md
+  - 101-03-SUMMARY.md
+  - 101-VERIFICATION.md
+  - 101-VALIDATION.md
   15-support-feedback-contract-hardening-governance-truth-repair-and-maintainability-follow-through:
   - 15-01-SUMMARY.md
   - 15-02-SUMMARY.md
@@ -324,7 +327,6 @@ phases:
   - 82-SUMMARY.md
   - 82-VERIFICATION.md
   - 82-VALIDATION.md
-
   83-intake-templates-and-maintainer-stewardship-contract:
   - 83-01-SUMMARY.md
   - 83-02-SUMMARY.md
@@ -416,6 +418,27 @@ phases:
   - 97-03-SUMMARY.md
   - 97-VERIFICATION.md
   - 97-VALIDATION.md
+  98-carry-forward-eradication-route-reactivation-and-closeout-proof:
+  - 98-01-SUMMARY.md
+  - 98-02-SUMMARY.md
+  - 98-03-SUMMARY.md
+  - 98-VERIFICATION.md
+  - 98-VALIDATION.md
+  99-runtime-hotspot-support-extraction-and-terminal-audit-freeze:
+  - 99-01-SUMMARY.md
+  - 99-02-SUMMARY.md
+  - 99-03-SUMMARY.md
+  - 99-VERIFICATION.md
+  - 99-VALIDATION.md
+policy:
+  default_identity: execution-trace
+  promotion_contract: Only assets listed under `phases` count as long-term governance/CI
+    evidence for `.planning/phases/**`.
+  promotion_sources:
+  - .planning/ROADMAP.md
+  - .planning/baseline/VERIFICATION_MATRIX.md
+  - .planning/milestones/*.md
+  - .planning/reviews/*.md
 ---
 
 # Promoted Phase Assets
@@ -435,3 +458,28 @@ phases:
     - 71-SUMMARY.md
     - 71-VERIFICATION.md
     - 71-VALIDATION.md
+
+98-carry-forward-eradication-route-reactivation-and-closeout-proof:
+- 98-01-SUMMARY.md
+- 98-02-SUMMARY.md
+- 98-03-SUMMARY.md
+- 98-VERIFICATION.md
+- 98-VALIDATION.md
+99-runtime-hotspot-support-extraction-and-terminal-audit-freeze:
+- 99-01-SUMMARY.md
+- 99-02-SUMMARY.md
+- 99-03-SUMMARY.md
+- 99-VERIFICATION.md
+- 99-VALIDATION.md
+100-mqtt-runtime-and-schedule-service-support-extraction-freeze:
+- 100-01-SUMMARY.md
+- 100-02-SUMMARY.md
+- 100-03-SUMMARY.md
+- 100-VERIFICATION.md
+- 100-VALIDATION.md
+101-anonymous-share-manager-and-rest-decoder-hotspot-decomposition-freeze:
+- 101-01-SUMMARY.md
+- 101-02-SUMMARY.md
+- 101-03-SUMMARY.md
+- 101-VERIFICATION.md
+- 101-VALIDATION.md

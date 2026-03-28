@@ -91,8 +91,7 @@ def _decode_schedule_json_canonical(payload: object) -> CanonicalScheduleJson:
     }
 
 
-def _build_schedule_json_fingerprint(payload: object) -> str:
-    canonical = _decode_schedule_json_canonical(payload)
+def _build_schedule_json_fingerprint(canonical: CanonicalScheduleJson) -> str:
     return (
         f"days:{len(canonical['days'])}|"
         f"time:{len(canonical['time'])}|"
@@ -191,7 +190,7 @@ class ListEnvelopeRestDecoder:
         self._offset = offset
         self._context = RestDecodeContext(
             family=_REST_LIST_ENVELOPE_FAMILY,
-            endpoint="generic_list",
+            endpoint="get_device_list",
             authority=_REST_LIST_ENVELOPE_AUTHORITY,
             version=_REST_LIST_ENVELOPE_VERSION,
         )
@@ -228,7 +227,7 @@ class ScheduleJsonRestDecoder:
         """Initialize one decoder bound to the schedule-json authority family."""
         self._context = RestDecodeContext(
             family=_REST_SCHEDULE_JSON_FAMILY,
-            endpoint="schedule_json",
+            endpoint="query_mesh_schedule_json",
             authority=_REST_SCHEDULE_JSON_AUTHORITY,
             version=_REST_SCHEDULE_JSON_VERSION,
         )
@@ -250,11 +249,12 @@ class ScheduleJsonRestDecoder:
 
     def decode(self, payload: object) -> BoundaryDecodeResult[CanonicalScheduleJson]:
         """Decode one scheduleJson payload into the canonical triple contract."""
+        canonical = _decode_schedule_json_canonical(payload)
         return BoundaryDecodeResult(
             key=self.key,
-            canonical=_decode_schedule_json_canonical(payload),
+            canonical=canonical,
             authority=self.authority,
-            fingerprint=_build_schedule_json_fingerprint(payload),
+            fingerprint=_build_schedule_json_fingerprint(canonical),
         )
 
 
@@ -263,7 +263,7 @@ class DeviceListRestDecoder:
 
     def __init__(self, *, offset: int = 0) -> None:
         """Bind the decoder to one pagination offset for `has_more` calculation."""
-        self._offset = max(0, offset)
+        self._offset = offset
         self._context = RestDecodeContext(
             family=_REST_DEVICE_LIST_FAMILY,
             endpoint="get_device_list",

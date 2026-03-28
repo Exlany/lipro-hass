@@ -18,9 +18,9 @@
 
 **Runtime / protocol hotspot concentration:**
 - Risk Level: `High`
-- Issue: `Phase 100` 已把 `mqtt_runtime.py` 收窄到 375 行 orchestration home、把 `schedule_service.py` 收窄到 183 行 helper home；但 runtime/protocol 复杂度仍集中在少数正式文件与 support collaborators：`custom_components/lipro/core/coordinator/runtime/command_runtime.py` (465 行)、`custom_components/lipro/core/anonymous_share/manager.py` (456 行)、`custom_components/lipro/core/protocol/boundary/rest_decoder.py` (425 行)、`custom_components/lipro/core/api/status_fallback_support.py` (414 行)、`custom_components/lipro/core/api/rest_facade.py` (418 行)、`custom_components/lipro/core/coordinator/runtime/mqtt_runtime_support.py` (157 行)、`custom_components/lipro/core/api/schedule_service_support.py` (307 行)、`custom_components/lipro/entities/firmware_update.py` (418 行)。
-- Evidence: `.planning/reviews/FILE_MATRIX.md` 仍将这些文件标为长期正式 home / local support collaborators；`.planning/REQUIREMENTS.md`、`.planning/ROADMAP.md` 已把 `mqtt_runtime.py` 与 `schedule_service.py` 的 outward-home overload 关闭，下一轮主要 hotspot 现前推到 `anonymous_share/manager.py`、`rest_decoder.py` 与 `rest_facade.py`。
-- Phase 100 已把 `mqtt_runtime.py` 收窄到 375 行 orchestration home、把 `schedule_service.py` 收窄到 183 行 helper home。
+- Issue: `Phase 101` 已把 `anonymous_share/manager.py` 收口成 435 行更诚实的 formal home，并把 aggregate outcome/accessor drift 压回 inward seams；`rest_decoder.py` / `rest_decoder_support.py` 也已统一 boundary truth 与 fallback-property semantics。但 runtime/protocol 复杂度仍集中在少数正式文件与 support collaborators：`custom_components/lipro/core/coordinator/runtime/command_runtime.py` (465 行)、`custom_components/lipro/core/anonymous_share/manager.py` (435 行)、`custom_components/lipro/core/protocol/boundary/rest_decoder.py` (425 行)、`custom_components/lipro/core/protocol/boundary/rest_decoder_support.py` (417 行)、`custom_components/lipro/core/api/status_fallback_support.py` (414 行)、`custom_components/lipro/core/api/rest_facade.py` (418 行)、`custom_components/lipro/entities/firmware_update.py` (418 行)。
+- Evidence: `.planning/reviews/FILE_MATRIX.md` 仍将这些文件标为长期正式 home / local support collaborators；`.planning/REQUIREMENTS.md`、`.planning/ROADMAP.md` 与 `.planning/baseline/VERIFICATION_MATRIX.md` 已把 `Phase 100` 退回 predecessor evidence、并把 current-route 前推到 `Phase 101`。
+- Phase 101 已把 `anonymous_share/manager.py` 收窄到 435 行 formal manager home，并让 `mqtt_api_service.py` 复用 boundary MQTT-config decode truth。
 - Impact: 命令、状态、MQTT、入口 wiring、OTA 与匿名分享改动的回归半径大，review/triage 成本高，继续拖慢局部演进。
 - Fix approach: 继续沿既有 formal seams inward decomposition，优先拆纯函数/纯策略层，不新增 public root，不让 helper 重新长成第二故事线。
 
@@ -92,14 +92,14 @@
 - Risk Level: `Medium`
 - Files: `custom_components/lipro/core/anonymous_share/manager.py`, `custom_components/lipro/core/anonymous_share/manager_submission.py`, `custom_components/lipro/core/anonymous_share/share_client_submit.py`
 - Why fragile: 聚合状态、token refresh、submit outcome、report redaction 与多 scope 语义跨模块耦合。
-- Safe modification: 保持 outcome-native contract，不要回退成 bool-only bridge；先补 focused fixture/test，再拆 orchestration。
+- Safe modification: 保持 outcome-native contract、primary-scope client 选择与 aggregate neutral semantics；不要回退成 accessor re-export 或 bool-only bridge，先补 focused fixture/test，再拆 orchestration。
 - Test coverage: `tests/core/anonymous_share/*.py`, `tests/core/test_share_client_submit.py`, `tests/integration/test_telemetry_exporter_integration.py` 覆盖不错，但 topology 仍然复杂。
 
 **Protocol decoding and schedule handling:**
 - Risk Level: `Medium`
 - Files: `custom_components/lipro/core/protocol/boundary/rest_decoder.py`, `custom_components/lipro/core/protocol/boundary/rest_decoder_support.py`, `custom_components/lipro/services/schedule.py`, `custom_components/lipro/core/api/schedule_service.py`
 - Why fragile: vendor payload normalization、schedule timing coercion、mesh/BLE edge case 与 service response 语义必须同步演进。
-- Safe modification: 优先改 fixture 与 boundary decoder，不要把 compat rescue 重新抬回 runtime/service 正式路径。
+- Safe modification: 优先改 fixture 与 boundary decoder / decode-support truth，不要把 compat rescue 或 vendor metadata fallback 重新抬回 runtime/service 正式路径。
 - Test coverage: `tests/core/api/test_protocol_contract_*.py`, `tests/services/test_services_schedule.py`, `tests/core/api/test_api_transport_and_schedule_*.py` 提供了强护栏。
 
 ## Scaling Limits

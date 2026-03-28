@@ -6,12 +6,12 @@ import json
 from typing import cast
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from custom_components.lipro.core.anonymous_share import manager as manager_module
-from custom_components.lipro.core.anonymous_share.const import MAX_PENDING_ERRORS
-from custom_components.lipro.core.anonymous_share.manager import (
+from custom_components.lipro.core.anonymous_share import (
     AnonymousShareManager,
     get_anonymous_share_manager,
+    registry as manager_registry,
 )
+from custom_components.lipro.core.anonymous_share.const import MAX_PENDING_ERRORS
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -287,6 +287,7 @@ class TestReportedDeviceCache:
     def test_load_reported_devices_invalid_json_logs_warning(self, tmp_path):
         mgr = AnonymousShareManager()
         mgr._storage_path = str(tmp_path)
+        mgr._reported_device_keys = {"stale-key"}
         cache_file = tmp_path / ".lipro_reported_devices.json"
         cache_file.write_text("{invalid json", encoding="utf-8")
 
@@ -296,6 +297,7 @@ class TestReportedDeviceCache:
             mgr._load_reported_devices()
 
         warn.assert_called_once()
+        assert mgr._reported_device_keys == set()
 
     def test_save_reported_devices_write_failure_logs_warning(self, tmp_path):
         mgr = AnonymousShareManager()
@@ -333,11 +335,25 @@ class TestReportedDeviceCache:
         mgr._load_reported_devices()
         mgr._save_reported_devices()
 
+
+
+    def test_set_enabled_with_new_storage_path_clears_stale_reported_device_keys(self, tmp_path):
+        mgr = AnonymousShareManager()
+        mgr._reported_device_keys = {"stale-key"}
+        mgr._storage_path = str(tmp_path / "old")
+        mgr._cache_loaded = True
+
+        mgr.set_enabled(True, storage_path=str(tmp_path / "new"))
+
+        assert mgr._reported_device_keys == set()
+        assert mgr._cache_loaded is False
+
+
 class TestScopedAnonymousShareManager:
     """Tests for scoped anonymous-share managers."""
 
     def test_explicit_entry_scopes_do_not_pollute_each_other(self, monkeypatch):
-        manager_module._get_root_manager.cache_clear()
+        manager_registry._get_root_manager.cache_clear()
         hass = MagicMock()
         hass.data = {}
 

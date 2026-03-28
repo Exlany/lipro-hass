@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
+from importlib import import_module
+from typing import cast
 
 from .types import JsonObject, JsonValue
 
@@ -18,21 +20,21 @@ def _extract_mqtt_config_payload(
     *,
     is_success_code: IsSuccessCode,
 ) -> MappingPayload | None:
-    """Decode MQTT config through the same canonical shape without importing protocol."""
-    if not isinstance(result, dict):
-        return None
+    """Decode MQTT config through the formal REST boundary contract."""
+    decode_mqtt_config_payload = import_module(
+        "custom_components.lipro.core.protocol.boundary"
+    ).decode_mqtt_config_payload
 
-    if "accessKey" in result and "secretKey" in result:
-        return dict(result)
-
-    payload = result.get("data")
-    if not isinstance(payload, dict):
+    try:
+        return cast(
+            MappingPayload,
+            decode_mqtt_config_payload(
+                result,
+                is_success_code=is_success_code,
+            ).canonical,
+        )
+    except ValueError:
         return None
-    if "accessKey" not in payload or "secretKey" not in payload:
-        return None
-    if "code" not in result or is_success_code(result.get("code")):
-        return dict(payload)
-    return None
 
 
 async def get_mqtt_config(

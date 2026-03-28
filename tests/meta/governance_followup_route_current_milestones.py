@@ -6,6 +6,7 @@ from .conftest import _ROOT, _as_mapping
 from .governance_contract_helpers import _assert_current_route_truth
 from .governance_current_truth import (
     CURRENT_MILESTONE_DEFAULT_NEXT,
+    CURRENT_MILESTONE_HEADER,
     CURRENT_MILESTONE_STATE_LABEL,
     CURRENT_MILESTONE_STATUS,
     CURRENT_ROUTE_MODE,
@@ -13,6 +14,8 @@ from .governance_current_truth import (
     HISTORICAL_CLOSEOUT_ROUTE_TRUTH,
     LATEST_ARCHIVED_AUDIT_PATH,
     LATEST_ARCHIVED_EVIDENCE_PATH,
+    LATEST_ARCHIVED_PROJECT_HEADER,
+    PREVIOUS_ARCHIVED_PROJECT_HEADER,
     _as_optional_mapping,
     assert_machine_readable_route_contracts,
 )
@@ -220,7 +223,7 @@ def test_v1_12_to_v1_13_archived_route_truth_uses_promoted_evidence_only() -> No
     )
 
 
-def test_machine_readable_route_contracts_point_to_active_v1_27_and_archived_v1_26() -> (
+def test_machine_readable_route_contracts_point_to_archived_v1_27_and_previous_v1_26() -> (
     None
 ):
     contracts = assert_machine_readable_route_contracts()
@@ -235,17 +238,11 @@ def test_machine_readable_route_contracts_point_to_active_v1_27_and_archived_v1_
     state_contract = _as_mapping(contracts["STATE"])
     state_bootstrap = _as_mapping(state_contract["bootstrap"])
 
-    assert requirements_active is not None
-    assert requirements_active["version"] == "v1.27"
-    assert requirements_active["phase"] == "100"
-    assert requirements_active["route_mode"] == CURRENT_ROUTE_MODE
-    assert milestones_active is not None
-    assert milestones_active["version"] == "v1.27"
-    assert milestones_active["phase"] == "100"
-    assert milestones_active["route_mode"] == CURRENT_ROUTE_MODE
-    assert milestones_latest_archived["version"] == "v1.26"
-    assert milestones_latest_archived["phase"] == "97"
-    assert milestones_previous_archived["version"] == "v1.25"
+    assert requirements_active is None
+    assert milestones_active is None
+    assert milestones_latest_archived["version"] == "v1.27"
+    assert milestones_latest_archived["phase"] == "101"
+    assert milestones_previous_archived["version"] == "v1.26"
     assert state_bootstrap["current_route"] == CURRENT_ROUTE_MODE
     assert state_bootstrap["default_next_command"] == CURRENT_MILESTONE_DEFAULT_NEXT
     assert (
@@ -276,15 +273,15 @@ def test_historical_route_truth_replaces_legacy_live_state_wording() -> None:
         )
 
 
-def test_current_v1_27_project_state_and_archive_pointers_align() -> None:
+def test_current_v1_27_archived_state_and_archive_pointers_align() -> None:
     _assert_current_route_truth(_PROJECT_TEXT, _ROADMAP_TEXT, _STATE_TEXT)
     _assert_contains_all(
         _PROJECT_TEXT,
-        "## Current Milestone (v1.27)",
-        "## Latest Archived Milestone (v1.26)",
-        "## Previous Archived Milestone (v1.25)",
-        "**Current status:** `active / closeout-ready (2026-03-28)`",
-        "**Default next command:** `$gsd-complete-milestone v1.27`",
+        CURRENT_MILESTONE_HEADER,
+        LATEST_ARCHIVED_PROJECT_HEADER,
+        PREVIOUS_ARCHIVED_PROJECT_HEADER,
+        f"**Current status:** `{CURRENT_MILESTONE_STATUS}`",
+        f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`",
     )
     _assert_contains_all(
         _ROADMAP_TEXT,
@@ -292,15 +289,17 @@ def test_current_v1_27_project_state_and_archive_pointers_align() -> None:
         "### Phase 98: Carry-forward eradication, route reactivation, and closeout proof",
         "### Phase 99: Runtime hotspot support extraction and terminal audit freeze",
         "### Phase 100: MQTT runtime and schedule service support extraction freeze",
+        "### Phase 101: Anonymous-share manager and REST decoder hotspot decomposition freeze",
         CURRENT_MILESTONE_DEFAULT_NEXT,
-        ".planning/reviews/V1_26_EVIDENCE_INDEX.md",
+        ".planning/reviews/V1_27_EVIDENCE_INDEX.md",
         ".planning/phases/98-carry-forward-eradication-route-reactivation-and-closeout-proof/{98-01-SUMMARY.md,98-02-SUMMARY.md,98-03-SUMMARY.md,98-VERIFICATION.md,98-VALIDATION.md}",
         ".planning/phases/99-runtime-hotspot-support-extraction-and-terminal-audit-freeze/{99-01-SUMMARY.md,99-02-SUMMARY.md,99-03-SUMMARY.md,99-VERIFICATION.md,99-VALIDATION.md}",
         ".planning/phases/100-mqtt-runtime-and-schedule-service-support-extraction-freeze/{100-01-SUMMARY.md,100-02-SUMMARY.md,100-03-SUMMARY.md,100-VERIFICATION.md,100-VALIDATION.md}",
+        ".planning/phases/101-anonymous-share-manager-and-rest-decoder-hotspot-decomposition-freeze/{101-01-SUMMARY.md,101-02-SUMMARY.md,101-03-SUMMARY.md,101-VERIFICATION.md,101-VALIDATION.md}",
     )
     _assert_contains_all(
         _REQUIREMENTS_TEXT,
-        "## Current Milestone (v1.27)",
+        CURRENT_MILESTONE_HEADER,
         "| RES-15 | Phase 98 | Complete |",
         "| HOT-41 | Phase 99 | Complete |",
         "| GOV-65 | Phase 99 | Complete |",
@@ -310,11 +309,15 @@ def test_current_v1_27_project_state_and_archive_pointers_align() -> None:
         "| GOV-66 | Phase 100 | Complete |",
         "| TST-32 | Phase 100 | Complete |",
         "| QLT-40 | Phase 100 | Complete |",
-        "- v1.27 routed requirements: 9 total",
-        "- Current mapped: 9",
-        "- Current complete: 9",
+        "| HOT-43 | Phase 101 | Complete |",
+        "| GOV-67 | Phase 101 | Complete |",
+        "| TST-33 | Phase 101 | Complete |",
+        "| QLT-41 | Phase 101 | Complete |",
+        "- v1.27 routed requirements: 13 total",
+        "- Current mapped: 13",
+        "- Current complete: 13",
         "- Current pending: 0",
-        "## Latest Archived Milestone (v1.26)",
+        LATEST_ARCHIVED_PROJECT_HEADER,
     )
     _assert_contains_all(
         _STATE_TEXT,
@@ -325,4 +328,4 @@ def test_current_v1_27_project_state_and_archive_pointers_align() -> None:
         LATEST_ARCHIVED_EVIDENCE_PATH,
         ".planning/v1.25-MILESTONE-AUDIT.md",
     )
-    assert CURRENT_MILESTONE_STATUS == "active / closeout-ready (2026-03-28)"
+    assert CURRENT_MILESTONE_STATUS == "archived / evidence-ready (2026-03-28)"

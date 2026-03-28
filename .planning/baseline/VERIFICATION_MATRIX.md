@@ -2,16 +2,16 @@
 
 **Purpose:** 建立 requirement → artifact → test → doc → phase acceptance / handoff 的统一验证闭环。
 **Status:** Formal baseline asset (`BASE-03` phase acceptance truth source)
-**Updated:** 2026-03-28 (v1.27 phase100 support-freeze aligned)
+**Updated:** 2026-03-28 (v1.27 archive promotion / latest-archived closeout aligned)
 
 ## Formal Role
 
 ## Current Mutable Route
 
-- **Current mutable story:** `v1.27 active route / Phase 100 complete / latest archived baseline = v1.26`
-- **Default next command:** `$gsd-complete-milestone v1.27`
-- **Latest archived pointer:** `.planning/reviews/V1_26_EVIDENCE_INDEX.md`
-- **Focused guards:** `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/test_phase90_hotspot_map_guards.py`, `tests/meta/test_phase91_typed_boundary_guards.py`, `tests/meta/test_phase92_redaction_convergence_guards.py`, `tests/meta/test_phase94_typed_boundary_guards.py`, `tests/meta/test_phase95_hotspot_decomposition_guards.py`, `tests/meta/test_phase96_sanitizer_burndown_guards.py`, `tests/meta/test_phase97_governance_assurance_freeze_guards.py`, `tests/meta/test_phase98_route_reactivation_guards.py`, `tests/meta/test_phase99_runtime_hotspot_support_guards.py`, `tests/meta/test_phase100_runtime_schedule_support_guards.py`, `tests/meta/test_public_surface_guards.py`, `tests/meta/test_dependency_guards.py`
+- **Current mutable story:** `no active milestone route / latest archived baseline = v1.27`
+- **Default next command:** `$gsd-new-milestone`
+- **Latest archived pointer:** `.planning/reviews/V1_27_EVIDENCE_INDEX.md`
+- **Focused guards:** `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/test_phase90_hotspot_map_guards.py`, `tests/meta/test_phase91_typed_boundary_guards.py`, `tests/meta/test_phase92_redaction_convergence_guards.py`, `tests/meta/test_phase94_typed_boundary_guards.py`, `tests/meta/test_phase95_hotspot_decomposition_guards.py`, `tests/meta/test_phase96_sanitizer_burndown_guards.py`, `tests/meta/test_phase97_governance_assurance_freeze_guards.py`, `tests/meta/test_phase98_route_reactivation_guards.py`, `tests/meta/test_phase99_runtime_hotspot_support_guards.py`, `tests/meta/test_phase100_runtime_schedule_support_guards.py`, `tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py`, `tests/meta/test_public_surface_guards.py`, `tests/meta/test_dependency_guards.py`
 
 - 本文件是 `Phase 1.5` 及其下游 phases 的正式 acceptance truth；phase docs / summaries 只能引用、实例化或扩展，不得平行定义 exit contract。
 - 任一 phase 只有同时交付 requirement evidence、artifact updates、verification proof 与 governance disposition，才可宣称完成。
@@ -48,21 +48,27 @@
 
 ## Phase 98 Carry-Forward Eradication / Route Reactivation / Closeout Proof
 
-- **Route truth:** `v1.27 active route / Phase 98 complete / latest archived baseline = v1.26`
+- **Route truth:** completed predecessor evidence under archived closeout `v1.27` bundle
 - **Focused guard:** `tests/meta/test_phase98_route_reactivation_guards.py`
 - **Proof chain:** focused Phase 98 governance pytest set → `tests/meta` → `check_file_matrix` → `ruff` → `mypy` → `gsd-tools state/progress/init-plan-phase/init-execute-phase`
 
 ## Phase 99 Runtime Hotspot Support Extraction / Terminal Audit Freeze
 
-- **Route truth:** completed predecessor evidence under `v1.27 active route / Phase 100 complete / latest archived baseline = v1.26`
+- **Route truth:** completed predecessor evidence under archived closeout `v1.27` bundle
 - **Focused guard:** `tests/meta/test_phase99_runtime_hotspot_support_guards.py`
 - **Proof chain:** focused Phase 99 predecessor/runtime pytest set → `tests/meta` → `check_file_matrix` → `ruff` → `mypy` → `gsd-tools state/progress/init-plan-phase/init-execute-phase/phase-plan-index`
 
 ## Phase 100 MQTT Runtime / Schedule Service Support Extraction Freeze
 
-- **Route truth:** `v1.27 active route / Phase 100 complete / latest archived baseline = v1.26`
+- **Route truth:** completed predecessor evidence under archived closeout `v1.27` bundle
 - **Focused guard:** `tests/meta/test_phase100_runtime_schedule_support_guards.py`
-- **Proof chain:** focused Phase 100 runtime/schedule/governance pytest set → `tests/meta` → `check_file_matrix` → `ruff` → `mypy` → `gsd-tools state/progress/init-plan-phase/init-execute-phase/phase-plan-index`
+- **Proof chain:** focused Phase 100 predecessor/runtime/schedule pytest set → `tests/meta` → `check_file_matrix` → `ruff` → `mypy` → `gsd-tools state/progress/init-plan-phase/init-execute-phase/phase-plan-index`
+
+## Phase 101 Anonymous-share Manager / REST Decoder Hotspot Decomposition Freeze
+
+- **Route truth:** latest archived closeout bundle under `no active milestone route / latest archived baseline = v1.27`
+- **Focused guard:** `tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py`
+- **Proof chain:** focused Phase 101 anonymous-share/protocol/governance pytest set → `tests/meta` → `check_file_matrix` → `ruff` → `mypy` → `gsd-tools state/progress/init-plan-phase/init-execute-phase/phase-plan-index`
 
 ## Requirement-to-Acceptance Mapping
 
@@ -569,7 +575,7 @@
 
 ## Phase 97 Governance / Open-Source Contract Sync and Assurance Freeze
 
-- **Required artifacts:** `.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md,MILESTONES.md}`、`.planning/baseline/{PUBLIC_SURFACES.md,DEPENDENCY_MATRIX.md,VERIFICATION_MATRIX.md}`、`.planning/reviews/{FILE_MATRIX.md,RESIDUAL_LEDGER.md,KILL_LIST.md,PROMOTED_PHASE_ASSETS.md}`、`.planning/codebase/{ARCHITECTURE.md,STRUCTURE.md,CONCERNS.md,CONVENTIONS.md,TESTING.md}`、`docs/{developer_architecture.md,MAINTAINER_RELEASE_RUNBOOK.md}`、`tests/meta/{governance_current_truth.py,test_governance_bootstrap_smoke.py,test_governance_route_handoff_smoke.py,governance_followup_route_current_milestones.py,governance_milestone_archives_assets.py,governance_milestone_archives_truth.py,governance_milestone_archives_ordering.py,test_phase90_hotspot_map_guards.py,test_phase94_typed_boundary_guards.py,test_phase95_hotspot_decomposition_guards.py,test_phase96_sanitizer_burndown_guards.py,test_phase97_governance_assurance_freeze_guards.py}`、`.planning/phases/96-redaction-telemetry-and-anonymous-share-sanitizer-burndown/{96-VERIFICATION.md,96-VALIDATION.md}`、`.planning/phases/97-governance-open-source-contract-sync-and-assurance-freeze/{97-01-SUMMARY.md,97-02-SUMMARY.md,97-03-SUMMARY.md,97-VERIFICATION.md,97-VALIDATION.md}`、`.planning/reviews/V1_26_EVIDENCE_INDEX.md`、`.planning/milestones/{v1.26-ROADMAP.md,v1.26-REQUIREMENTS.md}`。
-- **Required governance proof:** 当前 archived-only route truth 必须是 `no active milestone route / latest archived baseline = v1.26`；default next command = `$gsd-new-milestone`；`.planning/v1.26-MILESTONE-AUDIT.md` 与 `.planning/reviews/V1_26_EVIDENCE_INDEX.md` 必须共同承担 latest archived verdict / pointer truth；`PROJECT.md`、`ROADMAP.md`、`REQUIREMENTS.md`、`STATE.md`、`MILESTONES.md` 与 `tests/meta/governance_current_truth.py` 的 `governance-route` contract block 必须共同承认 `archived / evidence-ready (2026-03-28)`；assurance freeze notes 必须同时出现在 `PUBLIC_SURFACES.md`、`DEPENDENCY_MATRIX.md`、`RESIDUAL_LEDGER.md`、`KILL_LIST.md`、`TESTING.md` 与 `docs/developer_architecture.md`。
+- **Required artifacts:** `.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md,MILESTONES.md}`、`.planning/baseline/{PUBLIC_SURFACES.md,DEPENDENCY_MATRIX.md,VERIFICATION_MATRIX.md}`、`.planning/reviews/{FILE_MATRIX.md,RESIDUAL_LEDGER.md,KILL_LIST.md,PROMOTED_PHASE_ASSETS.md}`、`.planning/codebase/{ARCHITECTURE.md,STRUCTURE.md,CONCERNS.md,CONVENTIONS.md,TESTING.md}`、`docs/{developer_architecture.md,MAINTAINER_RELEASE_RUNBOOK.md}`、`tests/meta/{governance_current_truth.py,test_governance_bootstrap_smoke.py,test_governance_route_handoff_smoke.py,governance_followup_route_current_milestones.py,governance_milestone_archives_assets.py,governance_milestone_archives_truth.py,governance_milestone_archives_ordering.py,test_phase90_hotspot_map_guards.py,test_phase94_typed_boundary_guards.py,test_phase95_hotspot_decomposition_guards.py,test_phase96_sanitizer_burndown_guards.py,test_phase97_governance_assurance_freeze_guards.py}`、`.planning/phases/96-redaction-telemetry-and-anonymous-share-sanitizer-burndown/{96-VERIFICATION.md,96-VALIDATION.md}`、`.planning/phases/97-governance-open-source-contract-sync-and-assurance-freeze/{97-01-SUMMARY.md,97-02-SUMMARY.md,97-03-SUMMARY.md,97-VERIFICATION.md,97-VALIDATION.md}`、`.planning/reviews/V1_27_EVIDENCE_INDEX.md`、`.planning/milestones/{v1.26-ROADMAP.md,v1.26-REQUIREMENTS.md}`。
+- **Required governance proof:** 当前 archived-only route truth 必须是 `no active milestone route / latest archived baseline = v1.26`；default next command = `$gsd-new-milestone`；`.planning/v1.27-MILESTONE-AUDIT.md` 与 `.planning/reviews/V1_27_EVIDENCE_INDEX.md` 必须共同承担 latest archived verdict / pointer truth；`PROJECT.md`、`ROADMAP.md`、`REQUIREMENTS.md`、`STATE.md`、`MILESTONES.md` 与 `tests/meta/governance_current_truth.py` 的 `governance-route` contract block 必须共同承认 `archived / evidence-ready (2026-03-28)`；assurance freeze notes 必须同时出现在 `PUBLIC_SURFACES.md`、`DEPENDENCY_MATRIX.md`、`RESIDUAL_LEDGER.md`、`KILL_LIST.md`、`TESTING.md` 与 `docs/developer_architecture.md`。
 - **Required runnable proof:** `uv run pytest -q tests/core/api/test_api_status_service.py tests/core/api/test_api_status_service_fallback.py tests/core/api/test_api_status_service_wrappers.py`、`uv run pytest -q tests/services/test_services_diagnostics.py tests/services/test_services_diagnostics_support.py tests/services/test_services_diagnostics_feedback.py tests/services/test_services_diagnostics_capabilities.py tests/services/test_services_diagnostics_payloads.py`、`uv run pytest -q tests/meta`、`uv run python scripts/check_file_matrix.py --check`、`uv run ruff check .`、`uv run mypy`、`node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" init progress`、`node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" state json`、`node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" phase-plan-index 97`。
 - **Unblock effect:** `TYP-24` / `HOT-41` / `SEC-02` / `ARC-25` / `TST-30` / `QLT-38` 的 closeout proof bundle 已完成并沉淀为 latest archived baseline；下一步只能从 `$gsd-new-milestone` 启动新的正式路线，而不是在 `v1.26` 上继续叠加实现相位。

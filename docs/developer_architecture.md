@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `v1.27` active route / closeout-ready (`2026-03-28`)
-> **Current route alignment**: `v1.27 active route / Phase 100 complete / latest archived baseline = v1.26` (`2026-03-28`)
+> **Last aligned through**: `v1.27` archived-only closeout (`2026-03-28`)
+> **Current route alignment**: `no active milestone route / latest archived baseline = v1.27` (`2026-03-28`)
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
@@ -112,7 +112,7 @@ custom_components/lipro/
 │   ├── device/                # device aggregate / normalization helpers
 │   ├── capability/            # capability truth
 │   ├── command/               # write-side helpers
-│   └── anonymous_share/       # protocol-adjacent anonymous-share support
+│   └── anonymous_share/       # anonymous-share formal home + inward collaborators
 ├── control/                   # formal control-plane home
 ├── services/                  # control-plane service declarations / adapters / handler helpers
 ├── entities/                  # domain -> HA entity adapters
@@ -208,7 +208,7 @@ custom_components/lipro/
 
 ## Phase 89 Freeze Note
 
-- Phase 89 closeout treats `V1_23_TERMINAL_AUDIT.md` as historical input evidence only; archived-only route truth now lives in `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`, `.planning/v1.26-MILESTONE-AUDIT.md`, `.planning/reviews/V1_26_EVIDENCE_INDEX.md`, and focused governance guards.
+- Phase 89 closeout treats `V1_23_TERMINAL_AUDIT.md` as historical input evidence only; archived-only route truth now lives in `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`, `.planning/v1.27-MILESTONE-AUDIT.md`, `.planning/reviews/V1_27_EVIDENCE_INDEX.md`, and focused governance guards.
 - `RESIDUAL_LEDGER.md` active residual families 为空、`KILL_LIST.md` 的 `Phase 85 Routed Delete Gates` 为空，都是显式 closeout verdict，而不是待补登记的空白。
 - `.planning/reviews/PROMOTED_PHASE_ASSETS.md` 是 phase evidence allowlist 的唯一 home；developer-facing guidance 只索引它，不私自提升 execution traces。
 
@@ -225,18 +225,25 @@ custom_components/lipro/
 ## Phase 98 Route Reactivation / Carry-Forward Closure Note
 
 - `Phase 98` 现在是 `v1.27` 里的 completed predecessor：它继续冻结 `outlet_power` carry-forward closure、route reactivation bundle 与 developer-facing topology note，但不再充当 current-route selector。
-- `tests/meta/test_phase98_route_reactivation_guards.py` 现在承担 predecessor truth 守卫角色：保留 `Phase 98` assets / note / no-regrowth truth，同时把 current-route selector 让给 `Phase 100` focused guard。
+- `tests/meta/test_phase98_route_reactivation_guards.py` 现在承担 predecessor truth 守卫角色：保留 `Phase 98` assets / note / no-regrowth truth，并在 archive promotion 后退回 predecessor truth note。
 
 ## Phase 99 Runtime Hotspot Support Extraction / Predecessor Freeze Note
 
 - `Phase 99` 现在作为 `v1.27` 中的 completed predecessor 保留：它继续冻结 `status_fallback.py` / `command_runtime.py` 的 support extraction 结果，但不再承担 current-route selector。
-- `tests/meta/test_phase99_runtime_hotspot_support_guards.py` 现在承担 predecessor truth 守卫角色：保留 `Phase 99` assets / note / support seam locality，同时把 current-route selector 让给 `Phase 100` focused guard。
+- `tests/meta/test_phase99_runtime_hotspot_support_guards.py` 现在承担 predecessor truth 守卫角色：保留 `Phase 99` assets / note / support seam locality，并在 archive promotion 后退回 predecessor truth note。
 
-## Phase 100 MQTT Runtime / Schedule Service Support Extraction Freeze Note
+## Phase 100 MQTT Runtime / Schedule Service Support Extraction / Predecessor Freeze Note
 
-- 当前 developer guidance 与 `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md` 已共同承认 `v1.27 active route / Phase 100 complete / latest archived baseline = v1.26`；默认下一步重新收缩为 `$gsd-complete-milestone v1.27`。
+- `Phase 100` 现在作为 `v1.27` 中的 completed predecessor 保留：它继续冻结 `mqtt_runtime.py` / `schedule_service.py` 的 support extraction 结果，但不再承担 current-route selector。
 - `mqtt_runtime.py` 继续保留 `MqttRuntime` orchestration home，而 transport/notification/background-task support inward split 到 `mqtt_runtime_support.py`；`schedule_service.py` 继续保留 outward helper/public contract，而 candidate batching / timeout / request helpers inward split 到 `schedule_service_support.py`。
-- `tests/meta/test_governance_route_handoff_smoke.py`、`tests/meta/governance_followup_route_current_milestones.py`、`tests/meta/test_phase99_runtime_hotspot_support_guards.py` 与 `tests/meta/test_phase100_runtime_schedule_support_guards.py` 现在共同冻结 predecessor truth、current-route truth、maps/ledgers projection 与 developer-facing topology note。
+- `tests/meta/test_phase100_runtime_schedule_support_guards.py` 现在承担 predecessor truth 守卫角色；latest-archived closeout proof 已由 `Phase 101` note 接手。
+
+## Phase 101 Anonymous-share Manager / REST Decoder Hotspot Decomposition Freeze Note
+
+- 当前 developer guidance 与 `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md` 已共同承认 `no active milestone route / latest archived baseline = v1.27`；默认下一步保持为 `$gsd-new-milestone`。
+- `manager.py` 继续保留 aggregate/scoped anonymous-share public home，而 `manager_submission.py` / `manager_support.py` 只承接 submit-flow 与 scope-state / cache / pending helpers；registry accessor truth 已回到 `registry.py` / package home，不再由 `manager.py` re-export。
+- `rest_facade.py` 继续是 canonical REST child-façade composition home，`client.py` 继续只是 stable import shell；`rest_decoder.py` / `rest_decoder_support.py` 则继续承担 boundary decode authority，并把 MQTT-config decode truth 下沉为 `mqtt_api_service.py` 的延迟导入复用路径。
+- `tests/meta/test_governance_route_handoff_smoke.py`、`tests/meta/governance_followup_route_current_milestones.py`、`tests/meta/test_phase100_runtime_schedule_support_guards.py` 与 `tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py` 现在共同冻结 predecessor truth、latest-archived truth、maps/ledgers projection 与 developer-facing topology note。
 
 ## Phase 90 Freeze Notes
 

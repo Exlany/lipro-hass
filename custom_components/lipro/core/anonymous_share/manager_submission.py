@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Sequence
+from collections.abc import Awaitable, Callable, Sequence
 import logging
 from typing import Protocol
 
@@ -145,17 +145,16 @@ def _collapse_aggregate_submit_outcome(
     )
 
 
-async def _submit_aggregate_report(
+async def _submit_child_managers(
     manager: AnonymousShareSubmitManagerLike,
-    session: aiohttp.ClientSession,
     *,
-    force: bool,
+    submit_child: Callable[[AnonymousShareSubmitManagerLike], Awaitable[bool]],
 ) -> bool:
-    """Submit all scoped reports for one aggregate manager view."""
+    """Submit aggregate child managers through one shared traversal helper."""
     success = True
     child_outcomes: list[OperationOutcome] = []
     for child_manager in manager.iter_scoped_managers():
-        child_success = await child_manager.submit_report(session, force=force)
+        child_success = await submit_child(child_manager)
         success = child_success and success
         child_outcome = child_manager.last_submit_outcome
         if child_outcome is not None:
@@ -168,6 +167,22 @@ async def _submit_aggregate_report(
         )
     )
     return success
+
+
+async def _submit_aggregate_report(
+    manager: AnonymousShareSubmitManagerLike,
+    session: aiohttp.ClientSession,
+    *,
+    force: bool,
+) -> bool:
+    """Submit all scoped reports for one aggregate manager view."""
+
+    async def _submit_child(child_manager: AnonymousShareSubmitManagerLike) -> bool:
+        if not child_manager.is_enabled:
+            return True
+        return await child_manager.submit_report(session, force=force)
+
+    return await _submit_child_managers(manager, submit_child=_submit_child)
 
 
 async def _submit_scoped_report(
@@ -215,20 +230,11 @@ async def _submit_if_needed_for_aggregate(
     session: aiohttp.ClientSession,
 ) -> bool:
     """Submit aggregate child managers only when their thresholds are met."""
-    success = True
-    child_outcomes: list[OperationOutcome] = []
-    for child_manager in manager.iter_scoped_managers():
-        success = await child_manager.submit_if_needed(session) and success
-        child_outcome = child_manager.last_submit_outcome
-        if child_outcome is not None:
-            child_outcomes.append(child_outcome)
-    manager.set_last_submit_outcome(
-        _collapse_aggregate_submit_outcome(
-            success=success,
-            child_outcomes=child_outcomes,
-        )
-    )
-    return success
+
+    async def _submit_child(child_manager: AnonymousShareSubmitManagerLike) -> bool:
+        return await child_manager.submit_if_needed(session)
+
+    return await _submit_child_managers(manager, submit_child=_submit_child)
 
 
 async def submit_if_needed(

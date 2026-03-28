@@ -1,0 +1,3 @@
+- `custom_components/lipro/core/protocol/boundary/rest_decoder_support.py` 已统一 list-envelope offset 归一化、fallback property extraction 与 scalar-only property inclusion truth，避免 nested/vendor metadata 再穿透 canonical `properties`。
+- `custom_components/lipro/core/protocol/boundary/rest_decoder.py` 现对 schedule JSON 只 decode 一次再构指纹；`custom_components/lipro/core/api/mqtt_api_service.py` 通过延迟导入复用 boundary `decode_mqtt_config_payload`，`rest_facade_endpoint_methods.py` wording 也已退回 child-facing typed truth。
+- focused boundary suites 与 `ruff` 已通过，证明 REST boundary decode authority、MQTT-config helper reuse 与 endpoint wording 已保持单一路由。

@@ -78,12 +78,14 @@ def configure_scope_state(
     ha_version: str | None,
 ) -> None:
     """Apply enabled/metadata settings to one scope state."""
+    storage_path_changed = state.storage_path != storage_path
     state.collector.set_enabled(enabled, error_reporting=error_reporting)
     state.installation_id = installation_id
     state.storage_path = storage_path
     state.ha_version = ha_version
-    if enabled and storage_path:
-        state.cache_loaded = False
+    if storage_path_changed:
+        state.reported_device_keys.clear()
+    state.cache_loaded = not (enabled and storage_path)
 
 
 
@@ -109,17 +111,16 @@ def load_reported_device_keys_for_state(
     state: _ScopeState,
     *,
     logger: logging.Logger,
-) -> set[str] | None:
+) -> tuple[bool, set[str]]:
     """Load one state's reported-device cache."""
     storage_path = state.storage_path
     if not storage_path:
-        return None
-    loaded, keys = load_reported_device_keys(
+        return False, set()
+    return load_reported_device_keys(
         storage_path,
         logger=logger,
         cache_key=state.storage_key,
     )
-    return keys if loaded else None
 
 
 def save_reported_device_keys_for_state(
