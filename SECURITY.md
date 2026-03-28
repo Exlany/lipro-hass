@@ -41,7 +41,6 @@ This repository currently follows a single-maintainer security review model; ack
 
 If your report is not security-sensitive, use `docs/TROUBLESHOOTING.md` and `SUPPORT.md` instead of the private disclosure path. For contributor routing and boundary-aware code changes, use `docs/README.md`, `CONTRIBUTING.md`, and `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md`.
 若问题并非安全敏感，请优先使用 `docs/TROUBLESHOOTING.md` 与 `SUPPORT.md`，不要占用私密披露通道。若你需要贡献路由或边界感知的代码改动说明，请结合 `docs/README.md`、`CONTRIBUTING.md` 与 `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md`。
-若问题并非安全敏感，请优先使用 `docs/TROUBLESHOOTING.md` 与 `SUPPORT.md`，不要占用私密披露通道。
 
 The disclosure fast path ends above. The continuity section below is a maintainer appendix for custody / delegate / freeze truth; the public documentation index lives in `docs/README.md`.
 上面的内容已经覆盖公开披露快路径；下面的连续性章节属于维护者附录，用于记录 custody / delegate / freeze 真相；公开文档总索引见 `docs/README.md`。

@@ -59,6 +59,22 @@ def _build_entry_view(
     }
 
 
+def _redact_gateway_projection(projection: Mapping[str, object]) -> DiagnosticsPayload:
+    redacted: DiagnosticsPayload = {}
+
+    gateway_device_id = projection.get("gateway_device_id")
+    if isinstance(gateway_device_id, str):
+        redacted["gateway_device_id"] = "**REDACTED**"
+
+    group_member_ids = projection.get("group_member_ids")
+    if isinstance(group_member_ids, list):
+        members = ["**REDACTED**" for member_id in group_member_ids if isinstance(member_id, str)]
+        if members:
+            redacted["group_member_ids"] = members
+
+    return redacted
+
+
 def build_device_diagnostics(
     device: LiproDevice,
     *,
@@ -96,7 +112,9 @@ def build_device_diagnostics(
 
     gateway_projection = diagnostic_gateway_projection(device.extras)
     if gateway_projection is not None:
-        device_info["extra_data"] = {"gateway_device_id": "**REDACTED**"}
+        extra_data = _redact_gateway_projection(gateway_projection)
+        if extra_data:
+            device_info["extra_data"] = extra_data
 
     return device_info
 

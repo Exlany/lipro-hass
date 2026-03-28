@@ -63,6 +63,7 @@ class TestAsyncGetConfigEntryDiagnostics:
             },
             extra_data={
                 "gateway_device_id": "03abdeadbeefcafe",
+                "group_member_ids": ["03ab111111111111", "03ab222222222222"],
                 "ignored": "secret",
             },
             room_name="Bedroom",
@@ -136,6 +137,7 @@ class TestAsyncGetConfigEntryDiagnostics:
         assert device_properties["powerState"] == "1"
         assert outlet_power_info["nowPower"] == 12.5
         assert extra_data["gateway_device_id"] == "**REDACTED**"
+        assert extra_data["group_member_ids"] == ["**REDACTED**", "**REDACTED**"]
         assert "ignored" not in extra_data
         assert "power_info" not in extra_data
 
@@ -331,6 +333,7 @@ class TestAsyncGetConfigEntryDiagnostics:
             },
             extra_data={
                 "gateway_device_id": "03ab5ccd7c999999",
+                "group_member_ids": ["03ab5ccd7c111111", "03ab5ccd7c222222"],
             },
             room_name="Master Bedroom",
         )
@@ -421,6 +424,7 @@ class TestAsyncGetConfigEntryDiagnostics:
                     "outlet_power_info": {"nowPower": 0.0, "energyList": []},
                     "extra_data": {
                         "gateway_device_id": "**REDACTED**",
+                        "group_member_ids": ["**REDACTED**", "**REDACTED**"],
                     },
                 },
             ],

@@ -160,6 +160,31 @@ async def test_config_entry_diagnostics_redacts_ir_gateway_projection(
 
 
 @pytest.mark.asyncio
+async def test_config_entry_diagnostics_redacts_mesh_group_projection_without_gateway(
+    hass, make_device
+) -> None:
+    """Mesh-group diagnostics should preserve member-cardinality without leaking ids."""
+    device = make_device(
+        "light",
+        serial="mesh_group_20001",
+        extra_data={"group_member_ids": ["03ab111111111111", "03ab222222222222"]},
+        properties={"powerState": "1"},
+    )
+    coordinator = _make_coordinator(devices={device.serial: device})
+    entry = _make_entry(runtime_data=coordinator)
+
+    with _patch_share_manager(_make_share_manager()):
+        result = await async_get_config_entry_diagnostics(hass, entry)
+
+    devices = _diag_list(result["devices"])
+    first_device = _diag_payload(devices[0])
+    extra_data = _diag_payload(first_device["extra_data"])
+    assert extra_data == {
+        "group_member_ids": ["**REDACTED**", "**REDACTED**"],
+    }
+
+
+@pytest.mark.asyncio
 async def test_device_diagnostics_reports_degraded_runtime_device_cache(
     hass,
 ) -> None:
