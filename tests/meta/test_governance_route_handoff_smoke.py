@@ -69,8 +69,6 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
     assert '## Phase 95 Schedule/Runtime Hotspot Inward Decomposition' in verification_text
     assert '## Phase 96 Redaction/Telemetry/Anonymous-Share Sanitizer Burndown' in verification_text
     assert '## Phase 97 Governance / Open-Source Contract Sync and Assurance Freeze' in verification_text
-    assert '## Phase 96 Redaction/Telemetry/Anonymous-Share Sanitizer Burndown' in verification_text
-    assert '## Phase 97 Governance / Open-Source Contract Sync and Assurance Freeze' in verification_text
     assert CURRENT_ROUTE in verification_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in verification_text
     assert LATEST_ARCHIVED_EVIDENCE_PATH in verification_text
@@ -84,8 +82,6 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
     assert 'tests/meta/test_governance_route_handoff_smoke.py' in file_matrix_text
     assert 'tests/meta/test_phase94_typed_boundary_guards.py' in file_matrix_text
     assert 'tests/meta/test_phase95_hotspot_decomposition_guards.py' in file_matrix_text
-    assert 'tests/meta/test_phase96_sanitizer_burndown_guards.py' in file_matrix_text
-    assert 'tests/meta/test_phase97_governance_assurance_freeze_guards.py' in file_matrix_text
     assert 'tests/meta/test_phase96_sanitizer_burndown_guards.py' in file_matrix_text
     assert 'tests/meta/test_phase97_governance_assurance_freeze_guards.py' in file_matrix_text
     assert 'route-handoff gsd fast-path smoke guard home' in file_matrix_text
