@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `v1.24` archived baseline promotion (`2026-03-27`)
-> **Current route alignment**: `v1.25 active route / Phase 90 planning-ready / latest archived baseline = v1.24` (`2026-03-27`)
+> **Last aligned through**: `Phase 93` assurance freeze (`2026-03-28`)
+> **Current route alignment**: `v1.25 active route / Phase 93 complete / latest archived baseline = v1.24` (`2026-03-28`)
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
@@ -202,3 +202,33 @@ custom_components/lipro/
 - `.planning/reviews/FILE_MATRIX.md`
 - `.planning/reviews/RESIDUAL_LEDGER.md`
 - `.planning/reviews/KILL_LIST.md`
+
+
+## Phase 90 Freeze Notes
+
+- `custom_components/lipro/core/coordinator/runtime/command_runtime.py`、`custom_components/lipro/core/api/rest_facade.py`、`custom_components/lipro/core/api/request_policy.py`、`custom_components/lipro/core/coordinator/runtime/mqtt_runtime.py` 与 `custom_components/lipro/core/anonymous_share/manager.py` 在当前路线中被再次冻结为 formal homes；后续实现只允许 inward split，不得把它们叙述成 thin shell 或 delete target。
+- `custom_components/lipro/core/api/client.py` 继续只保留 `LiproRestFacade` stable import home；REST child-façade composition truth 仍固定在 `rest_facade.py`。
+- `custom_components/lipro/__init__.py`、`custom_components/lipro/control/runtime_access.py`、`custom_components/lipro/entities/base.py` 与 `custom_components/lipro/entities/firmware_update.py` 继续作为 protected thin shells / projections；任何新的 orchestration 或 runtime/protocol internals 都不得回流到这些 outward adapters。
+- `Phase 90` 只是 formal-home map freeze；`Phase 91` 才开始 protocol/runtime + typing implementation，`Phase 92` / `93` 再分别处理 redaction convergence 与 assurance/quality freeze。
+
+
+## Phase 91 Typed Boundary Notes
+
+- `LiproProtocolFacade` 的 live REST verbs 现在直接在 protocol root canonicalize payload，避免 runtime 再次 normalize 同一份 rows。
+- `rest_port.py` 继续只表达 raw REST child-facing truth；它不是 public root，也不是 protocol surface 的替代入口。
+- `runtime_types.py`、`core/coordinator/types.py`、`core/command/trace.py` 与 telemetry service 现在共享更窄的 typed telemetry / trace contracts。
+- `custom_components/lipro/__init__.py`、`custom_components/lipro/control/runtime_access.py`、`custom_components/lipro/entities/base.py` 与 `custom_components/lipro/entities/firmware_update.py` 继续作为 protected thin shells / projections；Phase 91 没有把 orchestration 长回 outward adapters。
+
+
+## Phase 92 Redaction Convergence Notes
+
+- `custom_components/lipro/core/utils/redaction.py` 现为 diagnostics / anonymous-share / telemetry 共享的单一 redaction contract / registry home；unknown secret-like keys 默认 fail-closed。
+- `custom_components/lipro/control/redaction.py` 继续只做 diagnostics-facing adapter；`custom_components/lipro/core/anonymous_share/sanitize.py` 继续只做结构保留 sanitizer；`custom_components/lipro/core/telemetry/{json_payloads.py,exporter.py}` 继续只做 telemetry profile / projection，不再各自维护第二套 sanitizer folklore。
+- `tests/core/api/test_api_status_service.py`、`tests/core/api/test_api_command_surface_responses.py`、`tests/platforms/test_light_entity_behavior.py` 与 `tests/services/test_services_diagnostics.py` 继续保留 root thin-shell 身份，真正断言落到 concern-local sibling suites。
+
+
+## Phase 93 Assurance Freeze Notes
+
+- `FILE_MATRIX.md`、`TESTING.md`、`VERIFICATION_MATRIX.md` 与 route-contract docs 现在共享同一份 quality-freeze truth；Phase 93 不再容忍“实现已完成、派生治理未刷新”的尾差。
+- diagnostics topicization 带来的 incidental `Any` drift 已被 burn down；typing budget guard 继续以 `tests/meta/test_phase31_runtime_budget_guards.py` 为 no-growth freeze home，而不是通过放宽常量掩盖漂移。
+- Phase 93 只做 assurance / quality freeze / milestone closeout-ready proof；它不新增 public root、不回流 orchestration，也不为 helper 再制造第二条故事线。

@@ -21,7 +21,7 @@ if TYPE_CHECKING:
         CanonicalMqttTopic,
     )
 
-CanonicalT = TypeVar("CanonicalT")
+CanonicalT_co = TypeVar("CanonicalT_co", covariant=True)
 _MQTT_TOPIC_FAMILY = "mqtt.topic"
 _MQTT_TOPIC_VERSION = "v1"
 _MQTT_TOPIC_AUTHORITY = "tests/fixtures/protocol_boundary/mqtt_topic.device_state.v1.json"
@@ -158,7 +158,7 @@ class MqttDecodeContext:
         return BoundaryDecoderKey(family=self.family, version=self.version)
 
 
-class MqttBoundaryDecoder(Protocol[CanonicalT]):
+class MqttBoundaryDecoder(Protocol[CanonicalT_co]):
     """Protocol for one MQTT payload decoder family."""
 
     @property
@@ -176,7 +176,7 @@ class MqttBoundaryDecoder(Protocol[CanonicalT]):
         """Return the authoritative source backing this decoder family."""
         ...
 
-    def decode(self, payload: object) -> BoundaryDecodeResult[CanonicalT]:
+    def decode(self, payload: object) -> BoundaryDecodeResult[CanonicalT_co]:
         """Decode one MQTT payload to a canonical protocol contract."""
         ...
 

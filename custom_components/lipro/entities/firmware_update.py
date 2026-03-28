@@ -6,7 +6,7 @@ import asyncio
 from datetime import UTC, datetime, timedelta
 import logging
 from time import monotonic
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypedDict
 
 from homeassistant.components.update import (
     UpdateDeviceClass,
@@ -28,7 +28,11 @@ from ..core.ota.candidate import (
     has_pending_confirmation,
     project_candidate,
 )
-from ..core.ota.row_selector import OtaDeviceFingerprint, build_device_fingerprint
+from ..core.ota.row_selector import (
+    OtaDeviceFingerprint,
+    OtaRow,
+    build_device_fingerprint,
+)
 from ..core.ota.rows_cache import (
     OtaRowsCacheKey,
     async_select_row_with_shared_cache,
@@ -52,8 +56,14 @@ _TIME_MIN_UTC = datetime.min.replace(tzinfo=UTC)
 _OTA_REFRESH_CONCURRENCY = 3
 _OTA_REFRESH_SEMAPHORE = asyncio.Semaphore(_OTA_REFRESH_CONCURRENCY)
 
-type OtaRow = dict[str, object]
-type FirmwareStateAttributes = dict[str, object]
+class FirmwareStateAttributes(TypedDict, total=False):
+    """Typed extra-state projection exposed by the firmware entity."""
+
+    certified: bool
+    confirmation_required: bool
+    ota_checked_at: str
+    last_error: str
+    last_error_type: str
 
 
 class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):

@@ -6,7 +6,7 @@ from collections import deque
 from collections.abc import Callable
 from dataclasses import dataclass
 import logging
-from typing import TYPE_CHECKING, Any, Literal, cast
+from typing import TYPE_CHECKING, Literal, cast
 
 from ...api import LiproApiError, LiproAuthError, LiproRefreshTokenExpiredError
 from ...command.result import (
@@ -26,7 +26,9 @@ from ..types import (
     CommandFailureSummary,
     CommandReauthReason,
     CommandTrace,
+    PropertyDict,
     ReauthCallback,
+    RuntimeMetrics,
 )
 from .command.sender import CommandDispatchApiError
 
@@ -140,7 +142,7 @@ class CommandRuntime:
             return traces
         return traces[:limit]
 
-    def get_runtime_metrics(self) -> dict[str, Any]:
+    def get_runtime_metrics(self) -> RuntimeMetrics:
         """Return lightweight command-runtime telemetry."""
         confirmation_metrics: object = self._confirmation.get_runtime_metrics()
         if not isinstance(confirmation_metrics, dict):
@@ -180,8 +182,8 @@ class CommandRuntime:
         self,
         *,
         device_serial: str,
-        properties: dict[str, Any],
-    ) -> dict[str, Any]:
+        properties: PropertyDict,
+    ) -> PropertyDict:
         """Filter stale property values while waiting for command confirmation."""
         filtered, _blocked_keys = self._confirmation.filter_pending_command_mismatches(
             device_serial=device_serial,
@@ -193,7 +195,7 @@ class CommandRuntime:
         self,
         *,
         device_serial: str,
-        properties: dict[str, Any],
+        properties: PropertyDict,
     ) -> float | None:
         """Learn confirmation latency from incoming device state updates."""
         return self._confirmation.observe_command_confirmation(

@@ -9,11 +9,11 @@ contract_name: governance-route
 active_milestone:
   version: v1.25
   name: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
-  status: planning-ready (2026-03-27)
-  phase: '90'
-  phase_title: Hotspot routing freeze and formal-home decomposition map
-  phase_dir: 90-hotspot-routing-freeze-and-formal-home-decomposition-map
-  route_mode: v1.25 active route / Phase 90 planning-ready / latest archived baseline = v1.24
+  status: Phase 93 complete (2026-03-28)
+  phase: '93'
+  phase_title: Assurance topicization and quality freeze
+  phase_dir: 93-assurance-topicization-and-quality-freeze
+  route_mode: v1.25 active route / Phase 93 complete / latest archived baseline = v1.24
 latest_archived:
   version: v1.24
   name: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
@@ -29,8 +29,8 @@ previous_archived:
   name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
   evidence_path: .planning/reviews/V1_23_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.25 active route / Phase 90 planning-ready / latest archived baseline = v1.24
-  default_next_command: $gsd-discuss-phase 90
+  current_route: v1.25 active route / Phase 93 complete / latest archived baseline = v1.24
+  default_next_command: $gsd-complete-milestone v1.25
   latest_archived_evidence_pointer: .planning/reviews/V1_24_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -38,41 +38,41 @@ bootstrap:
 ## Current Milestone (v1.25)
 
 **Milestone Goal:** 把热点拆薄、类型边界收紧与脱敏契约统一成单一 north-star 路线，并为后续 archive promotion 预先铺好 guardable proof。
-**Milestone status:** `planning-ready (2026-03-27)`
+**Milestone status:** `Phase 93 complete (2026-03-28)`
 **Latest archived baseline:** `v1.24`
-**Default next command:** `$gsd-discuss-phase 90`
+**Default next command:** `$gsd-complete-milestone v1.25`
 
 ### Hotspot Inward Decomposition
 
-- [ ] **HOT-40**: `custom_components/lipro/core/coordinator/runtime/command_runtime.py`、`custom_components/lipro/core/api/rest_facade.py`、`custom_components/lipro/core/api/request_policy.py`、`custom_components/lipro/core/coordinator/runtime/mqtt_runtime.py`、`custom_components/lipro/core/anonymous_share/manager.py` 等正式热点必须继续按 concern inward split；formal home 保留，禁止新增 public root。
+- [x] **HOT-40**: `custom_components/lipro/core/coordinator/runtime/command_runtime.py`、`custom_components/lipro/core/api/rest_facade.py`、`custom_components/lipro/core/api/request_policy.py`、`custom_components/lipro/core/coordinator/runtime/mqtt_runtime.py`、`custom_components/lipro/core/anonymous_share/manager.py` 的 formal-home freeze、protected thin-shell line 与 delete-gate policy 已在 `Phase 90` 同步到 planning / baseline / review / docs / guards；后续实现只允许沿 frozen map inward split。
 
 ### Thin-Boundary & Typed Contracts
 
-- [ ] **ARC-24**: `custom_components/lipro/__init__.py`、`custom_components/lipro/control/runtime_access.py`、`custom_components/lipro/entities/base.py`、`custom_components/lipro/entities/firmware_update.py` 必须继续保持 thin adapter / projection / typed access 角色，避免重新吸附 orchestration。
-- [ ] **TYP-23**: `custom_components/lipro/runtime_types.py`、`custom_components/lipro/core/coordinator/types.py`、`custom_components/lipro/core/protocol/boundary/rest_decoder_support.py`、`custom_components/lipro/core/protocol/boundary/schema_registry.py`、`custom_components/lipro/core/command/trace.py` 的 `Any` / dynamic payload surface 必须继续缩减，并补 no-growth guard。
+- [x] **ARC-24**: `custom_components/lipro/__init__.py`、`custom_components/lipro/control/runtime_access.py`、`custom_components/lipro/entities/base.py`、`custom_components/lipro/entities/firmware_update.py` 已在 `Phase 91` 继续冻结为 thin adapter / projection / typed access 角色，并以 focused guards 阻断 orchestration backflow。
+- [x] **TYP-23**: `custom_components/lipro/runtime_types.py`、`custom_components/lipro/core/coordinator/types.py`、`custom_components/lipro/core/protocol/boundary/rest_decoder_support.py`、`custom_components/lipro/core/protocol/boundary/schema_registry.py`、`custom_components/lipro/core/command/trace.py` 已在 `Phase 91` 继续缩减 `Any` / dynamic payload surface，并补齐 no-growth guard。
 
 ### Redaction & Assurance
 
-- [ ] **SEC-01**: `custom_components/lipro/control/redaction.py` 与 `custom_components/lipro/core/anonymous_share/sanitize.py` 必须收口到单一 redaction contract / registry；未知 secret-like 字段默认 fail-closed，diagnostics/share/exporters 不得再维持平行脱敏语义。
-- [ ] **TST-29**: `tests/core/api/test_api_status_service.py`、`tests/core/api/test_api_command_surface_responses.py`、`tests/platforms/test_light_entity_behavior.py`、`tests/services/test_services_diagnostics.py` 必须继续按 concern topicize，并为 hot path / redaction / typed-boundary drift 补 focused regressions。
-- [ ] **QLT-37**: touched scope 必须通过 typing、focused pytest、governance scripts 与必要的 microbenchmark / hotspot budget 守卫；`.planning/codebase/*`、baseline/review docs 与 current-route truth 必须同步冻结新的拓扑和质量故事。
+- [x] **SEC-01**: `custom_components/lipro/core/utils/redaction.py` 现已成为 shared redaction contract / registry；`custom_components/lipro/control/redaction.py`、`custom_components/lipro/core/anonymous_share/sanitize.py`、`custom_components/lipro/core/telemetry/{json_payloads.py,exporter.py}` 统一复用该真源，未知 secret-like 字段默认 fail-closed。
+- [x] **TST-29**: `tests/core/api/test_api_status_service.py`、`tests/core/api/test_api_command_surface_responses.py`、`tests/platforms/test_light_entity_behavior.py`、`tests/services/test_services_diagnostics.py` 现已保持 thin shell / sibling-suite topology，并为 redaction/topicization drift 补 focused regressions 与 closeout guards。
+- [x] **QLT-37**: touched scope 必须通过 typing、focused pytest、governance scripts 与必要的 microbenchmark / hotspot budget 守卫；`.planning/codebase/*`、baseline/review docs 与 current-route truth 必须同步冻结新的拓扑和质量故事。
 
 ## Traceability for current v1.25 route
 
 | Requirement | Planned Phase | Status |
 |-------------|---------------|--------|
-| HOT-40 | Phase 90 | Planned |
-| ARC-24 | Phase 91 | Planned |
-| TYP-23 | Phase 91 | Planned |
-| SEC-01 | Phase 92 | Planned |
-| TST-29 | Phase 92 | Planned |
-| QLT-37 | Phase 93 | Planned |
+| HOT-40 | Phase 90 | Complete |
+| ARC-24 | Phase 91 | Complete |
+| TYP-23 | Phase 91 | Complete |
+| SEC-01 | Phase 92 | Complete |
+| TST-29 | Phase 92 | Complete |
+| QLT-37 | Phase 93 | Complete |
 
 **Coverage:**
 - v1.25 routed requirements: 6 total
 - Current mapped: 6
-- Current complete: 0
-- Current pending: 6
+- Current complete: 6
+- Current pending: 0
 - Current unmapped: 0 ✓
 
 ## Future Requirements (Deferred)
@@ -837,7 +837,7 @@ bootstrap:
 **Coverage:**
 - v1.12 routed requirements: 3 total
 - Current mapped: 3
-- Current complete: 3
+- Current complete: 6
 - Current pending: 0
 - Current unmapped: 0 ✓
 
@@ -865,7 +865,7 @@ bootstrap:
 **Coverage:**
 - v1.11 routed requirements: 4 total
 - Current mapped: 4
-- Current complete: 6
+- Current complete: 4
 - Current pending: 0
 - Current unmapped: 0 ✓
 
@@ -891,7 +891,7 @@ bootstrap:
 **Coverage:**
 - v1.10 routed requirements: 3 total
 - Current mapped: 3
-- Current complete: 3
+- Current complete: 6
 - Current pending: 0
 - Current unmapped: 0 ✓
 
@@ -917,7 +917,7 @@ bootstrap:
 **Coverage:**
 - v1.9 routed requirements: 3 total
 - Current mapped: 3
-- Current complete: 3
+- Current complete: 6
 - Current pending: 0
 - Current unmapped: 0 ✓
 

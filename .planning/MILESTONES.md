@@ -10,11 +10,11 @@ contract_name: governance-route
 active_milestone:
   version: v1.25
   name: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
-  status: planning-ready (2026-03-27)
-  phase: '90'
-  phase_title: Hotspot routing freeze and formal-home decomposition map
-  phase_dir: 90-hotspot-routing-freeze-and-formal-home-decomposition-map
-  route_mode: v1.25 active route / Phase 90 planning-ready / latest archived baseline = v1.24
+  status: Phase 93 complete (2026-03-28)
+  phase: '93'
+  phase_title: Assurance topicization and quality freeze
+  phase_dir: 93-assurance-topicization-and-quality-freeze
+  route_mode: v1.25 active route / Phase 93 complete / latest archived baseline = v1.24
 latest_archived:
   version: v1.24
   name: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
@@ -30,8 +30,8 @@ previous_archived:
   name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
   evidence_path: .planning/reviews/V1_23_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.25 active route / Phase 90 planning-ready / latest archived baseline = v1.24
-  default_next_command: $gsd-discuss-phase 90
+  current_route: v1.25 active route / Phase 93 complete / latest archived baseline = v1.24
+  default_next_command: $gsd-complete-milestone v1.25
   latest_archived_evidence_pointer: .planning/reviews/V1_24_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 
@@ -17,6 +18,101 @@ from custom_components.lipro.core.protocol.diagnostics_context import (
 from custom_components.lipro.core.protocol.facade import LiproMqttFacade
 from custom_components.lipro.core.protocol.session import ProtocolSessionState
 from custom_components.lipro.core.protocol.telemetry import ProtocolTelemetry
+
+_FIXTURE_DIR = Path(__file__).resolve().parents[2] / "fixtures" / "api_contracts"
+
+
+def _load_fixture(name: str) -> object:
+    return json.loads((_FIXTURE_DIR / name).read_text())
+
+
+def _is_success_code(code: object) -> bool:
+    return code in {0, "0", "0000"}
+
+
+EXPECTED_DEVICE_STATUS_ROWS = [
+    {
+        "deviceId": "03ab5ccd7c000001",
+        "properties": {
+            "fanOnoff": "1",
+            "wifi_ssid": "mesh-net",
+        },
+    },
+    {
+        "deviceId": "mesh_group_10001",
+        "properties": {
+            "powerState": "1",
+            "wifi_rssi": "-60",
+        },
+    },
+    {
+        "deviceId": "03ab5ccd7c000002",
+        "properties": {
+            "brightness": "40",
+            "position": "50",
+        },
+    },
+]
+
+
+EXPECTED_MESH_GROUP_STATUS_ROWS = [
+    {
+        "groupId": "mesh_group_10001",
+        "gatewayDeviceId": "03ab5ccd7c0000a1",
+        "devices": [
+            {"deviceId": "03ab5ccd7c000001"},
+            {"deviceId": "03ab5ccd7c000002"},
+        ],
+        "properties": {"powerState": "1"},
+    },
+    {
+        "groupId": "mesh_group_10002",
+        "gatewayDeviceId": None,
+        "devices": [],
+        "properties": {},
+    },
+]
+
+
+EXPECTED_MQTT_CONFIG = {
+    "accessKey": "ak-direct",
+    "secretKey": "sk-direct",
+    "endpoint": "tcp://mqtt.example.com:1883",
+    "clientId": "cid-direct",
+}
+
+
+EXPECTED_DEVICE_PAGE = {
+    "devices": [
+        {
+            "deviceId": 1,
+            "serial": "03ab5ccd7c000001",
+            "deviceName": "Living Light",
+            "type": 1,
+            "iotName": "lipro_led",
+            "roomId": 11,
+            "roomName": "Living Room",
+            "productId": 101,
+            "physicalModel": "light",
+            "isGroup": False,
+            "properties": {"fanOnoff": "1", "brightness": "80"},
+            "identityAliases": ["03ab5ccd7c000001"],
+        },
+        {
+            "deviceId": "mesh_group_10001",
+            "serial": "mesh_group_10001",
+            "deviceName": "Zone Group",
+            "type": 9,
+            "iotName": "lipro_group",
+            "physicalModel": "group",
+            "isGroup": True,
+            "properties": {},
+            "identityAliases": ["mesh_group_10001"],
+        },
+    ],
+    "has_more": True,
+    "total": 3,
+}
 
 
 def test_lipro_rest_facade_is_available_as_phase_2_rest_child_facade() -> None:
@@ -224,3 +320,59 @@ def test_rest_child_facade_file_uses_local_request_and_endpoint_collaborators() 
     assert "RestTransportExecutor" in facade_module_text
     assert "RestEndpointSurface" in facade_module_text
     assert "RestSessionState" in facade_module_text
+
+
+@pytest.mark.asyncio
+async def test_protocol_live_get_devices_normalizes_raw_inventory_payload() -> None:
+    client = LiproProtocolFacade("test-phone-id")
+    object.__setattr__(
+        client._rest_ports.inventory,
+        "get_devices",
+        AsyncMock(return_value=_load_fixture("get_device_list.direct.json")),
+    )
+
+    result = await client.get_devices(offset=0, limit=100)
+
+    assert result == EXPECTED_DEVICE_PAGE
+
+
+@pytest.mark.asyncio
+async def test_protocol_live_query_device_status_normalizes_raw_status_payload() -> None:
+    client = LiproProtocolFacade("test-phone-id")
+    object.__setattr__(
+        client._rest_ports.status,
+        "query_device_status",
+        AsyncMock(return_value=_load_fixture("query_device_status.mixed.json")),
+    )
+
+    result = await client.query_device_status(["03ab5ccd7c000001"])
+
+    assert result == EXPECTED_DEVICE_STATUS_ROWS
+
+
+@pytest.mark.asyncio
+async def test_protocol_live_query_mesh_group_status_normalizes_raw_group_payload() -> None:
+    client = LiproProtocolFacade("test-phone-id")
+    object.__setattr__(
+        client._rest_ports.status,
+        "query_mesh_group_status",
+        AsyncMock(return_value=_load_fixture("query_mesh_group_status.topology.json")),
+    )
+
+    result = await client.query_mesh_group_status(["mesh_group_10001"])
+
+    assert result == EXPECTED_MESH_GROUP_STATUS_ROWS
+
+
+@pytest.mark.asyncio
+async def test_protocol_live_get_mqtt_config_normalizes_wrapped_payload() -> None:
+    client = LiproProtocolFacade("test-phone-id")
+    object.__setattr__(
+        client._rest_ports.misc,
+        "get_mqtt_config",
+        AsyncMock(return_value=_load_fixture("get_mqtt_config.wrapped.json")),
+    )
+
+    result = await client.get_mqtt_config()
+
+    assert result == EXPECTED_MQTT_CONFIG

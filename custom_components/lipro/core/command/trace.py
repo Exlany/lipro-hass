@@ -5,11 +5,12 @@ from __future__ import annotations
 from collections.abc import Callable
 from datetime import UTC, datetime
 import re
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from ..api import LiproApiError
 from ..utils.log_safety import mask_ip_addresses, safe_error_placeholder
 from ..utils.redaction import redact_identifier
+from .result_policy import TracePayload
 
 if TYPE_CHECKING:
     from ..device import LiproDevice
@@ -20,7 +21,7 @@ _TRACE_IOT_DEVICE_ID = re.compile(r"\b03ab[0-9a-f]{12}\b", re.IGNORECASE)
 _TRACE_MESH_GROUP_ID = re.compile(r"\bmesh_group_\d+\b", re.IGNORECASE)
 
 
-def _sanitize_trace_message(value: Any) -> str | None:
+def _sanitize_trace_message(value: object) -> str | None:
     """Return a log-safe, bounded trace message string."""
     if not isinstance(value, str):
         return None
@@ -61,7 +62,7 @@ def build_command_trace(
     properties: list[dict[str, str]] | None,
     fallback_device_id: str | None,
     redact_identifier: Callable[[str | None], str | None],
-) -> dict[str, Any]:
+) -> TracePayload:
     """Build initial command trace payload."""
     return {
         "timestamp": datetime.now(UTC).isoformat(),
@@ -78,7 +79,7 @@ def build_command_trace(
 
 
 def update_trace_with_resolved_request(
-    trace: dict[str, Any],
+    trace: TracePayload,
     *,
     command: str,
     properties: list[dict[str, str]] | None,
@@ -92,7 +93,7 @@ def update_trace_with_resolved_request(
     trace["resolved_property_keys"] = extract_command_property_keys(properties)
 
 
-def update_trace_with_response(trace: dict[str, Any], result: Any) -> None:
+def update_trace_with_response(trace: TracePayload, result: object) -> None:
     """Attach API response metadata to command trace."""
     if not isinstance(result, dict):
         return
@@ -105,7 +106,7 @@ def update_trace_with_response(trace: dict[str, Any], result: Any) -> None:
 
 
 def update_trace_with_exception(
-    trace: dict[str, Any],
+    trace: TracePayload,
     *,
     route: str,
     err: LiproApiError,

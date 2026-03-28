@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🚧 **v1.25 Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence** - `Phase 90 -> 93` planning-ready on 2026-03-27; latest archived baseline = `v1.24`; default next command = `$gsd-discuss-phase 90`
+- 🚧 **v1.25 Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence** - `Phase 93 complete (2026-03-28); milestone closeout pending`; latest archived baseline = `v1.24`; default next command = `$gsd-complete-milestone v1.25`
 - ✅ **v1.24 Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence** - `Phase 89` archived on 2026-03-27; milestone audit: `.planning/v1.24-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_24_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.24-ROADMAP.md` / `.planning/milestones/v1.24-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.24`
 - ✅ **v1.23 Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze** - `Phase 85 -> 88` archived on 2026-03-27; milestone audit: `.planning/v1.23-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_23_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.23-ROADMAP.md` / `.planning/milestones/v1.23-REQUIREMENTS.md`; historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.23`
 - ✅ **v1.22 Maintainer Entry Contracts, Release Operations Closure & Contributor Routing** - `Phase 81 -> 84` archived on 2026-03-27; milestone audit: `.planning/v1.22-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_22_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.22-ROADMAP.md` / `.planning/milestones/v1.22-REQUIREMENTS.md`; historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.22`
@@ -17,11 +17,11 @@ contract_name: governance-route
 active_milestone:
   version: v1.25
   name: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
-  status: planning-ready (2026-03-27)
-  phase: '90'
-  phase_title: Hotspot routing freeze and formal-home decomposition map
-  phase_dir: 90-hotspot-routing-freeze-and-formal-home-decomposition-map
-  route_mode: v1.25 active route / Phase 90 planning-ready / latest archived baseline = v1.24
+  status: Phase 93 complete (2026-03-28)
+  phase: '93'
+  phase_title: Assurance topicization and quality freeze
+  phase_dir: 93-assurance-topicization-and-quality-freeze
+  route_mode: v1.25 active route / Phase 93 complete / latest archived baseline = v1.24
 latest_archived:
   version: v1.24
   name: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
@@ -37,8 +37,8 @@ previous_archived:
   name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
   evidence_path: .planning/reviews/V1_23_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.25 active route / Phase 90 planning-ready / latest archived baseline = v1.24
-  default_next_command: $gsd-discuss-phase 90
+  current_route: v1.25 active route / Phase 93 complete / latest archived baseline = v1.24
+  default_next_command: $gsd-complete-milestone v1.25
   latest_archived_evidence_pointer: .planning/reviews/V1_24_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -48,12 +48,12 @@ bootstrap:
 > `v1.25` 不再重开 archived-only closeout 或 docs entry 清点，而是把当前最高收益的技术债路由成四个连续 phase：先冻结 hotspot decomposition map，再 inward split protocol/runtime hotspots，随后收紧 control/entity/redaction contract，最后用 typing/topicized tests/quality gates 收口为可长期维持的新基线。
 
 **Milestone Goal:** 把 runtime/protocol/control/entity 的 remaining hotspot concentration、typed boundary debt 与 redaction drift 收口成可分层实现、可 machine-check、不会长出第二 root 的正式路线。
-**Milestone status:** `planning-ready (2026-03-27)`
+**Milestone status:** `Phase 93 complete (2026-03-28)`
 **Starting baseline:** `.planning/v1.24-MILESTONE-AUDIT.md, .planning/reviews/V1_24_EVIDENCE_INDEX.md, .planning/milestones/v1.24-ROADMAP.md, .planning/milestones/v1.24-REQUIREMENTS.md`
 **Requirements basket:** `HOT-40`, `ARC-24`, `TYP-23`, `SEC-01`, `TST-29`, `QLT-37`
 **Latest archived baseline:** `v1.24`
 **Latest archived pointer:** `.planning/reviews/V1_24_EVIDENCE_INDEX.md`
-**Default next command:** `$gsd-discuss-phase 90`
+**Default next command:** `$gsd-complete-milestone v1.25`
 
 ### Phase 90: Hotspot routing freeze and formal-home decomposition map
 
@@ -64,8 +64,9 @@ bootstrap:
   1. `custom_components/lipro/core/coordinator/runtime/command_runtime.py`、`custom_components/lipro/core/api/rest_facade.py`、`custom_components/lipro/core/api/request_policy.py`、`custom_components/lipro/core/coordinator/runtime/mqtt_runtime.py` 与 `custom_components/lipro/core/anonymous_share/manager.py` 的热点拆分边界被正式写入 roadmap/requirements/current-route truth。
   2. `custom_components/lipro/__init__.py`、`custom_components/lipro/control/runtime_access.py`、`custom_components/lipro/entities/base.py`、`custom_components/lipro/entities/firmware_update.py` 被再次确认只能保持 thin adapter / projection / typed-access 身份，而不是吸附新的 orchestration。
   3. decomposition 计划不会引入新的 top-level root、second control story 或 helper-owned public truth。
-**Status**: Planning Ready
-**Plans**: 0/0 planned
+**Status**: Complete
+**Plans**: 3/3 complete
+**Closeout assets**: `.planning/phases/90-hotspot-routing-freeze-and-formal-home-decomposition-map/{90-01-SUMMARY.md,90-02-SUMMARY.md,90-03-SUMMARY.md,90-VERIFICATION.md,90-VALIDATION.md}`
 
 ### Phase 91: Protocol/runtime decomposition and typed boundary hardening
 
@@ -76,8 +77,9 @@ bootstrap:
   1. runtime / protocol hotspots 的新拆分继续遵守 formal-home ownership；`__init__.py`、`runtime_access.py`、stable shells 与 entity adapters 不回流业务编排。
   2. `runtime_types.py`、`core/coordinator/types.py`、`rest_decoder_support.py`、`schema_registry.py`、`core/command/trace.py` 的 `Any`/dynamic payload 面积继续下降，并形成 no-growth guard。
   3. protocol boundary drift 更早被类型与 focused tests 拦截，而不是继续依赖运行期偶然覆盖。
-**Status**: Planned
-**Plans**: 0/0 planned
+**Status**: Complete
+**Plans**: 3/3 complete
+**Closeout assets**: `.planning/phases/91-protocol-runtime-decomposition-and-typed-boundary-hardening/{91-01-SUMMARY.md,91-02-SUMMARY.md,91-03-SUMMARY.md,91-VERIFICATION.md,91-VALIDATION.md}`
 
 ### Phase 92: Control/entity thin-boundary and redaction convergence
 
@@ -88,8 +90,9 @@ bootstrap:
   1. `control/redaction.py` 与 `core/anonymous_share/sanitize.py` 的 redaction registry / policy 被统一；未知 secret-like 字段默认 fail-closed。
   2. diagnostics、developer report、anonymous share 与 related exporters 全部复用同一 redaction contract，不再散落两套 partial sanitizer 语义。
   3. `tests/core/api/test_api_status_service.py`、`tests/core/api/test_api_command_surface_responses.py`、`tests/platforms/test_light_entity_behavior.py`、`tests/services/test_services_diagnostics.py` 进一步 topicize，并对 touched contract 加 focused regression guards。
-**Status**: Planned
-**Plans**: 0/0 planned
+**Status**: Complete
+**Plans**: 3/3 complete
+**Closeout assets**: `.planning/phases/92-control-entity-thin-boundary-and-redaction-convergence/{92-01-SUMMARY.md,92-02-SUMMARY.md,92-03-SUMMARY.md,92-VERIFICATION.md,92-VALIDATION.md}`
 
 ### Phase 93: Assurance topicization and quality freeze
 
@@ -100,8 +103,9 @@ bootstrap:
   1. touched scope 的 type/lint/test/governance proof 全绿，且 benchmark / hotspot budget 没有发生 silent regression。
   2. `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md`、baseline/review docs 与 `.planning/codebase/*` 同步承认新的 topology / typing / redaction truth。
   3. 本里程碑未引入第二故事线；closeout-ready proof 可以直接服务后续 archive promotion。
-**Status**: Planned
-**Plans**: 0/0 planned
+**Status**: Complete
+**Plans**: 3/3 complete
+**Closeout assets**: `.planning/phases/93-assurance-topicization-and-quality-freeze/{93-01-SUMMARY.md,93-02-SUMMARY.md,93-03-SUMMARY.md,93-VERIFICATION.md,93-VALIDATION.md}`
 
 ## v1.24: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
 

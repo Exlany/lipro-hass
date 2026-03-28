@@ -221,9 +221,9 @@ def test_machine_readable_route_contracts_point_to_active_v1_25_and_archived_bas
     assert requirements_active is not None
     assert milestones_active is not None
     assert requirements_active["version"] == "v1.25"
-    assert requirements_active["phase"] == "90"
+    assert requirements_active["phase"] == "93"
     assert milestones_active["version"] == "v1.25"
-    assert milestones_active["phase"] == "90"
+    assert milestones_active["phase"] == "93"
     assert milestones_latest_archived["version"] == "v1.24"
     assert milestones_latest_archived["phase"] == "89"
     assert milestones_previous_archived["version"] == "v1.23"
@@ -257,13 +257,13 @@ def test_current_v1_25_project_state_and_latest_archive_pointers_align() -> None
         "## Previous Archived Milestone (v1.23)",
         "## Archived Milestone (v1.22)",
         "## Archived Milestone (v1.21)",
-        "**Current status:** `planning-ready (2026-03-27)`",
-        "**Default next command:** `$gsd-discuss-phase 90`",
+        "**Current status:** `Phase 93 complete (2026-03-28)`",
+        "**Default next command:** `$gsd-complete-milestone v1.25`",
     )
     _assert_contains_all(
         _ROADMAP_TEXT,
         "## v1.25: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence",
-        "### Phase 90: Hotspot routing freeze and formal-home decomposition map",
+        "### Phase 92: Control/entity thin-boundary and redaction convergence",
         CURRENT_MILESTONE_DEFAULT_NEXT,
         ".planning/reviews/V1_24_EVIDENCE_INDEX.md",
         ".planning/milestones/v1.24-ROADMAP.md",
@@ -271,16 +271,16 @@ def test_current_v1_25_project_state_and_latest_archive_pointers_align() -> None
     _assert_contains_all(
         _REQUIREMENTS_TEXT,
         "## Current Milestone (v1.25)",
-        "| HOT-40 | Phase 90 | Planned |",
-        "| ARC-24 | Phase 91 | Planned |",
-        "| TYP-23 | Phase 91 | Planned |",
-        "| SEC-01 | Phase 92 | Planned |",
-        "| TST-29 | Phase 92 | Planned |",
-        "| QLT-37 | Phase 93 | Planned |",
+        "| HOT-40 | Phase 90 | Complete |",
+        "| ARC-24 | Phase 91 | Complete |",
+        "| TYP-23 | Phase 91 | Complete |",
+        "| SEC-01 | Phase 92 | Complete |",
+        "| TST-29 | Phase 92 | Complete |",
+        "| QLT-37 | Phase 93 | Complete |",
         "- v1.25 routed requirements: 6 total",
         "- Current mapped: 6",
-        "- Current complete: 0",
-        "- Current pending: 6",
+        "- Current complete: 6",
+        "- Current pending: 0",
     )
     _assert_contains_all(
         _STATE_TEXT,
@@ -291,4 +291,4 @@ def test_current_v1_25_project_state_and_latest_archive_pointers_align() -> None
         LATEST_ARCHIVED_EVIDENCE_PATH,
         ".planning/v1.24-MILESTONE-AUDIT.md",
     )
-    assert CURRENT_MILESTONE_STATUS == "planning-ready (2026-03-27)"
+    assert CURRENT_MILESTONE_STATUS == "Phase 93 complete (2026-03-28)"

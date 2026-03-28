@@ -1,20 +1,26 @@
 """Type definitions for coordinator module.
 
-This module provides explicit type definitions to reduce Any usage and improve
-type safety across the coordinator components.
+This module provides explicit type definitions to reduce dynamic payload usage and
+keep runtime/shared telemetry contracts machine-checkable.
 """
 
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
-from typing import Any, Literal, TypedDict
+from typing import Literal, TypedDict
+
+from ..api.types import JsonValue
+from ..command.result_policy import TracePayload
 
 # Property value types
+
 type PropertyScalar = int | float | str | bool | None
 """Type alias for scalar device property values."""
 
-type PropertyValue = PropertyScalar | list[Any] | dict[str, Any]
+
+type PropertyValue = JsonValue
 """Type alias for device property payload values."""
+
 
 type PropertyDict = dict[str, PropertyValue]
 """Type alias for device property dictionaries."""
@@ -29,13 +35,8 @@ class CommandPayload(TypedDict, total=False):
     device_id: str
 
 
-type CommandTrace = dict[str, Any]
-"""Command execution trace payload (debug/diagnostics).
-
-The trace payload is built incrementally during command execution and is
-intentionally modeled as a free-form dictionary to avoid tight coupling
-between coordinator runtimes and the lower-level command helpers.
-"""
+type CommandTrace = TracePayload
+"""Canonical command execution trace payload."""
 
 
 type CommandFailureCategory = Literal["auth", "protocol", "runtime", "unexpected"]
@@ -60,8 +61,6 @@ class CommandFailureSummary(TypedDict, total=False):
 
 
 # MQTT types
-
-
 class MqttCredentials(TypedDict):
     """MQTT connection credentials."""
 
@@ -119,44 +118,89 @@ class ApiSuccessResponse(TypedDict):
 type DeviceUpdateCallback = Callable[[], None]
 """Callback for device state updates."""
 
+
 type PropertyUpdateCallback = Callable[[str, PropertyDict], Awaitable[None] | None]
 """Callback for property updates with device_id and properties."""
 
+
 type ReauthCallback = Callable[[str], Awaitable[None]]
 """Callback for triggering reauthentication with reason."""
+
 
 # Normalization function types
 type DeviceKeyNormalizer = Callable[[str], str]
 """Function to normalize device identifiers to serial strings."""
 
 
+type MetricMapping = dict[str, object]
+"""Shared narrow mapping used by runtime metrics / telemetry sections."""
+
+
 # Metrics and runtime types
 class RuntimeMetrics(TypedDict, total=False):
-    """Runtime metrics payload exported by composed runtimes.
+    """Runtime metrics payload exported by composed runtimes."""
 
-    Structure varies by runtime type:
-    - TuningRuntime: algorithm, metrics, adjuster
-    - CommandRuntime: command_count, success_rate, last_failure
-    - StateRuntime: device_count, online_count, update_count
-    """
-
-    # TuningRuntime metrics
-    algorithm: dict[str, Any]
-    metrics: dict[str, Any]
-    adjuster: dict[str, Any]
-
-    # CommandRuntime metrics
+    algorithm: MetricMapping
+    metrics: MetricMapping
+    adjuster: MetricMapping
+    scheduler: MetricMapping
+    strategy: MetricMapping
     command_count: int
     success_rate: float
     last_failure: CommandFailureSummary | None
-
-    # StateRuntime metrics
+    debug_enabled: bool
+    trace_count: int
+    confirmation: MetricMapping
+    has_transport: bool
+    is_connected: bool
+    disconnect_time: float | None
+    disconnect_notified: bool
+    last_transport_error: str | None
+    last_transport_error_stage: str | None
+    failure_summary: MetricMapping
+    backoff_gate_logged: bool
     device_count: int
     online_count: int
     update_count: int
 
-    # Generic extensibility
-    # Allow any additional string keys for future runtime types
+
+class ConnectStateEvent(TypedDict):
+    """One connect-state observation recorded by runtime telemetry."""
+
+    device_serial: str
+    timestamp: float
+    is_online: bool
+
+
+class GroupReconciliationRequestEvent(TypedDict):
+    """One group-reconciliation signal recorded by runtime telemetry."""
+
+    device_name: str
+    timestamp: float
+
+
+class RuntimeSignalsSnapshot(TypedDict):
+    """Signals section of runtime telemetry snapshot."""
+
+    connect_state_event_count: int
+    group_reconciliation_request_count: int
+    recent_connect_state_events: list[ConnectStateEvent]
+    recent_group_reconciliation_requests: list[GroupReconciliationRequestEvent]
+
+
+class RuntimeTelemetrySnapshot(TypedDict, total=False):
+    """Stable runtime telemetry snapshot exposed to control-plane consumers."""
+
+    device_count: int
+    polling_interval_seconds: int | None
+    failure_summary: MetricMapping
+    last_runtime_failure_stage: str | None
+    mqtt: MetricMapping
+    command: RuntimeMetrics
+    status: RuntimeMetrics
+    tuning: RuntimeMetrics
+    signals: RuntimeSignalsSnapshot
+    recent_command_traces: list[CommandTrace]
 
 
 class TuningMetrics(TypedDict, total=False):
@@ -216,10 +260,13 @@ __all__ = [
     "CommandPayload",
     "CommandReauthReason",
     "CommandTrace",
+    "ConnectStateEvent",
     "DeviceApiData",
     "DeviceFilter",
     "DeviceKeyNormalizer",
     "DeviceUpdateCallback",
+    "GroupReconciliationRequestEvent",
+    "MetricMapping",
     "MqttCredentials",
     "MqttMessage",
     "OutletPowerData",
@@ -229,6 +276,8 @@ __all__ = [
     "ReauthCallback",
     "RefreshStrategy",
     "RuntimeMetrics",
+    "RuntimeSignalsSnapshot",
+    "RuntimeTelemetrySnapshot",
     "StatusQueryMetrics",
     "TuningMetrics",
 ]

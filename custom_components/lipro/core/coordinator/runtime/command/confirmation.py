@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Callable
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from ....command.post_refresh import TrackBackgroundTask, schedule_post_command_refresh
 from ....command.result import run_delayed_refresh
+from ...types import MetricMapping, PropertyDict
 
 if TYPE_CHECKING:
     from ....command.confirmation_tracker import CommandConfirmationTracker
@@ -23,7 +24,7 @@ class ConfirmationManager:
         confirmation_tracker: CommandConfirmationTracker,
         pending_expectations: dict[str, PendingCommandExpectation],
         device_state_latency_seconds: dict[str, float],
-        post_command_refresh_tasks: dict[str, asyncio.Task[Any]],
+        post_command_refresh_tasks: dict[str, asyncio.Task[object]],
         track_background_task: TrackBackgroundTask,
         request_refresh: Callable[[], Awaitable[object]],
         mqtt_connected_provider: Callable[[], bool],
@@ -56,8 +57,8 @@ class ConfirmationManager:
         self,
         *,
         device_serial: str,
-        properties: dict[str, Any],
-    ) -> tuple[dict[str, Any], set[str]]:
+        properties: PropertyDict,
+    ) -> tuple[PropertyDict, set[str]]:
         """Filter stale mismatched values while command confirmation is pending."""
         return self._confirmation_tracker.filter_pending_command_mismatches(
             pending_expectations=self._pending_expectations,
@@ -69,7 +70,7 @@ class ConfirmationManager:
         self,
         *,
         device_serial: str,
-        properties: dict[str, Any],
+        properties: PropertyDict,
     ) -> float | None:
         """Observe a state update and learn command confirmation latency."""
         return self._confirmation_tracker.observe_command_confirmation(
@@ -104,7 +105,7 @@ class ConfirmationManager:
             skip_immediate=skip_immediate,
         )
 
-    def get_runtime_metrics(self) -> dict[str, Any]:
+    def get_runtime_metrics(self) -> MetricMapping:
         """Return confirmation-latency telemetry for exporter consumers."""
         return self._confirmation_tracker.build_runtime_metrics(
             pending_expectations=self._pending_expectations,

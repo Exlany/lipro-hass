@@ -503,3 +503,31 @@ _None currently registered._
 - 无新增 active residual family。
 - `Phase 76 -> 80` closeout 资产已全部转入 archived-only evidence chain；后续新路线只能 pull 这些既有证据，不得回头把 closeout truth 重新写成 active current story。
 - latest archived baseline 已提升到 `v1.21`；`v1.20` 退为 previous archived baseline。
+
+
+## Phase 90 Residual Delta
+
+- 无新增 active residual family。
+- five hotspots（`command_runtime.py`、`rest_facade.py`、`request_policy.py`、`mqtt_runtime.py`、`anonymous_share/manager.py`）在本 phase 被明确冻结为 formal homes；它们的后续演进只允许沿 sibling/support family inward split，不得被重述为 file-level residual 或 delete target。
+- `custom_components/lipro/__init__.py`、`control/runtime_access.py`、`entities/base.py` 与 `entities/firmware_update.py` 继续保持 protected thin shell / projection / typed-access posture；后续 phase 若需要继续切薄，只能 narrowing / inward split，不得把 orchestration 回流到 outward shells。
+- delete gate 继续只接受显式 `owner + target phase + delete gate + evidence pointer` 的 localized residual；`Phase 90` 不创建 ownerless carry-forward。
+
+
+## Phase 91 Residual Delta
+
+- 无新增 active residual family。
+- protocol live-path canonicalization 与 typed-boundary closure 已在 formal homes 内完成；这些收口不是新的 delete campaign。
+- shared telemetry / trace contracts 已收敛到 `runtime_types.py` / `core/coordinator/types.py` / `trace.py`，不允许再把 typed truth 退回 anonymous dynamic dict。
+- protected thin shells 继续只做 projection / typed access；Phase 91 的 typed-boundary closure 不创建 ownerless carry-forward。
+
+
+## Phase 92 Residual Delta
+
+- 无新增 active residual family；本 phase 收口的是 shared redaction contract 与 touched thin-shell topicization，而不是新的 residual legalization。
+- 若未来仍发现必须清退的 sink-local sanitizer folklore，必须显式登记 `owner + target phase + delete gate + evidence pointer`，不得把它们继续藏在 helper 名义下。
+
+
+## Phase 93 Residual Delta
+
+- 无新增 active residual family；Phase 93 收口的是 assurance / quality-freeze projections、typing-budget honesty 与 milestone closeout-ready proof，而不是把任何 local drift 重新包装成长期残留。
+- 若未来仍发现 testing/governance 投影与正式 route truth 再次漂移，必须登记为显式治理残留，而不是默认靠下一轮 phase 顺手修掉。

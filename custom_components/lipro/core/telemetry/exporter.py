@@ -8,6 +8,11 @@ from secrets import token_hex
 from time import time
 from typing import cast
 
+from ..utils.redaction import (
+    SHARE_REDACTION_MARKERS,
+    redact_sensitive_literal,
+    redact_sensitive_text,
+)
 from .models import (
     SCHEMA_VERSION,
     CardinalityBudget,
@@ -144,6 +149,26 @@ class RuntimeTelemetryExporter:
             sanitized[key_text] = cast(TelemetryJsonValue, sanitized_value)
         return sanitized
 
+    def _summarize_redacted_string(self, value: str) -> str | None:
+        """Return a compact marker summary when a redacted string exceeds budget."""
+        positions: list[tuple[int, str]] = []
+        for marker in (
+            SHARE_REDACTION_MARKERS.token,
+            SHARE_REDACTION_MARKERS.secret,
+            SHARE_REDACTION_MARKERS.device_id,
+            SHARE_REDACTION_MARKERS.mac,
+            SHARE_REDACTION_MARKERS.ip,
+        ):
+            position = value.find(marker)
+            if position >= 0:
+                positions.append((position, marker))
+        if not positions:
+            return None
+        summary = " ".join(dict.fromkeys(marker for _, marker in sorted(positions)))
+        if len(summary) <= self._cardinality_budget.max_string_length:
+            return summary
+        return None
+
     def _sanitize_value(
         self,
         value: TelemetryJsonValue,
@@ -167,11 +192,26 @@ class RuntimeTelemetryExporter:
                     continue
                 result.append(cast(TelemetryJsonValue, sanitized_item))
             return result
-        if (
-            isinstance(value, str)
-            and len(value) > self._cardinality_budget.max_string_length
-        ):
-            return value[: self._cardinality_budget.max_string_length]
+        if isinstance(value, str):
+            literal = redact_sensitive_literal(
+                value,
+                markers=SHARE_REDACTION_MARKERS,
+            )
+            if literal is not None:
+                return literal
+            sanitized = redact_sensitive_text(
+                value,
+                markers=SHARE_REDACTION_MARKERS,
+            )
+            if sanitized != value:
+                if len(sanitized) > self._cardinality_budget.max_string_length:
+                    marker_summary = self._summarize_redacted_string(sanitized)
+                    if marker_summary is not None:
+                        return marker_summary
+                    return sanitized[: self._cardinality_budget.max_string_length]
+                return sanitized
+            if len(value) > self._cardinality_budget.max_string_length:
+                return value[: self._cardinality_budget.max_string_length]
         return value
 
     def _build_reference(

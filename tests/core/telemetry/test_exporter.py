@@ -81,6 +81,11 @@ class _RuntimeOnlyEntrySource:
         return {
             "entry_id": "entry-runtime-only",
             "message": "x" * 128,
+            "status_message": (
+                "Authorization: Bearer abcdefghijklmnopqrstuvwxyz0123456789 "
+                "apiSecret=shh"
+            ),
+            "custom_secret_token": "drop-me",
             "nested": {
                 "refresh_token": "secret",
                 "device_id": "03ab5ccd7c654321",
@@ -166,9 +171,16 @@ def test_exporter_uses_runtime_entry_id_when_protocol_entry_id_is_missing() -> N
 
     snapshot = exporter.export_snapshot()
     nested = _as_mapping(snapshot.runtime["nested"])
+    status_message = snapshot.runtime["status_message"]
 
     assert snapshot.entry_ref is not None
     assert _as_str(nested["device_ref"]).startswith("device_")
     assert "refresh_token" not in nested
+    assert "custom_secret_token" not in snapshot.runtime
     assert snapshot.runtime["message"] == "x" * 24
     assert nested["notes"] == "y" * 24
+    assert isinstance(status_message, str)
+    assert "abcdefghijklmnopqrstuvwxyz0123456789" not in status_message
+    assert "shh" not in status_message
+    assert "[TOKEN]" in status_message
+    assert "[REDACTED]" in status_message

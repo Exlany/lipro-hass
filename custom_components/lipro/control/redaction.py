@@ -15,7 +15,14 @@ from ..const.config import (
     CONF_PHONE_ID,
 )
 from ..const.properties import PROP_BLE_MAC, PROP_IP, PROP_MAC, PROP_WIFI_SSID
-from ..core.utils.log_safety import mask_ip_addresses
+from ..core.utils.redaction import (
+    DIAGNOSTICS_REDACTION_MARKERS,
+    PROPERTY_SENSITIVE_KEY_NAMES,
+    is_sensitive_key_name,
+    normalize_redaction_key,
+    redact_sensitive_literal,
+    redact_sensitive_text,
+)
 
 TO_REDACT: Final = {
     CONF_PHONE,
@@ -59,10 +66,9 @@ PROPERTY_KEYS_TO_REDACT: Final = {
     "ipAddress",
 }
 
-_PROPERTY_KEYS_LOWER: Final = frozenset(key.lower() for key in PROPERTY_KEYS_TO_REDACT)
-
-_NESTED_KEYS_TO_REDACT_LOWER: Final = _PROPERTY_KEYS_LOWER | frozenset(
+_NESTED_KEYS_TO_REDACT: Final[frozenset[str]] = frozenset(
     {
+        *PROPERTY_SENSITIVE_KEY_NAMES,
         "deviceid",
         "serial",
         "iotdeviceid",
@@ -72,12 +78,7 @@ _NESTED_KEYS_TO_REDACT_LOWER: Final = _PROPERTY_KEYS_LOWER | frozenset(
     }
 )
 
-_MAC_LITERAL_RE: Final = re.compile(r"^([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}$")
-_IPV4_LITERAL_RE: Final = re.compile(r"^\d{1,3}(\.\d{1,3}){3}$")
-_DEVICE_ID_LITERAL_RE: Final = re.compile(r"^03ab[0-9a-f]{12}$", re.IGNORECASE)
-_MAC_EMBEDDED_RE: Final = re.compile(r"([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}")
-_IPV4_EMBEDDED_RE: Final = re.compile(r"\d{1,3}(\.\d{1,3}){3}")
-_DEVICE_ID_EMBEDDED_RE: Final = re.compile(r"03ab[0-9a-f]{12}", re.IGNORECASE)
+
 _PHONE_EMBEDDED_RE: Final = re.compile(r"(\d{3})\d{4}(\d{4})")
 
 
@@ -85,13 +86,20 @@ def redact_entry_title(title: Any) -> str:
     """Redact sensitive identifiers from config-entry title."""
     if not isinstance(title, str):
         return ""
-    return _PHONE_EMBEDDED_RE.sub(r"\1****\2", title)
+    redacted = _PHONE_EMBEDDED_RE.sub(r"\1****\2", title)
+    return redact_sensitive_text(
+        redacted,
+        markers=DIAGNOSTICS_REDACTION_MARKERS,
+    )
 
 
 def redact_property_value(value: Any, key: str | None = None) -> Any:
     """Recursively redact sensitive values in diagnostics payloads."""
-    if key is not None and key.lower() in _NESTED_KEYS_TO_REDACT_LOWER:
-        return "**REDACTED**"
+    if key is not None and is_sensitive_key_name(
+        key,
+        extra_keys=_NESTED_KEYS_TO_REDACT,
+    ):
+        return DIAGNOSTICS_REDACTION_MARKERS.secret
 
     if isinstance(value, dict):
         return {k: redact_property_value(v, str(k)) for k, v in value.items()}
@@ -110,20 +118,22 @@ def redact_property_value(value: Any, key: str | None = None) -> Any:
                 redacted = redact_property_value(parsed)
                 if isinstance(redacted, (dict, list)):
                     return json.dumps(
-                        redacted, ensure_ascii=False, separators=(",", ":")
+                        redacted,
+                        ensure_ascii=False,
+                        separators=(",", ":"),
                     )
 
-        if (
-            _MAC_LITERAL_RE.fullmatch(stripped)
-            or _IPV4_LITERAL_RE.fullmatch(stripped)
-            or _DEVICE_ID_LITERAL_RE.fullmatch(stripped)
-        ):
-            return "**REDACTED**"
+        literal = redact_sensitive_literal(
+            value,
+            markers=DIAGNOSTICS_REDACTION_MARKERS,
+        )
+        if literal is not None:
+            return literal
 
-        sanitized = _MAC_EMBEDDED_RE.sub("**REDACTED**", value)
-        sanitized = _IPV4_EMBEDDED_RE.sub("**REDACTED**", sanitized)
-        sanitized = _DEVICE_ID_EMBEDDED_RE.sub("**REDACTED**", sanitized)
-        sanitized = mask_ip_addresses(sanitized, placeholder="**REDACTED**")
+        sanitized = redact_sensitive_text(
+            value,
+            markers=DIAGNOSTICS_REDACTION_MARKERS,
+        )
         if sanitized != value:
             return sanitized
 
@@ -132,4 +142,7 @@ def redact_property_value(value: Any, key: str | None = None) -> Any:
 
 def redact_device_properties(properties: dict[str, Any]) -> dict[str, Any]:
     """Redact sensitive keys from one device-properties mapping."""
-    return {key: redact_property_value(value, key) for key, value in properties.items()}
+    return {
+        key: redact_property_value(value, normalize_redaction_key(key))
+        for key, value in properties.items()
+    }

@@ -31,6 +31,8 @@ def test_telemetry_sensitivity_blocks_credential_equivalent_fields() -> None:
     assert sensitivity.is_blocked("password_hash") is True
     assert sensitivity.is_blocked("access_token") is True
     assert sensitivity.is_blocked("secret_key") is True
+    assert sensitivity.is_blocked("custom_secret_token") is True
+    assert sensitivity.is_blocked("access_token_present") is False
     assert sensitivity.is_blocked("safe_key") is False
 
 

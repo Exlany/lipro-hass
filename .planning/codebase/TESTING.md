@@ -1,8 +1,8 @@
 # Testing Patterns
 
-**Analysis Date:** 2026-03-27
+**Analysis Date:** 2026-03-28
 
-> Snapshot: `2026-03-27`
+> Snapshot: `2026-03-28`
 > Freshness: 基于 `tests/**`、`pyproject.toml`、`.github/workflows/{ci,release}.yml`、`scripts/{lint,check_architecture_policy.py,check_file_matrix.py}` 与 `.planning/baseline/VERIFICATION_MATRIX.md` 的当前截面。
 > Derived collaboration map: 本文件是受约束的协作图谱 / 派生视图，仅用于导航、审阅与后续实现对齐。
 > Authority: 若与 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md}`、`.planning/baseline/*.md`、`.planning/reviews/*.md` 或 `docs/developer_architecture.md` 冲突，以后者为准；本文件不得反向充当当前治理真源。
@@ -29,7 +29,7 @@ uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro 
 **Location:**
 - Tests live in a dedicated `tests/` tree, not beside production files.
 - Current topology is broad and intentional: `tests/core`, `tests/services`, `tests/flows`, `tests/platforms`, `tests/entities`, `tests/meta`, `tests/integration`, `tests/snapshots`, `tests/benchmarks`, `tests/harness`, and `tests/fixtures`.
-- Repository counts from current scanning: `367` Python files under `tests`, `291` runnable `test_*.py` files, `48` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
+- Repository counts from current scanning: `386` Python files under `tests`, `306` runnable `test_*.py` files, `51` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
 
 **Naming:**
 - Use `test_*.py` everywhere.
@@ -54,9 +54,10 @@ tests/
 
 ## Historical Phase Notes
 
-- Phase 55: 当前仓库共有 `291` 个 `test_*.py` 文件`，topicized thin shells 继续覆盖 command-surface、transport-runtime 与 light/fan/select/switch suites。
+- Phase 55: 当前仓库共有 `306` 个 `test_*.py` 文件，topicized thin shells 继续覆盖 command-surface、transport-runtime 与 light/fan/select/switch suites。
 - Phase 59: `tests/core/test_device_refresh_{parsing,filter,snapshot,runtime}.py` 继续作为 localized device-refresh verification note；topicized meta note carriers 与 verification anchors 保持分离。
 - Phase 88: `tests/meta/test_phase88_governance_quality_freeze_guards.py` 继续作为 focused guard home for phase-88 governance/evidence freeze。
+- Phase 90: `tests/meta/test_phase90_hotspot_map_guards.py` 继续作为 focused guard home for five formal homes / four protected thin shells / delete-gate freeze truth。
 
 ## Test Structure
 
@@ -200,3 +201,23 @@ with pytest.raises(ServiceValidationError):
 ---
 
 *Testing analysis: 2026-03-27*
+
+
+## Phase 91 Testing Freeze
+
+- `tests/meta/test_phase91_typed_boundary_guards.py` now freezes protocol live canonicalization, typed boundary narrowing, and protected thin-shell no-backflow truth.
+- Phase 91 verification requires both focused runtime/protocol tests and governance-route/file-matrix proofs before the next phase can start.
+
+
+## Phase 92 Testing Freeze
+
+- `tests/meta/test_phase92_redaction_convergence_guards.py` 现在冻结 shared redaction registry、value-level redaction budget 协调，以及 touched thin-shell roots 的 no-regrowth truth。
+- `tests/core/api/test_api_status_service.py`、`tests/core/api/test_api_command_surface_responses.py`、`tests/platforms/test_light_entity_behavior.py` 与 `tests/services/test_services_diagnostics.py` 继续是 thin shell roots；新增 sibling suites 承载 concern-local assertions。
+- Phase 92 verification requires focused redaction/unit tests、topicized root-suite regressions、`tests/meta`、`scripts/check_file_matrix.py --check`、`ruff` 与 `mypy` 一起通过，之后 current route 才能前推到 `Phase 93`。
+
+
+## Phase 93 Testing Freeze
+
+- `tests/meta/test_phase31_runtime_budget_guards.py` 继续冻结 repo-wide typing-budget honesty；Phase 93 在不放宽预算的前提下烧尽 diagnostics topicization 带来的 incidental `Any` drift。
+- `FILE_MATRIX.md`、`TESTING.md`、`VERIFICATION_MATRIX.md` 与 route smoke tests 现在共同构成 assurance freeze proof；任何一个投影滞后都视为 current-route regression，而不是“文档小问题”。
+- Phase 93 verification requires focused diagnostics/test-budget regressions、`tests/meta`、`scripts/check_file_matrix.py --check`、`ruff` 与 `mypy` 一起通过，之后 `$gsd-next` 的自然落点才允许前推到 milestone closeout。

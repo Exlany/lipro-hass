@@ -220,3 +220,67 @@ def test_phase_62_naming_discoverability_dependency_story_is_explicit() -> None:
     assert "Support helpers" in extras_support_text
     assert "endpoint operations collaborator" in endpoint_surface_text
     assert "support-only" in helper_support_text.lower()
+
+
+
+def test_phase_90_hotspot_freeze_dependency_story_is_explicit() -> None:
+    dependency_text = (_ROOT / ".planning" / "baseline" / "DEPENDENCY_MATRIX.md").read_text(
+        encoding="utf-8"
+    )
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(encoding="utf-8")
+    kill_list_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(encoding="utf-8")
+
+    assert "## Phase 90 Hotspot Routing Freeze Clarifications" in dependency_text
+    assert "stable import shell / home" in dependency_text
+    assert "canonical REST child-façade composition home" in dependency_text
+    assert "## Phase 90 Residual Delta" in residual_text
+    assert "无新增 active residual family" in residual_text
+    assert "owner + target phase + delete gate + evidence pointer" in residual_text
+    assert "## Phase 90 Status Update" in kill_list_text
+    assert "无新增 active kill target" in kill_list_text
+    assert "不得再被写成 future kill target" in kill_list_text
+
+
+
+def test_phase_91_typed_boundary_dependency_story_is_explicit() -> None:
+    dependency_text = (_ROOT / ".planning" / "baseline" / "DEPENDENCY_MATRIX.md").read_text(
+        encoding="utf-8"
+    )
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(
+        encoding="utf-8"
+    )
+    kill_list_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "## Phase 91 Canonicalization / Typed-Boundary Clarifications" in dependency_text
+    assert "runtime consumers must pull canonical rows from `LiproProtocolFacade`" in dependency_text
+    assert "RuntimeTelemetrySnapshot" in dependency_text
+    assert "## Phase 91 Residual Delta" in residual_text
+    assert "无新增 active residual family" in residual_text
+    assert "typed-boundary closure" in residual_text
+    assert "## Phase 91 Status Update" in kill_list_text
+    assert "无新增 active kill target" in kill_list_text
+    assert "typed-boundary hardening" in kill_list_text
+
+
+
+def test_phase_93_assurance_freeze_dependency_story_is_explicit() -> None:
+    dependency_text = (_ROOT / ".planning" / "baseline" / "DEPENDENCY_MATRIX.md").read_text(
+        encoding="utf-8"
+    )
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(
+        encoding="utf-8"
+    )
+    kill_list_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "## Phase 93 Assurance Freeze Clarifications" in dependency_text
+    assert "does not add a new dependency direction" in dependency_text
+    assert "## Phase 93 Residual Delta" in residual_text
+    assert "无新增 active residual family" in residual_text
+    assert "quality-freeze projections" in residual_text
+    assert "## Phase 93 Status Update" in kill_list_text
+    assert "无新增 active kill target" in kill_list_text
+    assert "assurance freeze / closeout proof" in kill_list_text

@@ -48,8 +48,11 @@ class TestLooksSensitive:
         assert looks_sensitive("001122334455") is True
 
     def test_token_like_detected(self):
-        token = "a" * 32
+        token = "qwertyuiopasdfghjklzxcvbnmqwerty"
         assert looks_sensitive(token) is True
+
+    def test_low_entropy_repeated_string_not_sensitive(self):
+        assert looks_sensitive("x" * 64) is False
 
     def test_long_mixed_token_detected(self):
         token = "abcDEF012345_-abcDEF012345_-abcDEF"
@@ -215,6 +218,26 @@ class TestSanitizeProperties:
         }
         result = sanitize_properties(props)
         assert result == {"safe": "ok"}
+
+    def test_unknown_secret_like_keys_are_dropped(self):
+        props = {
+            "customSecretToken": "abc",
+            "debug_password_value": "pw",
+            "safe": "ok",
+        }
+        result = sanitize_properties(props)
+
+        assert result == {"safe": "ok"}
+
+    def test_secret_like_string_fragments_keep_share_markers(self):
+        result = sanitize_string(
+            "Authorization: Bearer abcdefghijklmnopqrstuvwxyz0123456789 and apiSecret=shh"
+        )
+
+        assert "abcdefghijklmnopqrstuvwxyz0123456789" not in result
+        assert "shh" not in result
+        assert "[TOKEN]" in result
+        assert "[REDACTED]" in result
 
     def test_sanitizes_json_string_payloads_recursively(self):
         props = {

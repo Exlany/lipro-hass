@@ -3,56 +3,24 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Final
 
-_BLOCKED_KEYS = frozenset(
-    {
-        "access_token",
-        "accesskey",
-        "biz_id",
-        "bizid",
-        "device_id",
-        "deviceid",
-        "gatewaydeviceid",
-        "gateway_device_id",
-        "password",
-        "passwordhash",
-        "password_hash",
-        "phone",
-        "phone_id",
-        "phoneid",
-        "refresh_access_key",
-        "refresh_token",
-        "refreshaccesskey",
-        "refreshtoken",
-        "secret",
-        "secret_key",
-        "secretkey",
-        "serial",
-        "user_id",
-        "userid",
-    }
+from ..utils.redaction import (
+    SHARED_SENSITIVE_KEY_NAMES,
+    TELEMETRY_REFERENCE_ALIASES,
+    is_sensitive_key_name,
+    normalize_redaction_key,
 )
 
-_REFERENCE_ALIASES = {
-    "device_id": "device_ref",
-    "deviceid": "device_ref",
-    "device_name": "device_ref",
-    "devicename": "device_ref",
-    "device_serial": "device_ref",
-    "deviceserial": "device_ref",
-    "entry_id": "entry_ref",
-    "entryid": "entry_ref",
-    "gateway_device_id": "device_ref",
-    "gatewaydeviceid": "device_ref",
-    "group_id": "device_ref",
-    "groupid": "device_ref",
-    "serial": "device_ref",
-}
+_REFERENCE_ALIASES: Final = dict(TELEMETRY_REFERENCE_ALIASES)
+_BLOCKED_KEYS: Final = frozenset(
+    key for key in SHARED_SENSITIVE_KEY_NAMES if key not in _REFERENCE_ALIASES
+)
 
 
 def normalize_telemetry_key(key: str) -> str:
     """Normalize one telemetry field name for policy lookup."""
-    return key.lower().replace("-", "_")
+    return normalize_redaction_key(key)
 
 
 @dataclass(frozen=True, slots=True)
@@ -69,7 +37,7 @@ class TelemetrySensitivity:
         normalized = normalize_telemetry_key(key)
         if normalized in self.reference_aliases:
             return False
-        return normalized in self.blocked_keys
+        return normalized in self.blocked_keys or is_sensitive_key_name(normalized)
 
     def reference_alias_for(self, key: str) -> str | None:
         """Return the pseudonymous alias for a field, when configured."""

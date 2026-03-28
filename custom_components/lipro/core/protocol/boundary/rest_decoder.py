@@ -26,7 +26,7 @@ if TYPE_CHECKING:
         CanonicalScheduleJson,
     )
 
-CanonicalT = TypeVar("CanonicalT")
+CanonicalT_co = TypeVar("CanonicalT_co", covariant=True)
 _REST_MQTT_CONFIG_FAMILY = "rest.mqtt-config"
 _REST_MQTT_CONFIG_VERSION = "v1"
 _REST_MQTT_CONFIG_AUTHORITY = "tests/fixtures/api_contracts/get_mqtt_config.*.json"
@@ -115,7 +115,7 @@ class RestDecodeContext:
         return BoundaryDecoderKey(family=self.family, version=self.version)
 
 
-class RestBoundaryDecoder(Protocol[CanonicalT]):
+class RestBoundaryDecoder(Protocol[CanonicalT_co]):
     """Protocol for one REST payload decoder family."""
 
     @property
@@ -133,7 +133,7 @@ class RestBoundaryDecoder(Protocol[CanonicalT]):
         """Return the authoritative source backing this decoder family."""
         ...
 
-    def decode(self, payload: object) -> BoundaryDecodeResult[CanonicalT]:
+    def decode(self, payload: object) -> BoundaryDecodeResult[CanonicalT_co]:
         """Decode one REST payload to a canonical protocol contract."""
         ...
 

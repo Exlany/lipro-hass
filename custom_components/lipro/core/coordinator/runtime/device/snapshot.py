@@ -14,11 +14,14 @@ from custom_components.lipro.core.api import (
     LiproConnectionError,
     LiproRefreshTokenExpiredError,
 )
-from custom_components.lipro.core.api.types import DeviceListItem, DeviceListResponse
 from custom_components.lipro.core.coordinator.types import PropertyDict
 from custom_components.lipro.core.device import LiproDevice
 from custom_components.lipro.core.device.group_status import sync_mesh_group_extra_data
-from custom_components.lipro.core.protocol.contracts import CanonicalMeshGroupStatusRow
+from custom_components.lipro.core.protocol.contracts import (
+    CanonicalDeviceListItem,
+    CanonicalDeviceListPage,
+    CanonicalMeshGroupStatusRow,
+)
 
 from .snapshot_models import (
     FetchedDeviceSnapshot,
@@ -40,7 +43,7 @@ type DeviceRow = PropertyDict
 def _coerce_total_count(
     *,
     offset: int,
-    devices_data: list[DeviceListItem],
+    devices_data: list[CanonicalDeviceListItem],
     total: object,
 ) -> int:
     """Coerce one device-page total into a non-negative integer boundary."""
@@ -77,7 +80,11 @@ class _SnapshotAssembly:
 class SnapshotProtocolPort(Protocol):
     """Minimal protocol-facade surface consumed by snapshot builder."""
 
-    async def get_devices(self, offset: int = 0, limit: int = 100) -> DeviceListResponse:
+    async def get_devices(
+        self,
+        offset: int = 0,
+        limit: int = 100,
+    ) -> CanonicalDeviceListPage:
         """Return one canonical device-list page."""
 
     async def query_mesh_group_status(
@@ -85,21 +92,6 @@ class SnapshotProtocolPort(Protocol):
         group_ids: list[str],
     ) -> list[CanonicalMeshGroupStatusRow]:
         """Return canonical mesh-group rows for the requested groups."""
-
-    @property
-    def contracts(self) -> SnapshotProtocolContracts:
-        """Expose protocol-owned normalization helpers."""
-
-
-class SnapshotProtocolContracts(Protocol):
-    """Contract helpers required by runtime snapshot builder."""
-
-    def normalize_mesh_group_status_rows(
-        self,
-        payload: object,
-    ) -> list[CanonicalMeshGroupStatusRow]:
-        """Normalize mesh-group topology rows."""
-
 
 class SnapshotBuilder:
     """Builds device snapshots from API responses."""
@@ -142,8 +134,7 @@ class SnapshotBuilder:
             return
 
         try:
-            rows = await self._protocol.query_mesh_group_status(group_ids)
-            normalized_rows = self._contracts.normalize_mesh_group_status_rows(rows)
+            normalized_rows = await self._protocol.query_mesh_group_status(group_ids)
         except asyncio.CancelledError:
             raise
         except (
@@ -173,7 +164,7 @@ class SnapshotBuilder:
     def _canonical_page_has_more(
         *,
         offset: int,
-        devices_data: list[DeviceListItem],
+        devices_data: list[CanonicalDeviceListItem],
         total: object,
     ) -> bool:
         """Return whether one canonical device page has more rows to fetch."""
@@ -198,7 +189,7 @@ class SnapshotBuilder:
                 cause_type=type(devices_payload).__name__,
             )
 
-        raw_devices: list[DeviceListItem] = []
+        raw_devices: list[CanonicalDeviceListItem] = []
         for row in devices_payload:
             if not isinstance(row, dict):
                 raise RuntimeSnapshotRefreshRejectedError(
@@ -224,7 +215,6 @@ class SnapshotBuilder:
     ) -> None:
         """Initialize snapshot builder."""
         self._protocol = protocol
-        self._contracts = protocol.contracts
         self._device_identity_index = device_identity_index
         self._device_filter = device_filter
 

@@ -125,6 +125,26 @@ class TestRedactDeviceProperties:
         assert "AA:BB:CC:DD:EE:FF" not in result["deviceInfo"]
         assert result["deviceInfo"].count("**REDACTED**") == 2
 
+    def test_unknown_secret_like_key_fails_closed(self):
+        props = {
+            "customSecretToken": "super-secret-token",
+            "powerState": "1",
+        }
+        result = _redact_device_properties(props)
+
+        assert result["customSecretToken"] == "**REDACTED**"
+        assert result["powerState"] == "1"
+
+    def test_secret_like_string_fragments_are_redacted(self):
+        props = {
+            "note": "Authorization: Bearer abcdefghijklmnopqrstuvwxyz0123456789 and apiSecret=shh",
+        }
+        result = _redact_device_properties(props)
+
+        assert "abcdefghijklmnopqrstuvwxyz0123456789" not in result["note"]
+        assert "shh" not in result["note"]
+        assert "**REDACTED**" in result["note"]
+
 
 class TestToRedactKeys:
     """Tests for TO_REDACT set completeness."""

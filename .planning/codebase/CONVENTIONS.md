@@ -1,8 +1,8 @@
 # Coding Conventions
 
-**Analysis Date:** 2026-03-27
+**Analysis Date:** 2026-03-28
 
-> Snapshot: `2026-03-27`
+> Snapshot: `2026-03-28`
 > Freshness: 基于 `pyproject.toml`、`CONTRIBUTING.md`、`scripts/lint`、`.pre-commit-config.yaml`、`.github/workflows/ci.yml`、`custom_components/lipro/**` 与 `tests/**` 的当前截面。
 > Derived collaboration map: 本文件是受约束的协作图谱 / 派生视图，仅用于导航、审阅与后续实现对齐。
 > Authority: 若与 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md}`、`.planning/baseline/*.md`、`.planning/reviews/*.md` 或 `docs/developer_architecture.md` 冲突，以后者为准；本文件不得反向充当当前治理真源。
@@ -125,3 +125,15 @@
 ---
 
 *Convention analysis: 2026-03-27*
+
+
+## Phase 90 Naming / Ownership Reminder
+
+- Treat `client.py` as an import shell name, not as evidence of a second REST root.
+- Treat large-but-correct modules as formal homes first; only explicit helper siblings, not outward shells, may absorb new implementation details.
+
+
+## Phase 91 Naming / Contract Reminder
+
+- Treat `protocol_facade_rest_methods.py` as a support-only live canonicalization seam under `LiproProtocolFacade`, not as a separate façade.
+- Treat `RuntimeTelemetrySnapshot`, `MetricMapping`, and `TracePayload` aliases as shared truth contracts, not convenience dict suggestions.

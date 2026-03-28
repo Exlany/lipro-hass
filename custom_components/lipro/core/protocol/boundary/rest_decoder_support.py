@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, cast
 
 from ...api.types import DevicePropertyMap, JsonObject
 from ...utils.identifiers import normalize_iot_device_id, normalize_mesh_group_id
@@ -127,7 +127,7 @@ def _normalize_property_rows(rows: Sequence[object]) -> DevicePropertyMap:
 def _normalize_properties_payload(
     payload: object,
     *,
-    fallback_mapping: Mapping[str, Any] | None = None,
+    fallback_mapping: Mapping[str, object] | None = None,
     excluded_keys: set[str] | None = None,
 ) -> DevicePropertyMap:
     if isinstance(payload, Mapping):
@@ -169,7 +169,7 @@ def _coerce_total(value: object) -> int | None:
     return None
 
 
-def _build_identity_aliases(row: Mapping[str, Any]) -> list[str]:
+def _build_identity_aliases(row: Mapping[str, object]) -> list[str]:
     aliases: list[str] = []
     seen: set[str] = set()
     for key in _DEVICE_ROW_ID_KEYS:
@@ -181,7 +181,7 @@ def _build_identity_aliases(row: Mapping[str, Any]) -> list[str]:
     return aliases
 
 
-def _resolve_device_catalog_number(row: Mapping[str, Any]) -> object:
+def _resolve_device_catalog_number(row: Mapping[str, object]) -> object:
     device_number: object = row.get("deviceId")
     if isinstance(device_number, str):
         return _normalize_identifier(device_number) or _normalize_string(device_number)
@@ -193,7 +193,7 @@ def _resolve_device_catalog_number(row: Mapping[str, Any]) -> object:
 
 
 def _copy_catalog_optional_fields(
-    row: Mapping[str, Any],
+    row: Mapping[str, object],
     *,
     target: dict[str, object],
 ) -> None:
@@ -202,7 +202,7 @@ def _copy_catalog_optional_fields(
             target[target_key] = row[source_key]
 
 
-def _extract_status_identifier(row: Mapping[str, Any]) -> str | None:
+def _extract_status_identifier(row: Mapping[str, object]) -> str | None:
     for key in _STATUS_ROW_ID_KEYS:
         device_id = _normalize_identifier(row.get(key))
         if device_id is not None:
@@ -229,7 +229,7 @@ def _normalize_mesh_group_members(
 
 
 def _normalize_device_catalog_row(
-    row: Mapping[str, Any],
+    row: Mapping[str, object],
 ) -> CanonicalDeviceListItem | None:
     identity_aliases = _build_identity_aliases(row)
     serial = next((alias for alias in identity_aliases if alias), None)

@@ -1,8 +1,8 @@
 # Codebase Concerns
 
-**Analysis Date:** 2026-03-27
+**Analysis Date:** 2026-03-28
 
-> Snapshot: `2026-03-27`
+> Snapshot: `2026-03-28`
 > Freshness: 基于 `.planning/{ROADMAP.md,REQUIREMENTS.md,STATE.md}`、`.planning/reviews/{FILE_MATRIX.md,RESIDUAL_LEDGER.md,KILL_LIST.md}`、`custom_components/lipro/**`、`tests/**` 与当前 public-doc / governance truth 的截面。
 > Derived collaboration map: 本文件是受约束的协作图谱 / 派生视图，仅用于导航、审阅与后续实现对齐。
 > Authority: 若与 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md}`、`.planning/baseline/*.md`、`.planning/reviews/*.md` 或 `docs/developer_architecture.md` 冲突，以后者为准；本文件不得反向充当当前治理真源。
@@ -169,3 +169,15 @@
 ---
 
 *Concerns audit: 2026-03-27*
+
+
+## Phase 90 Concern Freeze
+
+- The remaining hotspot risk is no longer “which files should die”, but how to split inward without changing outward ownership.
+- Delete-gate language must stay localized and explicit; formal homes are not cleanup folklore.
+
+
+## Phase 91 Concern Focus
+
+- The dominant risk is no longer ownership ambiguity, but keeping typed boundary honesty frozen while Phase 92 narrows redaction/control shells.
+- Canonicalization must happen once at the protocol root; any runtime-side re-normalization is now considered architectural drift.

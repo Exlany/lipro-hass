@@ -46,15 +46,6 @@ _TYPE_GUARD_TARGETS = {
 }
 
 _ANY_BUDGET: dict[str, _AnyBudgetEntry] = {
-    "core/coordinator/runtime/mqtt_runtime.py": {
-        "sanctioned_any": {
-            "from typing import TYPE_CHECKING, Any, Protocol, TypeVar": 1,
-            "coro: Coroutine[Any, Any, Any],": 2,
-            "create_task: Callable[[Coroutine[Any, Any, Any]], asyncio.Task[Any]] | None = None,": 1,
-            ") -> asyncio.Task[Any]:": 1,
-        },
-        "backlog_any": {},
-    },
     "core/coordinator/runtime/device/snapshot.py": {
         "sanctioned_any": {
             "from typing import TYPE_CHECKING, Any, Protocol, cast": 1,
@@ -131,7 +122,7 @@ _BROAD_CATCH_BUDGET: dict[str, _BroadCatchBudgetEntry] = {
     },
 }
 
-_REPO_WIDE_PRODUCTION_ANY_EXPECTED = 305
+_REPO_WIDE_PRODUCTION_ANY_EXPECTED = 255
 _REPO_WIDE_TESTS_ANY_NON_META_EXPECTED = 156
 
 _TESTS_TYPE_IGNORE_BUDGET = {
@@ -143,7 +134,7 @@ _TESTS_TYPE_IGNORE_BUDGET = {
 }
 
 _META_GUARD_ANY_LITERAL_BUDGET = {
-    "tests/meta/test_phase31_runtime_budget_guards.py": 14,
+    "tests/meta/test_phase31_runtime_budget_guards.py": 10,
     "tests/meta/test_phase45_hotspot_budget_guards.py": 6,
 }
 

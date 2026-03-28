@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.25
 milestone_name: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
-current_phase: '90'
-status: planning-ready
-last_updated: "2026-03-27T20:15:00.000Z"
+current_phase: '93'
+status: complete
+last_updated: "2026-03-28T00:00:00.000Z"
 progress:
   total_phases: 4
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  completed_phases: 4
+  total_plans: 12
+  completed_plans: 12
 ---
 
 # Project State
@@ -21,14 +21,14 @@ See: `.planning/PROJECT.md`
 **Current milestone:** `v1.25 Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence`
 **Active milestone:** `v1.25`
 **Core value:** `在不重开第二故事线的前提下，把当前真正高风险的 hotspots / typed boundaries / redaction contract 收口成可执行的新里程碑。`
-**Current mode:** `v1.25 active route / Phase 90 planning-ready / latest archived baseline = v1.24`
+**Current mode:** `v1.25 active route / Phase 93 complete / latest archived baseline = v1.24`
 
 ## Current Position
 
-- `v1.24` 继续是 latest archived baseline；新的 mutable route 已前推到 `Phase 90 planning-ready`，聚焦 hotspot decomposition、typed boundary hardening 与 redaction convergence。
+- `v1.24` 继续是 latest archived baseline；当前 mutable route 已完成 `Phase 93` 的 assurance topicization、typing budget burn-down 与 final quality freeze，当前里程碑已进入 milestone closeout-ready 状态。
 - `.planning/v1.24-MILESTONE-AUDIT.md`、`.planning/reviews/V1_24_EVIDENCE_INDEX.md`、`.planning/milestones/v1.24-ROADMAP.md` 与 `.planning/milestones/v1.24-REQUIREMENTS.md` 继续承担 latest archived baseline 的 pull-only bundle；它们不再承载 current route truth。
-- 当前 opening phase = `Phase 90`；下一步应先收集 / 固化具体切分策略，再进入正式计划与执行。
-- 本里程碑暂不重开新的 delete campaign；若在实施中发现必须清退的 localized compat / naming shell，必须同步回写 `FILE_MATRIX / RESIDUAL_LEDGER / KILL_LIST` 并给出显式 delete gate。
+- 当前已完成 phase = `Phase 93`；下一步应执行 milestone closeout / archive-promotion handoff，而不是继续新增实现 phase。
+- 本里程碑仍不重开新的 delete campaign；若在后续 phases 发现必须清退的 localized compat / naming shell，必须同步回写 `FILE_MATRIX / RESIDUAL_LEDGER / KILL_LIST` 并给出显式 delete gate。
 
 <!-- governance-route-contract:start -->
 ```yaml
@@ -37,11 +37,11 @@ contract_name: governance-route
 active_milestone:
   version: v1.25
   name: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
-  status: planning-ready (2026-03-27)
-  phase: '90'
-  phase_title: Hotspot routing freeze and formal-home decomposition map
-  phase_dir: 90-hotspot-routing-freeze-and-formal-home-decomposition-map
-  route_mode: v1.25 active route / Phase 90 planning-ready / latest archived baseline = v1.24
+  status: Phase 93 complete (2026-03-28)
+  phase: '93'
+  phase_title: Assurance topicization and quality freeze
+  phase_dir: 93-assurance-topicization-and-quality-freeze
+  route_mode: v1.25 active route / Phase 93 complete / latest archived baseline = v1.24
 latest_archived:
   version: v1.24
   name: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
@@ -57,8 +57,8 @@ previous_archived:
   name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
   evidence_path: .planning/reviews/V1_23_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.25 active route / Phase 90 planning-ready / latest archived baseline = v1.24
-  default_next_command: $gsd-discuss-phase 90
+  current_route: v1.25 active route / Phase 93 complete / latest archived baseline = v1.24
+  default_next_command: $gsd-complete-milestone v1.25
   latest_archived_evidence_pointer: .planning/reviews/V1_24_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -67,14 +67,14 @@ bootstrap:
 
 - **Milestone:** `v1.25 Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence`
 - **Phase range:** `90 -> 93`
-- **Current phase:** `Phase 90`
-- **Milestone status:** `planning-ready (2026-03-27)`
+- **Current phase:** `Phase 93`
+- **Milestone status:** `Phase 93 complete (2026-03-28)`
 - **Requirements basket:** `HOT-40`, `ARC-24`, `TYP-23`, `SEC-01`, `TST-29`, `QLT-37`
 - **Latest archived baseline:** `v1.24`
 - **Milestone starting evidence:** `.planning/v1.24-MILESTONE-AUDIT.md, .planning/reviews/V1_24_EVIDENCE_INDEX.md, .planning/milestones/v1.24-ROADMAP.md, .planning/milestones/v1.24-REQUIREMENTS.md`
 - **Current audit artifact:** `.planning/v1.24-MILESTONE-AUDIT.md`
-- **Default next command:** `$gsd-discuss-phase 90`
-- **Current follow-up target:** `Phase 90` discussion / planning-ready decomposition map
+- **Default next command:** `$gsd-complete-milestone v1.25`
+- **Current follow-up target:** milestone closeout / archive-promotion proof for `v1.25`
 
 ## Latest Archived Milestone (v1.24)
 
@@ -120,15 +120,16 @@ bootstrap:
 
 ## Recommended Next Command
 
-1. `$gsd-discuss-phase 90` —— 先固化 `Phase 90` 的 hotspot decomposition map、formal-home 边界与 delete-gate 约束
-2. `$gsd-plan-phase 90` —— 在 discussion 结果确认后生成 `Phase 90` 的详细执行计划
-3. `$gsd-progress` —— 快速复盘 `v1.25 active route`、opening phase 与 archived baseline handoff 状态
-4. `$gsd-next` —— 复核自动路由是否稳定收口到 `Phase 90` discussion / planning fast-path
-5. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" init progress` —— 复核 `Phase 90 -> 93` 处于 not_started / next_phase=`90` 的 planning-ready 真值
-6. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" state json` —— 复核 parser-stable `v1.25 active route / Phase 90 planning-ready / latest archived baseline = v1.24`
-7. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" init plan-phase 90` —— 复核 `Phase 90` 已可直接进入 discuss / plan bootstrap
-8. `uv run pytest -q tests/meta` —— 复核 governance / archive-pointer / promoted-assets / version-sync guards
-9. `uv run python scripts/check_file_matrix.py --check` —— 复核 planning / baseline / review / archive assets 契约
+1. `$gsd-complete-milestone v1.25` —— 进入 `v1.25` milestone closeout / archive-promotion workflow
+2. `$gsd-next` —— 复核自动路由是否稳定收口到 milestone closeout fast-path
+3. `$gsd-progress` —— 快速复盘 `v1.25 active route / Phase 93 complete / latest archived baseline = v1.24` 与 archived baseline handoff 状态
+4. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" init progress` —— 复核 `Phase 90 -> 93` 全部 complete，summary_count=`12`
+5. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" state json` —— 复核 parser-stable `v1.25 active route / Phase 93 complete / latest archived baseline = v1.24`
+6. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" phase-plan-index 93` —— 复核 `Phase 93` 三份计划均已拥有 closeout summary
+7. `uv run pytest -q tests/meta` —— 复核 governance / archive-pointer / promoted-assets / version-sync guards
+8. `uv run python scripts/check_file_matrix.py --check` —— 复核 planning / baseline / review / archive assets 契约
+9. `uv run ruff check .` —— 复核 repo-wide lint gate
+10. `uv run mypy` —— 复核 repo-wide typing gate
 
 ## Session Continuity
 

@@ -2,8 +2,8 @@
 
 **Purpose:** 定义允许/禁止的跨平面依赖方向，并作为 architecture guards 的语义真源。
 **Status:** Baseline reference
-**Updated:** 2026-03-27 (Phase 85 terminal audit aligned)
-**Alignment:** `v1.23 / Phase 85` dependency truth verified on `2026-03-27`
+**Updated:** 2026-03-28 (Phase 93 assurance-freeze aligned)
+**Alignment:** `v1.25 / Phase 93` dependency truth verified on `2026-03-28`
 
 ## Formal Role
 
@@ -189,3 +189,33 @@
 - `custom_components/lipro/core/telemetry/outcomes.py` 与 `custom_components/lipro/core/telemetry/json_payloads.py` 只允许被 `custom_components/lipro/core/telemetry/models.py` inward 依赖；其他 production surfaces 不得把它们提升为第二 telemetry root。
 - `custom_components/lipro/control/runtime_access_support.py` 继续只允许由 `custom_components/lipro/control/runtime_access.py` 聚合导出；services / diagnostics / system-health / telemetry consumers 不得直连 support seam。
 - docs/metadata current-story drift 的治理回写只允许沿 `README* -> docs/README.md -> SUPPORT.md/SECURITY.md/.github/* -> planning/baseline/reviews` 的既有链路推进，不得长出 parallel docs route。
+
+
+## Phase 90 Hotspot Routing Freeze Clarifications
+
+- `custom_components/lipro/core/api/client.py` 继续只承担 `LiproRestFacade` stable import shell / home；runtime / control / tests / docs 不得把它重新讲成 REST composition root 或 second public root。
+- `custom_components/lipro/core/api/rest_facade.py` 继续是 canonical REST child-façade composition home；`request_gateway.py`、`transport_executor.py`、`rest_facade_{endpoint,request}_methods.py` 与 `request_policy.py` 只允许作为 inward collaborators 存在。
+- `custom_components/lipro/core/coordinator/runtime/command_runtime.py` 与 `custom_components/lipro/core/coordinator/runtime/mqtt_runtime.py` 继续分别承担 command-runtime / MQTT-runtime orchestration truth；control/entities/docs/tests 不得把 protected thin shells 或 localized helpers 重新讲成 alternative runtime owner。
+- `custom_components/lipro/core/anonymous_share/manager.py` 继续是 protocol-plane aggregate manager home；`manager_submission.py` 只是 inward collaborator，redaction convergence 属于 `Phase 92`，不是 `Phase 90` 的 ownership move。
+- `custom_components/lipro/control/runtime_access.py`、`custom_components/lipro/entities/base.py`、`custom_components/lipro/entities/firmware_update.py` 与 `custom_components/lipro/__init__.py` 继续只允许读取 / projection / lazy wiring，不得吸附新的 orchestration 或跨平面 dependency shortcut。
+
+
+## Phase 91 Canonicalization / Typed-Boundary Clarifications
+
+- `custom_components/lipro/core/protocol/protocol_facade_rest_methods.py` 现在依赖 raw `rest_port.py` child ports + `contracts.normalize_*`；runtime consumers must pull canonical rows from `LiproProtocolFacade`，而不是重新归一化 raw payload。
+- `custom_components/lipro/runtime_types.py`、`custom_components/lipro/core/coordinator/types.py` 与 `custom_components/lipro/core/coordinator/services/telemetry_service.py` 共同承担 `RuntimeTelemetrySnapshot` / `MetricMapping` / `CommandTrace` truth；control/read-model helpers 不得把这些 typed snapshots 扩回 `dict[str, Any]`。
+- `custom_components/lipro/control/runtime_access.py`、`custom_components/lipro/entities/base.py` 与 `custom_components/lipro/entities/firmware_update.py` 继续只依赖 named runtime verbs / read-model helpers；不得重新吸附 `command_service`、`protocol_service` 或 coordinator-internal shortcuts。
+
+
+## Phase 92 Redaction Convergence Clarifications
+
+- diagnostics / anonymous-share / telemetry policy modules must derive sensitive-key truth from `custom_components/lipro/core/utils/redaction.py`, rather than maintaining sink-local blocked-key lists or regex families.
+- `custom_components/lipro/control/redaction.py`, `custom_components/lipro/core/anonymous_share/sanitize.py`, and `custom_components/lipro/core/telemetry/{json_payloads.py,exporter.py}` may keep sink-specific markers / projection rules, but they may not grow a second secret-detection story.
+- control/entity thin adapters remain outward-only; redaction convenience does not justify bypassing `RuntimeAccess`, protocol boundaries, or root thin-shell topology.
+
+
+## Phase 93 Assurance Freeze Clarifications
+
+- assurance freeze does not add a new dependency direction; it only forces `FILE_MATRIX` / `TESTING` / `VERIFICATION_MATRIX` / route-contract docs to reflect the already-settled topology honestly.
+- diagnostics topicization remains a test-topology concern, not a production dependency story; the budget guard closes incidental typing drift without legitimizing new `Any` seams.
+- milestone closeout proof must remain pull-only: phase summaries, verification, and validation assets can cite baseline/review truth, but they may not redefine it.

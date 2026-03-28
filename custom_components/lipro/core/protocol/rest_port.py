@@ -8,18 +8,16 @@ from typing import Protocol, cast
 
 from ..api.auth_recovery import AuthRecoveryTelemetrySnapshot
 from ..api.types import (
+    CommandResultApiResponse,
     DeviceListResponse,
+    DeviceStatusItem,
     JsonObject,
     LoginResponse,
+    MqttConfigResponse,
     OtaInfoRow,
     ScheduleTimingRow,
 )
-from .contracts import (
-    CanonicalDeviceStatusRow,
-    CanonicalMeshGroupStatusRow,
-    CanonicalMqttConfig,
-    OutletPowerInfoResult,
-)
+from .contracts import OutletPowerInfoResult
 
 type StatusBatchMetric = Callable[[int, float, int], None]
 type TokenRefreshCallback = Callable[[], Awaitable[None]]
@@ -64,12 +62,12 @@ class _RestStatusPort(Protocol):
         *,
         max_devices_per_query: int = 100,
         on_batch_metric: StatusBatchMetric | None = None,
-    ) -> list[CanonicalDeviceStatusRow]: ...
+    ) -> list[DeviceStatusItem]: ...
 
     async def query_mesh_group_status(
         self,
         group_ids: list[str],
-    ) -> list[CanonicalMeshGroupStatusRow]: ...
+    ) -> list[JsonObject]: ...
 
     async def query_connect_status(self, device_ids: list[str]) -> dict[str, bool]: ...
 
@@ -101,11 +99,11 @@ class _RestCommandPort(Protocol):
         msg_sn: str,
         device_id: str,
         device_type: int | str,
-    ) -> JsonObject: ...
+    ) -> CommandResultApiResponse: ...
 
 
 class _RestMiscPort(Protocol):
-    async def get_mqtt_config(self) -> CanonicalMqttConfig: ...
+    async def get_mqtt_config(self) -> MqttConfigResponse: ...
 
     async def get_city(self) -> JsonObject: ...
 

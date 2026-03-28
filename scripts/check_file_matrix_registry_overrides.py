@@ -53,11 +53,11 @@ BASE_OVERRIDE_TRUTH_FAMILIES = (
     )),
 
     OverrideTruthFamily(area="Protocol", owner_phase="Phase 2 / 7 / 12 / 14 / 35", fate="重构", rows=(
-        ("custom_components/lipro/core/api/client.py", "thin REST child-façade composition root"),
+        ("custom_components/lipro/core/api/client.py", "stable REST façade import shell / home"),
     )),
 
     OverrideTruthFamily(area="Protocol", owner_phase="Phase 2.5", fate="保留", rows=(
-        ("custom_components/lipro/core/protocol/protocol_facade_rest_methods.py", "support-only REST child-facing method surface for protocol root"),
+        ("custom_components/lipro/core/protocol/protocol_facade_rest_methods.py", "canonical protocol live-verb normalization home over REST child ports"),
     )),
 
     OverrideTruthFamily(area="Protocol", owner_phase="Phase 2.5 / 12", fate="重构", rows=(
@@ -185,6 +185,57 @@ BASE_OVERRIDE_TRUTH_FAMILIES = (
         ("custom_components/lipro/core/api/endpoint_surface.py", "REST endpoint operations collaborator home"),
         ("custom_components/lipro/core/protocol/mqtt_facade.py", "MQTT child façade home under the unified protocol root"),
         ("custom_components/lipro/core/protocol/rest_port.py", "typed REST child-façade port home"),
+    )),
+
+    OverrideTruthFamily(area="Runtime", owner_phase="Phase 90", fate="重构", rows=(
+        ("custom_components/lipro/core/coordinator/runtime/command_runtime.py", "formal command-runtime orchestration home"),
+        ("custom_components/lipro/core/coordinator/runtime/mqtt_runtime.py", "formal MQTT-runtime orchestration home"),
+    )),
+
+    OverrideTruthFamily(area="Protocol", owner_phase="Phase 90", fate="重构", rows=(
+        ("custom_components/lipro/core/api/rest_facade.py", "canonical REST child-façade composition home"),
+        ("custom_components/lipro/core/anonymous_share/manager.py", "formal anonymous-share aggregate manager home"),
+    )),
+
+    OverrideTruthFamily(area="Control", owner_phase="Phase 90", fate="保留", rows=(
+        ("custom_components/lipro/__init__.py", "protected thin HA root adapter / lazy wiring shell"),
+        ("custom_components/lipro/control/runtime_access.py", "protected thin runtime read-model / typed access home"),
+    )),
+
+    OverrideTruthFamily(area="Domain", owner_phase="Phase 90", fate="保留", rows=(
+        ("custom_components/lipro/entities/base.py", "protected thin entity command / state projection shell"),
+        ("custom_components/lipro/entities/firmware_update.py", "protected thin OTA projection shell after runtime-boundary tightening"),
+    )),
+
+    OverrideTruthFamily(area="Protocol", owner_phase="Phase 91", fate="保留", rows=(
+        ("custom_components/lipro/core/protocol/boundary/result.py", "typed protocol-boundary decode result home"),
+        ("custom_components/lipro/core/protocol/boundary/schema_registry.py", "typed boundary decoder registry home"),
+    )),
+
+    OverrideTruthFamily(area="Cross-cutting", owner_phase="Phase 91", fate="保留", rows=(
+        ("custom_components/lipro/runtime_types.py", "runtime/control public protocol surface and telemetry projection type home"),
+    )),
+
+    OverrideTruthFamily(area="Assurance", owner_phase="Phase 91", fate="保留", rows=(
+        ("tests/meta/test_phase91_typed_boundary_guards.py", "focused no-regrowth guard home for Phase 91 typed-boundary hardening"),
+    )),
+
+    OverrideTruthFamily(area="Assurance", owner_phase="Phase 89", fate="保留", rows=(
+        ("scripts/agent_worker.py", "retired fail-fast migration stub only; not the runtime orchestrator"),
+        ("scripts/orchestrator.py", "retired fail-fast migration stub only; not the runtime orchestrator"),
+    )),
+
+    OverrideTruthFamily(area="Control", owner_phase="Phase 92", fate="保留", rows=(
+        ("custom_components/lipro/control/redaction.py", "diagnostics-facing redaction adapter on shared redaction contract"),
+        ("tests/services/test_services_diagnostics.py", "thin shell after diagnostics-services topicization"),
+    )),
+
+    OverrideTruthFamily(area="Protocol", owner_phase="Phase 92", fate="保留", rows=(
+        ("custom_components/lipro/core/anonymous_share/sanitize.py", "structure-preserving anonymous-share sanitizer on shared redaction contract"),
+    )),
+
+    OverrideTruthFamily(area="Assurance", owner_phase="Phase 92", fate="保留", rows=(
+        ("custom_components/lipro/core/telemetry/exporter.py", "shared-policy telemetry exporter with pseudonymous alias + marker summary budget contract"),
     )),
 
     OverrideTruthFamily(area="Runtime", owner_phase="Phase 36", fate="保留", rows=(

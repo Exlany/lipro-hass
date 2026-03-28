@@ -144,8 +144,8 @@ class TestCoordinatorRuntimePolling:
         assert device is not None
         coordinator.protocol.query_device_status = AsyncMock(
             return_value=[
-                {"iotId": serial, "powerState": "1"},
-                {"ignored": True},
+                {"deviceId": serial, "properties": {"powerState": "1"}},
+                {"deviceId": "", "properties": {}},
             ]
         )
 
@@ -176,7 +176,9 @@ class TestCoordinatorRuntimePolling:
         device = coordinator.get_device(serial)
         assert device is not None
         coordinator.protocol.query_device_status = AsyncMock(
-            return_value=[{"iotId": serial, "powerState": "1"}]
+            return_value=[
+                {"deviceId": serial, "properties": {"powerState": "1"}}
+            ]
         )
         coordinator._runtimes.command.filter_pending_state_properties = MagicMock(
             return_value={}

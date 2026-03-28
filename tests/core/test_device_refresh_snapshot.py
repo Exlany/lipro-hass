@@ -238,10 +238,7 @@ async def test_snapshot_builder_rejects_mesh_group_topology_errors_atomically(
             "total": 1,
         }
     )
-    mock_client.query_mesh_group_status = AsyncMock(return_value=[{"groupId": "mesh_group_1"}])
-    mock_client.contracts.normalize_mesh_group_status_rows.side_effect = ValueError(
-        "bad topology"
-    )
+    mock_client.query_mesh_group_status = AsyncMock(side_effect=ValueError("bad topology"))
 
     with patch("custom_components.lipro.core.device.LiproDevice.from_api_data") as from_api:
         from_api.side_effect = lambda data: make_device(

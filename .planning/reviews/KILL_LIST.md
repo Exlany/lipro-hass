@@ -381,3 +381,29 @@ _None currently registered._
 - 本 phase **无新增 file-level kill target**；repo-wide terminal audit 冻结的是 verdict / routing truth，不是新的 file-delete campaign。
 - `custom_components/lipro/core/anonymous_share/share_client.py` 的 `_safe_read_json()` alias 与 `submit_share_payload()` bool shim 已在 `Phase 86` 关闭；文件本身继续是正式 anonymous-share worker client home。
 - `custom_components/lipro/runtime_infra.py` 已在 `Phase 86` 完成 inward split closeout；giant assurance carriers（`tests/core/api/test_api_diagnostics_service.py`、`tests/core/api/test_protocol_contract_matrix.py`、`tests/core/coordinator/runtime/test_mqtt_runtime.py`）继续只允许沿 `Phase 87` 做 topicization，不得被叙述成未来 file-level kill target。
+
+
+## Phase 90 Status Update
+
+- 本 phase **无新增 active kill target**；hotspot routing freeze 纠偏的是 ownership / delete-gate wording，而不是启动新的 file-level delete campaign。
+- `custom_components/lipro/core/coordinator/runtime/command_runtime.py`、`custom_components/lipro/core/api/rest_facade.py`、`custom_components/lipro/core/api/request_policy.py`、`custom_components/lipro/core/coordinator/runtime/mqtt_runtime.py` 与 `custom_components/lipro/core/anonymous_share/manager.py` 在本 phase 被明确确认为 formal homes，不得再被写成 future kill target。
+- `custom_components/lipro/__init__.py`、`custom_components/lipro/control/runtime_access.py`、`custom_components/lipro/entities/base.py` 与 `custom_components/lipro/entities/firmware_update.py` 继续只承担 protected thin shell / projection 身份；后续 phase 若继续收口，只允许 inward split / typed narrowing，不得靠 delete folklore 重新叙述这些 outward shells。
+
+
+## Phase 91 Status Update
+
+- 本 phase **无新增 active kill target**；typed-boundary hardening 与 protocol/runtime canonicalization 是 inward contract closure，不是 file-level delete campaign。
+- `custom_components/lipro/core/protocol/protocol_facade_rest_methods.py`、`custom_components/lipro/core/protocol/rest_port.py`、`custom_components/lipro/runtime_types.py` 与 `custom_components/lipro/core/coordinator/types.py` 现已明确写为 formal typed-boundary / live-canonicalization homes，不得被重新叙述成 temporary kill target。
+- `custom_components/lipro/__init__.py`、`custom_components/lipro/control/runtime_access.py`、`custom_components/lipro/entities/base.py` 与 `custom_components/lipro/entities/firmware_update.py` 继续保持 protected thin shell / projection posture；Phase 91 只允许 typed narrowing，不允许 orchestration 回流。
+
+
+## Phase 92 Status Update
+
+- 无新增 active kill target；Phase 92 是 contract convergence / topicization closeout，不是隐性 delete campaign。
+- 任何后续想删除的 localized sanitizer / topical shell，仍必须给出显式 kill gate 与 evidence pointer，不能 retroactively 借本 phase 背书。
+
+
+## Phase 93 Status Update
+
+- 无新增 active kill target；Phase 93 是 assurance freeze / closeout proof，相当于把前序收口结果转成可持续验证的 current-route truth，而不是新一轮 delete campaign。
+- 任何未来的测试重拆、治理脚本重生或 closeout 资产清理，仍必须显式给出 kill gate 与证据链，不能借“只是派生文档”之名绕过治理。

@@ -1,8 +1,8 @@
 # Architecture
 
-**Analysis Date:** 2026-03-27
+**Analysis Date:** 2026-03-28
 
-> Snapshot: `2026-03-27`
+> Snapshot: `2026-03-28`
 > Freshness: 基于 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`docs/developer_architecture.md`、`.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md}`、`.planning/baseline/*.md`、`.planning/reviews/*.md` 与 `custom_components/lipro/**` 的当前截面。
 > Derived collaboration map: 本文件是受约束的协作图谱 / 派生视图，仅用于导航、审阅与后续实现对齐。
 > Authority: 若与 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md}`、`.planning/baseline/*.md`、`.planning/reviews/*.md` 或 `docs/developer_architecture.md` 冲突，以后者为准；本文件不得反向充当当前治理真源。
@@ -194,3 +194,17 @@
 ---
 
 *Architecture analysis: 2026-03-27*
+
+
+## Phase 90 Freeze Snapshot
+
+- `custom_components/lipro/core/api/client.py` is only the stable import shell; `rest_facade.py` remains the REST child-façade composition home.
+- `command_runtime.py`, `request_policy.py`, `mqtt_runtime.py`, and `anonymous_share/manager.py` remain formal homes that may still split inward without changing outward ownership.
+- `custom_components/lipro/__init__.py`, `control/runtime_access.py`, `entities/base.py`, and `entities/firmware_update.py` remain protected thin shells; new orchestration must move inward, not back outward.
+
+
+## Phase 91 Canonical Boundary Snapshot
+
+- `protocol_facade_rest_methods.py` now performs live canonicalization at the protocol root, while `rest_port.py` stays a raw child-facing port.
+- `runtime_types.py` and `core/coordinator/types.py` now anchor shared telemetry / trace truth instead of ad-hoc dynamic runtime dicts.
+- Protected thin shells remain outward-only: orchestration moved inward, not back into `__init__.py`, `runtime_access.py`, or entity adapters.

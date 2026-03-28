@@ -10,7 +10,7 @@ import asyncio
 from collections.abc import Awaitable, Callable, Mapping
 import logging
 from time import monotonic
-from typing import TYPE_CHECKING, Any, Protocol, TypeVar
+from typing import TYPE_CHECKING, Protocol, TypeVar
 
 from homeassistant.helpers.issue_registry import (
     IssueSeverity,
@@ -46,7 +46,7 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
     from ...protocol import MqttTransportFacade
-    from ..types import PropertyValue
+    from ..types import PropertyValue, RuntimeMetrics
 
 _LOGGER = logging.getLogger(__name__)
 _ResultT = TypeVar("_ResultT")
@@ -57,10 +57,10 @@ class BackgroundTaskManagerProtocol(Protocol):
 
     def create(
         self,
-        coro: Coroutine[Any, Any, Any],
+        coro: Coroutine[object, object, object],
         *,
-        create_task: Callable[[Coroutine[Any, Any, Any]], asyncio.Task[Any]] | None = None,
-    ) -> asyncio.Task[Any]:
+        create_task: Callable[[Coroutine[object, object, object]], asyncio.Task[object]] | None = None,
+    ) -> asyncio.Task[object]:
         """Create and track one background task."""
         ...
 
@@ -383,7 +383,7 @@ class MqttRuntime:
         """Return current MQTT connection state."""
         return self._connection_manager.is_connected
 
-    def get_runtime_metrics(self) -> dict[str, object]:
+    def get_runtime_metrics(self) -> RuntimeMetrics:
         """Return lightweight MQTT runtime telemetry."""
         last_transport_error = self._last_transport_error
         return {
@@ -401,7 +401,7 @@ class MqttRuntime:
 
     def _track_background_task(
         self,
-        coro: Coroutine[Any, Any, Any],
+        coro: Coroutine[object, object, object],
         *,
         name: str,
     ) -> None:

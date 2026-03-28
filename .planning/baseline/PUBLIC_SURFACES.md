@@ -2,7 +2,7 @@
 
 **Purpose:** 定义各平面的 canonical public surfaces、过渡公开面与禁止作为正式入口的对象。
 **Status:** Formal baseline asset (`BASE-01` public-surface truth source)
-**Updated:** 2026-03-27 (v1.24 archive promotion aligned)
+**Updated:** 2026-03-28 (Phase 93 assurance-freeze aligned)
 
 ## Formal Role
 
@@ -290,3 +290,34 @@
 - `.planning/reviews/V1_23_TERMINAL_AUDIT.md` 继续只承担 historical audit artifact 身份；当前 archived-only route / default-next / closeout posture 由 planning docs、`.planning/v1.24-MILESTONE-AUDIT.md`、`.planning/reviews/V1_24_EVIDENCE_INDEX.md`、`VERIFICATION_MATRIX.md` 与 focused governance guards 共同冻结。
 - `.planning/reviews/RESIDUAL_LEDGER.md` active residual families 为空、`.planning/reviews/KILL_LIST.md` 的 `Phase 85 Routed Delete Gates` 为空，都是显式 post-eradication truth；任何 future residual 或 delete campaign 都必须重新登记，不能借历史 prose 静默回流。
 - `docs/developer_architecture.md` 继续只是 current-topology guide；它可以记录 freshness / maintainability posture，但不得取代 live route truth home。
+
+
+## Phase 90 Hotspot Routing Freeze Notes
+
+- `custom_components/lipro/core/coordinator/runtime/command_runtime.py`、`custom_components/lipro/core/api/rest_facade.py`、`custom_components/lipro/core/api/request_policy.py`、`custom_components/lipro/core/coordinator/runtime/mqtt_runtime.py` 与 `custom_components/lipro/core/anonymous_share/manager.py` 继续是 formal homes；`Phase 90` 只冻结 outward ownership 与 inward-split boundary，不把它们讲成 thin shell 或 delete target。
+- `custom_components/lipro/core/api/client.py` 继续只保留 `LiproRestFacade` stable import shell / home；canonical REST child-façade composition truth 仍固定在 `rest_facade.py`。
+- `custom_components/lipro/__init__.py`、`custom_components/lipro/control/runtime_access.py`、`custom_components/lipro/entities/base.py` 与 `custom_components/lipro/entities/firmware_update.py` 继续是 protected thin adapter / projection / typed-access surfaces；后续 phase 只允许 inward split，不得把 orchestration / protocol internals / runtime ownership 回流到这些 outward shells。
+- delete-gate policy 在 `Phase 90` 被重新冻结：只有带 `owner + target phase + delete gate + evidence pointer` 的 localized residual 才能进入 `RESIDUAL_LEDGER.md` / `KILL_LIST.md`；five hotspots 默认不构成 file-level delete campaign。
+
+
+## Phase 91 Canonical Boundary Notes
+
+- `custom_components/lipro/core/protocol/protocol_facade_rest_methods.py` 现在在 protocol root 直接 canonicalize device-list / device-status / mesh-group-status / MQTT-config live verbs；`rest_port.py` remains the raw REST child-facing port home，而不是第二条 public surface。
+- `custom_components/lipro/runtime_types.py` 与 `custom_components/lipro/core/coordinator/types.py` 现在共同冻结 `RuntimeTelemetrySnapshot`、`CommandTrace = TracePayload` 与 shared `MetricMapping` truth，control-plane / runtime telemetry 不得再回退到 ad-hoc dynamic dict。
+- `custom_components/lipro/core/protocol/boundary/{result.py,schema_registry.py,rest_decoder_support.py}` 继续是 typed boundary support homes；它们可以继续收紧 contract，但不得重新放大 `Any` / dynamic payload seams。
+- `custom_components/lipro/__init__.py`、`custom_components/lipro/control/runtime_access.py`、`custom_components/lipro/entities/base.py` 与 `custom_components/lipro/entities/firmware_update.py` 继续作为 protected thin shells / projections；Phase 91 只允许 typed projection narrowing，不允许 orchestration backflow。
+
+
+## Phase 92 Redaction Convergence Notes
+
+- `custom_components/lipro/core/utils/redaction.py` is the single redaction contract / registry home for diagnostics / anonymous-share / telemetry; it now centralizes key normalization, secret-like detection, reference aliases, and string-pattern redaction.
+- `custom_components/lipro/control/redaction.py` remains the diagnostics-facing adapter; it no longer defines a second secret-detection story or a second public redaction surface.
+- `custom_components/lipro/core/anonymous_share/sanitize.py` remains the structure-preserving sanitizer; it is not a second public redaction surface and continues to keep share-specific markers / truncation local to the sink.
+- `custom_components/lipro/core/telemetry/{json_payloads.py,exporter.py}` remain telemetry-facing profile / projection homes and do not reintroduce a parallel sanitizer folklore beside the shared redaction contract.
+
+
+## Phase 93 Assurance Freeze Notes
+
+- `FILE_MATRIX.md`、`TESTING.md`、`VERIFICATION_MATRIX.md` 与 current-route docs 共同承认 assurance freeze 的最终治理事实；这些派生投影可以解释 topology，但不得再滞后于正式 route truth。
+- `tests/meta/test_phase31_runtime_budget_guards.py` 继续是 repo-wide typing-budget freeze home；Phase 93 通过 burn down accidental drift 关闭 topicization 尾差，而不是把更高的 `Any` 预算合法化。
+- quality-freeze closeout does not introduce a second public root: diagnostics sibling suites、route smoke、phase closeout assets 只强化现有 north-star surface，而不创造新的 outward API story.

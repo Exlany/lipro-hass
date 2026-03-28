@@ -5,13 +5,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from ..api.types import (
-    DeviceListResponse,
+    CommandResultApiResponse,
     JsonObject,
     LoginResponse,
     OtaInfoRow,
     ScheduleTimingRow,
 )
 from .contracts import (
+    CanonicalDeviceListPage,
     CanonicalDeviceStatusRow,
     CanonicalMeshGroupStatusRow,
     CanonicalMqttConfig,
@@ -71,9 +72,10 @@ async def get_devices(
     self: LiproProtocolFacade,
     offset: int = 0,
     limit: int = 100,
-) -> DeviceListResponse:
+) -> CanonicalDeviceListPage:
     """Return canonical device rows from the inventory child-facing port."""
-    return await self._rest_ports.inventory.get_devices(offset=offset, limit=limit)
+    payload = await self._rest_ports.inventory.get_devices(offset=offset, limit=limit)
+    return self.contracts.normalize_device_list_page(payload, offset=offset)
 
 
 async def get_product_configs(self: LiproProtocolFacade) -> list[JsonObject]:
@@ -89,11 +91,12 @@ async def query_device_status(
     on_batch_metric: StatusBatchMetric | None = None,
 ) -> list[CanonicalDeviceStatusRow]:
     """Query device status through the status child-facing port."""
-    return await self._rest_ports.status.query_device_status(
+    payload = await self._rest_ports.status.query_device_status(
         device_ids,
         max_devices_per_query=max_devices_per_query,
         on_batch_metric=on_batch_metric,
     )
+    return self.contracts.normalize_device_status_rows(payload)
 
 
 async def query_mesh_group_status(
@@ -101,7 +104,8 @@ async def query_mesh_group_status(
     group_ids: list[str],
 ) -> list[CanonicalMeshGroupStatusRow]:
     """Query mesh-group status through the status child-facing port."""
-    return await self._rest_ports.status.query_mesh_group_status(group_ids)
+    payload = await self._rest_ports.status.query_mesh_group_status(group_ids)
+    return self.contracts.normalize_mesh_group_status_rows(payload)
 
 
 async def query_connect_status(
@@ -150,7 +154,8 @@ async def send_group_command(
 
 async def get_mqtt_config(self: LiproProtocolFacade) -> CanonicalMqttConfig:
     """Fetch MQTT credentials through the misc child-facing port."""
-    return await self._rest_ports.misc.get_mqtt_config()
+    payload = await self._rest_ports.misc.get_mqtt_config()
+    return self.contracts.normalize_mqtt_config(payload)
 
 
 async def fetch_outlet_power_info(
@@ -167,7 +172,7 @@ async def query_command_result(
     msg_sn: str,
     device_id: str,
     device_type: int | str,
-) -> JsonObject:
+) -> CommandResultApiResponse:
     """Query command-result payload through the command child-facing port."""
     return await self._rest_ports.command.query_command_result(
         msg_sn=msg_sn,

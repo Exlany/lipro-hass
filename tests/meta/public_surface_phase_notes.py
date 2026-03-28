@@ -210,7 +210,7 @@ def test_phase_52_public_surface_notes_keep_single_protocol_root_and_request_pol
     )
     assert "protocol_facade_rest_methods.py" in file_matrix_text
     assert (
-        "support-only REST child-facing method surface for protocol root"
+        "canonical protocol live-verb normalization home over REST child ports"
         in file_matrix_text
     )
     assert "formal 429 / busy / pacing policy home" in file_matrix_text
@@ -467,3 +467,68 @@ def test_phase_68_public_surface_notes_capture_hotspot_helpers_and_mqtt_authorit
     assert "telemetry helper home for JSON-safe payload builders" in file_matrix_text
     assert "MQTT boundary-backed topic adapter" in file_matrix_text
     assert "MQTT authority ambiguity" in residual_text
+
+
+
+def test_phase_90_hotspot_freeze_public_surface_notes_are_explicit() -> None:
+    public_surfaces = _PUBLIC_SURFACES.read_text(encoding="utf-8")
+    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "## Phase 90 Hotspot Routing Freeze Notes" in public_surfaces
+    assert "formal homes" in public_surfaces
+    assert "client.py` 继续只保留 `LiproRestFacade` stable import shell / home" in public_surfaces
+    assert "protected thin adapter / projection / typed-access surfaces" in public_surfaces
+    for needle in (
+        "formal command-runtime orchestration home",
+        "canonical REST child-façade composition home",
+        "formal 429 / busy / pacing policy home",
+        "formal MQTT-runtime orchestration home",
+        "formal anonymous-share aggregate manager home",
+        "stable REST façade import shell / home",
+        "protected thin runtime read-model / typed access home",
+        "protected thin entity command / state projection shell",
+        "protected thin OTA projection shell after runtime-boundary tightening",
+    ):
+        assert needle in file_matrix_text
+
+
+
+def test_phase_91_protocol_and_thin_shell_public_surface_notes_are_explicit() -> None:
+    public_surfaces = _PUBLIC_SURFACES.read_text(encoding="utf-8")
+    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "## Phase 91 Canonical Boundary Notes" in public_surfaces
+    assert "protocol root" in public_surfaces
+    assert "rest_port.py` remains the raw REST child-facing port home" in public_surfaces
+    assert "protected thin shells / projections" in public_surfaces
+    for needle in (
+        "canonical protocol live-verb normalization home",
+        "typed REST child-façade port home",
+        "typed protocol-boundary decode result home",
+        "typed boundary decoder registry home",
+        "runtime/control public protocol surface and telemetry projection type home",
+        "focused no-regrowth guard home for Phase 91 typed-boundary hardening",
+    ):
+        assert needle in file_matrix_text
+
+
+
+def test_phase_93_assurance_freeze_notes_are_explicit() -> None:
+    public_surfaces = _PUBLIC_SURFACES.read_text(encoding="utf-8")
+    testing_text = (_ROOT / ".planning" / "codebase" / "TESTING.md").read_text(
+        encoding="utf-8"
+    )
+    developer_text = (_ROOT / "docs" / "developer_architecture.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "## Phase 93 Assurance Freeze Notes" in public_surfaces
+    assert "quality-freeze closeout does not introduce a second public root" in public_surfaces
+    assert "tests/meta/test_phase31_runtime_budget_guards.py" in public_surfaces
+    assert "## Phase 93 Testing Freeze" in testing_text
+    assert "assurance freeze proof" in testing_text
+    assert "## Phase 93 Assurance Freeze Notes" in developer_text

@@ -5,12 +5,19 @@ from __future__ import annotations
 from collections import deque
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from ...telemetry.models import (
     FailureSummary,
     build_failure_summary_from_exception,
     empty_failure_summary,
+)
+from ..types import (
+    CommandTrace,
+    ConnectStateEvent,
+    GroupReconciliationRequestEvent,
+    MetricMapping,
+    RuntimeTelemetrySnapshot,
 )
 
 if TYPE_CHECKING:
@@ -33,12 +40,12 @@ class CoordinatorTelemetryService:
     mqtt_runtime_getter: Callable[[], MqttRuntime]
     device_count_getter: Callable[[], int]
     polling_interval_seconds_getter: Callable[[], int | None]
-    _connect_state_events: deque[dict[str, Any]] = field(
+    _connect_state_events: deque[ConnectStateEvent] = field(
         default_factory=lambda: deque(maxlen=20),
         init=False,
         repr=False,
     )
-    _group_reconciliation_requests: deque[dict[str, Any]] = field(
+    _group_reconciliation_requests: deque[GroupReconciliationRequestEvent] = field(
         default_factory=lambda: deque(maxlen=20),
         init=False,
         repr=False,
@@ -93,18 +100,23 @@ class CoordinatorTelemetryService:
         self._failure_stage = None
         self._failure_summary = empty_failure_summary()
 
-    def build_snapshot(self) -> dict[str, Any]:
+    @staticmethod
+    def _failure_summary_mapping(summary: FailureSummary) -> MetricMapping:
+        return dict(summary)
+
+    def build_snapshot(self) -> RuntimeTelemetrySnapshot:
         """Build one runtime telemetry snapshot."""
         mqtt_runtime = self.mqtt_runtime_getter()
+        mqtt_snapshot: MetricMapping = {
+            "connected": self.mqtt_service.connected,
+            **mqtt_runtime.get_runtime_metrics(),
+        }
         return {
             "device_count": self.device_count_getter(),
             "polling_interval_seconds": self.polling_interval_seconds_getter(),
-            "failure_summary": dict(self._failure_summary),
+            "failure_summary": self._failure_summary_mapping(self._failure_summary),
             "last_runtime_failure_stage": self._failure_stage,
-            "mqtt": {
-                "connected": self.mqtt_service.connected,
-                **mqtt_runtime.get_runtime_metrics(),
-            },
+            "mqtt": mqtt_snapshot,
             "command": self.command_runtime.get_runtime_metrics(),
             "status": self.status_runtime.get_runtime_metrics(),
             "tuning": self.tuning_runtime.get_runtime_metrics(),
@@ -121,7 +133,7 @@ class CoordinatorTelemetryService:
             "recent_command_traces": self.command_runtime.get_recent_traces(limit=20),
         }
 
-    def get_recent_command_traces(self, limit: int | None = None) -> list[dict[str, Any]]:
+    def get_recent_command_traces(self, limit: int | None = None) -> list[CommandTrace]:
         """Return recent command traces for diagnostics consumers."""
         return self.command_runtime.get_recent_traces(limit=limit)
 

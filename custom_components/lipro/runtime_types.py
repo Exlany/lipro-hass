@@ -5,17 +5,23 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterable, Mapping
 from datetime import timedelta
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Protocol
 
 from homeassistant.core import CALLBACK_TYPE, callback
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
 
-    from .core.api.types import DiagnosticsApiResponse, OtaInfoRow, ScheduleTimingRow
+    from .core.api.types import (
+        DiagnosticsApiResponse,
+        JsonObject,
+        OtaInfoRow,
+        ScheduleTimingRow,
+    )
     from .core.command.result import CommandResultPayload
     from .core.coordinator.entity_protocol import LiproEntityProtocol
     from .core.coordinator.services.protocol_service import ScheduleMeshDeviceLike
+    from .core.coordinator.types import RuntimeTelemetrySnapshot
     from .core.device import LiproDevice
 
 
@@ -134,9 +140,9 @@ class ProtocolServiceLike(Protocol):
         device_type: str | int,
     ) -> CommandResultPayload: ...
 
-    async def async_get_city(self) -> dict[str, object]: ...
+    async def async_get_city(self) -> JsonObject: ...
 
-    async def async_query_user_cloud(self) -> dict[str, object]: ...
+    async def async_query_user_cloud(self) -> JsonObject: ...
 
     async def async_fetch_body_sensor_history(
         self,
@@ -215,7 +221,7 @@ class ProtocolTelemetryFacadeLike(Protocol):
 class RuntimeTelemetryServiceLike(Protocol):
     """Stable runtime telemetry surface consumed by control-plane bridges."""
 
-    def build_snapshot(self) -> Mapping[str, Any]: ...
+    def build_snapshot(self) -> RuntimeTelemetrySnapshot: ...
 
 
 class LiproRuntimeCoordinator(Protocol):

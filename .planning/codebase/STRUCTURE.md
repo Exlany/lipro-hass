@@ -1,8 +1,8 @@
 # Codebase Structure
 
-**Analysis Date:** 2026-03-27
+**Analysis Date:** 2026-03-28
 
-> Snapshot: `2026-03-27`
+> Snapshot: `2026-03-28`
 > Freshness: 基于仓库当前目录树、`README.md`、`docs/README.md`、`custom_components/lipro/manifest.json`、`.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md}` 与 `.planning/reviews/FILE_MATRIX.md` 的当前截面。
 > Derived collaboration map: 本文件是受约束的协作图谱 / 派生视图，仅用于导航、审阅与后续实现对齐。
 > Authority: 若与 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md}`、`.planning/baseline/*.md`、`.planning/reviews/*.md` 或 `docs/developer_architecture.md` 冲突，以后者为准；本文件不得反向充当当前治理真源。
@@ -192,3 +192,15 @@
 ---
 
 *Structure analysis: 2026-03-27*
+
+
+## Phase 90 Routing Freeze
+
+- Current navigation must treat `core/api/rest_facade.py`, `core/api/request_policy.py`, `core/coordinator/runtime/{command_runtime.py,mqtt_runtime.py}`, and `core/anonymous_share/manager.py` as retained formal homes.
+- `core/api/client.py` stays a stable import shell, while `__init__.py`, `control/runtime_access.py`, `entities/base.py`, and `entities/firmware_update.py` stay outward thin shells only.
+
+
+## Phase 91 Boundary Structure
+
+- `core/protocol/rest_port.py` remains the raw REST child-port layer, while canonical protocol verbs stay in `core/protocol/protocol_facade_rest_methods.py`.
+- `runtime_types.py`, `core/coordinator/types.py`, and `core/coordinator/services/telemetry_service.py` now form the shared typed telemetry spine for control/runtime projections.

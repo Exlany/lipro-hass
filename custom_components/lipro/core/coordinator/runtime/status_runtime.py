@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
+from ..types import RuntimeMetrics
 from .status import StatusExecutor, StatusScheduler, StatusStrategy
 
 if TYPE_CHECKING:
@@ -133,7 +134,7 @@ class StatusRuntime:
         )
 
     # Metrics
-    def get_runtime_metrics(self) -> dict[str, Any]:
+    def get_runtime_metrics(self) -> RuntimeMetrics:
         """Get combined runtime metrics."""
         return {
             "scheduler": self._scheduler.get_scheduling_metrics(),

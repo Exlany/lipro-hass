@@ -2,10 +2,10 @@
 
 
 **Status:** `Active milestone route`
-**Current route:** `v1.25 active route / Phase 90 planning-ready / latest archived baseline = v1.24`；latest archived evidence index = `.planning/reviews/V1_24_EVIDENCE_INDEX.md`.
-**Legacy route-string compatibility:** `v1.25 active route / Phase 90 planning-ready / latest archived baseline = v1.24`；latest archived closeout pointer = `.planning/reviews/V1_24_EVIDENCE_INDEX.md`.
+**Current route:** `v1.25 active route / Phase 93 complete / latest archived baseline = v1.24`；latest archived evidence index = `.planning/reviews/V1_24_EVIDENCE_INDEX.md`.
+**Legacy route-string compatibility:** `v1.25 active route / Phase 93 complete / latest archived baseline = v1.24`；latest archived closeout pointer = `.planning/reviews/V1_24_EVIDENCE_INDEX.md`.
 **Goal:** `以 v1.24 的归档证据为起点，把当前仍集中在 runtime/protocol/control/entity 热点中的复杂度，连同 typed boundary debt 与 redaction drift，一次性路由成新的正式里程碑，而不是继续把这些问题当作零散 residual 处理。`
-**Default next step:** `$gsd-discuss-phase 90` → `$gsd-plan-phase 90`
+**Default next step:** `$gsd-complete-milestone v1.25` → `$gsd-next`
 **Active baseline:** active milestone = `v1.25`；latest archived baseline = `v1.24`；previous archived baseline = `v1.23`.
 
 
@@ -16,11 +16,11 @@ contract_name: governance-route
 active_milestone:
   version: v1.25
   name: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
-  status: planning-ready (2026-03-27)
-  phase: '90'
-  phase_title: Hotspot routing freeze and formal-home decomposition map
-  phase_dir: 90-hotspot-routing-freeze-and-formal-home-decomposition-map
-  route_mode: v1.25 active route / Phase 90 planning-ready / latest archived baseline = v1.24
+  status: Phase 93 complete (2026-03-28)
+  phase: '93'
+  phase_title: Assurance topicization and quality freeze
+  phase_dir: 93-assurance-topicization-and-quality-freeze
+  route_mode: v1.25 active route / Phase 93 complete / latest archived baseline = v1.24
 latest_archived:
   version: v1.24
   name: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
@@ -36,8 +36,8 @@ previous_archived:
   name: Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
   evidence_path: .planning/reviews/V1_23_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.25 active route / Phase 90 planning-ready / latest archived baseline = v1.24
-  default_next_command: $gsd-discuss-phase 90
+  current_route: v1.25 active route / Phase 93 complete / latest archived baseline = v1.24
+  default_next_command: $gsd-complete-milestone v1.25
   latest_archived_evidence_pointer: .planning/reviews/V1_24_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -55,12 +55,22 @@ bootstrap:
 - strict typing 的真实高风险边界会从 `Any`/动态 payload 缩回更窄的 typed contracts，让类型系统与 focused guards 一起阻断 boundary drift。
 - diagnostics / anonymous-share 的脱敏策略会收口到单一可审计 contract；未知 secret-like 字段默认 fail-closed，而不是继续依赖两套 loosely coupled sanitizer。
 
-**Current status:** `planning-ready (2026-03-27)`
+**Current status:** `Phase 93 complete (2026-03-28)`
 **Phase range:** `Phase 90 -> 93`
 **Starting baseline:** `.planning/v1.24-MILESTONE-AUDIT.md, .planning/reviews/V1_24_EVIDENCE_INDEX.md, .planning/milestones/v1.24-ROADMAP.md, .planning/milestones/v1.24-REQUIREMENTS.md`
 **Requirements basket:** `HOT-40`, `ARC-24`, `TYP-23`, `SEC-01`, `TST-29`, `QLT-37`
-**Default next command:** `$gsd-discuss-phase 90`
-**Current follow-up target:** scope `Phase 90` and freeze the decomposition map before any implementation starts
+**Default next command:** `$gsd-complete-milestone v1.25`
+**Current follow-up target:** prepare milestone closeout / archive-promotion proof from the now-frozen assurance baseline
+**Phase 90 planning assets:** `.planning/phases/90-hotspot-routing-freeze-and-formal-home-decomposition-map/{90-CONTEXT.md,90-RESEARCH.md,90-01-PLAN.md,90-02-PLAN.md,90-03-PLAN.md}`
+**Phase 90 closeout:** `.planning/phases/90-hotspot-routing-freeze-and-formal-home-decomposition-map/{90-01-SUMMARY.md,90-02-SUMMARY.md,90-03-SUMMARY.md,90-VERIFICATION.md,90-VALIDATION.md}`
+**Phase 91 planning assets:** `.planning/phases/91-protocol-runtime-decomposition-and-typed-boundary-hardening/{91-CONTEXT.md,91-RESEARCH.md,91-01-PLAN.md,91-02-PLAN.md,91-03-PLAN.md}`
+**Phase 91 closeout:** `.planning/phases/91-protocol-runtime-decomposition-and-typed-boundary-hardening/{91-01-SUMMARY.md,91-02-SUMMARY.md,91-03-SUMMARY.md,91-VERIFICATION.md,91-VALIDATION.md}`
+
+**Phase 92 planning assets:** `.planning/phases/92-control-entity-thin-boundary-and-redaction-convergence/{92-CONTEXT.md,92-RESEARCH.md,92-01-PLAN.md,92-02-PLAN.md,92-03-PLAN.md}`
+**Phase 92 closeout:** `.planning/phases/92-control-entity-thin-boundary-and-redaction-convergence/{92-01-SUMMARY.md,92-02-SUMMARY.md,92-03-SUMMARY.md,92-VERIFICATION.md,92-VALIDATION.md}`
+
+**Phase 93 planning assets:** `.planning/phases/93-assurance-topicization-and-quality-freeze/{93-CONTEXT.md,93-RESEARCH.md,93-01-PLAN.md,93-02-PLAN.md,93-03-PLAN.md}`
+**Phase 93 closeout:** `.planning/phases/93-assurance-topicization-and-quality-freeze/{93-01-SUMMARY.md,93-02-SUMMARY.md,93-03-SUMMARY.md,93-VERIFICATION.md,93-VALIDATION.md}`
 
 ## Latest Archived Milestone (v1.24)
 

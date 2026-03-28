@@ -68,12 +68,7 @@ class _ConnectStateTrackerPort:
     def __init__(self, context: RuntimeContext) -> None:
         self._context = context
 
-    def record_connect_state(
-        self,
-        device_serial: str,
-        timestamp: float,
-        is_online: bool,
-    ) -> None:
+    def record_connect_state(self, device_serial: str, timestamp: float, is_online: bool) -> None:
         self._context.record_connect_state.record_connect_state(
             device_serial,
             timestamp,
@@ -85,11 +80,7 @@ class _GroupReconcilerPort:
     def __init__(self, context: RuntimeContext) -> None:
         self._context = context
 
-    def schedule_group_reconciliation(
-        self,
-        device_name: str,
-        timestamp: float,
-    ) -> None:
+    def schedule_group_reconciliation(self, device_name: str, timestamp: float) -> None:
         self._context.request_group_reconciliation.schedule_group_reconciliation(
             device_name,
             timestamp,
@@ -265,7 +256,11 @@ class RuntimeOrchestrator:
             device_ids: list[str],
         ) -> dict[str, dict[str, Any]]:
             rows = await self.protocol.query_device_status(device_ids)
-            return self.protocol.contracts.build_device_status_map(rows)
+            return {
+                row["deviceId"]: dict(row["properties"])
+                for row in rows
+                if row["deviceId"]
+            }
 
         async def _apply_properties_update(
             device: LiproDevice,

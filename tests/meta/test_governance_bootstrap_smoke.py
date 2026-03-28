@@ -36,7 +36,7 @@ def test_archived_only_bootstrap_contract_stays_current() -> None:
     assert f'**Latest archived pointer:** `{LATEST_ARCHIVED_EVIDENCE_PATH}`' in verification_text
     assert 'tests/meta/test_governance_bootstrap_smoke.py' in verification_text
     assert 'tests/meta/test_governance_route_handoff_smoke.py' in verification_text
-    assert 'tests/meta/test_phase89_entry_route_guards.py' in verification_text
+    assert 'tests/meta/test_phase92_redaction_convergence_guards.py' in verification_text
 
 
 def test_public_docs_keep_internal_bootstrap_story_hidden() -> None:
