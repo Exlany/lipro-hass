@@ -1,4 +1,4 @@
-"""Focused active-route guards for Phase 103 root thinning and terminology normalization."""
+"""Focused predecessor guards for Phase 103 root thinning and terminology normalization."""
 
 from __future__ import annotations
 
@@ -10,7 +10,6 @@ from .governance_contract_helpers import assert_testing_inventory_snapshot
 from .governance_current_truth import (
     CURRENT_MILESTONE_DEFAULT_NEXT,
     CURRENT_MILESTONE_STATUS,
-    CURRENT_PHASE,
     CURRENT_ROUTE,
 )
 
@@ -34,7 +33,7 @@ def _read(path: Path) -> str:
     return path.read_text(encoding='utf-8')
 
 
-def test_phase103_active_route_bundle_is_current_truth() -> None:
+def test_phase103_predecessor_bundle_remains_visible_under_phase104_route() -> None:
     project_text = _read(_PROJECT)
     roadmap_text = _read(_ROADMAP)
     requirements_text = _read(_REQUIREMENTS)
@@ -59,7 +58,7 @@ def test_phase103_active_route_bundle_is_current_truth() -> None:
 
     assert CURRENT_MILESTONE_STATUS in project_text
     assert CURRENT_MILESTONE_STATUS in roadmap_text
-    assert f'Phase {CURRENT_PHASE}' in state_text
+    assert '### Phase 103: Root adapter thinning, test topology second pass, and terminology contract normalization' in roadmap_text
     assert 'Phase 103 Root Adapter Thinning / Test Topology Second Pass / Terminology Contract Note' in dev_arch_text
     assert 'ADR-0005' in adr_text
     assert '# Phase 103 Verification' in verification_doc
@@ -77,7 +76,7 @@ def test_phase103_maps_and_ledgers_project_new_helper_homes() -> None:
     assert 'tests/topicized_collection.py' in file_matrix_text
     assert 'tests/coordinator_double.py' in file_matrix_text
     assert 'tests/meta/test_phase103_root_thinning_guards.py' in file_matrix_text
-    assert 'focused active-route guard home for Phase 103 root thinning / test topology / terminology normalization' in file_matrix_text
+    assert 'focused predecessor guard home for Phase 103 root thinning / test topology / terminology normalization' in file_matrix_text
     assert '## Phase 103 Residual Delta' in residual_text
     assert '## Phase 103 Status Update' in kill_text
     assert '## Phase 103 Testing Freeze' in testing_text

@@ -1,6 +1,6 @@
 # Roadmap
 
-- 🚧 **v1.29 Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization** - active route; `Phase 103` complete on 2026-03-28; next up `Phase 104`; latest archived baseline = `v1.28`; default next command: `$gsd-discuss-phase 104`
+- 🚧 **v1.29 Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization** - active route; `Phase 104` complete on 2026-03-28; next up `Phase 105`; latest archived baseline = `v1.28`; default next command: `$gsd-discuss-phase 105`
 - ✅ **v1.28 Governance Portability, Verification Stratification & Open-Source Continuity Hardening** - `Phase 102` archived on 2026-03-28; milestone audit: `.planning/v1.28-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_28_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.28-ROADMAP.md` / `.planning/milestones/v1.28-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.28`
 - ✅ **v1.27 Final Carry-Forward Eradication & Route Reactivation** - `Phase 98 -> 101` archived on 2026-03-28; milestone audit: `.planning/v1.27-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_27_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.27-ROADMAP.md` / `.planning/milestones/v1.27-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.27`
 - ✅ **v1.26 Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition** - `Phase 94 -> 97` archived on 2026-03-28; milestone audit: `.planning/v1.26-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_26_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.26-ROADMAP.md` / `.planning/milestones/v1.26-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.26`
@@ -13,11 +13,11 @@ contract_name: governance-route
 active_milestone:
   version: v1.29
   name: Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization
-  status: active / Phase 103 complete / continuation-ready (2026-03-28)
-  phase: '103'
-  phase_title: Root adapter thinning, test topology second pass, and terminology contract normalization
-  phase_dir: 103-root-adapter-thinning-test-topology-second-pass-and-terminology-contract-normalization
-  route_mode: v1.29 active route / Phase 103 complete / latest archived baseline = v1.28
+  status: active / Phase 104 complete / continuation-ready (2026-03-28)
+  phase: '104'
+  phase_title: Service-router family split and command-runtime second-pass decomposition
+  phase_dir: 104-service-router-family-split-and-command-runtime-second-pass-decomposition
+  route_mode: v1.29 active route / Phase 104 complete / latest archived baseline = v1.28
 latest_archived:
   version: v1.28
   name: Governance Portability, Verification Stratification & Open-Source Continuity Hardening
@@ -33,24 +33,24 @@ previous_archived:
   name: Final Carry-Forward Eradication & Route Reactivation
   evidence_path: .planning/reviews/V1_27_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.29 active route / Phase 103 complete / latest archived baseline = v1.28
-  default_next_command: $gsd-discuss-phase 104
+  current_route: v1.29 active route / Phase 104 complete / latest archived baseline = v1.28
+  default_next_command: $gsd-discuss-phase 105
   latest_archived_evidence_pointer: .planning/reviews/V1_28_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
 ## v1.29: Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization
 
-> `v1.29` 不重开产品路线，而是把 terminal audit 与本轮子代理再次同时点名的 residual hotspots 收缩成清晰的 active route：先薄化 HA 根入口与 pytest topology，再把术语契约显式化，随后继续推进 `service_router_handlers.py` / `command_runtime.py` 的 second-pass inward split 与治理规则数据化。
+> `v1.29` 不重开产品路线，而是把 terminal audit 与本轮子代理再次同时点名的 residual hotspots 收缩成清晰的 active route：先薄化 HA 根入口与 pytest topology，再把术语契约显式化，随后完成 `service_router_handlers.py` / `command_runtime.py` 的 second-pass inward split，并把治理规则数据化留给 `Phase 105`。
 
 **Milestone Goal:** 沿 `v1.28` latest archived baseline 的唯一 north-star 起点，把 root-thinning、test-topology second pass 与 terminology normalization 压回同一条 active 路线，并为后续 runtime / service-router 深拆保留明确 phase 边界。
-**Milestone status:** `active / Phase 103 complete / continuation-ready (2026-03-28)`
+**Milestone status:** `active / Phase 104 complete / continuation-ready (2026-03-28)`
 **Starting baseline:** `.planning/v1.28-MILESTONE-AUDIT.md`, `.planning/reviews/V1_28_EVIDENCE_INDEX.md`, `.planning/milestones/v1.28-ROADMAP.md`, `.planning/milestones/v1.28-REQUIREMENTS.md`
 **Requirements basket:** `ARC-26`, `TST-35`, `DOC-09`, `QLT-43`, `HOT-44`, `HOT-45`, `TST-36`, `GOV-69`, `QLT-44`
 **Latest archived baseline:** `v1.28`
 **Latest archived pointer:** `.planning/reviews/V1_28_EVIDENCE_INDEX.md`
-**Current route mode:** `v1.29 active route / Phase 103 complete / latest archived baseline = v1.28`
-**Default next command:** `$gsd-discuss-phase 104`
+**Current route mode:** `v1.29 active route / Phase 104 complete / latest archived baseline = v1.28`
+**Default next command:** `$gsd-discuss-phase 105`
 
 ### Phase 103: Root adapter thinning, test topology second pass, and terminology contract normalization
 **Goal:** 继续收窄 HA 根入口与 pytest giant fixture 壳，把 lazy-load / entry-auth / topicized collection / coordinator double 下沉到诚实的 helper homes，同时把 `support / surface / wiring / handlers / facade` 术语契约正式写入 ADR / developer architecture。 
@@ -64,8 +64,9 @@ bootstrap:
 **Goal:** 继续拆薄 `custom_components/lipro/control/service_router_handlers.py` 与 `custom_components/lipro/core/coordinator/runtime/command_runtime.py` 的热点密度，保持 outward contract 不变，只做 inward split。 
 **Depends on:** `Phase 103` complete
 **Requirements**: [HOT-44, HOT-45, TST-36]
-**Status**: Planned
-**Plans**: 0/0 complete
+**Status**: Complete (2026-03-28)
+**Plans**: 3/3 complete
+**Closeout assets**: `.planning/phases/104-service-router-family-split-and-command-runtime-second-pass-decomposition/{104-01-SUMMARY.md,104-02-SUMMARY.md,104-03-SUMMARY.md,104-VERIFICATION.md,104-VALIDATION.md}`
 
 ### Phase 105: Governance rule datafication and milestone freeze
 **Goal:** 继续把 `tests/meta` / `scripts/check_*` 中重复的治理规则真源表驱动化，并在 closeout 前同步 planning/baseline/review/docs truth。 

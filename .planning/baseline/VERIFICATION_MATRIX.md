@@ -8,10 +8,10 @@
 
 ## Current Active Route
 
-- **Current route story:** `v1.29 active route / Phase 103 complete / latest archived baseline = v1.28`
-- **Default next command:** `$gsd-discuss-phase 104`
+- **Current route story:** `v1.29 active route / Phase 104 complete / latest archived baseline = v1.28`
+- **Default next command:** `$gsd-discuss-phase 105`
 - **Latest archived pointer:** `.planning/reviews/V1_28_EVIDENCE_INDEX.md`
-- **Focused guards:** `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/test_phase90_hotspot_map_guards.py`, `tests/meta/test_phase91_typed_boundary_guards.py`, `tests/meta/test_phase92_redaction_convergence_guards.py`, `tests/meta/test_phase94_typed_boundary_guards.py`, `tests/meta/test_phase95_hotspot_decomposition_guards.py`, `tests/meta/test_phase96_sanitizer_burndown_guards.py`, `tests/meta/test_phase97_governance_assurance_freeze_guards.py`, `tests/meta/test_phase98_route_reactivation_guards.py`, `tests/meta/test_phase99_runtime_hotspot_support_guards.py`, `tests/meta/test_phase100_runtime_schedule_support_guards.py`, `tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py`, `tests/meta/test_phase102_governance_portability_guards.py`, `tests/meta/test_phase103_root_thinning_guards.py`, `tests/meta/test_public_surface_guards.py`, `tests/meta/test_dependency_guards.py`
+- **Focused guards:** `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/test_phase90_hotspot_map_guards.py`, `tests/meta/test_phase91_typed_boundary_guards.py`, `tests/meta/test_phase92_redaction_convergence_guards.py`, `tests/meta/test_phase94_typed_boundary_guards.py`, `tests/meta/test_phase95_hotspot_decomposition_guards.py`, `tests/meta/test_phase96_sanitizer_burndown_guards.py`, `tests/meta/test_phase97_governance_assurance_freeze_guards.py`, `tests/meta/test_phase98_route_reactivation_guards.py`, `tests/meta/test_phase99_runtime_hotspot_support_guards.py`, `tests/meta/test_phase100_runtime_schedule_support_guards.py`, `tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py`, `tests/meta/test_phase102_governance_portability_guards.py`, `tests/meta/test_phase103_root_thinning_guards.py`, `tests/meta/test_phase104_service_router_runtime_split_guards.py`, `tests/meta/test_public_surface_guards.py`, `tests/meta/test_dependency_guards.py`
 
 - 本文件是 `Phase 1.5` 及其下游 phases 的正式 acceptance truth；phase docs / summaries 只能引用、实例化或扩展，不得平行定义 exit contract。
 - 任一 phase 只有同时交付 requirement evidence、artifact updates、verification proof 与 governance disposition，才可宣称完成。
@@ -22,9 +22,15 @@
 - `.planning/codebase/*.md` 若被保留，必须通过 `README.md`、统一 derived collaboration map disclaimer、snapshot/freshness/authority 头部与治理守卫声明其从属身份，不能越权成为第二条 authority chain。
 - `.planning/baseline/GOVERNANCE_REGISTRY.json` 若更新，必须同步 public docs / contributor templates / release-contract tests，并明确 `break-glass verify-only` 与 `non-publish rehearsal` 是否新增或变更。
 
+## Phase 104 Service-router Family Split / Command-runtime Second-pass Decomposition
+
+- **Route truth:** `v1.29 active route / Phase 104 complete / latest archived baseline = v1.28`
+- **Focused guard:** `tests/meta/test_phase104_service_router_runtime_split_guards.py`
+- **Proof chain:** focused service-router/runtime pytest set → governance current-route guards → `check_file_matrix` → `ruff` → `mypy` → `gsd-tools state/progress/init-plan-phase/init-execute-phase/phase-plan-index`
+
 ## Phase 103 Root Adapter Thinning / Test Topology Second Pass / Terminology Contract Normalization
 
-- **Route truth:** `v1.29 active route / Phase 103 complete / latest archived baseline = v1.28`
+- **Route truth:** `v1.29 active route / Phase 104 complete / latest archived baseline = v1.28`
 - **Focused guard:** `tests/meta/test_phase103_root_thinning_guards.py`
 - **Proof chain:** focused Phase 103 root/test-topology pytest set → governance current-route guards → `check_file_matrix` → `ruff` → `mypy` → `gsd-tools state/progress/phase-plan-index`
 

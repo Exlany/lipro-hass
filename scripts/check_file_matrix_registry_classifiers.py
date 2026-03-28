@@ -54,6 +54,12 @@ _COMPONENT_EXACT_RULES: tuple[ExactRule, ...] = (
     ("custom_components/lipro/control/telemetry_surface.py", ("Control", "Phase 7.3", "保留", "-")),
     ("custom_components/lipro/services/diagnostics/helper_support.py", ("Control", "Phase 3", "保留", "diagnostics service mechanics support seam")),
     ("custom_components/lipro/control/entry_root_support.py", ("Control", "Phase 103", "保留", "root-entry lazy-load / entry-auth / service-registry adapter support home")),
+    ("custom_components/lipro/control/service_router_command_handlers.py", ("Control", "Phase 104", "保留", "focused command handler family home for service-router callbacks")),
+    ("custom_components/lipro/control/service_router_schedule_handlers.py", ("Control", "Phase 104", "保留", "focused schedule handler family home for service-router callbacks")),
+    ("custom_components/lipro/control/service_router_share_handlers.py", ("Control", "Phase 104", "保留", "focused anonymous-share handler family home for service-router callbacks")),
+    ("custom_components/lipro/control/service_router_diagnostics_handlers.py", ("Control", "Phase 104", "保留", "focused diagnostics/developer handler family home for service-router callbacks")),
+    ("custom_components/lipro/control/service_router_maintenance_handlers.py", ("Control", "Phase 104", "保留", "focused maintenance handler family home for service-router callbacks")),
+    ("custom_components/lipro/core/coordinator/runtime/command_runtime_outcome_support.py", ("Runtime", "Phase 104", "保留", "command-runtime localized outcome support collaborator")),
     ("custom_components/lipro/core/device/extras_support.py", ("Domain", "Phase 4", "重构", "DeviceExtras payload / panel parsing support helper home")),
 )
 
@@ -112,7 +118,8 @@ _TEST_EXACT_RULES: tuple[ExactRule, ...] = (
     ("tests/conftest_shared.py", ("Assurance", "Phase 6", "保留", "-")),
     ("tests/coordinator_double.py", ("Assurance", "Phase 103", "保留", "shared coordinator double helper home")),
     ("tests/topicized_collection.py", ("Assurance", "Phase 103", "保留", "topicized thin-shell collection hook home")),
-    ("tests/meta/test_phase103_root_thinning_guards.py", ("Assurance", "Phase 103", "保留", "focused active-route guard home for Phase 103 root thinning / test topology / terminology normalization")),
+    ("tests/meta/test_phase103_root_thinning_guards.py", ("Assurance", "Phase 103", "保留", "focused predecessor guard home for Phase 103 root thinning / test topology / terminology normalization")),
+    ("tests/meta/test_phase104_service_router_runtime_split_guards.py", ("Assurance", "Phase 104", "保留", "focused active-route guard home for Phase 104 service-router/runtime split")),
 )
 
 _TEST_PREFIX_RULES: tuple[PrefixRule, ...] = (

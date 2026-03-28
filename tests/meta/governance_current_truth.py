@@ -28,11 +28,11 @@ PLANNING_ROUTE_CONTRACT: dict[str, object] = {
     "active_milestone": {
         "version": "v1.29",
         "name": "Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization",
-        "status": "active / Phase 103 complete / continuation-ready (2026-03-28)",
-        "phase": "103",
-        "phase_title": "Root adapter thinning, test topology second pass, and terminology contract normalization",
-        "phase_dir": "103-root-adapter-thinning-test-topology-second-pass-and-terminology-contract-normalization",
-        "route_mode": "v1.29 active route / Phase 103 complete / latest archived baseline = v1.28",
+        "status": "active / Phase 104 complete / continuation-ready (2026-03-28)",
+        "phase": "104",
+        "phase_title": "Service-router family split and command-runtime second-pass decomposition",
+        "phase_dir": "104-service-router-family-split-and-command-runtime-second-pass-decomposition",
+        "route_mode": "v1.29 active route / Phase 104 complete / latest archived baseline = v1.28",
     },
     "latest_archived": {
         "version": "v1.28",
@@ -51,8 +51,8 @@ PLANNING_ROUTE_CONTRACT: dict[str, object] = {
         "evidence_path": ".planning/reviews/V1_27_EVIDENCE_INDEX.md",
     },
     "bootstrap": {
-        "current_route": "v1.29 active route / Phase 103 complete / latest archived baseline = v1.28",
-        "default_next_command": "$gsd-discuss-phase 104",
+        "current_route": "v1.29 active route / Phase 104 complete / latest archived baseline = v1.28",
+        "default_next_command": "$gsd-discuss-phase 105",
         "latest_archived_evidence_pointer": ".planning/reviews/V1_28_EVIDENCE_INDEX.md",
     },
 }
@@ -196,12 +196,13 @@ CURRENT_ROUTE_FOCUSED_GUARDS = (
     "tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py",
     "tests/meta/test_phase102_governance_portability_guards.py",
     "tests/meta/test_phase103_root_thinning_guards.py",
+    "tests/meta/test_phase104_service_router_runtime_split_guards.py",
     "tests/meta/test_public_surface_guards.py",
     "tests/meta/test_dependency_guards.py",
 )
-TESTS_PYTHON_FILE_COUNT = 398
-TESTS_RUNNABLE_FILE_COUNT = 316
-TESTS_META_SUITE_COUNT = 61
+TESTS_PYTHON_FILE_COUNT = 400
+TESTS_RUNNABLE_FILE_COUNT = 318
+TESTS_META_SUITE_COUNT = 62
 
 CURRENT_ROUTE_PROSE_FORBIDDEN = (
     "v1.20 active route / Phase 75 complete / latest archived baseline = v1.19",

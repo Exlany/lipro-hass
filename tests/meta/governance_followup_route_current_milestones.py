@@ -287,6 +287,7 @@ def test_current_v1_29_active_state_and_archive_pointers_align() -> None:
         _ROADMAP_TEXT,
         "## v1.29: Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization",
         "### Phase 103: Root adapter thinning, test topology second pass, and terminology contract normalization",
+        "### Phase 104: Service-router family split and command-runtime second-pass decomposition",
         CURRENT_MILESTONE_DEFAULT_NEXT,
         ".planning/reviews/V1_28_EVIDENCE_INDEX.md",
         ".planning/phases/103-root-adapter-thinning-test-topology-second-pass-and-terminology-contract-normalization/{103-01-SUMMARY.md,103-02-SUMMARY.md,103-03-SUMMARY.md,103-VERIFICATION.md,103-VALIDATION.md}",
@@ -298,11 +299,11 @@ def test_current_v1_29_active_state_and_archive_pointers_align() -> None:
         "| TST-35 | Phase 103 | Complete |",
         "| DOC-09 | Phase 103 | Complete |",
         "| QLT-43 | Phase 103 | Complete |",
-        "| HOT-44 | Phase 104 | Planned |",
+        "| HOT-44 | Phase 104 | Complete |",
         "- v1.29 routed requirements: 9 total",
         "- Current mapped: 9",
-        "- Current complete: 4",
-        "- Current pending: 5",
+        "- Current complete: 7",
+        "- Current pending: 2",
         LATEST_ARCHIVED_PROJECT_HEADER,
     )
     _assert_contains_all(
@@ -314,4 +315,4 @@ def test_current_v1_29_active_state_and_archive_pointers_align() -> None:
         LATEST_ARCHIVED_EVIDENCE_PATH,
         ".planning/v1.25-MILESTONE-AUDIT.md",
     )
-    assert CURRENT_MILESTONE_STATUS == "active / Phase 103 complete / continuation-ready (2026-03-28)"
+    assert CURRENT_MILESTONE_STATUS == "active / Phase 104 complete / continuation-ready (2026-03-28)"

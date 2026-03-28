@@ -432,6 +432,11 @@ _None currently registered._
 - `custom_components/lipro/__init__.py` 不再承担 lazy-load / entry-auth giant-root 叙事；对应支撑已下沉到 `control/entry_root_support.py`。
 - `tests/conftest.py` 不再继续吸附 topicized collection hooks 与 `_CoordinatorDouble` 细节；delete gate 改为防止这些职责回流到 giant fixture root。
 
+## Phase 104 Status Update
+
+- `custom_components/lipro/control/service_router_handlers.py` 不再继续作为 mixed family hotspot；它现在只保留 family index / import surface 角色。
+- `custom_components/lipro/core/coordinator/runtime/command_runtime.py` 继续冻结为 formal orchestration home；outcome bookkeeping / reauth handling 的 delete gate 改为防止这些职责重新长回正式 root。
+
 ## Phase 102 Status Update
 
 - 本 phase **无新增 active kill target**；它处理的是 archived-only governance/docs/evidence hardening，不是新的 file-level delete campaign。

@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.29
 milestone_name: Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization
-current_phase: '103'
+current_phase: '104'
 status: active
 last_updated: "2026-03-28T23:55:00.000Z"
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 3
   completed_plans: 3
 ---
@@ -20,16 +20,18 @@ See: `.planning/PROJECT.md`
 
 **Current milestone:** `v1.29 Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization`
 **Active milestone:** `v1.29`
-**Core value:** `以 v1.28 latest archived baseline 为唯一 north-star 起点，把 HA 根入口 / pytest topology / 术语 contract 的残留热点回收到诚实 formal homes，并为 Phase 104/105 留出清晰 continuation path。`
-**Current mode:** `v1.29 active route / Phase 103 complete / latest archived baseline = v1.28`
+**Core value:** `以 v1.28 latest archived baseline 为唯一 north-star 起点，把 HA 根入口 / pytest topology / 术语 contract 的残留热点回收到诚实 formal homes，并为 Phase 105 的治理数据化与里程碑冻结留出清晰 continuation path。`
+**Current mode:** `v1.29 active route / Phase 104 complete / latest archived baseline = v1.28`
 
 ## Current Position
 
 - `v1.28` 已完成 `Phase 102` 全部计划、focused closeout proof、repo-wide quality gates 与 milestone audit，现已升级为 latest archived baseline。
 - `Phase 103` 已把 `custom_components/lipro/__init__.py` 的 lazy-load / entry-auth / service-registry adapter 支撑抽回 `custom_components/lipro/control/entry_root_support.py`，HA 根入口继续只保留 thin adapter 职责。
 - `tests/conftest.py` 已把 topicized collection hooks 与 `_CoordinatorDouble` 下沉到 `tests/topicized_collection.py` / `tests/coordinator_double.py`，fixture giant-root 风险已开始收口。
-- `docs/adr/0005-entry-surface-terminology-contract.md` 已明确 `support / surface / wiring / handlers / facade` 的术语裁决，供 `Phase 104/105` 的热点拆分复用。
-- `Phase 104` / `Phase 105` 仍待执行；service-router family density、command-runtime second pass 与 governance rule datafication 尚未伪装成“已完成”。
+- `docs/adr/0005-entry-surface-terminology-contract.md` 已明确 `support / surface / wiring / handlers / facade` 的术语裁决，供已完成的 `Phase 104` split 与后续 `Phase 105` 治理数据化复用。
+- `Phase 104` 已把 `service_router_handlers.py` 收窄为 family index，并把 schedule/share/diagnostics/maintenance handler homes 显式化。
+- `Phase 104` 已把 `CommandRuntime` 的 outcome bookkeeping / reauth handling 抽到 `command_runtime_outcome_support.py`，formal orchestration root 仍留在 `command_runtime.py`。
+- `Phase 104` 已完成；service-router family density 与 command-runtime second pass 已不再是假性 residual，剩余未完成项只保留在 `Phase 105` governance rule datafication / milestone freeze。
 - maintainer/delegate continuity 仍是组织层高风险；本里程碑继续只负责技术与治理入口写清楚。
 
 <!-- governance-route-contract:start -->
@@ -39,11 +41,11 @@ contract_name: governance-route
 active_milestone:
   version: v1.29
   name: Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization
-  status: active / Phase 103 complete / continuation-ready (2026-03-28)
-  phase: '103'
-  phase_title: Root adapter thinning, test topology second pass, and terminology contract normalization
-  phase_dir: 103-root-adapter-thinning-test-topology-second-pass-and-terminology-contract-normalization
-  route_mode: v1.29 active route / Phase 103 complete / latest archived baseline = v1.28
+  status: active / Phase 104 complete / continuation-ready (2026-03-28)
+  phase: '104'
+  phase_title: Service-router family split and command-runtime second-pass decomposition
+  phase_dir: 104-service-router-family-split-and-command-runtime-second-pass-decomposition
+  route_mode: v1.29 active route / Phase 104 complete / latest archived baseline = v1.28
 latest_archived:
   version: v1.28
   name: Governance Portability, Verification Stratification & Open-Source Continuity Hardening
@@ -59,8 +61,8 @@ previous_archived:
   name: Final Carry-Forward Eradication & Route Reactivation
   evidence_path: .planning/reviews/V1_27_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.29 active route / Phase 103 complete / latest archived baseline = v1.28
-  default_next_command: $gsd-discuss-phase 104
+  current_route: v1.29 active route / Phase 104 complete / latest archived baseline = v1.28
+  default_next_command: $gsd-discuss-phase 105
   latest_archived_evidence_pointer: .planning/reviews/V1_28_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -68,13 +70,13 @@ bootstrap:
 ## Current Milestone (v1.29)
 - **Milestone:** `v1.29 Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization`
 - **Phase range:** `103 -> 105`
-- **Current phase:** `Phase 103`
-- **Milestone status:** `active / Phase 103 complete / continuation-ready (2026-03-28)`
+- **Current phase:** `Phase 104`
+- **Milestone status:** `active / Phase 104 complete / continuation-ready (2026-03-28)`
 - **Requirements basket:** `ARC-26`, `TST-35`, `DOC-09`, `QLT-43`, `HOT-44`, `HOT-45`, `TST-36`, `GOV-69`, `QLT-44`
 - **Milestone starting evidence:** `.planning/v1.28-MILESTONE-AUDIT.md`, `.planning/reviews/V1_28_EVIDENCE_INDEX.md`, `.planning/milestones/v1.28-ROADMAP.md`, `.planning/milestones/v1.28-REQUIREMENTS.md`
 - **Latest archived baseline:** `v1.28`
-- **Default next command:** `$gsd-discuss-phase 104`
-- **Current follow-up target:** `Phase 104` service-router family split / command-runtime second pass while preserving `v1.28` archived truth
+- **Default next command:** `$gsd-discuss-phase 105`
+- **Current follow-up target:** `Phase 105` governance rule datafication / milestone freeze while preserving `v1.28` archived truth
 
 ## Latest Archived Milestone (v1.28)
 - **Milestone:** `v1.28 Governance Portability, Verification Stratification & Open-Source Continuity Hardening`
@@ -165,7 +167,7 @@ bootstrap:
 
 ## Recommended Next Command
 
-1. `$gsd-discuss-phase 104` —— 进入 `Phase 104` 的下一跳，围绕 service-router family split 与 command-runtime second pass 开始上下文收集
+1. `$gsd-discuss-phase 105` —— 进入 `Phase 104` 的下一跳，围绕 service-router family split 与 command-runtime second pass 开始上下文收集
 2. `$gsd-next` —— 复核自动路由是否已稳定前推到 `Phase 104`
 3. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" state json` —— 复核 parser-stable `current_phase = 103` 与 `status = active`
 4. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" phase-plan-index 103` —— 复核 `Phase 103` 的 3/3 plans 已完成
@@ -182,10 +184,10 @@ If resuming, read in this order:
 3. `.planning/ROADMAP.md`
 4. `.planning/REQUIREMENTS.md`
 5. `.planning/STATE.md`
-6. `.planning/phases/103-root-adapter-thinning-test-topology-second-pass-and-terminology-contract-normalization/103-CONTEXT.md`
-7. `.planning/phases/103-root-adapter-thinning-test-topology-second-pass-and-terminology-contract-normalization/103-RESEARCH.md`
-8. `.planning/phases/103-root-adapter-thinning-test-topology-second-pass-and-terminology-contract-normalization/103-VERIFICATION.md`
-9. `.planning/phases/103-root-adapter-thinning-test-topology-second-pass-and-terminology-contract-normalization/103-VALIDATION.md`
+6. `.planning/phases/104-service-router-family-split-and-command-runtime-second-pass-decomposition/104-CONTEXT.md`
+7. `.planning/phases/104-service-router-family-split-and-command-runtime-second-pass-decomposition/104-RESEARCH.md`
+8. `.planning/phases/104-service-router-family-split-and-command-runtime-second-pass-decomposition/104-VERIFICATION.md`
+9. `.planning/phases/104-service-router-family-split-and-command-runtime-second-pass-decomposition/104-VALIDATION.md`
 10. `.planning/v1.28-MILESTONE-AUDIT.md`
 11. `.planning/reviews/V1_28_EVIDENCE_INDEX.md`
 12. `.planning/milestones/v1.28-ROADMAP.md`

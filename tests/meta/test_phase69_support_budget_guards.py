@@ -31,7 +31,7 @@ _PRODUCTION_IMPORT_LOCALITY = {
         "custom_components/lipro/runtime_infra.py",
     },
     "custom_components.lipro.services.schedule": {
-        "custom_components/lipro/control/service_router_handlers.py",
+        "custom_components/lipro/control/service_router_schedule_handlers.py",
     },
     "custom_components.lipro.core.api.client": {
         "custom_components/lipro/core/api/__init__.py",

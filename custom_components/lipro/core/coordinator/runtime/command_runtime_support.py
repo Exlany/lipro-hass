@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import logging
 from typing import TYPE_CHECKING, Literal, cast
 
 from ...command.result import (
     COMMAND_FAILURE_REASON_COMMAND_RESULT_FAILED,
     COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED,
     CommandFailurePayload,
+    apply_missing_msg_sn_failure,
+    apply_push_failure,
 )
 from ..types import CommandFailureSummary, CommandReauthReason, CommandTrace
 
@@ -86,10 +89,48 @@ def _build_failure_summary(
     return summary
 
 
+def _build_push_delivery_failure(
+    *,
+    request: _CommandRequest,
+    trace: CommandTrace,
+    route: str,
+    logger: logging.Logger,
+) -> CommandFailurePayload:
+    """Build the canonical push-failure payload for one dispatch attempt."""
+    return apply_push_failure(
+        trace=trace,
+        route=route,
+        command=request.command,
+        device_name=request.device.name,
+        device_serial=request.device.serial,
+        logger=logger,
+    )
+
+
+def _build_missing_msg_sn_failure(
+    *,
+    request: _CommandRequest,
+    trace: CommandTrace,
+    route: str,
+    logger: logging.Logger,
+) -> CommandFailurePayload:
+    """Build the canonical missing-msgSn payload for one dispatch attempt."""
+    return apply_missing_msg_sn_failure(
+        trace=trace,
+        route=route,
+        command=request.command,
+        device_name=request.device.name,
+        device_serial=request.device.serial,
+        logger=logger,
+    )
+
+
 __all__ = [
     'CommandProperties',
     '_CommandRequest',
     '_build_failure_summary',
+    '_build_missing_msg_sn_failure',
+    '_build_push_delivery_failure',
     '_coerce_error_type',
     '_command_result_failure_details',
     '_copy_summary',

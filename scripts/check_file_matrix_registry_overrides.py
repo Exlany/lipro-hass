@@ -256,7 +256,7 @@ BASE_OVERRIDE_TRUTH_FAMILIES = (
     )),
 
     OverrideTruthFamily(area="Control", owner_phase="Phase 37", fate="保留", rows=(
-        ("custom_components/lipro/control/service_router_handlers.py", "private control-plane handler implementations home"),
+        ("custom_components/lipro/control/service_router_handlers.py", "thin family index over focused service-router handler homes"),
         ("custom_components/lipro/control/service_router_support.py", "router lookup/logging/runtime-iterator helper home"),
         ("tests/core/test_init_runtime_bootstrap.py", "bootstrap/infrastructure topic home"),
         ("tests/core/test_init_runtime_registry_refresh.py", "registry-refresh topic home"),
@@ -434,7 +434,7 @@ PHASE_79_OVERRIDE_TRUTH_FAMILIES = (
         ("custom_components/lipro/core/anonymous_share/manager_support.py", "anonymous-share scope-state / pending aggregation helper home"),
         ("custom_components/lipro/core/api/status_fallback_support.py", "status fallback local recursion/logging support collaborator"),
         ("custom_components/lipro/core/api/schedule_service_support.py", "schedule-service local candidate batching/timeout/request support collaborator"),
-        ("custom_components/lipro/core/coordinator/runtime/command_runtime_support.py", "command-runtime local request/failure support collaborator"),
+        ("custom_components/lipro/core/coordinator/runtime/command_runtime_support.py", "command-runtime local request/summary support collaborator"),
         ("custom_components/lipro/core/coordinator/runtime/mqtt_runtime_support.py", "MQTT-runtime local transport/notification/background-task support collaborator"),
         ("tests/meta/test_phase94_typed_boundary_guards.py", "focused no-regrowth guard home for Phase 94 typed payload contraction"),
         ("tests/meta/test_phase95_hotspot_decomposition_guards.py", "focused no-regrowth guard home for Phase 95 hotspot inward decomposition"),

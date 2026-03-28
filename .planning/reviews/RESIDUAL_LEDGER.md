@@ -555,8 +555,13 @@ _None currently registered._
 
 ## Phase 103 Residual Delta
 
-- 新增 active residual 已显式收敛到 roadmap：`service_router_handlers.py` family density、`command_runtime.py` second pass、以及 governance rule datafication 已分别进入 `Phase 104/105`。
-- `Phase 103` 本身未引入新的 orphan residual family；root adapter / test topology / terminology debt 已转为显式已完成项。
+- `Phase 103` 未引入新的 orphan residual family；root adapter / test topology / terminology debt 已转为显式已完成项。
+- 它识别出的 active residual 已在 `Phase 104/105` 显式承接，不再漂浮为 conversation-only 漏项。
+
+## Phase 104 Residual Delta
+
+- `service_router_handlers.py` family density 与 `command_runtime.py` second pass 已完成 inward split，已不再列为 active residual。
+- `v1.29` 剩余 live residual 只保留 `Phase 105` 的 governance rule datafication / milestone freeze；本 phase 未新增新的 orphan residual family。
 
 ## Phase 102 Residual Delta
 

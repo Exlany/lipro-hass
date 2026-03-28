@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `v1.29 / Phase 103` active-route continuation (`2026-03-28`)
-> **Current route alignment**: `v1.29 active route / Phase 103 complete / latest archived baseline = v1.28` (`2026-03-28`)
+> **Last aligned through**: `v1.29 / Phase 104` active-route continuation (`2026-03-28`)
+> **Current route alignment**: `v1.29 active route / Phase 104 complete / latest archived baseline = v1.28` (`2026-03-28`)
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
@@ -293,3 +293,11 @@ custom_components/lipro/
 - `custom_components/lipro/domain_data.py` 现在明确暴露 `dict[str, object]`，`entities/base.py` 继续作为 `CoordinatorEntity[LiproRuntimeCoordinator]` 的 protected thin shell。
 - `control/diagnostics_surface.py` / `diagnostics.py` 与 `core/api/{command_api_service,status_fallback,transport_core}.py` 已把 broad payload seam 收回 JSON-like / mapping-safe contract，`transport_core` 在协议边界处强制验证 mapping 响应。
 - `tests/meta/test_phase94_typed_boundary_guards.py` 负责冻结这批 seam 的 no-regrowth truth；当前 active route 已前推到 `Phase 95 execution-ready`，后续只允许继续 inward split 热点。
+
+
+## Phase 104 Service-router Family Split / Command-runtime Second-pass Note
+
+- `Phase 104` 把 `control/service_router_handlers.py` 收窄为 thin family index，真正的 callback family 已拆到 `service_router_{command,schedule,share,diagnostics,maintenance}_handlers.py`。
+- `service_router.py` 继续是 formal control callback home；本 phase 没有把 family split 反向讲成第二条 control-plane root。
+- `command_runtime.py` 继续是 formal command-runtime orchestration home，而 `command_runtime_outcome_support.py` 只承接 outcome bookkeeping、command-result failure normalization 与 reauth error handling。
+- `Phase 105` 才继续处理 governance rule datafication / milestone freeze；`Phase 104` 不把未完成 closeout 伪装成已归档事实。

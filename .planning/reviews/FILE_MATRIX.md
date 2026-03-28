@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 723
+**Python files total:** 731
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -39,7 +39,12 @@
 | `custom_components/lipro/control/runtime_access_types.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/service_registry.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/service_router.py` | Control | Phase 3 / 14 / 15 / 37 | 保留 | public router shell over focused handler/support collaborators |
-| `custom_components/lipro/control/service_router_handlers.py` | Control | Phase 37 | 保留 | private control-plane handler implementations home |
+| `custom_components/lipro/control/service_router_command_handlers.py` | Control | Phase 104 | 保留 | focused command handler family home for service-router callbacks |
+| `custom_components/lipro/control/service_router_diagnostics_handlers.py` | Control | Phase 104 | 保留 | focused diagnostics/developer handler family home for service-router callbacks |
+| `custom_components/lipro/control/service_router_handlers.py` | Control | Phase 37 | 保留 | thin family index over focused service-router handler homes |
+| `custom_components/lipro/control/service_router_maintenance_handlers.py` | Control | Phase 104 | 保留 | focused maintenance handler family home for service-router callbacks |
+| `custom_components/lipro/control/service_router_schedule_handlers.py` | Control | Phase 104 | 保留 | focused schedule handler family home for service-router callbacks |
+| `custom_components/lipro/control/service_router_share_handlers.py` | Control | Phase 104 | 保留 | focused anonymous-share handler family home for service-router callbacks |
 | `custom_components/lipro/control/service_router_support.py` | Control | Phase 37 | 保留 | router lookup/logging/runtime-iterator helper home |
 | `custom_components/lipro/control/system_health_surface.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/telemetry_surface.py` | Control | Phase 7.3 | 保留 | - |
@@ -140,7 +145,8 @@
 | `custom_components/lipro/core/coordinator/runtime/command/retry.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/command/sender.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/command_runtime.py` | Runtime | Phase 90 | 重构 | formal command-runtime orchestration home with inward trace / failure helpers and support-backed request / failure helpers |
-| `custom_components/lipro/core/coordinator/runtime/command_runtime_support.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 | 保留 | command-runtime local request/failure support collaborator |
+| `custom_components/lipro/core/coordinator/runtime/command_runtime_outcome_support.py` | Runtime | Phase 104 | 保留 | command-runtime localized outcome support collaborator |
+| `custom_components/lipro/core/coordinator/runtime/command_runtime_support.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 | 保留 | command-runtime local request/summary support collaborator |
 | `custom_components/lipro/core/coordinator/runtime/device/__init__.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/device/batch_optimizer.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/device/filter.py` | Runtime | Phase 5 | 重构 | - |
@@ -412,6 +418,7 @@
 | `tests/core/coordinator/runtime/test_command_runtime_builder_retry.py` | Runtime | Phase 5 / 6 / 74 | 保留 | CommandRuntime builder/retry topic home |
 | `tests/core/coordinator/runtime/test_command_runtime_confirmation.py` | Runtime | Phase 5 / 6 / 74 | 保留 | CommandRuntime confirmation topic home |
 | `tests/core/coordinator/runtime/test_command_runtime_orchestration.py` | Runtime | Phase 5 / 6 / 74 | 保留 | CommandRuntime orchestration topic home |
+| `tests/core/coordinator/runtime/test_command_runtime_outcome_support.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/runtime/test_command_runtime_sender.py` | Runtime | Phase 5 / 6 / 74 | 保留 | CommandRuntime sender topic home |
 | `tests/core/coordinator/runtime/test_command_runtime_support.py` | Runtime | Phase 5 / 6 / 74 | 保留 | shared helper root for CommandRuntime topicized suites |
 | `tests/core/coordinator/runtime/test_device_runtime.py` | Runtime | Phase 5 / 6 | 保留 | - |
@@ -635,7 +642,8 @@
 | `tests/meta/test_phase100_runtime_schedule_support_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 | 保留 | focused predecessor guard home for Phase 100 MQTT/runtime schedule support extraction / governance freeze |
 | `tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 | 保留 | focused predecessor guard home for Phase 101 anonymous-share / REST-boundary hotspot decomposition / governance freeze |
 | `tests/meta/test_phase102_governance_portability_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 | 保留 | focused latest-archived guard home for Phase 102 governance portability / verification stratification / open-source continuity hardening |
-| `tests/meta/test_phase103_root_thinning_guards.py` | Assurance | Phase 103 | 保留 | focused active-route guard home for Phase 103 root thinning / test topology / terminology normalization |
+| `tests/meta/test_phase103_root_thinning_guards.py` | Assurance | Phase 103 | 保留 | focused predecessor guard home for Phase 103 root thinning / test topology / terminology normalization |
+| `tests/meta/test_phase104_service_router_runtime_split_guards.py` | Assurance | Phase 104 | 保留 | focused active-route guard home for Phase 104 service-router/runtime split |
 | `tests/meta/test_phase31_runtime_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase45_hotspot_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase50_rest_typed_budget_guards.py` | Assurance | Phase 6 | 保留 | - |

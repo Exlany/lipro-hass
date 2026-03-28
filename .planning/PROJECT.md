@@ -2,9 +2,9 @@
 
 
 **Status:** `Active milestone: v1.29`
-**Current route:** `v1.29 active route / Phase 103 complete / latest archived baseline = v1.28`；latest archived evidence index = `.planning/reviews/V1_28_EVIDENCE_INDEX.md`.
-**Goal:** `以 v1.28 latest archived baseline 为唯一 north-star 起点，把 HA 根入口 / pytest topology / 术语 contract 的残留热点继续压回 formal homes，并为 Phase 104/105 的 runtime/service-router 深拆与治理数据化开路。`
-**Default next step:** `$gsd-discuss-phase 104`
+**Current route:** `v1.29 active route / Phase 104 complete / latest archived baseline = v1.28`；latest archived evidence index = `.planning/reviews/V1_28_EVIDENCE_INDEX.md`.
+**Goal:** `以 v1.28 latest archived baseline 为唯一 north-star 起点，把 HA 根入口 / pytest topology / 术语 contract 的残留热点继续压回 formal homes，并为 Phase 105 的治理规则数据化与里程碑冻结开路。`
+**Default next step:** `$gsd-discuss-phase 105`
 **Active baseline:** active milestone = `v1.29`；latest archived baseline = `v1.28`；previous archived baseline = `v1.27`.
 
 
@@ -15,11 +15,11 @@ contract_name: governance-route
 active_milestone:
   version: v1.29
   name: Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization
-  status: active / Phase 103 complete / continuation-ready (2026-03-28)
-  phase: '103'
-  phase_title: Root adapter thinning, test topology second pass, and terminology contract normalization
-  phase_dir: 103-root-adapter-thinning-test-topology-second-pass-and-terminology-contract-normalization
-  route_mode: v1.29 active route / Phase 103 complete / latest archived baseline = v1.28
+  status: active / Phase 104 complete / continuation-ready (2026-03-28)
+  phase: '104'
+  phase_title: Service-router family split and command-runtime second-pass decomposition
+  phase_dir: 104-service-router-family-split-and-command-runtime-second-pass-decomposition
+  route_mode: v1.29 active route / Phase 104 complete / latest archived baseline = v1.28
 latest_archived:
   version: v1.28
   name: Governance Portability, Verification Stratification & Open-Source Continuity Hardening
@@ -35,8 +35,8 @@ previous_archived:
   name: Final Carry-Forward Eradication & Route Reactivation
   evidence_path: .planning/reviews/V1_27_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.29 active route / Phase 103 complete / latest archived baseline = v1.28
-  default_next_command: $gsd-discuss-phase 104
+  current_route: v1.29 active route / Phase 104 complete / latest archived baseline = v1.28
+  default_next_command: $gsd-discuss-phase 105
   latest_archived_evidence_pointer: .planning/reviews/V1_28_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -47,23 +47,24 @@ bootstrap:
 
 **Why it matters:** `v1.28` 已把治理 portability 与 latest archived closeout bundle 冻结为 pull-only baseline，但 terminal audit 与本轮子代理仍同时指向三类高 ROI 残留：HA 根入口仍过厚、pytest topicized routing 仍集中在 `tests/conftest.py`、以及 support/surface/wiring/handlers/facade 术语在代码与文档层仍存在认知重叠。`
 
-**North-star fit:** `v1.29` 不重开第二主链，也不把刚归档的 `v1.28` closeout bundle 回写成 live debt；它只沿既有 formal homes 做 thin-adapter 收窄、test-topology second pass 与 terminology contract normalization，并把更重的 runtime/service-router 深拆明确延后到 `Phase 104/105`。`
+**North-star fit:** `v1.29` 不重开第二主链，也不把刚归档的 `v1.28` closeout bundle 回写成 live debt；它只沿既有 formal homes 做 thin-adapter 收窄、test-topology second pass 与 terminology contract normalization，并把治理规则数据化与 milestone freeze 继续留给 `Phase 105`。`
 
-**Current status:** `active / Phase 103 complete / continuation-ready (2026-03-28)`
+**Current status:** `active / Phase 104 complete / continuation-ready (2026-03-28)`
 **Phase range:** `Phase 103 -> 105`
 **Starting baseline:** `.planning/v1.28-MILESTONE-AUDIT.md`, `.planning/reviews/V1_28_EVIDENCE_INDEX.md`, `.planning/milestones/v1.28-ROADMAP.md`, `.planning/milestones/v1.28-REQUIREMENTS.md`
 **Requirements basket:** `ARC-26`, `TST-35`, `DOC-09`, `QLT-43`, `HOT-44`, `HOT-45`, `TST-36`, `GOV-69`, `QLT-44`
 **Latest archived baseline:** `v1.28`
 **Latest archived pointer:** `.planning/reviews/V1_28_EVIDENCE_INDEX.md`
-**Current route mode:** `v1.29 active route / Phase 103 complete / latest archived baseline = v1.28`
-**Default next command:** `$gsd-discuss-phase 104`
-**Current follow-up target:** `Phase 104` service-router family split + command-runtime second-pass inward decomposition，同时保持 `v1.28` closeout bundle 继续作为 latest archived baseline。
+**Current route mode:** `v1.29 active route / Phase 104 complete / latest archived baseline = v1.28`
+**Default next command:** `$gsd-discuss-phase 105`
+**Current follow-up target:** `Phase 105` governance rule datafication + milestone freeze，同时保持 `v1.28` closeout bundle 继续作为 latest archived baseline。
 
 **Key accomplishments so far:**
 - `Phase 103` 已把 `custom_components/lipro/__init__.py` 的 lazy-load / entry-auth / service-registry adapter 支撑抽回 `custom_components/lipro/control/entry_root_support.py`，根入口继续只保留 thin adapter 装配。
 - `tests/conftest.py` 已把 topicized collection hooks 与 `_CoordinatorDouble` 下沉到 `tests/topicized_collection.py` / `tests/coordinator_double.py`，降低 fixture 巨石继续吸附治理真相的风险。
-- `docs/adr/0005-entry-surface-terminology-contract.md` 已正式定义 `support / surface / wiring / handlers / facade` 的命名裁决，为后续 `Phase 104/105` 的热点拆分提供统一语言。
-- `Phase 104 / 105` 已被显式写入 active roadmap，而不是继续作为 conversation-only TODO 漂浮。
+- `docs/adr/0005-entry-surface-terminology-contract.md` 已正式定义 `support / surface / wiring / handlers / facade` 的命名裁决，为已完成的 `Phase 104` split 与后续 `Phase 105` 治理数据化提供统一语言。
+- `Phase 104` 已把 `custom_components/lipro/control/service_router_handlers.py` 拆为 focused handler families，并把 `CommandRuntime` outcome bookkeeping / reauth handling 下沉到 localized outcome-support home。
+- `Phase 104` 已把 service-router handler family 与 command-runtime outcome support 分拆落到 focused formal homes；`Phase 105` 继续只剩 governance rule datafication / milestone freeze。
 
 ## Latest Archived Milestone (v1.28)
 

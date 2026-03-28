@@ -42,6 +42,7 @@ _TOPICIZED_THIN_SHELLS = {
         "tests/core/coordinator/runtime/test_command_runtime_sender.py",
         "tests/core/coordinator/runtime/test_command_runtime_confirmation.py",
         "tests/core/coordinator/runtime/test_command_runtime_orchestration.py",
+        "tests/core/coordinator/runtime/test_command_runtime_outcome_support.py",
     },
     "tests/core/coordinator/runtime/test_mqtt_runtime.py": {
         "tests/core/coordinator/runtime/test_mqtt_runtime_connection.py",
