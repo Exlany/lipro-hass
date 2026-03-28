@@ -30,7 +30,7 @@ uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro 
 **Location:**
 - Tests live in a dedicated `tests/` tree, not beside production files.
 - Current topology is broad and intentional: `tests/core`, `tests/services`, `tests/flows`, `tests/platforms`, `tests/entities`, `tests/meta`, `tests/integration`, `tests/snapshots`, `tests/benchmarks`, `tests/harness`, and `tests/fixtures`.
-- Repository counts from current scanning: `390` Python files under `tests`, `310` runnable `test_*.py` files, `55` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
+- Repository counts from current scanning: `391` Python files under `tests`, `311` runnable `test_*.py` files, `56` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
 
 **Naming:**
 - Use `test_*.py` everywhere.
@@ -55,12 +55,13 @@ tests/
 
 ## Historical Phase Notes
 
-- Phase 55: 当前仓库共有 `310` 个 `test_*.py` 文件，topicized thin shells 继续覆盖 command-surface、transport-runtime 与 light/fan/select/switch suites。
+- Phase 55: 当前仓库共有 `311` 个 `test_*.py` 文件，topicized thin shells 继续覆盖 command-surface、transport-runtime 与 light/fan/select/switch suites。
 - Phase 59: `tests/core/test_device_refresh_{parsing,filter,snapshot,runtime}.py` 继续作为 localized device-refresh verification note；topicized meta note carriers 与 verification anchors 保持分离。
 - Phase 88: `tests/meta/test_phase88_governance_quality_freeze_guards.py` 继续作为 focused guard home for phase-88 governance/evidence freeze。
 - Phase 90: `tests/meta/test_phase90_hotspot_map_guards.py` 继续作为 focused guard home for five formal homes / four protected thin shells / delete-gate freeze truth。
 - Phase 96: `tests/meta/test_phase96_sanitizer_burndown_guards.py` 继续作为 focused guard home for diagnostics/telemetry/anonymous-share sanitizer burn-down truth。
-- Phase 97: `tests/meta/test_phase97_governance_assurance_freeze_guards.py` 继续作为 focused guard home for current-route / file-testing-map / developer-architecture closeout truth。
+- Phase 97: `tests/meta/test_phase97_governance_assurance_freeze_guards.py` 继续作为 focused guard home for v1.26 archived closeout bundle / developer-architecture historical note truth。
+- Phase 98: `tests/meta/test_phase98_route_reactivation_guards.py` 继续作为 focused guard home for current-route reactivation / file-testing-map / developer-architecture closeout truth。
 
 ## Test Structure
 
@@ -233,6 +234,12 @@ with pytest.raises(ServiceValidationError):
 
 ## Phase 97 Testing Freeze
 
-- `tests/meta/test_phase97_governance_assurance_freeze_guards.py` 继续冻结 route-governance、developer-architecture、matrix/testing counts 与 archive-handoff truth；`v1.26` 完成 archive promotion 后，`$gsd-next` 的自然落点必须稳定收口到 `$gsd-new-milestone`，不得回退到已完成的 milestone closeout 命令。
-- `tests/meta/test_governance_bootstrap_smoke.py`、`tests/meta/test_governance_route_handoff_smoke.py` 与 `tests/meta/governance_followup_route_current_milestones.py` 共同保证 current-route prose、machine contract 与 quality proof 不再分叉。
-- Phase 97 verification requires focused governance guards、`tests/meta`、`scripts/check_file_matrix.py --check`、`ruff` 与 `mypy` 一起通过，之后 current route 才允许进入 milestone archive/closeout。
+- `tests/meta/test_phase97_governance_assurance_freeze_guards.py` 继续冻结 `v1.26` archived closeout bundle、historical closeout marker、developer-architecture phase note 与 latest archived pointer truth；它不再承担 live current-route guard 身份。
+- `tests/meta/test_governance_bootstrap_smoke.py`、`tests/meta/test_governance_route_handoff_smoke.py` 与 `tests/meta/governance_followup_route_current_milestones.py` 共同保证 `Phase 97` archived truth 仍可被 pull，而不会被 `v1.27` current route 反向污染。
+- Phase 97 historical-closeout verification requires focused governance guards、`tests/meta`、`scripts/check_file_matrix.py --check`、`ruff` 与 `mypy` 一起通过，之后 `v1.26` latest archived baseline 才算稳定可拉取。
+
+## Phase 98 Testing Freeze
+
+- `tests/meta/test_phase98_route_reactivation_guards.py` 继续冻结 current-route reactivation、developer-architecture current note、matrix/testing counts 与 `Phase 98` bundle / next-step truth；`$gsd-next` 的自然落点必须稳定收口到 `$gsd-complete-milestone v1.27`。
+- `tests/meta/test_governance_route_handoff_smoke.py`、`tests/meta/governance_followup_route_current_milestones.py`、`tests/meta/test_phase97_governance_assurance_freeze_guards.py` 与 `tests/meta/test_phase90_hotspot_map_guards.py` 共同保证 current-route prose、machine contract、historical archived truth 与 hotspot freeze notes 不再分叉。
+- Phase 98 verification requires focused governance guards、`tests/meta`、`scripts/check_file_matrix.py --check`、`ruff` 与 `mypy` 一起通过，之后 current route 才允许进入 milestone archive/closeout。

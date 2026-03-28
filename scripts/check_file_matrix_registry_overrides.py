@@ -436,6 +436,7 @@ PHASE_79_OVERRIDE_TRUTH_FAMILIES = (
         ("tests/meta/test_phase95_hotspot_decomposition_guards.py", "focused no-regrowth guard home for Phase 95 hotspot inward decomposition"),
         ("tests/meta/test_phase96_sanitizer_burndown_guards.py", "focused no-regrowth guard home for Phase 96 sanitizer burn-down"),
         ("tests/meta/test_phase97_governance_assurance_freeze_guards.py", "focused closeout guard home for Phase 97 governance / assurance freeze"),
+        ("tests/meta/test_phase98_route_reactivation_guards.py", "focused current-route guard home for Phase 98 reactivation / carry-forward closure"),
     )),
 )
 

@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.26
-milestone_name: Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition
-current_phase: null
-status: complete
-last_updated: "2026-03-28T12:00:00.000Z"
+milestone: v1.27
+milestone_name: Final Carry-Forward Eradication & Route Reactivation
+current_phase: '98'
+status: active
+last_updated: "2026-03-28T13:40:30.530Z"
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 12
-  completed_plans: 12
+  total_phases: 1
+  completed_phases: 1
+  total_plans: 3
+  completed_plans: 3
 ---
 
 # Project State
@@ -18,23 +18,30 @@ progress:
 
 See: `.planning/PROJECT.md`
 
-**Current milestone:** `No active milestone route`
-**Active milestone:** `none`
-**Core value:** `以 v1.26 的 archived baseline 作为下一里程碑唯一 north-star 起点，避免 closeout truth 与后续实现故事再度分叉。`
-**Current mode:** `no active milestone route / latest archived baseline = v1.26`
+**Current milestone:** `v1.27 Final Carry-Forward Eradication & Route Reactivation`
+**Active milestone:** `v1.27`
+**Core value:** `以 v1.26 latest archived baseline 为唯一 north-star 起点，把真实已完成的 carry-forward eradication 与 current-route truth 重新收口成一条 active / closeout-ready 主线。`
+**Current mode:** `v1.27 active route / Phase 98 complete / latest archived baseline = v1.26`
 
 ## Current Position
 
 - `v1.26` 已完成 `Phase 94 -> 97` 全部计划、focused closeout proof、repo-wide quality gates 与 milestone audit，现已升级为 latest archived baseline。
-- `.planning/v1.26-MILESTONE-AUDIT.md`、`.planning/reviews/V1_26_EVIDENCE_INDEX.md`、`.planning/milestones/v1.26-ROADMAP.md` 与 `.planning/milestones/v1.26-REQUIREMENTS.md` 共同承担 latest archived baseline 的 pull-only bundle；它们不再承载 active route truth，而是作为下一里程碑的唯一起点。
-- 当前没有 active phase；下一步应通过 `$gsd-new-milestone` 显式启动新的 milestone，而不是在 `v1.26` 上继续堆叠临时实现。
-- 若下一里程碑继续处理组织治理或 compat carry-forward，仍必须同步回写 `FILE_MATRIX / RESIDUAL_LEDGER / KILL_LIST` 并给出显式 delete gate。
+- `Phase 98` 已把 `outlet_power` legacy side-car fallback 的物理删除、route reactivation、focused guards 与 planning closeout bundle 重新织回同一条 parser-stable current story。
+- 当前 active route 已进入 `Phase 98 complete / closeout-ready`；后续只剩 milestone closeout 与 archive promotion。
+- maintainer/delegate continuity 仍是组织层高风险；本里程碑只负责把技术与治理入口写清楚，不伪装成可被单次代码提交解决。
 
 <!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone: null
+active_milestone:
+  version: v1.27
+  name: Final Carry-Forward Eradication & Route Reactivation
+  status: active / closeout-ready (2026-03-28)
+  phase: '98'
+  phase_title: Carry-forward eradication, route reactivation, and closeout proof
+  phase_dir: 98-carry-forward-eradication-route-reactivation-and-closeout-proof
+  route_mode: v1.27 active route / Phase 98 complete / latest archived baseline = v1.26
 latest_archived:
   version: v1.26
   name: Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition
@@ -50,11 +57,22 @@ previous_archived:
   name: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
   evidence_path: .planning/reviews/V1_25_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.26
-  default_next_command: $gsd-new-milestone
+  current_route: v1.27 active route / Phase 98 complete / latest archived baseline = v1.26
+  default_next_command: $gsd-complete-milestone v1.27
   latest_archived_evidence_pointer: .planning/reviews/V1_26_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
+
+## Current Milestone (v1.27)
+- **Milestone:** `v1.27 Final Carry-Forward Eradication & Route Reactivation`
+- **Phase range:** `98 -> 98`
+- **Current phase:** `Phase 98`
+- **Milestone status:** `active / closeout-ready (2026-03-28)`
+- **Requirements basket:** `RES-15`, `GOV-65`, `TST-31`, `QLT-39`
+- **Milestone starting evidence:** `.planning/v1.26-MILESTONE-AUDIT.md`, `.planning/reviews/V1_26_EVIDENCE_INDEX.md`, `.planning/milestones/v1.26-ROADMAP.md`, `.planning/milestones/v1.26-REQUIREMENTS.md`
+- **Latest archived baseline:** `v1.26`
+- **Default next command:** `$gsd-complete-milestone v1.27`
+- **Current follow-up target:** complete milestone audit / archive promotion for `v1.27` without regressing `v1.26` archived truth
 
 ## Latest Archived Milestone (v1.26)
 - **Milestone:** `v1.26 Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition`
@@ -62,14 +80,10 @@ bootstrap:
 - **Latest archived phase:** `Phase 97`
 - **Milestone status:** `archived / evidence-ready (2026-03-28)`
 - **Requirements basket:** `TYP-24`, `HOT-41`, `SEC-02`, `ARC-25`, `TST-30`, `QLT-38`
-- **Milestone starting evidence:** `.planning/v1.25-MILESTONE-AUDIT.md`, `.planning/reviews/V1_25_EVIDENCE_INDEX.md`, `.planning/milestones/v1.25-ROADMAP.md`, `.planning/milestones/v1.25-REQUIREMENTS.md`
-- **Latest archived baseline:** `v1.26`
 - **Milestone closeout assets:** `.planning/v1.26-MILESTONE-AUDIT.md`, `.planning/reviews/V1_26_EVIDENCE_INDEX.md`, `.planning/milestones/v1.26-ROADMAP.md`, `.planning/milestones/v1.26-REQUIREMENTS.md`
 - **Current audit artifact:** `.planning/v1.26-MILESTONE-AUDIT.md`
-- **Default next command:** `$gsd-new-milestone`
-- **Current follow-up target:** next milestone bootstrap / fresh requirements routing
-- **Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.26`
-
+- **Default next command:** `$gsd-new-milestone`（historical closeout command）
+- **Current follow-up target:** active `v1.27` route / Phase 98 complete / closeout-ready
 ## Previous Archived Milestone (v1.25)
 - **Milestone:** `v1.25 Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence`
 - **Phase range:** `90 -> 93`
@@ -78,8 +92,8 @@ bootstrap:
 - **Requirements basket:** `HOT-40`, `ARC-24`, `TYP-23`, `SEC-01`, `TST-29`, `QLT-37`
 - **Milestone closeout assets:** `.planning/v1.25-MILESTONE-AUDIT.md`, `.planning/reviews/V1_25_EVIDENCE_INDEX.md`, `.planning/milestones/v1.25-ROADMAP.md`, `.planning/milestones/v1.25-REQUIREMENTS.md`
 - **Current audit artifact:** `.planning/v1.25-MILESTONE-AUDIT.md`
-- **Default next command:** `$gsd-new-milestone`（historical closeout command）
-- **Current follow-up target:** serve as previous archived baseline for the next milestone
+- **Default next command:** `$gsd-new-milestone`
+- **Current follow-up target:** serve as previous archived baseline for `v1.27`
 
 ## Historical Archived Milestone (v1.24)
 
@@ -122,15 +136,16 @@ bootstrap:
 - **Evidence index:** `.planning/reviews/V1_22_EVIDENCE_INDEX.md`
 - **Archived snapshots:** `.planning/milestones/v1.22-ROADMAP.md`, `.planning/milestones/v1.22-REQUIREMENTS.md`
 
+
 ## Recommended Next Command
 
-1. `$gsd-new-milestone` —— 从 `v1.26` archived bundle 显式启动下一条正式里程碑路线
-2. `$gsd-next` —— 复核自动路由是否稳定收口到 `$gsd-new-milestone`
-3. `$gsd-progress` —— 快速复盘 `no active milestone route / latest archived baseline = v1.26` 与 archived baseline handoff 状态
-4. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" init progress` —— 复核 `Phase 94 -> 97` 全部 complete
-5. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" state json` —— 复核 parser-stable `no active milestone route / latest archived baseline = v1.26` 与 `completed_plans = 12`
-6. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" phase-plan-index 97` —— 复核 `Phase 97` 三份计划均已拥有 closeout summary 且无 incomplete plans
-7. `uv run pytest -q tests/meta` —— 复核 governance / archive-pointer / phase94-97 focused guards
+1. `$gsd-complete-milestone v1.27` —— 归档 `v1.27` active route，并把 latest archived baseline 前推到 `v1.27`
+2. `$gsd-next` —— 复核自动路由是否稳定收口到 `$gsd-complete-milestone v1.27`
+3. `$gsd-progress` —— 快速复盘 `v1.27 active route / Phase 98 complete / latest archived baseline = v1.26` 的 closeout-ready 状态
+4. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" init progress` —— 复核 `Phase 98` complete 且无下一 phase
+5. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" state json` —— 复核 parser-stable `milestone = v1.27`、`current_phase = 98` 与 `completed_plans = 3`
+6. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" phase-plan-index 98` —— 复核 `Phase 98` 三份计划均已拥有 closeout summary 且无 incomplete plans
+7. `uv run pytest -q tests/meta` —— 复核 governance / route-reactivation / phase98 focused guards
 8. `uv run python scripts/check_file_matrix.py --check` —— 复核 planning / baseline / review / archive assets 契约
 9. `uv run ruff check .` —— 复核 repo-wide lint gate
 10. `uv run mypy` —— 复核 repo-wide typing gate
@@ -144,23 +159,25 @@ If resuming, read in this order:
 3. `.planning/ROADMAP.md`
 4. `.planning/REQUIREMENTS.md`
 5. `.planning/STATE.md`
-6. `.planning/v1.26-MILESTONE-AUDIT.md`
-7. `.planning/reviews/V1_26_EVIDENCE_INDEX.md`
-8. `.planning/milestones/v1.26-ROADMAP.md`
-9. `.planning/milestones/v1.26-REQUIREMENTS.md`
-10. `.planning/phases/97-governance-open-source-contract-sync-and-assurance-freeze/97-03-SUMMARY.md`
-11. `.planning/phases/97-governance-open-source-contract-sync-and-assurance-freeze/97-VERIFICATION.md`
-12. `.planning/phases/97-governance-open-source-contract-sync-and-assurance-freeze/97-VALIDATION.md`
-13. `.planning/v1.25-MILESTONE-AUDIT.md`
-14. `.planning/reviews/V1_25_EVIDENCE_INDEX.md`
-15. `.planning/milestones/v1.25-ROADMAP.md`
-16. `.planning/milestones/v1.25-REQUIREMENTS.md`
-17. `.planning/reviews/RESIDUAL_LEDGER.md`
-18. `.planning/reviews/KILL_LIST.md`
-19. `.planning/reviews/FILE_MATRIX.md`
-20. `.planning/baseline/PUBLIC_SURFACES.md`
-21. `.planning/baseline/AUTHORITY_MATRIX.md`
-22. `.planning/baseline/VERIFICATION_MATRIX.md`
+6. `.planning/phases/98-carry-forward-eradication-route-reactivation-and-closeout-proof/98-CONTEXT.md`
+7. `.planning/phases/98-carry-forward-eradication-route-reactivation-and-closeout-proof/98-RESEARCH.md`
+8. `.planning/phases/98-carry-forward-eradication-route-reactivation-and-closeout-proof/98-03-SUMMARY.md`
+9. `.planning/phases/98-carry-forward-eradication-route-reactivation-and-closeout-proof/98-VERIFICATION.md`
+10. `.planning/phases/98-carry-forward-eradication-route-reactivation-and-closeout-proof/98-VALIDATION.md`
+11. `.planning/v1.26-MILESTONE-AUDIT.md`
+12. `.planning/reviews/V1_26_EVIDENCE_INDEX.md`
+13. `.planning/milestones/v1.26-ROADMAP.md`
+14. `.planning/milestones/v1.26-REQUIREMENTS.md`
+15. `.planning/v1.25-MILESTONE-AUDIT.md`
+16. `.planning/reviews/V1_25_EVIDENCE_INDEX.md`
+17. `.planning/milestones/v1.25-ROADMAP.md`
+18. `.planning/milestones/v1.25-REQUIREMENTS.md`
+19. `.planning/reviews/RESIDUAL_LEDGER.md`
+20. `.planning/reviews/KILL_LIST.md`
+21. `.planning/reviews/FILE_MATRIX.md`
+22. `.planning/baseline/PUBLIC_SURFACES.md`
+23. `.planning/baseline/AUTHORITY_MATRIX.md`
+24. `.planning/baseline/VERIFICATION_MATRIX.md`
 
 ## Historical Continuity Anchors
 

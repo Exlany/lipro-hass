@@ -1,0 +1,3 @@
+- `Phase 98` focused guards、`tests/meta`、full `pytest`、governance scripts、`ruff`、`mypy` 与 GSD parser commands 已组成完整 closeout-ready proof chain。
+- `gsd-tools state/progress/plan-phase/execute-phase` 现都能稳定解析 `v1.27 / Phase 98`；`phase-plan-index 98` 显示三份计划均已拥有 summary 且无 incomplete plans。
+- `$gsd-next` 的等价解析结果现已收缩为 `$gsd-complete-milestone v1.27`。

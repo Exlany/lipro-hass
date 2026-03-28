@@ -1,12 +1,19 @@
-# Requirements: Lipro-HASS v1.26 Archived Closeout Snapshot
+# Requirements: Lipro-HASS v1.27 Active Route
 
-> `v1.26` 已于 `2026-03-28` 完成 archive-ready closeout；latest archived baseline 现固定为 `v1.26`，latest archived evidence index = `.planning/reviews/V1_26_EVIDENCE_INDEX.md`。本文件保留最新归档里程碑的 requirements / traceability / carry-forward notes，供下一里程碑直接 pull。
+> `v1.27` 已于 `2026-03-28` 从 `v1.26` latest archived baseline 显式启动；本文件现在承载 active milestone requirements / traceability / carry-forward closure notes，而 `v1.26` closeout 资产继续保持 pull-only 身份。
 
 <!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone: null
+active_milestone:
+  version: v1.27
+  name: Final Carry-Forward Eradication & Route Reactivation
+  status: active / closeout-ready (2026-03-28)
+  phase: '98'
+  phase_title: Carry-forward eradication, route reactivation, and closeout proof
+  phase_dir: 98-carry-forward-eradication-route-reactivation-and-closeout-proof
+  route_mode: v1.27 active route / Phase 98 complete / latest archived baseline = v1.26
 latest_archived:
   version: v1.26
   name: Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition
@@ -22,18 +29,65 @@ previous_archived:
   name: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
   evidence_path: .planning/reviews/V1_25_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.26
-  default_next_command: $gsd-new-milestone
+  current_route: v1.27 active route / Phase 98 complete / latest archived baseline = v1.26
+  default_next_command: $gsd-complete-milestone v1.27
   latest_archived_evidence_pointer: .planning/reviews/V1_26_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
+
+## Current Milestone (v1.27)
+
+**Milestone Goal:** 把 `outlet_power` legacy side-car fallback 的诚实 carry-forward 物理清零，并把 current-route truth、focused guards、phase assets 与质量证明链重新收口到同一条 active / closeout-ready 路线上。
+**Milestone status:** `active / closeout-ready (2026-03-28)`
+**Current route mode:** `v1.27 active route / Phase 98 complete / latest archived baseline = v1.26`
+**Starting baseline:** `.planning/v1.26-MILESTONE-AUDIT.md`, `.planning/reviews/V1_26_EVIDENCE_INDEX.md`, `.planning/milestones/v1.26-ROADMAP.md`, `.planning/milestones/v1.26-REQUIREMENTS.md`
+**Requirements basket:** `RES-15`, `GOV-65`, `TST-31`, `QLT-39`
+**Latest archived baseline:** `v1.26`
+**Archive pointer:** `.planning/reviews/V1_26_EVIDENCE_INDEX.md`
+**Default next command:** `$gsd-complete-milestone v1.27`
+
+### Residual eradication and no-regrowth truth
+- [x] **RES-15**: `custom_components/lipro/core/device/device.py` 现只保留正式 `outlet_power_info` primitive；legacy side-car `extra_data["power_info"]` fallback 已退出 live read path，且 `tests/platforms/test_sensor.py` / `tests/meta/public_surface_runtime_contracts.py` 共同冻结 no-regrowth truth。
+
+### Governance-route reactivation and current-truth honesty
+- [x] **GOV-65**: `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`、`docs/developer_architecture.md`、`.planning/baseline/VERIFICATION_MATRIX.md`、`.planning/codebase/TESTING.md` 与 `tests/meta/governance_current_truth.py` 现共同承认 `v1.27 active route / Phase 98 complete / latest archived baseline = v1.26`，并继续把 `.planning/reviews/V1_26_EVIDENCE_INDEX.md` 视作 latest archived pointer。
+
+### Focused assurance coverage
+- [x] **TST-31**: `tests/meta/test_governance_route_handoff_smoke.py`、`tests/meta/governance_followup_route_current_milestones.py`、`tests/meta/test_phase97_governance_assurance_freeze_guards.py` 与新增的 `tests/meta/test_phase98_route_reactivation_guards.py` 共同覆盖 current-route reactivation、historical archived truth、file/testing-map drift 与 next-step routing。
+
+### Quality proof and GSD readiness
+- [x] **QLT-39**: `Phase 98` 触及范围已通过 focused pytest、`uv run pytest -q tests/meta`、`uv run pytest -q`、`uv run python scripts/check_file_matrix.py --check`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_markdown_links.py`、`uv run ruff check .`、`uv run mypy` 与 `gsd-tools init/state/progress` 的最小充分证明链。
+
+## Traceability for active v1.27 route
+
+| Requirement | Planned Phase | Status |
+|-------------|---------------|--------|
+| RES-15 | Phase 98 | Complete |
+| GOV-65 | Phase 98 | Complete |
+| TST-31 | Phase 98 | Complete |
+| QLT-39 | Phase 98 | Complete |
+
+**Coverage:**
+- v1.27 routed requirements: 4 total
+- Current mapped: 4
+- Current complete: 4
+- Current pending: 0
+- Current unmapped: 0 ✓
+
+## Carry-Forward Notes (Deferred within / beyond v1.27)
+- [ ] maintainer / delegate continuity 仍属组织层问题；本里程碑只负责把技术与治理入口写清楚，不假装能通过代码消灭 staffing risk。
+
+## Out of Scope
+- 新设备能力、终端用户新功能，或为“彻底重构”而引入新的 root / helper-owned public truth。
+- 改写 `.planning/v1.26-MILESTONE-AUDIT.md` 与 `.planning/reviews/V1_26_EVIDENCE_INDEX.md` 的 archive verdict；它们继续只承担历史证据身份。
+- 把组织治理 / maintainer staffing 风险伪装成可由本轮代码一次性消灭的“已完成项”。
 
 ## Latest Archived Milestone (v1.26)
 
 **Milestone Goal:** 把终极仓审识别出的 typed payload / domain bag / diagnostics broad seam、hotspot complexity concentration 与 route-governance drift 收敛成四段连续 phase，并把最终 archived truth 固化为下一里程碑唯一 north-star 起点。
 **Milestone status:** `archived / evidence-ready (2026-03-28)`
 **Latest archived baseline:** `v1.26`
-**Default next command:** `$gsd-new-milestone`
+**Default next command:** `$gsd-new-milestone`（historical closeout command）
 **Archive assets:** `.planning/v1.26-MILESTONE-AUDIT.md`, `.planning/reviews/V1_26_EVIDENCE_INDEX.md`, `.planning/milestones/v1.26-ROADMAP.md`, `.planning/milestones/v1.26-REQUIREMENTS.md`
 **Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.26`
 
@@ -68,18 +122,6 @@ bootstrap:
 - Current complete: 6
 - Current pending: 0
 - Current unmapped: 0 ✓
-
-## Carry-Forward Notes (Deferred to next milestone)
-
-- [ ] maintainer / delegate continuity 仍属组织层问题；本轮只负责把技术与治理入口写清楚，不假装能通过代码消灭 staffing risk。
-- [ ] `outlet_power` legacy side-car fallback 的最终物理删除仍需基于零命中 / 零写回证据执行，不在本轮 closeout 内强推。
-
-## Out of Scope
-
-- 新设备能力、终端用户新功能，或为“彻底重构”而引入新的 root / helper-owned public truth。
-- 改写 `.planning/v1.25-MILESTONE-AUDIT.md` 与 `.planning/reviews/V1_25_EVIDENCE_INDEX.md` 的 archive verdict；它们继续只承担 previous archived baseline 的历史证据身份。
-- 把组织治理 / maintainer staffing 风险伪装成可由本轮代码一次性消灭的“已完成项”。
-
 ## Previous Archived Milestone (v1.25)
 
 **Milestone Goal:** 把热点拆薄、类型边界收紧与脱敏契约统一成单一 north-star 路线，并把最终 assurance freeze 归档为可长期复用的 baseline。

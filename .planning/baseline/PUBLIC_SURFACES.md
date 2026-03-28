@@ -138,7 +138,7 @@
 - `custom_components/lipro/__init__.py`、`custom_components/lipro/config_flow.py`、`custom_components/lipro/core/__init__.py` 与 `custom_components/lipro/core/mqtt/__init__.py` 的 legacy public-name / compat export 已在 Phase 09 收口；`core.api.LiproClient` compat shell 已在 Phase 12 正式删除。
 - `Coordinator.devices` 现在只暴露 read-only mapping；live mutable runtime registry 继续留在 coordinator internal state，不再作为 formal public surface。
 - `custom_components/lipro/control/runtime_access.py` 是 control/services 读取 runtime entry 枚举、device lookup 与 snapshot projection 的唯一正式 read-model home。
-- `custom_components/lipro/core/device/device.py` 中的 `LiproDevice.outlet_power_info` 已成为 outlet power 单一正式 primitive；`extra_data["power_info"]` 仅允许作为 legacy read fallback，不再承担正式 truth 角色。
+- `custom_components/lipro/core/device/device.py` 中的 `LiproDevice.outlet_power_info` 已成为 outlet power 单一正式 primitive；setter 会在写入 formal primitive 时主动清除 `extra_data["power_info"]` side-car state，runtime / entity / diagnostics 不再读取 legacy fallback。
 
 ## Phase 10 Surface Boundary Notes
 

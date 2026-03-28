@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 710
+**Python files total:** 711
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -654,6 +654,7 @@
 | `tests/meta/test_phase95_hotspot_decomposition_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 | 保留 | focused no-regrowth guard home for Phase 95 hotspot inward decomposition |
 | `tests/meta/test_phase96_sanitizer_burndown_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 | 保留 | focused no-regrowth guard home for Phase 96 sanitizer burn-down |
 | `tests/meta/test_phase97_governance_assurance_freeze_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 | 保留 | focused closeout guard home for Phase 97 governance / assurance freeze |
+| `tests/meta/test_phase98_route_reactivation_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 | 保留 | focused current-route guard home for Phase 98 reactivation / carry-forward closure |
 | `tests/meta/test_protocol_replay_assets.py` | Assurance | Phase 7.4 | 保留 | - |
 | `tests/meta/test_public_surface_guards.py` | Assurance | Phase 6 | 保留 | thin shell after public-surface topicization |
 | `tests/meta/test_service_translation_sync.py` | Assurance | Phase 6 | 保留 | - |

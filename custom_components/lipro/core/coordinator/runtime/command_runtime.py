@@ -457,12 +457,6 @@ class CommandRuntime:
         """Clear the latest failure snapshot after a successful command."""
         self._last_failure = None
         self._last_failure_summary = None
-
-    def _clear_last_failure(self) -> None:
-        """Clear failure snapshots after one successful command."""
-        self._last_failure = None
-        self._last_failure_summary = None
-
     def _finalize_success(
         self,
         *,

@@ -37,13 +37,6 @@
 - Impact: 边界漂移更多依赖测试而不是类型系统阻断，vendor payload 变化更容易深穿到 runtime。
 - Fix approach: 从 protocol boundary 与 telemetry/trace family 开始，把 `Any` 缩成 `TypedDict`、`Protocol`、更窄 union；新增“禁止扩大 `Any` 面积”的 focused guard。
 
-**Legacy outlet-power side-car fallback remains:**
-- Risk Level: `Low`
-- Issue: `custom_components/lipro/core/device/device.py` 仍保留 `extra_data["power_info"]` 的 legacy fallback。
-- Evidence: `custom_components/lipro/core/device/device.py` 同时持有 formal `_outlet_power_info` 与 `legacy_power_info` 兜底读取。
-- Impact: 领域模型继续接受双形态状态，删除 delete gate 会被拖慢。
-- Fix approach: 先加使用计数/测试守卫阻止新写入，再在零命中证据形成后物理删除 fallback。
-
 ## Known Bugs
 
 **Firmware advisory freshness lag:**

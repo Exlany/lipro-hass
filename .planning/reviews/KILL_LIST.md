@@ -407,3 +407,7 @@ _None currently registered._
 
 - 无新增 active kill target；Phase 93 是 assurance freeze / closeout proof，相当于把前序收口结果转成可持续验证的 current-route truth，而不是新一轮 delete campaign。
 - 任何未来的测试重拆、治理脚本重生或 closeout 资产清理，仍必须显式给出 kill gate 与证据链，不能借“只是派生文档”之名绕过治理。
+## Phase 98 Status Update
+
+- 本 phase **无新增 active kill target**；被关闭的是 `outlet_power` legacy side-car fallback carry-forward 叙事，而不是启动新的 file-level delete campaign。
+- `custom_components/lipro/core/coordinator/runtime/command_runtime.py` 的重复 failure-state 清理 helper 已被收口；remaining large formal homes 继续只允许 inward split / typed narrowing，不得被 retroactively 写成 future kill target。

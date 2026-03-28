@@ -68,9 +68,13 @@ def _redact_gateway_projection(projection: Mapping[str, object]) -> DiagnosticsP
 
     group_member_ids = projection.get("group_member_ids")
     if isinstance(group_member_ids, list):
-        members = ["**REDACTED**" for member_id in group_member_ids if isinstance(member_id, str)]
+        members = [
+            "**REDACTED**"
+            for member_id in group_member_ids
+            if isinstance(member_id, str)
+        ]
         if members:
-            redacted["group_member_ids"] = members
+            redacted["group_member_ids"] = cast(DiagnosticsValue, members)
 
     return redacted
 
@@ -108,7 +112,9 @@ def build_device_diagnostics(
 
     outlet_power_info = device.outlet_power_info
     if outlet_power_info is not None:
-        device_info["outlet_power_info"] = cast(DiagnosticsPayload, dict(outlet_power_info))
+        device_info["outlet_power_info"] = cast(
+            DiagnosticsPayload, dict(outlet_power_info)
+        )
 
     gateway_projection = diagnostic_gateway_projection(device.extras)
     if gateway_projection is not None:

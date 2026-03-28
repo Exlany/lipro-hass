@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `v1.26` archived closeout (`2026-03-28`)
-> **Current route alignment**: `no active milestone route / latest archived baseline = v1.26` (`2026-03-28`)
+> **Last aligned through**: `v1.27` active route / closeout-ready (`2026-03-28`)
+> **Current route alignment**: `v1.27 active route / Phase 98 complete / latest archived baseline = v1.26` (`2026-03-28`)
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
@@ -219,8 +219,13 @@ custom_components/lipro/
 
 ## Phase 97 Governance / Assurance Freeze Note
 
-- 当前 developer guidance 与 `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md` 已共同承认 `no active milestone route / latest archived baseline = v1.26`；默认下一步已收缩为 `$gsd-new-milestone`。
-- `tests/meta/test_phase96_sanitizer_burndown_guards.py` 与 `tests/meta/test_phase97_governance_assurance_freeze_guards.py` 现在共同冻结 sanitizer burn-down、route contract、file/testing counts 与 developer-facing topology note，避免治理与 assurance 再度分叉。
+- `Phase 97` 现在承担 `v1.26` latest archived closeout proof：developer guidance、planning route contract、focused assurance guards 与 archive pointer 共同证明 `v1.26` 已稳定退回 pull-only archived baseline。
+- `tests/meta/test_phase97_governance_assurance_freeze_guards.py` 不再冻结 live current route，而是冻结 `Phase 97` closeout bundle、developer-architecture historical note 与 latest archived pointer truth。
+
+## Phase 98 Route Reactivation / Carry-Forward Closure Note
+
+- 当前 developer guidance 与 `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md` 已共同承认 `v1.27 active route / Phase 98 complete / latest archived baseline = v1.26`；默认下一步已收缩为 `$gsd-complete-milestone v1.27`。
+- `tests/meta/test_governance_route_handoff_smoke.py`、`tests/meta/governance_followup_route_current_milestones.py`、`tests/meta/test_phase97_governance_assurance_freeze_guards.py` 与 `tests/meta/test_phase98_route_reactivation_guards.py` 现在共同冻结 route reactivation、historical archived truth、file/testing counts 与 developer-facing topology note，避免治理与 assurance 再度分叉。
 
 ## Phase 90 Freeze Notes
 

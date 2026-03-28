@@ -1,0 +1,3 @@
+- 冻结 `outlet_power` carry-forward eradication truth：`Phase 98` 现在明确承认 legacy side-car fallback 已完成物理删除，不再把它登记为口头 follow-up。
+- 删除 `custom_components/lipro/core/coordinator/runtime/command_runtime.py` 中未使用的 `_clear_last_failure`，保留 `_clear_failure_state` 作为单一 latest-failure reset home。
+- `RESIDUAL_LEDGER.md` 与 `KILL_LIST.md` 已同步声明本 phase 无新增 active residual / kill target，且 remaining large formal homes 继续只允许 inward split / typed narrowing。

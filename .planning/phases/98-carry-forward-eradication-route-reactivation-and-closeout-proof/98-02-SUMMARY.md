@@ -1,0 +1,3 @@
+- 重新激活 `v1.27` current-route contract：`.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md` 与 `tests/meta/governance_current_truth.py` 现共同承认 `v1.27 active route / Phase 98 complete / latest archived baseline = v1.26`。
+- `docs/developer_architecture.md`、`.planning/baseline/VERIFICATION_MATRIX.md`、`.planning/codebase/TESTING.md` 与 `.planning/reviews/FILE_MATRIX.md` 已同步刷新到 Phase 98 current story，同时把 Phase 97 退回 historical closeout truth。
+- route-handoff / follow-up / phase97 historical / phase98 current focused guards 已共同锁住 current-route reactivation、historical archived truth 与 next-step routing。

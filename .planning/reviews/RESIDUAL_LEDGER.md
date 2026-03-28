@@ -531,3 +531,7 @@ _None currently registered._
 
 - 无新增 active residual family；Phase 93 收口的是 assurance / quality-freeze projections、typing-budget honesty 与 milestone closeout-ready proof，而不是把任何 local drift 重新包装成长期残留。
 - 若未来仍发现 testing/governance 投影与正式 route truth 再次漂移，必须登记为显式治理残留，而不是默认靠下一轮 phase 顺手修掉。
+## Phase 98 Residual Delta
+
+- 无新增 active residual family；Phase 98 已关闭该 carry-forward：`outlet_power` legacy side-car fallback 已完成物理删除并由 focused guards / phase assets 冻结，不再保留为口头 carry-forward。
+- 本 phase 收口的是 carry-forward eradication + route reactivation；`command_runtime.py`、`mqtt_runtime.py`、`anonymous_share/manager.py` 等大型 formal homes 继续作为 inward-split candidate，而不是被误写成新的 delete target。

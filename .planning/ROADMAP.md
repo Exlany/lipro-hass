@@ -1,5 +1,6 @@
 # Roadmap
 
+- 🚧 **v1.27 Final Carry-Forward Eradication & Route Reactivation** - `Phase 98` active on 2026-03-28; current route: `v1.27 active route / Phase 98 complete / latest archived baseline = v1.26`; latest archived evidence index: `.planning/reviews/V1_26_EVIDENCE_INDEX.md`; default next command: `$gsd-complete-milestone v1.27`
 - ✅ **v1.26 Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition** - `Phase 94 -> 97` archived on 2026-03-28; milestone audit: `.planning/v1.26-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_26_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.26-ROADMAP.md` / `.planning/milestones/v1.26-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.26`
 - ✅ **v1.25 Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence** - `Phase 90 -> 93` archived on 2026-03-28; milestone audit: `.planning/v1.25-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_25_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.25-ROADMAP.md` / `.planning/milestones/v1.25-REQUIREMENTS.md`; historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.25`
 - ✅ **v1.24 Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence** - `Phase 89` archived on 2026-03-27; milestone audit: `.planning/v1.24-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_24_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.24-ROADMAP.md` / `.planning/milestones/v1.24-REQUIREMENTS.md`; historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.24`
@@ -8,7 +9,14 @@
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone: null
+active_milestone:
+  version: v1.27
+  name: Final Carry-Forward Eradication & Route Reactivation
+  status: active / closeout-ready (2026-03-28)
+  phase: '98'
+  phase_title: Carry-forward eradication, route reactivation, and closeout proof
+  phase_dir: 98-carry-forward-eradication-route-reactivation-and-closeout-proof
+  route_mode: v1.27 active route / Phase 98 complete / latest archived baseline = v1.26
 latest_archived:
   version: v1.26
   name: Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition
@@ -24,11 +32,37 @@ previous_archived:
   name: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
   evidence_path: .planning/reviews/V1_25_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.26
-  default_next_command: $gsd-new-milestone
+  current_route: v1.27 active route / Phase 98 complete / latest archived baseline = v1.26
+  default_next_command: $gsd-complete-milestone v1.27
   latest_archived_evidence_pointer: .planning/reviews/V1_26_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
+
+## v1.27: Final Carry-Forward Eradication & Route Reactivation
+
+> `v1.27` 不是重新发明路线，而是把 `v1.26` closeout 后真实发生的 carry-forward 清理与 governance truth reactivation 正式写回 active route：已验证的 `outlet_power` legacy side-car fallback 删除、current-route 文档/测试同步与下一步 closeout proof 终于回到同一条 parser-stable story。
+
+**Milestone Goal:** 沿 `v1.26` latest archived baseline 的唯一 north-star 起点，把诚实 carry-forward 物理清零、重建 current-route truth、补齐 `Phase 98` 计划/执行证据，并让 `$gsd-next` 只剩 `$gsd-complete-milestone v1.27` 这一条正式后续路线。
+**Milestone status:** `active / closeout-ready (2026-03-28)`
+**Starting baseline:** `.planning/v1.26-MILESTONE-AUDIT.md, .planning/reviews/V1_26_EVIDENCE_INDEX.md, .planning/milestones/v1.26-ROADMAP.md, .planning/milestones/v1.26-REQUIREMENTS.md`
+**Requirements basket:** `RES-15`, `GOV-65`, `TST-31`, `QLT-39`
+**Latest archived baseline:** `v1.26`
+**Latest archived pointer:** `.planning/reviews/V1_26_EVIDENCE_INDEX.md`
+**Current route mode:** `v1.27 active route / Phase 98 complete / latest archived baseline = v1.26`
+**Default next command:** `$gsd-complete-milestone v1.27`
+
+### Phase 98: Carry-forward eradication, route reactivation, and closeout proof
+**Goal:** 把已完成的 carry-forward eradication 与 live governance/doc/test truth 重新编织到一条 active / closeout-ready current story 上，并用 focused guards + repo-wide proof chain 证明不再残留 route drift。
+**Depends on:** latest archived baseline `v1.26`
+**Requirements**: [RES-15, GOV-65, TST-31, QLT-39]
+**Success Criteria**:
+  1. `custom_components/lipro/core/device/device.py` 与相关 guards 共同证明 `outlet_power` legacy side-car fallback 已完成物理删除，且不再允许从 `extra_data["power_info"]` 回退。
+  2. `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`、`docs/developer_architecture.md`、`.planning/baseline/VERIFICATION_MATRIX.md`、`.planning/codebase/TESTING.md` 与 focused meta guards 共同承认 `v1.27 active route / Phase 98 complete / latest archived baseline = v1.26`。
+  3. `Phase 98` 的 context / research / plan / summary / verification / validation bundle 完整存在，`gsd-tools init plan-phase 98` 与 `init execute-phase 98` 可稳定解析。
+  4. focused pytest、`uv run pytest -q tests/meta`、`uv run pytest -q`、`uv run python scripts/check_file_matrix.py --check`、`uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_markdown_links.py`、`uv run ruff check .` 与 `uv run mypy` 全部通过。
+**Status**: Complete (2026-03-28)
+**Plans**: 3/3 complete
+**Closeout assets**: `.planning/phases/98-carry-forward-eradication-route-reactivation-and-closeout-proof/{98-01-SUMMARY.md,98-02-SUMMARY.md,98-03-SUMMARY.md,98-VERIFICATION.md,98-VALIDATION.md}`
 
 ## v1.26: Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition
 
@@ -43,55 +77,6 @@ bootstrap:
 **Default next command:** `$gsd-new-milestone`
 **Archive assets:** `.planning/v1.26-MILESTONE-AUDIT.md`, `.planning/reviews/V1_26_EVIDENCE_INDEX.md`, `.planning/milestones/v1.26-ROADMAP.md`, `.planning/milestones/v1.26-REQUIREMENTS.md`
 **Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.26`
-
-### Phase 94: Typed payload contraction and domain-bag narrowing
-**Goal:** 先把最容易继续扩散的 broad mapping / `Any` seam 收口：typed domain bag、diagnostics payload、entity coordinator generic、REST transport / fallback helpers 与 property normalization 应继续回到诚实的 typed contract。
-**Depends on:** Phase 93
-**Requirements**: [TYP-24]
-**Success Criteria**:
-  1. `custom_components/lipro/domain_data.py`、`custom_components/lipro/control/diagnostics_surface.py`、`custom_components/lipro/diagnostics.py`、`custom_components/lipro/entities/base.py` 与 `custom_components/lipro/core/api/{command_api_service,status_fallback,transport_core}.py` 不再保留无必要的 `dict[str, Any]` / `CoordinatorEntity[Any]` / broad callback seam。
-  2. `custom_components/lipro/core/utils/property_normalization.py` 与相关 boundary / runtime call sites 保持 canonical property truth，不为 typing 收紧引入新的 second-story alias。
-  3. focused tests / no-growth guards 锁住这些 touched seams，不让 `Any` 重新回弹。
-**Status**: Complete (2026-03-28)
-**Plans**: 3/3 complete
-**Closeout assets**: `.planning/phases/94-typed-payload-contraction-and-domain-bag-narrowing/{94-01-SUMMARY.md,94-02-SUMMARY.md,94-03-SUMMARY.md,94-VERIFICATION.md,94-VALIDATION.md}`
-
-### Phase 95: Schedule/runtime and boundary hotspot inward decomposition
-**Goal:** 沿 `v1.25` 冻结的 formal-home map 继续 inward split `schedule_service.py` 与 runtime/boundary hotspots，把 complexity 从 outward shell 抽走而不引入新根。
-**Depends on:** Phase 94
-**Requirements**: [HOT-41]
-**Success Criteria**:
-  1. `schedule_service.py`、相邻 runtime orchestration helpers 与 boundary decoders 的复杂函数继续缩短，职责边界更清晰。
-  2. formal homes 仍保持单一主链；不存在 helper 反向升级为 public root 或旁路 coordinator/protocol path。
-  3. hotspot decomposition 能被 focused tests 与 file-matrix / dependency notes 诚实解释。
-**Status**: Complete (2026-03-28)
-**Plans**: 3/3 complete
-**Closeout assets**: `.planning/phases/95-schedule-runtime-and-boundary-hotspot-inward-decomposition/{95-01-SUMMARY.md,95-02-SUMMARY.md,95-03-SUMMARY.md,95-VERIFICATION.md,95-VALIDATION.md}`
-
-### Phase 96: Redaction, telemetry, and anonymous-share sanitizer burndown
-**Goal:** 把 shared redaction truth 真正推进到 diagnostics / telemetry / anonymous-share / control sanitizer 热点内部，继续烧掉高复杂度分支与 secret-like key duplication。
-**Depends on:** Phase 95
-**Requirements**: [HOT-41, SEC-02]
-**Success Criteria**:
-  1. `control/redaction.py`、`core/telemetry/exporter.py`、`core/anonymous_share/manager.py` 与相邻 sanitizer helpers 的复杂度下降，未知 secret-like key 继续 fail-closed。
-  2. redaction registry / sanitizer contract 不再被局部 helper 重定义。
-  3. diagnostics / anonymous-share / telemetry 的行为与安全保证能被 focused tests 直接证明。
-**Status**: Complete (2026-03-28)
-**Plans**: 3/3 complete
-**Closeout assets**: `.planning/phases/96-redaction-telemetry-and-anonymous-share-sanitizer-burndown/{96-01-SUMMARY.md,96-02-SUMMARY.md,96-03-SUMMARY.md,96-VERIFICATION.md,96-VALIDATION.md}`
-
-### Phase 97: Governance, open-source contract sync, and assurance freeze
-**Goal:** 完成 `v1.26` 的 route-governance / docs / tests / baseline freeze，让 archived truth、latest pointer 与 open-source entry contracts 同时稳定可验证。
-**Depends on:** Phase 96
-**Requirements**: [ARC-25, TST-30, QLT-38]
-**Success Criteria**:
-  1. `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`、baseline/review docs、`docs/developer_architecture.md` 与 route-guard tests 共同承认同一条 `v1.26` archived-only story。
-  2. assurance hotspots 继续 topicize / localize；no-growth guards 与 verification matrix 对 `v1.26` touched scope 讲同一条质量故事。
-  3. focused pytest、`tests/meta`、`check_file_matrix`、`ruff`、`mypy` 与 full-suite 证明链全部通过。
-**Status**: Complete (2026-03-28)
-**Plans**: 3/3 complete
-**Closeout assets**: `.planning/phases/97-governance-open-source-contract-sync-and-assurance-freeze/{97-01-SUMMARY.md,97-02-SUMMARY.md,97-03-SUMMARY.md,97-VERIFICATION.md,97-VALIDATION.md}`
-
 ## v1.25: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
 ## v1.24: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
 
@@ -1871,3 +1856,4 @@ Plans:
 - [x] 66-04: freeze Phase 66 current-story, verification, and residual ledgers after execution (completed 2026-03-23)
 **Focused evidence:** `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-01-SUMMARY.md`, `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-02-SUMMARY.md`, `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-03-SUMMARY.md`, `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-04-SUMMARY.md`
 **Closeout evidence:** `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-SUMMARY.md`, `.planning/phases/66-release-target-fidelity-adapter-root-cleanup-and-focused-protocol-coverage-hardening/66-VERIFICATION.md`
+

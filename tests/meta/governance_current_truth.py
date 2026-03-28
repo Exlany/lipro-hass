@@ -25,7 +25,15 @@ _ROUTE_CONTRACT_PATHS = {
 PLANNING_ROUTE_CONTRACT: dict[str, object] = {
     "contract_version": 1,
     "contract_name": "governance-route",
-    "active_milestone": None,
+    "active_milestone": {
+        "version": "v1.27",
+        "name": "Final Carry-Forward Eradication & Route Reactivation",
+        "status": "active / closeout-ready (2026-03-28)",
+        "phase": "98",
+        "phase_title": "Carry-forward eradication, route reactivation, and closeout proof",
+        "phase_dir": "98-carry-forward-eradication-route-reactivation-and-closeout-proof",
+        "route_mode": "v1.27 active route / Phase 98 complete / latest archived baseline = v1.26",
+    },
     "latest_archived": {
         "version": "v1.26",
         "name": "Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition",
@@ -43,8 +51,8 @@ PLANNING_ROUTE_CONTRACT: dict[str, object] = {
         "evidence_path": ".planning/reviews/V1_25_EVIDENCE_INDEX.md",
     },
     "bootstrap": {
-        "current_route": "no active milestone route / latest archived baseline = v1.26",
-        "default_next_command": "$gsd-new-milestone",
+        "current_route": "v1.27 active route / Phase 98 complete / latest archived baseline = v1.26",
+        "default_next_command": "$gsd-complete-milestone v1.27",
         "latest_archived_evidence_pointer": ".planning/reviews/V1_26_EVIDENCE_INDEX.md",
     },
 }
@@ -112,11 +120,15 @@ NO_ACTIVE_MILESTONE_LABEL = "No active milestone route"
 
 LATEST_ARCHIVED_MILESTONE = _as_str(_LATEST["version"])
 LATEST_ARCHIVED_MILESTONE_NAME = _as_str(_LATEST["name"])
-LATEST_ARCHIVED_PROJECT_HEADER = f"## Latest Archived Milestone ({LATEST_ARCHIVED_MILESTONE})"
+LATEST_ARCHIVED_PROJECT_HEADER = (
+    f"## Latest Archived Milestone ({LATEST_ARCHIVED_MILESTONE})"
+)
 LATEST_ARCHIVED_MILESTONE_STATUS = _as_str(_LATEST["status"])
 LATEST_ARCHIVED_PHASE = _as_str(_LATEST["phase"])
 LATEST_ARCHIVED_PHASE_TITLE = _as_str(_LATEST["phase_title"])
-LATEST_ARCHIVED_PHASE_HEADING = f"### Phase {LATEST_ARCHIVED_PHASE}: {LATEST_ARCHIVED_PHASE_TITLE}"
+LATEST_ARCHIVED_PHASE_HEADING = (
+    f"### Phase {LATEST_ARCHIVED_PHASE}: {LATEST_ARCHIVED_PHASE_TITLE}"
+)
 LATEST_ARCHIVED_PHASE_DIR = _as_str(_LATEST["phase_dir"])
 LATEST_ARCHIVED_EVIDENCE_FILENAME = Path(_as_str(_LATEST["evidence_path"])).name
 LATEST_ARCHIVED_EVIDENCE_PATH = _as_str(_LATEST["evidence_path"])
@@ -126,7 +138,9 @@ LATEST_ARCHIVED_AUDIT_FILENAME = Path(_as_str(_LATEST["audit_path"])).name
 LATEST_ARCHIVED_AUDIT_PATH = _as_str(_LATEST["audit_path"])
 PREVIOUS_ARCHIVED_MILESTONE = _as_str(_PREVIOUS["version"])
 PREVIOUS_ARCHIVED_MILESTONE_NAME = _as_str(_PREVIOUS["name"])
-PREVIOUS_ARCHIVED_PROJECT_HEADER = f"## Previous Archived Milestone ({PREVIOUS_ARCHIVED_MILESTONE})"
+PREVIOUS_ARCHIVED_PROJECT_HEADER = (
+    f"## Previous Archived Milestone ({PREVIOUS_ARCHIVED_MILESTONE})"
+)
 PREVIOUS_ARCHIVED_EVIDENCE_PATH = _as_str(_PREVIOUS["evidence_path"])
 
 CURRENT_ROUTE = _as_str(_BOOTSTRAP["current_route"])
@@ -137,7 +151,9 @@ if HAS_ACTIVE_MILESTONE:
     CURRENT_MILESTONE = _as_str(_ACTIVE["version"])
     CURRENT_MILESTONE_NAME = _as_str(_ACTIVE["name"])
     CURRENT_MILESTONE_HEADER = f"## Current Milestone ({CURRENT_MILESTONE})"
-    CURRENT_MILESTONE_ROADMAP_HEADER = f"## {CURRENT_MILESTONE}: {CURRENT_MILESTONE_NAME}"
+    CURRENT_MILESTONE_ROADMAP_HEADER = (
+        f"## {CURRENT_MILESTONE}: {CURRENT_MILESTONE_NAME}"
+    )
     CURRENT_MILESTONE_STATUS = _as_str(_ACTIVE["status"])
     CURRENT_MILESTONE_LABEL = f"{CURRENT_MILESTONE} {CURRENT_MILESTONE_NAME}"
     CURRENT_MILESTONE_STATE_LABEL = CURRENT_MILESTONE_LABEL
@@ -150,7 +166,9 @@ else:
     CURRENT_MILESTONE = LATEST_ARCHIVED_MILESTONE
     CURRENT_MILESTONE_NAME = LATEST_ARCHIVED_MILESTONE_NAME
     CURRENT_MILESTONE_HEADER = LATEST_ARCHIVED_PROJECT_HEADER
-    CURRENT_MILESTONE_ROADMAP_HEADER = f"## {CURRENT_MILESTONE}: {CURRENT_MILESTONE_NAME}"
+    CURRENT_MILESTONE_ROADMAP_HEADER = (
+        f"## {CURRENT_MILESTONE}: {CURRENT_MILESTONE_NAME}"
+    )
     CURRENT_MILESTONE_STATUS = LATEST_ARCHIVED_MILESTONE_STATUS
     CURRENT_MILESTONE_LABEL = f"{CURRENT_MILESTONE} {CURRENT_MILESTONE_NAME}"
     CURRENT_MILESTONE_STATE_LABEL = NO_ACTIVE_MILESTONE_LABEL

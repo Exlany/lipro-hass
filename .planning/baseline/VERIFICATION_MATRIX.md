@@ -2,16 +2,16 @@
 
 **Purpose:** 建立 requirement → artifact → test → doc → phase acceptance / handoff 的统一验证闭环。
 **Status:** Formal baseline asset (`BASE-03` phase acceptance truth source)
-**Updated:** 2026-03-28 (v1.26 milestone closeout aligned)
+**Updated:** 2026-03-28 (v1.27 route reactivation aligned)
 
 ## Formal Role
 
 ## Current Mutable Route
 
-- **Current mutable story:** `no active milestone route / latest archived baseline = v1.26`
-- **Default next command:** `$gsd-new-milestone`
+- **Current mutable story:** `v1.27 active route / Phase 98 complete / latest archived baseline = v1.26`
+- **Default next command:** `$gsd-complete-milestone v1.27`
 - **Latest archived pointer:** `.planning/reviews/V1_26_EVIDENCE_INDEX.md`
-- **Focused guards:** `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/test_phase90_hotspot_map_guards.py`, `tests/meta/test_phase91_typed_boundary_guards.py`, `tests/meta/test_phase92_redaction_convergence_guards.py`, `tests/meta/test_phase94_typed_boundary_guards.py`, `tests/meta/test_phase95_hotspot_decomposition_guards.py`, `tests/meta/test_phase96_sanitizer_burndown_guards.py`, `tests/meta/test_phase97_governance_assurance_freeze_guards.py`, `tests/meta/test_public_surface_guards.py`, `tests/meta/test_dependency_guards.py`
+- **Focused guards:** `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/test_phase90_hotspot_map_guards.py`, `tests/meta/test_phase91_typed_boundary_guards.py`, `tests/meta/test_phase92_redaction_convergence_guards.py`, `tests/meta/test_phase94_typed_boundary_guards.py`, `tests/meta/test_phase95_hotspot_decomposition_guards.py`, `tests/meta/test_phase96_sanitizer_burndown_guards.py`, `tests/meta/test_phase97_governance_assurance_freeze_guards.py`, `tests/meta/test_phase98_route_reactivation_guards.py`, `tests/meta/test_public_surface_guards.py`, `tests/meta/test_dependency_guards.py`
 
 - 本文件是 `Phase 1.5` 及其下游 phases 的正式 acceptance truth；phase docs / summaries 只能引用、实例化或扩展，不得平行定义 exit contract。
 - 任一 phase 只有同时交付 requirement evidence、artifact updates、verification proof 与 governance disposition，才可宣称完成。
@@ -44,7 +44,13 @@
 
 - **Route truth:** `v1.26 active route / Phase 97 complete / latest archived baseline = v1.25`
 - **Focused guard:** `tests/meta/test_phase97_governance_assurance_freeze_guards.py`
-- **Proof chain:** focused governance smoke + phase97 guard → `tests/meta` → `check_file_matrix` → `ruff` → `mypy` → `gsd-tools state/progress/phase-plan-index`
+- **Proof chain:** focused governance smoke + phase97 historical-closeout guard → `tests/meta` → `check_file_matrix` → `ruff` → `mypy` → `gsd-tools state/progress/phase-plan-index`
+
+## Phase 98 Carry-Forward Eradication / Route Reactivation / Closeout Proof
+
+- **Route truth:** `v1.27 active route / Phase 98 complete / latest archived baseline = v1.26`
+- **Focused guard:** `tests/meta/test_phase98_route_reactivation_guards.py`
+- **Proof chain:** focused Phase 98 governance pytest set → `tests/meta` → `check_file_matrix` → `ruff` → `mypy` → `gsd-tools state/progress/init-plan-phase/init-execute-phase`
 
 ## Requirement-to-Acceptance Mapping
 

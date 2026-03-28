@@ -1,4 +1,4 @@
-"""Focused closeout guards for Phase 97 governance and assurance freeze."""
+"""Focused historical-closeout guards for Phase 97 governance and assurance freeze."""
 
 from __future__ import annotations
 
@@ -24,28 +24,26 @@ def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def test_phase97_current_route_docs_and_closeout_bundles_align() -> None:
+def test_phase97_closeout_bundle_stays_pull_only_after_v1_27_reactivation() -> None:
     project_text = _read(_PROJECT)
     roadmap_text = _read(_ROADMAP)
     requirements_text = _read(_REQUIREMENTS)
     state_text = _read(_STATE)
     milestones_text = _read(_MILESTONES)
-    verification_text = _read(_VERIFICATION_MATRIX)
     dev_arch_text = _read(_DEV_ARCH)
     phase96_verification = _read(_PHASE96_DIR / "96-VERIFICATION.md")
     phase96_validation = _read(_PHASE96_DIR / "96-VALIDATION.md")
     phase97_verification = _read(_PHASE97_DIR / "97-VERIFICATION.md")
     phase97_validation = _read(_PHASE97_DIR / "97-VALIDATION.md")
 
-    for text in (project_text, roadmap_text, requirements_text, state_text, milestones_text, verification_text):
-        assert "no active milestone route / latest archived baseline = v1.26" in text
-        assert "$gsd-new-milestone" in text
+    for text in (project_text, roadmap_text, requirements_text, milestones_text):
+        assert "historical closeout route truth = `no active milestone route / latest archived baseline = v1.26`" in text
 
+    assert "active `v1.27` route / Phase 98 complete / closeout-ready" in state_text
+
+    assert ".planning/v1.26-MILESTONE-AUDIT.md" in project_text
+    assert ".planning/reviews/V1_26_EVIDENCE_INDEX.md" in project_text
     assert "archived / evidence-ready (2026-03-28)" in project_text
-    assert "archived / evidence-ready (2026-03-28)" in roadmap_text
-    assert "archived / evidence-ready (2026-03-28)" in requirements_text
-    assert "archived / evidence-ready (2026-03-28)" in state_text
-    assert "archived / evidence-ready (2026-03-28)" in milestones_text
     assert "Phase 97 planning-ready" in phase96_verification
     assert "$gsd-plan-phase 97" in phase96_validation
     assert "# Phase 97 Verification" in phase97_verification
@@ -53,20 +51,14 @@ def test_phase97_current_route_docs_and_closeout_bundles_align() -> None:
     assert "Phase 97 Governance / Assurance Freeze Note" in dev_arch_text
 
 
-def test_phase97_file_and_testing_maps_freeze_new_guard_footprint() -> None:
+def test_phase97_file_testing_and_verification_maps_keep_historical_freeze_visible() -> None:
     file_matrix_text = _read(_FILE_MATRIX)
     testing_text = _read(_TESTING)
     verification_text = _read(_VERIFICATION_MATRIX)
 
-    assert "**Python files total:** 710" in file_matrix_text
-    assert "tests/meta/test_phase96_sanitizer_burndown_guards.py" in file_matrix_text
     assert "tests/meta/test_phase97_governance_assurance_freeze_guards.py" in file_matrix_text
-    assert "focused no-regrowth guard home for Phase 96 sanitizer burn-down" in file_matrix_text
     assert "focused closeout guard home for Phase 97 governance / assurance freeze" in file_matrix_text
-
-    assert "`390` Python files under `tests`" in testing_text
-    assert "`310` runnable `test_*.py` files" in testing_text
-    assert "`55` meta suites" in testing_text
-    assert "tests/meta/test_phase96_sanitizer_burndown_guards.py" in verification_text
-    assert "tests/meta/test_phase97_governance_assurance_freeze_guards.py" in verification_text
+    assert "`391` Python files under `tests`" in testing_text
+    assert "`311` runnable `test_*.py` files" in testing_text
+    assert "`56` meta suites" in testing_text
     assert "## Phase 97 Governance / Open-Source Contract Sync and Assurance Freeze" in verification_text
