@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, cast
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, cast
 
 from homeassistant.components.diagnostics import async_redact_data
 
@@ -21,7 +22,6 @@ from .control.redaction import (
     TO_REDACT as _TO_REDACT,
     redact_device_properties as _redact_device_properties_surface,
     redact_entry_title as _redact_entry_title_surface,
-    redact_property_value as _redact_property_value_surface,
 )
 from .core.anonymous_share import AnonymousShareManager, get_anonymous_share_manager
 
@@ -46,16 +46,11 @@ def _redact_entry_title(title: object) -> str:
     return _redact_entry_title_surface(title)
 
 
-def _redact_property_value(value: object, key: str | None = None) -> Any:
-    """Recursively redact sensitive values in property payloads."""
-    return _redact_property_value_surface(value, key)
-
-
 def _redact_device_properties(properties: object) -> DiagnosticsPayload:
     """Redact sensitive keys from device properties."""
-    if not isinstance(properties, dict):
+    if not isinstance(properties, Mapping):
         return {}
-    return _redact_device_properties_surface(properties)
+    return cast(DiagnosticsPayload, _redact_device_properties_surface(dict(properties)))
 
 
 def _get_anonymous_share_manager_for_diagnostics(

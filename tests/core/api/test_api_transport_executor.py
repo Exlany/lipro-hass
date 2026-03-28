@@ -138,6 +138,23 @@ async def test_execute_request_logs_response_when_debug_enabled(caplog) -> None:
 
 
 @pytest.mark.asyncio
+async def test_execute_request_rejects_non_mapping_json_payload() -> None:
+    executor = _build_executor()
+
+    response = _DummyResponse(
+        status=200,
+        headers={"Content-Type": "application/json"},
+        json_data=[{"ok": True}],
+    )
+
+    with pytest.raises(
+        LiproApiError,
+        match="Invalid JSON response from /v2/test: expected object, got list",
+    ):
+        await executor.execute_request(_DummyRequestCtx(response), "/v2/test")
+
+
+@pytest.mark.asyncio
 async def test_execute_mapping_request_with_rate_limit_uses_request_policy_home() -> None:
     policy = RequestPolicy()
     executor = _build_executor(policy)

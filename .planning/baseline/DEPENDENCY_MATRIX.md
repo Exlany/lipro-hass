@@ -2,10 +2,26 @@
 
 **Purpose:** 定义允许/禁止的跨平面依赖方向，并作为 architecture guards 的语义真源。
 **Status:** Baseline reference
-**Updated:** 2026-03-28 (Phase 93 assurance-freeze aligned)
-**Alignment:** `v1.25 / Phase 93` dependency truth verified on `2026-03-28`
+**Updated:** 2026-03-28 (Phase 97 governance-freeze aligned)
+**Alignment:** `v1.26 / Phase 97` dependency truth verified on `2026-03-28`
 
 ## Formal Role
+
+## Phase 95 Hotspot Decomposition Clarifications
+
+- `custom_components/lipro/core/api/schedule_service.py` 继续是 protocol-local schedule helper home；`endpoints/schedule.py` 继续是 formal schedule endpoint adapter home，`schedule_endpoint.py` 只允许承接 request-shape / validation helpers，`schedule_codec.py` 只允许承接 canonical payload normalization / next-id selection，不得重新升级为第二条 schedule public root。
+- `custom_components/lipro/core/coordinator/runtime/command_runtime.py` 与 `custom_components/lipro/core/coordinator/runtime/mqtt_runtime.py` 继续分别承担 command-runtime / MQTT-runtime orchestration truth；新增 helper 只能 inward split 热点，不得把 orchestration ownership 外溢给 `runtime/command/*` 或 `runtime/mqtt/*` sibling modules。
+- `custom_components/lipro/core/api/auth_recovery.py` 继续是 protocol-local auth classification / refresh / replay collaborator；runtime、control、entity 与 diagnostics surface 不得反向长回 refresh choreography。
+
+## Phase 96 Sanitizer Burn-Down Clarifications
+
+- `custom_components/lipro/control/redaction.py` 继续是 diagnostics-facing redaction adapter on shared redaction truth；`_should_redact_nested_key`、mapping/list recursion helpers 与 JSON-string helpers 只能 inward split，不得演化成第二条 sink-local redaction authority。
+- `custom_components/lipro/core/telemetry/exporter.py` 继续是唯一 formal runtime telemetry exporter root；entry-id extraction、mapping/sequence sanitize 与 string masking helper 只允许降低 hotspot 复杂度，不得重新定义 telemetry projection ownership。
+- `custom_components/lipro/core/anonymous_share/manager.py` 继续是 formal anonymous-share aggregate manager home；`manager_support.py` 的 scope-state / pending aggregation helpers 与 `sanitize.py` 的 container/scalar helpers 都只允许作为 inward collaborators 存在。
+
+## Phase 97 Governance / Assurance Freeze Clarifications
+
+- current-route docs、machine-readable contract、developer architecture 与 focused meta guards 现在共同构成唯一 governance closeout truth；任何后续 milestone closeout 都必须在这一组资产上原地推进，不得另起旁路故事线。
 
 - 本文件定义 allowed / forbidden dependency direction 的 baseline truth。
 - `.planning/baseline/ARCHITECTURE_POLICY.md` 把这些语义规则翻译成可执行的 rule ids 与 enforcement chain；两者必须同步演进，不能各写各的 seed 文案。
@@ -218,4 +234,4 @@
 
 - assurance freeze does not add a new dependency direction; it only forces `FILE_MATRIX` / `TESTING` / `VERIFICATION_MATRIX` / route-contract docs to reflect the already-settled topology honestly.
 - diagnostics topicization remains a test-topology concern, not a production dependency story; the budget guard closes incidental typing drift without legitimizing new `Any` seams.
-- milestone closeout proof must remain pull-only: phase summaries, verification, and validation assets can cite baseline/review truth, but they may not redefine it.
+

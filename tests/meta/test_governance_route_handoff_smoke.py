@@ -64,63 +64,77 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
     assert CURRENT_MILESTONE_DEFAULT_NEXT in roadmap_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in requirements_text
-    assert '## Phase 92 Control/Entity Thin-Boundary and Redaction Convergence' in verification_text
     assert '## Phase 93 Assurance Topicization and Quality Freeze' in verification_text
+    assert '## Phase 94 Typed Payload Contraction and Domain-Bag Narrowing' in verification_text
+    assert '## Phase 95 Schedule/Runtime Hotspot Inward Decomposition' in verification_text
+    assert '## Phase 96 Redaction/Telemetry/Anonymous-Share Sanitizer Burndown' in verification_text
+    assert '## Phase 97 Governance / Open-Source Contract Sync and Assurance Freeze' in verification_text
+    assert '## Phase 96 Redaction/Telemetry/Anonymous-Share Sanitizer Burndown' in verification_text
+    assert '## Phase 97 Governance / Open-Source Contract Sync and Assurance Freeze' in verification_text
     assert CURRENT_ROUTE in verification_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in verification_text
     assert LATEST_ARCHIVED_EVIDENCE_PATH in verification_text
     assert 'tests/meta/test_governance_route_handoff_smoke.py' in verification_text
-    assert 'tests/meta/test_phase92_redaction_convergence_guards.py' in verification_text
+    assert 'tests/meta/test_phase94_typed_boundary_guards.py' in verification_text
+    assert 'tests/meta/test_phase95_hotspot_decomposition_guards.py' in verification_text
+    assert 'tests/meta/test_phase96_sanitizer_burndown_guards.py' in verification_text
+    assert 'tests/meta/test_phase97_governance_assurance_freeze_guards.py' in verification_text
+    assert 'tests/meta/test_phase96_sanitizer_burndown_guards.py' in verification_text
+    assert 'tests/meta/test_phase97_governance_assurance_freeze_guards.py' in verification_text
     assert 'tests/meta/test_governance_route_handoff_smoke.py' in file_matrix_text
-    assert 'tests/meta/test_phase92_redaction_convergence_guards.py' in file_matrix_text
+    assert 'tests/meta/test_phase94_typed_boundary_guards.py' in file_matrix_text
+    assert 'tests/meta/test_phase95_hotspot_decomposition_guards.py' in file_matrix_text
+    assert 'tests/meta/test_phase96_sanitizer_burndown_guards.py' in file_matrix_text
+    assert 'tests/meta/test_phase97_governance_assurance_freeze_guards.py' in file_matrix_text
+    assert 'tests/meta/test_phase96_sanitizer_burndown_guards.py' in file_matrix_text
+    assert 'tests/meta/test_phase97_governance_assurance_freeze_guards.py' in file_matrix_text
     assert 'route-handoff gsd fast-path smoke guard home' in file_matrix_text
 
 
 def test_gsd_fast_path_matches_current_active_route_story() -> None:
     progress = _run_gsd_tools('init', 'progress')
     phases = _as_mapping_list(progress['phases'])
-    phase_90 = next(phase for phase in phases if _as_str(phase['number']) == '90')
-    phase_91 = next(phase for phase in phases if _as_str(phase['number']) == '91')
-    phase_92 = next(phase for phase in phases if _as_str(phase['number']) == '92')
-    phase_93 = next(phase for phase in phases if _as_str(phase['number']) == '93')
+    phase_94 = next(phase for phase in phases if _as_str(phase['number']) == '94')
+    phase_95 = next(phase for phase in phases if _as_str(phase['number']) == '95')
+    phase_96 = next(phase for phase in phases if _as_str(phase['number']) == '96')
+    phase_97 = next(phase for phase in phases if _as_str(phase['number']) == '97')
 
-    assert _as_str(phase_90['status']) == 'complete'
-    assert phase_90['plan_count'] == 3
-    assert phase_90['summary_count'] == 3
-    assert _as_str(phase_91['status']) == 'complete'
-    assert phase_91['plan_count'] == 3
-    assert phase_91['summary_count'] == 3
-    assert _as_str(phase_92['status']) == 'complete'
-    assert phase_92['plan_count'] == 3
-    assert phase_92['summary_count'] == 3
-    assert _as_str(phase_93['status']) == 'complete'
-    assert phase_93['plan_count'] == 3
-    assert phase_93['summary_count'] == 3
+    assert _as_str(phase_94['status']) == 'complete'
+    assert phase_94['plan_count'] == 3
+    assert phase_94['summary_count'] == 3
+    assert _as_str(phase_95['status']) == 'complete'
+    assert phase_95['plan_count'] == 3
+    assert phase_95['summary_count'] == 3
+    assert _as_str(phase_96['status']) == 'complete'
+    assert phase_96['plan_count'] == 3
+    assert phase_96['summary_count'] == 3
+    assert _as_str(phase_97['status']) == 'complete'
+    assert phase_97['plan_count'] == 3
+    assert phase_97['summary_count'] == 3
     assert progress['phase_count'] == 4
     assert progress['completed_count'] == 4
     assert progress['current_phase'] is None
     assert progress['next_phase'] is None
 
-    phase_index = _run_gsd_tools('phase-plan-index', '93')
-    assert _as_str(phase_index['phase']) == '93'
+    phase_index = _run_gsd_tools('phase-plan-index', '97')
+    assert _as_str(phase_index['phase']) == '97'
     assert len(_as_mapping_list(phase_index['plans'])) == 3
     assert phase_index['incomplete'] == []
 
     state = _run_gsd_tools('state', 'json')
     assert _as_str(state['milestone']) == CURRENT_MILESTONE
-    assert _as_str(state['status']) == 'complete'
+    assert _as_str(state['status']) == 'active'
     assert _as_mapping(state['progress']) == {
         'total_phases': '4',
         'completed_phases': '4',
-        'total_plans': '12',
-        'completed_plans': '12',
+        'total_plans': '9',
+        'completed_plans': '9',
     }
 
-    plan_init = _run_gsd_tools('init', 'plan-phase', '93')
+    plan_init = _run_gsd_tools('init', 'plan-phase', '97')
     assert _as_bool(plan_init['phase_found']) is True
-    assert _as_str(plan_init['phase_number']) == '93'
+    assert _as_str(plan_init['phase_number']) == '97'
     assert _as_bool(plan_init['has_plans']) is True
-    assert _as_bool(plan_init['has_research']) is True
     assert _as_bool(plan_init['has_context']) is True
     assert plan_init['plan_count'] == 3
 

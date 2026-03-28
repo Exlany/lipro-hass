@@ -10,6 +10,10 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from custom_components.lipro.const.base import DOMAIN
+from custom_components.lipro.control.diagnostics_surface import (
+    DiagnosticsPayload,
+    DiagnosticsValue,
+)
 from custom_components.lipro.diagnostics import (
     _redact_device_properties,
     async_get_config_entry_diagnostics,
@@ -17,6 +21,21 @@ from custom_components.lipro.diagnostics import (
 )
 
 _USE_DEFAULT_GET_DEVICE = object()
+
+
+def _diag_payload(value: DiagnosticsValue) -> DiagnosticsPayload:
+    assert isinstance(value, dict)
+    return value
+
+
+def _diag_list(value: DiagnosticsValue) -> list[DiagnosticsValue]:
+    assert isinstance(value, list)
+    return value
+
+
+def _diag_str(value: DiagnosticsValue) -> str:
+    assert isinstance(value, str)
+    return value
 
 
 def _normalize_device_cache(devices):
@@ -134,7 +153,10 @@ async def test_config_entry_diagnostics_redacts_ir_gateway_projection(
     with _patch_share_manager(_make_share_manager()):
         result = await async_get_config_entry_diagnostics(hass, entry)
 
-    assert result["devices"][0]["extra_data"] == {"gateway_device_id": "**REDACTED**"}
+    devices = _diag_list(result["devices"])
+    first_device = _diag_payload(devices[0])
+    extra_data = _diag_payload(first_device["extra_data"])
+    assert extra_data == {"gateway_device_id": "**REDACTED**"}
 
 
 @pytest.mark.asyncio

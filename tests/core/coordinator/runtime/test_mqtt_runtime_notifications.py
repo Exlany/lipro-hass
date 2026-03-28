@@ -62,6 +62,19 @@ class TestMqttRuntimeDisconnectNotification:
             mqtt_runtime.check_disconnect_notification()
             mock_create_task.assert_not_called()
 
+    def test_check_disconnect_notification_not_triggered_after_issue_already_marked(
+        self, mqtt_runtime
+    ):
+        mqtt_runtime._connection_manager._connected = False
+        mqtt_runtime._connection_manager._disconnect_time = monotonic() - 400
+        mqtt_runtime._connection_manager._disconnect_notified = True
+
+        with patch(
+            "custom_components.lipro.core.coordinator.runtime.mqtt_runtime.asyncio.create_task"
+        ) as mock_create_task:
+            mqtt_runtime.check_disconnect_notification()
+            mock_create_task.assert_not_called()
+
     def test_check_disconnect_notification_uses_background_task_manager(
         self, mock_hass, mock_mqtt_transport
     ):

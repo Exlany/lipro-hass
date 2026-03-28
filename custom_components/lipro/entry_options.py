@@ -13,6 +13,8 @@ _DATA_OPTIONS_SNAPSHOTS = "options_snapshots"
 
 
 ConfigEntryDataT = TypeVar("ConfigEntryDataT")
+type OptionsSnapshot = dict[str, object]
+type OptionsSnapshotStore = dict[str, OptionsSnapshot]
 
 
 def store_entry_options_snapshot(hass: HomeAssistant, entry: ConfigEntry[ConfigEntryDataT]) -> None:
@@ -51,13 +53,13 @@ async def async_reload_entry_if_options_changed(
         return
 
     snapshots = domain_data.get(_DATA_OPTIONS_SNAPSHOTS)
+    current: OptionsSnapshot = dict(entry.options)
+
     if not isinstance(snapshots, dict):
-        domain_data[_DATA_OPTIONS_SNAPSHOTS] = {entry.entry_id: dict(entry.options)}
+        domain_data[_DATA_OPTIONS_SNAPSHOTS] = {entry.entry_id: current}
         return
 
     previous = snapshots.get(entry.entry_id)
-    current = dict(entry.options)
-
     if isinstance(previous, dict) and previous == current:
         return
     if previous is None:

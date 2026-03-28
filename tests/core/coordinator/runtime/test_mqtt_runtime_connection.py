@@ -62,6 +62,17 @@ class TestMqttRuntimeConnection:
             await mqtt_runtime.connect(device_ids=["device1"])
 
     @pytest.mark.asyncio
+    async def test_connect_returns_false_when_transport_never_confirms_connection(
+        self, mqtt_runtime, mock_mqtt_transport
+    ):
+        mock_mqtt_transport.wait_until_connected.return_value = False
+
+        result = await mqtt_runtime.connect(device_ids=["device1"])
+
+        assert result is False
+        assert mqtt_runtime._reconnect_manager._backoff._failure_count > 0
+
+    @pytest.mark.asyncio
     async def test_disconnect(self, mqtt_runtime, mock_mqtt_transport):
         async def wait_until_connected():
             mqtt_runtime.on_transport_connected()

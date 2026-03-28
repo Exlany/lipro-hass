@@ -1,19 +1,25 @@
 # Project: Lipro-HASS North Star Evolution
 
 
-**Status:** `No active milestone route`
-**Current route:** `no active milestone route / latest archived baseline = v1.25`；latest archived evidence index = `.planning/reviews/V1_25_EVIDENCE_INDEX.md`.
-**Legacy route-string compatibility:** `no active milestone route / latest archived baseline = v1.25`；latest archived closeout pointer = `.planning/reviews/V1_25_EVIDENCE_INDEX.md`.
-**Goal:** `保持 v1.25 的 archived / evidence-ready closeout 真相稳定可拉取，并为下一条正式里程碑路线提供唯一北极星起点。`
-**Default next step:** `$gsd-new-milestone`
-**Active baseline:** latest archived baseline = `v1.25`；previous archived baseline = `v1.24`.
+**Status:** `Active milestone`
+**Current route:** `v1.26 active route / Phase 97 complete / latest archived baseline = v1.25`；latest archived evidence index = `.planning/reviews/V1_25_EVIDENCE_INDEX.md`.
+**Goal:** `把终极仓审识别出的高收益残留路由成 typed-boundary 收口、hotspot inward split、sanitizer complexity burn-down 与 governance freeze 四段连续路线。`
+**Default next step:** `$gsd-complete-milestone v1.26`
+**Active baseline:** active milestone = `v1.26`；latest archived baseline = `v1.25`；previous archived baseline = `v1.24`.
 
 
 <!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone: null
+active_milestone:
+  version: v1.26
+  name: Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition
+  status: active / closeout-ready (2026-03-28)
+  phase: '97'
+  phase_title: Governance, open-source contract sync, and assurance freeze
+  phase_dir: 97-governance-open-source-contract-sync-and-assurance-freeze
+  route_mode: v1.26 active route / Phase 97 complete / latest archived baseline = v1.25
 latest_archived:
   version: v1.25
   name: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
@@ -29,41 +35,43 @@ previous_archived:
   name: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
   evidence_path: .planning/reviews/V1_24_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.25
-  default_next_command: $gsd-new-milestone
+  current_route: v1.26 active route / Phase 97 complete / latest archived baseline = v1.25
+  default_next_command: $gsd-complete-milestone v1.26
   latest_archived_evidence_pointer: .planning/reviews/V1_25_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
 
+
+## Current Milestone (v1.26)
+
+**Name:** `Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition`
+
+**Why now:** `v1.25` 已把 north-star 主链与 archive-ready evidence 固化下来；本轮继续把 typed seam、hotspot inward split、shared sanitizer burn-down 与 governance freeze 做成同一条 current story，而不是留下“代码改了、治理没跟上”的第二条故事线。`
+
+**North-star fit:** `v1.26` 继续只接受单 protocol root、单 runtime root、control thin adapters 与 machine-check governance；当前所有精修都只发生在既有 formal homes 内部，不恢复第二套合法架构。`
+
+**Current status:** `active / closeout-ready (2026-03-28)`
+**Phase range:** `Phase 94 -> 97`
+**Starting baseline:** `.planning/v1.25-MILESTONE-AUDIT.md, .planning/reviews/V1_25_EVIDENCE_INDEX.md, .planning/milestones/v1.25-ROADMAP.md, .planning/milestones/v1.25-REQUIREMENTS.md`
+**Requirements basket:** `TYP-24`, `HOT-41`, `SEC-02`, `ARC-25`, `TST-30`, `QLT-38`
+**Current route mode:** `v1.26 active route / Phase 97 complete / latest archived baseline = v1.25`
+**Default next command:** `$gsd-complete-milestone v1.26`
+
+**Audit-routed problem clusters:**
+- `Phase 94` 已完成 typed-boundary contraction，broad mapping / generic drift 已冻结到 focused no-growth guards。
+- `Phase 95` 与 `Phase 96` 已完成 schedule/runtime/auth hotspots 与 shared redaction/sanitizer burn-down，`control/redaction.py`、`core/telemetry/exporter.py`、`core/anonymous_share/manager.py` 继续停留在既定 formal homes，但内部复杂度已明显下降。
+- `Phase 97` 已完成 governance / developer-architecture / matrix / focused-guard freeze；parser truth、route prose 与 next-step command 不再分叉。
+- derived-map freshness debt 已通过 focused guards 与 count sync 显式冻结，不再靠口头维护。
+- open-source continuity debt 仍属组织层高风险，只能诚实登记，不伪装成已被代码消灭。
+
 ## Latest Archived Milestone (v1.25)
 
 **Name:** `Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence`
-
-**Why it mattered:** `v1.25` 没有重开第二故事线，而是把当前真正高收益的结构债压缩成四段连续路线：先冻结 hotspot formal-home map，再 inward split protocol/runtime hotspots，然后收敛 control/entity/redaction truth，最后用 assurance freeze 把质量与治理一起封口。
-
-**North-star fit:** `v1.25` 以单 protocol root、单 runtime root、thin adapters、shared redaction truth 与 typed boundary spine 作为唯一正式裁决，不接受 helper-owned public truth、raw payload 回流或“测试能过即可”的临时兼容故事。
-
 **Current status:** `archived / evidence-ready (2026-03-28)`
 **Phase range:** `Phase 90 -> 93`
-**Starting baseline:** `.planning/v1.24-MILESTONE-AUDIT.md, .planning/reviews/V1_24_EVIDENCE_INDEX.md, .planning/milestones/v1.24-ROADMAP.md, .planning/milestones/v1.24-REQUIREMENTS.md`
-**Requirements basket:** `HOT-40`, `ARC-24`, `TYP-23`, `SEC-01`, `TST-29`, `QLT-37`
 **Archive assets:** `.planning/v1.25-MILESTONE-AUDIT.md`, `.planning/reviews/V1_25_EVIDENCE_INDEX.md`, `.planning/milestones/v1.25-ROADMAP.md`, `.planning/milestones/v1.25-REQUIREMENTS.md`
-**Phase 90 closeout:** `.planning/phases/90-hotspot-routing-freeze-and-formal-home-decomposition-map/{90-01-SUMMARY.md,90-02-SUMMARY.md,90-03-SUMMARY.md,90-VERIFICATION.md,90-VALIDATION.md}`
-**Phase 91 closeout:** `.planning/phases/91-protocol-runtime-decomposition-and-typed-boundary-hardening/{91-01-SUMMARY.md,91-02-SUMMARY.md,91-03-SUMMARY.md,91-VERIFICATION.md,91-VALIDATION.md}`
-**Phase 92 closeout:** `.planning/phases/92-control-entity-thin-boundary-and-redaction-convergence/{92-01-SUMMARY.md,92-02-SUMMARY.md,92-03-SUMMARY.md,92-VERIFICATION.md,92-VALIDATION.md}`
-**Phase 93 closeout:** `.planning/phases/93-assurance-topicization-and-quality-freeze/{93-01-SUMMARY.md,93-02-SUMMARY.md,93-03-SUMMARY.md,93-VERIFICATION.md,93-VALIDATION.md}`
-**Default next command:** `$gsd-new-milestone`
 **Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.25`
-
-**Key accomplishments:**
-- 将 hotspot formal-home freeze、thin-shell line 与 delete-gate policy 同步冻结到 planning / baseline / review / derived maps，消除口头共识式治理漂移。
-- 统一 route truth、public-surface notes、dependency notes、review ledgers 与 no-regrowth guards，使 Phase 90–93 的完成态与下一跳可 machine-check。
-- 把 `LiproProtocolFacade` 固化为单一 canonical boundary truth，runtime 只消费标准化 contract，不再回退到 raw REST payload folklore。
-- 把 typed-boundary、decode result、schema registry、runtime telemetry、trace 与 OTA 投影收敛到共享 typed spine，压缩 `Any` 漂移与重复 alias。
-- 把 diagnostics / anonymous-share / telemetry 的 redaction truth 下沉到统一真源，并在 full-suite 中清零最后 9 个行为回归。
-- 用 topicized sibling suites、governance sync 与 repo-wide quality gates 完成 assurance freeze，使 v1.25 成为真正的 archived baseline。
-
 ## Previous Archived Milestone (v1.24)
 
 **Name:** `Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence`
@@ -555,7 +563,7 @@ bootstrap:
 5. `Phase 38` — external-boundary residual retirement and quality-signal hardening
 6. `Phase 39` — governance current-story convergence, control-home clarification, and mega-test decomposition
 
-**Default next step:** `$gsd-plan-phase 40` → `$gsd-execute-phase 40`
+**Default next step:** `$gsd-complete-milestone v1.26`
 
 ## Phase 34 Seed Hardening Update
 

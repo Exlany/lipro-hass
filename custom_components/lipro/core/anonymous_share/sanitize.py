@@ -82,6 +82,49 @@ def sanitize_string(value: str) -> str:
     return redact_sensitive_text(value, markers=SHARE_REDACTION_MARKERS)
 
 
+def _sanitize_container_string(value: str, *, depth: int) -> str | None:
+    """Sanitize one JSON-string container recursively when parseable."""
+    stripped = value.strip()
+    if not stripped or stripped[0] not in "[{":
+        return None
+    try:
+        parsed = json.loads(value)
+    except (TypeError, ValueError):
+        return None
+    if not isinstance(parsed, (dict, list)):
+        return None
+    sanitized = sanitize_value(
+        parsed,
+        preserve_structure=True,
+        _depth=depth + 1,
+    )
+    return json.dumps(
+        sanitized,
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
+
+
+def _sanitize_scalar_value(value: Any) -> Any:
+    """Sanitize one scalar value without traversing nested containers."""
+    str_value = str(value)
+
+    if looks_sensitive(str_value):
+        return "[redacted]"
+
+    sanitized_value = sanitize_string(str_value)
+    if sanitized_value != str_value:
+        return sanitized_value
+
+    if isinstance(value, (bool, int, float)):
+        return value
+
+    if len(str_value) > _MAX_STRING_LENGTH:
+        return str_value[:_TRUNCATED_STRING_PREFIX_LENGTH] + "...[truncated]"
+
+    return value
+
+
 def looks_sensitive(value: str) -> bool:
     """Return True when a value looks like sensitive data."""
     return looks_sensitive_value(value)
@@ -115,29 +158,6 @@ def _sanitize_list(value: list[Any], *, depth: int) -> list[Any]:
     ]
 
 
-def _sanitize_json_string(value: str, *, depth: int) -> str | None:
-    """Sanitize JSON string payloads recursively when parseable."""
-    stripped = value.strip()
-    if not stripped or stripped[0] not in "{[":
-        return None
-    try:
-        parsed = json.loads(value)
-    except (TypeError, ValueError):
-        return None
-    if not isinstance(parsed, (dict, list)):
-        return None
-    sanitized = sanitize_value(
-        parsed,
-        preserve_structure=True,
-        _depth=depth + 1,
-    )
-    return json.dumps(
-        sanitized,
-        ensure_ascii=False,
-        separators=(",", ":"),
-    )
-
-
 def sanitize_value(
     value: Any,
     preserve_structure: bool = False,
@@ -157,26 +177,11 @@ def sanitize_value(
             return _sanitize_list(value, depth=_depth)
 
     if isinstance(value, str) and preserve_structure:
-        sanitized_json = _sanitize_json_string(value, depth=_depth)
+        sanitized_json = _sanitize_container_string(value, depth=_depth)
         if sanitized_json is not None:
             return sanitized_json
 
-    str_value = str(value)
-
-    if looks_sensitive(str_value):
-        return "[redacted]"
-
-    sanitized_value = sanitize_string(str_value)
-    if sanitized_value != str_value:
-        return sanitized_value
-
-    if isinstance(value, (bool, int, float)):
-        return value
-
-    if len(str_value) > _MAX_STRING_LENGTH:
-        return str_value[:_TRUNCATED_STRING_PREFIX_LENGTH] + "...[truncated]"
-
-    return value
+    return _sanitize_scalar_value(value)
 
 
 def sanitize_properties(properties: dict[str, Any]) -> dict[str, Any]:

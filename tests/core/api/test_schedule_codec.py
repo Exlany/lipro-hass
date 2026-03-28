@@ -7,6 +7,7 @@ import pytest
 from custom_components.lipro.core.api.schedule_codec import (
     build_mesh_schedule_json_payload,
     coerce_int_list,
+    next_mesh_schedule_id,
     normalize_mesh_timing_rows,
     parse_mesh_schedule_json,
 )
@@ -58,6 +59,10 @@ def test_parse_mesh_schedule_json_rejects_legacy_wrapped_payload() -> None:
     assert parsed == {"days": [], "time": [], "evt": []}
 
 
+def test_next_mesh_schedule_id_skips_bool_and_finds_first_gap() -> None:
+    assert next_mesh_schedule_id([{"id": False}, {"id": 0}, {"id": " 1 "}, {"id": 3}]) == 2
+
+
 def test_normalize_mesh_timing_rows_sets_schedule_from_verified_payload() -> None:
     rows = normalize_mesh_timing_rows(
         [
@@ -103,9 +108,7 @@ def test_coerce_int_list_skips_bool_and_invalid_numeric_string() -> None:
     assert coerce_int_list([True, 1, 2.0, 2.5, " 3 ", "+-1", "abc"]) == [1, 2, 3]
 
 
-def test_normalize_mesh_timing_rows_skips_non_mapping_rows_and_fills_fallback_id() -> (
-    None
-):
+def test_normalize_mesh_timing_rows_skips_non_mapping_rows_and_fills_fallback_id() -> None:
     normalized = normalize_mesh_timing_rows(
         [
             1,

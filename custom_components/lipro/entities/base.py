@@ -5,13 +5,14 @@ from __future__ import annotations
 from collections.abc import Mapping
 import logging
 from time import monotonic
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Final, cast
 
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..const.base import DOMAIN, MANUFACTURER
 from ..const.properties import CMD_CHANGE_STATE
+from ..core.coordinator.coordinator import Coordinator
 from ..core.utils.debounce import Debouncer
 from ..runtime_types import LiproRuntimeCoordinator
 
@@ -30,10 +31,8 @@ DEBOUNCE_PROTECTION_WINDOW: Final = 1.5
 _POST_COMMAND_PROTECTION_BUFFER: Final = 0.5
 
 
-class LiproEntity(CoordinatorEntity[Any]):
+class LiproEntity(CoordinatorEntity[Coordinator]):
     """Base class for Lipro entities."""
-
-    coordinator: LiproRuntimeCoordinator
 
     _attr_has_entity_name = True
     _attr_attribution = "Data provided by Lipro Smart Home"
@@ -53,7 +52,7 @@ class LiproEntity(CoordinatorEntity[Any]):
                 Falls back to class attribute _entity_suffix if not provided.
 
         """
-        super().__init__(coordinator)
+        super().__init__(cast(Coordinator, coordinator))
         self._device = device
         self._entity_suffix = entity_suffix or getattr(type(self), "_entity_suffix", "")
         self._debouncer: Debouncer | None = None
@@ -90,6 +89,11 @@ class LiproEntity(CoordinatorEntity[Any]):
         return self.coordinator.get_device(self._device.serial) or self._device
 
     @property
+    def runtime_coordinator(self) -> LiproRuntimeCoordinator:
+        """Return the typed runtime coordinator surface for entity interactions."""
+        return cast(LiproRuntimeCoordinator, self.coordinator)
+
+    @property
     def capabilities(self) -> CapabilitySnapshot:
         """Return the canonical capability snapshot for the current device."""
         return self.device.capabilities
@@ -97,13 +101,13 @@ class LiproEntity(CoordinatorEntity[Any]):
     @property
     def available(self) -> bool:
         """Return if entity is available."""
-        return self.coordinator.last_update_success and self.device.available
+        return self.runtime_coordinator.last_update_success and self.device.available
 
     async def async_added_to_hass(self) -> None:
         """When entity is added to hass."""
         await super().async_added_to_hass()
         # Register with coordinator for debounce protection tracking
-        self.coordinator.register_entity(self)
+        self.runtime_coordinator.register_entity(self)
 
     async def async_will_remove_from_hass(self) -> None:
         """When entity will be removed from hass."""
@@ -112,7 +116,7 @@ class LiproEntity(CoordinatorEntity[Any]):
             self._debouncer.cancel()
             self._debouncer = None
         # Unregister from coordinator
-        self.coordinator.unregister_entity(self)
+        self.runtime_coordinator.unregister_entity(self)
         await super().async_will_remove_from_hass()
 
     @property
@@ -194,7 +198,7 @@ class LiproEntity(CoordinatorEntity[Any]):
         properties: list[dict[str, str]] | None = None,
     ) -> bool:
         """Dispatch one command through the formal runtime command surface."""
-        return await self.coordinator.async_send_command(
+        return await self.runtime_coordinator.async_send_command(
             self.device,
             command,
             properties,
@@ -205,7 +209,7 @@ class LiproEntity(CoordinatorEntity[Any]):
         optimistic_state: Mapping[str, object],
     ) -> None:
         """Apply optimistic state through the formal runtime state verb."""
-        await self.coordinator.async_apply_optimistic_state(
+        await self.runtime_coordinator.async_apply_optimistic_state(
             self.device,
             optimistic_state,
         )
@@ -246,7 +250,7 @@ class LiproEntity(CoordinatorEntity[Any]):
 
         # If command failed, request refresh to restore actual state
         if not success and optimistic_state:
-            await self.coordinator.async_request_refresh()
+            await self.runtime_coordinator.async_request_refresh()
 
         return success
 
@@ -320,7 +324,7 @@ class LiproEntity(CoordinatorEntity[Any]):
         if not success and optimistic_state:
             self._debounce_protected_keys.clear()
             self._debounce_protected_until = 0
-            await self.coordinator.async_request_refresh()
+            await self.runtime_coordinator.async_request_refresh()
 
     def _update_from_device(self) -> None:
         """Update entity state from device data.

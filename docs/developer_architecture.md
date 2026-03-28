@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `Phase 93` assurance freeze (`2026-03-28`)
-> **Current route alignment**: `no active milestone route / latest archived baseline = v1.25` (`2026-03-28`)
+> **Last aligned through**: `Phase 97` governance and assurance freeze (`2026-03-28`)
+> **Current route alignment**: `v1.26 active route / Phase 97 complete / latest archived baseline = v1.25` (`2026-03-28`)
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
@@ -18,6 +18,16 @@
 - Phase 89 closeout treats `V1_23_TERMINAL_AUDIT.md` as historical input evidence only; archived-only route truth now lives in `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`, `.planning/v1.25-MILESTONE-AUDIT.md`, `.planning/reviews/V1_25_EVIDENCE_INDEX.md`, and focused governance guards.
 - `RESIDUAL_LEDGER.md` active residual families 为空、`KILL_LIST.md` 的 `Phase 85 Routed Delete Gates` 为空，都是显式 closeout verdict，而不是待补登记的空白。
 - `.planning/reviews/PROMOTED_PHASE_ASSETS.md` 是 phase evidence allowlist 的唯一 home；developer-facing guidance 只索引它，不私自提升 execution traces。
+
+## Phase 96 Sanitizer Burn-Down Note
+
+- `Phase 96` 已把 diagnostics/control redaction、runtime telemetry exporter 与 anonymous-share manager/sanitize 的 remaining sanitizer hotspots inward split 成 named helpers，shared redaction truth 继续固定在 `custom_components/lipro/core/utils/redaction.py`。
+- `custom_components/lipro/control/redaction.py`、`custom_components/lipro/core/telemetry/exporter.py` 与 `custom_components/lipro/core/anonymous_share/manager.py` 仍分别停留在既有 formal homes；helper split 只是 inward decomposition，不构成新的 public root。
+
+## Phase 97 Governance / Assurance Freeze Note
+
+- 当前 developer guidance 与 `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md` 已共同承认 `v1.26 active route / Phase 97 complete / latest archived baseline = v1.25`；默认下一步已收缩为 `$gsd-complete-milestone v1.26`。
+- `tests/meta/test_phase96_sanitizer_burndown_guards.py` 与 `tests/meta/test_phase97_governance_assurance_freeze_guards.py` 现在共同冻结 sanitizer burn-down、route contract、file/testing counts 与 developer-facing topology note，避免治理与 assurance 再度分叉。
 
 ## 快速导航
 
@@ -232,3 +242,10 @@ custom_components/lipro/
 - `FILE_MATRIX.md`、`TESTING.md`、`VERIFICATION_MATRIX.md` 与 route-contract docs 现在共享同一份 quality-freeze truth；Phase 93 不再容忍“实现已完成、派生治理未刷新”的尾差。
 - diagnostics topicization 带来的 incidental `Any` drift 已被 burn down；typing budget guard 继续以 `tests/meta/test_phase31_runtime_budget_guards.py` 为 no-growth freeze home，而不是通过放宽常量掩盖漂移。
 - Phase 93 只做 assurance / quality freeze / milestone closeout-ready proof；它不新增 public root、不回流 orchestration，也不为 helper 再制造第二条故事线。
+
+
+## Phase 94 Typed Boundary Notes
+
+- `custom_components/lipro/domain_data.py` 现在明确暴露 `dict[str, object]`，`entities/base.py` 继续作为 `CoordinatorEntity[LiproRuntimeCoordinator]` 的 protected thin shell。
+- `control/diagnostics_surface.py` / `diagnostics.py` 与 `core/api/{command_api_service,status_fallback,transport_core}.py` 已把 broad payload seam 收回 JSON-like / mapping-safe contract，`transport_core` 在协议边界处强制验证 mapping 响应。
+- `tests/meta/test_phase94_typed_boundary_guards.py` 负责冻结这批 seam 的 no-regrowth truth；当前 active route 已前推到 `Phase 95 execution-ready`，后续只允许继续 inward split 热点。

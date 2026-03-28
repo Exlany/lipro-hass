@@ -36,20 +36,20 @@ def get_anonymous_share_manager(
                 return root_manager.for_scope(resolved_entry_id)
             return root_manager.aggregate_view()
 
-        aggregate_manager: AnonymousShareManager | None = domain_data.get(
-            _AGGREGATE_MANAGER_KEY
-        )
-        if aggregate_manager is None:
+        aggregate_manager = domain_data.get(_AGGREGATE_MANAGER_KEY)
+        if not isinstance(aggregate_manager, AnonymousShareManager):
             aggregate_manager = root_manager.aggregate_view()
             domain_data[_AGGREGATE_MANAGER_KEY] = aggregate_manager
         if resolved_entry_id is None:
             return aggregate_manager
-        scoped_managers: dict[str, AnonymousShareManager] = domain_data.setdefault(
-            _SCOPED_MANAGERS_KEY,
-            {},
-        )
+
+        scoped_managers = domain_data.get(_SCOPED_MANAGERS_KEY)
+        if not isinstance(scoped_managers, dict):
+            scoped_managers = {}
+            domain_data[_SCOPED_MANAGERS_KEY] = scoped_managers
+
         manager = scoped_managers.get(resolved_entry_id)
-        if manager is None:
+        if not isinstance(manager, AnonymousShareManager):
             manager = root_manager.for_scope(resolved_entry_id)
             scoped_managers[resolved_entry_id] = manager
         return manager

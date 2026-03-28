@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from time import monotonic
-from typing import Any
+from typing import cast
 
 from .status_fallback import (
     CoerceConnectStatus,
@@ -18,7 +19,7 @@ from .status_fallback import (
     _resolve_device_status_batch_size,
     query_with_fallback,
 )
-from .types import DeviceStatusItem
+from .types import DeviceStatusItem, JsonValue
 
 
 def _build_device_status_batches(
@@ -36,7 +37,7 @@ def _log_adaptive_batch_size(
     device_count: int,
     configured_batch_size: int,
     effective_batch_size: int,
-    logger: Any,
+    logger: logging.Logger,
 ) -> None:
     if (
         effective_batch_size != configured_batch_size
@@ -61,7 +62,7 @@ async def _query_status_batch(
     lipro_api_error: type[Exception],
     normalize_response_code: NormalizeResponseCode,
     expected_offline_codes: tuple[int | str, ...],
-    logger: Any,
+    logger: logging.Logger,
     on_batch_metric: RecordStatusBatchMetric | None,
 ) -> MappingRows:
     fallback_depth = 0
@@ -106,7 +107,7 @@ async def query_device_status(
     lipro_api_error: type[Exception],
     normalize_response_code: NormalizeResponseCode,
     expected_offline_codes: tuple[int | str, ...],
-    logger: Any,
+    logger: logging.Logger,
     path_query_device_status: str,
     on_batch_metric: RecordStatusBatchMetric | None = None,
 ) -> list[DeviceStatusItem]:
@@ -181,7 +182,7 @@ async def query_mesh_group_status(
     lipro_api_error: type[Exception],
     normalize_response_code: NormalizeResponseCode,
     expected_offline_codes: tuple[int | str, ...],
-    logger: Any,
+    logger: logging.Logger,
     path_query_mesh_group_status: str,
 ) -> MappingRows:
     """Query status of mesh groups with per-group fallback behavior."""
@@ -210,7 +211,7 @@ async def query_connect_status(
     iot_request: IoTRequest,
     coerce_connect_status: CoerceConnectStatus,
     lipro_api_error: type[Exception],
-    logger: Any,
+    logger: logging.Logger,
     path_query_connect_status: str,
 ) -> dict[str, bool]:
     """Query real-time connection status for devices."""
@@ -225,9 +226,9 @@ async def query_connect_status(
         return {}
 
     try:
-        result: Any = await iot_request(
+        result = await iot_request(
             path_query_connect_status,
-            {"deviceIdList": sanitized_ids},
+            {"deviceIdList": cast(JsonValue, sanitized_ids)},
         )
         if isinstance(result, dict):
             if "code" in result and "data" in result:

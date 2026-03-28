@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 import json
 from typing import Any
 
@@ -38,6 +38,17 @@ def resolve_mesh_schedule_candidate_ids(
         for member_id in mesh_member_ids:
             _append_candidate(member_id)
     return candidates
+
+
+def validate_schedule_time_event_lengths(
+    times: Sequence[int],
+    events: Sequence[int],
+) -> None:
+    """Ensure schedule ``time`` and ``evt`` arrays stay aligned."""
+    if len(times) == len(events):
+        return
+    msg = "times and events must have same length"
+    raise ValueError(msg)
 
 
 def encode_mesh_schedule_json(

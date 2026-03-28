@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable, Callable, Sequence
+from collections.abc import Awaitable, Callable, Iterator, Sequence
 import logging
 
 from .types import ScheduleTimingRow
@@ -25,6 +25,9 @@ type BuildMeshScheduleAddBody = Callable[..., ScheduleRequestBody]
 type BuildMeshScheduleDeleteBody = Callable[..., ScheduleRequestBody]
 type GetMeshSchedulesByCandidatesRequest = Callable[..., Awaitable[ScheduleRows]]
 type EncodeMeshScheduleJson = Callable[..., str]
+type CandidateBatch = Sequence[str]
+type CandidateBatchGetResult = tuple[ScheduleRows | None, bool, Exception | None]
+type DeleteBatchResult = tuple[bool, Exception | None]
 
 
 def _redact_candidate_id(candidate_id: str) -> str:
@@ -52,6 +55,22 @@ def _next_mesh_schedule_id(rows: ScheduleRows) -> int:
     while next_id in used_ids:
         next_id += 1
     return next_id
+
+
+def _iter_candidate_batches(
+    candidate_device_ids: Sequence[str],
+) -> Iterator[CandidateBatch]:
+    """Yield candidate IDs in bounded-concurrency batches."""
+    for start in range(0, len(candidate_device_ids), _MESH_SCHEDULE_CANDIDATE_CONCURRENCY):
+        yield candidate_device_ids[start : start + _MESH_SCHEDULE_CANDIDATE_CONCURRENCY]
+
+
+def _remember_last_error(
+    last_error: Exception | None,
+    error: Exception | None,
+) -> Exception | None:
+    """Prefer the most recent concrete candidate error when present."""
+    return error if error is not None else last_error
 
 
 async def execute_mesh_schedule_candidate_request(
@@ -94,6 +113,191 @@ async def execute_mesh_schedule_candidate_request(
         return False, None, err
 
 
+async def _run_timed_get_candidate_request(
+    *,
+    candidate_id: str,
+    execute_candidate_request: CandidateRequestExecutor,
+    iot_request: IotRequest,
+    path_ble_schedule_get: str,
+    build_mesh_schedule_get_body: BuildMeshScheduleGetBody,
+) -> tuple[str, CandidateRequestResult]:
+    """Execute one GET candidate request with timeout normalization."""
+    try:
+        result = await asyncio.wait_for(
+            execute_candidate_request(
+                candidate_id=candidate_id,
+                operation="GET",
+                request=lambda candidate: iot_request(
+                    path_ble_schedule_get,
+                    build_mesh_schedule_get_body(candidate),
+                ),
+            ),
+            timeout=_MESH_SCHEDULE_CANDIDATE_TIMEOUT_SECONDS,
+        )
+    except TimeoutError as err:
+        result = (False, None, err)
+    return candidate_id, result
+
+
+def _create_get_candidate_tasks(
+    *,
+    candidate_ids: CandidateBatch,
+    execute_candidate_request: CandidateRequestExecutor,
+    iot_request: IotRequest,
+    path_ble_schedule_get: str,
+    build_mesh_schedule_get_body: BuildMeshScheduleGetBody,
+) -> list[asyncio.Task[tuple[str, CandidateRequestResult]]]:
+    """Create bounded GET candidate tasks with stable task naming."""
+    return [
+        asyncio.create_task(
+            _run_timed_get_candidate_request(
+                candidate_id=candidate_id,
+                execute_candidate_request=execute_candidate_request,
+                iot_request=iot_request,
+                path_ble_schedule_get=path_ble_schedule_get,
+                build_mesh_schedule_get_body=build_mesh_schedule_get_body,
+            ),
+            name=f"lipro_mesh_schedule_get:{_redact_candidate_id(candidate_id)}",
+        )
+        for candidate_id in candidate_ids
+    ]
+
+
+async def _drain_candidate_tasks(
+    tasks: Sequence[asyncio.Task[tuple[str, CandidateRequestResult]]],
+) -> None:
+    """Cancel unfinished candidate tasks and drain their exceptions."""
+    for task in tasks:
+        if not task.done():
+            task.cancel()
+    try:
+        await asyncio.gather(*tasks, return_exceptions=True)
+    except asyncio.CancelledError:
+        await asyncio.shield(asyncio.gather(*tasks, return_exceptions=True))
+        raise
+
+
+async def _collect_schedule_rows_from_batch(
+    *,
+    candidate_ids: CandidateBatch,
+    execute_candidate_request: CandidateRequestExecutor,
+    iot_request: IotRequest,
+    extract_timings_list: ExtractTimingsList,
+    normalize_mesh_timing_rows: NormalizeMeshTimingRows,
+    path_ble_schedule_get: str,
+    build_mesh_schedule_get_body: BuildMeshScheduleGetBody,
+) -> CandidateBatchGetResult:
+    """Return the first populated normalized row set produced by one batch."""
+    last_error: Exception | None = None
+    any_candidate_succeeded = False
+    tasks = _create_get_candidate_tasks(
+        candidate_ids=candidate_ids,
+        execute_candidate_request=execute_candidate_request,
+        iot_request=iot_request,
+        path_ble_schedule_get=path_ble_schedule_get,
+        build_mesh_schedule_get_body=build_mesh_schedule_get_body,
+    )
+    try:
+        for completed in asyncio.as_completed(tasks):
+            candidate_id, (succeeded, payload, error) = await completed
+            if not succeeded:
+                last_error = _remember_last_error(last_error, error)
+                continue
+
+            any_candidate_succeeded = True
+            if payload is None:
+                continue
+
+            normalized_rows = normalize_mesh_timing_rows(
+                extract_timings_list(payload),
+                fallback_device_id=candidate_id,
+            )
+            if normalized_rows:
+                return normalized_rows, True, last_error
+    finally:
+        await _drain_candidate_tasks(tasks)
+
+    return None, any_candidate_succeeded, last_error
+
+
+async def _refresh_mesh_schedule_rows(
+    *,
+    candidate_device_ids: Sequence[str],
+    get_mesh_schedules_by_candidates_request: GetMeshSchedulesByCandidatesRequest,
+) -> ScheduleRows:
+    """Refresh schedule rows across the original candidate set after mutation."""
+    return await get_mesh_schedules_by_candidates_request(
+        candidate_device_ids=list(candidate_device_ids),
+        raise_on_total_failure=False,
+    )
+
+
+async def _add_mesh_schedule_for_candidate(
+    *,
+    candidate_id: str,
+    schedule_json: str,
+    execute_candidate_request: CandidateRequestExecutor,
+    iot_request: IotRequest,
+    get_mesh_schedules_by_candidates_request: GetMeshSchedulesByCandidatesRequest,
+    path_ble_schedule_add: str,
+    build_mesh_schedule_add_body: BuildMeshScheduleAddBody,
+) -> CandidateRequestResult:
+    """Add one mesh schedule to a single candidate after picking the next ID."""
+    current_rows = await get_mesh_schedules_by_candidates_request(
+        candidate_device_ids=[candidate_id],
+        raise_on_total_failure=True,
+    )
+    schedule_id = _next_mesh_schedule_id(current_rows)
+    return await execute_candidate_request(
+        candidate_id=candidate_id,
+        operation="ADD",
+        request=lambda candidate, schedule_id=schedule_id: iot_request(
+            path_ble_schedule_add,
+            build_mesh_schedule_add_body(
+                candidate,
+                schedule_json=schedule_json,
+                schedule_id=schedule_id,
+            ),
+        ),
+    )
+
+
+async def _delete_mesh_schedule_batch(
+    *,
+    candidate_ids: CandidateBatch,
+    schedule_ids: list[int],
+    execute_candidate_request: CandidateRequestExecutor,
+    iot_request: IotRequest,
+    path_ble_schedule_delete: str,
+    build_mesh_schedule_delete_body: BuildMeshScheduleDeleteBody,
+) -> DeleteBatchResult:
+    """Delete one schedule batch and summarize success plus latest error."""
+    any_deleted = False
+    last_error: Exception | None = None
+    batch_results = await asyncio.gather(
+        *(
+            execute_candidate_request(
+                candidate_id=candidate_id,
+                operation="DELETE",
+                request=lambda candidate: iot_request(
+                    path_ble_schedule_delete,
+                    build_mesh_schedule_delete_body(
+                        candidate,
+                        schedule_ids=schedule_ids,
+                    ),
+                ),
+            )
+            for candidate_id in candidate_ids
+        )
+    )
+    for succeeded, _, error in batch_results:
+        if succeeded:
+            any_deleted = True
+            continue
+        last_error = _remember_last_error(last_error, error)
+    return any_deleted, last_error
+
+
 async def get_mesh_schedules_by_candidates(
     *,
     candidate_device_ids: list[str],
@@ -112,59 +316,20 @@ async def get_mesh_schedules_by_candidates(
     last_error: Exception | None = None
     any_candidate_succeeded = False
 
-    for start in range(0, len(candidate_device_ids), _MESH_SCHEDULE_CANDIDATE_CONCURRENCY):
-        batch = candidate_device_ids[start : start + _MESH_SCHEDULE_CANDIDATE_CONCURRENCY]
-
-        async def _run_candidate(candidate_id: str) -> tuple[str, CandidateRequestResult]:
-            try:
-                result = await asyncio.wait_for(
-                    execute_candidate_request(
-                        candidate_id=candidate_id,
-                        operation="GET",
-                        request=lambda candidate: iot_request(
-                            path_ble_schedule_get,
-                            build_mesh_schedule_get_body(candidate),
-                        ),
-                    ),
-                    timeout=_MESH_SCHEDULE_CANDIDATE_TIMEOUT_SECONDS,
-                )
-            except TimeoutError as err:
-                result = (False, None, err)
-            return candidate_id, result
-
-        tasks = [
-            asyncio.create_task(
-                _run_candidate(candidate_id),
-                name=f"lipro_mesh_schedule_get:{_redact_candidate_id(candidate_id)}",
-            )
-            for candidate_id in batch
-        ]
-        try:
-            for completed in asyncio.as_completed(tasks):
-                candidate_id, (succeeded, payload, error) = await completed
-                if not succeeded:
-                    if error is not None:
-                        last_error = error
-                    continue
-
-                any_candidate_succeeded = True
-                if payload is None:
-                    continue
-                normalized_rows = normalize_mesh_timing_rows(
-                    extract_timings_list(payload),
-                    fallback_device_id=candidate_id,
-                )
-                if normalized_rows:
-                    return normalized_rows
-        finally:
-            for task in tasks:
-                if not task.done():
-                    task.cancel()
-            try:
-                await asyncio.gather(*tasks, return_exceptions=True)
-            except asyncio.CancelledError:
-                await asyncio.shield(asyncio.gather(*tasks, return_exceptions=True))
-                raise
+    for batch in _iter_candidate_batches(candidate_device_ids):
+        normalized_rows, batch_succeeded, batch_error = await _collect_schedule_rows_from_batch(
+            candidate_ids=batch,
+            execute_candidate_request=execute_candidate_request,
+            iot_request=iot_request,
+            extract_timings_list=extract_timings_list,
+            normalize_mesh_timing_rows=normalize_mesh_timing_rows,
+            path_ble_schedule_get=path_ble_schedule_get,
+            build_mesh_schedule_get_body=build_mesh_schedule_get_body,
+        )
+        any_candidate_succeeded = any_candidate_succeeded or batch_succeeded
+        last_error = _remember_last_error(last_error, batch_error)
+        if normalized_rows:
+            return normalized_rows
 
     if any_candidate_succeeded:
         return []
@@ -191,30 +356,21 @@ async def add_mesh_schedule_by_candidates(
 
     last_error: Exception | None = None
     for candidate_id in candidate_device_ids:
-        current_rows = await get_mesh_schedules_by_candidates_request(
-            candidate_device_ids=[candidate_id],
-            raise_on_total_failure=True,
-        )
-        schedule_id = _next_mesh_schedule_id(current_rows)
-        succeeded, _, error = await execute_candidate_request(
+        succeeded, _, error = await _add_mesh_schedule_for_candidate(
             candidate_id=candidate_id,
-            operation="ADD",
-            request=lambda candidate, schedule_id=schedule_id: iot_request(
-                path_ble_schedule_add,
-                build_mesh_schedule_add_body(
-                    candidate,
-                    schedule_json=schedule_json,
-                    schedule_id=schedule_id,
-                ),
-            ),
+            schedule_json=schedule_json,
+            execute_candidate_request=execute_candidate_request,
+            iot_request=iot_request,
+            get_mesh_schedules_by_candidates_request=get_mesh_schedules_by_candidates_request,
+            path_ble_schedule_add=path_ble_schedule_add,
+            build_mesh_schedule_add_body=build_mesh_schedule_add_body,
         )
         if succeeded:
-            return await get_mesh_schedules_by_candidates_request(
+            return await _refresh_mesh_schedule_rows(
                 candidate_device_ids=candidate_device_ids,
-                raise_on_total_failure=False,
+                get_mesh_schedules_by_candidates_request=get_mesh_schedules_by_candidates_request,
             )
-        if error is not None:
-            last_error = error
+        last_error = _remember_last_error(last_error, error)
 
     if last_error is not None:
         raise last_error
@@ -235,36 +391,23 @@ async def delete_mesh_schedules_by_candidates(
     any_deleted = False
     last_error: Exception | None = None
 
-    for start in range(0, len(candidate_device_ids), _MESH_SCHEDULE_CANDIDATE_CONCURRENCY):
-        batch = candidate_device_ids[start : start + _MESH_SCHEDULE_CANDIDATE_CONCURRENCY]
-        batch_results = await asyncio.gather(
-            *(
-                execute_candidate_request(
-                    candidate_id=candidate_id,
-                    operation="DELETE",
-                    request=lambda candidate: iot_request(
-                        path_ble_schedule_delete,
-                        build_mesh_schedule_delete_body(
-                            candidate,
-                            schedule_ids=schedule_ids,
-                        ),
-                    ),
-                )
-                for candidate_id in batch
-            )
+    for batch in _iter_candidate_batches(candidate_device_ids):
+        batch_deleted, batch_error = await _delete_mesh_schedule_batch(
+            candidate_ids=batch,
+            schedule_ids=schedule_ids,
+            execute_candidate_request=execute_candidate_request,
+            iot_request=iot_request,
+            path_ble_schedule_delete=path_ble_schedule_delete,
+            build_mesh_schedule_delete_body=build_mesh_schedule_delete_body,
         )
-        for succeeded, _, error in batch_results:
-            if succeeded:
-                any_deleted = True
-            elif error is not None:
-                last_error = error
+        any_deleted = any_deleted or batch_deleted
+        last_error = _remember_last_error(last_error, batch_error)
 
     if any_deleted:
-        return await get_mesh_schedules_by_candidates_request(
+        return await _refresh_mesh_schedule_rows(
             candidate_device_ids=candidate_device_ids,
-            raise_on_total_failure=False,
+            get_mesh_schedules_by_candidates_request=get_mesh_schedules_by_candidates_request,
         )
     if last_error is not None:
         raise last_error
     return []
-

@@ -14,6 +14,7 @@ from custom_components.lipro.core.api.status_service import (
     query_connect_status,
     query_device_status,
 )
+from custom_components.lipro.core.api.types import JsonObject
 
 if TYPE_CHECKING:
     from custom_components.lipro.core.api.rest_facade import LiproRestFacade
@@ -25,14 +26,34 @@ class _DummyApiError(Exception):
         super().__init__(message)
         self.code = code
 
-def _extract_rows(payload: object) -> list[dict[str, str]]:
+def _json_object(payload: object) -> JsonObject:
+    assert isinstance(payload, dict)
+    return cast(JsonObject, payload)
+
+
+def _extract_rows(payload: object) -> list[JsonObject]:
     if isinstance(payload, list):
-        return [row for row in payload if isinstance(row, dict)]
+        return [cast(JsonObject, row) for row in payload if isinstance(row, dict)]
     if isinstance(payload, dict):
         rows = payload.get("data")
         if isinstance(rows, list):
-            return [row for row in rows if isinstance(row, dict)]
+            return [cast(JsonObject, row) for row in rows if isinstance(row, dict)]
     return []
+
+
+def _normalize_response_code(code: object) -> str | int | None:
+    if isinstance(code, bool):
+        return None
+    if isinstance(code, (str, int)):
+        return code
+    return None
+
+
+def _payload_ids(payload: JsonObject, key: str) -> list[str]:
+    value = payload.get(key)
+    assert isinstance(value, list)
+    assert all(isinstance(item, str) for item in value)
+    return [item for item in value if isinstance(item, str)]
 
 @pytest.mark.asyncio
 async def test_query_device_status_splits_batches() -> None:
@@ -42,10 +63,10 @@ async def test_query_device_status_splits_batches() -> None:
         device_ids=["a", "b", "c"],
         max_devices_per_query=2,
         iot_request=iot_request,
-        extract_data_list=lambda payload: payload.get("data", []),
+        extract_data_list=_extract_rows,
         is_retriable_device_error=lambda _: False,
         lipro_api_error=_DummyApiError,
-        normalize_response_code=lambda code: code,
+        normalize_response_code=_normalize_response_code,
         expected_offline_codes=(140003, "140003"),
         logger=MagicMock(),
         path_query_device_status="/v2/status/device",
@@ -63,10 +84,10 @@ async def test_query_device_status_applies_adaptive_soft_batch_limit() -> None:
         device_ids=device_ids,
         max_devices_per_query=100,
         iot_request=iot_request,
-        extract_data_list=lambda payload: payload.get("data", []),
+        extract_data_list=_extract_rows,
         is_retriable_device_error=lambda _: False,
         lipro_api_error=_DummyApiError,
-        normalize_response_code=lambda code: code,
+        normalize_response_code=_normalize_response_code,
         expected_offline_codes=(140003, "140003"),
         logger=MagicMock(),
         path_query_device_status="/v2/status/device",
@@ -75,7 +96,7 @@ async def test_query_device_status_applies_adaptive_soft_batch_limit() -> None:
     assert result == [{"ok": True}, {"ok": True}, {"ok": True}]
     assert iot_request.await_count == 3
     called_batches = [
-        call.args[1]["deviceIdList"] for call in iot_request.await_args_list
+        _payload_ids(_json_object(call.args[1]), "deviceIdList") for call in iot_request.await_args_list
     ]
     assert len(called_batches[0]) == 64
     assert len(called_batches[1]) == 64
@@ -110,10 +131,10 @@ async def test_query_device_status_reports_batch_metrics_with_fallback_depth() -
         device_ids=["a", "b"],
         max_devices_per_query=2,
         iot_request=iot_request,
-        extract_data_list=lambda payload: payload.get("data", []),
+        extract_data_list=_extract_rows,
         is_retriable_device_error=lambda _: True,
         lipro_api_error=_DummyApiError,
-        normalize_response_code=lambda code: code,
+        normalize_response_code=_normalize_response_code,
         expected_offline_codes=(140003, "140003"),
         logger=MagicMock(),
         path_query_device_status="/v2/status/device",
@@ -207,9 +228,9 @@ async def test_rest_facade_misc_endpoint_wrappers_preserve_payload_contracts() -
 @pytest.mark.asyncio
 async def test_query_device_status_skips_empty_batch_rows_in_merged_results() -> None:
     async def _request(
-        _path: str, body: dict[str, list[str]]
+        _path: str, body: JsonObject
     ) -> dict[str, list[dict[str, str]]]:
-        ids = body["deviceIdList"]
+        ids = _payload_ids(body, "deviceIdList")
         if ids == ["a", "b"]:
             return {"data": []}
         return {"data": [{"deviceId": "c"}]}
@@ -218,10 +239,10 @@ async def test_query_device_status_skips_empty_batch_rows_in_merged_results() ->
         device_ids=["a", "b", "c", "d"],
         max_devices_per_query=2,
         iot_request=AsyncMock(side_effect=_request),
-        extract_data_list=lambda payload: payload.get("data", []),
+        extract_data_list=_extract_rows,
         is_retriable_device_error=lambda _: True,
         lipro_api_error=_DummyApiError,
-        normalize_response_code=lambda code: code,
+        normalize_response_code=_normalize_response_code,
         expected_offline_codes=(140003, "140003"),
         logger=MagicMock(),
         path_query_device_status="/v2/status/device",

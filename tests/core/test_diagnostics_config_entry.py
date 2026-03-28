@@ -8,7 +8,26 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from custom_components.lipro.control.diagnostics_surface import (
+    DiagnosticsPayload,
+    DiagnosticsValue,
+)
 from custom_components.lipro.diagnostics import async_get_config_entry_diagnostics
+
+
+def _diag_payload(value: DiagnosticsValue) -> DiagnosticsPayload:
+    assert isinstance(value, dict)
+    return value
+
+
+def _diag_list(value: DiagnosticsValue) -> list[DiagnosticsValue]:
+    assert isinstance(value, list)
+    return value
+
+
+def _diag_str(value: DiagnosticsValue) -> str:
+    assert isinstance(value, str)
+    return value
 
 
 class TestAsyncGetConfigEntryDiagnostics:
@@ -81,35 +100,44 @@ class TestAsyncGetConfigEntryDiagnostics:
 
         get_share_manager.assert_called_once_with(hass, entry_id="entry-1")
 
-        assert result["entry"]["title"] == "Lipro (138****0000)"
-        assert result["entry"]["data"]["phone"] == "**REDACTED**"
-        assert result["entry"]["data"]["access_token"] == "**REDACTED**"
-        assert result["entry"]["data"]["safe_value"] == "ok"
-        assert result["coordinator"]["device_count"] == 1
-        assert result["coordinator"]["mqtt_connected"] is True
-        assert result["coordinator"]["failure_summary"] == {
+        entry_view = _diag_payload(result["entry"])
+        entry_data = _diag_payload(entry_view["data"])
+        coordinator_view = _diag_payload(result["coordinator"])
+        anonymous_share_view = _diag_payload(result["anonymous_share"])
+        devices = _diag_list(result["devices"])
+        device_info = _diag_payload(devices[0])
+        device_properties = _diag_payload(device_info["properties"])
+        outlet_power_info = _diag_payload(device_info["outlet_power_info"])
+        extra_data = _diag_payload(device_info["extra_data"])
+
+        assert entry_view["title"] == "Lipro (138****0000)"
+        assert entry_data["phone"] == "**REDACTED**"
+        assert entry_data["access_token"] == "**REDACTED**"
+        assert entry_data["safe_value"] == "ok"
+        assert coordinator_view["device_count"] == 1
+        assert coordinator_view["mqtt_connected"] is True
+        assert coordinator_view["failure_summary"] == {
             "failure_category": None,
             "failure_origin": None,
             "handling_policy": None,
             "error_type": None,
         }
-        assert result["anonymous_share"] == {
+        assert anonymous_share_view == {
             "enabled": True,
             "pending_devices": 2,
             "pending_errors": 1,
         }
 
-        device_info = result["devices"][0]
         assert device_info["name"] == "**REDACTED**"
         assert device_info["room_name"] == "**REDACTED**"
-        assert device_info["properties"]["mac"] == "**REDACTED**"
-        assert device_info["properties"]["ip"] == "**REDACTED**"
-        assert device_info["properties"]["wifi_ssid"] == "**REDACTED**"
-        assert device_info["properties"]["powerState"] == "1"
-        assert device_info["outlet_power_info"]["nowPower"] == 12.5
-        assert device_info["extra_data"]["gateway_device_id"] == "**REDACTED**"
-        assert "ignored" not in device_info["extra_data"]
-        assert "power_info" not in device_info["extra_data"]
+        assert device_properties["mac"] == "**REDACTED**"
+        assert device_properties["ip"] == "**REDACTED**"
+        assert device_properties["wifi_ssid"] == "**REDACTED**"
+        assert device_properties["powerState"] == "1"
+        assert outlet_power_info["nowPower"] == 12.5
+        assert extra_data["gateway_device_id"] == "**REDACTED**"
+        assert "ignored" not in extra_data
+        assert "power_info" not in extra_data
 
     @pytest.mark.asyncio
     async def test_projects_normalized_failure_summary_into_coordinator_view(
@@ -164,8 +192,10 @@ class TestAsyncGetConfigEntryDiagnostics:
         ):
             result = await async_get_config_entry_diagnostics(hass, entry)
 
-        assert result["coordinator"]["failure_summary"] == failure_summary
-        assert result["telemetry"]["failure_summary"] == failure_summary
+        coordinator_view = _diag_payload(result["coordinator"])
+        telemetry_view = _diag_payload(result["telemetry"])
+        assert coordinator_view["failure_summary"] == failure_summary
+        assert telemetry_view["failure_summary"] == failure_summary
 
     @pytest.mark.asyncio
     async def test_degrades_malformed_runtime_devices_and_share_manager(self, hass):
@@ -193,13 +223,15 @@ class TestAsyncGetConfigEntryDiagnostics:
         ):
             result = await async_get_config_entry_diagnostics(hass, entry)
 
+        coordinator_view = _diag_payload(result["coordinator"])
+        anonymous_share_view = _diag_payload(result["anonymous_share"])
         assert result["devices"] == []
-        assert result["coordinator"]["device_count"] == 0
-        assert result["coordinator"]["mqtt_connected"] is None
-        assert result["coordinator"]["degraded_fields"] == ["devices"]
-        assert result["anonymous_share"]["pending_devices"] == 0
-        assert result["anonymous_share"]["pending_errors"] == 0
-        assert result["anonymous_share"]["degraded"] is True
+        assert coordinator_view["device_count"] == 0
+        assert coordinator_view["mqtt_connected"] is None
+        assert coordinator_view["degraded_fields"] == ["devices"]
+        assert anonymous_share_view["pending_devices"] == 0
+        assert anonymous_share_view["pending_errors"] == 0
+        assert anonymous_share_view["degraded"] is True
 
     async def test_handles_no_devices(self, hass):
         """Test diagnostics output when coordinator has no devices."""
@@ -226,10 +258,13 @@ class TestAsyncGetConfigEntryDiagnostics:
         ):
             result = await async_get_config_entry_diagnostics(hass, entry)
 
-        assert result["entry"]["title"] == "Lipro Empty"
+        entry_view = _diag_payload(result["entry"])
+        coordinator_view = _diag_payload(result["coordinator"])
+        anonymous_share_view = _diag_payload(result["anonymous_share"])
+        assert entry_view["title"] == "Lipro Empty"
         assert result["devices"] == []
-        assert result["coordinator"]["last_update_success"] is False
-        assert result["anonymous_share"] == {
+        assert coordinator_view["last_update_success"] is False
+        assert anonymous_share_view == {
             "enabled": False,
             "pending_devices": 0,
             "pending_errors": 0,
@@ -269,9 +304,12 @@ class TestAsyncGetConfigEntryDiagnostics:
         ):
             result = await async_get_config_entry_diagnostics(hass, entry)
 
-        assert result["entry"]["title"] == ""
-        assert result["devices"][0]["mesh_address"] == 256
-        assert result["devices"][0]["is_mesh_gateway"] is True
+        entry_view = _diag_payload(result["entry"])
+        devices = _diag_list(result["devices"])
+        device_view = _diag_payload(devices[0])
+        assert entry_view["title"] == ""
+        assert device_view["mesh_address"] == 256
+        assert device_view["is_mesh_gateway"] is True
 
     @pytest.mark.asyncio
     async def test_diagnostics_snapshot(

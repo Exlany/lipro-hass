@@ -141,6 +141,14 @@ class RestAuthRecoveryCoordinator:
             return normalized_code
         return None
 
+    @staticmethod
+    def _resolve_result_message(result: JsonObject) -> str:
+        """Resolve one readable message from vendor response payloads."""
+        message_value = result.get("message")
+        if isinstance(message_value, str) and message_value.strip():
+            return message_value
+        return "Unknown error"
+
     def _record_refresh_outcome(
         self,
         *,
@@ -152,6 +160,62 @@ class RestAuthRecoveryCoordinator:
         self._last_refresh_duration_seconds = duration_seconds
         self._last_refresh_finished_at = time()
         self._last_refresh_error_type = error_type
+
+    def _has_reusable_access_token(self, request_token: str | None) -> bool:
+        """Return whether another request already refreshed the current access token."""
+        access_token = self._state.access_token
+        return access_token is not None and access_token != request_token
+
+    def _record_refresh_reuse(self, *, verified_in_lock: bool) -> bool:
+        """Record that the in-flight request can reuse a fresher access token."""
+        self._refresh_reused_count += 1
+        self._record_refresh_outcome(outcome="reused", duration_seconds=0.0)
+        if verified_in_lock:
+            _LOGGER.debug(
+                "Token already refreshed by another request (verified in lock), using new token",
+            )
+        else:
+            _LOGGER.debug(
+                "Token already refreshed by another request, using new token",
+            )
+        return True
+
+    def _record_refresh_failure(
+        self,
+        *,
+        outcome: str,
+        duration_seconds: float,
+        error_type: str | None = None,
+    ) -> None:
+        """Record one failed refresh attempt outcome."""
+        self._refresh_failure_count += 1
+        self._record_refresh_outcome(
+            outcome=outcome,
+            duration_seconds=duration_seconds,
+            error_type=error_type,
+        )
+
+    def _complete_refresh_attempt(self, *, request_token: str | None, started_at: float) -> bool:
+        """Finalize one token-refresh callback and report whether replay is safe."""
+        refreshed_token = self._state.access_token
+        duration_seconds = monotonic() - started_at
+        if refreshed_token is None or refreshed_token == request_token:
+            self._record_refresh_failure(
+                outcome="unchanged",
+                duration_seconds=duration_seconds,
+            )
+            _LOGGER.warning(
+                "Token refresh callback completed but token is unchanged"
+            )
+            return False
+
+        self._refresh_success_count += 1
+        self._record_refresh_outcome(
+            outcome="success",
+            duration_seconds=duration_seconds,
+        )
+        _LOGGER.info("Token refresh successful, retrying request")
+        return True
 
     def telemetry_snapshot(self) -> AuthRecoveryTelemetrySnapshot:
         """Return a serializable snapshot of auth-recovery telemetry."""
@@ -181,6 +245,24 @@ class RestAuthRecoveryCoordinator:
         _LOGGER.info("Received auth error from %s, attempting token refresh", path)
         return await self.handle_401_with_refresh(request_token)
 
+    async def _retry_mapping_request_if_allowed(
+        self,
+        *,
+        path: str,
+        request_token: str | None,
+        is_retry: bool,
+        retry_on_auth_error: bool,
+        retry_request: Callable[[], Awaitable[_MappingPayloadT]] | None,
+    ) -> _MappingPayloadT | None:
+        """Retry a mapping request when auth recovery explicitly permits replay."""
+        if (
+            retry_on_auth_error
+            and retry_request is not None
+            and await self.handle_auth_error_and_retry(path, request_token, is_retry)
+        ):
+            return await retry_request()
+        return None
+
     async def finalize_mapping_result(
         self,
         *,
@@ -198,23 +280,18 @@ class RestAuthRecoveryCoordinator:
             return success_payload(result)
 
         error_code = result.get("errorCode")
-        message_value = result.get("message")
-        message = (
-            message_value
-            if isinstance(message_value, str) and message_value.strip()
-            else "Unknown error"
-        )
-
+        message = self._resolve_result_message(result)
         auth_error_code = self.resolve_auth_error_code(code, error_code)
         if auth_error_code is not None:
-            if (
-                retry_on_auth_error
-                and retry_request is not None
-                and await self.handle_auth_error_and_retry(
-                    path, request_token, is_retry
-                )
-            ):
-                return await retry_request()
+            retried = await self._retry_mapping_request_if_allowed(
+                path=path,
+                request_token=request_token,
+                is_retry=is_retry,
+                retry_on_auth_error=retry_on_auth_error,
+                retry_request=retry_request,
+            )
+            if retried is not None:
+                return retried
             raise LiproAuthError(message, auth_error_code)
 
         effective_code = self.resolve_error_code(code, error_code)
@@ -246,52 +323,26 @@ class RestAuthRecoveryCoordinator:
         if not self._state.on_token_refresh:
             return False
 
-        if self._state.access_token != request_token and self._state.access_token is not None:
-            self._refresh_reused_count += 1
-            self._record_refresh_outcome(outcome="reused", duration_seconds=0.0)
-            _LOGGER.debug(
-                "Token already refreshed by another request, using new token",
-            )
-            return True
+        if self._has_reusable_access_token(request_token):
+            return self._record_refresh_reuse(verified_in_lock=False)
 
         async with self._state.refresh_lock:
-            if self._state.access_token != request_token and self._state.access_token is not None:
-                self._refresh_reused_count += 1
-                self._record_refresh_outcome(outcome="reused", duration_seconds=0.0)
-                _LOGGER.debug(
-                    "Token already refreshed by another request (verified in lock), using new token",
-                )
-                return True
+            if self._has_reusable_access_token(request_token):
+                return self._record_refresh_reuse(verified_in_lock=True)
 
             self._refresh_attempt_count += 1
             started_at = monotonic()
             try:
                 _LOGGER.debug("Executing token refresh")
                 await self._state.on_token_refresh()
-                refreshed_token = self._state.access_token
-                duration_seconds = monotonic() - started_at
-                if refreshed_token is None or refreshed_token == request_token:
-                    self._refresh_failure_count += 1
-                    self._record_refresh_outcome(
-                        outcome="unchanged",
-                        duration_seconds=duration_seconds,
-                    )
-                    _LOGGER.warning(
-                        "Token refresh callback completed but token is unchanged"
-                    )
-                    return False
-                self._refresh_success_count += 1
-                self._record_refresh_outcome(
-                    outcome="success",
-                    duration_seconds=duration_seconds,
+                return self._complete_refresh_attempt(
+                    request_token=request_token,
+                    started_at=started_at,
                 )
-                _LOGGER.info("Token refresh successful, retrying request")
-                return True
             except LiproRefreshTokenExpiredError:
                 duration_seconds = monotonic() - started_at
-                self._refresh_failure_count += 1
                 self._refresh_expired_count += 1
-                self._record_refresh_outcome(
+                self._record_refresh_failure(
                     outcome="refresh_token_expired",
                     duration_seconds=duration_seconds,
                     error_type="LiproRefreshTokenExpiredError",
@@ -300,8 +351,7 @@ class RestAuthRecoveryCoordinator:
                 raise
             except LiproAuthError as err:
                 duration_seconds = monotonic() - started_at
-                self._refresh_failure_count += 1
-                self._record_refresh_outcome(
+                self._record_refresh_failure(
                     outcome="auth_error",
                     duration_seconds=duration_seconds,
                     error_type=type(err).__name__,
@@ -312,8 +362,7 @@ class RestAuthRecoveryCoordinator:
                 return False
             except LiproConnectionError as err:
                 duration_seconds = monotonic() - started_at
-                self._refresh_failure_count += 1
-                self._record_refresh_outcome(
+                self._record_refresh_failure(
                     outcome="connection_error",
                     duration_seconds=duration_seconds,
                     error_type=type(err).__name__,

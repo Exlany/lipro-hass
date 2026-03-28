@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 import json
 import re
 from typing import Any, Final
@@ -78,11 +79,11 @@ _NESTED_KEYS_TO_REDACT: Final[frozenset[str]] = frozenset(
     }
 )
 
-
 _PHONE_EMBEDDED_RE: Final = re.compile(r"(\d{3})\d{4}(\d{4})")
+_JSON_CONTAINER_PREFIXES: Final[frozenset[str]] = frozenset({'{', '['})
 
 
-def redact_entry_title(title: Any) -> str:
+def redact_entry_title(title: object) -> str:
     """Redact sensitive identifiers from config-entry title."""
     if not isinstance(title, str):
         return ""
@@ -93,49 +94,80 @@ def redact_entry_title(title: Any) -> str:
     )
 
 
-def redact_property_value(value: Any, key: str | None = None) -> Any:
-    """Recursively redact sensitive values in diagnostics payloads."""
-    if key is not None and is_sensitive_key_name(
+def _should_redact_nested_key(key: str | None) -> bool:
+    if key is None:
+        return False
+    return is_sensitive_key_name(
         key,
         extra_keys=_NESTED_KEYS_TO_REDACT,
-    ):
+    )
+
+
+def _redact_mapping_value(mapping: Mapping[object, object]) -> dict[str, object]:
+    return {
+        str(key): redact_property_value(value, str(key))
+        for key, value in mapping.items()
+    }
+
+
+def _redact_sequence_value(items: Sequence[object]) -> list[object]:
+    return [redact_property_value(item) for item in items]
+
+
+def _redact_json_container_string(value: str) -> str | None:
+    stripped = value.strip()
+    if not stripped or stripped[0] not in _JSON_CONTAINER_PREFIXES:
+        return None
+    try:
+        parsed = json.loads(value)
+    except (TypeError, ValueError):
+        return None
+    redacted = redact_property_value(parsed)
+    if isinstance(redacted, (dict, list)):
+        return json.dumps(
+            redacted,
+            ensure_ascii=False,
+            separators=(",", ":"),
+        )
+    return None
+
+
+def _redact_scalar_string(value: str) -> str:
+    literal = redact_sensitive_literal(
+        value,
+        markers=DIAGNOSTICS_REDACTION_MARKERS,
+    )
+    if literal is not None:
+        return literal
+
+    sanitized = redact_sensitive_text(
+        value,
+        markers=DIAGNOSTICS_REDACTION_MARKERS,
+    )
+    if sanitized != value:
+        return sanitized
+    return value
+
+
+def redact_property_value(value: Any, key: str | None = None) -> Any:
+    """Recursively redact sensitive values in diagnostics payloads."""
+    if _should_redact_nested_key(key):
         return DIAGNOSTICS_REDACTION_MARKERS.secret
 
-    if isinstance(value, dict):
-        return {k: redact_property_value(v, str(k)) for k, v in value.items()}
+    if isinstance(value, Mapping):
+        return _redact_mapping_value(value)
 
     if isinstance(value, list):
-        return [redact_property_value(item) for item in value]
+        return _redact_sequence_value(value)
+
+    if isinstance(value, tuple):
+        return _redact_sequence_value(value)
 
     if isinstance(value, str):
-        stripped = value.strip()
-        if stripped and stripped[0] in "{[":
-            try:
-                parsed = json.loads(value)
-            except (TypeError, ValueError):
-                pass
-            else:
-                redacted = redact_property_value(parsed)
-                if isinstance(redacted, (dict, list)):
-                    return json.dumps(
-                        redacted,
-                        ensure_ascii=False,
-                        separators=(",", ":"),
-                    )
-
-        literal = redact_sensitive_literal(
-            value,
-            markers=DIAGNOSTICS_REDACTION_MARKERS,
-        )
-        if literal is not None:
-            return literal
-
-        sanitized = redact_sensitive_text(
-            value,
-            markers=DIAGNOSTICS_REDACTION_MARKERS,
-        )
-        if sanitized != value:
-            return sanitized
+        json_container = _redact_json_container_string(value)
+        if json_container is not None:
+            return json_container
+        return _redact_scalar_string(value)
 
     return value
 

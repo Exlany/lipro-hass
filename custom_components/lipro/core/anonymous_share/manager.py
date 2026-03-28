@@ -32,8 +32,11 @@ from .manager_submission import (
 )
 from .manager_support import (
     _ScopeState,
+    aggregate_pending_count,
     build_aggregate_report_payload,
     build_scope_report_payload,
+    clear_scope_collectors,
+    configure_scope_state,
     get_scope_state,
     has_pending_report_data,
     iter_scope_states,
@@ -190,13 +193,14 @@ class AnonymousShareManager:
         ha_version: str | None = None,
     ) -> None:
         """Enable or disable anonymous sharing for the current scope."""
-        state = self._state
-        state.collector.set_enabled(enabled, error_reporting=error_reporting)
-        state.installation_id = installation_id
-        state.storage_path = storage_path
-        state.ha_version = ha_version
-        if enabled and storage_path:
-            state.cache_loaded = False
+        configure_scope_state(
+            self._state,
+            enabled=enabled,
+            error_reporting=error_reporting,
+            installation_id=installation_id,
+            storage_path=storage_path,
+            ha_version=ha_version,
+        )
         if not enabled:
             self.clear()
 
@@ -214,13 +218,7 @@ class AnonymousShareManager:
         """Return count of pending items (devices, errors)."""
         if not self._aggregate:
             return self._collector.pending_count
-        device_total = 0
-        error_total = 0
-        for _, state in self._iter_scope_states():
-            devices, errors = state.collector.pending_count
-            device_total += devices
-            error_total += errors
-        return device_total, error_total
+        return aggregate_pending_count(self._registry)
 
     @property
     def last_submit_outcome(self) -> OperationOutcome | None:
@@ -239,8 +237,7 @@ class AnonymousShareManager:
     def clear(self) -> None:
         """Clear all pending data (does not clear reported device cache)."""
         if self._aggregate:
-            for _, state in self._iter_scope_states():
-                state.collector.clear()
+            clear_scope_collectors(self._registry)
             return
         self._collector.clear()
 

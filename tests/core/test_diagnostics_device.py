@@ -9,7 +9,26 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from custom_components.lipro.const.base import DOMAIN
+from custom_components.lipro.control.diagnostics_surface import (
+    DiagnosticsPayload,
+    DiagnosticsValue,
+)
 from custom_components.lipro.diagnostics import async_get_device_diagnostics
+
+
+def _diag_payload(value: DiagnosticsValue) -> DiagnosticsPayload:
+    assert isinstance(value, dict)
+    return value
+
+
+def _diag_list(value: DiagnosticsValue) -> list[DiagnosticsValue]:
+    assert isinstance(value, list)
+    return value
+
+
+def _diag_str(value: DiagnosticsValue) -> str:
+    assert isinstance(value, str)
+    return value
 
 
 class TestAsyncGetDeviceDiagnostics:
@@ -66,13 +85,19 @@ class TestAsyncGetDeviceDiagnostics:
 
         result = await async_get_device_diagnostics(hass, entry, device_entry)
 
-        assert result["entry"]["title"] == "Lipro (138****0000)"
-        assert result["entry"]["data"]["phone"] == "**REDACTED**"
-        assert result["device"]["name"] == "**REDACTED**"
-        assert result["device"]["room_name"] == "**REDACTED**"
-        assert result["device"]["properties"]["mac"] == "**REDACTED**"
-        assert result["device"]["properties"]["powerState"] == "1"
-        assert result["device"]["extra_data"]["gateway_device_id"] == "**REDACTED**"
+        entry_view = _diag_payload(result["entry"])
+        entry_data = _diag_payload(entry_view["data"])
+        device_view = _diag_payload(result["device"])
+        properties = _diag_payload(device_view["properties"])
+        extra_data = _diag_payload(device_view["extra_data"])
+
+        assert entry_view["title"] == "Lipro (138****0000)"
+        assert entry_data["phone"] == "**REDACTED**"
+        assert device_view["name"] == "**REDACTED**"
+        assert device_view["room_name"] == "**REDACTED**"
+        assert properties["mac"] == "**REDACTED**"
+        assert properties["powerState"] == "1"
+        assert extra_data["gateway_device_id"] == "**REDACTED**"
 
     @pytest.mark.asyncio
     async def test_missing_lipro_identifier_returns_error(self, hass):

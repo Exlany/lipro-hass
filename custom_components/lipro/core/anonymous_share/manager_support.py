@@ -68,6 +68,43 @@ def primary_scope_state(registry: dict[str, _ScopeState]) -> _ScopeState:
     return get_scope_state(registry, _DEFAULT_SCOPE)
 
 
+def configure_scope_state(
+    state: _ScopeState,
+    *,
+    enabled: bool,
+    error_reporting: bool,
+    installation_id: str | None,
+    storage_path: str | None,
+    ha_version: str | None,
+) -> None:
+    """Apply enabled/metadata settings to one scope state."""
+    state.collector.set_enabled(enabled, error_reporting=error_reporting)
+    state.installation_id = installation_id
+    state.storage_path = storage_path
+    state.ha_version = ha_version
+    if enabled and storage_path:
+        state.cache_loaded = False
+
+
+
+def aggregate_pending_count(registry: dict[str, _ScopeState]) -> tuple[int, int]:
+    """Return aggregate pending counts across all registered scopes."""
+    device_total = 0
+    error_total = 0
+    for _, state in iter_scope_states(registry):
+        devices, errors = state.collector.pending_count
+        device_total += devices
+        error_total += errors
+    return device_total, error_total
+
+
+
+def clear_scope_collectors(registry: dict[str, _ScopeState]) -> None:
+    """Clear pending collector data for all states in one registry."""
+    for _, state in iter_scope_states(registry):
+        state.collector.clear()
+
+
 def load_reported_device_keys_for_state(
     state: _ScopeState,
     *,

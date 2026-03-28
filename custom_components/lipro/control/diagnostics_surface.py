@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Protocol, cast
 
 from ..core.device.extras_features import diagnostic_gateway_projection
 from .models import empty_failure_summary
@@ -21,12 +21,16 @@ if TYPE_CHECKING:
     from .. import LiproConfigEntry
     from ..core.device import LiproDevice
 
-type DiagnosticsPayload = dict[str, Any]
-type RedactDataFn = Callable[[Mapping[str, object], set[str]], Any]
+type DiagnosticsScalar = str | int | float | bool | None
+type DiagnosticsValue = (
+    DiagnosticsScalar | list[DiagnosticsValue] | dict[str, DiagnosticsValue]
+)
+type DiagnosticsPayload = dict[str, DiagnosticsValue]
+type RedactDataFn = Callable[[Mapping[str, object], set[str]], DiagnosticsValue]
 type RedactTitleFn = Callable[[str], str]
-type RedactDevicePropertiesFn = Callable[[object], dict[str, Any]]
+type RedactDevicePropertiesFn = Callable[[object], DiagnosticsPayload]
 type BuildDeviceDiagnosticsFn = Callable[[LiproDevice], DiagnosticsPayload]
-type ExtractDeviceSerialFn = Callable[..., str | None]
+type ExtractDeviceSerialFn = Callable[[DeviceEntry], str | None]
 
 
 class _AnonymousShareManagerLike(Protocol):
@@ -88,7 +92,7 @@ def build_device_diagnostics(
 
     outlet_power_info = device.outlet_power_info
     if outlet_power_info is not None:
-        device_info["outlet_power_info"] = dict(outlet_power_info)
+        device_info["outlet_power_info"] = cast(DiagnosticsPayload, dict(outlet_power_info))
 
     gateway_projection = diagnostic_gateway_projection(device.extras)
     if gateway_projection is not None:
@@ -115,7 +119,7 @@ def _build_coordinator_view(
             "update_interval": "",
             "device_count": 0,
             "mqtt_connected": None,
-            "failure_summary": empty_failure_summary(),
+            "failure_summary": cast(DiagnosticsValue, empty_failure_summary()),
         }, False
 
     view: DiagnosticsPayload = {
@@ -123,7 +127,10 @@ def _build_coordinator_view(
         "update_interval": projection.update_interval,
         "device_count": projection.snapshot.device_count,
         "mqtt_connected": projection.snapshot.mqtt_connected,
-        "failure_summary": dict(projection.snapshot.failure_summary),
+        "failure_summary": cast(
+            DiagnosticsValue,
+            dict(projection.snapshot.failure_summary),
+        ),
     }
     if projection.degraded_fields:
         view["degraded_fields"] = list(projection.degraded_fields)
@@ -191,10 +198,10 @@ async def async_get_config_entry_diagnostics(
         ),
         "coordinator": coordinator_view,
         "anonymous_share": anonymous_share_view,
-        "devices": devices_info,
+        "devices": cast(DiagnosticsValue, devices_info),
     }
     if telemetry_view is not None:
-        payload["telemetry"] = telemetry_view
+        payload["telemetry"] = cast(DiagnosticsPayload, telemetry_view)
     if degraded_share:
         anonymous_share_view["source"] = "degraded_runtime_access"
     return payload

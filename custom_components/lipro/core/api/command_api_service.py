@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any, Protocol
+from typing import Protocol, cast
 
-type MappingPayload = dict[str, Any]
+from .types import JsonObject, JsonValue
+
+type MappingPayload = JsonObject
 type ToDeviceTypeHex = Callable[[int | str], str]
 
 
@@ -39,7 +41,7 @@ def build_command_request_body(
         "deviceId": target_id,
         "deviceType": to_device_type_hex(device_type),
         "iotName": iot_name,
-        "properties": properties or [],
+        "properties": cast(JsonValue, properties or []),
         "skuId": "",
         "hasMacRule": False,
     }

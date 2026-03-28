@@ -7,7 +7,14 @@
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone: null
+active_milestone:
+  version: v1.26
+  name: Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition
+  status: active / closeout-ready (2026-03-28)
+  phase: '97'
+  phase_title: Governance, open-source contract sync, and assurance freeze
+  phase_dir: 97-governance-open-source-contract-sync-and-assurance-freeze
+  route_mode: v1.26 active route / Phase 97 complete / latest archived baseline = v1.25
 latest_archived:
   version: v1.25
   name: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
@@ -23,12 +30,31 @@ previous_archived:
   name: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
   evidence_path: .planning/reviews/V1_24_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.25
-  default_next_command: $gsd-new-milestone
+  current_route: v1.26 active route / Phase 97 complete / latest archived baseline = v1.25
+  default_next_command: $gsd-complete-milestone v1.26
   latest_archived_evidence_pointer: .planning/reviews/V1_25_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
+
+## v1.26 Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition (Started: 2026-03-28)
+
+**Phase range:** `94 -> 97`
+**Status:** active / closeout-ready (2026-03-28)
+**Current route:** `v1.26 active route / Phase 97 complete / latest archived baseline = v1.25`
+**Latest archived baseline:** `v1.25`
+**Default next command:** `$gsd-complete-milestone v1.26`
+
+**Why now:**
+- `Phase 94` 已把 `domain_data` / diagnostics payload / REST fallback broad mapping 等 typed seam 收口为完成态。
+- `Phase 95` 与 `Phase 96` 已把 schedule/runtime/auth hotspots 与 shared redaction/sanitizer burn-down 收口到既定 formal homes。
+- `Phase 97` 已把 current-route governance、developer guidance 与 focused assurance freeze 到同一条 closeout-ready story。
+
+**Planned phase story:**
+- `Phase 94`: typed payload contraction and domain-bag narrowing ✅
+- `Phase 95`: schedule/runtime and boundary hotspot inward decomposition ✅
+- `Phase 96`: redaction/telemetry/anonymous-share sanitizer burndown ✅
+- `Phase 97`: governance/open-source contract sync and assurance freeze ✅
 
 ## v1.25 Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence (Shipped: 2026-03-28; Closeout: 2026-03-28)
 
@@ -39,23 +65,8 @@ bootstrap:
 **Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.25`
 
 **Key accomplishments:**
-- 把五个 hotspots 与四个 outward shells 的正式归属冻结到 planning、baseline、review 与 derived maps，formal home / delete gate / shell 身份不再依赖口头共识。
-- 将 protocol live path 收敛到 `LiproProtocolFacade` 的 canonical boundary truth，runtime 只消费标准化 contract，不再混用 raw payload 与重复归一化故事。
-- 把 typed-boundary、decode result、schema registry、runtime telemetry 与 trace 收口到共享 typed spine，明显压缩 `Any` 漂移与 payload alias 残留。
-- 把 diagnostics、anonymous-share、telemetry 的脱敏真相统一到 shared redaction registry，并在同一轮修复最后 9 个 full-suite regressions。
-- 用 topicized sibling suites、route smokes、`FILE_MATRIX` / `TESTING.md` / `VERIFICATION_MATRIX.md` 同步与 repo-wide quality gates 完成 assurance freeze。
-
-**Closeout assets:**
-- `.planning/v1.25-MILESTONE-AUDIT.md`
-- `.planning/reviews/V1_25_EVIDENCE_INDEX.md`
-- `.planning/milestones/v1.25-ROADMAP.md`
-- `.planning/milestones/v1.25-REQUIREMENTS.md`
-- `.planning/phases/90-hotspot-routing-freeze-and-formal-home-decomposition-map/{90-01-SUMMARY.md,90-02-SUMMARY.md,90-03-SUMMARY.md,90-VERIFICATION.md,90-VALIDATION.md}`
-- `.planning/phases/91-protocol-runtime-decomposition-and-typed-boundary-hardening/{91-01-SUMMARY.md,91-02-SUMMARY.md,91-03-SUMMARY.md,91-VERIFICATION.md,91-VALIDATION.md}`
-- `.planning/phases/92-control-entity-thin-boundary-and-redaction-convergence/{92-01-SUMMARY.md,92-02-SUMMARY.md,92-03-SUMMARY.md,92-VERIFICATION.md,92-VALIDATION.md}`
-- `.planning/phases/93-assurance-topicization-and-quality-freeze/{93-01-SUMMARY.md,93-02-SUMMARY.md,93-03-SUMMARY.md,93-VERIFICATION.md,93-VALIDATION.md}`
-
----
+- 把 five hotspot formal homes、typed boundary hardening、redaction convergence 与 assurance freeze 收口为 `v1.25` archived baseline，而不再依赖口头路由记忆。
+- 把 `.planning/v1.25-MILESTONE-AUDIT.md`、`.planning/reviews/V1_25_EVIDENCE_INDEX.md` 与 archive snapshots 冻结为 pull-only closeout bundle。
 
 ## v1.24 Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence (Shipped: 2026-03-27; Closeout: 2026-03-27)
 

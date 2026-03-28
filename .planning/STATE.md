@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.25
-milestone_name: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
-current_phase: null
-status: complete
-last_updated: "2026-03-28T12:00:00.000Z"
+milestone: v1.26
+milestone_name: Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition
+current_phase: '97'
+status: active
+last_updated: "2026-03-28T09:07:07.000Z"
 progress:
   total_phases: 4
   completed_phases: 4
-  total_plans: 12
-  completed_plans: 12
+  total_plans: 9
+  completed_plans: 9
 ---
 
 # Project State
@@ -18,23 +18,30 @@ progress:
 
 See: `.planning/PROJECT.md`
 
-**Current milestone:** `No active milestone route`
-**Active milestone:** `none`
-**Core value:** `以 v1.25 的 archived baseline 作为下一里程碑唯一 north-star 起点，避免 hotfix 式重开第二故事线。`
-**Current mode:** `no active milestone route / latest archived baseline = v1.25`
+**Current milestone:** `v1.26 Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition`
+**Active milestone:** `v1.26`
+**Core value:** `继续沿 v1.25 archived baseline 的北极星主链收口剩余高收益技术债，而不是让 broad typing / hotspot complexity / route drift 再次回弹。`
+**Current mode:** `v1.26 active route / Phase 97 complete / latest archived baseline = v1.25`
 
 ## Current Position
 
 - `v1.25` 已完成 `Phase 90 -> 93` 全部计划、focused closeout proof、repo-wide quality gates 与 milestone audit，现已升级为 latest archived baseline。
-- `.planning/v1.25-MILESTONE-AUDIT.md`、`.planning/reviews/V1_25_EVIDENCE_INDEX.md`、`.planning/milestones/v1.25-ROADMAP.md` 与 `.planning/milestones/v1.25-REQUIREMENTS.md` 共同承担 latest archived baseline 的 pull-only bundle；它们不再承载 active route truth，而是作为下一里程碑的唯一起点。
-- 当前没有 active phase；下一步应通过 `$gsd-new-milestone` 显式启动新的 milestone，而不是在 `v1.25` 上继续堆叠临时实现。
-- 若下一里程碑发现必须清退的 localized compat / naming shell，仍必须同步回写 `FILE_MATRIX / RESIDUAL_LEDGER / KILL_LIST` 并给出显式 delete gate。
+- 新一轮终极仓审路由的 typed seam、hotspot inward split、shared redaction/sanitizer burn-down 与 governance freeze 均已在 `Phase 94 -> 97` 收口完成。
+- `Phase 96` 与 `Phase 97` 已完成 sanitizer burn-down、governance/doc freeze 与 focused closeout proof；当前 active route 已进入 `Phase 97 complete / closeout-ready`，后续只剩 milestone closeout 与 archive promotion。
+- maintainer/delegate continuity 仍是组织层高风险；本里程碑只负责把技术与治理入口写清楚，不伪装成可被单次代码提交解决。
 
 <!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone: null
+active_milestone:
+  version: v1.26
+  name: Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition
+  status: active / closeout-ready (2026-03-28)
+  phase: '97'
+  phase_title: Governance, open-source contract sync, and assurance freeze
+  phase_dir: 97-governance-open-source-contract-sync-and-assurance-freeze
+  route_mode: v1.26 active route / Phase 97 complete / latest archived baseline = v1.25
 latest_archived:
   version: v1.25
   name: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
@@ -50,24 +57,34 @@ previous_archived:
   name: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
   evidence_path: .planning/reviews/V1_24_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.25
-  default_next_command: $gsd-new-milestone
+  current_route: v1.26 active route / Phase 97 complete / latest archived baseline = v1.25
+  default_next_command: $gsd-complete-milestone v1.26
   latest_archived_evidence_pointer: .planning/reviews/V1_25_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
-## Latest Archived Milestone (v1.25)
 
+## Current Milestone (v1.26)
+- **Milestone:** `v1.26 Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition`
+- **Phase range:** `94 -> 97`
+- **Current phase:** `Phase 97`
+- **Milestone status:** `active / closeout-ready (2026-03-28)`
+- **Requirements basket:** `TYP-24`, `HOT-41`, `SEC-02`, `ARC-25`, `TST-30`, `QLT-38`
+- **Milestone starting evidence:** `.planning/v1.25-MILESTONE-AUDIT.md`, `.planning/reviews/V1_25_EVIDENCE_INDEX.md`, `.planning/milestones/v1.25-ROADMAP.md`, `.planning/milestones/v1.25-REQUIREMENTS.md`
+- **Latest archived baseline:** `v1.25`
+- **Default next command:** `$gsd-complete-milestone v1.26`
+- **Current follow-up target:** complete milestone audit / archive promotion for `v1.26` without reopening already-frozen active-route scope
+
+## Latest Archived Milestone (v1.25)
 - **Milestone:** `v1.25 Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence`
 - **Phase range:** `90 -> 93`
 - **Latest archived phase:** `Phase 93`
 - **Milestone status:** `archived / evidence-ready (2026-03-28)`
 - **Requirements basket:** `HOT-40`, `ARC-24`, `TYP-23`, `SEC-01`, `TST-29`, `QLT-37`
-- **Milestone starting evidence:** `.planning/v1.24-MILESTONE-AUDIT.md`, `.planning/reviews/V1_24_EVIDENCE_INDEX.md`, `.planning/milestones/v1.24-ROADMAP.md`, `.planning/milestones/v1.24-REQUIREMENTS.md`
 - **Milestone closeout assets:** `.planning/v1.25-MILESTONE-AUDIT.md`, `.planning/reviews/V1_25_EVIDENCE_INDEX.md`, `.planning/milestones/v1.25-ROADMAP.md`, `.planning/milestones/v1.25-REQUIREMENTS.md`
 - **Current audit artifact:** `.planning/v1.25-MILESTONE-AUDIT.md`
-- **Default next command:** `$gsd-new-milestone`
-- **Current follow-up target:** next milestone bootstrap / fresh requirements routing from the archived v1.25 bundle
+- **Default next command:** `$gsd-new-milestone`（historical closeout command）
+- **Current follow-up target:** active v1.26 route / Phase 97 complete / closeout-ready
 
 ## Previous Archived Milestone (v1.24)
 
@@ -113,14 +130,14 @@ bootstrap:
 
 ## Recommended Next Command
 
-1. `$gsd-new-milestone` —— 从 `v1.25` archived bundle 显式启动下一条正式里程碑路线
-2. `$gsd-next` —— 复核自动路由是否稳定收口到 `$gsd-new-milestone`
-3. `$gsd-progress` —— 快速复盘 `no active milestone route / latest archived baseline = v1.25` 与 archived baseline handoff 状态
-4. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" init progress` —— 复核 `Phase 90 -> 93` 全部 complete，summary_count=`12`
-5. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" state json` —— 复核 parser-stable `no active milestone route / latest archived baseline = v1.25`
-6. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" phase-plan-index 93` —— 复核 `Phase 93` 三份计划均已拥有 closeout summary
-7. `uv run pytest -q tests/meta` —— 复核 governance / archive-pointer / promoted-assets / version-sync guards
-8. `uv run python scripts/check_file_matrix.py --check` —— 复核 planning / baseline / review / archive assets 契约
+1. `$gsd-complete-milestone v1.26` —— 把 `v1.26` 从 phase-complete / closeout-ready 推进到 archived milestone
+2. `$gsd-next` —— 复核自动路由已稳定收口到 `$gsd-complete-milestone v1.26`
+3. `$gsd-progress` —— 快速复盘 `v1.26 active route / Phase 97 complete / latest archived baseline = v1.25`
+4. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" init progress` —— 复核 `Phase 94 -> 97` 已全部 complete
+5. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" state json` —— 复核 parser-stable `v1.26` active state 与 `completed_plans = 9`
+6. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" phase-plan-index 97` —— 复核 `Phase 97` 已无 incomplete plans
+7. `uv run pytest -q tests/meta` —— 复核 governance / route / phase96/97 focused guards
+8. `uv run python scripts/check_file_matrix.py --check` —— 复核 planning / baseline / review / active-route assets 契约
 9. `uv run ruff check .` —— 复核 repo-wide lint gate
 10. `uv run mypy` —— 复核 repo-wide typing gate
 

@@ -4,11 +4,30 @@ from __future__ import annotations
 
 import json
 
+from custom_components.lipro.control.diagnostics_surface import (
+    DiagnosticsPayload,
+    DiagnosticsValue,
+)
 from custom_components.lipro.diagnostics import (
     PROPERTY_KEYS_TO_REDACT,
     TO_REDACT,
     _redact_device_properties,
 )
+
+
+def _diag_payload(value: DiagnosticsValue) -> DiagnosticsPayload:
+    assert isinstance(value, dict)
+    return value
+
+
+def _diag_list(value: DiagnosticsValue) -> list[DiagnosticsValue]:
+    assert isinstance(value, list)
+    return value
+
+
+def _diag_str(value: DiagnosticsValue) -> str:
+    assert isinstance(value, str)
+    return value
 
 
 class TestRedactDeviceProperties:
@@ -73,12 +92,15 @@ class TestRedactDeviceProperties:
         }
         result = _redact_device_properties(props)
 
-        parsed_info = json.loads(result["deviceInfo"])
+        parsed_info = json.loads(_diag_str(result["deviceInfo"]))
+        nested = _diag_payload(result["nested"])
+        nested_list = _diag_list(nested["list"])
+        first_nested = _diag_payload(nested_list[0])
         assert parsed_info["wifi_ssid"] == "**REDACTED**"
         assert parsed_info["ip"] == "**REDACTED**"
         assert parsed_info["meta"]["iotDeviceId"] == "**REDACTED**"
-        assert result["nested"]["gatewayDeviceId"] == "**REDACTED**"
-        assert result["nested"]["list"][0]["serial"] == "**REDACTED**"
+        assert nested["gatewayDeviceId"] == "**REDACTED**"
+        assert first_nested["serial"] == "**REDACTED**"
         assert result["plain"] == "ok"
 
     def test_redact_literal_identifier_values(self):
@@ -106,13 +128,16 @@ class TestRedactDeviceProperties:
         }
         result = _redact_device_properties(props)
 
-        assert "10.0.0.8" not in result["note_ip"]
-        assert "AA:BB:CC:DD:EE:FF" not in result["note_mac"]
-        assert "11:22:33:44:55:66" not in result["note_mac"]
-        assert "03AB5CCD7CABCDEF" not in result["note_device"]
-        assert "**REDACTED**" in result["note_ip"]
-        assert "**REDACTED**" in result["note_mac"]
-        assert "**REDACTED**" in result["note_device"]
+        note_ip = _diag_str(result["note_ip"])
+        note_mac = _diag_str(result["note_mac"])
+        note_device = _diag_str(result["note_device"])
+        assert "10.0.0.8" not in note_ip
+        assert "AA:BB:CC:DD:EE:FF" not in note_mac
+        assert "11:22:33:44:55:66" not in note_mac
+        assert "03AB5CCD7CABCDEF" not in note_device
+        assert "**REDACTED**" in note_ip
+        assert "**REDACTED**" in note_mac
+        assert "**REDACTED**" in note_device
         assert result["safe"] == "hello world"
 
     def test_invalid_json_string_fallback_redaction(self):
@@ -121,9 +146,10 @@ class TestRedactDeviceProperties:
         }
         result = _redact_device_properties(props)
 
-        assert "10.0.0.8" not in result["deviceInfo"]
-        assert "AA:BB:CC:DD:EE:FF" not in result["deviceInfo"]
-        assert result["deviceInfo"].count("**REDACTED**") == 2
+        device_info = _diag_str(result["deviceInfo"])
+        assert "10.0.0.8" not in device_info
+        assert "AA:BB:CC:DD:EE:FF" not in device_info
+        assert device_info.count("**REDACTED**") == 2
 
     def test_unknown_secret_like_key_fails_closed(self):
         props = {
@@ -141,9 +167,10 @@ class TestRedactDeviceProperties:
         }
         result = _redact_device_properties(props)
 
-        assert "abcdefghijklmnopqrstuvwxyz0123456789" not in result["note"]
-        assert "shh" not in result["note"]
-        assert "**REDACTED**" in result["note"]
+        note = _diag_str(result["note"])
+        assert "abcdefghijklmnopqrstuvwxyz0123456789" not in note
+        assert "shh" not in note
+        assert "**REDACTED**" in note
 
 
 class TestToRedactKeys:

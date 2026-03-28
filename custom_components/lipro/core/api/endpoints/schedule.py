@@ -31,6 +31,7 @@ from ..schedule_endpoint import (
     encode_mesh_schedule_json,
     is_mesh_group_id,
     resolve_mesh_schedule_candidate_ids,
+    validate_schedule_time_event_lengths,
 )
 from ..schedule_service import (
     CandidateRequest,
@@ -132,31 +133,6 @@ class ScheduleEndpoints(_EndpointAdapter):
         return self._extract_schedule_timing_rows(result)
 
     @staticmethod
-    def _coerce_int_list(value: object) -> list[int]:
-        """Convert mixed list payloads into a clean integer list."""
-        return _coerce_schedule_int_list(value)
-
-    @classmethod
-    def _parse_mesh_schedule_json(cls, schedule_json: object) -> dict[str, list[int]]:
-        """Parse mesh ``scheduleJson`` into ``days/time/evt`` arrays."""
-        return _decode_schedule_json_boundary(schedule_json)
-
-    @classmethod
-    def _normalize_mesh_timing_rows(
-        cls,
-        rows: Sequence[object],
-        *,
-        fallback_device_id: str = "",
-    ) -> ScheduleRows:
-        """Normalize mesh timing rows to include ``schedule`` dict payload."""
-        return _normalize_mesh_schedule_rows(
-            list(rows),
-            fallback_device_id=fallback_device_id,
-            parse_schedule_json=cls._parse_mesh_schedule_json,
-            coerce_connect_status=coerce_connect_status,
-        )
-
-    @staticmethod
     def coerce_int_list(value: object) -> list[int]:
         """Convert mixed list payloads into a clean integer list."""
         return _coerce_schedule_int_list(value)
@@ -204,26 +180,12 @@ class ScheduleEndpoints(_EndpointAdapter):
         raise_on_total_failure: bool = True,
     ) -> ScheduleRows:
         """Query mesh schedule list from candidate device IDs."""
-
-        async def _typed_iot_request(
-            path: str,
-            body: ScheduleRequestBody,
-            is_retry: bool = False,
-            retry_count: int = 0,
-        ) -> object:
-            return await self._schedule_iot_request(
-                path,
-                body,
-                is_retry=is_retry,
-                retry_count=retry_count,
-            )
-
         return await get_mesh_schedules_by_candidates_service(
             candidate_device_ids=candidate_device_ids,
             execute_candidate_request=self._execute_mesh_schedule_candidate_request,
-            iot_request=_typed_iot_request,
+            iot_request=self._schedule_iot_request,
             extract_timings_list=self._extract_schedule_timing_rows,
-            normalize_mesh_timing_rows=self._normalize_mesh_timing_rows,
+            normalize_mesh_timing_rows=self.normalize_mesh_timing_rows,
             path_ble_schedule_get=PATH_BLE_SCHEDULE_GET,
             build_mesh_schedule_get_body=build_mesh_schedule_get_body,
             raise_on_total_failure=raise_on_total_failure,
@@ -238,27 +200,13 @@ class ScheduleEndpoints(_EndpointAdapter):
         events: list[int],
     ) -> ScheduleRows:
         """Try mesh schedule add across candidates and return refreshed schedule rows."""
-
-        async def _typed_iot_request(
-            path: str,
-            body: ScheduleRequestBody,
-            is_retry: bool = False,
-            retry_count: int = 0,
-        ) -> object:
-            return await self._schedule_iot_request(
-                path,
-                body,
-                is_retry=is_retry,
-                retry_count=retry_count,
-            )
-
         return await add_mesh_schedule_by_candidates_service(
             candidate_device_ids=candidate_device_ids,
             days=days,
             times=times,
             events=events,
             execute_candidate_request=self._execute_mesh_schedule_candidate_request,
-            iot_request=_typed_iot_request,
+            iot_request=self._schedule_iot_request,
             get_mesh_schedules_by_candidates_request=self._get_mesh_schedules_by_candidates,
             path_ble_schedule_add=PATH_BLE_SCHEDULE_ADD,
             build_mesh_schedule_add_body=build_mesh_schedule_add_body,
@@ -292,25 +240,11 @@ class ScheduleEndpoints(_EndpointAdapter):
         schedule_ids: list[int],
     ) -> ScheduleRows:
         """Try mesh schedule delete across candidates and return refreshed rows."""
-
-        async def _typed_iot_request(
-            path: str,
-            body: ScheduleRequestBody,
-            is_retry: bool = False,
-            retry_count: int = 0,
-        ) -> object:
-            return await self._schedule_iot_request(
-                path,
-                body,
-                is_retry=is_retry,
-                retry_count=retry_count,
-            )
-
         return await delete_mesh_schedules_by_candidates_service(
             candidate_device_ids=candidate_device_ids,
             schedule_ids=schedule_ids,
             execute_candidate_request=self._execute_mesh_schedule_candidate_request,
-            iot_request=_typed_iot_request,
+            iot_request=self._schedule_iot_request,
             get_mesh_schedules_by_candidates_request=self._get_mesh_schedules_by_candidates,
             path_ble_schedule_delete=PATH_BLE_SCHEDULE_DELETE,
             build_mesh_schedule_delete_body=build_mesh_schedule_delete_body,
@@ -352,9 +286,7 @@ class ScheduleEndpoints(_EndpointAdapter):
         mesh_member_ids: list[str] | None = None,
     ) -> ScheduleRows:
         """Add or update a timing schedule for a device."""
-        if len(times) != len(events):
-            msg = "times and events must have same length"
-            raise ValueError(msg)
+        validate_schedule_time_event_lengths(times, events)
         if self._is_mesh_group_id(device_id):
             candidate_ids = self._require_mesh_schedule_candidate_ids(
                 device_id=device_id,

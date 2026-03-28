@@ -25,7 +25,15 @@ _ROUTE_CONTRACT_PATHS = {
 PLANNING_ROUTE_CONTRACT: dict[str, object] = {
     "contract_version": 1,
     "contract_name": "governance-route",
-    "active_milestone": None,
+    "active_milestone": {
+        "version": "v1.26",
+        "name": "Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition",
+        "status": "active / closeout-ready (2026-03-28)",
+        "phase": "97",
+        "phase_title": "Governance, open-source contract sync, and assurance freeze",
+        "phase_dir": "97-governance-open-source-contract-sync-and-assurance-freeze",
+        "route_mode": "v1.26 active route / Phase 97 complete / latest archived baseline = v1.25",
+    },
     "latest_archived": {
         "version": "v1.25",
         "name": "Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence",
@@ -43,8 +51,8 @@ PLANNING_ROUTE_CONTRACT: dict[str, object] = {
         "evidence_path": ".planning/reviews/V1_24_EVIDENCE_INDEX.md",
     },
     "bootstrap": {
-        "current_route": "no active milestone route / latest archived baseline = v1.25",
-        "default_next_command": "$gsd-new-milestone",
+        "current_route": "v1.26 active route / Phase 97 complete / latest archived baseline = v1.25",
+        "default_next_command": "$gsd-complete-milestone v1.26",
         "latest_archived_evidence_pointer": ".planning/reviews/V1_25_EVIDENCE_INDEX.md",
     },
 }
@@ -177,6 +185,11 @@ CURRENT_ROUTE_PROSE_FORBIDDEN = (
     "v1.25 active route / Phase 90 planning-ready / latest archived baseline = v1.24",
     "v1.25 active route / Phase 92 complete / latest archived baseline = v1.24",
     "v1.25 active route / Phase 93 complete / latest archived baseline = v1.24",
+    "v1.26 active route / Phase 94 planning-ready / latest archived baseline = v1.25",
+    "v1.26 active route / Phase 95 execution-ready / latest archived baseline = v1.25",
+    "v1.26 active route / Phase 95 planning-ready / latest archived baseline = v1.25",
+    "v1.26 active route / Phase 95 complete / latest archived baseline = v1.25",
+    "v1.26 active route / Phase 96 planning-ready / latest archived baseline = v1.25",
     "v1.24 / Phase 89 complete",
     "no active milestone route / latest archived baseline = v1.20",
     "no active milestone route / latest archived baseline = v1.21",

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import cast
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -12,6 +13,7 @@ from custom_components.lipro.core.api.status_service import (
     query_device_status,
     query_mesh_group_status,
 )
+from custom_components.lipro.core.api.types import JsonObject
 
 
 class DummyApiError(Exception):
@@ -22,14 +24,29 @@ class DummyApiError(Exception):
         self.code = code
 
 
-def _extract_rows(payload: object) -> list[dict[str, str]]:
+def _extract_rows(payload: object) -> list[JsonObject]:
     if isinstance(payload, list):
-        return [row for row in payload if isinstance(row, dict)]
+        return [cast(JsonObject, row) for row in payload if isinstance(row, dict)]
     if isinstance(payload, dict):
         rows = payload.get("data")
         if isinstance(rows, list):
-            return [row for row in rows if isinstance(row, dict)]
+            return [cast(JsonObject, row) for row in rows if isinstance(row, dict)]
     return []
+
+
+def _normalize_response_code(code: object) -> str | int | None:
+    if isinstance(code, bool):
+        return None
+    if isinstance(code, (str, int)):
+        return code
+    return None
+
+
+def _payload_ids(payload: JsonObject, key: str) -> list[str]:
+    value = payload.get(key)
+    assert isinstance(value, list)
+    assert all(isinstance(item, str) for item in value)
+    return [item for item in value if isinstance(item, str)]
 
 
 @pytest.mark.asyncio
@@ -52,7 +69,7 @@ async def test_query_with_fallback_logs_summary_when_all_single_queries_fail() -
         extract_data_list=_extract_rows,
         is_retriable_device_error=lambda _: True,
         lipro_api_error=DummyApiError,
-        normalize_response_code=lambda code: code,
+        normalize_response_code=_normalize_response_code,
         expected_offline_codes=(140003, "140003", 140004, "140004"),
         logger=logger,
     )
@@ -75,12 +92,12 @@ async def test_query_device_status_retriable_batch_error_falls_back_to_single_qu
 ) -> None:
     call_count = 0
 
-    async def iot_request(_path: str, body: dict[str, list[str]]) -> object:
+    async def iot_request(_path: str, body: JsonObject) -> object:
         nonlocal call_count
         call_count += 1
         if call_count == 1:
             raise DummyApiError("retryable", error_code)
-        device_id = body["deviceIdList"][0]
+        device_id = _payload_ids(body, "deviceIdList")[0]
         return [{"deviceId": device_id, "powerState": "1"}]
 
     result = await query_device_status(
@@ -90,7 +107,7 @@ async def test_query_device_status_retriable_batch_error_falls_back_to_single_qu
         extract_data_list=_extract_rows,
         is_retriable_device_error=lambda err: getattr(err, "code", None) == error_code,
         lipro_api_error=DummyApiError,
-        normalize_response_code=lambda code: code,
+        normalize_response_code=_normalize_response_code,
         expected_offline_codes=(140003, "140003"),
         logger=MagicMock(),
         path_query_device_status="/v2/status/device",
@@ -110,12 +127,12 @@ async def test_query_mesh_group_status_retriable_batch_error_falls_back_to_singl
 ) -> None:
     call_count = 0
 
-    async def iot_request(_path: str, body: dict[str, list[str]]) -> object:
+    async def iot_request(_path: str, body: JsonObject) -> object:
         nonlocal call_count
         call_count += 1
         if call_count == 1:
             raise DummyApiError("retryable", error_code)
-        group_id = body["groupIdList"][0]
+        group_id = _payload_ids(body, "groupIdList")[0]
         return [{"groupId": group_id, "powerState": "1"}]
 
     result = await query_mesh_group_status(
@@ -124,7 +141,7 @@ async def test_query_mesh_group_status_retriable_batch_error_falls_back_to_singl
         extract_data_list=_extract_rows,
         is_retriable_device_error=lambda err: getattr(err, "code", None) == error_code,
         lipro_api_error=DummyApiError,
-        normalize_response_code=lambda code: code,
+        normalize_response_code=_normalize_response_code,
         expected_offline_codes=(140003, "140003"),
         logger=MagicMock(),
         path_query_mesh_group_status="/v2/status/group",

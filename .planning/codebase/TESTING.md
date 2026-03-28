@@ -29,7 +29,7 @@ uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro 
 **Location:**
 - Tests live in a dedicated `tests/` tree, not beside production files.
 - Current topology is broad and intentional: `tests/core`, `tests/services`, `tests/flows`, `tests/platforms`, `tests/entities`, `tests/meta`, `tests/integration`, `tests/snapshots`, `tests/benchmarks`, `tests/harness`, and `tests/fixtures`.
-- Repository counts from current scanning: `386` Python files under `tests`, `306` runnable `test_*.py` files, `51` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
+- Repository counts from current scanning: `390` Python files under `tests`, `310` runnable `test_*.py` files, `55` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
 
 **Naming:**
 - Use `test_*.py` everywhere.
@@ -54,10 +54,12 @@ tests/
 
 ## Historical Phase Notes
 
-- Phase 55: 当前仓库共有 `306` 个 `test_*.py` 文件，topicized thin shells 继续覆盖 command-surface、transport-runtime 与 light/fan/select/switch suites。
+- Phase 55: 当前仓库共有 `310` 个 `test_*.py` 文件，topicized thin shells 继续覆盖 command-surface、transport-runtime 与 light/fan/select/switch suites。
 - Phase 59: `tests/core/test_device_refresh_{parsing,filter,snapshot,runtime}.py` 继续作为 localized device-refresh verification note；topicized meta note carriers 与 verification anchors 保持分离。
 - Phase 88: `tests/meta/test_phase88_governance_quality_freeze_guards.py` 继续作为 focused guard home for phase-88 governance/evidence freeze。
 - Phase 90: `tests/meta/test_phase90_hotspot_map_guards.py` 继续作为 focused guard home for five formal homes / four protected thin shells / delete-gate freeze truth。
+- Phase 96: `tests/meta/test_phase96_sanitizer_burndown_guards.py` 继续作为 focused guard home for diagnostics/telemetry/anonymous-share sanitizer burn-down truth。
+- Phase 97: `tests/meta/test_phase97_governance_assurance_freeze_guards.py` 继续作为 focused guard home for current-route / file-testing-map / developer-architecture closeout truth。
 
 ## Test Structure
 
@@ -74,7 +76,7 @@ from .dependency_guards_service_runtime import *
 **Patterns:**
 - Use topicized suites to keep failure localization narrow. This pattern appears in `tests/meta/test_dependency_guards.py`, `tests/meta/test_governance_milestone_archives.py`, and multiple API/runtime roots described in the planning baselines.
 - Prefer explicit fixture-driven setup over ad-hoc inline state creation. `tests/conftest.py` remains the main shared fixture home and also manages thin-shell collection rules.
-- Keep async tests as plain `async def test_*` functions; current scanning finds `367` async tests, matching the repo's async integration style.
+- Keep async tests as plain `async def test_*` functions; current scanning finds `841` async tests, matching the repo's async integration style.
 - Use file-reading assertions for governance/docs/workflow truth instead of mocking the filesystem. Example: `tests/meta/test_governance_release_contract.py` reads `.github/workflows/*.yml`, `CONTRIBUTING.md`, and governance docs directly.
 
 ## Mocking
@@ -188,7 +190,7 @@ with pytest.raises(ServiceValidationError):
     await service_call(...)
 ```
 
-- `pytest.raises` appears heavily across the suite; current grep count is `208` occurrences.
+- `pytest.raises` appears heavily across the suite; current grep count is `211` occurrences.
 - Parametrization is used, but selectively (`46` occurrences), so new table-driven coverage should usually land in targeted concern files rather than giant omnibus tests.
 
 ## Recommendations
@@ -221,3 +223,15 @@ with pytest.raises(ServiceValidationError):
 - `tests/meta/test_phase31_runtime_budget_guards.py` 继续冻结 repo-wide typing-budget honesty；Phase 93 在不放宽预算的前提下烧尽 diagnostics topicization 带来的 incidental `Any` drift。
 - `FILE_MATRIX.md`、`TESTING.md`、`VERIFICATION_MATRIX.md` 与 route smoke tests 现在共同构成 assurance freeze proof；任何一个投影滞后都视为 current-route regression，而不是“文档小问题”。
 - Phase 93 verification requires focused diagnostics/test-budget regressions、`tests/meta`、`scripts/check_file_matrix.py --check`、`ruff` 与 `mypy` 一起通过，之后 `$gsd-next` 的自然落点才允许前推到 milestone closeout。
+
+## Phase 96 Testing Freeze
+
+- `tests/meta/test_phase96_sanitizer_burndown_guards.py` 现在冻结 diagnostics / telemetry / anonymous-share sanitizer hotspot 的 no-regrowth truth，并要求 `96-VERIFICATION.md` / `96-VALIDATION.md` 与 file/dependency truth 同步前推到 `Phase 97 planning-ready`。
+- `tests/core/test_diagnostics_redaction.py`、`tests/integration/test_telemetry_exporter_integration.py` 与 `tests/core/anonymous_share/test_sanitize.py` / `test_manager_submission.py` 共同构成 Phase 96 focused proof；sanitizer helper 粒度变化不得绕开这些本地 suites。
+- Phase 96 verification requires focused diagnostics / telemetry / anonymous-share tests、focused meta guard、`tests/meta`、`scripts/check_file_matrix.py --check`、`ruff` 与 `mypy` 一起通过，之后 current route 才能前推到 `Phase 97`。
+
+## Phase 97 Testing Freeze
+
+- `tests/meta/test_phase97_governance_assurance_freeze_guards.py` 继续冻结 route-governance、developer-architecture、matrix/testing counts 与 next-step closeout truth；`$gsd-next` 的自然落点现在只剩 `$gsd-complete-milestone v1.26`。
+- `tests/meta/test_governance_bootstrap_smoke.py`、`tests/meta/test_governance_route_handoff_smoke.py` 与 `tests/meta/governance_followup_route_current_milestones.py` 共同保证 current-route prose、machine contract 与 quality proof 不再分叉。
+- Phase 97 verification requires focused governance guards、`tests/meta`、`scripts/check_file_matrix.py --check`、`ruff` 与 `mypy` 一起通过，之后 current route 才允许进入 milestone archive/closeout。

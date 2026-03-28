@@ -123,6 +123,32 @@ def parse_mesh_schedule_json(
     )
 
 
+def _coerce_schedule_id(value: object) -> int | None:
+    """Coerce one raw schedule identifier into a usable non-negative integer."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value if value >= 0 else None
+    if isinstance(value, str):
+        normalized = value.strip()
+        if normalized.isdigit():
+            return int(normalized)
+    return None
+
+
+def next_mesh_schedule_id(rows: Sequence[ScheduleTimingRow]) -> int:
+    """Return the first free non-negative mesh schedule identifier."""
+    used_ids = {
+        schedule_id
+        for row in rows
+        if (schedule_id := _coerce_schedule_id(row.get("id"))) is not None
+    }
+    next_id = 0
+    while next_id in used_ids:
+        next_id += 1
+    return next_id
+
+
 def normalize_mesh_timing_rows(
     rows: Sequence[object],
     *,

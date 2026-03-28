@@ -30,6 +30,13 @@ from .ports import ProtocolTelemetrySource, RuntimeTelemetrySource, TelemetrySin
 from .sinks import DEFAULT_TELEMETRY_SINKS
 
 _SKIP = object()
+_SUMMARY_MARKERS = (
+    SHARE_REDACTION_MARKERS.token,
+    SHARE_REDACTION_MARKERS.secret,
+    SHARE_REDACTION_MARKERS.device_id,
+    SHARE_REDACTION_MARKERS.mac,
+    SHARE_REDACTION_MARKERS.ip,
+)
 
 
 class RuntimeTelemetryExporter:
@@ -62,16 +69,15 @@ class RuntimeTelemetryExporter:
         protocol_raw = dict(self._protocol_source.get_protocol_telemetry_snapshot())
         runtime_raw = dict(self._runtime_source.get_runtime_telemetry_snapshot())
         self._reference_cache.clear()
-        entry_ref = self._resolve_entry_ref(
-            protocol_raw=protocol_raw,
-            runtime_raw=runtime_raw,
-            report_id=report_id,
-        )
         return TelemetrySnapshot(
             schema_version=SCHEMA_VERSION,
             report_id=report_id,
             generated_at=float(self._time_provider()),
-            entry_ref=entry_ref,
+            entry_ref=self._resolve_entry_ref(
+                protocol_raw=protocol_raw,
+                runtime_raw=runtime_raw,
+                report_id=report_id,
+            ),
             protocol=self._sanitize_mapping(protocol_raw, report_id=report_id),
             runtime=self._sanitize_mapping(runtime_raw, report_id=report_id),
         )
@@ -98,6 +104,27 @@ class RuntimeTelemetryExporter:
         except TypeError:
             return str(self._report_id_factory())
 
+    @staticmethod
+    def _extract_entry_id(
+        payload: Mapping[str, TelemetryJsonValue],
+        *,
+        primary_key: str,
+        nested_mapping_key: str | None = None,
+        nested_key: str = "entry_id",
+    ) -> str | None:
+        value = payload.get(primary_key)
+        if isinstance(value, str) and value:
+            return value
+        if nested_mapping_key is None:
+            return None
+        nested_mapping = payload.get(nested_mapping_key)
+        if not isinstance(nested_mapping, dict):
+            return None
+        nested_value = nested_mapping.get(nested_key)
+        if isinstance(nested_value, str) and nested_value:
+            return nested_value
+        return None
+
     def _resolve_entry_ref(
         self,
         *,
@@ -105,18 +132,14 @@ class RuntimeTelemetryExporter:
         runtime_raw: Mapping[str, TelemetryJsonValue],
         report_id: str,
     ) -> str | None:
-        entry_id = protocol_raw.get("entry_id")
-        if not isinstance(entry_id, str):
-            session = protocol_raw.get("session")
-            if isinstance(session, dict):
-                nested = session.get("entry_id")
-                if isinstance(nested, str):
-                    entry_id = nested
-        if not isinstance(entry_id, str):
-            nested = runtime_raw.get("entry_id")
-            if isinstance(nested, str):
-                entry_id = nested
-        if not isinstance(entry_id, str) or not entry_id:
+        entry_id = self._extract_entry_id(
+            protocol_raw,
+            primary_key="entry_id",
+            nested_mapping_key="session",
+        )
+        if entry_id is None:
+            entry_id = self._extract_entry_id(runtime_raw, primary_key="entry_id")
+        if entry_id is None:
             return None
         return self._build_reference("entry_ref", entry_id, report_id)
 
@@ -131,34 +154,45 @@ class RuntimeTelemetryExporter:
             key_text = str(key)
             if len(sanitized) >= self._cardinality_budget.max_mapping_items:
                 break
-            if self._sensitivity.is_blocked(key_text):
-                continue
-            alias = self._sensitivity.reference_alias_for(key_text)
-            if alias is not None:
-                reference = self._build_reference(alias, value, report_id)
-                if reference is not None:
-                    sanitized[alias] = reference
-                continue
-            sanitized_value = self._sanitize_value(
+            sanitized_entry = self._sanitize_mapping_entry(
+                key_text,
                 value,
-                key=key_text,
                 report_id=report_id,
             )
-            if sanitized_value is _SKIP:
+            if sanitized_entry is None:
                 continue
-            sanitized[key_text] = cast(TelemetryJsonValue, sanitized_value)
+            entry_key, entry_value = sanitized_entry
+            sanitized[entry_key] = entry_value
         return sanitized
+
+    def _sanitize_mapping_entry(
+        self,
+        key: str,
+        value: TelemetryJsonValue,
+        *,
+        report_id: str,
+    ) -> tuple[str, TelemetryJsonValue] | None:
+        if self._sensitivity.is_blocked(key):
+            return None
+        alias = self._sensitivity.reference_alias_for(key)
+        if alias is not None:
+            reference = self._build_reference(alias, value, report_id)
+            if reference is None:
+                return None
+            return alias, reference
+        sanitized_value = self._sanitize_value(
+            value,
+            key=key,
+            report_id=report_id,
+        )
+        if sanitized_value is _SKIP:
+            return None
+        return key, cast(TelemetryJsonValue, sanitized_value)
 
     def _summarize_redacted_string(self, value: str) -> str | None:
         """Return a compact marker summary when a redacted string exceeds budget."""
         positions: list[tuple[int, str]] = []
-        for marker in (
-            SHARE_REDACTION_MARKERS.token,
-            SHARE_REDACTION_MARKERS.secret,
-            SHARE_REDACTION_MARKERS.device_id,
-            SHARE_REDACTION_MARKERS.mac,
-            SHARE_REDACTION_MARKERS.ip,
-        ):
+        for marker in _SUMMARY_MARKERS:
             position = value.find(marker)
             if position >= 0:
                 positions.append((position, marker))
@@ -168,6 +202,48 @@ class RuntimeTelemetryExporter:
         if len(summary) <= self._cardinality_budget.max_string_length:
             return summary
         return None
+
+    def _sanitize_sequence(
+        self,
+        value: list[TelemetryJsonValue],
+        *,
+        report_id: str,
+    ) -> list[TelemetryJsonValue]:
+        result: list[TelemetryJsonValue] = []
+        for item in value[: self._cardinality_budget.max_sequence_items]:
+            sanitized_item = self._sanitize_value(
+                item,
+                key=None,
+                report_id=report_id,
+            )
+            if sanitized_item is _SKIP:
+                continue
+            result.append(cast(TelemetryJsonValue, sanitized_item))
+        return result
+
+    def _sanitize_string_value(self, value: str) -> TelemetryJsonValue:
+        literal = redact_sensitive_literal(
+            value,
+            markers=SHARE_REDACTION_MARKERS,
+        )
+        if literal is not None:
+            return literal
+
+        sanitized = redact_sensitive_text(
+            value,
+            markers=SHARE_REDACTION_MARKERS,
+        )
+        if sanitized != value:
+            if len(sanitized) > self._cardinality_budget.max_string_length:
+                marker_summary = self._summarize_redacted_string(sanitized)
+                if marker_summary is not None:
+                    return marker_summary
+                return sanitized[: self._cardinality_budget.max_string_length]
+            return sanitized
+
+        if len(value) > self._cardinality_budget.max_string_length:
+            return value[: self._cardinality_budget.max_string_length]
+        return value
 
     def _sanitize_value(
         self,
@@ -181,37 +257,9 @@ class RuntimeTelemetryExporter:
         if isinstance(value, dict):
             return self._sanitize_mapping(value, report_id=report_id)
         if isinstance(value, list):
-            result: list[TelemetryJsonValue] = []
-            for item in value[: self._cardinality_budget.max_sequence_items]:
-                sanitized_item = self._sanitize_value(
-                    item,
-                    key=None,
-                    report_id=report_id,
-                )
-                if sanitized_item is _SKIP:
-                    continue
-                result.append(cast(TelemetryJsonValue, sanitized_item))
-            return result
+            return self._sanitize_sequence(value, report_id=report_id)
         if isinstance(value, str):
-            literal = redact_sensitive_literal(
-                value,
-                markers=SHARE_REDACTION_MARKERS,
-            )
-            if literal is not None:
-                return literal
-            sanitized = redact_sensitive_text(
-                value,
-                markers=SHARE_REDACTION_MARKERS,
-            )
-            if sanitized != value:
-                if len(sanitized) > self._cardinality_budget.max_string_length:
-                    marker_summary = self._summarize_redacted_string(sanitized)
-                    if marker_summary is not None:
-                        return marker_summary
-                    return sanitized[: self._cardinality_budget.max_string_length]
-                return sanitized
-            if len(value) > self._cardinality_budget.max_string_length:
-                return value[: self._cardinality_budget.max_string_length]
+            return self._sanitize_string_value(value)
         return value
 
     def _build_reference(

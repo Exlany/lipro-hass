@@ -8,6 +8,9 @@ import pytest
 
 from custom_components.lipro.core.api.endpoints.schedule import ScheduleEndpoints
 from custom_components.lipro.core.api.errors import LiproApiError
+from custom_components.lipro.core.api.schedule_endpoint import (
+    validate_schedule_time_event_lengths,
+)
 
 
 def _make_endpoint() -> ScheduleEndpoints:
@@ -49,3 +52,7 @@ def test_resolve_ble_schedule_candidate_ids_non_mesh_returns_normalized_id() -> 
     assert client._resolve_ble_schedule_candidate_ids(device_id="03ab5ccd7caaaaaa") == [
         "03ab5ccd7caaaaaa"
     ]
+
+
+def test_validate_schedule_time_event_lengths_accepts_matching_lengths() -> None:
+    validate_schedule_time_event_lengths([3600], [1])

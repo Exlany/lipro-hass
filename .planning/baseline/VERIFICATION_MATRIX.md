@@ -2,16 +2,16 @@
 
 **Purpose:** 建立 requirement → artifact → test → doc → phase acceptance / handoff 的统一验证闭环。
 **Status:** Formal baseline asset (`BASE-03` phase acceptance truth source)
-**Updated:** 2026-03-28 (Phase 93 assurance-freeze aligned)
+**Updated:** 2026-03-28 (Phase 97 governance closeout aligned)
 
 ## Formal Role
 
 ## Current Mutable Route
 
-- **Current mutable story:** `no active milestone route / latest archived baseline = v1.25`
-- **Default next command:** `$gsd-new-milestone`
+- **Current mutable story:** `v1.26 active route / Phase 97 complete / latest archived baseline = v1.25`
+- **Default next command:** `$gsd-complete-milestone v1.26`
 - **Latest archived pointer:** `.planning/reviews/V1_25_EVIDENCE_INDEX.md`
-- **Focused guards:** `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/test_phase90_hotspot_map_guards.py`, `tests/meta/test_phase91_typed_boundary_guards.py`, `tests/meta/test_phase92_redaction_convergence_guards.py`, `tests/meta/test_public_surface_guards.py`, `tests/meta/test_dependency_guards.py`
+- **Focused guards:** `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/test_phase90_hotspot_map_guards.py`, `tests/meta/test_phase91_typed_boundary_guards.py`, `tests/meta/test_phase92_redaction_convergence_guards.py`, `tests/meta/test_phase94_typed_boundary_guards.py`, `tests/meta/test_phase95_hotspot_decomposition_guards.py`, `tests/meta/test_phase96_sanitizer_burndown_guards.py`, `tests/meta/test_phase97_governance_assurance_freeze_guards.py`, `tests/meta/test_public_surface_guards.py`, `tests/meta/test_dependency_guards.py`
 
 - 本文件是 `Phase 1.5` 及其下游 phases 的正式 acceptance truth；phase docs / summaries 只能引用、实例化或扩展，不得平行定义 exit contract。
 - 任一 phase 只有同时交付 requirement evidence、artifact updates、verification proof 与 governance disposition，才可宣称完成。
@@ -21,6 +21,30 @@
 - 若 `.planning/reviews/FILE_MATRIX.md`、`.planning/reviews/RESIDUAL_LEDGER.md`、`.planning/reviews/KILL_LIST.md` 无变化，phase summary 也必须明确写出“为何无变化”。
 - `.planning/codebase/*.md` 若被保留，必须通过 `README.md`、统一 derived collaboration map disclaimer、snapshot/freshness/authority 头部与治理守卫声明其从属身份，不能越权成为第二条 authority chain。
 - `.planning/baseline/GOVERNANCE_REGISTRY.json` 若更新，必须同步 public docs / contributor templates / release-contract tests，并明确 `break-glass verify-only` 与 `non-publish rehearsal` 是否新增或变更。
+
+## Phase 94 Typed Payload Contraction and Domain-Bag Narrowing
+
+- **Route truth:** `v1.26 active route / Phase 95 execution-ready / latest archived baseline = v1.25`
+- **Focused guard:** `tests/meta/test_phase94_typed_boundary_guards.py`
+- **Proof chain:** focused Phase 94 pytest set → `tests/meta` → `check_file_matrix` → `ruff` → `mypy` → `gsd-tools state/progress/phase-plan-index`
+
+## Phase 95 Schedule/Runtime Hotspot Inward Decomposition
+
+- **Route truth:** `v1.26 active route / Phase 96 planning-ready / latest archived baseline = v1.25`
+- **Focused guard:** `tests/meta/test_phase95_hotspot_decomposition_guards.py`
+- **Proof chain:** focused Phase 95 pytest set → `tests/meta` → `check_file_matrix` → `ruff` → `mypy` → `gsd-tools state/progress/phase-plan-index`
+
+## Phase 96 Redaction/Telemetry/Anonymous-Share Sanitizer Burndown
+
+- **Route truth:** `v1.26 active route / Phase 97 planning-ready / latest archived baseline = v1.25`
+- **Focused guard:** `tests/meta/test_phase96_sanitizer_burndown_guards.py`
+- **Proof chain:** focused Phase 96 pytest sets → `tests/meta/test_phase96_sanitizer_burndown_guards.py` → `check_file_matrix` → `ruff` → `mypy` → `gsd-tools state/progress/phase-plan-index`
+
+## Phase 97 Governance / Open-Source Contract Sync and Assurance Freeze
+
+- **Route truth:** `v1.26 active route / Phase 97 complete / latest archived baseline = v1.25`
+- **Focused guard:** `tests/meta/test_phase97_governance_assurance_freeze_guards.py`
+- **Proof chain:** focused governance smoke + phase97 guard → `tests/meta` → `check_file_matrix` → `ruff` → `mypy` → `gsd-tools state/progress/phase-plan-index`
 
 ## Requirement-to-Acceptance Mapping
 

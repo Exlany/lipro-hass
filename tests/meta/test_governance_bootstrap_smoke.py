@@ -16,7 +16,7 @@ from .governance_current_truth import (
 )
 
 
-def test_archived_only_bootstrap_contract_stays_current() -> None:
+def test_active_route_bootstrap_contract_stays_current() -> None:
     project_text = (_ROOT / '.planning' / 'PROJECT.md').read_text(encoding='utf-8')
     roadmap_text = (_ROOT / '.planning' / 'ROADMAP.md').read_text(encoding='utf-8')
     state_text = (_ROOT / '.planning' / 'STATE.md').read_text(encoding='utf-8')
@@ -31,12 +31,15 @@ def test_archived_only_bootstrap_contract_stays_current() -> None:
     assert CURRENT_MILESTONE_DEFAULT_NEXT in roadmap_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
     assert CURRENT_ROUTE in verification_text
-    assert CURRENT_ROUTE in verification_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in verification_text
     assert f'**Latest archived pointer:** `{LATEST_ARCHIVED_EVIDENCE_PATH}`' in verification_text
     assert 'tests/meta/test_governance_bootstrap_smoke.py' in verification_text
     assert 'tests/meta/test_governance_route_handoff_smoke.py' in verification_text
-    assert 'tests/meta/test_phase92_redaction_convergence_guards.py' in verification_text
+    assert 'tests/meta/test_phase94_typed_boundary_guards.py' in verification_text
+    assert 'tests/meta/test_phase96_sanitizer_burndown_guards.py' in verification_text
+    assert 'tests/meta/test_phase97_governance_assurance_freeze_guards.py' in verification_text
+    assert 'tests/meta/test_phase96_sanitizer_burndown_guards.py' in verification_text
+    assert 'tests/meta/test_phase97_governance_assurance_freeze_guards.py' in verification_text
 
 
 def test_public_docs_keep_internal_bootstrap_story_hidden() -> None:

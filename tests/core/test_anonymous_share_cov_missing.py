@@ -72,6 +72,29 @@ def test_get_anonymous_share_manager_without_hass_creates_singleton_when_missing
 
 
 
+def test_get_anonymous_share_manager_repairs_corrupt_registry_slots(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """registry.py - corrupt aggregate/scoped slots are repaired in-place."""
+    manager_module._get_root_manager.cache_clear()
+
+    hass = MagicMock()
+    hass.data = {
+        DOMAIN: {
+            "anonymous_share_manager": object(),
+            "anonymous_share_managers": "not-a-dict",
+        }
+    }
+
+    aggregate = manager_module.get_anonymous_share_manager(hass)
+    scoped = manager_module.get_anonymous_share_manager(hass, entry_id="entry-1")
+
+    assert isinstance(aggregate, AnonymousShareManager)
+    assert isinstance(scoped, AnonymousShareManager)
+    assert isinstance(hass.data[DOMAIN]["anonymous_share_manager"], AnonymousShareManager)
+    assert isinstance(hass.data[DOMAIN]["anonymous_share_managers"], dict)
+
+
 def test_get_anonymous_share_manager_with_corrupt_domain_data_does_not_crash(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -198,3 +221,20 @@ async def test_aggregate_submit_if_needed_combines_scoped_results() -> None:
     assert aggregate.last_submit_outcome.reason_code == "submit_failed"
     manager_one.submit_if_needed.assert_awaited_once()
     manager_two.submit_if_needed.assert_awaited_once()
+
+
+def test_disabling_one_scope_clears_only_that_scope_pending_data() -> None:
+    root_manager = AnonymousShareManager()
+    scope_one = root_manager.for_scope("entry-1")
+    scope_two = root_manager.for_scope("entry-2")
+
+    scope_one.set_enabled(True, error_reporting=True)
+    scope_two.set_enabled(True, error_reporting=True)
+    scope_one.record_api_error(endpoint="/api/one", code=500, message="boom")
+    scope_two.record_api_error(endpoint="/api/two", code=400, message="bad")
+
+    scope_one.set_enabled(False)
+
+    assert scope_one.pending_count == (0, 0)
+    assert scope_two.pending_count == (0, 1)
+    assert root_manager.aggregate_view().pending_count == (0, 1)

@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from contextlib import AbstractAsyncContextManager
 import json
 import logging
-from typing import Any
+from typing import cast
 
 import aiohttp
 
@@ -14,6 +15,7 @@ from .response_safety import (
     INVALID_JSON_BODY_READ_MAX_BYTES as _INVALID_JSON_BODY_READ_MAX_BYTES,
     INVALID_JSON_LOG_PREVIEW_MAX_CHARS as _INVALID_JSON_LOG_PREVIEW_MAX_CHARS,
 )
+from .types import JsonObject, ResponseHeaders
 
 _LOGGER = logging.getLogger("custom_components.lipro.core.api")
 
@@ -55,7 +57,7 @@ class TransportCore:
         """Close the client session (no-op: HA-injected session is managed by HA)."""
         self._session = None
 
-    async def _parse_json_response(self, response: aiohttp.ClientResponse) -> Any:
+    async def _parse_json_response(self, response: aiohttp.ClientResponse) -> object:
         """Parse one JSON response while tolerating aiohttp version differences."""
         try:
             return await response.json(content_type=None)
@@ -132,12 +134,12 @@ class TransportCore:
         raise LiproApiError(msg) from err
 
     @staticmethod
-    def _log_response_summary(path: str, result: Any) -> None:
+    def _log_response_summary(path: str, result: object) -> None:
         """Emit one sanitized response summary when debug logging is enabled."""
         if not _LOGGER.isEnabledFor(logging.DEBUG):
             return
 
-        summary: dict[str, Any] = {"type": type(result).__name__}
+        summary: dict[str, object] = {"type": type(result).__name__}
         if isinstance(result, dict):
             summary["keys_count"] = len(result)
             for key in ("code", "errorCode", "success"):
@@ -153,9 +155,9 @@ class TransportCore:
 
     async def execute_request(
         self,
-        request_ctx: Any,
+        request_ctx: object,
         path: str,
-    ) -> tuple[int, dict[str, Any], dict[str, str]]:
+    ) -> tuple[int, JsonObject, ResponseHeaders]:
         """Execute an HTTP request with common error handling.
 
         Args:
@@ -167,11 +169,14 @@ class TransportCore:
 
         Raises:
             LiproConnectionError: If connection fails or times out.
-            LiproApiError: If response is not valid JSON.
+            LiproApiError: If response is not valid JSON or not a JSON object.
 
         """
         try:
-            async with request_ctx as response:
+            async with cast(
+                AbstractAsyncContextManager[aiohttp.ClientResponse],
+                request_ctx,
+            ) as response:
                 status = response.status
                 headers = dict(response.headers)
                 try:
@@ -192,11 +197,12 @@ class TransportCore:
             _LOGGER.debug("Timeout on %s: %s", path, msg)
             raise LiproConnectionError(msg) from err
 
-        self._log_response_summary(path, result)
-        return status, result, headers
+        mapping_result = self.require_mapping_response(path, result)
+        self._log_response_summary(path, mapping_result)
+        return status, mapping_result, headers
 
     @staticmethod
-    def require_mapping_response(path: str, result: Any) -> dict[str, Any]:
+    def require_mapping_response(path: str, result: object) -> JsonObject:
         """Validate that an API response payload is a JSON object.
 
         Args:
@@ -207,11 +213,11 @@ class TransportCore:
             Validated response dict.
 
         Raises:
-            LiproApiError: If response is not a dict.
+            LiproApiError: If response is not a string-keyed dict.
 
         """
-        if isinstance(result, dict):
-            return result
+        if isinstance(result, dict) and all(isinstance(key, str) for key in result):
+            return cast(JsonObject, result)
         msg = (
             f"Invalid JSON response from {path}: "
             f"expected object, got {type(result).__name__}"

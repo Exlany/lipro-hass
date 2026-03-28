@@ -5,15 +5,18 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from typing import Any
+import logging
+from typing import cast
 
-type MappingPayload = dict[str, Any]
-type MappingRows = list[MappingPayload]
-type NormalizeResponseCode = Callable[[Any], str | int | None]
-type ExtractDataList = Callable[[Any], MappingRows]
-type IoTRequest = Callable[[str, MappingPayload], Awaitable[Any]]
+from .types import JsonObject, JsonValue
+
+type QueryPayload = JsonObject
+type MappingRows = list[JsonObject]
+type NormalizeResponseCode = Callable[[object], str | int | None]
+type ExtractDataList = Callable[[object], MappingRows]
+type IoTRequest = Callable[[str, QueryPayload], Awaitable[object]]
 type IsRetriableDeviceError = Callable[[Exception], bool]
-type CoerceConnectStatus = Callable[[Any], bool]
+type CoerceConnectStatus = Callable[[object], bool]
 type SanitizeIoTDeviceIds = Callable[..., list[str]]
 type RecordFallbackDepth = Callable[[int], None]
 type RecordStatusBatchMetric = Callable[[int, float, int], None]
@@ -21,6 +24,10 @@ type RecordStatusBatchMetric = Callable[[int, float, int], None]
 _SMALL_SUBSET_BATCH_QUERY_THRESHOLD = 4
 _SMALL_SUBSET_BATCH_SIZE = 2
 _STATE_QUERY_SOFT_MAX_BATCH_SIZE = 64
+
+
+def _build_query_payload(body_key: str, ids: list[str]) -> QueryPayload:
+    return {body_key: cast(JsonValue, ids)}
 
 
 @dataclass(slots=True, frozen=True)
@@ -33,7 +40,7 @@ class _BinarySplitQueryContext:
     is_retriable_device_error: IsRetriableDeviceError
     lipro_api_error: type[Exception]
     normalize_response_code: NormalizeResponseCode
-    logger: Any
+    logger: logging.Logger
 
 
 @dataclass(slots=True)
@@ -94,7 +101,7 @@ def _log_batch_query_fallback(
     err: Exception,
     normalize_response_code: NormalizeResponseCode,
     expected_offline_codes: tuple[int | str, ...],
-    logger: Any,
+    logger: logging.Logger,
 ) -> str | int:
     normalized_code = normalize_response_code(getattr(err, "code", None))
     if normalized_code is None:
@@ -129,7 +136,8 @@ async def _query_single_item(
     try:
         async with semaphore:
             result = await context.iot_request(
-                context.path, {context.body_key: [item_id]}
+                context.path,
+                _build_query_payload(context.body_key, [item_id]),
             )
         accumulator.extend_rows(context.extract_data_list(result))
     except context.lipro_api_error as err:
@@ -164,7 +172,8 @@ async def _query_small_subset(
         try:
             async with semaphore:
                 result = await context.iot_request(
-                    context.path, {context.body_key: batch}
+                    context.path,
+                    _build_query_payload(context.body_key, batch),
                 )
             accumulator.extend_rows(context.extract_data_list(result))
         except context.lipro_api_error as err:
@@ -206,7 +215,10 @@ async def _query_subset(
 
     try:
         async with semaphore:
-            result = await context.iot_request(context.path, {context.body_key: subset})
+            result = await context.iot_request(
+                context.path,
+                _build_query_payload(context.body_key, subset),
+            )
         accumulator.extend_rows(context.extract_data_list(result))
         return
     except context.lipro_api_error as err:
@@ -243,7 +255,7 @@ async def _query_items_by_binary_split(
     is_retriable_device_error: IsRetriableDeviceError,
     lipro_api_error: type[Exception],
     normalize_response_code: NormalizeResponseCode,
-    logger: Any,
+    logger: logging.Logger,
 ) -> tuple[MappingRows, int, dict[str, int], int]:
     """Query items by recursively splitting failing batches."""
     if not ids:
@@ -304,10 +316,10 @@ def _log_empty_fallback_summary(
     item_name: str,
     batch_code: str | int,
     ids: list[str],
-    all_results: list[dict[str, Any]],
+    all_results: MappingRows,
     failed_single_queries: int,
     single_error_codes: dict[str, int],
-    logger: Any,
+    logger: logging.Logger,
 ) -> None:
     if not ids or all_results or failed_single_queries != len(ids):
         return
@@ -341,12 +353,12 @@ async def query_with_fallback(
     lipro_api_error: type[Exception],
     normalize_response_code: NormalizeResponseCode,
     expected_offline_codes: tuple[int | str, ...],
-    logger: Any,
+    logger: logging.Logger,
     record_fallback_depth: RecordFallbackDepth | None = None,
 ) -> MappingRows:
     """Query API with binary-split fallback on retriable device errors."""
     try:
-        result = await iot_request(path, {body_key: ids})
+        result = await iot_request(path, _build_query_payload(body_key, ids))
         if record_fallback_depth is not None:
             record_fallback_depth(0)
         return extract_data_list(result)
@@ -399,9 +411,9 @@ __all__ = [
     "ExtractDataList",
     "IoTRequest",
     "IsRetriableDeviceError",
-    "MappingPayload",
     "MappingRows",
     "NormalizeResponseCode",
+    "QueryPayload",
     "RecordStatusBatchMetric",
     "SanitizeIoTDeviceIds",
     "_query_items_by_binary_split",

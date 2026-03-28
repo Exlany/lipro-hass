@@ -10,11 +10,30 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.lipro.const.base import DOMAIN
+from custom_components.lipro.control.diagnostics_surface import (
+    DiagnosticsPayload,
+    DiagnosticsValue,
+)
 from custom_components.lipro.control.telemetry_surface import (
     build_entry_telemetry_views,
 )
 from custom_components.lipro.diagnostics import async_get_config_entry_diagnostics
 from custom_components.lipro.system_health import system_health_info
+
+
+def _diag_payload(value: DiagnosticsValue) -> DiagnosticsPayload:
+    assert isinstance(value, dict)
+    return value
+
+
+def _diag_list(value: DiagnosticsValue) -> list[DiagnosticsValue]:
+    assert isinstance(value, list)
+    return value
+
+
+def _diag_str(value: DiagnosticsValue) -> str:
+    assert isinstance(value, str)
+    return value
 
 
 @pytest.mark.asyncio
@@ -117,25 +136,22 @@ async def test_entry_runtime_bridges_to_exporter_diagnostics_and_system_health(
     views = build_entry_telemetry_views(entry)
 
     assert views is not None
-    assert diagnostics["coordinator"]["device_count"] == 2
-    assert diagnostics["coordinator"]["mqtt_connected"] is True
-    assert (
-        diagnostics["telemetry"]["protocol"]["auth_recovery"]["refresh_success_count"]
-        == 2
-    )
-    assert (
-        diagnostics["telemetry"]["runtime"]["command"]["confirmation"][
-            "avg_latency_seconds"
-        ]
-        == 1.25
-    )
-    assert diagnostics["telemetry"]["runtime"]["recent_command_traces"][0][
-        "device_ref"
-    ].startswith("device_")
-    assert (
-        "password_hash"
-        not in diagnostics["telemetry"]["runtime"]["recent_command_traces"][0]
-    )
+    coordinator_view = _diag_payload(diagnostics["coordinator"])
+    telemetry_view = _diag_payload(diagnostics["telemetry"])
+    protocol_view = _diag_payload(telemetry_view["protocol"])
+    auth_recovery_view = _diag_payload(protocol_view["auth_recovery"])
+    runtime_view = _diag_payload(telemetry_view["runtime"])
+    command_view = _diag_payload(runtime_view["command"])
+    confirmation_view = _diag_payload(command_view["confirmation"])
+    recent_command_traces = _diag_list(runtime_view["recent_command_traces"])
+    first_command_trace = _diag_payload(recent_command_traces[0])
+
+    assert coordinator_view["device_count"] == 2
+    assert coordinator_view["mqtt_connected"] is True
+    assert auth_recovery_view["refresh_success_count"] == 2
+    assert confirmation_view["avg_latency_seconds"] == 1.25
+    assert _diag_str(first_command_trace["device_ref"]).startswith("device_")
+    assert "password_hash" not in first_command_trace
     assert views.system_health["device_count"] == 2
     assert views.system_health["command_confirmation_timeout_total"] == 1
     assert views.system_health["refresh_avg_latency_seconds"] == 1.75
@@ -145,10 +161,7 @@ async def test_entry_runtime_bridges_to_exporter_diagnostics_and_system_health(
         "handling_policy": "retry",
         "error_type": "TimeoutError",
     }
-    assert (
-        diagnostics["coordinator"]["failure_summary"]
-        == views.system_health["failure_summary"]
-    )
+    assert coordinator_view["failure_summary"] == views.system_health["failure_summary"]
     assert health["total_devices"] == 2
     assert health["mqtt_connected_entries"] == 1
     failure_entry = health["failure_entries"][0]
@@ -187,3 +200,34 @@ async def test_entry_runtime_telemetry_exporter_requires_protocol_surface(
 
     assert health["logged_accounts"] == 1
     assert "failure_entries" not in health
+
+
+def test_runtime_telemetry_exporter_summarizes_long_redacted_strings() -> None:
+    from custom_components.lipro.core.telemetry.exporter import RuntimeTelemetryExporter
+
+    exporter = RuntimeTelemetryExporter(
+        protocol_source=SimpleNamespace(
+            get_protocol_telemetry_snapshot=lambda: {"entry_id": "entry-1"}
+        ),
+        runtime_source=SimpleNamespace(
+            get_runtime_telemetry_snapshot=lambda: {
+                "note": (
+                    "prefix-" * 60
+                    + "Authorization: Bearer abcdefghijklmnopqrstuvwxyz0123456789 "
+                    + "device=03ab5ccd7c123456 ip=10.0.0.8"
+                )
+            }
+        ),
+        report_id_factory=lambda *_args: "report-1",
+    )
+
+    snapshot = exporter.export_snapshot()
+
+    note = _diag_str(snapshot.runtime["note"])
+    assert "abcdefghijklmnopqrstuvwxyz0123456789" not in note
+    assert "03ab5ccd7c123456" not in note
+    assert "10.0.0.8" not in note
+    assert "[TOKEN]" in note
+    assert "[DEVICE_ID]" in note
+    assert "[IP]" in note
+    assert len(note) <= 256

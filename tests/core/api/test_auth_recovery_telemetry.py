@@ -8,6 +8,7 @@ import aiohttp
 import pytest
 
 from custom_components.lipro.core.api import (
+    LiproApiError,
     LiproConnectionError,
     LiproRefreshTokenExpiredError,
 )
@@ -45,6 +46,49 @@ async def test_auth_recovery_telemetry_tracks_success_and_reuse() -> None:
     assert snapshot["refresh_success_count"] == 1
     assert snapshot["refresh_reused_count"] == 1
     assert snapshot["last_refresh_outcome"] == "reused"
+
+
+@pytest.mark.asyncio
+async def test_finalize_mapping_result_retries_after_successful_auth_refresh() -> None:
+    state = _state()
+    state.access_token = "old-token"
+    coordinator = RestAuthRecoveryCoordinator(state)
+
+    async def refresh() -> None:
+        state.access_token = "new-token"
+
+    coordinator.set_token_refresh_callback(refresh)
+    retry_request = AsyncMock(return_value={"ok": True})
+
+    result = await coordinator.finalize_mapping_result(
+        path="/v2/test",
+        result={"code": "token_expired", "message": "expired"},
+        request_token="old-token",
+        is_retry=False,
+        retry_on_auth_error=True,
+        retry_request=retry_request,
+        success_payload=lambda payload: payload,
+    )
+
+    assert result == {"ok": True}
+    retry_request.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_finalize_mapping_result_raises_api_error_for_non_auth_failure() -> None:
+    state = _state()
+    coordinator = RestAuthRecoveryCoordinator(state)
+
+    with pytest.raises(LiproApiError, match="boom"):
+        await coordinator.finalize_mapping_result(
+            path="/v2/test",
+            result={"code": 500, "errorCode": "bad_request", "message": "boom"},
+            request_token=None,
+            is_retry=False,
+            retry_on_auth_error=True,
+            retry_request=AsyncMock(),
+            success_payload=lambda payload: payload,
+        )
 
 
 @pytest.mark.asyncio
