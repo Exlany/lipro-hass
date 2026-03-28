@@ -38,14 +38,14 @@ def test_phase97_current_route_docs_and_closeout_bundles_align() -> None:
     phase97_validation = _read(_PHASE97_DIR / "97-VALIDATION.md")
 
     for text in (project_text, roadmap_text, requirements_text, state_text, milestones_text, verification_text):
-        assert "v1.26 active route / Phase 97 complete / latest archived baseline = v1.25" in text
-        assert "$gsd-complete-milestone v1.26" in text
+        assert "no active milestone route / latest archived baseline = v1.26" in text
+        assert "$gsd-new-milestone" in text
 
-    assert "active / closeout-ready (2026-03-28)" in project_text
-    assert "active / closeout-ready (2026-03-28)" in roadmap_text
-    assert "active / closeout-ready (2026-03-28)" in requirements_text
-    assert "active / closeout-ready (2026-03-28)" in state_text
-    assert "active / closeout-ready (2026-03-28)" in milestones_text
+    assert "archived / evidence-ready (2026-03-28)" in project_text
+    assert "archived / evidence-ready (2026-03-28)" in roadmap_text
+    assert "archived / evidence-ready (2026-03-28)" in requirements_text
+    assert "archived / evidence-ready (2026-03-28)" in state_text
+    assert "archived / evidence-ready (2026-03-28)" in milestones_text
     assert "Phase 97 planning-ready" in phase96_verification
     assert "$gsd-plan-phase 97" in phase96_validation
     assert "# Phase 97 Verification" in phase97_verification

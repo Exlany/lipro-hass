@@ -76,14 +76,14 @@ def test_phase90_closeout_docs_and_derived_maps_keep_the_freeze_visible() -> Non
     state_text = _STATE.read_text(encoding="utf-8")
     dev_arch_text = _DEV_ARCH.read_text(encoding="utf-8")
 
-    assert "**Current route:** `v1.26 active route / Phase 97 complete / latest archived baseline = v1.25`" in project_text
+    assert "**Current route:** `no active milestone route / latest archived baseline = v1.26`" in project_text
     assert "## v1.25: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence" in roadmap_text
     archived_v125_roadmap_text = (_ROOT / ".planning" / "milestones" / "v1.25-ROADMAP.md").read_text(encoding="utf-8")
     assert ".planning/phases/90-hotspot-routing-freeze-and-formal-home-decomposition-map/{90-01-SUMMARY.md,90-02-SUMMARY.md,90-03-SUMMARY.md,90-VERIFICATION.md,90-VALIDATION.md}" in archived_v125_roadmap_text
     archived_v125_requirements_text = (_ROOT / ".planning" / "milestones" / "v1.25-REQUIREMENTS.md").read_text(encoding="utf-8")
     assert "| HOT-40 | Phase 90 | Completed |" in archived_v125_requirements_text
-    assert "v1.26 active route / Phase 97 complete / latest archived baseline = v1.25" in state_text
-    assert "$gsd-complete-milestone v1.26" in state_text
+    assert "no active milestone route / latest archived baseline = v1.26" in state_text
+    assert "$gsd-new-milestone" in state_text
     assert "## Phase 90 Freeze Notes" in dev_arch_text
 
     for path in (_CODEBASE_ARCH, _CODEBASE_STRUCTURE, _CODEBASE_CONCERNS, _CODEBASE_CONVENTIONS):

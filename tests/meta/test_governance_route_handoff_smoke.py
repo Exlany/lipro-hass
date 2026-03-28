@@ -64,7 +64,6 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
     assert CURRENT_MILESTONE_DEFAULT_NEXT in roadmap_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in requirements_text
-    assert '## Phase 93 Assurance Topicization and Quality Freeze' in verification_text
     assert '## Phase 94 Typed Payload Contraction and Domain-Bag Narrowing' in verification_text
     assert '## Phase 95 Schedule/Runtime Hotspot Inward Decomposition' in verification_text
     assert '## Phase 96 Redaction/Telemetry/Anonymous-Share Sanitizer Burndown' in verification_text
@@ -119,12 +118,12 @@ def test_gsd_fast_path_matches_current_active_route_story() -> None:
 
     state = _run_gsd_tools('state', 'json')
     assert _as_str(state['milestone']) == CURRENT_MILESTONE
-    assert _as_str(state['status']) == 'active'
+    assert _as_str(state['status']) == 'complete'
     assert _as_mapping(state['progress']) == {
         'total_phases': '4',
         'completed_phases': '4',
-        'total_plans': '9',
-        'completed_plans': '9',
+        'total_plans': '12',
+        'completed_plans': '12',
     }
 
     plan_init = _run_gsd_tools('init', 'plan-phase', '97')

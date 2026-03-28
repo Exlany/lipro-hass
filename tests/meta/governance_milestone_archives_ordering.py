@@ -57,6 +57,8 @@ def test_milestone_archive_snapshots_exist_and_are_referenced() -> None:
         _ROOT / ".planning" / "milestones" / "v1.24-REQUIREMENTS.md",
         _ROOT / ".planning" / "milestones" / "v1.25-ROADMAP.md",
         _ROOT / ".planning" / "milestones" / "v1.25-REQUIREMENTS.md",
+        _ROOT / ".planning" / "milestones" / "v1.26-ROADMAP.md",
+        _ROOT / ".planning" / "milestones" / "v1.26-REQUIREMENTS.md",
     )
 
     for path in archive_paths:
@@ -95,6 +97,8 @@ def test_milestone_archive_snapshots_exist_and_are_referenced() -> None:
         "v1.24-REQUIREMENTS.md",
         "v1.25-ROADMAP.md",
         "v1.25-REQUIREMENTS.md",
+        "v1.26-ROADMAP.md",
+        "v1.26-REQUIREMENTS.md",
     ):
         assert needle in roadmap_text
         assert needle in requirements_text or needle in project_text or needle in milestones_text

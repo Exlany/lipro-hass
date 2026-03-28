@@ -392,6 +392,30 @@ phases:
   - 93-03-SUMMARY.md
   - 93-VERIFICATION.md
   - 93-VALIDATION.md
+  94-typed-payload-contraction-and-domain-bag-narrowing:
+  - 94-01-SUMMARY.md
+  - 94-02-SUMMARY.md
+  - 94-03-SUMMARY.md
+  - 94-VERIFICATION.md
+  - 94-VALIDATION.md
+  95-schedule-runtime-and-boundary-hotspot-inward-decomposition:
+  - 95-01-SUMMARY.md
+  - 95-02-SUMMARY.md
+  - 95-03-SUMMARY.md
+  - 95-VERIFICATION.md
+  - 95-VALIDATION.md
+  96-redaction-telemetry-and-anonymous-share-sanitizer-burndown:
+  - 96-01-SUMMARY.md
+  - 96-02-SUMMARY.md
+  - 96-03-SUMMARY.md
+  - 96-VERIFICATION.md
+  - 96-VALIDATION.md
+  97-governance-open-source-contract-sync-and-assurance-freeze:
+  - 97-01-SUMMARY.md
+  - 97-02-SUMMARY.md
+  - 97-03-SUMMARY.md
+  - 97-VERIFICATION.md
+  - 97-VALIDATION.md
 ---
 
 # Promoted Phase Assets

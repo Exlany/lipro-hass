@@ -232,6 +232,6 @@ with pytest.raises(ServiceValidationError):
 
 ## Phase 97 Testing Freeze
 
-- `tests/meta/test_phase97_governance_assurance_freeze_guards.py` 继续冻结 route-governance、developer-architecture、matrix/testing counts 与 next-step closeout truth；`$gsd-next` 的自然落点现在只剩 `$gsd-complete-milestone v1.26`。
+- `tests/meta/test_phase97_governance_assurance_freeze_guards.py` 继续冻结 route-governance、developer-architecture、matrix/testing counts 与 archive-handoff truth；`v1.26` 完成 archive promotion 后，`$gsd-next` 的自然落点必须稳定收口到 `$gsd-new-milestone`，不得回退到已完成的 milestone closeout 命令。
 - `tests/meta/test_governance_bootstrap_smoke.py`、`tests/meta/test_governance_route_handoff_smoke.py` 与 `tests/meta/governance_followup_route_current_milestones.py` 共同保证 current-route prose、machine contract 与 quality proof 不再分叉。
 - Phase 97 verification requires focused governance guards、`tests/meta`、`scripts/check_file_matrix.py --check`、`ruff` 与 `mypy` 一起通过，之后 current route 才允许进入 milestone archive/closeout。

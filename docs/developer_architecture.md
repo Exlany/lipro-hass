@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `Phase 97` governance and assurance freeze (`2026-03-28`)
-> **Current route alignment**: `v1.26 active route / Phase 97 complete / latest archived baseline = v1.25` (`2026-03-28`)
+> **Last aligned through**: `v1.26` archived closeout (`2026-03-28`)
+> **Current route alignment**: `no active milestone route / latest archived baseline = v1.26` (`2026-03-28`)
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
@@ -15,7 +15,7 @@
 
 ## Phase 89 Freeze Note
 
-- Phase 89 closeout treats `V1_23_TERMINAL_AUDIT.md` as historical input evidence only; archived-only route truth now lives in `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`, `.planning/v1.25-MILESTONE-AUDIT.md`, `.planning/reviews/V1_25_EVIDENCE_INDEX.md`, and focused governance guards.
+- Phase 89 closeout treats `V1_23_TERMINAL_AUDIT.md` as historical input evidence only; archived-only route truth now lives in `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`, `.planning/v1.26-MILESTONE-AUDIT.md`, `.planning/reviews/V1_26_EVIDENCE_INDEX.md`, and focused governance guards.
 - `RESIDUAL_LEDGER.md` active residual families 为空、`KILL_LIST.md` 的 `Phase 85 Routed Delete Gates` 为空，都是显式 closeout verdict，而不是待补登记的空白。
 - `.planning/reviews/PROMOTED_PHASE_ASSETS.md` 是 phase evidence allowlist 的唯一 home；developer-facing guidance 只索引它，不私自提升 execution traces。
 
@@ -26,7 +26,7 @@
 
 ## Phase 97 Governance / Assurance Freeze Note
 
-- 当前 developer guidance 与 `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md` 已共同承认 `v1.26 active route / Phase 97 complete / latest archived baseline = v1.25`；默认下一步已收缩为 `$gsd-complete-milestone v1.26`。
+- 当前 developer guidance 与 `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md` 已共同承认 `no active milestone route / latest archived baseline = v1.26`；默认下一步已收缩为 `$gsd-new-milestone`。
 - `tests/meta/test_phase96_sanitizer_burndown_guards.py` 与 `tests/meta/test_phase97_governance_assurance_freeze_guards.py` 现在共同冻结 sanitizer burn-down、route contract、file/testing counts 与 developer-facing topology note，避免治理与 assurance 再度分叉。
 
 ## 快速导航

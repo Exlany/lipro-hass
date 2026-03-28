@@ -1,55 +1,48 @@
 # Roadmap
 
-- 🚧 **v1.26 Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition** - `Phase 94 -> 97` active on 2026-03-28; current route: `v1.26 active route / Phase 97 complete / latest archived baseline = v1.25`; latest archived evidence index: `.planning/reviews/V1_25_EVIDENCE_INDEX.md`; default next command: `$gsd-complete-milestone v1.26`
-- ✅ **v1.25 Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence** - `Phase 90 -> 93` archived on 2026-03-28; milestone audit: `.planning/v1.25-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_25_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.25-ROADMAP.md` / `.planning/milestones/v1.25-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.25`
+- ✅ **v1.26 Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition** - `Phase 94 -> 97` archived on 2026-03-28; milestone audit: `.planning/v1.26-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_26_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.26-ROADMAP.md` / `.planning/milestones/v1.26-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.26`
+- ✅ **v1.25 Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence** - `Phase 90 -> 93` archived on 2026-03-28; milestone audit: `.planning/v1.25-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_25_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.25-ROADMAP.md` / `.planning/milestones/v1.25-REQUIREMENTS.md`; historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.25`
 - ✅ **v1.24 Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence** - `Phase 89` archived on 2026-03-27; milestone audit: `.planning/v1.24-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_24_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.24-ROADMAP.md` / `.planning/milestones/v1.24-REQUIREMENTS.md`; historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.24`
 
 <!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.26
   name: Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition
-  status: active / closeout-ready (2026-03-28)
+  status: archived / evidence-ready (2026-03-28)
   phase: '97'
   phase_title: Governance, open-source contract sync, and assurance freeze
   phase_dir: 97-governance-open-source-contract-sync-and-assurance-freeze
-  route_mode: v1.26 active route / Phase 97 complete / latest archived baseline = v1.25
-latest_archived:
-  version: v1.25
-  name: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
-  status: archived / evidence-ready (2026-03-28)
-  phase: '93'
-  phase_title: Assurance topicization and quality freeze
-  phase_dir: 93-assurance-topicization-and-quality-freeze
-  audit_path: .planning/v1.25-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_25_EVIDENCE_INDEX.md
+  audit_path: .planning/v1.26-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_26_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.24
-  name: Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
-  evidence_path: .planning/reviews/V1_24_EVIDENCE_INDEX.md
+  version: v1.25
+  name: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
+  evidence_path: .planning/reviews/V1_25_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.26 active route / Phase 97 complete / latest archived baseline = v1.25
-  default_next_command: $gsd-complete-milestone v1.26
-  latest_archived_evidence_pointer: .planning/reviews/V1_25_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.26
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_26_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
-
 ## v1.26: Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition
 
-> `v1.26` 承接 `v1.25` archived baseline，但不再把“已经基本正确”当作停止精修的理由：本轮只处理仍有高回报的 typed seam、complexity hotspot、sanitizer convergence 与 governance freeze 问题，并把它们路由成四个连续 phase，而不是重开第二套架构故事。
+> `v1.26` 承接 `v1.25` archived baseline，但没有把“已经基本正确”当作停止精修的理由：它把 broad typed seam、schedule/runtime hotspot、shared sanitizer burn-down 与 governance freeze 串成一条连续路线，并在 closeout 时把归档真相切回 `no active milestone route / latest archived baseline = v1.26`。
 
-**Milestone Goal:** 把终极审计识别出的高收益 residual 收敛到单一 north-star 主链：先收窄 typed payload / domain bag / diagnostics broad seam，再 inward split schedule/runtime/sanitizer hotspots，最后用 governance/tests/docs freeze 把 active route 与 archived truth 一起锁定。
-**Milestone status:** `active / closeout-ready (2026-03-28)`
+**Milestone Goal:** 把终极审计识别出的高收益 residual 收敛到单一 north-star 主链：先收窄 typed payload / domain bag / diagnostics broad seam，再 inward split schedule/runtime/sanitizer hotspots，最后用 governance/tests/docs freeze 把 archived baseline 与下一跳一起锁定。
+**Milestone status:** `archived / evidence-ready (2026-03-28)`
 **Starting baseline:** `.planning/v1.25-MILESTONE-AUDIT.md, .planning/reviews/V1_25_EVIDENCE_INDEX.md, .planning/milestones/v1.25-ROADMAP.md, .planning/milestones/v1.25-REQUIREMENTS.md`
 **Requirements basket:** `TYP-24`, `HOT-41`, `SEC-02`, `ARC-25`, `TST-30`, `QLT-38`
-**Latest archived baseline:** `v1.25`
-**Latest archived pointer:** `.planning/reviews/V1_25_EVIDENCE_INDEX.md`
-**Current route mode:** `v1.26 active route / Phase 97 complete / latest archived baseline = v1.25`
-**Default next command:** `$gsd-complete-milestone v1.26`
+**Latest archived baseline:** `v1.26`
+**Latest archived pointer:** `.planning/reviews/V1_26_EVIDENCE_INDEX.md`
+**Default next command:** `$gsd-new-milestone`
+**Archive assets:** `.planning/v1.26-MILESTONE-AUDIT.md`, `.planning/reviews/V1_26_EVIDENCE_INDEX.md`, `.planning/milestones/v1.26-ROADMAP.md`, `.planning/milestones/v1.26-REQUIREMENTS.md`
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.26`
 
 ### Phase 94: Typed payload contraction and domain-bag narrowing
 **Goal:** 先把最容易继续扩散的 broad mapping / `Any` seam 收口：typed domain bag、diagnostics payload、entity coordinator generic、REST transport / fallback helpers 与 property normalization 应继续回到诚实的 typed contract。
@@ -58,7 +51,7 @@ bootstrap:
 **Success Criteria**:
   1. `custom_components/lipro/domain_data.py`、`custom_components/lipro/control/diagnostics_surface.py`、`custom_components/lipro/diagnostics.py`、`custom_components/lipro/entities/base.py` 与 `custom_components/lipro/core/api/{command_api_service,status_fallback,transport_core}.py` 不再保留无必要的 `dict[str, Any]` / `CoordinatorEntity[Any]` / broad callback seam。
   2. `custom_components/lipro/core/utils/property_normalization.py` 与相关 boundary / runtime call sites 保持 canonical property truth，不为 typing 收紧引入新的 second-story alias。
-  3. 至少一组 focused tests / no-growth guards 锁住这些 touched seams，不让 `Any` 重新回弹。
+  3. focused tests / no-growth guards 锁住这些 touched seams，不让 `Any` 重新回弹。
 **Status**: Complete (2026-03-28)
 **Plans**: 3/3 complete
 **Closeout assets**: `.planning/phases/94-typed-payload-contraction-and-domain-bag-narrowing/{94-01-SUMMARY.md,94-02-SUMMARY.md,94-03-SUMMARY.md,94-VERIFICATION.md,94-VALIDATION.md}`
@@ -88,13 +81,13 @@ bootstrap:
 **Closeout assets**: `.planning/phases/96-redaction-telemetry-and-anonymous-share-sanitizer-burndown/{96-01-SUMMARY.md,96-02-SUMMARY.md,96-03-SUMMARY.md,96-VERIFICATION.md,96-VALIDATION.md}`
 
 ### Phase 97: Governance, open-source contract sync, and assurance freeze
-**Goal:** 完成 v1.26 的 route-governance / docs / tests / baseline freeze，让 active route、archived truth 与 open-source entry contracts 同时稳定可验证。
+**Goal:** 完成 `v1.26` 的 route-governance / docs / tests / baseline freeze，让 archived truth、latest pointer 与 open-source entry contracts 同时稳定可验证。
 **Depends on:** Phase 96
 **Requirements**: [ARC-25, TST-30, QLT-38]
 **Success Criteria**:
-  1. `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`、baseline/review docs、`docs/developer_architecture.md` 与 route-guard tests 共同承认同一条 v1.26 current story。
-  2. assurance hotspots 继续 topicize / localize；no-growth guards 与 verification matrix 对 v1.26 touched scope 讲同一条质量故事。
-  3. focused pytest、`tests/meta`、`check_file_matrix`、`ruff`、`mypy` 与（必要时）full-suite 证明链全部通过。
+  1. `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`、baseline/review docs、`docs/developer_architecture.md` 与 route-guard tests 共同承认同一条 `v1.26` archived-only story。
+  2. assurance hotspots 继续 topicize / localize；no-growth guards 与 verification matrix 对 `v1.26` touched scope 讲同一条质量故事。
+  3. focused pytest、`tests/meta`、`check_file_matrix`、`ruff`、`mypy` 与 full-suite 证明链全部通过。
 **Status**: Complete (2026-03-28)
 **Plans**: 3/3 complete
 **Closeout assets**: `.planning/phases/97-governance-open-source-contract-sync-and-assurance-freeze/{97-01-SUMMARY.md,97-02-SUMMARY.md,97-03-SUMMARY.md,97-VERIFICATION.md,97-VALIDATION.md}`
