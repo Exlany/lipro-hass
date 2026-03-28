@@ -217,11 +217,6 @@ class LiproLightGearSelect(LiproSelect):
         """Convert one int-like gear field value safely."""
         return coerce_int_like(value)
 
-    @staticmethod
-    def _coerce_gear_int(value: object) -> int | None:
-        """Backward-compatible alias for int-like gear coercion."""
-        return coerce_int_like(value)
-
     @classmethod
     def _extract_gear_values(cls, gear: object) -> tuple[int, int] | None:
         """Extract (brightness, temperature_percent) from one gear payload."""

@@ -70,7 +70,7 @@ class DeviceFilter:
         """Check if device passes all filter rules.
 
         Args:
-            device_data: Raw API device data dict
+            device_data: Runtime-ready canonical device row with localized compatibility aliases
 
         Returns:
             True if device should be included, False if filtered out

@@ -76,7 +76,7 @@ class TestLightGearSelectBehavior:
     def test_light_gear_select_coerce_none_value(self) -> None:
         from custom_components.lipro.select import LiproLightGearSelect
 
-        assert LiproLightGearSelect._coerce_gear_int(None) is None
+        assert LiproLightGearSelect._coerce_int_like(None) is None
 
     @pytest.mark.asyncio
     async def test_light_gear_select_extra_state_attributes_include_presets_and_range(

@@ -33,11 +33,6 @@ class CoordinatorCommandService:
         """Return the latest raw command failure trace for diagnostics-only callers."""
         return self.command_runtime.last_command_failure
 
-    @property
-    def last_failure_summary(self) -> CommandFailureSummary | None:
-        """Backward-compatible alias for the normalized failure summary."""
-        return self.last_failure
-
     async def async_send_command(
         self,
         device: LiproDevice,

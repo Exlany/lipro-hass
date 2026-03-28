@@ -222,16 +222,6 @@ class StatusQueryMetrics(TypedDict, total=False):
     apply_errors: list[str] | None
 
 
-# Filter and validation types
-class DeviceFilter(TypedDict, total=False):
-    """Device filtering criteria."""
-
-    device_type: int | None
-    room_id: int | None
-    is_group: bool | None
-    has_valid_iot_id: bool | None
-
-
 # Outlet power types
 class OutletPowerData(TypedDict):
     """Outlet power consumption data."""
@@ -262,7 +252,6 @@ __all__ = [
     "CommandTrace",
     "ConnectStateEvent",
     "DeviceApiData",
-    "DeviceFilter",
     "DeviceKeyNormalizer",
     "DeviceUpdateCallback",
     "GroupReconciliationRequestEvent",
