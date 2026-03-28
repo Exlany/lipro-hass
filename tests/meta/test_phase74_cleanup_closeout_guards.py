@@ -46,5 +46,14 @@ def test_phase74_topicized_thin_shells_use_collection_guard() -> None:
     text = (_ROOT / "tests" / "conftest.py").read_text(encoding="utf-8")
 
     assert "pytest_ignore_collect" in text
-    assert "tests/core/test_share_client.py" in text
-    assert "tests/core/coordinator/runtime/test_command_runtime.py" in text
+    for needle in (
+        "tests/core/test_share_client.py",
+        "tests/core/coordinator/runtime/test_command_runtime.py",
+        "tests/core/coordinator/runtime/test_mqtt_runtime.py",
+        "tests/core/api/test_api_transport_and_schedule.py",
+        "tests/meta/test_dependency_guards.py",
+        "tests/meta/test_public_surface_guards.py",
+        "tests/meta/test_toolchain_truth.py",
+        "tests/services/test_services_diagnostics.py",
+    ):
+        assert needle in text
