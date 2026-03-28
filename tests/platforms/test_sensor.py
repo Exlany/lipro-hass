@@ -26,8 +26,8 @@ class TestLiproOutletPowerSensor:
         assert power_info is not None
         assert power_info["nowPower"] == 150.5
 
-    def test_power_info_available_from_legacy_fallback(self, make_device):
-        """Test legacy fallback still reads power info when primitive is absent."""
+    def test_power_info_ignores_legacy_sidecar_without_formal_primitive(self, make_device):
+        """Test legacy side-car data is ignored when the formal primitive is absent."""
         device = make_device(
             "outlet",
             extra_data={
@@ -39,8 +39,7 @@ class TestLiproOutletPowerSensor:
         )
 
         power_info = device.outlet_power_info
-        assert power_info is not None
-        assert power_info["nowPower"] == 150.5
+        assert power_info is None
 
     def test_power_info_not_available(self, make_device):
         """Test power info is not available."""

@@ -123,10 +123,14 @@ def test_runtime_power_surface_stays_read_only_and_formalized() -> None:
     sensor_text = (_ROOT / "custom_components" / "lipro" / "sensor.py").read_text(
         encoding="utf-8"
     )
+    device_text = (
+        _ROOT / "custom_components" / "lipro" / "core" / "device" / "device.py"
+    ).read_text(encoding="utf-8")
 
     assert "MappingProxyType" in state_reader_text
     assert 'extra_data["power_info"]' not in outlet_power_text
     assert 'extra_data.get("power_info")' not in sensor_text
+    assert 'extra_data.get("power_info")' not in device_text
     assert "outlet_power_info" in diagnostics_text
     assert '"data": rows' not in power_service_text
     assert '"data": rows' not in runtime_text

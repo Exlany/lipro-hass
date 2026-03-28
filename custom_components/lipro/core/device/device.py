@@ -185,13 +185,8 @@ class LiproDevice:
 
     @property
     def outlet_power_info(self) -> OutletPowerInfo | None:
-        """Return the formal outlet-power primitive with legacy fallback."""
-        if self._outlet_power_info is not None:
-            return self._outlet_power_info
-        legacy_power_info = self.extra_data.get("power_info")
-        if isinstance(legacy_power_info, dict):
-            return legacy_power_info
-        return None
+        """Return the formal outlet-power primitive."""
+        return self._outlet_power_info
 
     @outlet_power_info.setter
     def outlet_power_info(self, value: OutletPowerInfo | None) -> None:
