@@ -6,7 +6,7 @@ import asyncio
 from collections.abc import Awaitable, Callable, Iterator
 from datetime import UTC, datetime
 import logging
-from typing import NoReturn, TypeVar
+from typing import TypeVar
 
 from homeassistant.core import ServiceCall
 from homeassistant.exceptions import HomeAssistantError
@@ -210,16 +210,6 @@ def build_developer_feedback_payload(
     )
     payload["reports"] = _project_feedback_reports(reports)
     return payload
-
-
-def raise_optional_capability_passthrough(
-    capability: str,
-    err: LiproApiError,
-    *,
-    raise_optional_error: Callable[[str, LiproApiError], NoReturn],
-) -> NoReturn:
-    """Delegate optional capability failures through the provided mapper."""
-    raise_optional_error(capability, err)
 
 
 def build_sensor_history_result(

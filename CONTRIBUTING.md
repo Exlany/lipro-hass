@@ -137,8 +137,8 @@ uv run mypy
 Notes:
 说明：
 
-- `./scripts/lint` 默认运行本地 static + translation + shell + runtime security smoke；它**不会**默认运行 governance 或 pytest。
-  `./scripts/lint` runs local static + translation + shell + runtime security smoke by default; it does **not** run governance or pytest unless asked.
+- `./scripts/lint` 默认运行本地 static + translation + Markdown docs route + shell + runtime security smoke；它**不会**默认运行 governance 或 pytest。
+  `./scripts/lint` runs local static + translation + Markdown docs route + shell + runtime security smoke by default; it does **not** run governance or pytest unless asked.
 - `./scripts/lint --full` 会在默认检查之上补跑 architecture/file-matrix、governance guards、完整测试覆盖率门禁，以及 total + changed-surface coverage / refactor floor 校验。
   `./scripts/lint --full` extends the default checks with architecture/file-matrix validation, governance guards, the full test coverage gate, plus total + changed-surface coverage and refactor floor validation.
 - To also audit dev dependencies locally (may be noisy), set `PIP_AUDIT_INCLUDE_DEV=1`; the dev audit checks the installed environment so security overrides are honored.
@@ -186,9 +186,9 @@ Notes:
 Use the same command groups as GitHub Actions:
 请与 GitHub Actions 使用同一组命令：
 
-- **lint**: `uv run ruff check .`、`uv run ruff format --check .`、`uv run mypy`、`uv run python scripts/check_translations.py`；translation truth 属于 blocking lint lane，不再只是“改到文案时可选”
+- **lint**: `uv run ruff check .`、`uv run ruff format --check .`、`uv run mypy`、`uv run python scripts/check_translations.py`、`uv run python scripts/check_markdown_links.py`；translation truth 与 docs route truth 都属于 blocking lint lane，不再只是“改到文案时可选”
 - **governance**: `uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、`uv run pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py`
-- **pre-push**: `uv run --extra dev python scripts/check_translations.py`、`uv run --extra dev python scripts/check_architecture_policy.py --check`、`uv run --extra dev python scripts/check_file_matrix.py --check`、`uv run --extra dev pytest -q -x tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_collects_and_redacts_diagnostics tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_handles_no_devices tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_diagnostics_snapshot`、`uv run --extra dev pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py`；pre-push 只保留 focused local mirrors，不再指向旧 diagnostics mega-file
+- **pre-push**: `uv run --extra dev python scripts/check_translations.py`、`uv run --extra dev python scripts/check_markdown_links.py`、`uv run --extra dev python scripts/check_architecture_policy.py --check`、`uv run --extra dev python scripts/check_file_matrix.py --check`、`uv run --extra dev pytest -q -x tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_collects_and_redacts_diagnostics tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_handles_no_devices tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_diagnostics_snapshot`、`uv run --extra dev pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py`；pre-push 只保留 focused local mirrors，不再指向旧 diagnostics mega-file
 - **test**: `uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro --cov-fail-under=95 --cov-report=json --cov-report=xml --cov-report=term-missing`、`uv run python scripts/coverage_diff.py coverage.json --minimum 95 --changed-files .coverage-changed-files --changed-minimum 95`（total coverage 与 changed measured files 都是 blocking gate；只有显式提供 `--baseline` 才额外比较 total diff）、`uv run python scripts/refactor_tools.py --coverage-json coverage.json --minimum-coverage 95`；snapshot coverage 已包含在 `tests/` 主阻塞 lane 中，不再单独重复执行；本地可直接用 `./scripts/lint --full` 自动解析 `.coverage-changed-files`
 - **security**: GitHub Actions 会在每个 PR 上运行 blocking runtime `pip-audit` 门禁；tag release 还会额外运行 tagged release security gate，并要求 tagged `CodeQL` analysis 已完成且 open alerts 为零。dev dependency audit 仅在 `schedule` / `workflow_dispatch` 作为 advisory、non-blocking 运行；GitHub artifact attestation / provenance 仍不是 signing，请不要把 attestation / pip-audit 混写成 artifact signing。
 - **benchmark**: `uv run pytest tests/benchmarks/ -v --benchmark-only --benchmark-json=.benchmarks/benchmark.json`、`uv run python scripts/check_benchmark_baseline.py .benchmarks/benchmark.json --manifest tests/benchmarks/benchmark_baselines.json`；benchmark lane 只在 `schedule` / `workflow_dispatch` 运行，不进入 PR blocking lane；threshold warning 只发维护者信号，failure threshold 才作为该 lane 的 no-regression gate
@@ -240,6 +240,7 @@ async def async_turn_on(self, **kwargs: Any) -> None:
    uv run ruff format --check .
    uv run mypy
    uv run python scripts/check_translations.py
+   uv run python scripts/check_markdown_links.py
    uv run python scripts/check_architecture_policy.py --check
    uv run python scripts/check_file_matrix.py --check
    uv run pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py

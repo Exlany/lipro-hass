@@ -54,6 +54,7 @@ def test_testing_map_counts_and_script_boundary_notes_match_repo_facts() -> None
     assert documented == _count_testing_inventory()
     assert "scripts/check_architecture_policy.py" in testing_text
     assert "scripts/check_file_matrix.py" in testing_text
+    assert "scripts/check_markdown_links.py" in testing_text
     assert "tests/conftest.py" in testing_text
     assert "tests/core/test_init.py" in testing_text
     assert "tests/meta/test_dependency_guards.py" in testing_text

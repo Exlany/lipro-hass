@@ -10,7 +10,7 @@ usage() {
 Usage: ./scripts/lint [--full]
 
 Default mode:
-  Runs local static + translation + shell + runtime security checks.
+  Runs local static + translation + docs-route + shell + runtime security checks.
   It does NOT run governance or pytest.
 
 --full:
@@ -92,7 +92,7 @@ governance_guard_tests=(
 if [ "$full_mode" = "1" ]; then
     echo "Running lint in full mode (static + governance + tests)..."
 else
-    echo "Running lint in default mode (static + security smoke only)..."
+    echo "Running lint in default mode (static + docs-route + security smoke only)..."
     echo "Tip: use ./scripts/lint --full for governance + pytest + total/changed-surface coverage."
 fi
 
@@ -111,6 +111,10 @@ uv run mypy
 echo ""
 echo "Checking translations..."
 uv run python scripts/check_translations.py
+
+echo ""
+echo "Checking markdown docs links..."
+uv run python scripts/check_markdown_links.py
 
 if command -v shellcheck >/dev/null 2>&1; then
     echo ""

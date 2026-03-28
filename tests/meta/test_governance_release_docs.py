@@ -54,6 +54,7 @@ def test_contributor_contract_matches_ci_language() -> None:
     )
     assert {"lint", "governance", "test", "benchmark", "docs/navigation"} <= set(pr_checklist)
     assert "uv run python scripts/check_translations.py" in contributing_bullets["lint"]
+    assert "uv run python scripts/check_markdown_links.py" in contributing_bullets["lint"]
     assert "tests/meta/test_governance*.py" in contributing_bullets["governance"]
     assert "tests/meta/test_toolchain_truth.py" in contributing_bullets["governance"]
     assert "tests/meta/test_version_sync.py" in contributing_bullets["governance"]

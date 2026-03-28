@@ -70,21 +70,6 @@ def _copy_summary(
     return cast(CommandFailureSummary, dict(summary)) if summary else None
 
 
-def _build_command_trace_for_request(
-    *,
-    request: _CommandRequest,
-    redact_identifier: IdentifierRedactor,
-) -> CommandTrace:
-    """Build the canonical trace object for one command request."""
-    return build_command_trace(
-        device=request.device,
-        command=request.command,
-        properties=request.properties,
-        fallback_device_id=request.fallback_device_id,
-        redact_identifier=redact_identifier,
-    )
-
-
 def _command_result_failure_details(
     command_result_state: str | None,
 ) -> tuple[
@@ -101,17 +86,6 @@ def _command_result_failure_details(
         COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED,
         "CommandResultUnconfirmed",
     )
-
-
-def _resolve_command_reauth_reason(
-    err: LiproApiError,
-) -> CommandReauthReason | None:
-    """Map API errors onto the command-runtime reauth vocabulary."""
-    if isinstance(err, LiproRefreshTokenExpiredError):
-        return "auth_expired"
-    if isinstance(err, LiproAuthError):
-        return "auth_error"
-    return None
 
 
 def _build_failure_summary(

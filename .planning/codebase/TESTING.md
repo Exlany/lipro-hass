@@ -3,7 +3,7 @@
 **Analysis Date:** 2026-03-28
 
 > Snapshot: `2026-03-28`
-> Freshness: 基于 `tests/**`、`pyproject.toml`、`.github/workflows/{ci,release}.yml`、`scripts/{lint,check_architecture_policy.py,check_file_matrix.py}` 与 `.planning/baseline/VERIFICATION_MATRIX.md` 的当前截面。
+> Freshness: 基于 `tests/**`、`pyproject.toml`、`.github/workflows/{ci,release}.yml`、`scripts/{lint,check_architecture_policy.py,check_file_matrix.py,check_markdown_links.py}` 与 `.planning/baseline/VERIFICATION_MATRIX.md` 的当前截面。
 > Derived collaboration map: 本文件是受约束的协作图谱 / 派生视图，仅用于导航、审阅与后续实现对齐。
 > Authority: 若与 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md}`、`.planning/baseline/*.md`、`.planning/reviews/*.md` 或 `docs/developer_architecture.md` 冲突，以后者为准；本文件不得反向充当当前治理真源。
 
@@ -20,6 +20,7 @@
 **Run Commands:**
 ```bash
 uv run pytest -q
+uv run python scripts/check_markdown_links.py
 uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro --cov-fail-under=95 --cov-report=json --cov-report=xml --cov-report=term-missing
 ./scripts/lint --full
 ```
@@ -163,7 +164,7 @@ uv run python scripts/refactor_tools.py --coverage-json coverage.json --minimum-
 ## CI and Quality Gates
 
 **CI lanes:**
-- `lint` runs Ruff, formatter check, mypy, translations, and shellcheck from `.github/workflows/ci.yml`.
+- `lint` runs Ruff, formatter check, mypy, translations, Markdown docs-link checks, and shellcheck from `.github/workflows/ci.yml`.
 - `governance` runs `scripts/check_architecture_policy.py`, `scripts/check_file_matrix.py`, and focused `tests/meta` guards.
 - `security` exports runtime requirements and runs blocking runtime `pip-audit`; dev-environment audit is advisory only on scheduled/manual runs.
 - `test` runs the full non-benchmark suite with coverage, changed-surface coverage checks, and `scripts/refactor_tools.py`.
@@ -171,7 +172,7 @@ uv run python scripts/refactor_tools.py --coverage-json coverage.json --minimum-
 - `release` reuses `ci.yml` first, then adds tagged security, CodeQL, smoke install, SBOM, attestation, signing, and signature verification in `.github/workflows/release.yml`.
 
 **Pre-commit / local gates:**
-- `.pre-commit-config.yaml` mirrors the same contract family with local Ruff, mypy, translations, architecture/file-matrix scripts, focused diagnostics tests, and governance guards.
+- `.pre-commit-config.yaml` mirrors the same contract family with local Ruff, mypy, translations, Markdown docs-link checks, architecture/file-matrix scripts, focused diagnostics tests, and governance guards.
 - `scripts/lint` is the closest local umbrella entrypoint; default mode skips pytest/governance, while `--full` mirrors the heavy CI path.
 
 ## Common Patterns

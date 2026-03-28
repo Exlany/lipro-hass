@@ -61,6 +61,10 @@ def test_pre_push_contract_runs_translation_and_governance_truth_early() -> None
         == "uv run --extra dev python scripts/check_translations.py"
     )
     assert (
+        _as_str(hook_by_id["markdown-links"]["entry"])
+        == "uv run --extra dev python scripts/check_markdown_links.py"
+    )
+    assert (
         _as_str(hook_by_id["architecture-policy"]["entry"])
         == "uv run --extra dev python scripts/check_architecture_policy.py --check"
     )
@@ -116,6 +120,18 @@ def test_ci_governance_lane_records_same_focused_truths() -> None:
     assert "governance pytest suite:" in contract_run
     assert "./scripts/lint --full reuses the same focused guard list" in contract_run
 
+
+
+def test_ci_lint_lane_runs_docs_route_checker() -> None:
+    ci = _load_yaml(_CI_WORKFLOW)
+    ci_jobs = _as_mapping(ci["jobs"])
+    lint_job = _as_mapping(ci_jobs["lint"])
+    lint_steps = _as_mapping_list(lint_job["steps"])
+
+    markdown_step = next(
+        step for step in lint_steps if step.get("name") == "Check markdown docs links"
+    )
+    assert _as_str(markdown_step["run"]) == "uv run python scripts/check_markdown_links.py"
 
 
 def test_ci_test_and_benchmark_lanes_keep_one_snapshot_story() -> None:
@@ -224,6 +240,8 @@ def test_contributing_docs_keep_command_manifest_in_sync() -> None:
     docs_text = _CONTRIBUTING.read_text(encoding="utf-8")
 
     assert "**pre-push**:" in docs_text
+    assert "uv run python scripts/check_markdown_links.py" in docs_text
+    assert "uv run --extra dev python scripts/check_markdown_links.py" in docs_text
     assert "uv run --extra dev python scripts/check_file_matrix.py --check" in docs_text
     assert "uv run --extra dev pytest -q -x tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_collects_and_redacts_diagnostics" in docs_text
     assert "uv run --extra dev pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py" in docs_text

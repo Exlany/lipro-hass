@@ -85,22 +85,6 @@ def resolve_ota_query_outcome(
     return build_operation_outcome(kind="success", reason_code="ota_query_complete")
 
 
-async def query_ota_rows(
-    *,
-    iot_request: IotRequest,
-    extract_data_list: ExtractDataList,
-    lipro_api_error: type[Exception],
-    path: str,
-) -> tuple[list[OtaInfoRow], Exception | None]:
-    """Query one OTA endpoint and normalize rows plus terminal error."""
-    try:
-        result = await iot_request(path, {})
-    except lipro_api_error as err:
-        _LOGGER.debug("OTA endpoint %s failed (%s)", path, safe_error_placeholder(err))
-        return [], err
-    return _valid_rows(extract_data_list(result)), None
-
-
 async def query_ota_rows_with_payload(
     *,
     iot_request: IotRequest,

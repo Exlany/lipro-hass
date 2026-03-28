@@ -36,6 +36,14 @@ repos:
         always_run: true
         stages: [pre-push]
 
+      - id: markdown-links
+        name: markdown docs links (uv)
+        entry: uv run --extra dev python scripts/check_markdown_links.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
+
       - id: architecture-policy
         name: architecture policy gate (uv)
         entry: uv run --extra dev python scripts/check_architecture_policy.py --check

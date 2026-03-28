@@ -1,4 +1,4 @@
-"""Shared runtime infrastructure helpers for the Lipro integration.
+"""Shared runtime infrastructure surface for the Lipro integration.
 
 `runtime_infra.py` remains the outward formal home; device-registry listener
 mechanics live in `runtime_infra_device_registry.py` as local support-only helpers.

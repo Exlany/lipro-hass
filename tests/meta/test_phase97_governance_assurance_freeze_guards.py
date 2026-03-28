@@ -58,7 +58,7 @@ def test_phase97_file_and_testing_maps_freeze_new_guard_footprint() -> None:
     testing_text = _read(_TESTING)
     verification_text = _read(_VERIFICATION_MATRIX)
 
-    assert "**Python files total:** 709" in file_matrix_text
+    assert "**Python files total:** 710" in file_matrix_text
     assert "tests/meta/test_phase96_sanitizer_burndown_guards.py" in file_matrix_text
     assert "tests/meta/test_phase97_governance_assurance_freeze_guards.py" in file_matrix_text
     assert "focused no-regrowth guard home for Phase 96 sanitizer burn-down" in file_matrix_text

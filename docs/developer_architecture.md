@@ -9,25 +9,10 @@
 > 当前治理真源请以 `.planning/ROADMAP.md`、`.planning/REQUIREMENTS.md`、`.planning/STATE.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md` 为准。  
 > `.planning/codebase/*.md` 属于 `derived collaboration maps / 协作图谱 / 派生视图`，帮助协作与定位，但不构成新的 authority chain。
 
-## Phase 88 Historical Freeze Note
+## 阅读顺序
 
-- `v1.23` archived baseline promotion remains the historical freeze anchor for governance-quality closeout semantics; `Phase 89` builds on that archived baseline instead of replacing its evidence-chain meaning.
-
-## Phase 89 Freeze Note
-
-- Phase 89 closeout treats `V1_23_TERMINAL_AUDIT.md` as historical input evidence only; archived-only route truth now lives in `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`, `.planning/v1.26-MILESTONE-AUDIT.md`, `.planning/reviews/V1_26_EVIDENCE_INDEX.md`, and focused governance guards.
-- `RESIDUAL_LEDGER.md` active residual families 为空、`KILL_LIST.md` 的 `Phase 85 Routed Delete Gates` 为空，都是显式 closeout verdict，而不是待补登记的空白。
-- `.planning/reviews/PROMOTED_PHASE_ASSETS.md` 是 phase evidence allowlist 的唯一 home；developer-facing guidance 只索引它，不私自提升 execution traces。
-
-## Phase 96 Sanitizer Burn-Down Note
-
-- `Phase 96` 已把 diagnostics/control redaction、runtime telemetry exporter 与 anonymous-share manager/sanitize 的 remaining sanitizer hotspots inward split 成 named helpers，shared redaction truth 继续固定在 `custom_components/lipro/core/utils/redaction.py`。
-- `custom_components/lipro/control/redaction.py`、`custom_components/lipro/core/telemetry/exporter.py` 与 `custom_components/lipro/core/anonymous_share/manager.py` 仍分别停留在既有 formal homes；helper split 只是 inward decomposition，不构成新的 public root。
-
-## Phase 97 Governance / Assurance Freeze Note
-
-- 当前 developer guidance 与 `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md` 已共同承认 `no active milestone route / latest archived baseline = v1.26`；默认下一步已收缩为 `$gsd-new-milestone`。
-- `tests/meta/test_phase96_sanitizer_burndown_guards.py` 与 `tests/meta/test_phase97_governance_assurance_freeze_guards.py` 现在共同冻结 sanitizer burn-down、route contract、file/testing counts 与 developer-facing topology note，避免治理与 assurance 再度分叉。
+- 先看下方的“快速导航”“五大平面”“当前正式主链”，这是 current-topology first hop。
+- historical freeze / typed-boundary / sanitizer / assurance notes 已后移到文末 `Historical Phase Notes Appendix`，用于回溯当前路线如何冻结，不再占据开发入口主线。
 
 ## 快速导航
 
@@ -192,6 +177,7 @@ custom_components/lipro/
 - `uv run python scripts/check_architecture_policy.py --check`
 - `uv run python scripts/check_file_matrix.py --check`
 - `uv run python scripts/check_translations.py`
+- `uv run python scripts/check_markdown_links.py`
 - `uv run pytest -q tests/ --ignore=tests/benchmarks`
 
 ## 协作图谱身份
@@ -213,6 +199,28 @@ custom_components/lipro/
 - `.planning/reviews/RESIDUAL_LEDGER.md`
 - `.planning/reviews/KILL_LIST.md`
 
+
+## Historical Phase Notes Appendix
+
+## Phase 88 Historical Freeze Note
+
+- `v1.23` archived baseline promotion remains the historical freeze anchor for governance-quality closeout semantics; `Phase 89` builds on that archived baseline instead of replacing its evidence-chain meaning.
+
+## Phase 89 Freeze Note
+
+- Phase 89 closeout treats `V1_23_TERMINAL_AUDIT.md` as historical input evidence only; archived-only route truth now lives in `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`, `.planning/v1.26-MILESTONE-AUDIT.md`, `.planning/reviews/V1_26_EVIDENCE_INDEX.md`, and focused governance guards.
+- `RESIDUAL_LEDGER.md` active residual families 为空、`KILL_LIST.md` 的 `Phase 85 Routed Delete Gates` 为空，都是显式 closeout verdict，而不是待补登记的空白。
+- `.planning/reviews/PROMOTED_PHASE_ASSETS.md` 是 phase evidence allowlist 的唯一 home；developer-facing guidance 只索引它，不私自提升 execution traces。
+
+## Phase 96 Sanitizer Burn-Down Note
+
+- `Phase 96` 已把 diagnostics/control redaction、runtime telemetry exporter 与 anonymous-share manager/sanitize 的 remaining sanitizer hotspots inward split 成 named helpers，shared redaction truth 继续固定在 `custom_components/lipro/core/utils/redaction.py`。
+- `custom_components/lipro/control/redaction.py`、`custom_components/lipro/core/telemetry/exporter.py` 与 `custom_components/lipro/core/anonymous_share/manager.py` 仍分别停留在既有 formal homes；helper split 只是 inward decomposition，不构成新的 public root。
+
+## Phase 97 Governance / Assurance Freeze Note
+
+- 当前 developer guidance 与 `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md` 已共同承认 `no active milestone route / latest archived baseline = v1.26`；默认下一步已收缩为 `$gsd-new-milestone`。
+- `tests/meta/test_phase96_sanitizer_burndown_guards.py` 与 `tests/meta/test_phase97_governance_assurance_freeze_guards.py` 现在共同冻结 sanitizer burn-down、route contract、file/testing counts 与 developer-facing topology note，避免治理与 assurance 再度分叉。
 
 ## Phase 90 Freeze Notes
 

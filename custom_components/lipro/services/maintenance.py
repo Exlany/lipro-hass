@@ -19,12 +19,6 @@ class DeviceRefreshServiceLike(Protocol):
         """Refresh the devices owned by one runtime coordinator."""
 
 
-class RefreshCoordinatorLike(Protocol):
-    """Coordinator contract needed by refresh_devices."""
-
-    device_refresh_service: DeviceRefreshServiceLike
-
-
 type RuntimeEntryCoordinator = tuple[object, LiproCoordinator]
 
 

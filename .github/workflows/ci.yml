@@ -66,6 +66,9 @@ jobs:
       - name: Check translations
         run: uv run python scripts/check_translations.py
 
+      - name: Check markdown docs links
+        run: uv run python scripts/check_markdown_links.py
+
   governance:
     name: Governance & Architecture Guards
     runs-on: ubuntu-latest

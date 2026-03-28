@@ -11,11 +11,6 @@ RequestPayload = JsonObject
 OtaRowDedupeKey = tuple[str, str, str, str, str]
 
 
-def _valid_ota_rows(rows: Sequence[object]) -> list[OtaInfoRow]:
-    """Keep OTA rows that are valid mapping objects."""
-    return [cast(OtaInfoRow, row) for row in rows if isinstance(row, dict)]
-
-
 def _build_rich_ota_v2_payload(
     ota_payload: Mapping[str, JsonValue],
     *,
