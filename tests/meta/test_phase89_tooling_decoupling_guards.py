@@ -74,6 +74,7 @@ def test_phase89_root_adapter_builds_service_registry_via_control_surface() -> N
     control_registry_text = _read_text(_CONTROL_SERVICE_REGISTRY)
 
     assert "from .services.registry import" not in root_adapter_text
-    assert "build_default_service_registry" in root_adapter_text
+    assert "build_service_registry as _build_service_registry_impl" in root_adapter_text
+    assert "_build_service_registry_impl(" in root_adapter_text
     assert "def build_default_service_registry" in control_registry_text
     assert "async_setup_services as _async_setup_services_impl" in control_registry_text

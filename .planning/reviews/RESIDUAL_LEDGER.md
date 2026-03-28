@@ -553,6 +553,11 @@ _None currently registered._
 - 无新增 active residual family；Phase 101 收口的是 anonymous-share manager / REST decoder hotspot decomposition、boundary truth cleanup 与 previous-archived governance freeze，而不是新的 residual legalization。
 - `manager_submission.py`、`manager_support.py`、`rest_decoder_support.py` 与 `mqtt_api_service.py` 继续只承担 inward collaborator / boundary helper 身份；若未来仍需继续 slim formal homes，只允许沿既有 formal homes / local support seams inward split，不得反向合法化为第二条故事线。
 
+## Phase 103 Residual Delta
+
+- 新增 active residual 已显式收敛到 roadmap：`service_router_handlers.py` family density、`command_runtime.py` second pass、以及 governance rule datafication 已分别进入 `Phase 104/105`。
+- `Phase 103` 本身未引入新的 orphan residual family；root adapter / test topology / terminology debt 已转为显式已完成项。
+
 ## Phase 102 Residual Delta
 
 - 无新增 active residual family；Phase 102 收口的是 governance portability、verification stratification、docs-first continuity wording 与 latest-archived closeout hardening，而不是新的 residual legalization。

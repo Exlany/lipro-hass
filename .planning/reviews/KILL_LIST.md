@@ -427,6 +427,11 @@ _None currently registered._
 - 本 phase **无新增 active kill target**；`manager_submission.py`、`manager_support.py`、`rest_decoder_support.py` 与 `mqtt_api_service.py` 代表的是 inward decomposition / boundary truth cleanup，不是新的 file-level delete campaign。
 - `custom_components/lipro/core/anonymous_share/manager.py` 与 `custom_components/lipro/core/protocol/boundary/rest_decoder.py` 继续冻结为 formal homes；remaining large formal homes 仍只允许 inward split / typed narrowing，不得被 retroactively 写成 future kill target。
 
+## Phase 103 Status Update
+
+- `custom_components/lipro/__init__.py` 不再承担 lazy-load / entry-auth giant-root 叙事；对应支撑已下沉到 `control/entry_root_support.py`。
+- `tests/conftest.py` 不再继续吸附 topicized collection hooks 与 `_CoordinatorDouble` 细节；delete gate 改为防止这些职责回流到 giant fixture root。
+
 ## Phase 102 Status Update
 
 - 本 phase **无新增 active kill target**；它处理的是 archived-only governance/docs/evidence hardening，不是新的 file-level delete campaign。

@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 719
+**Python files total:** 723
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -26,6 +26,7 @@
 | `custom_components/lipro/control/entry_lifecycle_controller.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/entry_lifecycle_failures.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/entry_lifecycle_support.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/control/entry_root_support.py` | Control | Phase 103 | 保留 | root-entry lazy-load / entry-auth / service-registry adapter support home |
 | `custom_components/lipro/control/entry_root_wiring.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/models.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/redaction.py` | Control | Phase 92 | 保留 | diagnostics-facing redaction adapter on shared redaction contract with inward recursion helpers |
@@ -340,6 +341,7 @@
 | `tests/benchmarks/test_mqtt_benchmark.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/conftest.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/conftest_shared.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/coordinator_double.py` | Assurance | Phase 103 | 保留 | shared coordinator double helper home |
 | `tests/core/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/anonymous_share/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/anonymous_share/support.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -633,6 +635,7 @@
 | `tests/meta/test_phase100_runtime_schedule_support_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 | 保留 | focused predecessor guard home for Phase 100 MQTT/runtime schedule support extraction / governance freeze |
 | `tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 | 保留 | focused predecessor guard home for Phase 101 anonymous-share / REST-boundary hotspot decomposition / governance freeze |
 | `tests/meta/test_phase102_governance_portability_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 | 保留 | focused latest-archived guard home for Phase 102 governance portability / verification stratification / open-source continuity hardening |
+| `tests/meta/test_phase103_root_thinning_guards.py` | Assurance | Phase 103 | 保留 | focused active-route guard home for Phase 103 root thinning / test topology / terminology normalization |
 | `tests/meta/test_phase31_runtime_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase45_hotspot_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase50_rest_typed_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
@@ -727,3 +730,4 @@
 | `tests/snapshots/test_device_facade_snapshot.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/snapshots/test_device_snapshots.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/test_refactor_tools.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/topicized_collection.py` | Assurance | Phase 103 | 保留 | topicized thin-shell collection hook home |

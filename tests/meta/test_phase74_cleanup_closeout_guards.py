@@ -43,9 +43,11 @@ def test_phase74_retired_stubs_fail_fast_honestly() -> None:
 
 
 def test_phase74_topicized_thin_shells_use_collection_guard() -> None:
-    text = (_ROOT / "tests" / "conftest.py").read_text(encoding="utf-8")
+    conftest_text = (_ROOT / "tests" / "conftest.py").read_text(encoding="utf-8")
+    topicized_text = (_ROOT / "tests" / "topicized_collection.py").read_text(encoding="utf-8")
 
-    assert "pytest_ignore_collect" in text
+    assert "pytest_ignore_collect" in conftest_text
+    assert "pytest_collection_modifyitems" in conftest_text
     for needle in (
         "tests/core/test_share_client.py",
         "tests/core/coordinator/runtime/test_command_runtime.py",
@@ -56,4 +58,4 @@ def test_phase74_topicized_thin_shells_use_collection_guard() -> None:
         "tests/meta/test_toolchain_truth.py",
         "tests/services/test_services_diagnostics.py",
     ):
-        assert needle in text
+        assert needle in topicized_text

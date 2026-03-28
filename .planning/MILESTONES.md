@@ -7,7 +7,14 @@
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone: null
+active_milestone:
+  version: v1.29
+  name: Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization
+  status: active / Phase 103 complete / continuation-ready (2026-03-28)
+  phase: '103'
+  phase_title: Root adapter thinning, test topology second pass, and terminology contract normalization
+  phase_dir: 103-root-adapter-thinning-test-topology-second-pass-and-terminology-contract-normalization
+  route_mode: v1.29 active route / Phase 103 complete / latest archived baseline = v1.28
 latest_archived:
   version: v1.28
   name: Governance Portability, Verification Stratification & Open-Source Continuity Hardening
@@ -23,11 +30,33 @@ previous_archived:
   name: Final Carry-Forward Eradication & Route Reactivation
   evidence_path: .planning/reviews/V1_27_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.28
-  default_next_command: $gsd-new-milestone
+  current_route: v1.29 active route / Phase 103 complete / latest archived baseline = v1.28
+  default_next_command: $gsd-discuss-phase 104
   latest_archived_evidence_pointer: .planning/reviews/V1_28_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
+
+## v1.29 Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization (Started: 2026-03-28)
+
+**Phase range:** `103 -> 105`
+**Status:** `active / Phase 103 complete / continuation-ready (2026-03-28)`
+**Current route:** `v1.29 active route / Phase 103 complete / latest archived baseline = v1.28`
+**Latest archived pointer:** latest archived evidence index = `.planning/reviews/V1_28_EVIDENCE_INDEX.md`
+**Latest archived baseline:** `v1.28`
+**Default next command:** `$gsd-discuss-phase 104`
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.28`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.27`
+
+**Why now:**
+- `v1.28` 已把治理 portability 与 archive closeout bundle 冻结为 pull-only baseline，但 production / tests 双侧仍各自残留一个高密度 thin-shell 热点：HA 根入口与 `tests/conftest.py`。
+- `Phase 103` 先只做 root thinning、test topology second pass 与 terminology contract normalization，让 `Phase 104/105` 可以继续沿同一术语与 helper-home 裁决推进，而不是回到 conversation-only 分歧。
+- `v1.28` closeout 资产必须继续保持 latest archived baseline 身份，不能被 active route 重新占用。
+
+**Planned phase story:**
+- `Phase 103`: root adapter thinning, test topology second pass, and terminology contract normalization ✅
+- `Phase 104`: service-router family split and command-runtime second-pass decomposition ⏳
+- `Phase 105`: governance rule datafication and milestone freeze ⏳
+
 ## v1.28 Governance Portability, Verification Stratification & Open-Source Continuity Hardening (Shipped: 2026-03-28; Closeout: 2026-03-28)
 
 **Phase range:** `102 -> 102`

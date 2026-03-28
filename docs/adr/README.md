@@ -1,6 +1,6 @@
 # Lipro ADR Index
 
-> **Last Updated**: 2026-03-12
+> **Last Updated**: 2026-03-28
 > **Status**: Active
 > **Purpose**: 长期保存不会随一次审计或一次重构而失效的架构决策。
 
@@ -27,6 +27,7 @@
 | [ADR-0002](./0002-unified-refresh-primitives.md) | 统一刷新与重同步原语 | Accepted | 固化显式刷新、周期刷新与设备快照对齐方式 |
 | [ADR-0003](./0003-confirmation-first-state-ingress.md) | 外部状态写入先确认再落状态 | Accepted | 固化 MQTT / REST / confirmation / stale filter 的裁决规则 |
 | [ADR-0004](./0004-explicit-lightweight-boundaries.md) | 保持显式、轻量、可审计的边界 | Accepted | 固化当前技术选型与“不引入重型框架”的边界 |
+| [ADR-0005](./0005-entry-surface-terminology-contract.md) | 入口适配器与 support/surface 术语契约 | Accepted | 固化 thin adapter、support、surface、wiring、handlers、facade 的命名边界 |
 
 ## 何时需要新增 ADR
 

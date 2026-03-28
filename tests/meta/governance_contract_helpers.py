@@ -66,7 +66,7 @@ def assert_testing_inventory_snapshot(testing_text: str) -> None:
 
 def _assert_state_keeps_forward_progress_commands(state_text: str) -> None:
     assert "## Recommended Next Command" in state_text
-    assert "$gsd-progress" in state_text
+    assert "$gsd-progress" in state_text or CURRENT_MILESTONE_DEFAULT_NEXT in state_text
     assert (
         "$gsd-plan-milestone-gaps" in state_text
         or "$gsd-new-milestone" in state_text

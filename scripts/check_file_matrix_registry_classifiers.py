@@ -53,6 +53,7 @@ _COMPONENT_EXACT_RULES: tuple[ExactRule, ...] = (
     ("custom_components/lipro/core/telemetry/outcomes.py", ("Assurance", "Phase 7.3", "保留", "telemetry helper home for outcome semantics")),
     ("custom_components/lipro/control/telemetry_surface.py", ("Control", "Phase 7.3", "保留", "-")),
     ("custom_components/lipro/services/diagnostics/helper_support.py", ("Control", "Phase 3", "保留", "diagnostics service mechanics support seam")),
+    ("custom_components/lipro/control/entry_root_support.py", ("Control", "Phase 103", "保留", "root-entry lazy-load / entry-auth / service-registry adapter support home")),
     ("custom_components/lipro/core/device/extras_support.py", ("Domain", "Phase 4", "重构", "DeviceExtras payload / panel parsing support helper home")),
 )
 
@@ -109,6 +110,9 @@ _TEST_EXACT_RULES: tuple[ExactRule, ...] = (
     ("tests/core/test_auth_bootstrap.py", ("Cross-cutting", "Phase 18", "保留", "-")),
     ("tests/conftest.py", ("Assurance", "Phase 6", "保留", "-")),
     ("tests/conftest_shared.py", ("Assurance", "Phase 6", "保留", "-")),
+    ("tests/coordinator_double.py", ("Assurance", "Phase 103", "保留", "shared coordinator double helper home")),
+    ("tests/topicized_collection.py", ("Assurance", "Phase 103", "保留", "topicized thin-shell collection hook home")),
+    ("tests/meta/test_phase103_root_thinning_guards.py", ("Assurance", "Phase 103", "保留", "focused active-route guard home for Phase 103 root thinning / test topology / terminology normalization")),
 )
 
 _TEST_PREFIX_RULES: tuple[PrefixRule, ...] = (

@@ -25,6 +25,7 @@ from .governance_current_truth import (
     CURRENT_MILESTONE_SUMMARY_COUNT,
     CURRENT_PHASE,
     CURRENT_ROUTE,
+    HAS_ACTIVE_MILESTONE,
     LATEST_ARCHIVED_EVIDENCE_PATH,
 )
 from .governance_promoted_assets import _assert_promoted_phase_assets
@@ -79,8 +80,7 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in requirements_text
     assert (
-        "## Phase 102 Governance Portability / Verification Stratification / Open-Source Continuity Hardening"
-        in verification_text
+        "## Phase 103 Root Adapter Thinning / Test Topology Second Pass / Terminology Contract Normalization" in verification_text
     )
     assert (
         "## Phase 101 Anonymous-share Manager / REST Decoder Hotspot Decomposition Freeze"
@@ -97,6 +97,7 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
         "tests/meta/test_phase100_runtime_schedule_support_guards.py",
         "tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py",
         "tests/meta/test_phase102_governance_portability_guards.py",
+        "tests/meta/test_phase103_root_thinning_guards.py",
     ):
         assert guard in file_matrix_text
     assert "route-handoff gsd fast-path smoke guard home" in file_matrix_text
@@ -114,7 +115,11 @@ def test_gsd_fast_path_matches_current_archived_route_story() -> None:
     assert current_phase_progress["plan_count"] == CURRENT_MILESTONE_PLAN_COUNT
     assert current_phase_progress["summary_count"] == CURRENT_MILESTONE_SUMMARY_COUNT
     current_phase = progress.get("current_phase")
-    assert current_phase is None or _as_str(current_phase) == CURRENT_PHASE
+    assert current_phase is None
+    assert _as_bool(progress["has_work_in_progress"]) is False
+    next_phase = _as_mapping(progress["next_phase"])
+    assert _as_str(next_phase["number"]) == CURRENT_MILESTONE_PHASES[1]
+    assert _as_str(next_phase["status"]) == "not_started"
 
     phase_index = _run_gsd_tools("phase-plan-index", CURRENT_PHASE)
     assert _as_str(phase_index["phase"]) == CURRENT_PHASE
@@ -122,10 +127,11 @@ def test_gsd_fast_path_matches_current_archived_route_story() -> None:
 
     state = _run_gsd_tools("state", "json")
     assert _as_str(state["milestone"]) == CURRENT_MILESTONE
-    assert _as_str(state["status"]) == "archived"
+    assert _as_str(state["status"]) == ("active" if HAS_ACTIVE_MILESTONE else "archived")
+    completed_phase_count = 1 if HAS_ACTIVE_MILESTONE else len(CURRENT_MILESTONE_PHASES)
     assert _as_mapping(state["progress"]) == {
         "total_phases": str(len(CURRENT_MILESTONE_PHASES)),
-        "completed_phases": str(len(CURRENT_MILESTONE_PHASES)),
+        "completed_phases": str(completed_phase_count),
         "total_plans": str(CURRENT_MILESTONE_PLAN_COUNT),
         "completed_plans": str(CURRENT_MILESTONE_PLAN_COUNT),
     }

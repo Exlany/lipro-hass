@@ -7,6 +7,7 @@ from pathlib import Path
 from tests.helpers.repo_root import repo_root
 
 from .governance_contract_helpers import assert_testing_inventory_snapshot
+from .governance_current_truth import CURRENT_PHASE, CURRENT_ROUTE
 
 _ROOT = repo_root(Path(__file__))
 _PROJECT = _ROOT / ".planning" / "PROJECT.md"
@@ -43,13 +44,13 @@ def test_phase98_bundle_stays_visible_as_completed_predecessor() -> None:
     phase98_verification = _read(_PHASE98_DIR / "98-VERIFICATION.md")
     phase98_validation = _read(_PHASE98_DIR / "98-VALIDATION.md")
 
-    assert "no active milestone route / latest archived baseline = v1.28" in project_text
+    assert CURRENT_ROUTE in project_text
     assert (
         "### Phase 98: Carry-forward eradication, route reactivation, and closeout proof"
         in roadmap_text
     )
     assert "| RES-15 | Phase 98 | Completed |" in requirements_text
-    assert "Phase 102" in state_text
+    assert f"Phase {CURRENT_PHASE}" in state_text
     assert "`Phase 98`: carry-forward eradication, route reactivation, and closeout proof ✅" in milestones_text
     assert "Phase 98 Route Reactivation / Carry-Forward Closure Note" in dev_arch_text
     assert "# Phase 98 Verification" in phase98_verification

@@ -26,7 +26,7 @@ from custom_components.lipro.services.schedule import (
     async_execute_schedule_operation,
     normalize_schedule_row,
 )
-from tests.conftest import _CoordinatorDouble
+from tests.coordinator_double import _CoordinatorDouble
 
 
 @dataclass

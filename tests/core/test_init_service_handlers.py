@@ -5,7 +5,7 @@ from __future__ import annotations
 from unittest.mock import AsyncMock
 
 from custom_components.lipro.core.device import LiproDevice
-from tests.conftest import _CoordinatorDouble
+from tests.coordinator_double import _CoordinatorDouble
 
 
 class _InitServiceHandlerBase:

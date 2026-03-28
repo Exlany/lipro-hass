@@ -1,4 +1,4 @@
-"""Current-route and archived-baseline follow-up truth guards spanning v1.8-v1.28."""
+"""Current-route and archived-baseline follow-up truth guards spanning v1.8-v1.29."""
 
 from __future__ import annotations
 
@@ -223,7 +223,7 @@ def test_v1_12_to_v1_13_archived_route_truth_uses_promoted_evidence_only() -> No
     )
 
 
-def test_machine_readable_route_contracts_point_to_archived_v1_28_and_previous_v1_27() -> (
+def test_machine_readable_route_contracts_point_to_active_v1_29_and_archived_v1_28() -> (
     None
 ):
     contracts = assert_machine_readable_route_contracts()
@@ -238,8 +238,8 @@ def test_machine_readable_route_contracts_point_to_archived_v1_28_and_previous_v
     state_contract = _as_mapping(contracts["STATE"])
     state_bootstrap = _as_mapping(state_contract["bootstrap"])
 
-    assert requirements_active is None
-    assert milestones_active is None
+    assert requirements_active is not None
+    assert milestones_active is not None
     assert milestones_latest_archived["version"] == "v1.28"
     assert milestones_latest_archived["phase"] == "102"
     assert milestones_previous_archived["version"] == "v1.27"
@@ -273,7 +273,7 @@ def test_historical_route_truth_replaces_legacy_live_state_wording() -> None:
         )
 
 
-def test_current_v1_28_archived_state_and_archive_pointers_align() -> None:
+def test_current_v1_29_active_state_and_archive_pointers_align() -> None:
     _assert_current_route_truth(_PROJECT_TEXT, _ROADMAP_TEXT, _STATE_TEXT)
     _assert_contains_all(
         _PROJECT_TEXT,
@@ -285,23 +285,24 @@ def test_current_v1_28_archived_state_and_archive_pointers_align() -> None:
     )
     _assert_contains_all(
         _ROADMAP_TEXT,
-        "## v1.28: Governance Portability, Verification Stratification & Open-Source Continuity Hardening",
-        "### Phase 102: Governance portability, verification stratification, and open-source continuity hardening",
-                CURRENT_MILESTONE_DEFAULT_NEXT,
+        "## v1.29: Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization",
+        "### Phase 103: Root adapter thinning, test topology second pass, and terminology contract normalization",
+        CURRENT_MILESTONE_DEFAULT_NEXT,
         ".planning/reviews/V1_28_EVIDENCE_INDEX.md",
-        ".planning/phases/102-governance-portability-verification-stratification-and-open-source-continuity-hardening/{102-01-SUMMARY.md,102-02-SUMMARY.md,102-03-SUMMARY.md,102-VERIFICATION.md,102-VALIDATION.md}",
+        ".planning/phases/103-root-adapter-thinning-test-topology-second-pass-and-terminology-contract-normalization/{103-01-SUMMARY.md,103-02-SUMMARY.md,103-03-SUMMARY.md,103-VERIFICATION.md,103-VALIDATION.md}",
     )
     _assert_contains_all(
         _REQUIREMENTS_TEXT,
         CURRENT_MILESTONE_HEADER,
-        "| GOV-68 | Phase 102 | Complete |",
-        "| TST-34 | Phase 102 | Complete |",
-        "| OSS-13 | Phase 102 | Complete |",
-        "| QLT-42 | Phase 102 | Complete |",
-        "- v1.28 routed requirements: 4 total",
-        "- Current mapped: 4",
+        "| ARC-26 | Phase 103 | Complete |",
+        "| TST-35 | Phase 103 | Complete |",
+        "| DOC-09 | Phase 103 | Complete |",
+        "| QLT-43 | Phase 103 | Complete |",
+        "| HOT-44 | Phase 104 | Planned |",
+        "- v1.29 routed requirements: 9 total",
+        "- Current mapped: 9",
         "- Current complete: 4",
-        "- Current pending: 0",
+        "- Current pending: 5",
         LATEST_ARCHIVED_PROJECT_HEADER,
     )
     _assert_contains_all(
@@ -313,4 +314,4 @@ def test_current_v1_28_archived_state_and_archive_pointers_align() -> None:
         LATEST_ARCHIVED_EVIDENCE_PATH,
         ".planning/v1.25-MILESTONE-AUDIT.md",
     )
-    assert CURRENT_MILESTONE_STATUS == "archived / evidence-ready (2026-03-28)"
+    assert CURRENT_MILESTONE_STATUS == "active / Phase 103 complete / continuation-ready (2026-03-28)"

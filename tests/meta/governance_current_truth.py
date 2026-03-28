@@ -25,7 +25,15 @@ _ROUTE_CONTRACT_PATHS = {
 PLANNING_ROUTE_CONTRACT: dict[str, object] = {
     "contract_version": 1,
     "contract_name": "governance-route",
-    "active_milestone": None,
+    "active_milestone": {
+        "version": "v1.29",
+        "name": "Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization",
+        "status": "active / Phase 103 complete / continuation-ready (2026-03-28)",
+        "phase": "103",
+        "phase_title": "Root adapter thinning, test topology second pass, and terminology contract normalization",
+        "phase_dir": "103-root-adapter-thinning-test-topology-second-pass-and-terminology-contract-normalization",
+        "route_mode": "v1.29 active route / Phase 103 complete / latest archived baseline = v1.28",
+    },
     "latest_archived": {
         "version": "v1.28",
         "name": "Governance Portability, Verification Stratification & Open-Source Continuity Hardening",
@@ -43,8 +51,8 @@ PLANNING_ROUTE_CONTRACT: dict[str, object] = {
         "evidence_path": ".planning/reviews/V1_27_EVIDENCE_INDEX.md",
     },
     "bootstrap": {
-        "current_route": "no active milestone route / latest archived baseline = v1.28",
-        "default_next_command": "$gsd-new-milestone",
+        "current_route": "v1.29 active route / Phase 103 complete / latest archived baseline = v1.28",
+        "default_next_command": "$gsd-discuss-phase 104",
         "latest_archived_evidence_pointer": ".planning/reviews/V1_28_EVIDENCE_INDEX.md",
     },
 }
@@ -169,7 +177,7 @@ else:
     CURRENT_PHASE_HEADING = LATEST_ARCHIVED_PHASE_HEADING
     CURRENT_ROUTE_MODE = CURRENT_ROUTE
 
-CURRENT_MILESTONE_PHASES = (CURRENT_PHASE,)
+CURRENT_MILESTONE_PHASES = ("103", "104", "105")
 CURRENT_MILESTONE_PLAN_COUNT = 3
 CURRENT_MILESTONE_SUMMARY_COUNT = 3
 CURRENT_ROUTE_FOCUSED_GUARDS = (
@@ -187,12 +195,13 @@ CURRENT_ROUTE_FOCUSED_GUARDS = (
     "tests/meta/test_phase100_runtime_schedule_support_guards.py",
     "tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py",
     "tests/meta/test_phase102_governance_portability_guards.py",
+    "tests/meta/test_phase103_root_thinning_guards.py",
     "tests/meta/test_public_surface_guards.py",
     "tests/meta/test_dependency_guards.py",
 )
-TESTS_PYTHON_FILE_COUNT = 395
-TESTS_RUNNABLE_FILE_COUNT = 315
-TESTS_META_SUITE_COUNT = 60
+TESTS_PYTHON_FILE_COUNT = 398
+TESTS_RUNNABLE_FILE_COUNT = 316
+TESTS_META_SUITE_COUNT = 61
 
 CURRENT_ROUTE_PROSE_FORBIDDEN = (
     "v1.20 active route / Phase 75 complete / latest archived baseline = v1.19",
@@ -229,6 +238,7 @@ CURRENT_ROUTE_PROSE_FORBIDDEN = (
     "no active milestone route / latest archived baseline = v1.25",
     "no active milestone route / latest archived baseline = v1.26",
     "no active milestone route / latest archived baseline = v1.27",
+    "no active milestone route / latest archived baseline = v1.28",
     "v1.24 / Phase 89 complete",
 )
 CURRENT_RUNTIME_ROOT_TEST = "tests/core/coordinator/test_runtime_root.py"

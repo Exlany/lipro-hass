@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `v1.28` archived-only closeout (`2026-03-28`)
-> **Current route alignment**: `no active milestone route / latest archived baseline = v1.28` (`2026-03-28`)
+> **Last aligned through**: `v1.29 / Phase 103` active-route continuation (`2026-03-28`)
+> **Current route alignment**: `v1.29 active route / Phase 103 complete / latest archived baseline = v1.28` (`2026-03-28`)
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
@@ -237,6 +237,13 @@ custom_components/lipro/
 - `Phase 100` 现在作为 `v1.28` latest archived baseline 下拉取的 completed predecessor 保留：它继续冻结 `mqtt_runtime.py` / `schedule_service.py` 的 support extraction 结果，但不再承担 current-route selector。
 - `mqtt_runtime.py` 继续保留 `MqttRuntime` orchestration home，而 transport/notification/background-task support inward split 到 `mqtt_runtime_support.py`；`schedule_service.py` 继续保留 outward helper/public contract，而 candidate batching / timeout / request helpers inward split 到 `schedule_service_support.py`。
 - `tests/meta/test_phase100_runtime_schedule_support_guards.py` 现在承担 predecessor truth 守卫角色；latest-archived closeout proof 已由 `Phase 102` note 接手。
+
+## Phase 103 Root Adapter Thinning / Test Topology Second Pass / Terminology Contract Note
+
+- `Phase 103` 重新确认根层 `__init__.py` 只是 thin HA adapter：lazy runtime loading、entry-auth wrappers 与 service-registry assembly 现在回到 `control/entry_root_support.py`，而不是继续堆在根入口里。
+- `tests/conftest.py` 继续只保留 fixture 入口；topicized collection hooks 与 `_CoordinatorDouble` 已分别进入 `tests/topicized_collection.py` 与 `tests/coordinator_double.py`。
+- ADR-0005 现在正式裁决：`facade` 只用于 formal outward composition root，`handlers` 只用于 service callback family，`support` 只用于 inward local collaborator，`surface` 只用于 stable exposed surface，`wiring` 只用于显式装配。
+- `Phase 104` 才进入 `service_router_handlers.py` / `command_runtime.py` 的 deeper hotspot split；`Phase 103` 不把未做的工作伪装成“已彻底完成”。
 
 ## Phase 102 Governance Portability / Verification Stratification / Open-Source Continuity Hardening Note
 

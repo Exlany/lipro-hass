@@ -7,6 +7,7 @@ from pathlib import Path
 from tests.helpers.repo_root import repo_root
 
 from .governance_contract_helpers import assert_testing_inventory_snapshot
+from .governance_current_truth import CURRENT_MILESTONE_DEFAULT_NEXT, CURRENT_ROUTE
 
 _ROOT = repo_root(Path(__file__))
 _PROJECT = _ROOT / ".planning" / "PROJECT.md"
@@ -60,8 +61,8 @@ def test_phase101_previous_archived_docs_and_closeout_bundle_align() -> None:
         milestones_text,
         verification_text,
     ):
-        assert "no active milestone route / latest archived baseline = v1.28" in text
-        assert "$gsd-new-milestone" in text
+        assert CURRENT_ROUTE in text
+        assert CURRENT_MILESTONE_DEFAULT_NEXT in text
 
     assert "Final Carry-Forward Eradication & Route Reactivation" in audit_text
     assert "v1.27 active route / Phase 101 complete / latest archived baseline = v1.26" in audit_text

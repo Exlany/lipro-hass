@@ -7,6 +7,7 @@ from pathlib import Path
 from tests.helpers.repo_root import repo_root
 
 from .governance_contract_helpers import assert_testing_inventory_snapshot
+from .governance_current_truth import CURRENT_PHASE, CURRENT_ROUTE
 
 _ROOT = repo_root(Path(__file__))
 _PROJECT = _ROOT / ".planning" / "PROJECT.md"
@@ -45,10 +46,10 @@ def test_phase100_bundle_stays_visible_as_completed_predecessor() -> None:
     phase100_verification = _read(_PHASE100_DIR / "100-VERIFICATION.md")
     phase100_validation = _read(_PHASE100_DIR / "100-VALIDATION.md")
 
-    assert "no active milestone route / latest archived baseline = v1.28" in project_text
+    assert CURRENT_ROUTE in project_text
     assert "### Phase 100: MQTT runtime and schedule service support extraction freeze" in roadmap_text
     assert "| HOT-42 | Phase 100 | Completed |" in requirements_text
-    assert "Phase 102" in state_text
+    assert f"Phase {CURRENT_PHASE}" in state_text
     assert "`Phase 100`: MQTT runtime and schedule service support extraction freeze ✅" in milestones_text
     assert "Phase 100 MQTT Runtime / Schedule Service Support Extraction / Predecessor Freeze Note" in dev_arch_text
     assert "# Phase 100 Verification" in phase100_verification

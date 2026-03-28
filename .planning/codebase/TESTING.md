@@ -30,7 +30,7 @@ uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro 
 **Location:**
 - Tests live in a dedicated `tests/` tree, not beside production files.
 - Current topology is broad and intentional: `tests/core`, `tests/services`, `tests/flows`, `tests/platforms`, `tests/entities`, `tests/meta`, `tests/integration`, `tests/snapshots`, `tests/benchmarks`, `tests/harness`, and `tests/fixtures`.
-- Repository counts from current scanning: `395` Python files under `tests`, `315` runnable `test_*.py` files, `60` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
+- Repository counts from current scanning: `398` Python files under `tests`, `316` runnable `test_*.py` files, `61` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
 
 **Naming:**
 - Use `test_*.py` everywhere.
@@ -247,6 +247,12 @@ with pytest.raises(ServiceValidationError):
 - `tests/meta/test_phase98_route_reactivation_guards.py` 继续冻结 predecessor reactivation、developer-architecture predecessor note、matrix/testing counts 与 `Phase 98` bundle / next-step truth；`$gsd-next` 的自然落点必须稳定收口到 `$gsd-new-milestone`。
 - `tests/meta/test_governance_route_handoff_smoke.py`、`tests/meta/governance_followup_route_current_milestones.py`、`tests/meta/test_phase97_governance_assurance_freeze_guards.py` 与 `tests/meta/test_phase102_governance_portability_guards.py` 共同保证 archived-only prose、machine contract、historical archived truth 与 hotspot freeze notes 不再分叉。
 - Phase 98 verification requires focused governance guards、`tests/meta`、`scripts/check_file_matrix.py --check`、`ruff` 与 `mypy` 一起通过，之后 `v1.28` latest archived baseline 才保持 pull-only 稳定。
+
+## Phase 103 Testing Freeze
+
+- `tests/meta/test_phase103_root_thinning_guards.py` now freezes the active `v1.29` route, root-adapter thinning, test-topology second pass, and terminology-contract projection.
+- Phase 103 verification requires both focused root/test-topology tests and governance-route/file-matrix proofs before `Phase 104` can start.
+
 
 ## Phase 102 Testing Freeze
 

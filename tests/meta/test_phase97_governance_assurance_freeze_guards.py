@@ -7,6 +7,7 @@ from pathlib import Path
 from tests.helpers.repo_root import repo_root
 
 from .governance_contract_helpers import assert_testing_inventory_snapshot
+from .governance_current_truth import CURRENT_MILESTONE_STATUS, CURRENT_ROUTE
 
 _ROOT = repo_root(Path(__file__))
 _PROJECT = _ROOT / ".planning" / "PROJECT.md"
@@ -41,10 +42,10 @@ def test_phase97_closeout_bundle_stays_pull_only_after_v1_28_archived_handoff() 
     for text in (project_text, roadmap_text, requirements_text, milestones_text):
         assert "historical closeout route truth = `no active milestone route / latest archived baseline = v1.26`" in text
 
-    assert "no active milestone route / latest archived baseline = v1.28" in state_text
+    assert CURRENT_ROUTE in state_text
     assert ".planning/v1.26-MILESTONE-AUDIT.md" in project_text
     assert ".planning/reviews/V1_26_EVIDENCE_INDEX.md" in project_text
-    assert "archived / evidence-ready (2026-03-28)" in project_text
+    assert CURRENT_MILESTONE_STATUS in project_text
     assert "Phase 97 planning-ready" in phase96_verification
     assert "$gsd-plan-phase 97" in phase96_validation
     assert "# Phase 97 Verification" in phase97_verification
