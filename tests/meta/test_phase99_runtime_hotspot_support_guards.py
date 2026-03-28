@@ -1,0 +1,95 @@
+"""Focused current-route guards for Phase 99 runtime hotspot support extraction and governance freeze."""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+from tests.helpers.repo_root import repo_root
+
+_ROOT = repo_root(Path(__file__))
+_PROJECT = _ROOT / ".planning" / "PROJECT.md"
+_ROADMAP = _ROOT / ".planning" / "ROADMAP.md"
+_REQUIREMENTS = _ROOT / ".planning" / "REQUIREMENTS.md"
+_STATE = _ROOT / ".planning" / "STATE.md"
+_MILESTONES = _ROOT / ".planning" / "MILESTONES.md"
+_VERIFICATION_MATRIX = _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+_FILE_MATRIX = _ROOT / ".planning" / "reviews" / "FILE_MATRIX.md"
+_TESTING = _ROOT / ".planning" / "codebase" / "TESTING.md"
+_CONCERNS = _ROOT / ".planning" / "codebase" / "CONCERNS.md"
+_DEV_ARCH = _ROOT / "docs" / "developer_architecture.md"
+_STATUS_FALLBACK = _ROOT / "custom_components" / "lipro" / "core" / "api" / "status_fallback.py"
+_STATUS_FALLBACK_SUPPORT = _ROOT / "custom_components" / "lipro" / "core" / "api" / "status_fallback_support.py"
+_COMMAND_RUNTIME = _ROOT / "custom_components" / "lipro" / "core" / "coordinator" / "runtime" / "command_runtime.py"
+_COMMAND_RUNTIME_SUPPORT = _ROOT / "custom_components" / "lipro" / "core" / "coordinator" / "runtime" / "command_runtime_support.py"
+_PHASE99_DIR = (
+    _ROOT
+    / ".planning"
+    / "phases"
+    / "99-runtime-hotspot-support-extraction-and-terminal-audit-freeze"
+)
+
+
+def _read(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+
+def test_phase99_current_route_docs_and_closeout_bundle_align() -> None:
+    project_text = _read(_PROJECT)
+    roadmap_text = _read(_ROADMAP)
+    requirements_text = _read(_REQUIREMENTS)
+    state_text = _read(_STATE)
+    milestones_text = _read(_MILESTONES)
+    verification_text = _read(_VERIFICATION_MATRIX)
+    dev_arch_text = _read(_DEV_ARCH)
+    phase99_verification = _read(_PHASE99_DIR / "99-VERIFICATION.md")
+    phase99_validation = _read(_PHASE99_DIR / "99-VALIDATION.md")
+
+    for text in (
+        project_text,
+        roadmap_text,
+        requirements_text,
+        state_text,
+        milestones_text,
+        verification_text,
+    ):
+        assert "v1.27 active route / Phase 99 complete / latest archived baseline = v1.26" in text
+        assert "$gsd-complete-milestone v1.27" in text
+
+    assert "Phase 99 Runtime Hotspot Support Extraction / Terminal Audit Freeze Note" in dev_arch_text
+    assert "# Phase 99 Verification" in phase99_verification
+    assert "# Phase 99 Validation Contract" in phase99_validation
+
+
+def test_phase99_maps_and_support_collaborators_freeze_new_truth() -> None:
+    file_matrix_text = _read(_FILE_MATRIX)
+    testing_text = _read(_TESTING)
+    verification_text = _read(_VERIFICATION_MATRIX)
+    concerns_text = _read(_CONCERNS)
+
+    assert "custom_components/lipro/core/api/status_fallback_support.py" in file_matrix_text
+    assert "custom_components/lipro/core/coordinator/runtime/command_runtime_support.py" in file_matrix_text
+    assert "tests/meta/test_phase99_runtime_hotspot_support_guards.py" in file_matrix_text
+    assert "focused current-route guard home for Phase 99 runtime hotspot support extraction / governance freeze" in file_matrix_text
+    assert "`392` Python files under `tests`" in testing_text
+    assert "`312` runnable `test_*.py` files" in testing_text
+    assert "`57` meta suites" in testing_text
+    assert "tests/meta/test_phase99_runtime_hotspot_support_guards.py" in verification_text
+    assert "## Phase 99 Runtime Hotspot Support Extraction / Terminal Audit Freeze" in verification_text
+    assert "status_fallback.py` 收窄到 128 行 outward home" in concerns_text
+
+
+def test_phase99_support_seams_preserve_formal_homes() -> None:
+    status_fallback_text = _read(_STATUS_FALLBACK)
+    status_support_text = _read(_STATUS_FALLBACK_SUPPORT)
+    command_runtime_text = _read(_COMMAND_RUNTIME)
+    command_support_text = _read(_COMMAND_RUNTIME_SUPPORT)
+
+    assert "from .status_fallback_support import (" in status_fallback_text
+    assert "def _build_query_payload(body_key: str, ids: list[str]) -> QueryPayload:" in status_fallback_text
+    assert "_SMALL_SUBSET_BATCH_QUERY_THRESHOLD = 4" in status_fallback_text
+    assert "async def query_items_by_binary_split_impl(" in status_support_text
+    assert "async def query_with_fallback_impl(" in status_support_text
+    assert "from .command_runtime_support import (" in command_runtime_text
+    assert "class CommandRuntime:" in command_runtime_text
+    assert "class _CommandRequest:" in command_support_text
+    assert "def _build_failure_summary(" in command_support_text

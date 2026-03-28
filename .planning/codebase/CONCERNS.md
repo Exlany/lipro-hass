@@ -18,8 +18,8 @@
 
 **Runtime / protocol hotspot concentration:**
 - Risk Level: `High`
-- Issue: 核心编排仍集中在少数大文件：`custom_components/lipro/core/coordinator/runtime/command_runtime.py` (471 行)、`custom_components/lipro/core/protocol/boundary/rest_decoder.py` (425 行)、`custom_components/lipro/core/api/rest_facade.py` (418 行)、`custom_components/lipro/core/coordinator/runtime/mqtt_runtime.py` (420 行)、`custom_components/lipro/core/anonymous_share/manager.py` (459 行)、`custom_components/lipro/core/api/request_policy.py` (385 行)、`custom_components/lipro/__init__.py` (366 行)、`custom_components/lipro/entities/firmware_update.py` (410 行)。
-- Evidence: `.planning/reviews/FILE_MATRIX.md` 仍将这些文件标为长期正式 home；`.planning/REQUIREMENTS.md`、`.planning/ROADMAP.md` 多次把 `__init__.py`、`rest_facade.py`、`request_policy.py`、`anonymous_share/manager.py` 记为 hotspot。
+- Issue: `Phase 99` 已把 `status_fallback.py` 收窄到 128 行 outward home、把 `command_runtime.py` 收窄到 465 行 orchestration home，但 runtime/protocol 复杂度仍集中在少数正式文件与 support collaborators：`custom_components/lipro/core/coordinator/runtime/command_runtime.py` (465 行)、`custom_components/lipro/core/coordinator/runtime/mqtt_runtime.py` (463 行)、`custom_components/lipro/core/anonymous_share/manager.py` (456 行)、`custom_components/lipro/core/protocol/boundary/rest_decoder.py` (425 行)、`custom_components/lipro/core/api/status_fallback_support.py` (414 行)、`custom_components/lipro/core/api/rest_facade.py` (418 行)、`custom_components/lipro/core/api/schedule_service.py` (413 行)、`custom_components/lipro/entities/firmware_update.py` (418 行)。
+- Evidence: `.planning/reviews/FILE_MATRIX.md` 仍将这些文件标为长期正式 home / local support collaborators；`.planning/REQUIREMENTS.md`、`.planning/ROADMAP.md` 已把 `status_fallback.py` 与 `command_runtime.py` 的 outward-home overload 关闭，但 `mqtt_runtime.py`、`anonymous_share/manager.py` 与 `rest_facade.py` 仍是下一轮主要 hotspot。
 - Impact: 命令、状态、MQTT、入口 wiring、OTA 与匿名分享改动的回归半径大，review/triage 成本高，继续拖慢局部演进。
 - Fix approach: 继续沿既有 formal seams inward decomposition，优先拆纯函数/纯策略层，不新增 public root，不让 helper 重新长成第二故事线。
 

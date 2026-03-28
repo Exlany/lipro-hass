@@ -4,14 +4,11 @@ from __future__ import annotations
 
 from collections import deque
 from collections.abc import Callable
-from dataclasses import dataclass
 import logging
 from typing import TYPE_CHECKING, Literal, cast
 
 from ...api import LiproApiError, LiproAuthError, LiproRefreshTokenExpiredError
 from ...command.result import (
-    COMMAND_FAILURE_REASON_COMMAND_RESULT_FAILED,
-    COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED,
     CommandFailurePayload,
     apply_missing_msg_sn_failure,
     apply_push_failure,
@@ -31,6 +28,14 @@ from ..types import (
     RuntimeMetrics,
 )
 from .command.sender import CommandDispatchApiError
+from .command_runtime_support import (
+    CommandProperties,
+    _build_failure_summary,
+    _coerce_error_type,
+    _command_result_failure_details,
+    _CommandRequest,
+    _copy_summary,
+)
 
 if TYPE_CHECKING:
     from ...device import LiproDevice
@@ -45,76 +50,7 @@ _LOGGER = logging.getLogger(__name__)
 _MAX_TRACES = 100
 
 
-type CommandProperties = list[dict[str, str]] | None
 type IdentifierRedactor = Callable[[str | None], str | None]
-
-
-@dataclass(frozen=True, slots=True)
-class _CommandRequest:
-    """Immutable request context shared across command-runtime stages."""
-
-    device: LiproDevice
-    command: str
-    properties: CommandProperties
-    fallback_device_id: str | None
-
-
-def _coerce_error_type(trace: CommandTrace) -> str | None:
-    value = trace.get("error")
-    return value if isinstance(value, str) and value else None
-
-
-def _copy_summary(
-    summary: CommandFailureSummary | None,
-) -> CommandFailureSummary | None:
-    return cast(CommandFailureSummary, dict(summary)) if summary else None
-
-
-def _command_result_failure_details(
-    command_result_state: str | None,
-) -> tuple[
-    Literal["command_result_failed", "command_result_unconfirmed"],
-    Literal["CommandResultRejected", "CommandResultUnconfirmed"],
-]:
-    """Return canonical failure metadata for one verification outcome."""
-    if command_result_state == "failed":
-        return (
-            COMMAND_FAILURE_REASON_COMMAND_RESULT_FAILED,
-            "CommandResultRejected",
-        )
-    return (
-        COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED,
-        "CommandResultUnconfirmed",
-    )
-
-
-def _build_failure_summary(
-    *,
-    failure: CommandFailurePayload,
-    error_type: str | None,
-    reauth_reason: CommandReauthReason | None = None,
-) -> CommandFailureSummary:
-    summary: CommandFailureSummary = {}
-
-    for key in ("reason", "route", "device_id", "message"):
-        value = failure.get(key)
-        if isinstance(value, str) and value:
-            summary[key] = value
-
-    code = failure.get("code")
-    if isinstance(code, (int, str)) and not isinstance(code, bool):
-        summary["code"] = code
-
-    if error_type is not None:
-        summary["error_type"] = error_type
-
-    if reauth_reason is not None:
-        summary["reauth_reason"] = reauth_reason
-        summary["failure_category"] = "auth"
-    elif error_type is not None or summary:
-        summary["failure_category"] = "protocol"
-
-    return summary
 
 
 class CommandRuntime:

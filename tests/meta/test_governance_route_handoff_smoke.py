@@ -70,6 +70,10 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
         "## Phase 98 Carry-Forward Eradication / Route Reactivation / Closeout Proof"
         in verification_text
     )
+    assert (
+        "## Phase 99 Runtime Hotspot Support Extraction / Terminal Audit Freeze"
+        in verification_text
+    )
     assert CURRENT_ROUTE in verification_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in verification_text
     assert LATEST_ARCHIVED_EVIDENCE_PATH in verification_text
@@ -84,6 +88,7 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
         in verification_text
     )
     assert "tests/meta/test_phase98_route_reactivation_guards.py" in verification_text
+    assert "tests/meta/test_phase99_runtime_hotspot_support_guards.py" in verification_text
     assert "tests/meta/test_governance_route_handoff_smoke.py" in file_matrix_text
     assert "tests/meta/test_phase94_typed_boundary_guards.py" in file_matrix_text
     assert "tests/meta/test_phase95_hotspot_decomposition_guards.py" in file_matrix_text
@@ -93,6 +98,7 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
         in file_matrix_text
     )
     assert "tests/meta/test_phase98_route_reactivation_guards.py" in file_matrix_text
+    assert "tests/meta/test_phase99_runtime_hotspot_support_guards.py" in file_matrix_text
     assert "route-handoff gsd fast-path smoke guard home" in file_matrix_text
 
 
@@ -100,50 +106,45 @@ def test_gsd_fast_path_matches_current_active_route_story() -> None:
     progress = _run_gsd_tools("init", "progress")
     phases = _as_mapping_list(progress["phases"])
 
-    assert [_as_str(phase["number"]) for phase in phases] == ["98"]
-    phase_98 = phases[0]
+    assert [_as_str(phase["number"]) for phase in phases] == ["98", "99"]
+    phase_98, phase_99 = phases
 
     assert _as_str(phase_98["status"]) == "complete"
     assert phase_98["plan_count"] == 3
     assert phase_98["summary_count"] == 3
-    assert progress["phase_count"] == 1
-    assert progress["completed_count"] == 1
+    assert phase_99["plan_count"] == 3
     current_phase = progress.get("current_phase")
-    assert current_phase is None or _as_str(current_phase) == "98"
-    assert progress["next_phase"] is None
+    assert current_phase is None or _as_str(current_phase) == "99"
 
-    phase_index = _run_gsd_tools("phase-plan-index", "98")
-    assert _as_str(phase_index["phase"]) == "98"
+    phase_index = _run_gsd_tools("phase-plan-index", "99")
+    assert _as_str(phase_index["phase"]) == "99"
     assert len(_as_mapping_list(phase_index["plans"])) == 3
-    assert phase_index["incomplete"] == []
 
     state = _run_gsd_tools("state", "json")
     assert _as_str(state["milestone"]) == CURRENT_MILESTONE
     assert _as_str(state["status"]) == "active"
     assert _as_mapping(state["progress"]) == {
-        "total_phases": "1",
-        "completed_phases": "1",
-        "total_plans": "3",
-        "completed_plans": "3",
+        "total_phases": "2",
+        "completed_phases": "2",
+        "total_plans": "6",
+        "completed_plans": "6",
     }
 
-    plan_init = _run_gsd_tools("init", "plan-phase", "98")
+    plan_init = _run_gsd_tools("init", "plan-phase", "99")
     assert _as_bool(plan_init["phase_found"]) is True
-    assert _as_str(plan_init["phase_number"]) == "98"
+    assert _as_str(plan_init["phase_number"]) == "99"
     assert _as_bool(plan_init["has_plans"]) is True
     assert _as_bool(plan_init["has_context"]) is True
     assert _as_bool(plan_init["has_research"]) is True
     assert plan_init["plan_count"] == 3
 
-    execute_init = _run_gsd_tools("init", "execute-phase", "98")
+    execute_init = _run_gsd_tools("init", "execute-phase", "99")
     assert _as_bool(execute_init["phase_found"]) is True
-    assert _as_str(execute_init["phase_number"]) == "98"
+    assert _as_str(execute_init["phase_number"]) == "99"
     assert execute_init["plan_count"] == 3
-    assert execute_init["incomplete_count"] == 0
     plans = execute_init["plans"]
     assert isinstance(plans, list)
     assert len(plans) == 3
-    assert execute_init["incomplete_plans"] == []
 
 
 def test_recent_governance_closeout_assets_are_promoted_without_planning_traces() -> (

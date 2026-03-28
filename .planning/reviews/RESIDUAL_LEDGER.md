@@ -534,4 +534,10 @@ _None currently registered._
 ## Phase 98 Residual Delta
 
 - 无新增 active residual family；Phase 98 已关闭该 carry-forward：`outlet_power` legacy side-car fallback 已完成物理删除并由 focused guards / phase assets 冻结，不再保留为口头 carry-forward。
-- 本 phase 收口的是 carry-forward eradication + route reactivation；`command_runtime.py`、`mqtt_runtime.py`、`anonymous_share/manager.py` 等大型 formal homes 继续作为 inward-split candidate，而不是被误写成新的 delete target。
+- 本 phase 收口的是 carry-forward eradication + route reactivation；它现在作为 `v1.27` 中的 completed predecessor 保留，不再充当 current-route selector。
+
+## Phase 99 Residual Delta
+
+- 无新增 active residual family；Phase 99 收口的是 hotspot support extraction / governance freeze，而不是新的 residual legalization。
+- `status_fallback.py` 与 `command_runtime.py` 继续保留 formal homes；新增的 `status_fallback_support.py` / `command_runtime_support.py` 只是 inward collaborators，不是新的 public roots。
+- remaining large formal homes 若未来继续精修，只允许沿既有 formal homes / local support seams inward split，不得把 support collaborator 反向合法化为第二故事线。

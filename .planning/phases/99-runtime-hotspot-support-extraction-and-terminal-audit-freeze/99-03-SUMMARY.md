@@ -1,0 +1,3 @@
+- `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`、`docs/developer_architecture.md`、maps / ledgers、focused guards 与 GSD parser-facing assets 已整体前推到 `v1.27 active route / Phase 99 complete / latest archived baseline = v1.26`。
+- `Phase 98` 现被固定为 completed predecessor evidence；`Phase 99` 接手 current-route truth、runtime hotspot support extraction freeze 与 `$gsd-complete-milestone v1.27` 的默认 next-step。
+- `tests/meta/test_phase99_runtime_hotspot_support_guards.py` 已成为 focused current-route guard；`tests/meta/test_phase98_route_reactivation_guards.py` 退回 predecessor guard home；GSD fast-path smoke 现应围绕 `Phase 99` 完整解析。

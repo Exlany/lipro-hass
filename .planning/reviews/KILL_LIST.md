@@ -410,4 +410,9 @@ _None currently registered._
 ## Phase 98 Status Update
 
 - 本 phase **无新增 active kill target**；被关闭的是 `outlet_power` legacy side-car fallback carry-forward 叙事，而不是启动新的 file-level delete campaign。
-- `custom_components/lipro/core/coordinator/runtime/command_runtime.py` 的重复 failure-state 清理 helper 已被收口；remaining large formal homes 继续只允许 inward split / typed narrowing，不得被 retroactively 写成 future kill target。
+- `Phase 98` 现在作为 completed predecessor 保留；其 closeout evidence 继续存在，但不再承担 current-route selector 职责。
+
+## Phase 99 Status Update
+
+- 本 phase **无新增 active kill target**；`status_fallback_support.py` 与 `command_runtime_support.py` 代表的是 inward decomposition，不是新的 file-level delete campaign。
+- `custom_components/lipro/core/api/status_fallback.py` 与 `custom_components/lipro/core/coordinator/runtime/command_runtime.py` 继续冻结为 formal homes；remaining large formal homes 仍只允许 inward split / typed narrowing，不得被 retroactively 写成 future kill target。

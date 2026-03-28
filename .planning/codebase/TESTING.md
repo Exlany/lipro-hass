@@ -30,7 +30,7 @@ uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro 
 **Location:**
 - Tests live in a dedicated `tests/` tree, not beside production files.
 - Current topology is broad and intentional: `tests/core`, `tests/services`, `tests/flows`, `tests/platforms`, `tests/entities`, `tests/meta`, `tests/integration`, `tests/snapshots`, `tests/benchmarks`, `tests/harness`, and `tests/fixtures`.
-- Repository counts from current scanning: `391` Python files under `tests`, `311` runnable `test_*.py` files, `56` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
+- Repository counts from current scanning: `392` Python files under `tests`, `312` runnable `test_*.py` files, `57` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
 
 **Naming:**
 - Use `test_*.py` everywhere.
@@ -61,7 +61,8 @@ tests/
 - Phase 90: `tests/meta/test_phase90_hotspot_map_guards.py` 继续作为 focused guard home for five formal homes / four protected thin shells / delete-gate freeze truth。
 - Phase 96: `tests/meta/test_phase96_sanitizer_burndown_guards.py` 继续作为 focused guard home for diagnostics/telemetry/anonymous-share sanitizer burn-down truth。
 - Phase 97: `tests/meta/test_phase97_governance_assurance_freeze_guards.py` 继续作为 focused guard home for v1.26 archived closeout bundle / developer-architecture historical note truth。
-- Phase 98: `tests/meta/test_phase98_route_reactivation_guards.py` 继续作为 focused guard home for current-route reactivation / file-testing-map / developer-architecture closeout truth。
+- Phase 98: `tests/meta/test_phase98_route_reactivation_guards.py` 继续作为 focused guard home for predecessor route-reactivation / carry-forward closure truth。
+- Phase 99: `tests/meta/test_phase99_runtime_hotspot_support_guards.py` 继续作为 focused guard home for runtime hotspot support extraction / governance freeze truth。
 
 ## Test Structure
 

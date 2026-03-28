@@ -11,10 +11,10 @@ active_milestone:
   version: v1.27
   name: Final Carry-Forward Eradication & Route Reactivation
   status: active / closeout-ready (2026-03-28)
-  phase: '98'
-  phase_title: Carry-forward eradication, route reactivation, and closeout proof
-  phase_dir: 98-carry-forward-eradication-route-reactivation-and-closeout-proof
-  route_mode: v1.27 active route / Phase 98 complete / latest archived baseline = v1.26
+  phase: '99'
+  phase_title: Runtime hotspot support extraction and terminal audit freeze
+  phase_dir: 99-runtime-hotspot-support-extraction-and-terminal-audit-freeze
+  route_mode: v1.27 active route / Phase 99 complete / latest archived baseline = v1.26
 latest_archived:
   version: v1.26
   name: Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition
@@ -30,7 +30,7 @@ previous_archived:
   name: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
   evidence_path: .planning/reviews/V1_25_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.27 active route / Phase 98 complete / latest archived baseline = v1.26
+  current_route: v1.27 active route / Phase 99 complete / latest archived baseline = v1.26
   default_next_command: $gsd-complete-milestone v1.27
   latest_archived_evidence_pointer: .planning/reviews/V1_26_EVIDENCE_INDEX.md
 ```
@@ -38,21 +38,23 @@ bootstrap:
 
 ## v1.27 Final Carry-Forward Eradication & Route Reactivation (Started: 2026-03-28)
 
-**Phase range:** `98 -> 98`
+**Phase range:** `98 -> 99`
 **Status:** `active / closeout-ready (2026-03-28)`
-**Current route:** `v1.27 active route / Phase 98 complete / latest archived baseline = v1.26`
+**Current route:** `v1.27 active route / Phase 99 complete / latest archived baseline = v1.26`
 **Latest archived pointer:** latest archived evidence index = `.planning/reviews/V1_26_EVIDENCE_INDEX.md`
 **Latest archived baseline:** `v1.26`
 **Default next command:** `$gsd-complete-milestone v1.27`
 **Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.26`
 
 **Why now:**
-- `outlet_power` legacy side-car fallback 已在 live code path 物理删除，但 archived-only governance truth 尚未显式承认这次 carry-forward eradication。
-- `Phase 98` 要把 route-reactivation、planning assets、focused guards 与质量证明链一起补齐，避免“代码已变、current route 未变”的双重现实。
-- `v1.26` closeout 资产必须继续保持 pull-only latest archived baseline 身份，不能被回写成 current story。
+- `Phase 98` 已把 current-route honesty 恢复回来，但 terminal audit 仍把 `status_fallback.py` / `command_runtime.py` 标为高收益热点；`Phase 99` 负责把这一层 follow-through 真正写回 current story。
+- `Phase 99` 只做 inward support extraction、治理同步与 proof chain freeze，不重开新功能，也不把 `v1.26` archived bundle 回写成 live story。
+- `v1.26` closeout 资产必须继续保持 pull-only latest archived baseline 身份，不能被 current-route 文档重新占用。
 
 **Planned phase story:**
 - `Phase 98`: carry-forward eradication, route reactivation, and closeout proof ✅
+- `Phase 99`: runtime hotspot support extraction and terminal audit freeze ✅
+
 ## v1.25 Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence (Shipped: 2026-03-28; Closeout: 2026-03-28)
 
 **Phase range:** `90 -> 93`

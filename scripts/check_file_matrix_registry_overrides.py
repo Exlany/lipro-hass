@@ -14,7 +14,7 @@ else:
 
 BASE_OVERRIDE_TRUTH_FAMILIES = (
     OverrideTruthFamily(area="Protocol", owner_phase="Phase 14", fate="保留", rows=(
-        ("custom_components/lipro/core/api/status_fallback.py", "status fallback kernel home"),
+        ("custom_components/lipro/core/api/status_fallback.py", "status fallback outward home with support-backed binary-split implementation"),
     )),
 
     OverrideTruthFamily(area="Runtime", owner_phase="Phase 14", fate="保留", rows=(
@@ -188,7 +188,7 @@ BASE_OVERRIDE_TRUTH_FAMILIES = (
     )),
 
     OverrideTruthFamily(area="Runtime", owner_phase="Phase 90", fate="重构", rows=(
-        ("custom_components/lipro/core/coordinator/runtime/command_runtime.py", "formal command-runtime orchestration home with inward trace / failure helpers"),
+        ("custom_components/lipro/core/coordinator/runtime/command_runtime.py", "formal command-runtime orchestration home with inward trace / failure helpers and support-backed request / failure helpers"),
         ("custom_components/lipro/core/coordinator/runtime/mqtt_runtime.py", "formal MQTT-runtime orchestration home with localized transport / notification helpers"),
     )),
 
@@ -430,13 +430,16 @@ PHASE_79_OVERRIDE_TRUTH_FAMILIES = (
         ("tests/meta/test_governance_release_docs.py", "release/docs topic suite home"),
         ("tests/meta/test_governance_release_continuity.py", "release continuity/custody topic suite home"),
     )),
-    OverrideTruthFamily(area="Assurance", owner_phase="Phase 94 / 95 / 96 / 97", fate="保留", rows=(
+    OverrideTruthFamily(area="Assurance", owner_phase="Phase 94 / 95 / 96 / 97 / 98 / 99", fate="保留", rows=(
         ("custom_components/lipro/core/anonymous_share/manager_support.py", "anonymous-share scope-state / pending aggregation helper home"),
+        ("custom_components/lipro/core/api/status_fallback_support.py", "status fallback local recursion/logging support collaborator"),
+        ("custom_components/lipro/core/coordinator/runtime/command_runtime_support.py", "command-runtime local request/failure support collaborator"),
         ("tests/meta/test_phase94_typed_boundary_guards.py", "focused no-regrowth guard home for Phase 94 typed payload contraction"),
         ("tests/meta/test_phase95_hotspot_decomposition_guards.py", "focused no-regrowth guard home for Phase 95 hotspot inward decomposition"),
         ("tests/meta/test_phase96_sanitizer_burndown_guards.py", "focused no-regrowth guard home for Phase 96 sanitizer burn-down"),
         ("tests/meta/test_phase97_governance_assurance_freeze_guards.py", "focused closeout guard home for Phase 97 governance / assurance freeze"),
-        ("tests/meta/test_phase98_route_reactivation_guards.py", "focused current-route guard home for Phase 98 reactivation / carry-forward closure"),
+        ("tests/meta/test_phase98_route_reactivation_guards.py", "focused predecessor guard home for Phase 98 reactivation / carry-forward closure"),
+        ("tests/meta/test_phase99_runtime_hotspot_support_guards.py", "focused current-route guard home for Phase 99 runtime hotspot support extraction / governance freeze"),
     )),
 )
 

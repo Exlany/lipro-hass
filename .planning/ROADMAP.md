@@ -1,6 +1,6 @@
 # Roadmap
 
-- 🚧 **v1.27 Final Carry-Forward Eradication & Route Reactivation** - `Phase 98` active on 2026-03-28; current route: `v1.27 active route / Phase 98 complete / latest archived baseline = v1.26`; latest archived evidence index: `.planning/reviews/V1_26_EVIDENCE_INDEX.md`; default next command: `$gsd-complete-milestone v1.27`
+- 🚧 **v1.27 Final Carry-Forward Eradication & Route Reactivation** - `Phase 99` active on 2026-03-28; current route: `v1.27 active route / Phase 99 complete / latest archived baseline = v1.26`; latest archived evidence index: `.planning/reviews/V1_26_EVIDENCE_INDEX.md`; default next command: `$gsd-complete-milestone v1.27`
 - ✅ **v1.26 Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition** - `Phase 94 -> 97` archived on 2026-03-28; milestone audit: `.planning/v1.26-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_26_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.26-ROADMAP.md` / `.planning/milestones/v1.26-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.26`
 - ✅ **v1.25 Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence** - `Phase 90 -> 93` archived on 2026-03-28; milestone audit: `.planning/v1.25-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_25_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.25-ROADMAP.md` / `.planning/milestones/v1.25-REQUIREMENTS.md`; historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.25`
 - ✅ **v1.24 Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence** - `Phase 89` archived on 2026-03-27; milestone audit: `.planning/v1.24-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_24_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.24-ROADMAP.md` / `.planning/milestones/v1.24-REQUIREMENTS.md`; historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.24`
@@ -13,10 +13,10 @@ active_milestone:
   version: v1.27
   name: Final Carry-Forward Eradication & Route Reactivation
   status: active / closeout-ready (2026-03-28)
-  phase: '98'
-  phase_title: Carry-forward eradication, route reactivation, and closeout proof
-  phase_dir: 98-carry-forward-eradication-route-reactivation-and-closeout-proof
-  route_mode: v1.27 active route / Phase 98 complete / latest archived baseline = v1.26
+  phase: '99'
+  phase_title: Runtime hotspot support extraction and terminal audit freeze
+  phase_dir: 99-runtime-hotspot-support-extraction-and-terminal-audit-freeze
+  route_mode: v1.27 active route / Phase 99 complete / latest archived baseline = v1.26
 latest_archived:
   version: v1.26
   name: Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition
@@ -32,7 +32,7 @@ previous_archived:
   name: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
   evidence_path: .planning/reviews/V1_25_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.27 active route / Phase 98 complete / latest archived baseline = v1.26
+  current_route: v1.27 active route / Phase 99 complete / latest archived baseline = v1.26
   default_next_command: $gsd-complete-milestone v1.27
   latest_archived_evidence_pointer: .planning/reviews/V1_26_EVIDENCE_INDEX.md
 ```
@@ -40,15 +40,15 @@ bootstrap:
 
 ## v1.27: Final Carry-Forward Eradication & Route Reactivation
 
-> `v1.27` 不是重新发明路线，而是把 `v1.26` closeout 后真实发生的 carry-forward 清理与 governance truth reactivation 正式写回 active route：已验证的 `outlet_power` legacy side-car fallback 删除、current-route 文档/测试同步与下一步 closeout proof 终于回到同一条 parser-stable story。
+> `v1.27` 不是重新发明路线，而是在 `Phase 98` 已完成 route reactivation 之后，把 terminal audit 仍点名的 formal-home hotspots 做最后一轮 inward support extraction：current story 现在同时覆盖 carry-forward closure、support seam slimming、governance freeze 与 closeout proof。
 
-**Milestone Goal:** 沿 `v1.26` latest archived baseline 的唯一 north-star 起点，把诚实 carry-forward 物理清零、重建 current-route truth、补齐 `Phase 98` 计划/执行证据，并让 `$gsd-next` 只剩 `$gsd-complete-milestone v1.27` 这一条正式后续路线。
+**Milestone Goal:** 沿 `v1.26` latest archived baseline 的唯一 north-star 起点，把诚实 carry-forward closure、runtime hotspot support extraction、focused guards、phase assets 与最终 proof chain 压回同一条 `closeout-ready` current story。
 **Milestone status:** `active / closeout-ready (2026-03-28)`
 **Starting baseline:** `.planning/v1.26-MILESTONE-AUDIT.md, .planning/reviews/V1_26_EVIDENCE_INDEX.md, .planning/milestones/v1.26-ROADMAP.md, .planning/milestones/v1.26-REQUIREMENTS.md`
-**Requirements basket:** `RES-15`, `GOV-65`, `TST-31`, `QLT-39`
+**Requirements basket:** `RES-15`, `HOT-41`, `GOV-65`, `TST-31`, `QLT-39`
 **Latest archived baseline:** `v1.26`
 **Latest archived pointer:** `.planning/reviews/V1_26_EVIDENCE_INDEX.md`
-**Current route mode:** `v1.27 active route / Phase 98 complete / latest archived baseline = v1.26`
+**Current route mode:** `v1.27 active route / Phase 99 complete / latest archived baseline = v1.26`
 **Default next command:** `$gsd-complete-milestone v1.27`
 
 ### Phase 98: Carry-forward eradication, route reactivation, and closeout proof
@@ -63,6 +63,19 @@ bootstrap:
 **Status**: Complete (2026-03-28)
 **Plans**: 3/3 complete
 **Closeout assets**: `.planning/phases/98-carry-forward-eradication-route-reactivation-and-closeout-proof/{98-01-SUMMARY.md,98-02-SUMMARY.md,98-03-SUMMARY.md,98-VERIFICATION.md,98-VALIDATION.md}`
+
+### Phase 99: Runtime hotspot support extraction and terminal audit freeze
+**Goal:** 把 `status_fallback.py` 与 `command_runtime.py` 这两处 terminal-audit formal-home hotspot 收口为更窄的 local support collaborator，同时把治理、focused guards、phase assets 与 GSD parser truth 一次性冻结到 `v1.27 active route / Phase 99 complete / latest archived baseline = v1.26`。
+**Depends on:** `Phase 98` complete
+**Requirements**: [HOT-41, GOV-65, TST-31, QLT-39]
+**Success Criteria**:
+  1. `custom_components/lipro/core/api/status_fallback.py` 继续保留 outward public home 身份、typed/public anchors 与 monkeypatch-visible constants；binary-split recursion / logging / subset batching mechanics inward split 到 `status_fallback_support.py`。
+  2. `custom_components/lipro/core/coordinator/runtime/command_runtime.py` 继续保留 `CommandRuntime` 作为唯一正式 orchestration home；请求/失败 helper block 外提到 `command_runtime_support.py`，不引入第二条 runtime root。
+  3. `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`、`docs/developer_architecture.md`、`.planning/baseline/VERIFICATION_MATRIX.md`、`.planning/codebase/{TESTING.md,CONCERNS.md}`、`.planning/reviews/{FILE_MATRIX.md,RESIDUAL_LEDGER.md,KILL_LIST.md}` 与 focused meta guards 共同承认 `v1.27 active route / Phase 99 complete / latest archived baseline = v1.26`。
+  4. `Phase 99` 的 context / research / plan / summary / verification / validation bundle 完整存在，`gsd-tools init progress`、`init plan-phase 99`、`init execute-phase 99` 与 `phase-plan-index 99` 可稳定解析；`$gsd-next` 的自然落点重新收缩为 `$gsd-complete-milestone v1.27`。
+**Status**: Complete (2026-03-28)
+**Plans**: 3/3 complete
+**Closeout assets**: `.planning/phases/99-runtime-hotspot-support-extraction-and-terminal-audit-freeze/{99-01-SUMMARY.md,99-02-SUMMARY.md,99-03-SUMMARY.md,99-VERIFICATION.md,99-VALIDATION.md}`
 
 ## v1.26: Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition
 

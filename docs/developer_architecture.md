@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
 > **Last aligned through**: `v1.27` active route / closeout-ready (`2026-03-28`)
-> **Current route alignment**: `v1.27 active route / Phase 98 complete / latest archived baseline = v1.26` (`2026-03-28`)
+> **Current route alignment**: `v1.27 active route / Phase 99 complete / latest archived baseline = v1.26` (`2026-03-28`)
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
@@ -224,8 +224,14 @@ custom_components/lipro/
 
 ## Phase 98 Route Reactivation / Carry-Forward Closure Note
 
-- 当前 developer guidance 与 `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md` 已共同承认 `v1.27 active route / Phase 98 complete / latest archived baseline = v1.26`；默认下一步已收缩为 `$gsd-complete-milestone v1.27`。
-- `tests/meta/test_governance_route_handoff_smoke.py`、`tests/meta/governance_followup_route_current_milestones.py`、`tests/meta/test_phase97_governance_assurance_freeze_guards.py` 与 `tests/meta/test_phase98_route_reactivation_guards.py` 现在共同冻结 route reactivation、historical archived truth、file/testing counts 与 developer-facing topology note，避免治理与 assurance 再度分叉。
+- `Phase 98` 现在是 `v1.27` 里的 completed predecessor：它继续冻结 `outlet_power` carry-forward closure、route reactivation bundle 与 developer-facing topology note，但不再充当 current-route selector。
+- `tests/meta/test_phase98_route_reactivation_guards.py` 现在承担 predecessor truth 守卫角色：保留 `Phase 98` assets / note / no-regrowth truth，同时把 current-route selector 让给 `Phase 99` focused guard。
+
+## Phase 99 Runtime Hotspot Support Extraction / Terminal Audit Freeze Note
+
+- 当前 developer guidance 与 `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md` 已共同承认 `v1.27 active route / Phase 99 complete / latest archived baseline = v1.26`；默认下一步重新收缩为 `$gsd-complete-milestone v1.27`。
+- `status_fallback.py` 继续保留 outward typed/public anchors，binary-split recursion/logging mechanics inward split 到 `status_fallback_support.py`；`CommandRuntime` 继续保留 orchestration home，而请求/失败 helper inward split 到 `command_runtime_support.py`。
+- `tests/meta/test_governance_route_handoff_smoke.py`、`tests/meta/governance_followup_route_current_milestones.py`、`tests/meta/test_phase98_route_reactivation_guards.py` 与 `tests/meta/test_phase99_runtime_hotspot_support_guards.py` 现在共同冻结 predecessor truth、current-route truth、maps/ledgers projection 与 developer-facing topology note。
 
 ## Phase 90 Freeze Notes
 
