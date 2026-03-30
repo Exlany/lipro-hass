@@ -35,6 +35,7 @@ See: `.planning/PROJECT.md`
 - maintainer/delegate continuity 仍是组织层高风险；本里程碑继续只负责技术与治理入口写清楚。
 
 <!-- governance-route-contract:start -->
+
 ```yaml
 contract_version: 1
 contract_name: governance-route
@@ -69,9 +70,10 @@ bootstrap:
   default_next_command: $gsd-complete-milestone v1.29
   latest_archived_evidence_pointer: .planning/reviews/V1_28_EVIDENCE_INDEX.md
 ```
-<!-- governance-route-contract:end -->
 
+<!-- governance-route-contract:end -->
 ## Current Milestone (v1.29)
+
 - **Milestone:** `v1.29 Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization`
 - **Phase range:** `103 -> 105`
 - **Current phase:** `Phase 105`
@@ -167,8 +169,6 @@ bootstrap:
 - **Milestone audit:** `.planning/v1.22-MILESTONE-AUDIT.md`
 - **Evidence index:** `.planning/reviews/V1_22_EVIDENCE_INDEX.md`
 - **Archived snapshots:** `.planning/milestones/v1.22-ROADMAP.md`, `.planning/milestones/v1.22-REQUIREMENTS.md`
-
-
 ## Recommended Next Command
 
 1. `$gsd-complete-milestone v1.29` —— 完成 `v1.29` 的正式里程碑封板，把 `Phase 105` freeze 真源推进到 archived closeout 轨道
@@ -197,8 +197,6 @@ If resuming, read in this order:
 11. `.planning/reviews/V1_28_EVIDENCE_INDEX.md`
 12. `.planning/milestones/v1.28-ROADMAP.md`
 13. `.planning/milestones/v1.28-REQUIREMENTS.md`
-
-
 
 ## Historical Continuity Anchors
 

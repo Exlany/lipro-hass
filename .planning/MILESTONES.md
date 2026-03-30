@@ -2,8 +2,8 @@
 
 > Machine-readable bootstrap truth now lives in the shared `governance-route` contract block below; milestone chronology remains human-readable archive history instead of the parser-visible selector.
 
-
 <!-- governance-route-contract:start -->
+
 ```yaml
 contract_version: 1
 contract_name: governance-route
@@ -38,6 +38,7 @@ bootstrap:
   default_next_command: $gsd-complete-milestone v1.29
   latest_archived_evidence_pointer: .planning/reviews/V1_28_EVIDENCE_INDEX.md
 ```
+
 <!-- governance-route-contract:end -->
 
 ## v1.29 Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization (Started: 2026-03-28)
@@ -276,7 +277,6 @@ bootstrap:
 **Status:** shipped / archived
 
 **Key accomplishments:**
-
 - 重建北极星单一正式主链
 - 收口 protocol / runtime / control / assurance / governance 五平面骨架
 - 建立 v1.0 归档资产与 milestone 级基线
@@ -290,13 +290,11 @@ bootstrap:
 **Status:** archived / evidence-ready
 
 **Key accomplishments:**
-
 - formalized boundary decoder families、architecture policy enforcement、runtime telemetry exporter 与 replay/evidence 主链
 - 完成 final residual retirement、typed contract tightening、governance closeout 与 `v1.1-MILESTONE-AUDIT.md`
 - 固化 `V1_1_EVIDENCE_INDEX.md` 作为 pull-only closeout pointer
 
 **Closeout assets:**
-
 - `.planning/v1.1-MILESTONE-AUDIT.md`
 - `.planning/reviews/V1_1_EVIDENCE_INDEX.md`
 - `.planning/milestones/v1.1-ROADMAP.md`
@@ -311,14 +309,12 @@ bootstrap:
 **Status:** archived snapshots created / handoff-ready；archive-ready verdict revalidated 2026-03-17
 
 **Key accomplishments:**
-
 - 完成 host-neutral boundary/auth/device nucleus 抽取，并以 headless consumer proof 证明 single-chain reuse
 - 完成 remaining boundary family formalization、replay/evidence explicit coverage、shared failure taxonomy 与 observability consumer convergence
 - 完成 governance/docs/release evidence closeout、`v1.2` milestone audit、final repo audit 与 `v1.3` handoff bundle
 - `Phase 24` reopen (`24-04` / `24-05`) 已修复 closeout gate regressions，并用 fresh evidence 重新验证 archive-ready / handoff-ready verdict
 
 **Closeout assets:**
-
 - `.planning/reviews/V1_2_EVIDENCE_INDEX.md`
 - `.planning/v1.2-MILESTONE-AUDIT.md`
 - `.planning/v1.3-HANDOFF.md`
@@ -334,14 +330,12 @@ bootstrap:
 **Status:** archived / evidence-ready
 
 **Key accomplishments:**
-
 - formalized continuity / custody / freeze contract，并补齐 tagged `CodeQL` hard gate、keyless `cosign` signing 与 provenance verification
 - 完成 protocol/runtime hotspot 最后一轮瘦身，把 exception / typed budget 与 child-façade seams 收回正式主链
 - 完成 mega-test 第三波 topicization、derived-truth convergence 与 final external-boundary residual retirement
 - 完成 governance current-story convergence、control-home clarification、dead-shell retirement 与 full hard-gate closeout promotion
 
 **Closeout assets:**
-
 - `.planning/v1.4-MILESTONE-AUDIT.md`
 - `.planning/reviews/V1_4_EVIDENCE_INDEX.md`
 - `.planning/milestones/v1.4-ROADMAP.md`
@@ -358,14 +352,12 @@ bootstrap:
 **Status:** archived / evidence-ready
 
 **Key accomplishments:**
-
 - unified active truth, archive identity, promoted phase assets, and continuity order into one current-story contract
 - introduced `.planning/baseline/GOVERNANCE_REGISTRY.json` as machine-readable governance truth and synchronized release/support/install routing
 - converged control/services runtime reads through `runtime_access` and removed parallel traversal / lookup stories
 - unified schedule service auth/error execution through the formal shared executor and closed touched naming residue
 
 **Closeout assets:**
-
 - `.planning/v1.5-MILESTONE-AUDIT.md`
 - `.planning/reviews/V1_5_EVIDENCE_INDEX.md`
 - `.planning/milestones/v1.5-ROADMAP.md`
@@ -383,14 +375,12 @@ bootstrap:
 **Status:** archived / evidence-ready
 
 **Key accomplishments:**
-
 - formalized maintainer continuity, release artifact install smoke, dual coverage gates, and compatibility preview truth
 - decoupled `control/` ↔ `services/`, typed `RuntimeAccess`, and moved runtime infra back to their formal homes
 - pruned phase-trace authority noise, converged façade-era terminology, and clarified contributor fast-path / bilingual boundary
 - decomposed hotspot files, introduced typed failure semantics, and upgraded benchmark evidence into anti-regression truth
 
 **Closeout assets:**
-
 - `.planning/v1.6-MILESTONE-AUDIT.md`
 - `.planning/reviews/V1_6_EVIDENCE_INDEX.md`
 - `.planning/milestones/v1.6-ROADMAP.md`
@@ -407,13 +397,11 @@ bootstrap:
 **Status:** archived / evidence-ready
 
 **Key accomplishments:**
-
 - public-surface / governance-history / follow-up-route megaguards 退成 thin shell runnable roots，并按 truth family localized
 - `device_refresh` giant suite 已拆成 parsing / filter / snapshot / runtime focused verification topology
 - current-story docs、verification matrix、testing map 与 review ledgers 已冻结 localized verification / no-growth story
 
 **Closeout assets:**
-
 - `.planning/v1.12-MILESTONE-AUDIT.md`
 - `.planning/reviews/V1_12_EVIDENCE_INDEX.md`
 - `.planning/milestones/v1.12-ROADMAP.md`
@@ -431,13 +419,11 @@ bootstrap:
 **Route truth:** prior archive-ready closeout baseline = `.planning/reviews/V1_13_EVIDENCE_INDEX.md`
 
 **Key accomplishments:**
-
 - 完成 tooling truth / file-governance hotspot inward decomposition，并冻结 `FILE_MATRIX / VERIFICATION_MATRIX / TESTING` 的 current story
 - 继续切薄 `anonymous_share` / diagnostics / OTA / `select` 等 large-but-correct formal homes，并补齐 focused maintainability evidence
 - 收口 support-seam naming、public docs fast path 与 discoverability / anti-regression governance truth
 
 **Closeout assets:**
-
 - `.planning/v1.13-MILESTONE-AUDIT.md`
 - `.planning/reviews/V1_13_EVIDENCE_INDEX.md`
 - `.planning/milestones/v1.13-ROADMAP.md`
@@ -456,13 +442,11 @@ bootstrap:
 **Route truth:** prior archive-ready closeout baseline = `.planning/reviews/V1_14_EVIDENCE_INDEX.md`
 
 **Key accomplishments:**
-
 - 完成 governance latest-pointer / release-target fidelity 对齐，并把 `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / docs / runbook` 收束到同一 archive story
 - 把 `RuntimeAccess`、telemetry / schedule / diagnostics、runtime alias / device extras 与 anonymous-share submit contract 全部收口到更诚实的 typed formal seams
 - 清理 HA root adapter folklore，并为 `transport_executor` / `protocol_service` / `protocol facade` 铺设 focused seam regressions，结束 mega-matrix 独占验证
 
 **Closeout assets:**
-
 - `.planning/v1.14-MILESTONE-AUDIT.md`
 - `.planning/reviews/V1_14_EVIDENCE_INDEX.md`
 - `.planning/milestones/v1.14-ROADMAP.md`
@@ -482,13 +466,11 @@ bootstrap:
 **Route truth:** prior archive-ready closeout baseline = `.planning/reviews/V1_15_EVIDENCE_INDEX.md`
 
 **Key accomplishments:**
-
 - 把 telemetry / REST / anonymous-share / control telemetry surface / service-handler fixtures 全部收口到更诚实的 typed formal seams，并让 `uv run mypy` 回到正式绿色
 - 统一 toolchain/governance payload narrowing、typed test doubles、runtime/control wiring callable truth，结束 broad `object` / stale route 双真相
 - 以 `PROJECT / ROADMAP / REQUIREMENTS / STATE / docs/README` 为核心冻结 `v1.15` closeout truth，并在同一轮通过 repo-wide quality gates
 
 **Closeout assets:**
-
 - `.planning/v1.15-MILESTONE-AUDIT.md`
 - `.planning/reviews/V1_15_EVIDENCE_INDEX.md`
 - `.planning/milestones/v1.15-ROADMAP.md`
