@@ -175,6 +175,23 @@ def build_aggregate_report_payload(
     )
 
 
+def build_pending_report_payload(
+    *,
+    aggregate: bool,
+    state: _ScopeState,
+    registry: dict[str, _ScopeState],
+) -> dict[str, object] | None:
+    """Build one pending-report payload when reportable data exists."""
+    if aggregate:
+        pending = aggregate_pending_count(registry)
+        if pending == (0, 0):
+            return None
+        return build_aggregate_report_payload(registry)
+    if state.collector.pending_count == (0, 0):
+        return None
+    return build_scope_report_payload(state)
+
+
 def has_pending_report_data(
     state: _ScopeState,
     *,
@@ -226,3 +243,23 @@ def mark_reported_devices(state: _ScopeState) -> None:
     """Move current devices into the reported-device cache."""
     for device in state.collector.devices.values():
         state.reported_device_keys.add(device.iot_name)
+
+
+def finalize_successful_submit_state(
+    state: _ScopeState,
+    *,
+    pending_count: tuple[int, int],
+    logger: logging.Logger,
+    save_reported_devices: Callable[[], None],
+) -> None:
+    """Finalize one successful submit by updating scope state and cache."""
+    device_count, error_count = pending_count
+    logger.info(
+        "Anonymous share report submitted: %d devices, %d errors",
+        device_count,
+        error_count,
+    )
+    state.last_upload_time = time.time()
+    mark_reported_devices(state)
+    save_reported_devices()
+    state.collector.clear()
