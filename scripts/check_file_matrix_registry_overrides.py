@@ -444,7 +444,7 @@ PHASE_79_OVERRIDE_TRUTH_FAMILIES = (
         ("tests/meta/test_phase99_runtime_hotspot_support_guards.py", "focused predecessor guard home for Phase 99 runtime hotspot support extraction / governance freeze"),
         ("tests/meta/test_phase100_runtime_schedule_support_guards.py", "focused predecessor guard home for Phase 100 MQTT/runtime schedule support extraction / governance freeze"),
         ("tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py", "focused predecessor guard home for Phase 101 anonymous-share / REST-boundary hotspot decomposition / governance freeze"),
-        ("tests/meta/test_phase102_governance_portability_guards.py", "focused latest-archived guard home for Phase 102 governance portability / verification stratification / open-source continuity hardening"),
+        ("tests/meta/test_phase102_governance_portability_guards.py", "focused archived-continuity guard home for Phase 102 governance portability / verification stratification / open-source continuity hardening"),
     )),
     OverrideTruthFamily(area="Protocol", owner_phase="Phase 101", fate="保留", rows=(
         ("custom_components/lipro/core/anonymous_share/manager_submission.py", "anonymous-share submit-flow inward collaborator home"),

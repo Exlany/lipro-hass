@@ -78,6 +78,7 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
     assert "## Phase 103 Root Adapter Thinning / Test Topology Second Pass / Terminology Contract Normalization" in verification_text
     assert "## Phase 104 Service-router Family Split / Command-runtime Second-pass Decomposition" in verification_text
     assert "## Phase 105 Governance Rule Datafication / Milestone Freeze" in verification_text
+    assert "## Phase 107 REST/Auth/Status Hotspot Convergence / Support-surface Slimming" in verification_text
     assert "## Phase 101 Anonymous-share Manager / REST Decoder Hotspot Decomposition Freeze" in verification_text
     assert CURRENT_ROUTE in verification_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in verification_text
@@ -93,6 +94,7 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
         "tests/meta/test_phase103_root_thinning_guards.py",
         "tests/meta/test_phase104_service_router_runtime_split_guards.py",
         "tests/meta/test_phase105_governance_freeze_guards.py",
+        "tests/meta/test_phase107_rest_status_hotspot_guards.py",
     ):
         assert guard in file_matrix_text
     assert "route-handoff gsd fast-path smoke guard home" in file_matrix_text

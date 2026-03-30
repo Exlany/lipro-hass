@@ -32,6 +32,26 @@ class _BinarySplitQueryContext:
     logger: logging.Logger
     build_query_payload: BuildQueryPayload
 
+    def build_payload(self, ids: list[str]) -> QueryPayload:
+        return self.build_query_payload(self.body_key, ids)
+
+    async def query_rows(
+        self,
+        ids: list[str],
+        *,
+        semaphore: asyncio.Semaphore,
+    ) -> MappingRows:
+        async with semaphore:
+            result = await self.iot_request(
+                self.path,
+                self.build_payload(ids),
+            )
+        return self.extract_data_list(result)
+
+    def normalized_error_code(self, err: Exception) -> str:
+        normalized = self.normalize_response_code(getattr(err, 'code', None))
+        return str(normalized) if normalized is not None else 'unknown'
+
 
 @dataclass(slots=True)
 class _BinarySplitAccumulator:
@@ -54,8 +74,7 @@ class _BinarySplitAccumulator:
         err: Exception,
         item_id: str,
     ) -> None:
-        normalized = context.normalize_response_code(getattr(err, 'code', None))
-        single_code = str(normalized) if normalized is not None else 'unknown'
+        single_code = context.normalized_error_code(err)
         context.logger.debug(
             'Failed to query %s %s: %s (code=%s, endpoint=%s)',
             context.item_name,
@@ -72,29 +91,26 @@ class _BinarySplitAccumulator:
 
 def log_batch_query_fallback(
     *,
-    path: str,
-    item_name: str,
+    context: _BinarySplitQueryContext,
     err: Exception,
-    normalize_response_code: NormalizeResponseCode,
     expected_offline_codes: tuple[int | str, ...],
-    logger: logging.Logger,
 ) -> str | int:
-    normalized_code = normalize_response_code(getattr(err, 'code', None))
+    normalized_code = context.normalize_response_code(getattr(err, 'code', None))
     if normalized_code is None:
         normalized_code = 'unknown'
     if normalized_code in expected_offline_codes:
-        logger.debug(
+        context.logger.debug(
             'Batch %s query failed with expected offline code (%s). Falling back to individual queries.',
-            item_name,
+            context.item_name,
             normalized_code,
         )
         return normalized_code
 
-    logger.warning(
+    context.logger.warning(
         'Batch %s query failed (code=%s, endpoint=%s): %s. Falling back to individual queries.',
-        item_name,
+        context.item_name,
         normalized_code,
-        path,
+        context.path,
         err,
     )
     return normalized_code
@@ -108,12 +124,9 @@ async def _query_single_item(
     accumulator: _BinarySplitAccumulator,
 ) -> None:
     try:
-        async with semaphore:
-            result = await context.iot_request(
-                context.path,
-                context.build_query_payload(context.body_key, [item_id]),
-            )
-        accumulator.extend_rows(context.extract_data_list(result))
+        accumulator.extend_rows(
+            await context.query_rows([item_id], semaphore=semaphore)
+        )
     except context.lipro_api_error as err:
         if not context.is_retriable_device_error(err):
             raise
@@ -122,6 +135,26 @@ async def _query_single_item(
             err=err,
             item_id=item_id,
         )
+
+
+async def _query_items_individually(
+    item_ids: list[str],
+    *,
+    context: _BinarySplitQueryContext,
+    semaphore: asyncio.Semaphore,
+    accumulator: _BinarySplitAccumulator,
+) -> None:
+    await asyncio.gather(
+        *(
+            _query_single_item(
+                item_id,
+                context=context,
+                semaphore=semaphore,
+                accumulator=accumulator,
+            )
+            for item_id in item_ids
+        )
+    )
 
 
 async def _query_small_subset(
@@ -133,42 +166,34 @@ async def _query_small_subset(
     small_subset_batch_size: int,
 ) -> None:
     if len(subset) <= small_subset_batch_size:
-        await asyncio.gather(
-            *(
-                _query_single_item(
-                    item_id,
-                    context=context,
-                    semaphore=semaphore,
-                    accumulator=accumulator,
-                )
-                for item_id in subset
-            )
+        await _query_items_individually(
+            subset,
+            context=context,
+            semaphore=semaphore,
+            accumulator=accumulator,
         )
         return
 
     for start in range(0, len(subset), small_subset_batch_size):
         batch = subset[start : start + small_subset_batch_size]
         try:
-            async with semaphore:
-                result = await context.iot_request(
-                    context.path,
-                    context.build_query_payload(context.body_key, batch),
-                )
-            accumulator.extend_rows(context.extract_data_list(result))
+            accumulator.extend_rows(
+                await context.query_rows(batch, semaphore=semaphore)
+            )
         except context.lipro_api_error as err:
             if not context.is_retriable_device_error(err):
                 raise
-            await asyncio.gather(
-                *(
-                    _query_single_item(
-                        item_id,
-                        context=context,
-                        semaphore=semaphore,
-                        accumulator=accumulator,
-                    )
-                    for item_id in batch
-                )
+            await _query_items_individually(
+                batch,
+                context=context,
+                semaphore=semaphore,
+                accumulator=accumulator,
             )
+
+
+def _split_subset_ids(subset: list[str]) -> tuple[list[str], list[str]]:
+    mid = len(subset) // 2
+    return subset[:mid], subset[mid:]
 
 
 async def _query_subset(
@@ -197,21 +222,18 @@ async def _query_subset(
         return
 
     try:
-        async with semaphore:
-            result = await context.iot_request(
-                context.path,
-                context.build_query_payload(context.body_key, subset),
-            )
-        accumulator.extend_rows(context.extract_data_list(result))
+        accumulator.extend_rows(
+            await context.query_rows(subset, semaphore=semaphore)
+        )
         return
     except context.lipro_api_error as err:
         if not context.is_retriable_device_error(err):
             raise
 
-    mid = len(subset) // 2
+    left, right = _split_subset_ids(subset)
     await asyncio.gather(
         _query_subset(
-            subset[:mid],
+            left,
             depth=depth + 1,
             context=context,
             semaphore=semaphore,
@@ -220,8 +242,52 @@ async def _query_subset(
             small_subset_batch_size=small_subset_batch_size,
         ),
         _query_subset(
-            subset[mid:],
+            right,
             depth=depth + 1,
+            context=context,
+            semaphore=semaphore,
+            accumulator=accumulator,
+            small_subset_batch_query_threshold=small_subset_batch_query_threshold,
+            small_subset_batch_size=small_subset_batch_size,
+        ),
+    )
+
+
+async def _query_binary_split_root(
+    ids: list[str],
+    *,
+    context: _BinarySplitQueryContext,
+    semaphore: asyncio.Semaphore,
+    accumulator: _BinarySplitAccumulator,
+    small_subset_batch_query_threshold: int,
+    small_subset_batch_size: int,
+) -> None:
+    if len(ids) <= small_subset_batch_query_threshold:
+        await _query_subset(
+            ids,
+            depth=1,
+            context=context,
+            semaphore=semaphore,
+            accumulator=accumulator,
+            small_subset_batch_query_threshold=small_subset_batch_query_threshold,
+            small_subset_batch_size=small_subset_batch_size,
+        )
+        return
+
+    left, right = _split_subset_ids(ids)
+    await asyncio.gather(
+        _query_subset(
+            left,
+            depth=2,
+            context=context,
+            semaphore=semaphore,
+            accumulator=accumulator,
+            small_subset_batch_query_threshold=small_subset_batch_query_threshold,
+            small_subset_batch_size=small_subset_batch_size,
+        ),
+        _query_subset(
+            right,
+            depth=2,
             context=context,
             semaphore=semaphore,
             accumulator=accumulator,
@@ -266,38 +332,14 @@ async def query_items_by_binary_split_impl(
     accumulator = _BinarySplitAccumulator()
     semaphore = asyncio.Semaphore(min(5, len(ids)))
 
-    if len(ids) <= small_subset_batch_query_threshold:
-        await _query_subset(
-            ids,
-            depth=1,
-            context=context,
-            semaphore=semaphore,
-            accumulator=accumulator,
-            small_subset_batch_query_threshold=small_subset_batch_query_threshold,
-            small_subset_batch_size=small_subset_batch_size,
-        )
-    else:
-        mid = len(ids) // 2
-        await asyncio.gather(
-            _query_subset(
-                ids[:mid],
-                depth=2,
-                context=context,
-                semaphore=semaphore,
-                accumulator=accumulator,
-                small_subset_batch_query_threshold=small_subset_batch_query_threshold,
-                small_subset_batch_size=small_subset_batch_size,
-            ),
-            _query_subset(
-                ids[mid:],
-                depth=2,
-                context=context,
-                semaphore=semaphore,
-                accumulator=accumulator,
-                small_subset_batch_query_threshold=small_subset_batch_query_threshold,
-                small_subset_batch_size=small_subset_batch_size,
-            ),
-        )
+    await _query_binary_split_root(
+        ids,
+        context=context,
+        semaphore=semaphore,
+        accumulator=accumulator,
+        small_subset_batch_query_threshold=small_subset_batch_query_threshold,
+        small_subset_batch_size=small_subset_batch_size,
+    )
 
     return (
         accumulator.rows,
@@ -356,22 +398,31 @@ async def query_with_fallback_impl(
     record_fallback_depth: RecordFallbackDepth | None = None,
 ) -> MappingRows:
     """Query API with binary-split fallback on retriable device errors."""
+    context = _BinarySplitQueryContext(
+        path=path,
+        body_key=body_key,
+        item_name=item_name,
+        iot_request=iot_request,
+        extract_data_list=extract_data_list,
+        is_retriable_device_error=is_retriable_device_error,
+        lipro_api_error=lipro_api_error,
+        normalize_response_code=normalize_response_code,
+        logger=logger,
+        build_query_payload=build_query_payload,
+    )
     try:
-        result = await iot_request(path, build_query_payload(body_key, ids))
+        result_rows = await context.query_rows(ids, semaphore=asyncio.Semaphore(1))
         if record_fallback_depth is not None:
             record_fallback_depth(0)
-        return extract_data_list(result)
+        return result_rows
     except lipro_api_error as err:
         if not is_retriable_device_error(err):
             raise
 
         batch_code = log_batch_query_fallback(
-            path=path,
-            item_name=item_name,
+            context=context,
             err=err,
-            normalize_response_code=normalize_response_code,
             expected_offline_codes=expected_offline_codes,
-            logger=logger,
         )
         (
             all_results,

@@ -25,7 +25,15 @@ _ROUTE_CONTRACT_PATHS = {
 PLANNING_ROUTE_CONTRACT: dict[str, object] = {
     "contract_version": 1,
     "contract_name": "governance-route",
-    "active_milestone": None,
+    "active_milestone": {
+        "version": "v1.30",
+        "name": "Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming",
+        "status": "active / Phase 107 complete / continuation-ready (2026-03-30)",
+        "phase": "107",
+        "phase_title": "REST/auth/status hotspot convergence and support-surface slimming",
+        "phase_dir": "107-rest-auth-status-hotspot-convergence-and-support-surface-slimming",
+        "route_mode": "v1.30 active route / Phase 107 complete / latest archived baseline = v1.29",
+    },
     "latest_archived": {
         "version": "v1.29",
         "name": "Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization",
@@ -43,8 +51,8 @@ PLANNING_ROUTE_CONTRACT: dict[str, object] = {
         "evidence_path": ".planning/reviews/V1_28_EVIDENCE_INDEX.md",
     },
     "bootstrap": {
-        "current_route": "no active milestone route / latest archived baseline = v1.29",
-        "default_next_command": "$gsd-new-milestone",
+        "current_route": "v1.30 active route / Phase 107 complete / latest archived baseline = v1.29",
+        "default_next_command": "$gsd-discuss-phase 108",
         "latest_archived_evidence_pointer": ".planning/reviews/V1_29_EVIDENCE_INDEX.md",
     },
 }
@@ -169,11 +177,11 @@ else:
     CURRENT_PHASE_HEADING = LATEST_ARCHIVED_PHASE_HEADING
     CURRENT_ROUTE_MODE = CURRENT_ROUTE
 
-CURRENT_MILESTONE_PHASES = ("103", "104", "105")
-CURRENT_MILESTONE_COMPLETED_PHASES = ("103", "104", "105")
-CURRENT_MILESTONE_PENDING_PHASES: tuple[str, ...] = ()
+CURRENT_MILESTONE_PHASES = ("107", "108", "109", "110")
+CURRENT_MILESTONE_COMPLETED_PHASES = ("107",)
+CURRENT_MILESTONE_PENDING_PHASES: tuple[str, ...] = ("108", "109", "110")
 CURRENT_MILESTONE_PLAN_COUNT = 3
-CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE = {"103": 3, "104": 3, "105": 4}
+CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE = {"107": 3}
 CURRENT_MILESTONE_SUMMARY_COUNT = CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE[CURRENT_PHASE]
 CURRENT_ROUTE_FOCUSED_GUARDS = (
     "tests/meta/test_governance_bootstrap_smoke.py",
@@ -193,6 +201,7 @@ CURRENT_ROUTE_FOCUSED_GUARDS = (
     "tests/meta/test_phase103_root_thinning_guards.py",
     "tests/meta/test_phase104_service_router_runtime_split_guards.py",
     "tests/meta/test_phase105_governance_freeze_guards.py",
+    "tests/meta/test_phase107_rest_status_hotspot_guards.py",
     "tests/meta/test_public_surface_guards.py",
     "tests/meta/test_dependency_guards.py",
 )

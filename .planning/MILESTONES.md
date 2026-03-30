@@ -7,7 +7,14 @@
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone: null
+active_milestone:
+  version: v1.30
+  name: Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming
+  status: active / Phase 107 complete / continuation-ready (2026-03-30)
+  phase: '107'
+  phase_title: REST/auth/status hotspot convergence and support-surface slimming
+  phase_dir: 107-rest-auth-status-hotspot-convergence-and-support-surface-slimming
+  route_mode: v1.30 active route / Phase 107 complete / latest archived baseline = v1.29
 latest_archived:
   version: v1.29
   name: Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization
@@ -23,11 +30,31 @@ previous_archived:
   name: Governance Portability, Verification Stratification & Open-Source Continuity Hardening
   evidence_path: .planning/reviews/V1_28_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.29
-  default_next_command: $gsd-new-milestone
+  current_route: v1.30 active route / Phase 107 complete / latest archived baseline = v1.29
+  default_next_command: $gsd-discuss-phase 108
   latest_archived_evidence_pointer: .planning/reviews/V1_29_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
+
+## Current Milestone (v1.30)
+
+**Phase range:** `107 -> 110`
+**Phases completed:** 1 phase, 3 plans, 0 tasks
+**Status:** `active / Phase 107 complete / continuation-ready (2026-03-30)`
+**Route truth:** `v1.30 active route / Phase 107 complete / latest archived baseline = v1.29`
+**Latest archived baseline:** `v1.29`
+**Default next command:** `$gsd-discuss-phase 108`
+
+**Current phase story:**
+- `Phase 107`: REST/auth/status hotspot convergence and support-surface slimming ✅
+- `Phase 108`: MQTT transport-runtime de-friendization ⏳ planned
+- `Phase 109`: anonymous-share manager inward decomposition ⏳ planned
+- `Phase 110`: runtime snapshot surface reduction and milestone closeout ⏳ planned
+
+**Key accomplishments:**
+- 把 REST child-façade init path、status fallback recursion 与 request-policy pacing state 的热点继续压回更局部 formal/support homes。
+- 把 `Phase 106` evidence-only 审计点名的 remaining hotspots 转正为 active-route requirements / roadmap / state truth，而不再停留在 archived-only follow-up 口头任务。
+- 让 `v1.29` 继续保持 latest archived baseline 身份，同时把下一步稳定收口到 `$gsd-discuss-phase 108`。
 
 ## v1.29 Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization (Shipped: 2026-03-30; Closeout: 2026-03-30)
 

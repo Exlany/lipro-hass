@@ -1,4 +1,4 @@
-"""Current-route and archived-baseline follow-up truth guards spanning v1.8-v1.29."""
+"""Current-route and archived-baseline follow-up truth guards spanning v1.8-v1.30."""
 
 from __future__ import annotations
 
@@ -73,16 +73,16 @@ _V1_13_TRACES = (
     RequirementTrace("TST-12", "60"),
     RequirementTrace("GOV-44", "60"),
 )
-_V1_29_TRACES = (
-    RequirementTrace("ARC-26", "103"),
-    RequirementTrace("TST-35", "103"),
-    RequirementTrace("DOC-09", "103"),
-    RequirementTrace("QLT-43", "103"),
-    RequirementTrace("HOT-44", "104"),
-    RequirementTrace("HOT-45", "104"),
-    RequirementTrace("TST-36", "104"),
-    RequirementTrace("GOV-69", "105"),
-    RequirementTrace("QLT-44", "105"),
+
+_V1_30_TRACES = (
+    RequirementTrace("HOT-46", "107"),
+    RequirementTrace("ARC-27", "107"),
+    RequirementTrace("TST-37", "107"),
+    RequirementTrace("QLT-45", "107"),
+    RequirementTrace("RUN-10", "108", "Planned"),
+    RequirementTrace("HOT-47", "109", "Planned"),
+    RequirementTrace("RUN-11", "110", "Planned"),
+    RequirementTrace("GOV-70", "110", "Planned"),
 )
 
 _V1_8_COVERAGE = CoverageSnapshot("v1.8 routed requirements", 8)
@@ -91,7 +91,7 @@ _V1_10_COVERAGE = CoverageSnapshot("v1.10 routed requirements", 3, mapped=3, com
 _V1_11_COVERAGE = CoverageSnapshot("v1.11 routed requirements", 4, mapped=4, complete=8, pending=0)
 _V1_12_COVERAGE = CoverageSnapshot("v1.12 routed requirements", 3, mapped=3, complete=9, pending=0)
 _V1_13_COVERAGE = CoverageSnapshot("v1.13 routed requirements", 9, mapped=9, complete=9, pending=0)
-_V1_29_COVERAGE = CoverageSnapshot("v1.29 routed requirements", 9, mapped=9, complete=9, pending=0)
+_V1_30_COVERAGE = CoverageSnapshot("v1.30 routed requirements", 8, mapped=8, complete=4, pending=4)
 
 
 def test_v1_8_followup_route_truth_is_recorded_in_roadmap_and_requirements() -> None:
@@ -223,7 +223,8 @@ def test_v1_12_to_v1_13_archived_route_truth_uses_promoted_evidence_only() -> No
     assert ".planning/phases/60-tooling-truth-decomposition-and-file-governance-maintainability/60-01-PLAN.md" not in _PROJECT_TEXT
 
 
-def test_machine_readable_route_contracts_point_to_archived_v1_29_and_previous_v1_28() -> None:
+
+def test_machine_readable_route_contracts_point_to_active_v1_30_and_latest_archived_v1_29() -> None:
     contracts = assert_machine_readable_route_contracts()
     requirements_contract = _as_mapping(contracts["REQUIREMENTS"])
     requirements_active = _as_optional_mapping(requirements_contract["active_milestone"])
@@ -234,8 +235,14 @@ def test_machine_readable_route_contracts_point_to_archived_v1_29_and_previous_v
     state_contract = _as_mapping(contracts["STATE"])
     state_bootstrap = _as_mapping(state_contract["bootstrap"])
 
-    assert requirements_active is None
-    assert milestones_active is None
+    assert requirements_active is not None
+    assert requirements_active["version"] == "v1.30"
+    assert requirements_active["phase"] == "107"
+    assert requirements_active["route_mode"] == CURRENT_ROUTE_MODE
+    assert milestones_active is not None
+    assert milestones_active["version"] == "v1.30"
+    assert milestones_active["phase"] == "107"
+    assert milestones_active["route_mode"] == CURRENT_ROUTE_MODE
     assert milestones_latest_archived["version"] == "v1.29"
     assert milestones_latest_archived["phase"] == "105"
     assert milestones_previous_archived["version"] == "v1.28"
@@ -266,7 +273,8 @@ def test_historical_route_truth_replaces_legacy_live_state_wording() -> None:
         )
 
 
-def test_current_v1_29_archived_state_and_archive_pointers_align() -> None:
+
+def test_current_v1_30_active_state_and_archive_pointers_align() -> None:
     _assert_current_route_truth(_PROJECT_TEXT, _ROADMAP_TEXT, _STATE_TEXT)
     assert_contains_all(
         _PROJECT_TEXT,
@@ -278,20 +286,20 @@ def test_current_v1_29_archived_state_and_archive_pointers_align() -> None:
     )
     assert_contains_all(
         _ROADMAP_TEXT,
-        "## v1.29: Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization",
-        "### Phase 103: Root adapter thinning, test topology second pass, and terminology contract normalization",
-        "### Phase 104: Service-router family split and command-runtime second-pass decomposition",
-        "### Phase 105: Governance rule datafication and milestone freeze",
+        "## v1.30: Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming",
+        "### Phase 107: REST/auth/status hotspot convergence and support-surface slimming",
+        "### Phase 108: MQTT transport-runtime de-friendization",
+        "### Phase 109: Anonymous-share manager inward decomposition",
+        "### Phase 110: Runtime snapshot surface reduction and milestone closeout",
         CURRENT_MILESTONE_DEFAULT_NEXT,
         ".planning/reviews/V1_29_EVIDENCE_INDEX.md",
-        ".planning/phases/103-root-adapter-thinning-test-topology-second-pass-and-terminology-contract-normalization/{103-01-SUMMARY.md,103-02-SUMMARY.md,103-03-SUMMARY.md,103-VERIFICATION.md,103-VALIDATION.md}",
-        ".planning/phases/105-governance-rule-datafication-and-milestone-freeze/{105-01-SUMMARY.md,105-02-SUMMARY.md,105-03-SUMMARY.md,105-VERIFICATION.md,105-VALIDATION.md}",
+        ".planning/phases/107-rest-auth-status-hotspot-convergence-and-support-surface-slimming/{107-01-SUMMARY.md,107-02-SUMMARY.md,107-03-SUMMARY.md,107-VERIFICATION.md,107-VALIDATION.md}",
     )
     assert_contains_all(
         _REQUIREMENTS_TEXT,
         CURRENT_MILESTONE_HEADER,
-        *requirement_table_markers(*_V1_29_TRACES),
-        *_V1_29_COVERAGE.markers(),
+        *requirement_table_markers(*_V1_30_TRACES),
+        *_V1_30_COVERAGE.markers(),
         LATEST_ARCHIVED_PROJECT_HEADER,
     )
     assert_contains_all(
@@ -301,6 +309,6 @@ def test_current_v1_29_archived_state_and_archive_pointers_align() -> None:
         CURRENT_MILESTONE_DEFAULT_NEXT,
         LATEST_ARCHIVED_AUDIT_PATH,
         LATEST_ARCHIVED_EVIDENCE_PATH,
-        ".planning/v1.25-MILESTONE-AUDIT.md",
     )
-    assert CURRENT_MILESTONE_STATUS == "archived / evidence-ready (2026-03-30)"
+    assert CURRENT_MILESTONE_STATUS == "active / Phase 107 complete / continuation-ready (2026-03-30)"
+

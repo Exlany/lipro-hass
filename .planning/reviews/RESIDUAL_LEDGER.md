@@ -8,10 +8,16 @@ _None currently registered._
 
 > **Phase 88 freeze note:** 这里的 zero-active posture 是显式 closeout verdict，而不是尚未清点完成的空白。若未来出现新 residual，必须以新的 family 重新登记 owner、exit condition 与 evidence。
 
+## Phase 107 Residual Delta
+
+- `Phase 107` 没有创造新的无主 active residual family；REST/auth/status hotspot 的当前变化已正式收口为 `v1.30 active route / Phase 107 complete / latest archived baseline = v1.29` 的完成态。
+- `core/mqtt/transport_runtime.py` / `core/mqtt/transport.py`、`core/anonymous_share/manager.py` 与 `core/coordinator/runtime/device/snapshot.py` 仍是 live follow-up，但现在都已被显式路由到 `Phase 108 -> 110`，属于有 owner 的 continuation，而不是 orphan residual。
+- `v1.29` latest archived baseline、`Phase 105` promoted closeout bundle 与 `Phase 103/104` predecessor bundles 继续保持可审计可见性，不会被当前 route 误清理或误回写。
+
 ## Phase 105 Residual Delta
 
-- `v1.29` archived closeout 后仍保持 zero-active ledger posture；`Phase 105` 的职责已经从 active-route freeze 转为 latest-archived closeout 证据冻结，而不是创造新的 residual family。
-- `tests/meta/governance_followup_route_specs.py`、`scripts/check_file_matrix_registry_shared.py` 与 `scripts/check_file_matrix_registry_classifiers.py` 现在承担共享规则真源；milestone closeout 已完成；后续工作切换为 `$gsd-new-milestone`，不再计作 live technical residual。
+- `v1.29` archived closeout 继续保持 zero-active archived posture；`Phase 105` 现在承担的是 latest-archived closeout visibility，而不是 current-route selector。
+- `tests/meta/governance_followup_route_specs.py`、`scripts/check_file_matrix_registry_shared.py` 与 `scripts/check_file_matrix_registry_classifiers.py` 继续承担共享规则真源；它们是 formal governance truth，不是新的 residual family。
 - `Phase 103` / `Phase 104` predecessor bundles 继续保留可见性，但不会重新升级为 active residual；`v1.28` closeout bundle 继续保持 pull-only previous archived baseline 身份。
 
 ## Phase 85 Audit-Routed Carry-Forward

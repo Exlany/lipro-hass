@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `v1.29 milestone closeout / archived-only route truth` (`2026-03-30`)
-> **Current route alignment**: `no active milestone route / latest archived baseline = v1.29` (`2026-03-30`)
+> **Last aligned through**: `v1.30 / Phase 107 current-route convergence` (`2026-03-30`)
+> **Current route alignment**: `v1.30 active route / Phase 107 complete / latest archived baseline = v1.29` (`2026-03-30`)
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
@@ -247,7 +247,7 @@ custom_components/lipro/
 
 ## Phase 102 Governance Portability / Verification Stratification / Open-Source Continuity Hardening Note
 
-- 当前 developer guidance 与 `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md` 已共同承认 `no active milestone route / latest archived baseline = v1.29`；默认下一步保持为 `$gsd-new-milestone`。
+- 当前 developer guidance 与 `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md` 已共同承认 `v1.30 active route / Phase 107 complete / latest archived baseline = v1.29`；默认下一步保持为 `$gsd-discuss-phase 108`。
 - `Phase 102` 不重开 production formal homes；它只把 governance/meta smoke 的 fast-path 耦合收口为 capability-aware proof，并把 verification matrix 当前真相、historical closeout note、docs-first / maintainer appendix continuity wording 一次性分层。
 - `tests/meta/test_governance_bootstrap_smoke.py`、`tests/meta/test_governance_route_handoff_smoke.py`、`tests/meta/governance_followup_route_current_milestones.py` 与 `tests/meta/test_phase102_governance_portability_guards.py` 现在共同冻结 archived-only latest truth、portable fast-path、promoted closeout bundle、runbook latest pointer 与 developer-facing topology note。
 
@@ -300,11 +300,18 @@ custom_components/lipro/
 - `Phase 104` 把 `control/service_router_handlers.py` 收窄为 thin family index，真正的 callback family 已拆到 `service_router_{command,schedule,share,diagnostics,maintenance}_handlers.py`。
 - `service_router.py` 继续是 formal control callback home；本 phase 没有把 family split 反向讲成第二条 control-plane root。
 - `command_runtime.py` 继续是 formal command-runtime orchestration home，而 `command_runtime_outcome_support.py` 只承接 outcome bookkeeping、command-result failure normalization 与 reauth error handling。
-- `Phase 104` 现在作为 completed predecessor bundle 保持可见性；active-route freeze 已上移到 `Phase 105`，因此不得再把 Phase 104 叙述成 current selector。
+- `Phase 104` 现在作为 completed predecessor bundle 保持可见性；active-route freeze 已上移到 `Phase 107`，因此不得再把 Phase 104 叙述成 current selector。
 
 ## Phase 105 Governance Rule Datafication / Milestone Freeze Note
 
 - `tests/meta/governance_followup_route_specs.py` 现在承载 current-milestone / closeout / continuation follow-up route 的共享 case/spec truth，避免三套 governance suites 继续复制粘贴同一组期望与台账路径。
 - `scripts/check_file_matrix_registry_shared.py`、`scripts/check_file_matrix_registry_classifiers.py` 与 override lineage sync 共同把 file-matrix registry family 改成 data-driven builder；ownership / guard-home / predecessor-vs-active wording 不再散落在 tuple folklore 中。
 - `tests/meta/test_phase104_service_router_runtime_split_guards.py` 退为 predecessor visibility guard，`tests/meta/test_phase105_governance_freeze_guards.py` 现冻结 latest-archived closeout truth；这保证 `v1.29` archived selector、predecessor bundle 与 promoted closeout bundle 分工清晰。
-- `v1.29` 已完成 milestone closeout 并退回 archived-only baseline；formal next step 只有 `$gsd-new-milestone`，不得再把治理数据化或 closeout 手续描述成待处理的后续口头任务。
+- `v1.29` 已完成 milestone closeout 并退回 latest archived baseline；它继续作为 `v1.30 active route / Phase 107 complete / latest archived baseline = v1.29` 的 pull-only predecessor source，而不是新的 active selector。
+
+## Phase 107 REST/Auth/Status Hotspot Convergence Note
+
+- `custom_components/lipro/core/api/rest_facade.py` 现在通过 `_build_endpoint_surface()` / `_build_request_gateway()` 收口 child-façade collaborator assembly；`LiproRestFacade` 继续是 canonical REST child-façade composition home，而不是 second root。
+- `custom_components/lipro/core/api/status_fallback_support.py` 已把 binary-split fallback orchestration 收口到 `_BinarySplitQueryContext`、`_BinarySplitAccumulator` 与 focused helper 函数，fallback semantics 继续保留在 support-only home 内部。
+- `custom_components/lipro/core/api/request_policy_support.py` 现以 `_CommandPacingCaches` 吸收 pacing caches / locks / trim cooperation，request-policy pacing state 不再以 parameter soup 方式扩散。
+- `tests/meta/test_phase107_rest_status_hotspot_guards.py` 现冻结 current-route hotspot convergence truth；`$gsd-discuss-phase 108` 之后只允许继续推进 transport/runtime、anonymous-share 与 snapshot 三个显式 owner scopes。

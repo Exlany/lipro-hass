@@ -1,4 +1,4 @@
-"""Focused active-route guards for Phase 105 governance freeze and milestone handoff."""
+"""Focused latest-archived guards for Phase 105 governance freeze visibility."""
 
 from __future__ import annotations
 
@@ -7,12 +7,7 @@ from pathlib import Path
 from tests.helpers.repo_root import repo_root
 
 from .governance_contract_helpers import assert_testing_inventory_snapshot
-from .governance_current_truth import (
-    CURRENT_MILESTONE_DEFAULT_NEXT,
-    CURRENT_MILESTONE_STATUS,
-    CURRENT_PHASE,
-    CURRENT_ROUTE,
-)
+from .governance_current_truth import CURRENT_MILESTONE_DEFAULT_NEXT, CURRENT_ROUTE
 from .governance_promoted_assets import _assert_exact_promoted_phase_assets
 
 _ROOT = repo_root(Path(__file__))
@@ -35,7 +30,8 @@ def _read(path: Path) -> str:
     return path.read_text(encoding='utf-8')
 
 
-def test_phase105_active_route_bundle_is_current_truth() -> None:
+
+def test_phase105_latest_archived_bundle_remains_visible_under_phase107_route() -> None:
     project_text = _read(_PROJECT)
     roadmap_text = _read(_ROADMAP)
     requirements_text = _read(_REQUIREMENTS)
@@ -57,9 +53,8 @@ def test_phase105_active_route_bundle_is_current_truth() -> None:
         assert CURRENT_ROUTE in text
         assert CURRENT_MILESTONE_DEFAULT_NEXT in text
 
-    assert CURRENT_MILESTONE_STATUS in project_text
-    assert CURRENT_MILESTONE_STATUS in roadmap_text
-    assert f'Phase {CURRENT_PHASE}' in state_text
+    assert '## Latest Archived Milestone (v1.29)' in project_text
+    assert '### Phase 105: Governance rule datafication and milestone freeze' in roadmap_text
     assert 'Phase 105 Governance Rule Datafication / Milestone Freeze Note' in dev_arch_text
     assert '# Phase 105 Verification' in verification_doc
     assert '# Phase 105 Validation Contract' in validation_doc
@@ -95,7 +90,7 @@ def test_phase105_ledgers_testing_and_promoted_assets_freeze_the_same_story() ->
     assert_testing_inventory_snapshot(testing_text)
     assert '## Phase 105 Governance Rule Datafication / Milestone Freeze' in verification_text
     for token in (
-        '$gsd-new-milestone',
+        '$gsd-discuss-phase 108',
         '.planning/reviews/PROMOTED_PHASE_ASSETS.md',
         'tests/meta/test_phase105_governance_freeze_guards.py',
         'tests/meta/governance_followup_route_specs.py',

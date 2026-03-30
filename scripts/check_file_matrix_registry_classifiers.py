@@ -198,8 +198,13 @@ _TEST_EXACT_RULES: tuple[ClassifierRule, ...] = build_exact_rules(
         owner_phase="Phase 105",
         residual_rows=(
             ("tests/meta/governance_followup_route_specs.py", "shared follow-up route spec + planning-doc snapshot helper home"),
-            ("tests/meta/test_phase105_governance_freeze_guards.py", "focused active-route guard home for Phase 105 governance freeze"),
+            ("tests/meta/test_phase105_governance_freeze_guards.py", "focused latest-archived closeout guard home for Phase 105 governance freeze"),
         ),
+    ),
+    ExactRuleFamily(
+        area="Assurance",
+        owner_phase="Phase 107",
+        residual_rows=(("tests/meta/test_phase107_rest_status_hotspot_guards.py", "focused active-route guard home for Phase 107 REST/auth/status hotspot convergence"),),
     ),
 )
 

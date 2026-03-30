@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 734
+**Python files total:** 735
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -149,7 +149,7 @@
 | `custom_components/lipro/core/coordinator/runtime/command_runtime_support.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 | 保留 | command-runtime local request/summary support collaborator |
 | `custom_components/lipro/core/coordinator/runtime/device/__init__.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/device/batch_optimizer.py` | Runtime | Phase 5 | 重构 | - |
-| `custom_components/lipro/core/coordinator/runtime/device/filter.py` | Runtime | Phase 5 / 106 | 重构 | runtime consumer of shared device-filter codec and inclusion semantics |
+| `custom_components/lipro/core/coordinator/runtime/device/filter.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/device/refresh_strategy.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/device/snapshot.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/device/snapshot_models.py` | Runtime | Phase 33 | 保留 | typed snapshot container + rejection contract home |
@@ -212,7 +212,7 @@
 | `custom_components/lipro/core/device/state_fields.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/device/state_getters.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/device/state_math.py` | Domain | Phase 4 | 重构 | - |
-| `custom_components/lipro/core/device_filter_codec.py` | Cross-cutting | Phase 106 | 保留 | shared device-filter option codec for UI/runtime normalization |
+| `custom_components/lipro/core/device_filter_codec.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/exceptions.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/mqtt/__init__.py` | Protocol | Phase 2.5 / 7 / 17 | 迁移适配 | package export intentionally minimal; no concrete transport export |
 | `custom_components/lipro/core/mqtt/connection_manager.py` | Protocol | Phase 2.5 | 重构 | - |
@@ -282,7 +282,7 @@
 | `custom_components/lipro/flow/__init__.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/flow/credentials.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/flow/login.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/flow/options_flow.py` | Control | Phase 3 / 106 | 保留 | slimmer schema composition and shared device-filter option codec consumer |
+| `custom_components/lipro/flow/options_flow.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/flow/schemas.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/flow/submission.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/headless/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -647,6 +647,7 @@
 | `tests/meta/test_phase103_root_thinning_guards.py` | Assurance | Phase 103 | 保留 | focused predecessor guard home for Phase 103 root thinning / test topology / terminology normalization |
 | `tests/meta/test_phase104_service_router_runtime_split_guards.py` | Assurance | Phase 104 | 保留 | focused predecessor guard home for Phase 104 service-router/runtime split |
 | `tests/meta/test_phase105_governance_freeze_guards.py` | Assurance | Phase 105 | 保留 | focused latest-archived closeout guard home for Phase 105 governance freeze |
+| `tests/meta/test_phase107_rest_status_hotspot_guards.py` | Assurance | Phase 107 | 保留 | focused active-route guard home for Phase 107 REST/auth/status hotspot convergence |
 | `tests/meta/test_phase31_runtime_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase45_hotspot_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase50_rest_typed_budget_guards.py` | Assurance | Phase 6 | 保留 | - |

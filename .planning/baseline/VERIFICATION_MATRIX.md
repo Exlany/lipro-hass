@@ -2,16 +2,16 @@
 
 **Purpose:** 建立 requirement → artifact → test → doc → phase acceptance / handoff 的统一验证闭环。
 **Status:** Formal baseline asset (`BASE-03` phase acceptance truth source)
-**Updated:** 2026-03-30 (v1.29 archived-only closeout route aligned)
+**Updated:** 2026-03-30 (v1.30 active route / Phase 107 completion aligned)
 
 ## Formal Role
 
-## Current Archived Route
+## Current Active Route
 
-- **Current route story:** `no active milestone route / latest archived baseline = v1.29`
-- **Default next command:** `$gsd-new-milestone`
+- **Current route story:** `v1.30 active route / Phase 107 complete / latest archived baseline = v1.29`
+- **Default next command:** `$gsd-discuss-phase 108`
 - **Latest archived pointer:** `.planning/reviews/V1_29_EVIDENCE_INDEX.md`
-- **Focused guards:** `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/test_phase90_hotspot_map_guards.py`, `tests/meta/test_phase91_typed_boundary_guards.py`, `tests/meta/test_phase92_redaction_convergence_guards.py`, `tests/meta/test_phase94_typed_boundary_guards.py`, `tests/meta/test_phase95_hotspot_decomposition_guards.py`, `tests/meta/test_phase96_sanitizer_burndown_guards.py`, `tests/meta/test_phase97_governance_assurance_freeze_guards.py`, `tests/meta/test_phase98_route_reactivation_guards.py`, `tests/meta/test_phase99_runtime_hotspot_support_guards.py`, `tests/meta/test_phase100_runtime_schedule_support_guards.py`, `tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py`, `tests/meta/test_phase102_governance_portability_guards.py`, `tests/meta/test_phase103_root_thinning_guards.py`, `tests/meta/test_phase104_service_router_runtime_split_guards.py`, `tests/meta/test_phase105_governance_freeze_guards.py`, `tests/meta/test_public_surface_guards.py`, `tests/meta/test_dependency_guards.py`
+- **Focused guards:** `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/test_phase90_hotspot_map_guards.py`, `tests/meta/test_phase91_typed_boundary_guards.py`, `tests/meta/test_phase92_redaction_convergence_guards.py`, `tests/meta/test_phase94_typed_boundary_guards.py`, `tests/meta/test_phase95_hotspot_decomposition_guards.py`, `tests/meta/test_phase96_sanitizer_burndown_guards.py`, `tests/meta/test_phase97_governance_assurance_freeze_guards.py`, `tests/meta/test_phase98_route_reactivation_guards.py`, `tests/meta/test_phase99_runtime_hotspot_support_guards.py`, `tests/meta/test_phase100_runtime_schedule_support_guards.py`, `tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py`, `tests/meta/test_phase102_governance_portability_guards.py`, `tests/meta/test_phase103_root_thinning_guards.py`, `tests/meta/test_phase104_service_router_runtime_split_guards.py`, `tests/meta/test_phase105_governance_freeze_guards.py`, `tests/meta/test_phase107_rest_status_hotspot_guards.py`, `tests/meta/test_public_surface_guards.py`, `tests/meta/test_dependency_guards.py`
 
 - 本文件是 `Phase 1.5` 及其下游 phases 的正式 acceptance truth；phase docs / summaries 只能引用、实例化或扩展，不得平行定义 exit contract。
 - 任一 phase 只有同时交付 requirement evidence、artifact updates、verification proof 与 governance disposition，才可宣称完成。
@@ -22,11 +22,19 @@
 - `.planning/codebase/*.md` 若被保留，必须通过 `README.md`、统一 derived collaboration map disclaimer、snapshot/freshness/authority 头部与治理守卫声明其从属身份，不能越权成为第二条 authority chain。
 - `.planning/baseline/GOVERNANCE_REGISTRY.json` 若更新，必须同步 public docs / contributor templates / release-contract tests，并明确 `break-glass verify-only` 与 `non-publish rehearsal` 是否新增或变更。
 
+## Phase 107 REST/Auth/Status Hotspot Convergence / Support-surface Slimming
+
+- **Route truth:** active current-route convergence under `v1.30 active route / Phase 107 complete / latest archived baseline = v1.29`
+- **Focused guard:** `tests/meta/test_phase107_rest_status_hotspot_guards.py`
+- **Proof chain:** REST/auth/status hotspot convergence + planning/baseline/review/docs sync + GSD fast-path continuation freeze → `uv run python scripts/check_file_matrix.py --check` → `uv run ruff check .` → `uv run mypy` → `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" state json/init progress/phase-plan-index 107/init plan-phase 107/init execute-phase 107` → `$gsd-discuss-phase 108`
+- **Phase asset bundle:** `.planning/phases/107-rest-auth-status-hotspot-convergence-and-support-surface-slimming/{107-01-SUMMARY.md,107-02-SUMMARY.md,107-03-SUMMARY.md,107-VERIFICATION.md,107-VALIDATION.md}`
+- **Touched formal homes:** `custom_components/lipro/core/api/{rest_facade.py,status_fallback_support.py,request_policy_support.py}`, `tests/meta/test_phase107_rest_status_hotspot_guards.py`, `.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md,MILESTONES.md}`, `.planning/reviews/{FILE_MATRIX.md,RESIDUAL_LEDGER.md,KILL_LIST.md}`, `.planning/codebase/TESTING.md`, `docs/developer_architecture.md`
+
 ## Phase 105 Governance Rule Datafication / Milestone Freeze
 
-- **Route truth:** latest archived closeout bundle under `no active milestone route / latest archived baseline = v1.29`
+- **Route truth:** latest archived closeout bundle retained as predecessor evidence under current `v1.30 active route / Phase 107 complete / latest archived baseline = v1.29`
 - **Focused guard:** `tests/meta/test_phase105_governance_freeze_guards.py`
-- **Proof chain:** governance follow-up route datafication + promoted-asset freeze + planning/baseline/review/docs sync + archived closeout bundle → `uv run python scripts/check_file_matrix.py --check` → `uv run ruff check .` → `uv run mypy` → `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" state json/init progress/phase-plan-index` → `$gsd-new-milestone`
+- **Proof chain:** latest archived closeout visibility + promoted-asset freeze + planning/baseline/review/docs sync + active-route handoff honesty → `uv run python scripts/check_file_matrix.py --check` → `uv run ruff check .` → `uv run mypy` → `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" state json/init progress/phase-plan-index 105` → `$gsd-discuss-phase 108`
 - **Promoted closeout bundle:** `.planning/reviews/PROMOTED_PHASE_ASSETS.md`, `.planning/phases/105-governance-rule-datafication-and-milestone-freeze/{105-01-SUMMARY.md,105-02-SUMMARY.md,105-03-SUMMARY.md,105-SUMMARY.md,105-VERIFICATION.md,105-VALIDATION.md}`
 - **Shared rule sources:** `tests/meta/governance_followup_route_specs.py`, `scripts/check_file_matrix_registry_shared.py`, `scripts/check_file_matrix_registry_classifiers.py`
 

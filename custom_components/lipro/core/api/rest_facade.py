@@ -68,20 +68,28 @@ class LiproRestFacade:
             self._request_policy,
         )
         self._auth_api = AuthApiService(self, LiproAuthError, _LOGGER)
+        self._endpoint_surface = self._build_endpoint_surface()
+        self._request_gateway = self._build_request_gateway()
+
+    def _build_endpoint_surface(self) -> RestEndpointSurface:
+        """Assemble endpoint collaborators behind one localized helper."""
         self._auth_endpoints = AuthEndpoints(self)
         self._device_endpoints = DeviceEndpoints(self)
         self._status_endpoints = StatusEndpoints(self)
         self._command_endpoints = CommandEndpoints(self)
         self._misc_endpoints = MiscEndpoints(self)
         self._schedule_endpoints = ScheduleEndpoints(self)
-        self._endpoint_surface = RestEndpointSurface(
+        return RestEndpointSurface(
             device_endpoints=self._device_endpoints,
             status_endpoints=self._status_endpoints,
             command_endpoints=self._command_endpoints,
             misc_endpoints=self._misc_endpoints,
             schedule_endpoints=self._schedule_endpoints,
         )
-        self._request_gateway = RestRequestGateway(self)
+
+    def _build_request_gateway(self) -> RestRequestGateway:
+        """Create the formal retry-aware request gateway."""
+        return RestRequestGateway(self)
 
     @property
     def phone_id(self) -> str:

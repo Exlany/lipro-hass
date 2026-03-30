@@ -39,11 +39,17 @@ _None currently registered._
 3. residual ledger 已关闭对应条目。
 4. summary 明确记录是“正式删除”还是“仅登记、不删除”。
 
+## Phase 107 Status Update
+
+- 本 phase **无新增 active kill target**；当前收口的是 REST child-façade assembly、status fallback helper decomposition 与 request-policy pacing-cache localization，而不是新的 file-level delete campaign。
+- `custom_components/lipro/core/api/rest_facade.py`、`custom_components/lipro/core/api/status_fallback_support.py` 与 `custom_components/lipro/core/api/request_policy_support.py` 都继续保留为 formal/support homes；本轮只允许 inward split，不把它们叙述成 future delete target。
+- `v1.30 active route / Phase 107 complete / latest archived baseline = v1.29` 已生效；下一步切换为 `$gsd-discuss-phase 108`，而不是把 Phase 107 再回写成 archived-only closeout story。
+
 ## Phase 105 Status Update
 
-- 本 phase **无新增 active kill target**；被关闭的是治理规则的重复定义、route freeze 的口径分叉，以及 milestone-closeout handoff 的 conversation-only 残留，而不是新的 file-level delete campaign。
-- `tests/meta/governance_followup_route_specs.py` 与 `scripts/check_file_matrix_registry_*` 的 shared builder/datafication 是 formal governance truth，不是 future delete target。
-- `Phase 103` / `Phase 104` predecessor bundle 与 `Phase 105` promoted closeout bundle 已分别通过 focused guards 与 `.planning/reviews/PROMOTED_PHASE_ASSETS.md` 固定身份；closeout 已完成；下一步切换为 `$gsd-new-milestone`。
+- 本 phase **无新增 active kill target**；它现在承担 latest-archived closeout visibility，而不是 current-route selector。
+- `tests/meta/governance_followup_route_specs.py` 与 `scripts/check_file_matrix_registry_*` 的 shared builder/datafication 继续是 formal governance truth，不是 future delete target。
+- `Phase 103` / `Phase 104` predecessor bundle 与 `Phase 105` promoted closeout bundle 已分别通过 focused guards 与 `.planning/reviews/PROMOTED_PHASE_ASSETS.md` 固定身份；active route 已前推到 `Phase 107`。
 
 ## Phase 65 Status Update
 
