@@ -82,6 +82,60 @@ def resolve_outlet_power_cycle_size(
     return max(1, min(static_limit, dynamic_limit))
 
 
+def _select_outlet_power_targets(
+    *,
+    outlet_ids_to_query: list[str],
+    round_robin_index: int,
+    resolve_cycle_size: Callable[[int], int],
+) -> tuple[list[str], int]:
+    outlet_ids = list(outlet_ids_to_query)
+    if not outlet_ids:
+        return [], round_robin_index
+
+    max_devices = resolve_cycle_size(len(outlet_ids))
+    if len(outlet_ids) <= max_devices:
+        return outlet_ids, round_robin_index
+
+    start = round_robin_index % len(outlet_ids)
+    end = start + max_devices
+    if end <= len(outlet_ids):
+        selected_ids = outlet_ids[start:end]
+    else:
+        selected_ids = outlet_ids[start:] + outlet_ids[: end % len(outlet_ids)]
+    updated_index = (start + max_devices) % len(outlet_ids_to_query)
+    return selected_ids, updated_index
+
+
+async def _query_outlet_power_batches(
+    *,
+    outlet_ids: list[str],
+    concurrency: int,
+    fetch_outlet_power_info: Callable[[str], Awaitable[OutletPowerInfoResult]],
+    get_device_by_id: Callable[[object], LiproDevice | None],
+    apply_outlet_power_info: Callable[[LiproDevice, PropertyDict], bool],
+    should_reraise_outlet_power_error: Callable[[LiproApiError], bool],
+    logger: logging.Logger,
+) -> None:
+    async def _query_single(outlet_id: str) -> None:
+        await query_single_outlet_power(
+            device_id=outlet_id,
+            fetch_outlet_power_info=fetch_outlet_power_info,
+            get_device_by_id=get_device_by_id,
+            apply_outlet_power_info=apply_outlet_power_info,
+            should_reraise_outlet_power_error=should_reraise_outlet_power_error,
+            logger=logger,
+        )
+
+    batch_size = max(1, min(concurrency, len(outlet_ids)))
+    for start in range(0, len(outlet_ids), batch_size):
+        await asyncio.gather(
+            *(
+                _query_single(outlet_id)
+                for outlet_id in outlet_ids[start : start + batch_size]
+            ),
+        )
+
+
 async def query_outlet_power(
     *,
     outlet_ids_to_query: list[str],
@@ -102,40 +156,23 @@ async def query_outlet_power(
     if not outlet_ids_to_query:
         return round_robin_index
 
-    outlet_ids = list(outlet_ids_to_query)
+    outlet_ids, updated_index = _select_outlet_power_targets(
+        outlet_ids_to_query=list(outlet_ids_to_query),
+        round_robin_index=round_robin_index,
+        resolve_cycle_size=resolve_cycle_size,
+    )
     if not outlet_ids:
         return round_robin_index
 
-    updated_index = round_robin_index
-
-    max_devices = resolve_cycle_size(len(outlet_ids))
-    if len(outlet_ids) > max_devices:
-        start = round_robin_index % len(outlet_ids)
-        end = start + max_devices
-        if end <= len(outlet_ids):
-            outlet_ids = outlet_ids[start:end]
-        else:
-            outlet_ids = outlet_ids[start:] + outlet_ids[: end % len(outlet_ids)]
-        updated_index = (start + max_devices) % len(outlet_ids_to_query)
-
-    async def _query_single(outlet_id: str) -> None:
-        await query_single_outlet_power(
-            device_id=outlet_id,
-            fetch_outlet_power_info=fetch_outlet_power_info,
-            get_device_by_id=get_device_by_id,
-            apply_outlet_power_info=apply_outlet_power_info,
-            should_reraise_outlet_power_error=should_reraise_outlet_power_error,
-            logger=logger,
-        )
-
-    batch_size = max(1, min(concurrency, len(outlet_ids)))
-    for start in range(0, len(outlet_ids), batch_size):
-        await asyncio.gather(
-            *(
-                _query_single(outlet_id)
-                for outlet_id in outlet_ids[start : start + batch_size]
-            ),
-        )
+    await _query_outlet_power_batches(
+        outlet_ids=outlet_ids,
+        concurrency=concurrency,
+        fetch_outlet_power_info=fetch_outlet_power_info,
+        get_device_by_id=get_device_by_id,
+        apply_outlet_power_info=apply_outlet_power_info,
+        should_reraise_outlet_power_error=should_reraise_outlet_power_error,
+        logger=logger,
+    )
 
     return updated_index
 
