@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 from .models import (
     CITelemetrySummary,
     CITelemetryView,
@@ -145,6 +147,81 @@ def _build_protocol_session_flags(snapshot: TelemetrySnapshot) -> ProtocolSessio
     return protocol_session_flags
 
 
+def _build_system_health_runtime_payload(
+    snapshot: TelemetrySnapshot,
+) -> dict[str, TelemetryJsonValue]:
+    runtime_mqtt = _as_mapping(snapshot.runtime.get("mqtt"))
+    runtime_signals = _as_mapping(snapshot.runtime.get("signals"))
+    runtime_command = _as_mapping(snapshot.runtime.get("command"))
+    runtime_tuning = _as_mapping(snapshot.runtime.get("tuning"))
+    command_confirmation = _mapping_child(runtime_command, "confirmation")
+    tuning_metrics = _mapping_child(runtime_tuning, "metrics")
+
+    return {
+        "device_count": _mapping_get_int(snapshot.runtime, "device_count"),
+        "polling_interval_seconds": _mapping_get_number(
+            snapshot.runtime,
+            "polling_interval_seconds",
+        ),
+        "last_update_success": _mapping_get_bool(
+            snapshot.runtime,
+            "last_update_success",
+        ),
+        "mqtt_connected": _mapping_get_bool(runtime_mqtt, "connected"),
+        "mqtt_disconnect_notified": _mapping_get_bool(
+            runtime_mqtt,
+            "disconnect_notified",
+        ),
+        "mqtt_last_transport_error": _mapping_get_str(
+            runtime_mqtt,
+            "last_transport_error",
+        ),
+        "command_trace_count": _mapping_get_int(runtime_command, "trace_count"),
+        "command_confirmation_avg_latency_seconds": _mapping_get_number(
+            command_confirmation,
+            "avg_latency_seconds",
+        ),
+        "command_confirmation_timeout_total": _mapping_get_int(
+            command_confirmation,
+            "timeout_total",
+        ),
+        "connect_state_event_count": _mapping_get_int(
+            runtime_signals,
+            "connect_state_event_count",
+        ),
+        "group_reconciliation_request_count": _mapping_get_int(
+            runtime_signals,
+            "group_reconciliation_request_count",
+        ),
+        "refresh_avg_latency_seconds": _mapping_get_number(
+            tuning_metrics,
+            "avg_latency",
+        ),
+    }
+
+
+def _build_system_health_protocol_payload(
+    snapshot: TelemetrySnapshot,
+) -> dict[str, TelemetryJsonValue]:
+    protocol_telemetry = _as_mapping(snapshot.protocol.get("telemetry"))
+    protocol_auth_recovery = _as_mapping(snapshot.protocol.get("auth_recovery"))
+
+    return {
+        "protocol_mqtt_last_error_type": _mapping_get_str(
+            protocol_telemetry,
+            "mqtt_last_error_type",
+        ),
+        "auth_refresh_success_count": _mapping_get_int(
+            protocol_auth_recovery,
+            "refresh_success_count",
+        ),
+        "auth_refresh_failure_count": _mapping_get_int(
+            protocol_auth_recovery,
+            "refresh_failure_count",
+        ),
+    }
+
+
 class DiagnosticsTelemetrySink:
     """Diagnostics-oriented sink with full exporter truth."""
 
@@ -167,70 +244,15 @@ class SystemHealthTelemetrySink:
 
     def build_view(self, snapshot: TelemetrySnapshot) -> SystemHealthTelemetryView:
         """Return the system-health projection for one snapshot."""
-        runtime_mqtt = _as_mapping(snapshot.runtime.get("mqtt"))
-        runtime_signals = _as_mapping(snapshot.runtime.get("signals"))
-        runtime_command = _as_mapping(snapshot.runtime.get("command"))
-        runtime_tuning = _as_mapping(snapshot.runtime.get("tuning"))
-        protocol_telemetry = _as_mapping(snapshot.protocol.get("telemetry"))
-        protocol_auth_recovery = _as_mapping(snapshot.protocol.get("auth_recovery"))
-        command_confirmation = _mapping_child(runtime_command, "confirmation")
-        tuning_metrics = _mapping_child(runtime_tuning, "metrics")
-
-        return {
-            **_header(snapshot),
-            "failure_summary": _build_failure_summary(snapshot),
-            "device_count": _mapping_get_int(snapshot.runtime, "device_count"),
-            "polling_interval_seconds": _mapping_get_number(
-                snapshot.runtime,
-                "polling_interval_seconds",
-            ),
-            "last_update_success": _mapping_get_bool(
-                snapshot.runtime,
-                "last_update_success",
-            ),
-            "mqtt_connected": _mapping_get_bool(runtime_mqtt, "connected"),
-            "mqtt_disconnect_notified": _mapping_get_bool(
-                runtime_mqtt,
-                "disconnect_notified",
-            ),
-            "mqtt_last_transport_error": _mapping_get_str(
-                runtime_mqtt,
-                "last_transport_error",
-            ),
-            "command_trace_count": _mapping_get_int(runtime_command, "trace_count"),
-            "command_confirmation_avg_latency_seconds": _mapping_get_number(
-                command_confirmation,
-                "avg_latency_seconds",
-            ),
-            "command_confirmation_timeout_total": _mapping_get_int(
-                command_confirmation,
-                "timeout_total",
-            ),
-            "connect_state_event_count": _mapping_get_int(
-                runtime_signals,
-                "connect_state_event_count",
-            ),
-            "group_reconciliation_request_count": _mapping_get_int(
-                runtime_signals,
-                "group_reconciliation_request_count",
-            ),
-            "refresh_avg_latency_seconds": _mapping_get_number(
-                tuning_metrics,
-                "avg_latency",
-            ),
-            "protocol_mqtt_last_error_type": _mapping_get_str(
-                protocol_telemetry,
-                "mqtt_last_error_type",
-            ),
-            "auth_refresh_success_count": _mapping_get_int(
-                protocol_auth_recovery,
-                "refresh_success_count",
-            ),
-            "auth_refresh_failure_count": _mapping_get_int(
-                protocol_auth_recovery,
-                "refresh_failure_count",
-            ),
-        }
+        return cast(
+            SystemHealthTelemetryView,
+            {
+                **_header(snapshot),
+                "failure_summary": _build_failure_summary(snapshot),
+                **_build_system_health_runtime_payload(snapshot),
+                **_build_system_health_protocol_payload(snapshot),
+            },
+        )
 
 
 class DeveloperTelemetrySink:
