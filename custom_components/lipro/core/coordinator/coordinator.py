@@ -28,6 +28,7 @@ if TYPE_CHECKING:
     from ..auth import LiproAuthManager
     from ..device import LiproDevice
     from .entity_protocol import LiproEntityProtocol
+    from .factory import CoordinatorBootstrapArtifact
     from .types import PropertyDict
 
 _LOGGER = logging.getLogger(__name__)
@@ -64,14 +65,50 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             config_entry=config_entry,
             always_update=True,
         )
+        self._bind_runtime_dependencies(
+            protocol=protocol,
+            auth_manager=auth_manager,
+            config_entry=config_entry,
+            update_interval=update_interval,
+        )
+        self._bind_bootstrap_artifact(
+            self._build_runtime_bootstrap(
+                self._build_runtime_orchestrator(
+                    hass=hass,
+                    protocol=protocol,
+                    auth_manager=auth_manager,
+                    config_entry=config_entry,
+                    update_interval=update_interval,
+                )
+            )
+        )
+
+    def _bind_runtime_dependencies(
+        self,
+        *,
+        protocol: LiproProtocolFacade,
+        auth_manager: LiproAuthManager,
+        config_entry: ConfigEntry,
+        update_interval: int,
+    ) -> None:
+        """Bind direct runtime dependencies owned by the coordinator root."""
         self.protocol = protocol
         self.auth_manager = auth_manager
         self.config_entry = config_entry
         self._config_entry = config_entry
         self._scan_interval_seconds = int(update_interval)
 
-        # Build runtime components via orchestrator
-        orchestrator = RuntimeOrchestrator(
+    def _build_runtime_orchestrator(
+        self,
+        *,
+        hass: HomeAssistant,
+        protocol: LiproProtocolFacade,
+        auth_manager: LiproAuthManager,
+        config_entry: ConfigEntry,
+        update_interval: int,
+    ) -> RuntimeOrchestrator:
+        """Build the runtime orchestrator responsible for collaborator assembly."""
+        return RuntimeOrchestrator(
             hass=hass,
             protocol=protocol,
             auth_manager=auth_manager,
@@ -80,7 +117,12 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             logger=_LOGGER,
         )
 
-        bootstrap = orchestrator.build_bootstrap_artifact(
+    def _build_runtime_bootstrap(
+        self,
+        orchestrator: RuntimeOrchestrator,
+    ) -> CoordinatorBootstrapArtifact:
+        """Build the coordinator bootstrap artifact using the stable runtime patch seam."""
+        return orchestrator.build_bootstrap_artifact(
             get_device_by_id=self._get_device_by_id,
             apply_properties_update=self._apply_properties_update,
             schedule_listener_update=self._schedule_listener_update,
@@ -95,6 +137,9 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             refresh_device_snapshot=self._async_force_refresh_device_snapshot,
             polling_updater=self,
         )
+
+    def _bind_bootstrap_artifact(self, bootstrap: CoordinatorBootstrapArtifact) -> None:
+        """Bind the assembled runtime artifact onto the coordinator root."""
         self._state = bootstrap.state
         self._runtimes = bootstrap.runtimes
         self.auth_service = bootstrap.support_services.auth_service

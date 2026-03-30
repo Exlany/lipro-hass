@@ -40,12 +40,8 @@ async def refresh_install_token_with_outcome(
 ) -> OperationOutcome:
     """Refresh the install token via `/api/token/refresh` with typed outcome."""
     del logger
-    if not client.install_token:
-        return build_operation_outcome(
-            kind="skipped", reason_code="missing_install_token"
-        )
-    if backoff_active(next_upload_attempt_at=client.next_upload_attempt_at, now=now):
-        return build_operation_outcome(kind="skipped", reason_code="backoff_active")
+    if skip_outcome := _build_refresh_skip_outcome(client=client, now=now):
+        return skip_outcome
 
     try:
         async with session.post(
@@ -61,7 +57,29 @@ async def refresh_install_token_with_outcome(
                 payload=payload,
                 now=now,
             )
-    except TimeoutError as err:
+    except (TimeoutError, aiohttp.ClientError, OSError, ValueError) as err:
+        return _build_refresh_exception_outcome(err)
+
+
+def _build_refresh_skip_outcome(
+    *,
+    client: ShareWorkerClientLike,
+    now: Callable[[], float],
+) -> OperationOutcome | None:
+    """Return one skip outcome when the refresh flow should not run."""
+    if not client.install_token:
+        return build_operation_outcome(
+            kind="skipped",
+            reason_code="missing_install_token",
+        )
+    if backoff_active(next_upload_attempt_at=client.next_upload_attempt_at, now=now):
+        return build_operation_outcome(kind="skipped", reason_code="backoff_active")
+    return None
+
+
+def _build_refresh_exception_outcome(err: Exception) -> OperationOutcome:
+    """Map one refresh transport/protocol exception into the canonical outcome."""
+    if isinstance(err, TimeoutError):
         return build_operation_outcome_from_exception(
             err,
             kind="failed",
@@ -70,7 +88,7 @@ async def refresh_install_token_with_outcome(
             failure_category="network",
             handling_policy="retry",
         )
-    except aiohttp.ClientError as err:
+    if isinstance(err, aiohttp.ClientError):
         return build_operation_outcome_from_exception(
             err,
             kind="failed",
@@ -79,7 +97,7 @@ async def refresh_install_token_with_outcome(
             failure_category="network",
             handling_policy="retry",
         )
-    except OSError as err:
+    if isinstance(err, OSError):
         return build_operation_outcome_from_exception(
             err,
             kind="failed",
@@ -88,15 +106,14 @@ async def refresh_install_token_with_outcome(
             failure_category="network",
             handling_policy="retry",
         )
-    except ValueError as err:
-        return build_operation_outcome_from_exception(
-            err,
-            kind="failed",
-            reason_code="value_error",
-            failure_origin=_TOKEN_REFRESH_ORIGIN,
-            failure_category="protocol",
-            handling_policy="inspect",
-        )
+    return build_operation_outcome_from_exception(
+        err,
+        kind="failed",
+        reason_code="value_error",
+        failure_origin=_TOKEN_REFRESH_ORIGIN,
+        failure_category="protocol",
+        handling_policy="inspect",
+    )
 
 
 def _resolve_refresh_response_outcome(
