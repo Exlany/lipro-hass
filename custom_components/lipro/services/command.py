@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass
 import logging
-from typing import Protocol, cast
+from typing import NoReturn, Protocol, cast
 
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
@@ -165,6 +165,31 @@ def _build_failure_summary(
     return summary or None
 
 
+def _raise_send_command_failure(
+    *,
+    command: str,
+    requested_device_id: str | None,
+    device_serial: str,
+    failure_context: CommandFailureSummary | None,
+    failure_log: str,
+    resolve_command_failure_translation_key: CommandFailureTranslationResolver,
+    raise_service_error: ServiceErrorRaiser,
+    logger: logging.Logger,
+) -> NoReturn:
+    logger.warning(
+        failure_log,
+        command,
+        _redact_identifier(requested_device_id) or "***",
+        _redact_identifier(device_serial) or "***",
+        _build_failure_summary(failure_context),
+    )
+    raise_service_error(
+        resolve_command_failure_translation_key(
+            failure=failure_context,
+        )
+    )
+
+
 async def async_send_command_with_service_errors(
     coordinator: CommandCoordinator,
     device: CommandDevice,
@@ -189,18 +214,15 @@ async def async_send_command_with_service_errors(
         if success:
             return
 
-        failure_context = coordinator.command_service.last_failure
-        logger.warning(
-            failure_log,
-            command,
-            _redact_identifier(requested_device_id) or "***",
-            _redact_identifier(device.serial) or "***",
-            _build_failure_summary(failure_context),
-        )
-        raise_service_error(
-            resolve_command_failure_translation_key(
-                failure=failure_context,
-            )
+        _raise_send_command_failure(
+            command=command,
+            requested_device_id=requested_device_id,
+            device_serial=device.serial,
+            failure_context=coordinator.command_service.last_failure,
+            failure_log=failure_log,
+            resolve_command_failure_translation_key=resolve_command_failure_translation_key,
+            raise_service_error=raise_service_error,
+            logger=logger,
         )
     except HomeAssistantError:
         raise
