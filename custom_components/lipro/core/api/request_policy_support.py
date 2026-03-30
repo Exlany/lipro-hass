@@ -285,6 +285,42 @@ async def _release_pacing_target(
         caches.enforce_limit()
 
 
+async def _async_record_or_wait_for_change_state_send(
+    *,
+    normalized_target: str,
+    target_lock: asyncio.Lock,
+    command_pacing_lock: asyncio.Lock,
+    caches: _CommandPacingCaches,
+    monotonic: Callable[[], float],
+    sleep: SleepFn,
+    change_state_min_interval_seconds: float,
+) -> None:
+    """Serialize one target's send and wait only when pacing still applies."""
+    async with target_lock:
+        async with command_pacing_lock:
+            now, wait_time = _resolve_change_state_wait_time(
+                normalized_target=normalized_target,
+                caches=caches,
+                change_state_min_interval_seconds=change_state_min_interval_seconds,
+                monotonic=monotonic,
+            )
+            if wait_time <= 0:
+                _record_change_state_send(
+                    normalized_target=normalized_target,
+                    timestamp=now,
+                    caches=caches,
+                )
+                return
+
+        await sleep(wait_time)
+        async with command_pacing_lock:
+            _record_change_state_send(
+                normalized_target=normalized_target,
+                timestamp=monotonic(),
+                caches=caches,
+            )
+
+
 async def throttle_change_state(
     *,
     target_id: str,
@@ -320,29 +356,15 @@ async def throttle_change_state(
 
     normalized_target, target_lock = registered_target
     try:
-        async with target_lock:
-            async with command_pacing_lock:
-                now, wait_time = _resolve_change_state_wait_time(
-                    normalized_target=normalized_target,
-                    caches=caches,
-                    change_state_min_interval_seconds=change_state_min_interval_seconds,
-                    monotonic=monotonic,
-                )
-                if wait_time <= 0:
-                    _record_change_state_send(
-                        normalized_target=normalized_target,
-                        timestamp=now,
-                        caches=caches,
-                    )
-                    return
-
-            await sleep(wait_time)
-            async with command_pacing_lock:
-                _record_change_state_send(
-                    normalized_target=normalized_target,
-                    timestamp=monotonic(),
-                    caches=caches,
-                )
+        await _async_record_or_wait_for_change_state_send(
+            normalized_target=normalized_target,
+            target_lock=target_lock,
+            command_pacing_lock=command_pacing_lock,
+            caches=caches,
+            monotonic=monotonic,
+            sleep=sleep,
+            change_state_min_interval_seconds=change_state_min_interval_seconds,
+        )
     finally:
         await _release_pacing_target(
             normalized_target=normalized_target,
