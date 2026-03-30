@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from dataclasses import dataclass
 import logging
 from typing import Protocol, cast
 
@@ -21,6 +22,14 @@ from .contracts import (
 from .execution import ServiceErrorRaiser
 
 type CommandProperties = list[ServiceProperty]
+
+
+@dataclass(slots=True, frozen=True)
+class _SendCommandRequest:
+    command: str
+    properties: CommandProperties | None
+    requested_device_id: str | None
+    properties_summary: ServicePropertySummary
 
 
 class CommandDevice(Protocol):
@@ -117,6 +126,31 @@ def _coerce_command_properties(properties: object) -> CommandProperties | None:
     return normalized
 
 
+def _coerce_requested_device_id(requested_device_id: object) -> str | None:
+    """Normalize one optional requested-device identifier."""
+    return requested_device_id if isinstance(requested_device_id, str) else None
+
+
+def _build_send_command_request(
+    call: ServiceCall,
+    *,
+    summarize_service_properties: ServicePropertySummarizer,
+    attr_command: str,
+    attr_properties: str,
+    attr_device_id: str,
+) -> _SendCommandRequest:
+    """Build one normalized send-command request payload from service data."""
+    command = cast(str, call.data[attr_command])
+    properties = _coerce_command_properties(call.data.get(attr_properties))
+    requested_device_id = _coerce_requested_device_id(call.data.get(attr_device_id))
+    return _SendCommandRequest(
+        command=command,
+        properties=properties,
+        requested_device_id=requested_device_id,
+        properties_summary=summarize_service_properties(properties),
+    )
+
+
 def _build_failure_summary(
     failure_context: CommandFailureSummary | None,
 ) -> CommandFailureSummary | None:
@@ -210,29 +244,28 @@ async def async_handle_send_command(
     attr_device_id: str,
 ) -> SendCommandResult:
     """Handle the send_command service call."""
-    command = cast(str, call.data[attr_command])
-    raw_properties = call.data.get(attr_properties)
-    requested_device_id = call.data.get(attr_device_id)
-    resolved_requested_device_id = (
-        requested_device_id if isinstance(requested_device_id, str) else None
+    request = _build_send_command_request(
+        call,
+        summarize_service_properties=summarize_service_properties,
+        attr_command=attr_command,
+        attr_properties=attr_properties,
+        attr_device_id=attr_device_id,
     )
-    properties = _coerce_command_properties(raw_properties)
-    properties_summary = summarize_service_properties(properties)
 
     device, coordinator = await get_device_and_coordinator(hass, call)
     is_alias_resolution = log_send_command_call(
-        resolved_requested_device_id,
+        request.requested_device_id,
         device.serial,
-        command,
-        properties_summary,
+        request.command,
+        request.properties_summary,
     )
 
     await async_send_command_with_service_errors(
         coordinator,
         device,
-        command=command,
-        properties=properties,
-        requested_device_id=resolved_requested_device_id,
+        command=request.command,
+        properties=request.properties,
+        requested_device_id=request.requested_device_id,
         failure_log=(
             "send_command failed (command=%s, device_id=%s, "
             "resolved_serial=%s, failure=%s)"
@@ -244,6 +277,6 @@ async def async_handle_send_command(
     )
     return build_send_command_result(
         device.serial,
-        requested_device_id=resolved_requested_device_id,
+        requested_device_id=request.requested_device_id,
         is_alias_resolution=is_alias_resolution,
     )
