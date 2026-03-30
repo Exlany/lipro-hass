@@ -191,6 +191,56 @@ def test_resolve_device_status_batch_size_for_non_positive_total_devices() -> No
         == 5
     )
 
+
+@pytest.mark.asyncio
+async def test_query_with_fallback_rejects_negative_small_subset_threshold(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(status_fallback_module, "_SMALL_SUBSET_BATCH_QUERY_THRESHOLD", -1)
+
+    with pytest.raises(
+        ValueError,
+        match="small_subset_batch_query_threshold must be greater than or equal to 0",
+    ):
+        await query_with_fallback(
+            path="/v2/status/device",
+            body_key="deviceIdList",
+            ids=["a", "b"],
+            item_name="device",
+            iot_request=AsyncMock(return_value={"data": [{"deviceId": "a"}]}),
+            extract_data_list=_extract_rows,
+            is_retriable_device_error=lambda _: True,
+            lipro_api_error=_DummyApiError,
+            normalize_response_code=_normalize_response_code,
+            expected_offline_codes=(140003, "140003"),
+            logger=MagicMock(),
+        )
+
+
+@pytest.mark.asyncio
+async def test_query_with_fallback_rejects_non_positive_small_subset_batch_size(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(status_fallback_module, "_SMALL_SUBSET_BATCH_SIZE", 0)
+
+    with pytest.raises(
+        ValueError,
+        match="small_subset_batch_size must be greater than 0",
+    ):
+        await query_with_fallback(
+            path="/v2/status/device",
+            body_key="deviceIdList",
+            ids=["a", "b"],
+            item_name="device",
+            iot_request=AsyncMock(return_value={"data": [{"deviceId": "a"}]}),
+            extract_data_list=_extract_rows,
+            is_retriable_device_error=lambda _: True,
+            lipro_api_error=_DummyApiError,
+            normalize_response_code=_normalize_response_code,
+            expected_offline_codes=(140003, "140003"),
+            logger=MagicMock(),
+        )
+
 @pytest.mark.asyncio
 async def test_query_items_by_binary_split_returns_empty_when_ids_empty() -> None:
     iot_request = AsyncMock()

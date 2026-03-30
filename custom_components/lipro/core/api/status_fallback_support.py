@@ -100,6 +100,23 @@ class _BinarySplitQueryOptions:
     small_subset_batch_size: int
 
 
+def _build_query_options(
+    *,
+    small_subset_batch_query_threshold: int,
+    small_subset_batch_size: int,
+) -> _BinarySplitQueryOptions:
+    if small_subset_batch_query_threshold < 0:
+        raise ValueError(
+            'small_subset_batch_query_threshold must be greater than or equal to 0'
+        )
+    if small_subset_batch_size <= 0:
+        raise ValueError('small_subset_batch_size must be greater than 0')
+    return _BinarySplitQueryOptions(
+        small_subset_batch_query_threshold=small_subset_batch_query_threshold,
+        small_subset_batch_size=small_subset_batch_size,
+    )
+
+
 def _build_query_context(
     *,
     path: str,
@@ -356,7 +373,7 @@ async def query_items_by_binary_split_impl(
         logger=logger,
         build_query_payload=build_query_payload,
     )
-    options = _BinarySplitQueryOptions(
+    options = _build_query_options(
         small_subset_batch_query_threshold=small_subset_batch_query_threshold,
         small_subset_batch_size=small_subset_batch_size,
     )
@@ -570,7 +587,7 @@ async def query_with_fallback_impl(
         logger=logger,
         build_query_payload=build_query_payload,
     )
-    options = _BinarySplitQueryOptions(
+    options = _build_query_options(
         small_subset_batch_query_threshold=small_subset_batch_query_threshold,
         small_subset_batch_size=small_subset_batch_size,
     )
