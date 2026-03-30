@@ -99,3 +99,16 @@ def test_parse_filter_config_handles_multiple_separators():
     assert "device2" in config.did.values
     assert "device3" in config.did.values
     assert "device4" in config.did.values
+
+
+def test_parse_filter_config_normalizes_mode_case_and_mixed_separators():
+    """Runtime filter parsing should match UI-side codec normalization."""
+    config = parse_filter_config(
+        {
+            CONF_DEVICE_FILTER_HOME_MODE: " INCLUDE ",
+            CONF_DEVICE_FILTER_HOME_LIST: "Main Home\r\nGuest Home;Lobby",
+        }
+    )
+
+    assert config.home.mode == DEVICE_FILTER_MODE_INCLUDE
+    assert config.home.values == frozenset({"main home", "guest home", "lobby"})

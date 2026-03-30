@@ -6,7 +6,6 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 import json
 import logging
-import re
 
 from custom_components.lipro.const.config import (
     CONF_DEVICE_FILTER_DID_LIST,
@@ -20,14 +19,15 @@ from custom_components.lipro.const.config import (
     DEVICE_FILTER_MODE_EXCLUDE,
     DEVICE_FILTER_MODE_INCLUDE,
     DEVICE_FILTER_MODE_OFF,
-    MAX_DEVICE_FILTER_LIST_CHARS,
-    MAX_DEVICE_FILTER_LIST_ITEMS,
 )
 
+from ....device_filter_codec import (
+    normalize_device_filter_mode,
+    parse_device_filter_values,
+)
 from ...types import PropertyValue
 
 _LOGGER = logging.getLogger(__name__)
-_FILTER_LIST_SPLIT_RE = re.compile(r"[\n,;]+")
 _VALID_FILTER_MODES = frozenset(
     {
         DEVICE_FILTER_MODE_OFF,
@@ -272,33 +272,18 @@ def parse_filter_config(options: Mapping[str, PropertyValue]) -> DeviceFilterCon
 
 
 def _parse_filter_rule(*, mode: str, list_str: str) -> DeviceFilterRule:
-    """Parse single filter rule from mode and list string.
+    """Parse single filter rule from mode and list string."""
+    normalized_mode = normalize_device_filter_mode(mode)
+    if normalized_mode != mode and mode not in _VALID_FILTER_MODES:
+        _LOGGER.warning("Invalid filter mode '%s', using %s", mode, normalized_mode.upper())
 
-    Args:
-        mode: Filter mode (off/include/exclude)
-        list_str: Comma/newline separated list of values
+    if normalized_mode == DEVICE_FILTER_MODE_OFF:
+        return DeviceFilterRule(mode=normalized_mode, values=frozenset())
 
-    Returns:
-        Parsed DeviceFilterRule
-    """
-    if mode not in _VALID_FILTER_MODES:
-        _LOGGER.warning("Invalid filter mode '%s', using OFF", mode)
-        mode = DEVICE_FILTER_MODE_OFF
-
-    if mode == DEVICE_FILTER_MODE_OFF:
-        return DeviceFilterRule(mode=mode, values=frozenset())
-
-    # Parse and validate list
-    list_str = list_str[:MAX_DEVICE_FILTER_LIST_CHARS]
-    items = [
-        item.strip() for item in _FILTER_LIST_SPLIT_RE.split(list_str) if item.strip()
-    ]
-    items = items[:MAX_DEVICE_FILTER_LIST_ITEMS]
-
-    # Normalize to lowercase
-    normalized_items = [item.lower() for item in items]
-
-    return DeviceFilterRule(mode=mode, values=frozenset(normalized_items))
+    return DeviceFilterRule(
+        mode=normalized_mode,
+        values=parse_device_filter_values(list_str),
+    )
 
 
 __all__ = [

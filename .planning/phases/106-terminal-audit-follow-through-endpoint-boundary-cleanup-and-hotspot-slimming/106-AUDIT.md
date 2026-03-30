@@ -41,7 +41,12 @@
    - After: reusable field builders + spec tables
    - Impact: config-surface growth no longer requires extending monolithic methods
 
-4. **ADR terminology corrected**
+4. **Device-filter codec convergence begun**
+   - Before: options-flow normalization and runtime parsing followed similar but duplicated semantics
+   - After: both sides share one codec family for mode normalization and list tokenization
+   - Impact: lowers UI/runtime drift risk without coupling flow back into runtime internals
+
+5. **ADR terminology corrected**
    - Before: `Client` still named as one architectural layer
    - After: aligned to `Protocol façade / transport collaborators`
    - Impact: doc language now better matches ADR-0005 and current formal topology

@@ -6,6 +6,7 @@ from custom_components.lipro.const.config import (
     DEVICE_FILTER_MODE_EXCLUDE,
     DEVICE_FILTER_MODE_OFF,
 )
+from custom_components.lipro.core import device_filter_codec
 from custom_components.lipro.core.coordinator.runtime.device import (
     filter as filter_module,
 )
@@ -18,7 +19,7 @@ from custom_components.lipro.core.coordinator.runtime.device.filter import (
 
 def test_parse_filter_rule_stops_when_item_cap_is_zero(monkeypatch) -> None:
     """Test that filter rule parsing respects item cap."""
-    monkeypatch.setattr(filter_module, "MAX_DEVICE_FILTER_LIST_ITEMS", 0)
+    monkeypatch.setattr(device_filter_codec, "MAX_DEVICE_FILTER_LIST_ITEMS", 0)
 
     rule = filter_module._parse_filter_rule(mode="include", list_str="home_a,home_b")
     assert rule.values == frozenset()
@@ -26,7 +27,7 @@ def test_parse_filter_rule_stops_when_item_cap_is_zero(monkeypatch) -> None:
 
 def test_parse_filter_rule_truncates_long_list_string(monkeypatch) -> None:
     """Test that filter rule parsing truncates long strings."""
-    monkeypatch.setattr(filter_module, "MAX_DEVICE_FILTER_LIST_CHARS", 5)
+    monkeypatch.setattr(device_filter_codec, "MAX_DEVICE_FILTER_LIST_CHARS", 5)
 
     rule = filter_module._parse_filter_rule(mode="include", list_str="ABCDE12345")
     assert rule.values == frozenset({"abcde"})

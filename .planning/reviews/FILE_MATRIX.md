@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 733
+**Python files total:** 734
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -149,7 +149,7 @@
 | `custom_components/lipro/core/coordinator/runtime/command_runtime_support.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 | 保留 | command-runtime local request/summary support collaborator |
 | `custom_components/lipro/core/coordinator/runtime/device/__init__.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/device/batch_optimizer.py` | Runtime | Phase 5 | 重构 | - |
-| `custom_components/lipro/core/coordinator/runtime/device/filter.py` | Runtime | Phase 5 | 重构 | - |
+| `custom_components/lipro/core/coordinator/runtime/device/filter.py` | Runtime | Phase 5 / 106 | 重构 | runtime consumer of shared device-filter codec and inclusion semantics |
 | `custom_components/lipro/core/coordinator/runtime/device/refresh_strategy.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/device/snapshot.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/device/snapshot_models.py` | Runtime | Phase 33 | 保留 | typed snapshot container + rejection contract home |
@@ -212,6 +212,7 @@
 | `custom_components/lipro/core/device/state_fields.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/device/state_getters.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/device/state_math.py` | Domain | Phase 4 | 重构 | - |
+| `custom_components/lipro/core/device_filter_codec.py` | Cross-cutting | Phase 106 | 保留 | shared device-filter option codec for UI/runtime normalization |
 | `custom_components/lipro/core/exceptions.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/mqtt/__init__.py` | Protocol | Phase 2.5 / 7 / 17 | 迁移适配 | package export intentionally minimal; no concrete transport export |
 | `custom_components/lipro/core/mqtt/connection_manager.py` | Protocol | Phase 2.5 | 重构 | - |
@@ -281,7 +282,7 @@
 | `custom_components/lipro/flow/__init__.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/flow/credentials.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/flow/login.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/flow/options_flow.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/flow/options_flow.py` | Control | Phase 3 / 106 | 保留 | slimmer schema composition and shared device-filter option codec consumer |
 | `custom_components/lipro/flow/schemas.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/flow/submission.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/headless/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |

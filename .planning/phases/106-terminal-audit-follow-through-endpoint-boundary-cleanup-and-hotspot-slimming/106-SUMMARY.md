@@ -6,6 +6,7 @@
 - REST endpoint payload adapter no longer pierces private auth internals
 - `query_device_status()` now delegates task construction, execution, and merge concerns to smaller helpers
 - `options_flow` now builds init/advanced schemas via reusable helper functions and spec tuples
+- options-flow normalization and runtime device-filter parsing now share one codec family
 - ADR-0001 terminology now aligns better with current `facade / transport collaborator` vocabulary
 
 ## Why It Matters

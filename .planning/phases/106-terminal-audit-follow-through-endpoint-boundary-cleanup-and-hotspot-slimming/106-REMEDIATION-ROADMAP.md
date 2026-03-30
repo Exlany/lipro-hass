@@ -21,10 +21,6 @@
 - target files: `core/coordinator/runtime/device/snapshot.py`, adjacent runtime snapshot helpers/tests
 - purpose: shrink snapshot assembly carrier and isolate formatting vs sourcing vs arbitration logic
 
-### Future Phase Seed D: Device-filter codec convergence
-- target files: `flow/options_flow.py`, `core/coordinator/runtime/device/filter.py`, related options/runtime tests
-- purpose: make UI-side normalization and runtime-side parsing share one canonical codec story
-
 ### Future Phase Seed E: MQTT transport-runtime de-friendization
 - target files: `core/mqtt/transport_runtime.py`, `core/mqtt/transport.py`, adjacent runtime lifecycle tests
 - purpose: remove whole-file private-state reach-through and replace it with explicit owner/state contract
