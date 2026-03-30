@@ -89,6 +89,41 @@ class _BinarySplitAccumulator:
         )
 
 
+def _build_query_context(
+    *,
+    path: str,
+    body_key: str,
+    item_name: str,
+    iot_request: IoTRequest,
+    extract_data_list: ExtractDataList,
+    is_retriable_device_error: IsRetriableDeviceError,
+    lipro_api_error: type[Exception],
+    normalize_response_code: NormalizeResponseCode,
+    logger: logging.Logger,
+    build_query_payload: BuildQueryPayload,
+) -> _BinarySplitQueryContext:
+    return _BinarySplitQueryContext(
+        path=path,
+        body_key=body_key,
+        item_name=item_name,
+        iot_request=iot_request,
+        extract_data_list=extract_data_list,
+        is_retriable_device_error=is_retriable_device_error,
+        lipro_api_error=lipro_api_error,
+        normalize_response_code=normalize_response_code,
+        logger=logger,
+        build_query_payload=build_query_payload,
+    )
+
+
+def _record_fallback_depth_if_needed(
+    record_fallback_depth: RecordFallbackDepth | None,
+    depth: int,
+) -> None:
+    if record_fallback_depth is not None:
+        record_fallback_depth(depth)
+
+
 def log_batch_query_fallback(
     *,
     context: _BinarySplitQueryContext,
@@ -317,7 +352,7 @@ async def query_items_by_binary_split_impl(
     if not ids:
         return [], 0, {}, 0
 
-    context = _BinarySplitQueryContext(
+    context = _build_query_context(
         path=path,
         body_key=body_key,
         item_name=item_name,
@@ -379,6 +414,63 @@ def log_empty_fallback_summary(
     )
 
 
+async def _query_with_batch_fallback(
+    *,
+    context: _BinarySplitQueryContext,
+    err: Exception,
+    expected_offline_codes: tuple[int | str, ...],
+    path: str,
+    body_key: str,
+    ids: list[str],
+    item_name: str,
+    iot_request: IoTRequest,
+    extract_data_list: ExtractDataList,
+    is_retriable_device_error: IsRetriableDeviceError,
+    lipro_api_error: type[Exception],
+    normalize_response_code: NormalizeResponseCode,
+    logger: logging.Logger,
+    build_query_payload: BuildQueryPayload,
+    small_subset_batch_query_threshold: int,
+    small_subset_batch_size: int,
+) -> tuple[MappingRows, int]:
+    batch_code = log_batch_query_fallback(
+        context=context,
+        err=err,
+        expected_offline_codes=expected_offline_codes,
+    )
+    (
+        all_results,
+        failed_single_queries,
+        single_error_codes,
+        max_fallback_depth,
+    ) = await query_items_by_binary_split_impl(
+        path=path,
+        body_key=body_key,
+        ids=ids,
+        item_name=item_name,
+        iot_request=iot_request,
+        extract_data_list=extract_data_list,
+        is_retriable_device_error=is_retriable_device_error,
+        lipro_api_error=lipro_api_error,
+        normalize_response_code=normalize_response_code,
+        logger=logger,
+        build_query_payload=build_query_payload,
+        small_subset_batch_query_threshold=small_subset_batch_query_threshold,
+        small_subset_batch_size=small_subset_batch_size,
+    )
+    log_empty_fallback_summary(
+        path=path,
+        item_name=item_name,
+        batch_code=batch_code,
+        ids=ids,
+        all_results=all_results,
+        failed_single_queries=failed_single_queries,
+        single_error_codes=single_error_codes,
+        logger=logger,
+    )
+    return all_results, max_fallback_depth
+
+
 async def query_with_fallback_impl(
     *,
     path: str,
@@ -398,7 +490,7 @@ async def query_with_fallback_impl(
     record_fallback_depth: RecordFallbackDepth | None = None,
 ) -> MappingRows:
     """Query API with binary-split fallback on retriable device errors."""
-    context = _BinarySplitQueryContext(
+    context = _build_query_context(
         path=path,
         body_key=body_key,
         item_name=item_name,
@@ -412,24 +504,16 @@ async def query_with_fallback_impl(
     )
     try:
         result_rows = await context.query_rows(ids, semaphore=asyncio.Semaphore(1))
-        if record_fallback_depth is not None:
-            record_fallback_depth(0)
+        _record_fallback_depth_if_needed(record_fallback_depth, 0)
         return result_rows
     except lipro_api_error as err:
         if not is_retriable_device_error(err):
             raise
 
-        batch_code = log_batch_query_fallback(
+        all_results, max_fallback_depth = await _query_with_batch_fallback(
             context=context,
             err=err,
             expected_offline_codes=expected_offline_codes,
-        )
-        (
-            all_results,
-            failed_single_queries,
-            single_error_codes,
-            max_fallback_depth,
-        ) = await query_items_by_binary_split_impl(
             path=path,
             body_key=body_key,
             ids=ids,
@@ -444,17 +528,9 @@ async def query_with_fallback_impl(
             small_subset_batch_query_threshold=small_subset_batch_query_threshold,
             small_subset_batch_size=small_subset_batch_size,
         )
-        if record_fallback_depth is not None:
-            record_fallback_depth(max_fallback_depth)
-        log_empty_fallback_summary(
-            path=path,
-            item_name=item_name,
-            batch_code=batch_code,
-            ids=ids,
-            all_results=all_results,
-            failed_single_queries=failed_single_queries,
-            single_error_codes=single_error_codes,
-            logger=logger,
+        _record_fallback_depth_if_needed(
+            record_fallback_depth,
+            max_fallback_depth,
         )
         return all_results
 

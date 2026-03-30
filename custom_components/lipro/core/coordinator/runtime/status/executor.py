@@ -48,50 +48,36 @@ class StatusExecutor:
         self._apply_properties_update = apply_properties_update
         self._get_device_by_id = get_device_by_id
 
-    async def execute_status_query(
-        self,
-        device_ids: list[str],
+    @staticmethod
+    def _empty_metrics() -> StatusQueryMetrics:
+        return {
+            "duration": 0.0,
+            "device_count": 0,
+            "updated_count": 0,
+            "error": None,
+        }
+
+    @staticmethod
+    def _query_failure_metrics(
+        *,
+        start: float,
+        device_count: int,
+        error: str,
     ) -> StatusQueryMetrics:
-        """Execute status query for a batch of devices.
+        return {
+            "duration": monotonic() - start,
+            "device_count": device_count,
+            "updated_count": 0,
+            "error": error,
+            "apply_errors": None,
+        }
 
-        Args:
-            device_ids: List of device IDs to query
-
-        Returns:
-            Execution metrics including duration and update count
-        """
-        if not device_ids:
-            return {
-                "duration": 0.0,
-                "device_count": 0,
-                "updated_count": 0,
-                "error": None,
-            }
-
-        start = monotonic()
+    async def _apply_status_data(
+        self,
+        status_data: dict[str, PropertyDict],
+    ) -> tuple[int, list[str]]:
         updated_count = 0
-        error: str | None = None
         apply_errors: list[str] = []
-
-        try:
-            status_data = await self._query_device_status(device_ids)
-        except LiproAuthError:
-            raise
-        except _NON_FATAL_STATUS_QUERY_EXCEPTIONS as err:
-            error = str(err)
-            _LOGGER.warning(
-                "Status query failed for %d devices: %s",
-                len(device_ids),
-                error,
-            )
-            duration = monotonic() - start
-            return {
-                "duration": duration,
-                "device_count": len(device_ids),
-                "updated_count": updated_count,
-                "error": error,
-                "apply_errors": None,
-            }
 
         for device_id, properties in status_data.items():
             device = self._get_device_by_id(device_id)
@@ -116,13 +102,49 @@ class StatusExecutor:
             if changed:
                 updated_count += 1
 
-        duration = monotonic() - start
+        return updated_count, apply_errors
+
+    async def execute_status_query(
+        self,
+        device_ids: list[str],
+    ) -> StatusQueryMetrics:
+        """Execute status query for a batch of devices.
+
+        Args:
+            device_ids: List of device IDs to query
+
+        Returns:
+            Execution metrics including duration and update count
+        """
+        if not device_ids:
+            return self._empty_metrics()
+
+        start = monotonic()
+
+        try:
+            status_data = await self._query_device_status(device_ids)
+        except LiproAuthError:
+            raise
+        except _NON_FATAL_STATUS_QUERY_EXCEPTIONS as err:
+            error = str(err)
+            _LOGGER.warning(
+                "Status query failed for %d devices: %s",
+                len(device_ids),
+                error,
+            )
+            return self._query_failure_metrics(
+                start=start,
+                device_count=len(device_ids),
+                error=error,
+            )
+
+        updated_count, apply_errors = await self._apply_status_data(status_data)
 
         return {
-            "duration": duration,
+            "duration": monotonic() - start,
             "device_count": len(device_ids),
             "updated_count": updated_count,
-            "error": error,
+            "error": None,
             "apply_errors": apply_errors or None,
         }
 
