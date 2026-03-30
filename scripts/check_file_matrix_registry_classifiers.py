@@ -7,20 +7,34 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from scripts.check_file_matrix_registry_shared import (
+        ClassifierRule,
+        ExactRuleFamily,
         FileGovernanceRow,
+        PrefixRuleFamily,
+        build_exact_rules,
+        build_prefix_rules,
         row_for_path,
     )
 elif __package__ in {None, ""}:
-    from check_file_matrix_registry_shared import FileGovernanceRow, row_for_path
-else:
-    from scripts.check_file_matrix_registry_shared import (
+    from check_file_matrix_registry_shared import (
+        ClassifierRule,
+        ExactRuleFamily,
         FileGovernanceRow,
+        PrefixRuleFamily,
+        build_exact_rules,
+        build_prefix_rules,
         row_for_path,
     )
-
-
-type ExactRule = tuple[str, tuple[str, str, str, str]]
-type PrefixRule = tuple[str, tuple[str, str, str, str]]
+else:
+    from scripts.check_file_matrix_registry_shared import (
+        ClassifierRule,
+        ExactRuleFamily,
+        FileGovernanceRow,
+        PrefixRuleFamily,
+        build_exact_rules,
+        build_prefix_rules,
+        row_for_path,
+    )
 
 _COMPONENT_CONTROL_ROOT_FILES = {
     "custom_components/lipro/__init__.py",
@@ -44,39 +58,85 @@ _COMPONENT_DOMAIN_PLATFORM_FILES = {
     "custom_components/lipro/update.py",
 }
 
-_COMPONENT_EXACT_RULES: tuple[ExactRule, ...] = (
-    ("custom_components/lipro/core/api/diagnostics_api_ota.py", ("Protocol", "Phase 2", "重构", "OTA diagnostics outward helper home")),
-    ("custom_components/lipro/core/api/diagnostics_api_ota_support.py", ("Protocol", "Phase 2", "重构", "OTA diagnostics mechanics support seam")),
-    ("custom_components/lipro/core/protocol/boundary/mqtt_decoder.py", ("Protocol", "Phase 7.1", "保留", "canonical MQTT topic/payload decode authority")),
-    ("custom_components/lipro/core/mqtt/topics.py", ("Protocol", "Phase 2.5", "重构", "MQTT boundary-backed topic adapter")),
-    ("custom_components/lipro/core/telemetry/json_payloads.py", ("Assurance", "Phase 7.3", "保留", "telemetry helper home for JSON-safe payload builders")),
-    ("custom_components/lipro/core/telemetry/outcomes.py", ("Assurance", "Phase 7.3", "保留", "telemetry helper home for outcome semantics")),
-    ("custom_components/lipro/control/telemetry_surface.py", ("Control", "Phase 7.3", "保留", "-")),
-    ("custom_components/lipro/services/diagnostics/helper_support.py", ("Control", "Phase 3", "保留", "diagnostics service mechanics support seam")),
-    ("custom_components/lipro/control/entry_root_support.py", ("Control", "Phase 103", "保留", "root-entry lazy-load / entry-auth / service-registry adapter support home")),
-    ("custom_components/lipro/control/service_router_command_handlers.py", ("Control", "Phase 104", "保留", "focused command handler family home for service-router callbacks")),
-    ("custom_components/lipro/control/service_router_schedule_handlers.py", ("Control", "Phase 104", "保留", "focused schedule handler family home for service-router callbacks")),
-    ("custom_components/lipro/control/service_router_share_handlers.py", ("Control", "Phase 104", "保留", "focused anonymous-share handler family home for service-router callbacks")),
-    ("custom_components/lipro/control/service_router_diagnostics_handlers.py", ("Control", "Phase 104", "保留", "focused diagnostics/developer handler family home for service-router callbacks")),
-    ("custom_components/lipro/control/service_router_maintenance_handlers.py", ("Control", "Phase 104", "保留", "focused maintenance handler family home for service-router callbacks")),
-    ("custom_components/lipro/core/coordinator/runtime/command_runtime_outcome_support.py", ("Runtime", "Phase 104", "保留", "command-runtime localized outcome support collaborator")),
-    ("custom_components/lipro/core/device/extras_support.py", ("Domain", "Phase 4", "重构", "DeviceExtras payload / panel parsing support helper home")),
+_COMPONENT_EXACT_RULES: tuple[ClassifierRule, ...] = build_exact_rules(
+    ExactRuleFamily(
+        area="Protocol",
+        owner_phase="Phase 2",
+        fate="重构",
+        residual_rows=(
+            ("custom_components/lipro/core/api/diagnostics_api_ota.py", "OTA diagnostics outward helper home"),
+            ("custom_components/lipro/core/api/diagnostics_api_ota_support.py", "OTA diagnostics mechanics support seam"),
+        ),
+    ),
+    ExactRuleFamily(
+        area="Protocol",
+        owner_phase="Phase 7.1",
+        residual_rows=(("custom_components/lipro/core/protocol/boundary/mqtt_decoder.py", "canonical MQTT topic/payload decode authority"),),
+    ),
+    ExactRuleFamily(
+        area="Protocol",
+        owner_phase="Phase 2.5",
+        fate="重构",
+        residual_rows=(("custom_components/lipro/core/mqtt/topics.py", "MQTT boundary-backed topic adapter"),),
+    ),
+    ExactRuleFamily(
+        area="Assurance",
+        owner_phase="Phase 7.3",
+        residual_rows=(
+            ("custom_components/lipro/core/telemetry/json_payloads.py", "telemetry helper home for JSON-safe payload builders"),
+            ("custom_components/lipro/core/telemetry/outcomes.py", "telemetry helper home for outcome semantics"),
+        ),
+    ),
+    ExactRuleFamily(
+        area="Control",
+        owner_phase="Phase 7.3",
+        paths=("custom_components/lipro/control/telemetry_surface.py",),
+    ),
+    ExactRuleFamily(
+        area="Control",
+        owner_phase="Phase 3",
+        residual_rows=(("custom_components/lipro/services/diagnostics/helper_support.py", "diagnostics service mechanics support seam"),),
+    ),
+    ExactRuleFamily(
+        area="Control",
+        owner_phase="Phase 103",
+        residual_rows=(("custom_components/lipro/control/entry_root_support.py", "root-entry lazy-load / entry-auth / service-registry adapter support home"),),
+    ),
+    ExactRuleFamily(
+        area="Control",
+        owner_phase="Phase 104",
+        residual_rows=(
+            ("custom_components/lipro/control/service_router_command_handlers.py", "focused command handler family home for service-router callbacks"),
+            ("custom_components/lipro/control/service_router_schedule_handlers.py", "focused schedule handler family home for service-router callbacks"),
+            ("custom_components/lipro/control/service_router_share_handlers.py", "focused anonymous-share handler family home for service-router callbacks"),
+            ("custom_components/lipro/control/service_router_diagnostics_handlers.py", "focused diagnostics/developer handler family home for service-router callbacks"),
+            ("custom_components/lipro/control/service_router_maintenance_handlers.py", "focused maintenance handler family home for service-router callbacks"),
+        ),
+    ),
+    ExactRuleFamily(
+        area="Runtime",
+        owner_phase="Phase 104",
+        residual_rows=(("custom_components/lipro/core/coordinator/runtime/command_runtime_outcome_support.py", "command-runtime localized outcome support collaborator"),),
+    ),
+    ExactRuleFamily(
+        area="Domain",
+        owner_phase="Phase 4",
+        fate="重构",
+        residual_rows=(("custom_components/lipro/core/device/extras_support.py", "DeviceExtras payload / panel parsing support helper home"),),
+    ),
 )
 
-_COMPONENT_PREFIX_RULES: tuple[PrefixRule, ...] = (
-    ("custom_components/lipro/core/api/", ("Protocol", "Phase 2", "重构", "-")),
-    ("custom_components/lipro/core/protocol/boundary/", ("Protocol", "Phase 7.1", "保留", "-")),
-    ("custom_components/lipro/core/protocol/", ("Protocol", "Phase 2.5", "保留", "-")),
-    ("custom_components/lipro/core/mqtt/", ("Protocol", "Phase 2.5", "重构", "-")),
-    ("custom_components/lipro/core/anonymous_share/", ("Protocol", "Phase 2.6", "保留", "-")),
-    ("custom_components/lipro/core/telemetry/", ("Assurance", "Phase 7.3", "保留", "-")),
-    ("custom_components/lipro/control/", ("Control", "Phase 3", "保留", "-")),
-    ("custom_components/lipro/services/", ("Control", "Phase 3", "保留", "-")),
-    ("custom_components/lipro/flow/", ("Control", "Phase 3", "保留", "-")),
-    ("custom_components/lipro/core/capability/", ("Domain", "Phase 4", "保留", "-")),
-    ("custom_components/lipro/core/device/", ("Domain", "Phase 4", "重构", "-")),
-    ("custom_components/lipro/entities/", ("Domain", "Phase 4", "保留", "-")),
-    ("custom_components/lipro/core/coordinator/", ("Runtime", "Phase 5", "重构", "-")),
+_COMPONENT_PREFIX_RULES: tuple[ClassifierRule, ...] = build_prefix_rules(
+    PrefixRuleFamily(area="Protocol", owner_phase="Phase 2", fate="重构", prefixes=("custom_components/lipro/core/api/",)),
+    PrefixRuleFamily(area="Protocol", owner_phase="Phase 7.1", prefixes=("custom_components/lipro/core/protocol/boundary/",)),
+    PrefixRuleFamily(area="Protocol", owner_phase="Phase 2.5", prefixes=("custom_components/lipro/core/protocol/",)),
+    PrefixRuleFamily(area="Protocol", owner_phase="Phase 2.5", fate="重构", prefixes=("custom_components/lipro/core/mqtt/",)),
+    PrefixRuleFamily(area="Protocol", owner_phase="Phase 2.6", prefixes=("custom_components/lipro/core/anonymous_share/",)),
+    PrefixRuleFamily(area="Assurance", owner_phase="Phase 7.3", prefixes=("custom_components/lipro/core/telemetry/",)),
+    PrefixRuleFamily(area="Control", owner_phase="Phase 3", prefixes=("custom_components/lipro/control/", "custom_components/lipro/services/", "custom_components/lipro/flow/")),
+    PrefixRuleFamily(area="Domain", owner_phase="Phase 4", prefixes=("custom_components/lipro/core/capability/", "custom_components/lipro/entities/")),
+    PrefixRuleFamily(area="Domain", owner_phase="Phase 4", fate="重构", prefixes=("custom_components/lipro/core/device/",)),
+    PrefixRuleFamily(area="Runtime", owner_phase="Phase 5", fate="重构", prefixes=("custom_components/lipro/core/coordinator/",)),
 )
 
 _RUNTIME_TEST_FILES = {
@@ -93,74 +153,94 @@ _DOMAIN_TEST_PREFIXES = (
 
 _CONTROL_TEST_PREFIXES = ("tests/services/", "tests/flows/")
 
-_TEST_EXACT_RULES: tuple[ExactRule, ...] = (
-    ("tests/meta/test_protocol_replay_assets.py", ("Assurance", "Phase 7.4", "保留", "-")),
-    ("tests/meta/test_evidence_pack_authority.py", ("Assurance", "Phase 8", "保留", "-")),
-    ("tests/meta/test_governance_bootstrap_smoke.py", ("Assurance", "Phase 77", "保留", "focused bootstrap smoke guard home")),
-    ("tests/meta/test_governance_route_handoff_smoke.py", ("Assurance", "Phase 79", "保留", "route-handoff gsd fast-path smoke guard home")),
-("tests/meta/governance_followup_route_current_milestones.py", ("Assurance", "Phase 77 / 79", "保留", "governance-route contract + current/latest archive pointer-drift guard")),
-    ("tests/meta/governance_promoted_assets.py", ("Assurance", "Phase 77", "保留", "shared promoted-phase-asset helper home")),
-    ("tests/meta/test_governance_closeout_guards.py", ("Assurance", "Phase 27 / 44 / 49 / 77 / 79", "保留", "closeout + promoted-asset manifest smoke anchor")),
-    ("tests/meta/test_governance_release_contract.py", ("Assurance", "Phase 33 / 77 / 79", "保留", "release/governance workflow anchor suite")),
-    ("tests/meta/test_governance_release_docs.py", ("Assurance", "Phase 79", "保留", "release/docs topic suite home")),
-    ("tests/meta/test_governance_release_continuity.py", ("Assurance", "Phase 79", "保留", "release continuity/custody topic suite home")),
-    ("tests/meta/test_version_sync.py", ("Assurance", "Phase 6 / 77", "保留", "version/runtime metadata sync guard home")),
-    ("tests/harness/__init__.py", ("Assurance", "Phase 7.4", "保留", "-")),
-    ("tests/integration/test_ai_debug_evidence_pack.py", ("Assurance", "Phase 8", "保留", "-")),
-    ("tests/integration/test_telemetry_exporter_integration.py", ("Runtime", "Phase 7.3", "保留", "-")),
-    ("tests/integration/test_protocol_replay_harness.py", ("Assurance", "Phase 7.4", "保留", "-")),
-    ("tests/core/api/test_protocol_replay_rest.py", ("Protocol", "Phase 7.4", "保留", "-")),
-    ("tests/core/mqtt/test_protocol_replay_mqtt.py", ("Protocol", "Phase 7.4", "保留", "-")),
-    ("tests/core/test_init_service_handlers.py", ("Control", "Phase 27", "保留", "-")),
-    ("tests/core/test_init.py", ("Control", "Phase 3 / 7", "保留", "-")),
-    ("tests/core/test_auth_bootstrap.py", ("Cross-cutting", "Phase 18", "保留", "-")),
-    ("tests/conftest.py", ("Assurance", "Phase 6", "保留", "-")),
-    ("tests/conftest_shared.py", ("Assurance", "Phase 6", "保留", "-")),
-    ("tests/coordinator_double.py", ("Assurance", "Phase 103", "保留", "shared coordinator double helper home")),
-    ("tests/topicized_collection.py", ("Assurance", "Phase 103", "保留", "topicized thin-shell collection hook home")),
-    ("tests/meta/test_phase103_root_thinning_guards.py", ("Assurance", "Phase 103", "保留", "focused predecessor guard home for Phase 103 root thinning / test topology / terminology normalization")),
-    ("tests/meta/test_phase104_service_router_runtime_split_guards.py", ("Assurance", "Phase 104", "保留", "focused active-route guard home for Phase 104 service-router/runtime split")),
+_TEST_EXACT_RULES: tuple[ClassifierRule, ...] = build_exact_rules(
+    ExactRuleFamily(area="Assurance", owner_phase="Phase 7.4", paths=("tests/meta/test_protocol_replay_assets.py",)),
+    ExactRuleFamily(area="Assurance", owner_phase="Phase 8", paths=("tests/meta/test_evidence_pack_authority.py",)),
+    ExactRuleFamily(
+        area="Assurance",
+        owner_phase="Phase 77",
+        residual_rows=(("tests/meta/test_governance_bootstrap_smoke.py", "focused bootstrap smoke guard home"),),
+    ),
+    ExactRuleFamily(
+        area="Assurance",
+        owner_phase="Phase 79 / 105",
+        residual_rows=(
+            ("tests/meta/test_governance_route_handoff_smoke.py", "route-handoff gsd fast-path smoke guard home"),
+            ("tests/meta/governance_followup_route_current_milestones.py", "governance-route contract + current/latest archive pointer-drift guard"),
+        ),
+    ),
+    ExactRuleFamily(area="Assurance", owner_phase="Phase 77", residual_rows=(("tests/meta/governance_promoted_assets.py", "shared promoted-phase-asset helper home"),)),
+    ExactRuleFamily(area="Assurance", owner_phase="Phase 79", residual_rows=(("tests/meta/test_governance_release_docs.py", "release/docs topic suite home"), ("tests/meta/test_governance_release_continuity.py", "release continuity/custody topic suite home"))),
+    ExactRuleFamily(area="Assurance", owner_phase="Phase 6 / 77", residual_rows=(("tests/meta/test_version_sync.py", "version/runtime metadata sync guard home"),)),
+    ExactRuleFamily(area="Assurance", owner_phase="Phase 8", paths=("tests/harness/__init__.py", "tests/integration/test_ai_debug_evidence_pack.py", "tests/integration/test_protocol_replay_harness.py")),
+    ExactRuleFamily(area="Runtime", owner_phase="Phase 7.3", paths=("tests/integration/test_telemetry_exporter_integration.py",)),
+    ExactRuleFamily(area="Protocol", owner_phase="Phase 7.4", paths=("tests/core/api/test_protocol_replay_rest.py", "tests/core/mqtt/test_protocol_replay_mqtt.py")),
+    ExactRuleFamily(area="Control", owner_phase="Phase 27", paths=("tests/core/test_init_service_handlers.py",)),
+    ExactRuleFamily(area="Control", owner_phase="Phase 3 / 7", paths=("tests/core/test_init.py",)),
+    ExactRuleFamily(area="Cross-cutting", owner_phase="Phase 18", paths=("tests/core/test_auth_bootstrap.py",)),
+    ExactRuleFamily(area="Assurance", owner_phase="Phase 6", paths=("tests/conftest.py", "tests/conftest_shared.py")),
+    ExactRuleFamily(
+        area="Assurance",
+        owner_phase="Phase 103",
+        residual_rows=(
+            ("tests/coordinator_double.py", "shared coordinator double helper home"),
+            ("tests/topicized_collection.py", "topicized thin-shell collection hook home"),
+            ("tests/meta/test_phase103_root_thinning_guards.py", "focused predecessor guard home for Phase 103 root thinning / test topology / terminology normalization"),
+        ),
+    ),
+    ExactRuleFamily(
+        area="Assurance",
+        owner_phase="Phase 104",
+        residual_rows=(("tests/meta/test_phase104_service_router_runtime_split_guards.py", "focused predecessor guard home for Phase 104 service-router/runtime split"),),
+    ),
+    ExactRuleFamily(
+        area="Assurance",
+        owner_phase="Phase 105",
+        residual_rows=(
+            ("tests/meta/governance_followup_route_specs.py", "shared follow-up route spec + planning-doc snapshot helper home"),
+            ("tests/meta/test_phase105_governance_freeze_guards.py", "focused active-route guard home for Phase 105 governance freeze"),
+        ),
+    ),
 )
 
-_TEST_PREFIX_RULES: tuple[PrefixRule, ...] = (
-    ("tests/meta/", ("Assurance", "Phase 6", "保留", "-")),
-    ("tests/harness/evidence_pack/", ("Assurance", "Phase 8", "保留", "-")),
-    ("tests/harness/protocol/", ("Assurance", "Phase 7.4", "保留", "-")),
-    ("tests/snapshots/", ("Assurance", "Phase 6", "保留", "-")),
-    ("tests/core/mqtt/", ("Protocol", "Phase 2.5 / 6", "保留", "-")),
-    ("tests/core/coordinator/", ("Runtime", "Phase 5 / 6", "保留", "-")),
-    ("tests/integration/", ("Runtime", "Phase 5 / 6", "保留", "-")),
-    ("tests/core/api/", ("Protocol", "Phase 2", "保留", "-")),
-    ("tests/core/telemetry/", ("Assurance", "Phase 7.3", "保留", "-")),
-    ("tests/core/capability/", ("Domain", "Phase 4", "保留", "-")),
-    ("tests/core/device/", ("Domain", "Phase 4", "保留", "-")),
-    ("tests/entities/", ("Domain", "Phase 4", "保留", "-")),
-    ("tests/platforms/", ("Domain", "Phase 4", "保留", "-")),
-    ("tests/services/", ("Control", "Phase 3 / 7", "保留", "-")),
-    ("tests/flows/", ("Control", "Phase 3 / 7", "保留", "-")),
-    ("tests/helpers/", ("Assurance", "Phase 6", "保留", "-")),
+_TEST_PREFIX_RULES: tuple[ClassifierRule, ...] = build_prefix_rules(
+    PrefixRuleFamily(area="Assurance", owner_phase="Phase 6", prefixes=("tests/meta/", "tests/snapshots/", "tests/helpers/")),
+    PrefixRuleFamily(area="Assurance", owner_phase="Phase 8", prefixes=("tests/harness/evidence_pack/",)),
+    PrefixRuleFamily(area="Assurance", owner_phase="Phase 7.4", prefixes=("tests/harness/protocol/",)),
+    PrefixRuleFamily(area="Protocol", owner_phase="Phase 2.5 / 6", prefixes=("tests/core/mqtt/",)),
+    PrefixRuleFamily(area="Runtime", owner_phase="Phase 5 / 6", prefixes=("tests/core/coordinator/", "tests/integration/")),
+    PrefixRuleFamily(area="Protocol", owner_phase="Phase 2", prefixes=("tests/core/api/",)),
+    PrefixRuleFamily(area="Assurance", owner_phase="Phase 7.3", prefixes=("tests/core/telemetry/",)),
+    PrefixRuleFamily(area="Domain", owner_phase="Phase 4", prefixes=("tests/core/capability/", "tests/core/device/", "tests/entities/", "tests/platforms/")),
+    PrefixRuleFamily(area="Control", owner_phase="Phase 3 / 7", prefixes=("tests/services/", "tests/flows/")),
 )
 
-_SCRIPT_EXACT_RULES: tuple[ExactRule, ...] = (
-    ("scripts/export_ai_debug_evidence_pack.py", ("Assurance", "Phase 8", "保留", "-")),
-    ("scripts/check_file_matrix_registry_shared.py", ("Assurance", "Phase 79", "保留", "registry shared type + row builder home")),
-    ("scripts/check_file_matrix_registry_overrides.py", ("Assurance", "Phase 79", "保留", "registry override-family home")),
-    ("scripts/check_file_matrix_registry_classifiers.py", ("Assurance", "Phase 79", "保留", "registry classifier-rule home")),
+_SCRIPT_EXACT_RULES: tuple[ClassifierRule, ...] = build_exact_rules(
+    ExactRuleFamily(area="Assurance", owner_phase="Phase 8", paths=("scripts/export_ai_debug_evidence_pack.py",)),
+    ExactRuleFamily(
+        area="Assurance",
+        owner_phase="Phase 79 / 105",
+        residual_rows=(
+            ("scripts/check_file_matrix_registry_shared.py", "registry shared type + row/family builder home"),
+            ("scripts/check_file_matrix_registry_overrides.py", "registry override-family home"),
+            ("scripts/check_file_matrix_registry_classifiers.py", "registry classifier-rule home"),
+        ),
+    ),
 )
 
-_SCRIPT_PREFIX_RULES: tuple[PrefixRule, ...] = (
-    ("scripts/", ("Assurance", "Phase 6 / 7", "保留", "-")),
+_SCRIPT_PREFIX_RULES: tuple[ClassifierRule, ...] = build_prefix_rules(
+    PrefixRuleFamily(area="Assurance", owner_phase="Phase 6 / 7", prefixes=("scripts/",)),
 )
 
 
-def _match_exact_rule(path: str, rules: Sequence[ExactRule]) -> FileGovernanceRow | None:
+def _match_exact_rule(path: str, rules: Sequence[ClassifierRule]) -> FileGovernanceRow | None:
     for candidate, (area, owner_phase, fate, residual) in rules:
         if path == candidate:
             return row_for_path(path, area, owner_phase, fate, residual)
     return None
 
 
-def _match_prefix_rule(path: str, rules: Sequence[PrefixRule]) -> FileGovernanceRow | None:
+def _match_prefix_rule(path: str, rules: Sequence[ClassifierRule]) -> FileGovernanceRow | None:
     for prefix, (area, owner_phase, fate, residual) in rules:
         if path.startswith(prefix):
             return row_for_path(path, area, owner_phase, fate, residual)

@@ -1,3 +1,7 @@
+---
+requirements-completed: [DOC-09, QLT-43]
+---
+
 # 103-03 Summary
 
 - 新增 ADR-0005，明确 `support / surface / wiring / handlers / facade` 的术语裁决。

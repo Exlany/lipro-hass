@@ -7,7 +7,7 @@
 | `ARC-26` | passed | `custom_components/lipro/__init__.py`, `custom_components/lipro/control/entry_root_support.py`, `103-01-SUMMARY.md` |
 | `TST-35` | passed | `tests/conftest.py`, `tests/topicized_collection.py`, `tests/coordinator_double.py`, `103-02-SUMMARY.md` |
 | `DOC-09` | passed | `docs/adr/0005-entry-surface-terminology-contract.md`, `docs/developer_architecture.md`, `103-03-SUMMARY.md` |
-| `QLT-43` | pending re-verify | focused pytest + governance guards + `ruff` + `mypy` + `gsd-tools` route proof |
+| `QLT-43` | passed | focused pytest + governance guards + `ruff` + `mypy` + `gsd-tools` route proof + repo-wide validation |
 
 ## Focused Gates
 

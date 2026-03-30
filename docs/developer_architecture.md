@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `v1.29 / Phase 104` active-route continuation (`2026-03-28`)
-> **Current route alignment**: `v1.29 active route / Phase 104 complete / latest archived baseline = v1.28` (`2026-03-28`)
+> **Last aligned through**: `v1.29 / Phase 105` active-route freeze (`2026-03-30`)
+> **Current route alignment**: `v1.29 active route / Phase 105 complete / latest archived baseline = v1.28` (`2026-03-30`)
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
@@ -300,4 +300,11 @@ custom_components/lipro/
 - `Phase 104` 把 `control/service_router_handlers.py` 收窄为 thin family index，真正的 callback family 已拆到 `service_router_{command,schedule,share,diagnostics,maintenance}_handlers.py`。
 - `service_router.py` 继续是 formal control callback home；本 phase 没有把 family split 反向讲成第二条 control-plane root。
 - `command_runtime.py` 继续是 formal command-runtime orchestration home，而 `command_runtime_outcome_support.py` 只承接 outcome bookkeeping、command-result failure normalization 与 reauth error handling。
-- `Phase 105` 才继续处理 governance rule datafication / milestone freeze；`Phase 104` 不把未完成 closeout 伪装成已归档事实。
+- `Phase 104` 现在作为 completed predecessor bundle 保持可见性；active-route freeze 已上移到 `Phase 105`，因此不得再把 Phase 104 叙述成 current selector。
+
+## Phase 105 Governance Rule Datafication / Milestone Freeze Note
+
+- `tests/meta/governance_followup_route_specs.py` 现在承载 current-milestone / closeout / continuation follow-up route 的共享 case/spec truth，避免三套 governance suites 继续复制粘贴同一组期望与台账路径。
+- `scripts/check_file_matrix_registry_shared.py`、`scripts/check_file_matrix_registry_classifiers.py` 与 override lineage sync 共同把 file-matrix registry family 改成 data-driven builder；ownership / guard-home / predecessor-vs-active wording 不再散落在 tuple folklore 中。
+- `tests/meta/test_phase104_service_router_runtime_split_guards.py` 退为 predecessor visibility guard，`tests/meta/test_phase105_governance_freeze_guards.py` 成为唯一 active-route freeze guard；这保证 `v1.29` 当前 selector、predecessor bundle 与 promoted closeout bundle 分工清晰。
+- `v1.29` 当前仍是 active milestone，但已进入 milestone-freeze ready；formal next step 只有 `$gsd-complete-milestone v1.29`，不得再把治理数据化描述成待规划的后续口头任务。

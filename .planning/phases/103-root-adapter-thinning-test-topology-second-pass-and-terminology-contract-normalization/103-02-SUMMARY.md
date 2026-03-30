@@ -1,3 +1,7 @@
+---
+requirements-completed: [TST-35]
+---
+
 # 103-02 Summary
 
 - 把 topicized thin-shell collection hooks 抽到 `tests/topicized_collection.py`。

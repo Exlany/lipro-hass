@@ -33,7 +33,7 @@ def _read(path: Path) -> str:
     return path.read_text(encoding='utf-8')
 
 
-def test_phase103_predecessor_bundle_remains_visible_under_phase104_route() -> None:
+def test_phase103_predecessor_bundle_remains_visible_under_phase105_route() -> None:
     project_text = _read(_PROJECT)
     roadmap_text = _read(_ROADMAP)
     requirements_text = _read(_REQUIREMENTS)

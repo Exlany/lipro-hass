@@ -436,6 +436,13 @@ phases:
   - 102-03-SUMMARY.md
   - 102-VERIFICATION.md
   - 102-VALIDATION.md
+  105-governance-rule-datafication-and-milestone-freeze:
+  - 105-01-SUMMARY.md
+  - 105-02-SUMMARY.md
+  - 105-03-SUMMARY.md
+  - 105-SUMMARY.md
+  - 105-VERIFICATION.md
+  - 105-VALIDATION.md
 policy:
   default_identity: execution-trace
   promotion_contract: Only assets listed under `phases` count as long-term governance/CI

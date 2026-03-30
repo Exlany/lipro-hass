@@ -1,4 +1,4 @@
-"""Focused route-handoff smoke guards for archived-only handoff and latest-archive truth."""
+"""Focused route-handoff smoke guards for active-route handoff and latest-archive truth."""
 
 from __future__ import annotations
 
@@ -18,11 +18,13 @@ from .governance_contract_helpers import (
 )
 from .governance_current_truth import (
     CURRENT_MILESTONE,
+    CURRENT_MILESTONE_COMPLETED_PHASES,
     CURRENT_MILESTONE_DEFAULT_NEXT,
+    CURRENT_MILESTONE_PENDING_PHASES,
     CURRENT_MILESTONE_PHASES,
     CURRENT_MILESTONE_PLAN_COUNT,
     CURRENT_MILESTONE_STATUS,
-    CURRENT_MILESTONE_SUMMARY_COUNT,
+    CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE,
     CURRENT_PHASE,
     CURRENT_ROUTE,
     HAS_ACTIVE_MILESTONE,
@@ -59,16 +61,10 @@ def _run_gsd_tools(*args: str) -> dict[str, object]:
 def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
     project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
-    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
-        encoding="utf-8"
-    )
+    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
-    verification_text = (
-        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
-    ).read_text(encoding="utf-8")
-    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(
-        encoding="utf-8"
-    )
+    verification_text = (_ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md").read_text(encoding="utf-8")
+    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(encoding="utf-8")
 
     _assert_current_route_truth(project_text, roadmap_text, state_text)
 
@@ -79,16 +75,10 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
     assert CURRENT_MILESTONE_DEFAULT_NEXT in roadmap_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in requirements_text
-    assert (
-        "## Phase 103 Root Adapter Thinning / Test Topology Second Pass / Terminology Contract Normalization" in verification_text
-    )
-    assert (
-        "## Phase 104 Service-router Family Split / Command-runtime Second-pass Decomposition" in verification_text
-    )
-    assert (
-        "## Phase 101 Anonymous-share Manager / REST Decoder Hotspot Decomposition Freeze"
-        in verification_text
-    )
+    assert "## Phase 103 Root Adapter Thinning / Test Topology Second Pass / Terminology Contract Normalization" in verification_text
+    assert "## Phase 104 Service-router Family Split / Command-runtime Second-pass Decomposition" in verification_text
+    assert "## Phase 105 Governance Rule Datafication / Milestone Freeze" in verification_text
+    assert "## Phase 101 Anonymous-share Manager / REST Decoder Hotspot Decomposition Freeze" in verification_text
     assert CURRENT_ROUTE in verification_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in verification_text
     assert LATEST_ARCHIVED_EVIDENCE_PATH in verification_text
@@ -102,6 +92,7 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
         "tests/meta/test_phase102_governance_portability_guards.py",
         "tests/meta/test_phase103_root_thinning_guards.py",
         "tests/meta/test_phase104_service_router_runtime_split_guards.py",
+        "tests/meta/test_phase105_governance_freeze_guards.py",
     ):
         assert guard in file_matrix_text
     assert "route-handoff gsd fast-path smoke guard home" in file_matrix_text
@@ -111,23 +102,24 @@ def test_gsd_fast_path_matches_current_archived_route_story() -> None:
     progress = _run_gsd_tools("init", "progress")
     phases = _as_mapping_list(progress["phases"])
 
-    assert [_as_str(phase["number"]) for phase in phases] == list(
-        CURRENT_MILESTONE_PHASES
-    )
-    completed_phase_progress = phases[0]
-    assert _as_str(completed_phase_progress["status"]) == "complete"
-    assert completed_phase_progress["plan_count"] == CURRENT_MILESTONE_PLAN_COUNT
-    assert completed_phase_progress["summary_count"] == CURRENT_MILESTONE_SUMMARY_COUNT
-    current_phase_progress = phases[1]
-    assert _as_str(current_phase_progress["number"]) == CURRENT_PHASE
-    assert _as_str(current_phase_progress["status"]) == "complete"
-    assert current_phase_progress["plan_count"] == CURRENT_MILESTONE_PLAN_COUNT
-    assert current_phase_progress["summary_count"] == CURRENT_MILESTONE_SUMMARY_COUNT
+    assert [_as_str(phase["number"]) for phase in phases] == list(CURRENT_MILESTONE_PHASES)
+    phase_by_number = {_as_str(phase["number"]): phase for phase in phases}
+
+    for phase_number in CURRENT_MILESTONE_COMPLETED_PHASES:
+        phase_progress = _as_mapping(phase_by_number[phase_number])
+        assert _as_str(phase_progress["status"]) == "complete"
+        assert phase_progress["plan_count"] == CURRENT_MILESTONE_PLAN_COUNT
+        assert phase_progress["summary_count"] == CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE[phase_number]
+
     assert progress["current_phase"] is None
     assert _as_bool(progress["has_work_in_progress"]) is False
-    next_phase = _as_mapping(progress["next_phase"])
-    assert _as_str(next_phase["number"]) == CURRENT_MILESTONE_PHASES[2]
-    assert _as_str(next_phase["status"]) == "not_started"
+
+    if CURRENT_MILESTONE_PENDING_PHASES:
+        next_phase = _as_mapping(progress["next_phase"])
+        assert _as_str(next_phase["number"]) == CURRENT_MILESTONE_PENDING_PHASES[0]
+        assert _as_str(next_phase["status"]) == "not_started"
+    else:
+        assert progress["next_phase"] is None
 
     phase_index = _run_gsd_tools("phase-plan-index", CURRENT_PHASE)
     assert _as_str(phase_index["phase"]) == CURRENT_PHASE
@@ -136,10 +128,9 @@ def test_gsd_fast_path_matches_current_archived_route_story() -> None:
     state = _run_gsd_tools("state", "json")
     assert _as_str(state["milestone"]) == CURRENT_MILESTONE
     assert _as_str(state["status"]) == ("active" if HAS_ACTIVE_MILESTONE else "archived")
-    completed_phase_count = 2 if HAS_ACTIVE_MILESTONE else len(CURRENT_MILESTONE_PHASES)
     assert _as_mapping(state["progress"]) == {
         "total_phases": str(len(CURRENT_MILESTONE_PHASES)),
-        "completed_phases": str(completed_phase_count),
+        "completed_phases": str(len(CURRENT_MILESTONE_COMPLETED_PHASES)),
         "total_plans": str(CURRENT_MILESTONE_PLAN_COUNT),
         "completed_plans": str(CURRENT_MILESTONE_PLAN_COUNT),
     }
@@ -206,6 +197,10 @@ def test_recent_governance_closeout_assets_are_promoted_without_planning_traces(
         (
             "102-governance-portability-verification-stratification-and-open-source-continuity-hardening",
             ("102-01-SUMMARY.md", "102-02-SUMMARY.md", "102-03-SUMMARY.md", "102-VERIFICATION.md", "102-VALIDATION.md"),
+        ),
+        (
+            "105-governance-rule-datafication-and-milestone-freeze",
+            ("105-01-SUMMARY.md", "105-02-SUMMARY.md", "105-03-SUMMARY.md", "105-SUMMARY.md", "105-VERIFICATION.md", "105-VALIDATION.md"),
         ),
     ):
         _assert_promoted_phase_assets(slug, *assets)

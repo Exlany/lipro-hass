@@ -39,6 +39,12 @@ _None currently registered._
 3. residual ledger 已关闭对应条目。
 4. summary 明确记录是“正式删除”还是“仅登记、不删除”。
 
+## Phase 105 Status Update
+
+- 本 phase **无新增 active kill target**；被关闭的是治理规则的重复定义、route freeze 的口径分叉，以及 milestone-closeout handoff 的 conversation-only 残留，而不是新的 file-level delete campaign。
+- `tests/meta/governance_followup_route_specs.py` 与 `scripts/check_file_matrix_registry_*` 的 shared builder/datafication 是 formal governance truth，不是 future delete target。
+- `Phase 103` / `Phase 104` predecessor bundle 与 `Phase 105` promoted closeout bundle 已分别通过 focused guards 与 `.planning/reviews/PROMOTED_PHASE_ASSETS.md` 固定身份；下一步只剩 `$gsd-complete-milestone v1.29`。
+
 ## Phase 65 Status Update
 
 - 本 phase **无新增 file-level kill target**：本轮收口的是 `runtime_access_support.py` 反射味、runtime alias sidecar 与 anonymous-share bool-only submit bridge，这些都在原正式 home 内被消解，而不是通过新增删除门槛维持。

@@ -237,7 +237,7 @@ def test_file_matrix_registry_classifies_phase_79_hotspot_split_files() -> None:
     assert classify_path("scripts/check_file_matrix_registry_overrides.py").owner_phase == "Phase 79"
     assert classify_path("tests/meta/test_governance_release_docs.py").owner_phase == "Phase 79"
     assert classify_path("tests/meta/test_governance_release_continuity.py").owner_phase == "Phase 79"
-    assert classify_path("tests/meta/test_governance_route_handoff_smoke.py").owner_phase == "Phase 79"
+    assert classify_path("tests/meta/test_governance_route_handoff_smoke.py").owner_phase == "Phase 79 / 105"
 
 
 def test_file_matrix_registry_keeps_phase_79_override_family_unique() -> None:

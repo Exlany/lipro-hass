@@ -10,17 +10,20 @@ contract_name: governance-route
 active_milestone:
   version: v1.29
   name: Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization
-  status: active / Phase 104 complete / continuation-ready (2026-03-28)
-  phase: '104'
-  phase_title: Service-router family split and command-runtime second-pass decomposition
-  phase_dir: 104-service-router-family-split-and-command-runtime-second-pass-decomposition
-  route_mode: v1.29 active route / Phase 104 complete / latest archived baseline = v1.28
+  status: active / Phase 105 complete / milestone-freeze ready (2026-03-28)
+  phase: '105'
+  phase_title: Governance rule datafication and milestone freeze
+  phase_dir: 105-governance-rule-datafication-and-milestone-freeze
+  route_mode: v1.29 active route / Phase 105 complete / latest archived baseline =
+    v1.28
 latest_archived:
   version: v1.28
-  name: Governance Portability, Verification Stratification & Open-Source Continuity Hardening
+  name: Governance Portability, Verification Stratification & Open-Source Continuity
+    Hardening
   status: archived / evidence-ready (2026-03-28)
   phase: '102'
-  phase_title: Governance portability, verification stratification, and open-source continuity hardening
+  phase_title: Governance portability, verification stratification, and open-source
+    continuity hardening
   phase_dir: 102-governance-portability-verification-stratification-and-open-source-continuity-hardening
   audit_path: .planning/v1.28-MILESTONE-AUDIT.md
   evidence_path: .planning/reviews/V1_28_EVIDENCE_INDEX.md
@@ -30,8 +33,9 @@ previous_archived:
   name: Final Carry-Forward Eradication & Route Reactivation
   evidence_path: .planning/reviews/V1_27_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.29 active route / Phase 104 complete / latest archived baseline = v1.28
-  default_next_command: $gsd-discuss-phase 105
+  current_route: v1.29 active route / Phase 105 complete / latest archived baseline
+    = v1.28
+  default_next_command: $gsd-complete-milestone v1.29
   latest_archived_evidence_pointer: .planning/reviews/V1_28_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -39,11 +43,11 @@ bootstrap:
 ## v1.29 Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization (Started: 2026-03-28)
 
 **Phase range:** `103 -> 105`
-**Status:** `active / Phase 104 complete / continuation-ready (2026-03-28)`
-**Current route:** `v1.29 active route / Phase 104 complete / latest archived baseline = v1.28`
+**Status:** `active / Phase 105 complete / milestone-freeze ready (2026-03-28)`
+**Current route:** `v1.29 active route / Phase 105 complete / latest archived baseline = v1.28`
 **Latest archived pointer:** latest archived evidence index = `.planning/reviews/V1_28_EVIDENCE_INDEX.md`
 **Latest archived baseline:** `v1.28`
-**Default next command:** `$gsd-discuss-phase 105`
+**Default next command:** `$gsd-complete-milestone v1.29`
 **Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.28`
 **Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.27`
 
@@ -55,7 +59,7 @@ bootstrap:
 **Planned phase story:**
 - `Phase 103`: root adapter thinning, test topology second pass, and terminology contract normalization ✅
 - `Phase 104`: service-router family split and command-runtime second-pass decomposition ✅
-- `Phase 105`: governance rule datafication and milestone freeze ⏳
+- `Phase 105`: governance rule datafication and milestone freeze ✅
 
 ## v1.28 Governance Portability, Verification Stratification & Open-Source Continuity Hardening (Shipped: 2026-03-28; Closeout: 2026-03-28)
 

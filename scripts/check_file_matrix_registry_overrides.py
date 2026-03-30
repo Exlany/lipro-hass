@@ -80,7 +80,7 @@ BASE_OVERRIDE_TRUTH_FAMILIES = (
         ("tests/core/test_init_service_handlers.py", "shared helper root for topicized init service-handler regressions"),
     )),
 
-    OverrideTruthFamily(area="Assurance", owner_phase="Phase 6 / 77 / 79", fate="保留", rows=(
+    OverrideTruthFamily(area="Assurance", owner_phase="Phase 6 / 77 / 79 / 105", fate="保留", rows=(
         ("tests/meta/governance_contract_helpers.py", "shared governance route/doc helper home"),
         ("tests/meta/governance_current_truth.py", "governance-route contract + shared current/latest archive truth helper"),
         ("tests/meta/test_version_sync.py", "version/runtime metadata sync guard home"),
@@ -91,8 +91,8 @@ BASE_OVERRIDE_TRUTH_FAMILIES = (
         ("tests/meta/test_governance_bootstrap_smoke.py", "focused bootstrap smoke guard home"),
     )),
 
-    OverrideTruthFamily(area="Assurance", owner_phase="Phase 27 / 44 / 49 / 77 / 88", fate="保留", rows=(
-        ("tests/meta/test_governance_closeout_guards.py", "closeout + promoted-asset manifest smoke anchor + phase-88 exit-contract bridge"),
+    OverrideTruthFamily(area="Assurance", owner_phase="Phase 27 / 44 / 49 / 77 / 88 / 105", fate="保留", rows=(
+        ("tests/meta/test_governance_closeout_guards.py", "closeout + promoted-asset manifest smoke anchor + milestone-freeze exit-contract bridge"),
     )),
 
     OverrideTruthFamily(area="Assurance", owner_phase="Phase 88", fate="保留", rows=(

@@ -6,7 +6,7 @@
 | --- | --- | --- |
 | `HOT-44` | passed | `custom_components/lipro/control/service_router_handlers.py`, `custom_components/lipro/control/service_router_{command,schedule,share,diagnostics,maintenance}_handlers.py`, `104-01-SUMMARY.md` |
 | `HOT-45` | passed | `custom_components/lipro/core/coordinator/runtime/command_runtime.py`, `custom_components/lipro/core/coordinator/runtime/command_runtime_support.py`, `custom_components/lipro/core/coordinator/runtime/command_runtime_outcome_support.py`, `104-02-SUMMARY.md` |
-| `TST-36` | pending re-verify | focused service-router/runtime suites + governance guards + file-matrix / quality gates |
+| `TST-36` | passed | focused service-router/runtime suites + governance guards + file-matrix / quality gates + repo-wide validation |
 
 ## Focused Gates
 

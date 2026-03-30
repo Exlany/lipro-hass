@@ -112,7 +112,7 @@ def test_phase_88_closeout_contract_aligns_verification_and_file_matrix() -> Non
         "tests/meta/governance_promoted_assets.py": "shared promoted-phase-asset helper home",
         "tests/meta/test_governance_bootstrap_smoke.py": "focused bootstrap smoke guard home",
         "tests/meta/test_governance_route_handoff_smoke.py": "route-handoff gsd fast-path smoke guard home",
-        "tests/meta/test_governance_closeout_guards.py": "closeout + promoted-asset manifest smoke anchor + phase-88 exit-contract bridge",
+        "tests/meta/test_governance_closeout_guards.py": "closeout + promoted-asset manifest smoke anchor + milestone-freeze exit-contract bridge",
         "tests/meta/test_phase88_governance_quality_freeze_guards.py": "focused guard home for phase-88 governance/evidence freeze",
         "tests/meta/governance_followup_route_current_milestones.py": "governance-route contract + current/latest archive pointer-drift guard",
         "tests/meta/test_governance_release_contract.py": "release/governance workflow anchor suite",
@@ -245,5 +245,18 @@ def test_v1_23_promoted_allowlist_exactly_matches_closeout_bundles() -> None:
         "88-SUMMARY.md",
         "88-VERIFICATION.md",
         "88-VALIDATION.md",
+    )
+
+
+
+def test_v1_29_phase105_promoted_allowlist_matches_closeout_bundle() -> None:
+    _assert_exact_promoted_phase_assets(
+        "105-governance-rule-datafication-and-milestone-freeze",
+        "105-01-SUMMARY.md",
+        "105-02-SUMMARY.md",
+        "105-03-SUMMARY.md",
+        "105-SUMMARY.md",
+        "105-VERIFICATION.md",
+        "105-VALIDATION.md",
     )
 

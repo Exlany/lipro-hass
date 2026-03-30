@@ -28,11 +28,11 @@ PLANNING_ROUTE_CONTRACT: dict[str, object] = {
     "active_milestone": {
         "version": "v1.29",
         "name": "Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization",
-        "status": "active / Phase 104 complete / continuation-ready (2026-03-28)",
-        "phase": "104",
-        "phase_title": "Service-router family split and command-runtime second-pass decomposition",
-        "phase_dir": "104-service-router-family-split-and-command-runtime-second-pass-decomposition",
-        "route_mode": "v1.29 active route / Phase 104 complete / latest archived baseline = v1.28",
+        "status": "active / Phase 105 complete / milestone-freeze ready (2026-03-28)",
+        "phase": "105",
+        "phase_title": "Governance rule datafication and milestone freeze",
+        "phase_dir": "105-governance-rule-datafication-and-milestone-freeze",
+        "route_mode": "v1.29 active route / Phase 105 complete / latest archived baseline = v1.28",
     },
     "latest_archived": {
         "version": "v1.28",
@@ -51,8 +51,8 @@ PLANNING_ROUTE_CONTRACT: dict[str, object] = {
         "evidence_path": ".planning/reviews/V1_27_EVIDENCE_INDEX.md",
     },
     "bootstrap": {
-        "current_route": "v1.29 active route / Phase 104 complete / latest archived baseline = v1.28",
-        "default_next_command": "$gsd-discuss-phase 105",
+        "current_route": "v1.29 active route / Phase 105 complete / latest archived baseline = v1.28",
+        "default_next_command": "$gsd-complete-milestone v1.29",
         "latest_archived_evidence_pointer": ".planning/reviews/V1_28_EVIDENCE_INDEX.md",
     },
 }
@@ -178,8 +178,11 @@ else:
     CURRENT_ROUTE_MODE = CURRENT_ROUTE
 
 CURRENT_MILESTONE_PHASES = ("103", "104", "105")
+CURRENT_MILESTONE_COMPLETED_PHASES = ("103", "104", "105")
+CURRENT_MILESTONE_PENDING_PHASES: tuple[str, ...] = ()
 CURRENT_MILESTONE_PLAN_COUNT = 3
-CURRENT_MILESTONE_SUMMARY_COUNT = 3
+CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE = {"103": 3, "104": 3, "105": 4}
+CURRENT_MILESTONE_SUMMARY_COUNT = CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE[CURRENT_PHASE]
 CURRENT_ROUTE_FOCUSED_GUARDS = (
     "tests/meta/test_governance_bootstrap_smoke.py",
     "tests/meta/test_governance_route_handoff_smoke.py",
@@ -197,12 +200,21 @@ CURRENT_ROUTE_FOCUSED_GUARDS = (
     "tests/meta/test_phase102_governance_portability_guards.py",
     "tests/meta/test_phase103_root_thinning_guards.py",
     "tests/meta/test_phase104_service_router_runtime_split_guards.py",
+    "tests/meta/test_phase105_governance_freeze_guards.py",
     "tests/meta/test_public_surface_guards.py",
     "tests/meta/test_dependency_guards.py",
 )
-TESTS_PYTHON_FILE_COUNT = 400
-TESTS_RUNNABLE_FILE_COUNT = 318
-TESTS_META_SUITE_COUNT = 62
+
+
+def _count_test_inventory() -> tuple[int, int, int]:
+    tests_root = _ROOT / "tests"
+    python_files = tuple(tests_root.rglob("*.py"))
+    runnable_files = tuple(path for path in python_files if path.name.startswith("test_"))
+    meta_suites = tuple((tests_root / "meta").glob("test_*.py"))
+    return len(python_files), len(runnable_files), len(meta_suites)
+
+
+TESTS_PYTHON_FILE_COUNT, TESTS_RUNNABLE_FILE_COUNT, TESTS_META_SUITE_COUNT = _count_test_inventory()
 
 CURRENT_ROUTE_PROSE_FORBIDDEN = (
     "v1.20 active route / Phase 75 complete / latest archived baseline = v1.19",
@@ -231,6 +243,7 @@ CURRENT_ROUTE_PROSE_FORBIDDEN = (
     "v1.27 active route / Phase 99 complete / latest archived baseline = v1.26",
     "v1.27 active route / Phase 100 complete / latest archived baseline = v1.26",
     "v1.27 active route / Phase 101 complete / latest archived baseline = v1.26",
+    "v1.29 active route / Phase 104 complete / latest archived baseline = v1.28",
     "no active milestone route / latest archived baseline = v1.20",
     "no active milestone route / latest archived baseline = v1.21",
     "no active milestone route / latest archived baseline = v1.22",
@@ -256,16 +269,19 @@ HISTORICAL_ARCHIVE_TRANSITION_ROUTE_TRUTH = (
 
 __all__ = [
     "CURRENT_MILESTONE",
+    "CURRENT_MILESTONE_COMPLETED_PHASES",
     "CURRENT_MILESTONE_DEFAULT_NEXT",
     "CURRENT_MILESTONE_HEADER",
     "CURRENT_MILESTONE_LABEL",
     "CURRENT_MILESTONE_NAME",
+    "CURRENT_MILESTONE_PENDING_PHASES",
     "CURRENT_MILESTONE_PHASES",
     "CURRENT_MILESTONE_PLAN_COUNT",
     "CURRENT_MILESTONE_ROADMAP_HEADER",
     "CURRENT_MILESTONE_STATE_LABEL",
     "CURRENT_MILESTONE_STATUS",
     "CURRENT_MILESTONE_SUMMARY_COUNT",
+    "CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE",
     "CURRENT_PHASE",
     "CURRENT_PHASE_HEADING",
     "CURRENT_PHASE_TITLE",

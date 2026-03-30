@@ -1,4 +1,4 @@
-"""Focused active-route guards for Phase 104 service-router/runtime decomposition."""
+"""Focused predecessor guards for Phase 104 service-router/runtime decomposition."""
 
 from __future__ import annotations
 
@@ -10,7 +10,6 @@ from .governance_contract_helpers import assert_testing_inventory_snapshot
 from .governance_current_truth import (
     CURRENT_MILESTONE_DEFAULT_NEXT,
     CURRENT_MILESTONE_STATUS,
-    CURRENT_PHASE,
     CURRENT_ROUTE,
 )
 
@@ -33,7 +32,7 @@ def _read(path: Path) -> str:
     return path.read_text(encoding='utf-8')
 
 
-def test_phase104_active_route_bundle_is_current_truth() -> None:
+def test_phase104_predecessor_bundle_remains_visible_under_phase105_route() -> None:
     project_text = _read(_PROJECT)
     roadmap_text = _read(_ROADMAP)
     requirements_text = _read(_REQUIREMENTS)
@@ -57,7 +56,7 @@ def test_phase104_active_route_bundle_is_current_truth() -> None:
 
     assert CURRENT_MILESTONE_STATUS in project_text
     assert CURRENT_MILESTONE_STATUS in roadmap_text
-    assert f'Phase {CURRENT_PHASE}' in state_text
+    assert '### Phase 104: Service-router family split and command-runtime second-pass decomposition' in roadmap_text
     assert 'Phase 104 Service-router Family Split / Command-runtime Second-pass Note' in dev_arch_text
     assert '# Phase 104 Verification' in verification_doc
     assert '# Phase 104 Validation Contract' in validation_doc
@@ -80,13 +79,12 @@ def test_phase104_maps_and_ledgers_project_new_family_homes() -> None:
         'tests/meta/test_phase104_service_router_runtime_split_guards.py',
     ):
         assert path in file_matrix_text
-    assert 'focused active-route guard home for Phase 104 service-router/runtime split' in file_matrix_text
+    assert 'focused predecessor guard home for Phase 104 service-router/runtime split' in file_matrix_text
     assert '## Phase 104 Residual Delta' in residual_text
     assert '## Phase 104 Status Update' in kill_text
     assert '## Phase 104 Testing Freeze' in testing_text
     assert_testing_inventory_snapshot(testing_text)
     assert '## Phase 104 Service-router Family Split / Command-runtime Second-pass Decomposition' in verification_text
-
 
 
 def test_phase104_codeboundaries_keep_thin_index_and_outcome_support_seams() -> None:

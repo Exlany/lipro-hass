@@ -1,3 +1,7 @@
+---
+requirements-completed: [HOT-45]
+---
+
 # 104-02 Summary
 
 - 保持 `custom_components/lipro/core/coordinator/runtime/command_runtime.py` 为 formal orchestration root。

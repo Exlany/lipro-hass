@@ -8,6 +8,12 @@ _None currently registered._
 
 > **Phase 88 freeze note:** 这里的 zero-active posture 是显式 closeout verdict，而不是尚未清点完成的空白。若未来出现新 residual，必须以新的 family 重新登记 owner、exit condition 与 evidence。
 
+## Phase 105 Residual Delta
+
+- `v1.29` active-route residual families 继续保持 zero-active ledger posture；`Phase 105` 的职责是把治理规则数据化与里程碑冻结写回正式真源，而不是创造新的 live residual family。
+- `tests/meta/governance_followup_route_specs.py`、`scripts/check_file_matrix_registry_shared.py` 与 `scripts/check_file_matrix_registry_classifiers.py` 现在承担共享规则真源；remaining work 只剩 `$gsd-complete-milestone v1.29`，不再计作 live technical residual。
+- `Phase 103` / `Phase 104` predecessor bundles 继续保留可见性，但不会重新升级为 active residual；`v1.28` closeout bundle 继续保持 pull-only latest archived baseline 身份。
+
 ## Phase 85 Audit-Routed Carry-Forward
 
 > 下列条目是 `v1.23 / Phase 85` repo-wide terminal audit 明确登记的 carry-forward，并非重新打开已关闭 residual family。

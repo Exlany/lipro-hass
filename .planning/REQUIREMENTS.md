@@ -9,17 +9,20 @@ contract_name: governance-route
 active_milestone:
   version: v1.29
   name: Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization
-  status: active / Phase 104 complete / continuation-ready (2026-03-28)
-  phase: '104'
-  phase_title: Service-router family split and command-runtime second-pass decomposition
-  phase_dir: 104-service-router-family-split-and-command-runtime-second-pass-decomposition
-  route_mode: v1.29 active route / Phase 104 complete / latest archived baseline = v1.28
+  status: active / Phase 105 complete / milestone-freeze ready (2026-03-28)
+  phase: '105'
+  phase_title: Governance rule datafication and milestone freeze
+  phase_dir: 105-governance-rule-datafication-and-milestone-freeze
+  route_mode: v1.29 active route / Phase 105 complete / latest archived baseline =
+    v1.28
 latest_archived:
   version: v1.28
-  name: Governance Portability, Verification Stratification & Open-Source Continuity Hardening
+  name: Governance Portability, Verification Stratification & Open-Source Continuity
+    Hardening
   status: archived / evidence-ready (2026-03-28)
   phase: '102'
-  phase_title: Governance portability, verification stratification, and open-source continuity hardening
+  phase_title: Governance portability, verification stratification, and open-source
+    continuity hardening
   phase_dir: 102-governance-portability-verification-stratification-and-open-source-continuity-hardening
   audit_path: .planning/v1.28-MILESTONE-AUDIT.md
   evidence_path: .planning/reviews/V1_28_EVIDENCE_INDEX.md
@@ -29,8 +32,9 @@ previous_archived:
   name: Final Carry-Forward Eradication & Route Reactivation
   evidence_path: .planning/reviews/V1_27_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.29 active route / Phase 104 complete / latest archived baseline = v1.28
-  default_next_command: $gsd-discuss-phase 105
+  current_route: v1.29 active route / Phase 105 complete / latest archived baseline
+    = v1.28
+  default_next_command: $gsd-complete-milestone v1.29
   latest_archived_evidence_pointer: .planning/reviews/V1_28_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -38,13 +42,13 @@ bootstrap:
 ## Current Milestone (v1.29)
 
 **Milestone Goal:** 把 HA 根入口 thin-adapter 收窄、pytest topology second pass 与术语契约显式化，压回同一条 active 路线，并为 `Phase 105` 的治理规则数据化与 milestone freeze 开路。
-**Milestone status:** `active / Phase 104 complete / continuation-ready (2026-03-28)`
-**Current route mode:** `v1.29 active route / Phase 104 complete / latest archived baseline = v1.28`
+**Milestone status:** `active / Phase 105 complete / milestone-freeze ready (2026-03-28)`
+**Current route mode:** `v1.29 active route / Phase 105 complete / latest archived baseline = v1.28`
 **Starting baseline:** `.planning/v1.28-MILESTONE-AUDIT.md`, `.planning/reviews/V1_28_EVIDENCE_INDEX.md`, `.planning/milestones/v1.28-ROADMAP.md`, `.planning/milestones/v1.28-REQUIREMENTS.md`
 **Requirements basket:** `ARC-26`, `TST-35`, `DOC-09`, `QLT-43`, `HOT-44`, `HOT-45`, `TST-36`, `GOV-69`, `QLT-44`
 **Latest archived baseline:** `v1.28`
 **Archive pointer:** `.planning/reviews/V1_28_EVIDENCE_INDEX.md`
-**Default next command:** `$gsd-discuss-phase 105`
+**Default next command:** `$gsd-complete-milestone v1.29`
 
 ### Phase 103 root thinning / test topology second pass / terminology normalization
 - [x] **ARC-26**: `custom_components/lipro/__init__.py` 必须继续保持 thin HA root adapter；lazy runtime loading、entry-auth wrappers 与 service-registry assembly 已下沉到 `custom_components/lipro/control/entry_root_support.py`，根入口不再继续扩张为 second root。
@@ -58,8 +62,8 @@ bootstrap:
 - [x] **TST-36**: `Phase 104` 必须补齐 service-router / command-runtime 的 focused regressions，防止 family split 后行为回流或定位面变差。
 
 ### Phase 105 governance rule datafication / milestone freeze
-- [ ] **GOV-69**: `tests/meta` 与 `scripts/check_*.py` 中重复的治理规则真源必须继续数据化 / 表驱动化，降低 route freeze 与 promoted-assets 维护噪音。
-- [ ] **QLT-44**: `v1.29` 关闭前，planning/baseline/review docs、focused guards 与 quality proof 必须共同承认同一条 active→archived handoff 语义，不得残留 conversation-only verdict。
+- [x] **GOV-69**: `tests/meta` 与 `scripts/check_*.py` 中重复的治理规则真源已完成数据化 / 表驱动化，route freeze 与 promoted-assets 维护噪音已收口到共享 spec / registry family builder。
+- [x] **QLT-44**: planning/baseline/review docs、focused guards 与 quality proof 已共同承认 `v1.29` 的 active-route freeze / milestone-closeout handoff 语义，不再残留 conversation-only verdict。
 
 ## Traceability for active v1.29 route
 
@@ -72,24 +76,24 @@ bootstrap:
 | HOT-44 | Phase 104 | Complete |
 | HOT-45 | Phase 104 | Complete |
 | TST-36 | Phase 104 | Complete |
-| GOV-69 | Phase 105 | Planned |
-| QLT-44 | Phase 105 | Planned |
+| GOV-69 | Phase 105 | Complete |
+| QLT-44 | Phase 105 | Complete |
 
 **Coverage:**
 - v1.29 routed requirements: 9 total
 - Current mapped: 9
-- Current complete: 7
-- Current pending: 2
+- Current complete: 9
+- Current pending: 0
 - Current unmapped: 0 ✓
 
 ## Carry-Forward Notes (Deferred within / beyond v1.29)
-- [ ] `governance rule datafication` 仍是 live residual，但 `service_router_handlers.py` family split 与 `command_runtime.py` second-pass inward split 已在 `Phase 104` 完成，剩余工作只保留在 `Phase 105`。
+- [x] `governance rule datafication` 已在 `Phase 105` 完成；`service_router_handlers.py` family split、`command_runtime.py` second-pass inward split 与治理台账/文档同步现在共同形成 milestone-freeze ready 真源。
 - [ ] maintainer / delegate continuity 仍属组织层问题；`v1.29` 继续只负责技术与治理载体收敛，不假装能通过单次代码提交消灭 staffing risk。
 
 ## Out of Scope
 - 新设备能力、终端用户新功能，或任何会引入第二 root / helper-owned public truth 的“彻底重写”。
 - 改写 `.planning/v1.28-MILESTONE-AUDIT.md` 与 `.planning/reviews/V1_28_EVIDENCE_INDEX.md` 的 archive verdict；它们继续只承担 latest archived baseline 证据身份。
-- 把 `v1.29` 尚未执行的 `Phase 105` 假装成已完成项。
+- 把已完成的 `Phase 105` 仍叙述成待计划 / 待执行的 conversation-only 残留。
 
 ## Latest Archived Milestone (v1.28)
 

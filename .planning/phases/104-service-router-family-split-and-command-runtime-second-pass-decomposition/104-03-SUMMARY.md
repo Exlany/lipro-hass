@@ -1,3 +1,7 @@
+---
+requirements-completed: [TST-36]
+---
+
 # 104-03 Summary
 
 - 把 live planning / governance docs 前推到 `v1.29 active route / Phase 104 complete / latest archived baseline = v1.28`。

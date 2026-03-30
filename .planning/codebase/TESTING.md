@@ -1,8 +1,8 @@
 # Testing Patterns
 
-**Analysis Date:** 2026-03-28
+**Analysis Date:** 2026-03-30
 
-> Snapshot: `2026-03-28`
+> Snapshot: `2026-03-30`
 > Freshness: 基于 `tests/**`、`pyproject.toml`、`.github/workflows/{ci,release}.yml`、`scripts/{lint,check_architecture_policy.py,check_file_matrix.py,check_markdown_links.py}` 与 `.planning/baseline/VERIFICATION_MATRIX.md` 的当前截面。
 > Derived collaboration map: 本文件是受约束的协作图谱 / 派生视图，仅用于导航、审阅与后续实现对齐。
 > Authority: 若与 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md}`、`.planning/baseline/*.md`、`.planning/reviews/*.md` 或 `docs/developer_architecture.md` 冲突，以后者为准；本文件不得反向充当当前治理真源。
@@ -30,7 +30,7 @@ uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro 
 **Location:**
 - Tests live in a dedicated `tests/` tree, not beside production files.
 - Current topology is broad and intentional: `tests/core`, `tests/services`, `tests/flows`, `tests/platforms`, `tests/entities`, `tests/meta`, `tests/integration`, `tests/snapshots`, `tests/benchmarks`, `tests/harness`, and `tests/fixtures`.
-- Repository counts from current scanning: `400` Python files under `tests`, `318` runnable `test_*.py` files, `62` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
+- Repository counts from current scanning: `402` Python files under `tests`, `319` runnable `test_*.py` files, `63` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
 
 **Naming:**
 - Use `test_*.py` everywhere.
@@ -250,14 +250,19 @@ with pytest.raises(ServiceValidationError):
 
 ## Phase 103 Testing Freeze
 
-- `tests/meta/test_phase103_root_thinning_guards.py` now freezes predecessor visibility for root-adapter thinning, test-topology second pass, and terminology-contract projection under the current `Phase 104` route.
-- Phase 103 proof must remain visible after Phase 104 completion; it is no longer the active-route selector.
+- `tests/meta/test_phase103_root_thinning_guards.py` now freezes predecessor visibility for root-adapter thinning, test-topology second pass, and terminology-contract projection under the current `Phase 105` route.
+- Phase 103 proof must remain visible after Phase 105 completion; it is no longer the active-route selector.
 
 ## Phase 104 Testing Freeze
 
-- `tests/meta/test_phase104_service_router_runtime_split_guards.py` now freezes the active `v1.29` route, service-router family split, command-runtime outcome support extraction, and governance projection.
-- Phase 104 verification requires focused service-router/runtime tests, governance-route/file-matrix proofs, and parser-stable `gsd-tools` output before `Phase 105` can start.
+- `tests/meta/test_phase104_service_router_runtime_split_guards.py` now freezes predecessor visibility for the `service_router_handlers.py` family split, `command_runtime_outcome_support.py` extraction, and governance projection under the current `Phase 105` route.
+- Phase 104 verification remains required as a completed predecessor bundle; active-route freeze has been promoted to `tests/meta/test_phase105_governance_freeze_guards.py`.
 
+## Phase 105 Testing Freeze
+
+- `tests/meta/test_phase105_governance_freeze_guards.py` now freezes the active `v1.29` route, governance rule datafication, promoted closeout bundle, and milestone-closeout handoff truth.
+- `tests/meta/governance_followup_route_specs.py` centralizes repeated current-milestone / closeout / continuation case data, while `tests/meta/test_governance_route_handoff_smoke.py` keeps parser-stable GSD fast-path coverage honest.
+- Phase 105 verification requires focused governance meta suites, `check_file_matrix`, `ruff`, `mypy`, and `gsd-tools` state/progress/phase-plan-index proof before `$gsd-complete-milestone v1.29`.
 
 ## Phase 102 Testing Freeze
 
