@@ -55,6 +55,13 @@ class TestLiproRestFacadeInit:
         assert client.phone_id == "550e8400-e29b-41d4-a716-446655440000"
         assert client.session is None
 
+    def test_init_exposes_auth_api_surface(self):
+        """Test initialization exposes the sanctioned auth collaborator surface."""
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
+
+        assert callable(client.auth_api.login)
+        assert callable(client.auth_api.refresh_access_token)
+
 
 class TestLiproRestFacadeTokens:
     """Tests for token management."""

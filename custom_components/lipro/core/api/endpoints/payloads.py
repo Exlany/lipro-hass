@@ -33,7 +33,7 @@ class _AuthApiPort(Protocol):
 
 class _EndpointClientPort(Protocol):
     @property
-    def _auth_api(self) -> _AuthApiPort: ...
+    def auth_api(self) -> _AuthApiPort: ...
 
     async def smart_home_request(
         self,
@@ -91,7 +91,7 @@ class _EndpointAdapter:
 
     def __init__(self, client: _EndpointClientPort) -> None:
         self._client = client
-        self._auth_api = client._auth_api  # noqa: SLF001
+        self._auth_api = client.auth_api
 
     async def _smart_home_request(
         self,

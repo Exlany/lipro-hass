@@ -91,6 +91,41 @@ _DEVICE_FILTER_LIST_KEYS: tuple[str, ...] = (
     CONF_DEVICE_FILTER_SSID_LIST,
     CONF_DEVICE_FILTER_DID_LIST,
 )
+_INIT_INT_OPTION_SPECS: tuple[tuple[str, int, int, int], ...] = (
+    (CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL, MIN_SCAN_INTERVAL, MAX_SCAN_INTERVAL),
+)
+_INIT_BOOL_OPTION_SPECS: tuple[tuple[str, bool], ...] = (
+    (CONF_MQTT_ENABLED, DEFAULT_MQTT_ENABLED),
+    (CONF_ENABLE_POWER_MONITORING, DEFAULT_ENABLE_POWER_MONITORING),
+    (CONF_ANONYMOUS_SHARE_ENABLED, DEFAULT_ANONYMOUS_SHARE_ENABLED),
+    (CONF_ANONYMOUS_SHARE_ERRORS, DEFAULT_ANONYMOUS_SHARE_ERRORS),
+)
+_ADVANCED_INT_OPTION_SPECS: tuple[tuple[str, int, int, int], ...] = (
+    (
+        CONF_POWER_QUERY_INTERVAL,
+        DEFAULT_POWER_QUERY_INTERVAL,
+        MIN_POWER_QUERY_INTERVAL,
+        MAX_POWER_QUERY_INTERVAL,
+    ),
+    (
+        CONF_REQUEST_TIMEOUT,
+        DEFAULT_REQUEST_TIMEOUT,
+        MIN_REQUEST_TIMEOUT,
+        MAX_REQUEST_TIMEOUT,
+    ),
+)
+_ADVANCED_BOOL_OPTION_SPECS: tuple[tuple[str, bool], ...] = (
+    (CONF_DEBUG_MODE, DEFAULT_DEBUG_MODE),
+    (CONF_LIGHT_TURN_ON_ON_ADJUST, DEFAULT_LIGHT_TURN_ON_ON_ADJUST),
+    (CONF_ROOM_AREA_SYNC_FORCE, DEFAULT_ROOM_AREA_SYNC_FORCE),
+    (CONF_COMMAND_RESULT_VERIFY, DEFAULT_COMMAND_RESULT_VERIFY),
+)
+_DEVICE_FILTER_OPTION_PAIRS: tuple[tuple[str, str], ...] = (
+    (CONF_DEVICE_FILTER_HOME_MODE, CONF_DEVICE_FILTER_HOME_LIST),
+    (CONF_DEVICE_FILTER_MODEL_MODE, CONF_DEVICE_FILTER_MODEL_LIST),
+    (CONF_DEVICE_FILTER_SSID_MODE, CONF_DEVICE_FILTER_SSID_LIST),
+    (CONF_DEVICE_FILTER_DID_MODE, CONF_DEVICE_FILTER_DID_LIST),
+)
 
 type PersistedOptionValue = bool | int | str
 type PersistedOptions = dict[str, PersistedOptionValue]
@@ -198,6 +233,56 @@ def _normalize_device_filter_mode_option(value: object) -> str:
     return DEFAULT_DEVICE_FILTER_MODE
 
 
+def _add_int_option_fields(
+    schema: OptionsSchema,
+    options: OptionsMapping,
+    specs: tuple[tuple[str, int, int, int], ...],
+) -> None:
+    """Append bounded integer option fields to one schema mapping."""
+    for key, default, min_value, max_value in specs:
+        int_field, int_validator = _build_int_option_field(
+            options,
+            key,
+            default,
+            min_value,
+            max_value,
+        )
+        schema[int_field] = int_validator
+
+
+def _add_bool_option_fields(
+    schema: OptionsSchema,
+    options: OptionsMapping,
+    specs: tuple[tuple[str, bool], ...],
+) -> None:
+    """Append boolean option fields to one schema mapping."""
+    for key, default in specs:
+        bool_field, bool_validator = _build_bool_option_field(options, key, default)
+        schema[bool_field] = bool_validator
+
+
+def _add_device_filter_option_fields(
+    schema: OptionsSchema,
+    options: OptionsMapping,
+) -> None:
+    """Append device-filter mode and list fields to one schema mapping."""
+    for mode_key, list_key in _DEVICE_FILTER_OPTION_PAIRS:
+        schema[
+            vol.Required(
+                mode_key,
+                default=_normalize_device_filter_mode_option(
+                    options.get(mode_key, DEFAULT_DEVICE_FILTER_MODE),
+                ),
+            )
+        ] = vol.In(_DEVICE_FILTER_MODE_VALUES)
+        schema[
+            vol.Optional(
+                list_key,
+                default=_coerce_device_filter_list_option(options.get(list_key, "")),
+            )
+        ] = text_selector()
+
+
 def _extract_persisted_options(user_input: OptionsMapping) -> PersistedOptions:
     """Extract the supported persisted options from one validated form payload."""
     extracted: PersistedOptions = {}
@@ -294,34 +379,8 @@ class LiproOptionsFlow(OptionsFlow):
         """Build the basic options schema."""
         options = self.config_entry.options
         schema: OptionsSchema = {}
-
-        int_fields = (
-            (
-                CONF_SCAN_INTERVAL,
-                DEFAULT_SCAN_INTERVAL,
-                MIN_SCAN_INTERVAL,
-                MAX_SCAN_INTERVAL,
-            ),
-        )
-        for key, default, min_value, max_value in int_fields:
-            int_field, int_validator = _build_int_option_field(
-                options,
-                key,
-                default,
-                min_value,
-                max_value,
-            )
-            schema[int_field] = int_validator
-
-        for key, default in (
-            (CONF_MQTT_ENABLED, DEFAULT_MQTT_ENABLED),
-            (CONF_ENABLE_POWER_MONITORING, DEFAULT_ENABLE_POWER_MONITORING),
-            (CONF_ANONYMOUS_SHARE_ENABLED, DEFAULT_ANONYMOUS_SHARE_ENABLED),
-            (CONF_ANONYMOUS_SHARE_ERRORS, DEFAULT_ANONYMOUS_SHARE_ERRORS),
-        ):
-            bool_field, bool_validator = _build_bool_option_field(options, key, default)
-            schema[bool_field] = bool_validator
-
+        _add_int_option_fields(schema, options, _INIT_INT_OPTION_SPECS)
+        _add_bool_option_fields(schema, options, _INIT_BOOL_OPTION_SPECS)
         schema[vol.Optional(_CONF_SHOW_ADVANCED, default=False)] = bool
         return vol.Schema(schema)
 
@@ -329,60 +388,7 @@ class LiproOptionsFlow(OptionsFlow):
         """Build the advanced options schema."""
         options = self.config_entry.options
         schema: OptionsSchema = {}
-
-        for key, default, min_value, max_value in (
-            (
-                CONF_POWER_QUERY_INTERVAL,
-                DEFAULT_POWER_QUERY_INTERVAL,
-                MIN_POWER_QUERY_INTERVAL,
-                MAX_POWER_QUERY_INTERVAL,
-            ),
-            (
-                CONF_REQUEST_TIMEOUT,
-                DEFAULT_REQUEST_TIMEOUT,
-                MIN_REQUEST_TIMEOUT,
-                MAX_REQUEST_TIMEOUT,
-            ),
-        ):
-            int_field, int_validator = _build_int_option_field(
-                options,
-                key,
-                default,
-                min_value,
-                max_value,
-            )
-            schema[int_field] = int_validator
-
-        for key, default in (
-            (CONF_DEBUG_MODE, DEFAULT_DEBUG_MODE),
-            (CONF_LIGHT_TURN_ON_ON_ADJUST, DEFAULT_LIGHT_TURN_ON_ON_ADJUST),
-            (CONF_ROOM_AREA_SYNC_FORCE, DEFAULT_ROOM_AREA_SYNC_FORCE),
-            (CONF_COMMAND_RESULT_VERIFY, DEFAULT_COMMAND_RESULT_VERIFY),
-        ):
-            bool_field, bool_validator = _build_bool_option_field(options, key, default)
-            schema[bool_field] = bool_validator
-
-        for mode_key, list_key in (
-            (CONF_DEVICE_FILTER_HOME_MODE, CONF_DEVICE_FILTER_HOME_LIST),
-            (CONF_DEVICE_FILTER_MODEL_MODE, CONF_DEVICE_FILTER_MODEL_LIST),
-            (CONF_DEVICE_FILTER_SSID_MODE, CONF_DEVICE_FILTER_SSID_LIST),
-            (CONF_DEVICE_FILTER_DID_MODE, CONF_DEVICE_FILTER_DID_LIST),
-        ):
-            schema[
-                vol.Required(
-                    mode_key,
-                    default=_normalize_device_filter_mode_option(
-                        options.get(mode_key, DEFAULT_DEVICE_FILTER_MODE),
-                    ),
-                )
-            ] = vol.In(_DEVICE_FILTER_MODE_VALUES)
-            schema[
-                vol.Optional(
-                    list_key,
-                    default=_coerce_device_filter_list_option(
-                        options.get(list_key, "")
-                    ),
-                )
-            ] = text_selector()
-
+        _add_int_option_fields(schema, options, _ADVANCED_INT_OPTION_SPECS)
+        _add_bool_option_fields(schema, options, _ADVANCED_BOOL_OPTION_SPECS)
+        _add_device_filter_option_fields(schema, options)
         return vol.Schema(schema)

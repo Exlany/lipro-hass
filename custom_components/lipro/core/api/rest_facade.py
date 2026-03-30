@@ -152,6 +152,11 @@ class LiproRestFacade:
         self._session_state.biz_id = value
 
     @property
+    def auth_api(self) -> AuthApiService:
+        """Return the canonical auth collaborator for endpoint adapters."""
+        return self._auth_api
+
+    @property
     def request_policy(self) -> RequestPolicy:
         """Return the canonical retry/rate-limit policy for REST calls."""
         return self._request_policy

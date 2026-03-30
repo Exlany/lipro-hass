@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Awaitable
 import logging
 from time import monotonic
 from typing import cast
@@ -97,6 +98,81 @@ async def _query_status_batch(
     return rows
 
 
+def _build_status_batch_tasks(
+    batches: list[list[str]],
+    *,
+    semaphore: asyncio.Semaphore,
+    path_query_device_status: str,
+    iot_request: IoTRequest,
+    extract_data_list: ExtractDataList,
+    is_retriable_device_error: IsRetriableDeviceError,
+    lipro_api_error: type[Exception],
+    normalize_response_code: NormalizeResponseCode,
+    expected_offline_codes: tuple[int | str, ...],
+    logger: logging.Logger,
+    on_batch_metric: RecordStatusBatchMetric | None,
+) -> list[Awaitable[MappingRows]]:
+    """Build the batch-query awaitables for one device-status request."""
+    return [
+        _query_status_batch(
+            batch,
+            semaphore=semaphore,
+            path_query_device_status=path_query_device_status,
+            iot_request=iot_request,
+            extract_data_list=extract_data_list,
+            is_retriable_device_error=is_retriable_device_error,
+            lipro_api_error=lipro_api_error,
+            normalize_response_code=normalize_response_code,
+            expected_offline_codes=expected_offline_codes,
+            logger=logger,
+            on_batch_metric=on_batch_metric,
+        )
+        for batch in batches
+    ]
+
+
+def _merge_status_batch_rows(results: list[MappingRows]) -> list[DeviceStatusItem]:
+    """Flatten batch rows while preserving the typed outward result contract."""
+    merged: MappingRows = []
+    for rows in results:
+        if rows:
+            merged.extend(rows)
+    return merged
+
+
+async def _query_status_batches(
+    batches: list[list[str]],
+    *,
+    semaphore: asyncio.Semaphore,
+    path_query_device_status: str,
+    iot_request: IoTRequest,
+    extract_data_list: ExtractDataList,
+    is_retriable_device_error: IsRetriableDeviceError,
+    lipro_api_error: type[Exception],
+    normalize_response_code: NormalizeResponseCode,
+    expected_offline_codes: tuple[int | str, ...],
+    logger: logging.Logger,
+    on_batch_metric: RecordStatusBatchMetric | None,
+) -> list[MappingRows]:
+    """Execute one or more device-status batches with shared concurrency limits."""
+    tasks = _build_status_batch_tasks(
+        batches,
+        semaphore=semaphore,
+        path_query_device_status=path_query_device_status,
+        iot_request=iot_request,
+        extract_data_list=extract_data_list,
+        is_retriable_device_error=is_retriable_device_error,
+        lipro_api_error=lipro_api_error,
+        normalize_response_code=normalize_response_code,
+        expected_offline_codes=expected_offline_codes,
+        logger=logger,
+        on_batch_metric=on_batch_metric,
+    )
+    if len(tasks) == 1:
+        return [await tasks[0]]
+    return list(await asyncio.gather(*tasks))
+
+
 async def query_device_status(
     *,
     device_ids: list[str],
@@ -130,47 +206,20 @@ async def query_device_status(
         device_ids=device_ids,
         batch_size=effective_batch_size,
     )
-    semaphore = asyncio.Semaphore(min(3, len(batches)))
-
-    if len(batches) == 1:
-        return await _query_status_batch(
-            batches[0],
-            semaphore=semaphore,
-            path_query_device_status=path_query_device_status,
-            iot_request=iot_request,
-            extract_data_list=extract_data_list,
-            is_retriable_device_error=is_retriable_device_error,
-            lipro_api_error=lipro_api_error,
-            normalize_response_code=normalize_response_code,
-            expected_offline_codes=expected_offline_codes,
-            logger=logger,
-            on_batch_metric=on_batch_metric,
-        )
-
-    results = await asyncio.gather(
-        *(
-            _query_status_batch(
-                batch,
-                semaphore=semaphore,
-                path_query_device_status=path_query_device_status,
-                iot_request=iot_request,
-                extract_data_list=extract_data_list,
-                is_retriable_device_error=is_retriable_device_error,
-                lipro_api_error=lipro_api_error,
-                normalize_response_code=normalize_response_code,
-                expected_offline_codes=expected_offline_codes,
-                logger=logger,
-                on_batch_metric=on_batch_metric,
-            )
-            for batch in batches
-        )
+    results = await _query_status_batches(
+        batches,
+        semaphore=asyncio.Semaphore(min(3, len(batches))),
+        path_query_device_status=path_query_device_status,
+        iot_request=iot_request,
+        extract_data_list=extract_data_list,
+        is_retriable_device_error=is_retriable_device_error,
+        lipro_api_error=lipro_api_error,
+        normalize_response_code=normalize_response_code,
+        expected_offline_codes=expected_offline_codes,
+        logger=logger,
+        on_batch_metric=on_batch_metric,
     )
-
-    all_results: MappingRows = []
-    for rows in results:
-        if rows:
-            all_results.extend(rows)
-    return all_results
+    return _merge_status_batch_rows(results)
 
 
 async def query_mesh_group_status(
