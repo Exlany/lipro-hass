@@ -20,6 +20,11 @@ type BuildQueryPayload = Callable[[str, list[str]], QueryPayload]
 
 
 @dataclass(slots=True, frozen=True)
+class _RetriableBatchQueryError(Exception):
+    error: Exception
+
+
+@dataclass(slots=True, frozen=True)
 class _BinarySplitQueryContext:
     path: str
     body_key: str
@@ -503,13 +508,13 @@ async def _query_primary_batch(
     *,
     context: _BinarySplitQueryContext,
     ids: list[str],
-) -> tuple[MappingRows | None, Exception | None]:
+) -> MappingRows:
     try:
-        return await context.query_rows(ids, semaphore=asyncio.Semaphore(1)), None
+        return await context.query_rows(ids, semaphore=asyncio.Semaphore(1))
     except context.lipro_api_error as err:
         if not context.is_retriable_device_error(err):
             raise
-        return None, err
+        raise _RetriableBatchQueryError(error=err) from err
 
 
 async def _query_with_retriable_fallback(
@@ -568,24 +573,23 @@ async def query_with_fallback_impl(
         logger=logger,
         build_query_payload=build_query_payload,
     )
-    result_rows, fallback_error = await _query_primary_batch(
-        context=context,
-        ids=ids,
-    )
-    if result_rows is not None:
+    try:
+        result_rows = await _query_primary_batch(
+            context=context,
+            ids=ids,
+        )
         _record_fallback_depth_if_needed(record_fallback_depth, 0)
         return result_rows
-    if fallback_error is None:
-        raise RuntimeError("fallback_error missing for retriable batch query")
-    return await _query_with_retriable_fallback(
-        context=context,
-        err=fallback_error,
-        expected_offline_codes=expected_offline_codes,
-        ids=ids,
-        small_subset_batch_query_threshold=small_subset_batch_query_threshold,
-        small_subset_batch_size=small_subset_batch_size,
-        record_fallback_depth=record_fallback_depth,
-    )
+    except _RetriableBatchQueryError as failure:
+        return await _query_with_retriable_fallback(
+            context=context,
+            err=failure.error,
+            expected_offline_codes=expected_offline_codes,
+            ids=ids,
+            small_subset_batch_query_threshold=small_subset_batch_query_threshold,
+            small_subset_batch_size=small_subset_batch_size,
+            record_fallback_depth=record_fallback_depth,
+        )
 
 
 __all__ = [
