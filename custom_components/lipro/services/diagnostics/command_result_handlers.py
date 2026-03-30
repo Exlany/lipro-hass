@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from dataclasses import dataclass
 import logging
 
 from homeassistant.core import HomeAssistant, ServiceCall
@@ -34,6 +35,11 @@ _DEFAULT_QUERY_COMMAND_RESULT_TIME_BUDGET_SECONDS = 3.0
 RequiredServiceStringGetter = Callable[[ServiceCall, str], str]
 CoerceServiceInt = Callable[[ServiceCall, str, int], int]
 CoerceServiceFloat = Callable[[ServiceCall, str, float], float]
+
+
+@dataclass(slots=True)
+class _CommandResultQueryState:
+    last_error: LiproApiError | None = None
 
 
 def _build_api_failure_summary(err: LiproApiError) -> FailureSummaryPayload:
@@ -90,7 +96,7 @@ async def _async_authenticated_query_command_result(
     device: DiagnosticsDevice,
     msg_sn: str,
     raise_service_error: ServiceErrorRaiser,
-    last_error_ref: dict[str, LiproApiError | None],
+    query_state: _CommandResultQueryState,
 ) -> CommandResultPayload:
     try:
         payload = await async_execute_coordinator_call(
@@ -103,9 +109,9 @@ async def _async_authenticated_query_command_result(
             raise_service_error=raise_service_error,
         )
     except LiproApiError as err:
-        last_error_ref["value"] = err
+        query_state.last_error = err
         raise
-    last_error_ref["value"] = None
+    query_state.last_error = None
     return payload
 
 
@@ -153,17 +159,26 @@ async def _async_query_command_result_with_optional_polling(
         max_attempts=max_attempts,
         time_budget_seconds=time_budget_seconds,
     )
-    last_error_ref: dict[str, LiproApiError | None] = {"value": None}
+    query_state = _CommandResultQueryState()
+
+    async def _query_command_result(
+        *,
+        msg_sn: str,
+        device_id: str,
+        device_type: str,
+    ) -> CommandResultPayload:
+        del device_id, device_type
+        return await _async_authenticated_query_command_result(
+            coordinator=coordinator,
+            device=device,
+            msg_sn=msg_sn,
+            raise_service_error=raise_service_error,
+            query_state=query_state,
+        )
 
     async def _query_once(attempt: int) -> CommandResultPayload | None:
         return await query_command_result_once(
-            query_command_result=lambda **kwargs: _async_authenticated_query_command_result(
-                coordinator=coordinator,
-                device=device,
-                msg_sn=kwargs["msg_sn"],
-                raise_service_error=raise_service_error,
-                last_error_ref=last_error_ref,
-            ),
+            query_command_result=_query_command_result,
             lipro_api_error=LiproApiError,
             device_name=device.name,
             device_serial=device.serial,
@@ -189,7 +204,7 @@ async def _async_query_command_result_with_optional_polling(
         attempt_limit=attempt_limit,
         retry_delays_seconds=retry_delays_seconds,
         result=result,
-        last_error=last_error_ref["value"],
+        last_error=query_state.last_error,
     )
 
 
