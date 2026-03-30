@@ -10,6 +10,7 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from ...core import LiproApiError
 from ...core.command.result import (
     CommandResultPayload,
+    CommandResultPollingState,
     build_progressive_retry_delays,
     classify_command_result_payload,
     poll_command_result_state,
@@ -68,65 +69,59 @@ def _build_last_error_payload(err: LiproApiError | None) -> LastErrorPayload | N
     return payload or None
 
 
-async def _async_query_command_result_with_optional_polling(
+def _build_retry_schedule(
+    *,
+    max_attempts: int,
+    time_budget_seconds: float,
+) -> tuple[tuple[float, ...], int]:
+    retry_delays_seconds = tuple(
+        build_progressive_retry_delays(
+            base_delay_seconds=_QUERY_COMMAND_RESULT_DIAGNOSTIC_BASE_DELAY_SECONDS,
+            time_budget_seconds=time_budget_seconds,
+            max_attempts=max_attempts,
+        )
+    )
+    return retry_delays_seconds, len(retry_delays_seconds) + 1
+
+
+async def _async_authenticated_query_command_result(
     *,
     coordinator: DiagnosticsCoordinator,
     device: DiagnosticsDevice,
     msg_sn: str,
+    raise_service_error: ServiceErrorRaiser,
+    last_error_ref: dict[str, LiproApiError | None],
+) -> CommandResultPayload:
+    try:
+        payload = await async_execute_coordinator_call(
+            coordinator,
+            call=lambda: coordinator.protocol_service.async_query_command_result(
+                msg_sn=msg_sn,
+                device_id=device.serial,
+                device_type=device.device_type_hex,
+            ),
+            raise_service_error=raise_service_error,
+        )
+    except LiproApiError as err:
+        last_error_ref["value"] = err
+        raise
+    last_error_ref["value"] = None
+    return payload
+
+
+def _build_query_command_result_response(
+    *,
+    device: DiagnosticsDevice,
+    msg_sn: str,
     max_attempts: int,
     time_budget_seconds: float,
-    raise_service_error: ServiceErrorRaiser,
+    state: CommandResultPollingState,
+    attempts: int,
+    attempt_limit: int,
+    retry_delays_seconds: tuple[float, ...],
+    result: CommandResultPayload | None,
+    last_error: LiproApiError | None,
 ) -> QueryCommandResultResponse:
-    """Query command-result diagnostics with bounded polling."""
-    retry_delays_seconds = build_progressive_retry_delays(
-        base_delay_seconds=_QUERY_COMMAND_RESULT_DIAGNOSTIC_BASE_DELAY_SECONDS,
-        time_budget_seconds=time_budget_seconds,
-        max_attempts=max_attempts,
-    )
-    attempt_limit = len(retry_delays_seconds) + 1
-    last_error: LiproApiError | None = None
-
-    async def _authenticated_query_command_result(
-        *,
-        msg_sn: str,
-        device_id: str,
-        device_type: str,
-    ) -> CommandResultPayload:
-        nonlocal last_error
-        try:
-            payload = await async_execute_coordinator_call(
-                coordinator,
-                call=lambda: coordinator.protocol_service.async_query_command_result(
-                    msg_sn=msg_sn,
-                    device_id=device_id,
-                    device_type=device_type,
-                ),
-                raise_service_error=raise_service_error,
-            )
-        except LiproApiError as err:
-            last_error = err
-            raise
-        last_error = None
-        return payload
-
-    async def _query_once(attempt: int) -> CommandResultPayload | None:
-        return await query_command_result_once(
-            query_command_result=_authenticated_query_command_result,
-            lipro_api_error=LiproApiError,
-            device_name=device.name,
-            device_serial=device.serial,
-            device_type_hex=device.device_type_hex,
-            msg_sn=msg_sn,
-            attempt=attempt,
-            attempt_limit=attempt_limit,
-            logger=_LOGGER,
-        )
-
-    state, attempts, result = await poll_command_result_state(
-        query_once=_query_once,
-        classify_payload=classify_command_result_payload,
-        retry_delays_seconds=retry_delays_seconds,
-    )
     response: QueryCommandResultResponse = {
         "serial": device.serial,
         "msg_sn": msg_sn,
@@ -142,6 +137,60 @@ async def _async_query_command_result_with_optional_polling(
     if result is None and last_error_payload is not None:
         response["last_error"] = last_error_payload
     return response
+
+
+async def _async_query_command_result_with_optional_polling(
+    *,
+    coordinator: DiagnosticsCoordinator,
+    device: DiagnosticsDevice,
+    msg_sn: str,
+    max_attempts: int,
+    time_budget_seconds: float,
+    raise_service_error: ServiceErrorRaiser,
+) -> QueryCommandResultResponse:
+    """Query command-result diagnostics with bounded polling."""
+    retry_delays_seconds, attempt_limit = _build_retry_schedule(
+        max_attempts=max_attempts,
+        time_budget_seconds=time_budget_seconds,
+    )
+    last_error_ref: dict[str, LiproApiError | None] = {"value": None}
+
+    async def _query_once(attempt: int) -> CommandResultPayload | None:
+        return await query_command_result_once(
+            query_command_result=lambda **kwargs: _async_authenticated_query_command_result(
+                coordinator=coordinator,
+                device=device,
+                msg_sn=kwargs["msg_sn"],
+                raise_service_error=raise_service_error,
+                last_error_ref=last_error_ref,
+            ),
+            lipro_api_error=LiproApiError,
+            device_name=device.name,
+            device_serial=device.serial,
+            device_type_hex=device.device_type_hex,
+            msg_sn=msg_sn,
+            attempt=attempt,
+            attempt_limit=attempt_limit,
+            logger=_LOGGER,
+        )
+
+    state, attempts, result = await poll_command_result_state(
+        query_once=_query_once,
+        classify_payload=classify_command_result_payload,
+        retry_delays_seconds=retry_delays_seconds,
+    )
+    return _build_query_command_result_response(
+        device=device,
+        msg_sn=msg_sn,
+        max_attempts=max_attempts,
+        time_budget_seconds=time_budget_seconds,
+        state=state,
+        attempts=attempts,
+        attempt_limit=attempt_limit,
+        retry_delays_seconds=retry_delays_seconds,
+        result=result,
+        last_error=last_error_ref["value"],
+    )
 
 
 async def async_handle_query_command_result(
