@@ -65,7 +65,7 @@ BASE_OVERRIDE_TRUTH_FAMILIES = (
     )),
 
     OverrideTruthFamily(area="Protocol", owner_phase="Phase 2.5 / 15", fate="重构", rows=(
-        ("custom_components/lipro/core/mqtt/transport.py", "concrete MQTT transport home; package no-export keeps locality explicit"),
+        ("custom_components/lipro/core/mqtt/transport.py", "concrete MQTT transport home with explicit runtime owner/state contract projection; package no-export keeps locality explicit"),
     )),
 
     OverrideTruthFamily(area="Protocol", owner_phase="Phase 2.5 / 6", fate="保留", rows=(

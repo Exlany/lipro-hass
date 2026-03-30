@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.30
 milestone_name: Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming
-current_phase: '107'
+current_phase: '108'
 status: active
 last_updated: "2026-03-30T00:00:00.000Z"
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 3
   completed_plans: 3
 ---
@@ -21,13 +21,13 @@ See: `.planning/PROJECT.md`
 **Current milestone:** `v1.30 Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming`
 **Active milestone:** `v1.30`
 **Core value:** `以 v1.29 latest archived baseline 为唯一 north-star 起点，把 Phase 106 evidence-only audit 点名的 remaining hotspots 转正为正式 active route，并持续在 formal homes 内 inward split。`
-**Current mode:** `v1.30 active route / Phase 107 complete / latest archived baseline = v1.29`
+**Current mode:** `v1.30 active route / Phase 108 complete / latest archived baseline = v1.29`
 
 ## Current Position
 
 - `v1.29` 已完成 `Phase 103 -> 105` 全部计划、focused closeout proof、repo-wide quality gates 与 milestone audit，现已升级为 latest archived baseline。
-- `Phase 107` 已把 REST child-façade init composition、binary-split fallback support 与 request-policy pacing caches 的热点继续压回更局部 collaborator / helper homes。
-- 当前 active route 已进入 `Phase 107 complete / continuation-ready`；`Phase 108` 尚未启动，但已作为下一条有 owner 的 continuation phase 写入 roadmap / requirements / governance truth。
+- `Phase 107` 已把 REST child-façade init composition、binary-split fallback support 与 request-policy pacing caches 的热点压回更局部 collaborator / helper homes，并退回 predecessor visibility bundle。
+- `Phase 108` 已把 `core/mqtt/transport_runtime.py` / `transport.py` 收口为 explicit owner/state contract；当前 active route 已进入 `Phase 108 complete / continuation-ready`，`Phase 109` 是唯一下一条有 owner 的 continuation phase。
 - maintainer/delegate continuity 仍是组织层高风险；本里程碑只负责把技术与治理入口写清楚，不伪装成可被单次代码提交解决。
 - 历史 terminal audit artifact `.planning/reviews/V1_23_TERMINAL_AUDIT.md` 继续作为早期 residual-routing / coverage-column truth 的 pull-only 审计输入，被 `.planning/baseline/VERIFICATION_MATRIX.md` 与 residual ledgers 引用，但不参与当前 `v1.30` route 决策。
 
@@ -38,11 +38,11 @@ contract_name: governance-route
 active_milestone:
   version: v1.30
   name: Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming
-  status: active / Phase 107 complete / continuation-ready (2026-03-30)
-  phase: '107'
-  phase_title: REST/auth/status hotspot convergence and support-surface slimming
-  phase_dir: 107-rest-auth-status-hotspot-convergence-and-support-surface-slimming
-  route_mode: v1.30 active route / Phase 107 complete / latest archived baseline = v1.29
+  status: active / Phase 108 complete / continuation-ready (2026-03-30)
+  phase: '108'
+  phase_title: MQTT transport-runtime de-friendization
+  phase_dir: 108-mqtt-transport-runtime-de-friendization
+  route_mode: v1.30 active route / Phase 108 complete / latest archived baseline = v1.29
 latest_archived:
   version: v1.29
   name: Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization
@@ -58,8 +58,8 @@ previous_archived:
   name: Governance Portability, Verification Stratification & Open-Source Continuity Hardening
   evidence_path: .planning/reviews/V1_28_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.30 active route / Phase 107 complete / latest archived baseline = v1.29
-  default_next_command: $gsd-discuss-phase 108
+  current_route: v1.30 active route / Phase 108 complete / latest archived baseline = v1.29
+  default_next_command: $gsd-discuss-phase 109
   latest_archived_evidence_pointer: .planning/reviews/V1_29_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -67,13 +67,13 @@ bootstrap:
 ## Current Milestone (v1.30)
 - **Milestone:** `v1.30 Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming`
 - **Phase range:** `107 -> 110`
-- **Current phase:** `Phase 107`
-- **Milestone status:** `active / Phase 107 complete / continuation-ready (2026-03-30)`
+- **Current phase:** `Phase 108`
+- **Milestone status:** `active / Phase 108 complete / continuation-ready (2026-03-30)`
 - **Requirements basket:** `HOT-46`, `ARC-27`, `TST-37`, `QLT-45`, `RUN-10`, `HOT-47`, `RUN-11`, `GOV-70`
 - **Milestone starting evidence:** `.planning/v1.29-MILESTONE-AUDIT.md`, `.planning/reviews/V1_29_EVIDENCE_INDEX.md`, `.planning/milestones/v1.29-ROADMAP.md`, `.planning/milestones/v1.29-REQUIREMENTS.md`
 - **Latest archived baseline:** `v1.29`
-- **Default next command:** `$gsd-discuss-phase 108`
-- **Current follow-up target:** discuss `Phase 108` and continue v1.30 without regressing `Phase 107` or `v1.29` archived truth
+- **Default next command:** `$gsd-discuss-phase 109`
+- **Current follow-up target:** discuss `Phase 109` and continue v1.30 without regressing `Phase 108` or `v1.29` archived truth
 
 ## Latest Archived Milestone (v1.29)
 - **Milestone:** `v1.29 Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization`
@@ -84,7 +84,7 @@ bootstrap:
 - **Milestone closeout assets:** `.planning/v1.29-MILESTONE-AUDIT.md`, `.planning/reviews/V1_29_EVIDENCE_INDEX.md`, `.planning/milestones/v1.29-ROADMAP.md`, `.planning/milestones/v1.29-REQUIREMENTS.md`
 - **Current audit artifact:** `.planning/v1.29-MILESTONE-AUDIT.md`
 - **Default next command:** `$gsd-new-milestone`（historical closeout command）
-- **Current follow-up target:** active `v1.30` route / Phase 107 complete / continuation-ready
+- **Current follow-up target:** active `v1.30` route / Phase 108 complete / continuation-ready
 
 ## Previous Archived Milestone (v1.28)
 - **Milestone:** `v1.28 Governance Portability, Verification Stratification & Open-Source Continuity Hardening`
@@ -99,12 +99,12 @@ bootstrap:
 
 ## Recommended Next Command
 
-1. `$gsd-discuss-phase 108` —— 进入 transport/runtime private-state reach-through 的正式 phase discussion 与边界确认。
-2. `$gsd-next` —— 复核自动路由是否稳定前推到 `Phase 108` 的下一步工作。
+1. `$gsd-discuss-phase 109` —— 进入 transport/runtime private-state reach-through 的正式 phase discussion 与边界确认。
+2. `$gsd-next` —— 复核自动路由是否稳定前推到 `Phase 109` 的下一步工作。
 3. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" state json` —— 复核 parser-stable `milestone = v1.30` 与 `status = active`。
-4. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" init progress` —— 复核 `Phase 107` complete、`next_phase = 108` 与 `has_work_in_progress = false`。
-5. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" phase-plan-index 107` —— 复核 `Phase 107` 三个 plans 全部归档可见。
-6. `uv run pytest -q tests/meta/test_governance_route_handoff_smoke.py tests/meta/governance_followup_route_current_milestones.py tests/meta/test_phase105_governance_freeze_guards.py tests/meta/test_phase107_rest_status_hotspot_guards.py` —— 复核 current-route / latest-archived / focused-guard 一致性。
+4. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" init progress` —— 复核 `Phase 108` complete、`next_phase = 109` 与 `has_work_in_progress = false`。
+5. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" phase-plan-index 108` —— 复核 `Phase 108` 三个 plans 全部归档可见。
+6. `uv run pytest -q tests/meta/test_governance_route_handoff_smoke.py tests/meta/governance_followup_route_current_milestones.py tests/meta/test_phase105_governance_freeze_guards.py tests/meta/test_phase107_rest_status_hotspot_guards.py tests/meta/test_phase108_mqtt_transport_de_friendization_guards.py` —— 复核 current-route / predecessor / latest-archived / focused-guard 一致性。
 7. `uv run ruff check .` —— 复核 repo-wide lint gate。
 8. `uv run mypy` —— 复核 repo-wide typing gate。
 
@@ -117,7 +117,7 @@ If resuming, read in this order:
 3. `.planning/ROADMAP.md`
 4. `.planning/REQUIREMENTS.md`
 5. `.planning/STATE.md`
-6. `.planning/phases/107-rest-auth-status-hotspot-convergence-and-support-surface-slimming/107-CONTEXT.md`
+6. `.planning/phases/108-mqtt-transport-runtime-de-friendization/108-CONTEXT.md`
 7. `.planning/phases/107-rest-auth-status-hotspot-convergence-and-support-surface-slimming/107-RESEARCH.md`
 8. `.planning/phases/107-rest-auth-status-hotspot-convergence-and-support-surface-slimming/107-VERIFICATION.md`
 9. `.planning/phases/107-rest-auth-status-hotspot-convergence-and-support-surface-slimming/107-VALIDATION.md`

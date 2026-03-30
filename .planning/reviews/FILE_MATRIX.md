@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 735
+**Python files total:** 736
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -224,7 +224,7 @@
 | `custom_components/lipro/core/mqtt/subscription_manager.py` | Protocol | Phase 2.5 | 重构 | - |
 | `custom_components/lipro/core/mqtt/topic_builder.py` | Protocol | Phase 2.5 | 重构 | - |
 | `custom_components/lipro/core/mqtt/topics.py` | Protocol | Phase 2.5 | 重构 | MQTT boundary-backed topic adapter |
-| `custom_components/lipro/core/mqtt/transport.py` | Protocol | Phase 2.5 / 15 | 重构 | concrete MQTT transport home; package no-export keeps locality explicit |
+| `custom_components/lipro/core/mqtt/transport.py` | Protocol | Phase 2.5 / 15 | 重构 | concrete MQTT transport home with explicit runtime owner/state contract projection; package no-export keeps locality explicit |
 | `custom_components/lipro/core/mqtt/transport_runtime.py` | Protocol | Phase 2.5 | 重构 | - |
 | `custom_components/lipro/core/ota/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/ota/candidate.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -647,7 +647,8 @@
 | `tests/meta/test_phase103_root_thinning_guards.py` | Assurance | Phase 103 | 保留 | focused predecessor guard home for Phase 103 root thinning / test topology / terminology normalization |
 | `tests/meta/test_phase104_service_router_runtime_split_guards.py` | Assurance | Phase 104 | 保留 | focused predecessor guard home for Phase 104 service-router/runtime split |
 | `tests/meta/test_phase105_governance_freeze_guards.py` | Assurance | Phase 105 | 保留 | focused latest-archived closeout guard home for Phase 105 governance freeze |
-| `tests/meta/test_phase107_rest_status_hotspot_guards.py` | Assurance | Phase 107 | 保留 | focused active-route guard home for Phase 107 REST/auth/status hotspot convergence |
+| `tests/meta/test_phase107_rest_status_hotspot_guards.py` | Assurance | Phase 107 | 保留 | focused predecessor guard home for Phase 107 REST/auth/status hotspot convergence |
+| `tests/meta/test_phase108_mqtt_transport_de_friendization_guards.py` | Assurance | Phase 108 | 保留 | focused active-route guard home for Phase 108 MQTT transport-runtime de-friendization |
 | `tests/meta/test_phase31_runtime_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase45_hotspot_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase50_rest_typed_budget_guards.py` | Assurance | Phase 6 | 保留 | - |

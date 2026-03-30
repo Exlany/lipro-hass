@@ -39,17 +39,23 @@ _None currently registered._
 3. residual ledger 已关闭对应条目。
 4. summary 明确记录是“正式删除”还是“仅登记、不删除”。
 
+## Phase 108 Status Update
+
+- 本 phase **无新增 active kill target**；当前收口的是 MQTT transport/runtime explicit owner/state contract、focused regressions 与 governance projection，而不是新的 file-level delete campaign。
+- `custom_components/lipro/core/mqtt/transport.py` 与 `custom_components/lipro/core/mqtt/transport_runtime.py` 都继续保留为 formal/private homes；本轮只允许 boundary contraction，不把它们叙述成 future delete target。
+- `v1.30 active route / Phase 108 complete / latest archived baseline = v1.29` 已生效；下一步切换为 `$gsd-discuss-phase 109`，而不是把 Phase 108 再回写成 archived-only closeout story。
+
 ## Phase 107 Status Update
 
-- 本 phase **无新增 active kill target**；当前收口的是 REST child-façade assembly、status fallback helper decomposition 与 request-policy pacing-cache localization，而不是新的 file-level delete campaign。
-- `custom_components/lipro/core/api/rest_facade.py`、`custom_components/lipro/core/api/status_fallback_support.py` 与 `custom_components/lipro/core/api/request_policy_support.py` 都继续保留为 formal/support homes；本轮只允许 inward split，不把它们叙述成 future delete target。
-- `v1.30 active route / Phase 107 complete / latest archived baseline = v1.29` 已生效；下一步切换为 `$gsd-discuss-phase 108`，而不是把 Phase 107 再回写成 archived-only closeout story。
+- 本 phase **无新增 active kill target**；REST child-façade assembly、status fallback helper decomposition 与 request-policy pacing-cache localization 现在作为 completed predecessor bundle 保持可见性，而不是新的 file-level delete campaign。
+- `custom_components/lipro/core/api/rest_facade.py`、`custom_components/lipro/core/api/status_fallback_support.py` 与 `custom_components/lipro/core/api/request_policy_support.py` 都继续保留为 formal/support homes；本轮只允许 predecessor visibility，不把它们叙述成 future delete target。
+- `v1.30 active route / Phase 108 complete / latest archived baseline = v1.29` 已生效；下一步切换为 `$gsd-discuss-phase 109`，而不是把 Phase 107 再回写成 archived-only closeout story。
 
 ## Phase 105 Status Update
 
 - 本 phase **无新增 active kill target**；它现在承担 latest-archived closeout visibility，而不是 current-route selector。
-- `tests/meta/governance_followup_route_specs.py` 与 `scripts/check_file_matrix_registry_*` 的 shared builder/datafication 继续是 formal governance truth，不是 future delete target。
-- `Phase 103` / `Phase 104` predecessor bundle 与 `Phase 105` promoted closeout bundle 已分别通过 focused guards 与 `.planning/reviews/PROMOTED_PHASE_ASSETS.md` 固定身份；active route 已前推到 `Phase 107`。
+- `tests/meta/governance_followup_route_specs.py` 与 `scripts/check_file_matrix_registry_*` 继续保留为 formal governance truth，不被误登记为 future delete target。
+- `Phase 103` / `Phase 104` predecessor bundle 与 `Phase 105` promoted closeout bundle 已分别通过 focused guards 与 `.planning/reviews/PROMOTED_PHASE_ASSETS.md` 固定身份；active route 已前推到 `Phase 108`。
 
 ## Phase 65 Status Update
 

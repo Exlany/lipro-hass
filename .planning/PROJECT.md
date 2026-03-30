@@ -2,9 +2,9 @@
 
 
 **Status:** `Active milestone route`
-**Current route:** `v1.30 active route / Phase 107 complete / latest archived baseline = v1.29`；latest archived evidence index = `.planning/reviews/V1_29_EVIDENCE_INDEX.md`.
+**Current route:** `v1.30 active route / Phase 108 complete / latest archived baseline = v1.29`；latest archived evidence index = `.planning/reviews/V1_29_EVIDENCE_INDEX.md`.
 **Goal:** `沿 v1.29 latest archived baseline 的单一 north-star 主线，把 Phase 106 evidence-only 审计点名的 remaining hotspots 转正为可执行 active route，并继续在 formal homes 内 inward split。`
-**Default next step:** `$gsd-discuss-phase 108`
+**Default next step:** `$gsd-discuss-phase 109`
 **Active baseline:** latest archived baseline = `v1.29`；previous archived baseline = `v1.28`.
 
 
@@ -15,11 +15,11 @@ contract_name: governance-route
 active_milestone:
   version: v1.30
   name: Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming
-  status: active / Phase 107 complete / continuation-ready (2026-03-30)
-  phase: '107'
-  phase_title: REST/auth/status hotspot convergence and support-surface slimming
-  phase_dir: 107-rest-auth-status-hotspot-convergence-and-support-surface-slimming
-  route_mode: v1.30 active route / Phase 107 complete / latest archived baseline = v1.29
+  status: active / Phase 108 complete / continuation-ready (2026-03-30)
+  phase: '108'
+  phase_title: MQTT transport-runtime de-friendization
+  phase_dir: 108-mqtt-transport-runtime-de-friendization
+  route_mode: v1.30 active route / Phase 108 complete / latest archived baseline = v1.29
 latest_archived:
   version: v1.29
   name: Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization
@@ -35,8 +35,8 @@ previous_archived:
   name: Governance Portability, Verification Stratification & Open-Source Continuity Hardening
   evidence_path: .planning/reviews/V1_28_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.30 active route / Phase 107 complete / latest archived baseline = v1.29
-  default_next_command: $gsd-discuss-phase 108
+  current_route: v1.30 active route / Phase 108 complete / latest archived baseline = v1.29
+  default_next_command: $gsd-discuss-phase 109
   latest_archived_evidence_pointer: .planning/reviews/V1_29_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -49,22 +49,22 @@ bootstrap:
 
 **North-star fit:** `v1.30` 只在 formal homes 内继续 inward split，不扩 public surface，不恢复 second root；它把 `Phase 106` evidence-only 审计结论转正为 active route，同时继续保留 `v1.29` 为 pull-only latest archived baseline。`
 
-**Current status:** `active / Phase 107 complete / continuation-ready (2026-03-30)`
+**Current status:** `active / Phase 108 complete / continuation-ready (2026-03-30)`
 **Phase range:** `Phase 107 -> 110`
 **Starting baseline:** `.planning/v1.29-MILESTONE-AUDIT.md`, `.planning/reviews/V1_29_EVIDENCE_INDEX.md`, `.planning/milestones/v1.29-ROADMAP.md`, `.planning/milestones/v1.29-REQUIREMENTS.md`
 **Requirements basket:** `HOT-46`, `ARC-27`, `TST-37`, `QLT-45`, `RUN-10`, `HOT-47`, `RUN-11`, `GOV-70`
 **Latest archived baseline:** `v1.29`
 **Latest archived pointer:** `.planning/reviews/V1_29_EVIDENCE_INDEX.md`
-**Current route mode:** `v1.30 active route / Phase 107 complete / latest archived baseline = v1.29`
-**Default next command:** `$gsd-discuss-phase 108`
-**Current follow-up target:** discuss and plan `Phase 108` without regressing `Phase 107` hotspot convergence or `v1.29` archived truth。
+**Current route mode:** `v1.30 active route / Phase 108 complete / latest archived baseline = v1.29`
+**Default next command:** `$gsd-discuss-phase 109`
+**Current follow-up target:** discuss and plan `Phase 109` while keeping `Phase 108` de-friendization truth and `v1.29` archived truth stable。
 
 **Key accomplishments:**
 - `Phase 107` 已把 `custom_components/lipro/core/api/rest_facade.py` 的 collaborator 装配收口到 `_build_endpoint_surface()` / `_build_request_gateway()`，使 REST child-façade init path 更显式。
-- `custom_components/lipro/core/api/status_fallback_support.py` 已引入 `_BinarySplitQueryContext` 与 `_BinarySplitAccumulator`，把 batch fallback orchestration 切回更局部的 binary-split / single-query helpers。
-- `custom_components/lipro/core/api/request_policy_support.py` 已以 `_CommandPacingCaches` 吸收 pacing cache / lock / trim 逻辑，降低参数爆炸与 per-target pacing state 的扩散。
-- `Phase 107` 的 focused tests、governance docs、verification matrix、testing map 与 route-handoff smoke 已共同承认同一条 `v1.30 active route / Phase 107 complete / latest archived baseline = v1.29` 故事。
-- `Phase 108 -> 110` 现已被显式登记为 phase-owned continuation：MQTT transport/runtime de-friendization、anonymous-share manager inward split 与 runtime snapshot surface reduction 不再是无主 residual。
+- `Phase 108` 已把 `custom_components/lipro/core/mqtt/transport_runtime.py` / `transport.py` 收口为 explicit owner/state contract 协作面，`MqttTransport` 继续保持唯一 concrete transport root。
+- `tests/core/mqtt/test_transport_refactored.py` 与 runtime-focused MQTT suites 已冻结 explicit contract / outward behavior truth，不再依赖 friend-style private wiring folklore。
+- planning/baseline/review/docs truth、focused guards 与 GSD fast-path 现共同承认同一条 `v1.30 active route / Phase 108 complete / latest archived baseline = v1.29` 故事。
+- `Phase 109 -> 110` 现已作为唯一 continuation chain 显式登记：anonymous-share manager inward split 与 runtime snapshot surface reduction 不再是无主 residual。
 
 ## Latest Archived Milestone (v1.29)
 
@@ -76,7 +76,7 @@ bootstrap:
 **Current audit artifact:** `.planning/v1.29-MILESTONE-AUDIT.md`
 **Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.29`
 **Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.28`
-**Current follow-up target:** active `v1.30` route / `Phase 107` complete / continuation-ready。
+**Current follow-up target:** active `v1.30` route / `Phase 108` complete / continuation-ready。
 
 ## Previous Archived Milestone (v1.28)
 

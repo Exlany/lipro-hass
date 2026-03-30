@@ -28,11 +28,11 @@ PLANNING_ROUTE_CONTRACT: dict[str, object] = {
     "active_milestone": {
         "version": "v1.30",
         "name": "Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming",
-        "status": "active / Phase 107 complete / continuation-ready (2026-03-30)",
-        "phase": "107",
-        "phase_title": "REST/auth/status hotspot convergence and support-surface slimming",
-        "phase_dir": "107-rest-auth-status-hotspot-convergence-and-support-surface-slimming",
-        "route_mode": "v1.30 active route / Phase 107 complete / latest archived baseline = v1.29",
+        "status": "active / Phase 108 complete / continuation-ready (2026-03-30)",
+        "phase": "108",
+        "phase_title": "MQTT transport-runtime de-friendization",
+        "phase_dir": "108-mqtt-transport-runtime-de-friendization",
+        "route_mode": "v1.30 active route / Phase 108 complete / latest archived baseline = v1.29",
     },
     "latest_archived": {
         "version": "v1.29",
@@ -51,8 +51,8 @@ PLANNING_ROUTE_CONTRACT: dict[str, object] = {
         "evidence_path": ".planning/reviews/V1_28_EVIDENCE_INDEX.md",
     },
     "bootstrap": {
-        "current_route": "v1.30 active route / Phase 107 complete / latest archived baseline = v1.29",
-        "default_next_command": "$gsd-discuss-phase 108",
+        "current_route": "v1.30 active route / Phase 108 complete / latest archived baseline = v1.29",
+        "default_next_command": "$gsd-discuss-phase 109",
         "latest_archived_evidence_pointer": ".planning/reviews/V1_29_EVIDENCE_INDEX.md",
     },
 }
@@ -178,10 +178,10 @@ else:
     CURRENT_ROUTE_MODE = CURRENT_ROUTE
 
 CURRENT_MILESTONE_PHASES = ("107", "108", "109", "110")
-CURRENT_MILESTONE_COMPLETED_PHASES = ("107",)
-CURRENT_MILESTONE_PENDING_PHASES: tuple[str, ...] = ("108", "109", "110")
+CURRENT_MILESTONE_COMPLETED_PHASES = ("107", "108")
+CURRENT_MILESTONE_PENDING_PHASES: tuple[str, ...] = ("109", "110")
 CURRENT_MILESTONE_PLAN_COUNT = 3
-CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE = {"107": 3}
+CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE = {"107": 3, "108": 3}
 CURRENT_MILESTONE_SUMMARY_COUNT = CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE[CURRENT_PHASE]
 CURRENT_ROUTE_FOCUSED_GUARDS = (
     "tests/meta/test_governance_bootstrap_smoke.py",
@@ -202,6 +202,7 @@ CURRENT_ROUTE_FOCUSED_GUARDS = (
     "tests/meta/test_phase104_service_router_runtime_split_guards.py",
     "tests/meta/test_phase105_governance_freeze_guards.py",
     "tests/meta/test_phase107_rest_status_hotspot_guards.py",
+    "tests/meta/test_phase108_mqtt_transport_de_friendization_guards.py",
     "tests/meta/test_public_surface_guards.py",
     "tests/meta/test_dependency_guards.py",
 )
@@ -246,6 +247,7 @@ CURRENT_ROUTE_PROSE_FORBIDDEN = (
     "v1.27 active route / Phase 101 complete / latest archived baseline = v1.26",
     "v1.29 active route / Phase 104 complete / latest archived baseline = v1.28",
     "v1.29 active route / Phase 105 complete / latest archived baseline = v1.28",
+    "v1.30 active route / Phase 107 complete / latest archived baseline = v1.29",
     "no active milestone route / latest archived baseline = v1.20",
     "no active milestone route / latest archived baseline = v1.21",
     "no active milestone route / latest archived baseline = v1.22",

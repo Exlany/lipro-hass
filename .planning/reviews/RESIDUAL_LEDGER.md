@@ -8,10 +8,16 @@ _None currently registered._
 
 > **Phase 88 freeze note:** 这里的 zero-active posture 是显式 closeout verdict，而不是尚未清点完成的空白。若未来出现新 residual，必须以新的 family 重新登记 owner、exit condition 与 evidence。
 
+## Phase 108 Residual Delta
+
+- `Phase 108` 没有创造新的无主 active residual family；MQTT transport/runtime private-state reach-through 已被正式收口为 `v1.30 active route / Phase 108 complete / latest archived baseline = v1.29` 的完成态。
+- `core/anonymous_share/manager.py` 与 `core/coordinator/runtime/device/snapshot.py` 仍是 live follow-up，但它们都已被显式路由到 `Phase 109 -> 110`，属于有 owner 的 continuation，而不是 orphan residual。
+- `Phase 107` predecessor bundle、`Phase 105` promoted closeout bundle 与 `v1.29` latest archived baseline 继续保持可审计可见性，不会被当前 route 误清理或误回写。
+
 ## Phase 107 Residual Delta
 
-- `Phase 107` 没有创造新的无主 active residual family；REST/auth/status hotspot 的当前变化已正式收口为 `v1.30 active route / Phase 107 complete / latest archived baseline = v1.29` 的完成态。
-- `core/mqtt/transport_runtime.py` / `core/mqtt/transport.py`、`core/anonymous_share/manager.py` 与 `core/coordinator/runtime/device/snapshot.py` 仍是 live follow-up，但现在都已被显式路由到 `Phase 108 -> 110`，属于有 owner 的 continuation，而不是 orphan residual。
+- `Phase 107` 没有创造新的无主 active residual family；REST/auth/status hotspot 现在作为 completed predecessor bundle 保持可见性，不再承担 live current-route selector 身份。
+- `Phase 108` 已接管 current-route hotspot convergence；`Phase 109 -> 110` 继续承担 remaining continuation scopes，而不是把 predecessor proof 回流成 residual family。
 - `v1.29` latest archived baseline、`Phase 105` promoted closeout bundle 与 `Phase 103/104` predecessor bundles 继续保持可审计可见性，不会被当前 route 误清理或误回写。
 
 ## Phase 105 Residual Delta

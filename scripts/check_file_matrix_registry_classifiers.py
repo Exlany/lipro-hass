@@ -204,7 +204,12 @@ _TEST_EXACT_RULES: tuple[ClassifierRule, ...] = build_exact_rules(
     ExactRuleFamily(
         area="Assurance",
         owner_phase="Phase 107",
-        residual_rows=(("tests/meta/test_phase107_rest_status_hotspot_guards.py", "focused active-route guard home for Phase 107 REST/auth/status hotspot convergence"),),
+        residual_rows=(("tests/meta/test_phase107_rest_status_hotspot_guards.py", "focused predecessor guard home for Phase 107 REST/auth/status hotspot convergence"),),
+    ),
+    ExactRuleFamily(
+        area="Assurance",
+        owner_phase="Phase 108",
+        residual_rows=(("tests/meta/test_phase108_mqtt_transport_de_friendization_guards.py", "focused active-route guard home for Phase 108 MQTT transport-runtime de-friendization"),),
     ),
 )
 

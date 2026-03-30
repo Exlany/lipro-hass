@@ -21,4 +21,4 @@ updated: 2026-03-30
 - `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" init plan-phase 107` → expected `phase_found = true`, `has_context = true`, `has_research = true`, `plan_count = 3`
 - `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" init execute-phase 107` → expected `phase_found = true`, `incomplete_count = 0`, `plan_count = 3`
 - `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" phase-plan-index 107` → expected `incomplete = []`, 3 plans, wave 1 = `[107-01, 107-02]`, wave 2 = `[107-03]`
-- 按 `$HOME/.codex/get-shit-done/workflows/next.md` 的路由规则，`$gsd-next` 现在应推进到 `$gsd-discuss-phase 108`
+- 按 `$HOME/.codex/get-shit-done/workflows/next.md` 的路由规则，`$gsd-next` 现在应推进到 `$gsd-discuss-phase 109`

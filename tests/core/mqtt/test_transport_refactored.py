@@ -15,6 +15,11 @@ from custom_components.lipro.core.mqtt.message_processor import MqttMessageProce
 from custom_components.lipro.core.mqtt.payload import parse_mqtt_payload
 from custom_components.lipro.core.mqtt.topic_builder import MqttTopicBuilder
 from custom_components.lipro.core.mqtt.transport import MqttTransport
+from custom_components.lipro.core.mqtt.transport_runtime import (
+    MqttTransportCallbacks,
+    MqttTransportOwnerState,
+    MqttTransportRuntimeOwner,
+)
 
 
 def _make_transport(**kwargs) -> MqttTransport:
@@ -45,6 +50,39 @@ def test_transport_initializes_refactored_helpers() -> None:
     assert isinstance(transport._message_processor, MqttMessageProcessor)
     assert isinstance(transport._topic_builder, MqttTopicBuilder)
     assert isinstance(transport._connection_manager, MqttConnectionManager)
+
+
+def test_transport_initializes_explicit_runtime_owner_contract() -> None:
+    transport = _make_transport()
+
+    assert isinstance(transport._runtime_callbacks, MqttTransportCallbacks)
+    assert isinstance(transport._runtime_state, MqttTransportOwnerState)
+    assert isinstance(transport._runtime_owner, MqttTransportRuntimeOwner)
+    assert transport._runtime_owner.connection_manager is transport._connection_manager
+    assert transport._runtime_owner.message_processor is transport._message_processor
+    assert transport._runtime_owner.topic_builder is transport._topic_builder
+    assert transport._runtime_owner.subscription_manager is transport._subscription_manager
+    assert transport._runtime_owner.connect_and_listen_entrypoint == transport._connect_and_listen
+
+
+def test_transport_runtime_owner_reads_latest_collaborator_replacements() -> None:
+    transport = _make_transport()
+    replacement_manager = MagicMock(spec=MqttConnectionManager)
+    replacement_processor = MagicMock(spec=MqttMessageProcessor)
+    replacement_builder = MagicMock(spec=MqttTopicBuilder)
+
+    transport._connection_manager = replacement_manager
+    transport._message_processor = replacement_processor
+    transport._topic_builder = replacement_builder
+
+    assert transport._runtime_owner.connection_manager is replacement_manager
+    assert transport._runtime_owner.message_processor is replacement_processor
+    assert transport._runtime_owner.topic_builder is replacement_builder
+
+    replacement_connect = AsyncMock()
+    transport._connect_and_listen = replacement_connect
+
+    assert transport._runtime_owner.connect_and_listen_entrypoint is replacement_connect
 
 
 def test_transport_build_topic_pairs_delegates_to_topic_builder() -> None:

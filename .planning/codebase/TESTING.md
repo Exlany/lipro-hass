@@ -30,7 +30,7 @@ uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro 
 **Location:**
 - Tests live in a dedicated `tests/` tree, not beside production files.
 - Current topology is broad and intentional: `tests/core`, `tests/services`, `tests/flows`, `tests/platforms`, `tests/entities`, `tests/meta`, `tests/integration`, `tests/snapshots`, `tests/benchmarks`, `tests/harness`, and `tests/fixtures`.
-- Repository counts from current scanning: `403` Python files under `tests`, `320` runnable `test_*.py` files, `64` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
+- Repository counts from current scanning: `404` Python files under `tests`, `321` runnable `test_*.py` files, `65` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
 
 **Naming:**
 - Use `test_*.py` everywhere.
@@ -250,25 +250,31 @@ with pytest.raises(ServiceValidationError):
 
 ## Phase 103 Testing Freeze
 
-- `tests/meta/test_phase103_root_thinning_guards.py` now freezes predecessor visibility for root-adapter thinning, test-topology second pass, and terminology-contract projection under the current `v1.30 active route / Phase 107 complete / latest archived baseline = v1.29`.
+- `tests/meta/test_phase103_root_thinning_guards.py` now freezes predecessor visibility for root-adapter thinning, test-topology second pass, and terminology-contract projection under the current `v1.30 active route / Phase 108 complete / latest archived baseline = v1.29`.
 - Phase 103 proof must remain visible after Phase 107 completion; it is no longer the active-route selector.
 
 ## Phase 104 Testing Freeze
 
-- `tests/meta/test_phase104_service_router_runtime_split_guards.py` now freezes predecessor visibility for the `service_router_handlers.py` family split, `command_runtime_outcome_support.py` extraction, and governance projection under the current `v1.30 active route / Phase 107 complete / latest archived baseline = v1.29`.
+- `tests/meta/test_phase104_service_router_runtime_split_guards.py` now freezes predecessor visibility for the `service_router_handlers.py` family split, `command_runtime_outcome_support.py` extraction, and governance projection under the current `v1.30 active route / Phase 108 complete / latest archived baseline = v1.29`.
 - Phase 104 verification remains required as a completed predecessor bundle; active-route freeze has moved to `tests/meta/test_phase107_rest_status_hotspot_guards.py`.
 
-## Phase 105 Testing Freeze
+## Phase 108 Testing Freeze
 
-- `tests/meta/test_phase105_governance_freeze_guards.py` now freezes the latest archived `v1.29` closeout route, governance rule datafication, promoted closeout bundle, and archived handoff visibility under current `v1.30 active route / Phase 107 complete / latest archived baseline = v1.29`.
-- `tests/meta/governance_followup_route_specs.py` centralizes repeated current-milestone / closeout / continuation case data, while `tests/meta/test_governance_route_handoff_smoke.py` keeps parser-stable GSD fast-path coverage honest.
-- Phase 105 verification remains required as latest-archived closeout proof before the current route is allowed to continue.
+- `tests/meta/test_phase108_mqtt_transport_de_friendization_guards.py` now freezes the current active-route proof for explicit MQTT runtime owner/state contract, transport/runtime de-friendization, and governance projection.
+- `tests/core/mqtt/test_transport_refactored.py`, `tests/core/mqtt/test_transport_runtime_lifecycle.py`, `tests/core/mqtt/test_transport_runtime_connection_loop.py`, `tests/core/mqtt/test_transport_runtime_ingress.py`, `tests/core/mqtt/test_transport_runtime_subscriptions.py`, and `tests/core/mqtt/test_connection_manager.py` remain the focused regression chain for the hotspot families touched in Phase 108.
+- Phase 108 verification requires focused MQTT/meta suites, `check_file_matrix`, `ruff`, `mypy`, and `gsd-tools` state/progress/phase-plan-index proof before handing off to `$gsd-discuss-phase 109`.
 
 ## Phase 107 Testing Freeze
 
-- `tests/meta/test_phase107_rest_status_hotspot_guards.py` now freezes the current active-route proof for REST child-façade assembly convergence, status fallback helper decomposition, request-policy pacing-cache localization, and governance projection.
+- `tests/meta/test_phase107_rest_status_hotspot_guards.py` now freezes predecessor visibility for REST child-façade assembly convergence, status fallback helper decomposition, request-policy pacing-cache localization, and governance projection.
 - `tests/core/api/test_api.py`, `tests/core/api/test_api_status_service_fallback.py`, and `tests/core/api/test_api_request_policy.py` remain the focused regression chain for the three hotspot families touched in Phase 107.
-- Phase 107 verification requires focused API/meta suites, `check_file_matrix`, `ruff`, `mypy`, and `gsd-tools` state/progress/phase-plan-index proof before handing off to `$gsd-discuss-phase 108`.
+- Phase 107 verification requires focused API/meta suites, predecessor-visibility proof, `check_file_matrix`, `ruff`, `mypy`, and `gsd-tools` honesty before the current route continues toward `$gsd-discuss-phase 109`.
+
+## Phase 105 Testing Freeze
+
+- `tests/meta/test_phase105_governance_freeze_guards.py` now freezes the latest archived `v1.29` closeout route, governance rule datafication, promoted closeout bundle, and archived handoff visibility under current `v1.30 active route / Phase 108 complete / latest archived baseline = v1.29`.
+- `tests/meta/governance_followup_route_specs.py` centralizes repeated current-milestone / closeout / continuation case data, while `tests/meta/test_governance_route_handoff_smoke.py` keeps parser-stable GSD fast-path coverage honest.
+- Phase 105 verification remains required as latest-archived closeout proof before the current route is allowed to continue.
 
 ## Phase 102 Testing Freeze
 
