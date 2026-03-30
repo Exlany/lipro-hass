@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
+from dataclasses import dataclass
 import logging
 from typing import NoReturn, TypedDict, TypeGuard, TypeVar
 
@@ -37,6 +38,13 @@ GetDeviceAndCoordinator = Callable[
     [HomeAssistant, ServiceCall],
     Awaitable[tuple[ScheduleDevice, ScheduleCoordinator]],
 ]
+
+
+@dataclass(slots=True, frozen=True)
+class _ScheduleCreationRequest:
+    days: list[int]
+    times: list[int]
+    events: list[int]
 
 
 def _is_schedule_payload(value: object) -> TypeGuard[SchedulePayload]:
@@ -77,6 +85,25 @@ def _coerce_schedule_int_list(value: object) -> list[int]:
         if (coerced := _coerce_schedule_int_item(item)) is not None:
             result.append(coerced)
     return result
+
+
+def _build_schedule_creation_request(
+    call: ServiceCall,
+    *,
+    attr_days: str,
+    attr_times: str,
+    attr_events: str,
+    domain: str,
+) -> _ScheduleCreationRequest:
+    days = call.data[attr_days]
+    times = call.data[attr_times]
+    events = call.data[attr_events]
+    if len(times) != len(events):
+        raise ServiceValidationError(
+            translation_domain=domain,
+            translation_key="times_events_mismatch",
+        )
+    return _ScheduleCreationRequest(days=days, times=times, events=events)
 
 
 def format_schedule_time(seconds: int) -> str | None:
@@ -244,29 +271,26 @@ async def async_handle_add_schedule(
 ) -> dict[str, object]:
     """Handle the add_schedule service call."""
     device, coordinator = await get_device_and_coordinator(hass, call)
-
-    days = call.data[attr_days]
-    times = call.data[attr_times]
-    events = call.data[attr_events]
-
-    if len(times) != len(events):
-        raise ServiceValidationError(
-            translation_domain=domain,
-            translation_key="times_events_mismatch",
-        )
+    request = _build_schedule_creation_request(
+        call,
+        attr_days=attr_days,
+        attr_times=attr_times,
+        attr_events=attr_events,
+        domain=domain,
+    )
 
     schedules: ScheduleRows = await async_call_schedule_service(
         coordinator,
         device,
         protocol_call=coordinator.schedule_service.async_add_schedule,
-        call_args=(days, times, events),
+        call_args=(request.days, request.times, request.events),
         service_log=(
             "Service call: add_schedule for %s (days=%s, times=%s, events=%s)"
         ),
         service_log_args=(
-            len(days) if hasattr(days, "__len__") else 0,
-            len(times) if hasattr(times, "__len__") else 0,
-            len(events) if hasattr(events, "__len__") else 0,
+            len(request.days) if hasattr(request.days, "__len__") else 0,
+            len(request.times) if hasattr(request.times, "__len__") else 0,
+            len(request.events) if hasattr(request.events, "__len__") else 0,
         ),
         error_log="API error adding schedule: %s",
         error_translation_key="schedule_add_failed",
