@@ -94,6 +94,12 @@ class _BinarySplitAccumulator:
         )
 
 
+@dataclass(slots=True, frozen=True)
+class _BinarySplitQueryOptions:
+    small_subset_batch_query_threshold: int
+    small_subset_batch_size: int
+
+
 def _build_query_context(
     *,
     path: str,
@@ -203,9 +209,9 @@ async def _query_small_subset(
     context: _BinarySplitQueryContext,
     semaphore: asyncio.Semaphore,
     accumulator: _BinarySplitAccumulator,
-    small_subset_batch_size: int,
+    options: _BinarySplitQueryOptions,
 ) -> None:
-    if len(subset) <= small_subset_batch_size:
+    if len(subset) <= options.small_subset_batch_size:
         await _query_items_individually(
             subset,
             context=context,
@@ -214,8 +220,8 @@ async def _query_small_subset(
         )
         return
 
-    for start in range(0, len(subset), small_subset_batch_size):
-        batch = subset[start : start + small_subset_batch_size]
+    for start in range(0, len(subset), options.small_subset_batch_size):
+        batch = subset[start : start + options.small_subset_batch_size]
         try:
             accumulator.extend_rows(
                 await context.query_rows(batch, semaphore=semaphore)
@@ -243,21 +249,20 @@ async def _query_subset(
     context: _BinarySplitQueryContext,
     semaphore: asyncio.Semaphore,
     accumulator: _BinarySplitAccumulator,
-    small_subset_batch_query_threshold: int,
-    small_subset_batch_size: int,
+    options: _BinarySplitQueryOptions,
 ) -> None:
     if not subset:
         return
 
     accumulator.record_depth(depth)
 
-    if len(subset) <= small_subset_batch_query_threshold:
+    if len(subset) <= options.small_subset_batch_query_threshold:
         await _query_small_subset(
             subset,
             context=context,
             semaphore=semaphore,
             accumulator=accumulator,
-            small_subset_batch_size=small_subset_batch_size,
+            options=options,
         )
         return
 
@@ -275,8 +280,7 @@ async def _query_subset(
         context=context,
         semaphore=semaphore,
         accumulator=accumulator,
-        small_subset_batch_query_threshold=small_subset_batch_query_threshold,
-        small_subset_batch_size=small_subset_batch_size,
+        options=options,
     )
 
 
@@ -286,18 +290,16 @@ async def _query_binary_split_root(
     context: _BinarySplitQueryContext,
     semaphore: asyncio.Semaphore,
     accumulator: _BinarySplitAccumulator,
-    small_subset_batch_query_threshold: int,
-    small_subset_batch_size: int,
+    options: _BinarySplitQueryOptions,
 ) -> None:
-    if len(ids) <= small_subset_batch_query_threshold:
+    if len(ids) <= options.small_subset_batch_query_threshold:
         await _query_subset(
             ids,
             depth=1,
             context=context,
             semaphore=semaphore,
             accumulator=accumulator,
-            small_subset_batch_query_threshold=small_subset_batch_query_threshold,
-            small_subset_batch_size=small_subset_batch_size,
+            options=options,
         )
         return
 
@@ -309,8 +311,7 @@ async def _query_binary_split_root(
             context=context,
             semaphore=semaphore,
             accumulator=accumulator,
-            small_subset_batch_query_threshold=small_subset_batch_query_threshold,
-            small_subset_batch_size=small_subset_batch_size,
+            options=options,
         ),
         _query_subset(
             right,
@@ -318,8 +319,7 @@ async def _query_binary_split_root(
             context=context,
             semaphore=semaphore,
             accumulator=accumulator,
-            small_subset_batch_query_threshold=small_subset_batch_query_threshold,
-            small_subset_batch_size=small_subset_batch_size,
+            options=options,
         ),
     )
 
@@ -356,6 +356,10 @@ async def query_items_by_binary_split_impl(
         logger=logger,
         build_query_payload=build_query_payload,
     )
+    options = _BinarySplitQueryOptions(
+        small_subset_batch_query_threshold=small_subset_batch_query_threshold,
+        small_subset_batch_size=small_subset_batch_size,
+    )
     accumulator = _BinarySplitAccumulator()
     semaphore = asyncio.Semaphore(min(5, len(ids)))
 
@@ -364,8 +368,7 @@ async def query_items_by_binary_split_impl(
         context=context,
         semaphore=semaphore,
         accumulator=accumulator,
-        small_subset_batch_query_threshold=small_subset_batch_query_threshold,
-        small_subset_batch_size=small_subset_batch_size,
+        options=options,
     )
 
     return (
@@ -412,8 +415,7 @@ async def _query_with_batch_fallback(
     err: Exception,
     expected_offline_codes: tuple[int | str, ...],
     ids: list[str],
-    small_subset_batch_query_threshold: int,
-    small_subset_batch_size: int,
+    options: _BinarySplitQueryOptions,
 ) -> tuple[MappingRows, int]:
     batch_code = log_batch_query_fallback(
         context=context,
@@ -437,8 +439,8 @@ async def _query_with_batch_fallback(
         normalize_response_code=context.normalize_response_code,
         logger=context.logger,
         build_query_payload=context.build_query_payload,
-        small_subset_batch_query_threshold=small_subset_batch_query_threshold,
-        small_subset_batch_size=small_subset_batch_size,
+        small_subset_batch_query_threshold=options.small_subset_batch_query_threshold,
+        small_subset_batch_size=options.small_subset_batch_size,
     )
     log_empty_fallback_summary(
         path=context.path,
@@ -478,8 +480,7 @@ async def _query_subset_branches(
     context: _BinarySplitQueryContext,
     semaphore: asyncio.Semaphore,
     accumulator: _BinarySplitAccumulator,
-    small_subset_batch_query_threshold: int,
-    small_subset_batch_size: int,
+    options: _BinarySplitQueryOptions,
 ) -> None:
     left, right = _split_subset_ids(subset)
     await asyncio.gather(
@@ -489,8 +490,7 @@ async def _query_subset_branches(
             context=context,
             semaphore=semaphore,
             accumulator=accumulator,
-            small_subset_batch_query_threshold=small_subset_batch_query_threshold,
-            small_subset_batch_size=small_subset_batch_size,
+            options=options,
         ),
         _query_subset(
             right,
@@ -498,8 +498,7 @@ async def _query_subset_branches(
             context=context,
             semaphore=semaphore,
             accumulator=accumulator,
-            small_subset_batch_query_threshold=small_subset_batch_query_threshold,
-            small_subset_batch_size=small_subset_batch_size,
+            options=options,
         ),
     )
 
@@ -523,8 +522,7 @@ async def _query_with_retriable_fallback(
     err: Exception,
     expected_offline_codes: tuple[int | str, ...],
     ids: list[str],
-    small_subset_batch_query_threshold: int,
-    small_subset_batch_size: int,
+    options: _BinarySplitQueryOptions,
     record_fallback_depth: RecordFallbackDepth | None,
 ) -> MappingRows:
     all_results, max_fallback_depth = await _query_with_batch_fallback(
@@ -532,8 +530,7 @@ async def _query_with_retriable_fallback(
         err=err,
         expected_offline_codes=expected_offline_codes,
         ids=ids,
-        small_subset_batch_query_threshold=small_subset_batch_query_threshold,
-        small_subset_batch_size=small_subset_batch_size,
+        options=options,
     )
     _record_fallback_depth_if_needed(
         record_fallback_depth,
@@ -573,6 +570,10 @@ async def query_with_fallback_impl(
         logger=logger,
         build_query_payload=build_query_payload,
     )
+    options = _BinarySplitQueryOptions(
+        small_subset_batch_query_threshold=small_subset_batch_query_threshold,
+        small_subset_batch_size=small_subset_batch_size,
+    )
     try:
         result_rows = await _query_primary_batch(
             context=context,
@@ -586,8 +587,7 @@ async def query_with_fallback_impl(
             err=failure.error,
             expected_offline_codes=expected_offline_codes,
             ids=ids,
-            small_subset_batch_query_threshold=small_subset_batch_query_threshold,
-            small_subset_batch_size=small_subset_batch_size,
+            options=options,
             record_fallback_depth=record_fallback_depth,
         )
 
