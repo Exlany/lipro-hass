@@ -42,6 +42,57 @@ class _CommandResultQueryState:
     last_error: LiproApiError | None = None
 
 
+@dataclass(slots=True)
+class _CommandResultPollingSession:
+    coordinator: DiagnosticsCoordinator
+    device: DiagnosticsDevice
+    msg_sn: str
+    raise_service_error: ServiceErrorRaiser
+    query_state: _CommandResultQueryState
+
+    async def query_command_result(
+        self,
+        *,
+        msg_sn: str,
+        device_id: str,
+        device_type: str,
+    ) -> CommandResultPayload:
+        del device_id, device_type
+        try:
+            payload = await async_execute_coordinator_call(
+                self.coordinator,
+                call=lambda: self.coordinator.protocol_service.async_query_command_result(
+                    msg_sn=msg_sn,
+                    device_id=self.device.serial,
+                    device_type=self.device.device_type_hex,
+                ),
+                raise_service_error=self.raise_service_error,
+            )
+        except LiproApiError as err:
+            self.query_state.last_error = err
+            raise
+        self.query_state.last_error = None
+        return payload
+
+    async def query_once(
+        self,
+        *,
+        attempt: int,
+        attempt_limit: int,
+    ) -> CommandResultPayload | None:
+        return await query_command_result_once(
+            query_command_result=self.query_command_result,
+            lipro_api_error=LiproApiError,
+            device_name=self.device.name,
+            device_serial=self.device.serial,
+            device_type_hex=self.device.device_type_hex,
+            msg_sn=self.msg_sn,
+            attempt=attempt,
+            attempt_limit=attempt_limit,
+            logger=_LOGGER,
+        )
+
+
 def _build_api_failure_summary(err: LiproApiError) -> FailureSummaryPayload:
     """Map one diagnostics-service API error into the shared failure vocabulary."""
     if err.code in {401, 403}:
@@ -90,29 +141,23 @@ def _build_retry_schedule(
     return retry_delays_seconds, len(retry_delays_seconds) + 1
 
 
-async def _async_authenticated_query_command_result(
+async def _poll_command_result(
     *,
-    coordinator: DiagnosticsCoordinator,
-    device: DiagnosticsDevice,
-    msg_sn: str,
-    raise_service_error: ServiceErrorRaiser,
-    query_state: _CommandResultQueryState,
-) -> CommandResultPayload:
-    try:
-        payload = await async_execute_coordinator_call(
-            coordinator,
-            call=lambda: coordinator.protocol_service.async_query_command_result(
-                msg_sn=msg_sn,
-                device_id=device.serial,
-                device_type=device.device_type_hex,
-            ),
-            raise_service_error=raise_service_error,
+    session: _CommandResultPollingSession,
+    attempt_limit: int,
+    retry_delays_seconds: tuple[float, ...],
+) -> tuple[CommandResultPollingState, int, CommandResultPayload | None]:
+    async def _query_once(attempt: int) -> CommandResultPayload | None:
+        return await session.query_once(
+            attempt=attempt,
+            attempt_limit=attempt_limit,
         )
-    except LiproApiError as err:
-        query_state.last_error = err
-        raise
-    query_state.last_error = None
-    return payload
+
+    return await poll_command_result_state(
+        query_once=_query_once,
+        classify_payload=classify_command_result_payload,
+        retry_delays_seconds=retry_delays_seconds,
+    )
 
 
 def _build_query_command_result_response(
@@ -160,38 +205,15 @@ async def _async_query_command_result_with_optional_polling(
         time_budget_seconds=time_budget_seconds,
     )
     query_state = _CommandResultQueryState()
-
-    async def _query_command_result(
-        *,
-        msg_sn: str,
-        device_id: str,
-        device_type: str,
-    ) -> CommandResultPayload:
-        del device_id, device_type
-        return await _async_authenticated_query_command_result(
+    state, attempts, result = await _poll_command_result(
+        session=_CommandResultPollingSession(
             coordinator=coordinator,
             device=device,
             msg_sn=msg_sn,
             raise_service_error=raise_service_error,
             query_state=query_state,
-        )
-
-    async def _query_once(attempt: int) -> CommandResultPayload | None:
-        return await query_command_result_once(
-            query_command_result=_query_command_result,
-            lipro_api_error=LiproApiError,
-            device_name=device.name,
-            device_serial=device.serial,
-            device_type_hex=device.device_type_hex,
-            msg_sn=msg_sn,
-            attempt=attempt,
-            attempt_limit=attempt_limit,
-            logger=_LOGGER,
-        )
-
-    state, attempts, result = await poll_command_result_state(
-        query_once=_query_once,
-        classify_payload=classify_command_result_payload,
+        ),
+        attempt_limit=attempt_limit,
         retry_delays_seconds=retry_delays_seconds,
     )
     return _build_query_command_result_response(
