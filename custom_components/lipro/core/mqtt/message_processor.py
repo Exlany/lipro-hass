@@ -30,6 +30,8 @@ _LOGGER = logging.getLogger(__package__ or __name__)
 _MQTT_PROCESSOR_ORIGIN = "mqtt.message_processor"
 
 type MqttPayload = dict[str, Any]
+type ParsePayloadCallback = Callable[[object], MqttPayload]
+type MessageCallback = Callable[[str, MqttPayload], None]
 
 
 class _BoundaryDecoderModule(Protocol):
@@ -218,6 +220,43 @@ class MqttMessageProcessor:
             reason_code="processed",
         )
 
+    def _process_message_core(
+        self,
+        message: aiomqtt.Message,
+        *,
+        parse_payload: ParsePayloadCallback,
+        on_message: MessageCallback | None,
+        invoke_callback: Callable[..., bool],
+        clear_last_error: Callable[[], None],
+    ) -> OperationOutcome:
+        topic = str(message.topic)
+        device_id = self._resolve_device_id(topic)
+        if device_id is None:
+            return self._invalid_topic_outcome(topic)
+
+        payload_or_outcome = self._load_payload_mapping(
+            message.payload,
+            device_id=device_id,
+        )
+        if isinstance(payload_or_outcome, OperationOutcome):
+            return payload_or_outcome
+
+        properties_or_outcome = self._parse_properties(
+            payload_or_outcome,
+            parse_payload=parse_payload,
+            clear_last_error=clear_last_error,
+        )
+        if isinstance(properties_or_outcome, OperationOutcome):
+            return properties_or_outcome
+
+        return self._dispatch_message(
+            device_id=device_id,
+            properties=properties_or_outcome,
+            on_message=on_message,
+            invoke_callback=invoke_callback,
+            clear_last_error=clear_last_error,
+        )
+
     def process_message(
         self,
         message: aiomqtt.Message,
@@ -230,29 +269,9 @@ class MqttMessageProcessor:
     ) -> OperationOutcome:
         """Parse one MQTT message and forward flattened properties."""
         try:
-            topic = str(message.topic)
-            device_id = self._resolve_device_id(topic)
-            if device_id is None:
-                return self._invalid_topic_outcome(topic)
-
-            payload_or_outcome = self._load_payload_mapping(
-                message.payload,
-                device_id=device_id,
-            )
-            if isinstance(payload_or_outcome, OperationOutcome):
-                return payload_or_outcome
-
-            properties_or_outcome = self._parse_properties(
-                payload_or_outcome,
+            return self._process_message_core(
+                message,
                 parse_payload=parse_payload,
-                clear_last_error=clear_last_error,
-            )
-            if isinstance(properties_or_outcome, OperationOutcome):
-                return properties_or_outcome
-
-            return self._dispatch_message(
-                device_id=device_id,
-                properties=properties_or_outcome,
                 on_message=on_message,
                 invoke_callback=invoke_callback,
                 clear_last_error=clear_last_error,
