@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from homeassistant.core import HomeAssistant, ServiceCall
@@ -28,6 +29,12 @@ OptionalServiceStringGetter = Callable[[ServiceCall, str], str | None]
 OptionalNoteGetter = Callable[[ServiceCall, str], str]
 
 
+@dataclass(slots=True, frozen=True)
+class _DeveloperFeedbackRequest:
+    requested_entry_id: str | None
+    note: str
+
+
 def build_developer_feedback_payload(
     *,
     reports: list[DeveloperReport],
@@ -44,6 +51,38 @@ def build_developer_feedback_payload(
         service_name=service_name,
         requested_entry_id=requested_entry_id,
     )
+
+
+def _build_feedback_request(
+    call: ServiceCall,
+    *,
+    get_optional_service_string: OptionalServiceStringGetter,
+    get_optional_note: OptionalNoteGetter,
+    attr_entry_id: str,
+    attr_note: str,
+) -> _DeveloperFeedbackRequest:
+    return _DeveloperFeedbackRequest(
+        requested_entry_id=get_optional_service_string(call, attr_entry_id),
+        note=get_optional_note(call, attr_note),
+    )
+
+
+def _build_feedback_result(
+    *,
+    success: bool,
+    submitted_entries: int,
+    requested_entry_id: str | None,
+    message: str | None = None,
+) -> DeveloperFeedbackResponse:
+    result: DeveloperFeedbackResponse = {
+        "success": success,
+        "submitted_entries": submitted_entries,
+    }
+    if message is not None:
+        result["message"] = message
+    if requested_entry_id is not None:
+        result["requested_entry_id"] = requested_entry_id
+    return result
 
 
 async def async_handle_get_developer_report(
@@ -84,38 +123,42 @@ async def async_handle_submit_developer_feedback(
     raise_service_error: ServiceErrorRaiser,
 ) -> DeveloperFeedbackResponse:
     """Handle the submit_developer_feedback service."""
-    requested_entry_id = get_optional_service_string(call, attr_entry_id)
-    reports = collect_reports(hass, requested_entry_id=requested_entry_id)
+    request = _build_feedback_request(
+        call,
+        get_optional_service_string=get_optional_service_string,
+        get_optional_note=get_optional_note,
+        attr_entry_id=attr_entry_id,
+        attr_note=attr_note,
+    )
+    reports = collect_reports(hass, requested_entry_id=request.requested_entry_id)
     if not reports:
-        result: DeveloperFeedbackResponse = {
-            "success": False,
-            "message": "No active Lipro config entries",
-            "submitted_entries": 0,
-        }
-        if requested_entry_id is not None:
-            result["requested_entry_id"] = requested_entry_id
-        return result
+        return _build_feedback_result(
+            success=False,
+            submitted_entries=0,
+            requested_entry_id=request.requested_entry_id,
+            message="No active Lipro config entries",
+        )
 
     feedback_payload = build_developer_feedback_payload(
         reports=reports,
-        note=get_optional_note(call, attr_note),
+        note=request.note,
         domain=domain,
         service_name=service_submit_developer_feedback,
-        requested_entry_id=requested_entry_id,
+        requested_entry_id=request.requested_entry_id,
     )
 
-    share_manager = get_anonymous_share_manager(hass, entry_id=requested_entry_id)
+    share_manager = get_anonymous_share_manager(
+        hass,
+        entry_id=request.requested_entry_id,
+    )
     success = await share_manager.submit_developer_feedback(
         get_client_session(hass),
         feedback_payload,
     )
     if not success:
         raise_service_error("developer_feedback_submit_failed")
-
-    success_result: DeveloperFeedbackResponse = {
-        "success": True,
-        "submitted_entries": len(reports),
-    }
-    if requested_entry_id is not None:
-        success_result["requested_entry_id"] = requested_entry_id
-    return success_result
+    return _build_feedback_result(
+        success=True,
+        submitted_entries=len(reports),
+        requested_entry_id=request.requested_entry_id,
+    )
