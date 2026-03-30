@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 736
+**Python files total:** 739
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -55,6 +55,7 @@
 | `custom_components/lipro/core/anonymous_share/collector.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/const.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/manager.py` | Protocol | Phase 90 | 重构 | formal anonymous-share aggregate manager home with scope-state support collaborators |
+| `custom_components/lipro/core/anonymous_share/manager_scope.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/manager_submission.py` | Protocol | Phase 101 | 保留 | anonymous-share submit-flow inward collaborator home |
 | `custom_components/lipro/core/anonymous_share/manager_support.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 | 保留 | anonymous-share scope-state / pending aggregation helper home |
 | `custom_components/lipro/core/anonymous_share/models.py` | Protocol | Phase 2.6 | 保留 | - |
@@ -354,6 +355,7 @@
 | `tests/core/anonymous_share/support.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/anonymous_share/test_capabilities.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/anonymous_share/test_manager_recording.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `tests/core/anonymous_share/test_manager_scope_views.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/anonymous_share/test_manager_submission.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/anonymous_share/test_observability.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/anonymous_share/test_sanitize.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -648,7 +650,8 @@
 | `tests/meta/test_phase104_service_router_runtime_split_guards.py` | Assurance | Phase 104 | 保留 | focused predecessor guard home for Phase 104 service-router/runtime split |
 | `tests/meta/test_phase105_governance_freeze_guards.py` | Assurance | Phase 105 | 保留 | focused latest-archived closeout guard home for Phase 105 governance freeze |
 | `tests/meta/test_phase107_rest_status_hotspot_guards.py` | Assurance | Phase 107 | 保留 | focused predecessor guard home for Phase 107 REST/auth/status hotspot convergence |
-| `tests/meta/test_phase108_mqtt_transport_de_friendization_guards.py` | Assurance | Phase 108 | 保留 | focused active-route guard home for Phase 108 MQTT transport-runtime de-friendization |
+| `tests/meta/test_phase108_mqtt_transport_de_friendization_guards.py` | Assurance | Phase 108 | 保留 | focused predecessor guard home for Phase 108 MQTT transport-runtime de-friendization |
+| `tests/meta/test_phase109_anonymous_share_manager_inward_decomposition_guards.py` | Assurance | Phase 109 | 保留 | focused active-route guard home for Phase 109 anonymous-share manager inward decomposition |
 | `tests/meta/test_phase31_runtime_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase45_hotspot_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase50_rest_typed_budget_guards.py` | Assurance | Phase 6 | 保留 | - |

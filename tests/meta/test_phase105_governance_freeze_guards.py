@@ -31,7 +31,7 @@ def _read(path: Path) -> str:
 
 
 
-def test_phase105_latest_archived_bundle_remains_visible_under_phase107_route() -> None:
+def test_phase105_latest_archived_bundle_remains_visible_under_phase109_route() -> None:
     project_text = _read(_PROJECT)
     roadmap_text = _read(_ROADMAP)
     requirements_text = _read(_REQUIREMENTS)
@@ -90,7 +90,7 @@ def test_phase105_ledgers_testing_and_promoted_assets_freeze_the_same_story() ->
     assert_testing_inventory_snapshot(testing_text)
     assert '## Phase 105 Governance Rule Datafication / Milestone Freeze' in verification_text
     for token in (
-        '$gsd-discuss-phase 109',
+        '$gsd-discuss-phase 110',
         '.planning/reviews/PROMOTED_PHASE_ASSETS.md',
         'tests/meta/test_phase105_governance_freeze_guards.py',
         'tests/meta/governance_followup_route_specs.py',

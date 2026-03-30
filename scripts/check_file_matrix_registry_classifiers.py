@@ -209,7 +209,12 @@ _TEST_EXACT_RULES: tuple[ClassifierRule, ...] = build_exact_rules(
     ExactRuleFamily(
         area="Assurance",
         owner_phase="Phase 108",
-        residual_rows=(("tests/meta/test_phase108_mqtt_transport_de_friendization_guards.py", "focused active-route guard home for Phase 108 MQTT transport-runtime de-friendization"),),
+        residual_rows=(("tests/meta/test_phase108_mqtt_transport_de_friendization_guards.py", "focused predecessor guard home for Phase 108 MQTT transport-runtime de-friendization"),),
+    ),
+    ExactRuleFamily(
+        area="Assurance",
+        owner_phase="Phase 109",
+        residual_rows=(("tests/meta/test_phase109_anonymous_share_manager_inward_decomposition_guards.py", "focused active-route guard home for Phase 109 anonymous-share manager inward decomposition"),),
     ),
 )
 

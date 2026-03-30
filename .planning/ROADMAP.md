@@ -1,6 +1,6 @@
 # Roadmap
 
-- 🚧 **v1.30 Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming** - `Phase 107 -> 110` active on 2026-03-30; current route = `v1.30 active route / Phase 108 complete / latest archived baseline = v1.29`; latest archived evidence index = `.planning/reviews/V1_29_EVIDENCE_INDEX.md`; default next = `$gsd-discuss-phase 109`
+- 🚧 **v1.30 Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming** - `Phase 107 -> 110` active on 2026-03-30; current route = `v1.30 active route / Phase 109 complete / latest archived baseline = v1.29`; latest archived evidence index = `.planning/reviews/V1_29_EVIDENCE_INDEX.md`; default next = `$gsd-discuss-phase 110`
 - ✅ **v1.29 Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization** - `Phase 103 -> 105` archived on 2026-03-30; milestone audit: `.planning/v1.29-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_29_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.29-ROADMAP.md` / `.planning/milestones/v1.29-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.29`
 - ✅ **v1.28 Governance Portability, Verification Stratification & Open-Source Continuity Hardening** - `Phase 102` archived on 2026-03-28; milestone audit: `.planning/v1.28-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_28_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.28-ROADMAP.md` / `.planning/milestones/v1.28-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.28`
 - ✅ **v1.27 Final Carry-Forward Eradication & Route Reactivation** - `Phase 98 -> 101` archived on 2026-03-28; milestone audit: `.planning/v1.27-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_27_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.27-ROADMAP.md` / `.planning/milestones/v1.27-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.27`
@@ -14,11 +14,11 @@ contract_name: governance-route
 active_milestone:
   version: v1.30
   name: Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming
-  status: active / Phase 108 complete / continuation-ready (2026-03-30)
-  phase: '108'
-  phase_title: MQTT transport-runtime de-friendization
-  phase_dir: 108-mqtt-transport-runtime-de-friendization
-  route_mode: v1.30 active route / Phase 108 complete / latest archived baseline = v1.29
+  status: active / Phase 109 complete / continuation-ready (2026-03-30)
+  phase: '109'
+  phase_title: Anonymous-share manager inward decomposition
+  phase_dir: 109-anonymous-share-manager-inward-decomposition
+  route_mode: v1.30 active route / Phase 109 complete / latest archived baseline = v1.29
 latest_archived:
   version: v1.29
   name: Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization
@@ -34,25 +34,25 @@ previous_archived:
   name: Governance Portability, Verification Stratification & Open-Source Continuity Hardening
   evidence_path: .planning/reviews/V1_28_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.30 active route / Phase 108 complete / latest archived baseline = v1.29
-  default_next_command: $gsd-discuss-phase 109
+  current_route: v1.30 active route / Phase 109 complete / latest archived baseline = v1.29
+  default_next_command: $gsd-discuss-phase 110
   latest_archived_evidence_pointer: .planning/reviews/V1_29_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
 ## v1.30: Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming
 
-> `v1.30` 沿 `v1.29` latest archived baseline 的唯一 north-star 主线，把 `Phase 106` evidence-only 审计已经点名但尚未正式入主线的 remaining hotspots，收敛成一条 active current route；`Phase 107` 已收口 REST/auth/status 家族的 formal-home hotspots，`Phase 108` 已完成 MQTT transport/runtime de-friendization，后续 phases 再继续推进 anonymous-share 与 snapshot surface slimming。
+> `v1.30` 沿 `v1.29` latest archived baseline 的唯一 north-star 主线，把 `Phase 106` evidence-only 审计已经点名但尚未正式入主线的 remaining hotspots，收敛成一条 active current route；`Phase 107` 已收口 REST/auth/status 家族的 formal-home hotspots，`Phase 108` 已完成 MQTT transport/runtime de-friendization，`Phase 109` 已完成 anonymous-share manager inward decomposition，剩余 live continuation 只保留 snapshot surface slimming 与 milestone closeout。
 
 **Milestone Goal:** 把 protocol/runtime formal homes 中仍具高维护成本的热点，继续压回更显式的 collaborator / helper homes，同时保持单 protocol root、单 runtime orchestration root 与 control thin-adapter 边界不漂移。
-**Milestone status:** `active / Phase 108 complete / continuation-ready (2026-03-30)`
+**Milestone status:** `active / Phase 109 complete / continuation-ready (2026-03-30)`
 **Starting baseline:** `.planning/v1.29-MILESTONE-AUDIT.md`, `.planning/reviews/V1_29_EVIDENCE_INDEX.md`, `.planning/milestones/v1.29-ROADMAP.md`, `.planning/milestones/v1.29-REQUIREMENTS.md`
 **Requirements basket:** `HOT-46`, `ARC-27`, `TST-37`, `QLT-45`, `RUN-10`, `HOT-47`, `RUN-11`, `GOV-70`
 **Latest archived baseline:** `v1.29`
 **Latest archived pointer:** `.planning/reviews/V1_29_EVIDENCE_INDEX.md`
-**Current route mode:** `v1.30 active route / Phase 108 complete / latest archived baseline = v1.29`
-**Default next command:** `$gsd-discuss-phase 109`
-**Current follow-up target:** continue into anonymous-share manager inward decomposition via `Phase 109` while keeping `Phase 108` proof chain green.
+**Current route mode:** `v1.30 active route / Phase 109 complete / latest archived baseline = v1.29`
+**Default next command:** `$gsd-discuss-phase 110`
+**Current follow-up target:** continue into runtime snapshot surface reduction via `Phase 110` while keeping `Phase 109` active-route proof and `Phase 108` predecessor visibility green.
 
 ### Phase 107: REST/auth/status hotspot convergence and support-surface slimming
 **Goal:** 把 `rest_facade.py`、`status_fallback_support.py` 与 `request_policy_support.py` 的 remaining hotspot density 收回更显式的 collaborator / helper seams，同时保持 REST outward surface、fallback semantics 与 pacing contract 不漂移。
@@ -74,7 +74,9 @@ bootstrap:
 **Goal:** 把 `core/anonymous_share/manager.py` 的 orchestration / sanitization / submission 密度继续压回 focused homes，让 manager 保持 aggregate-facing thin coordination role。
 **Depends on:** `Phase 108` complete
 **Requirements**: [HOT-47, TST-37, QLT-45]
-**Status**: Planned
+**Status**: Complete (2026-03-30)
+**Plans**: 3/3 complete
+**Closeout assets**: `.planning/phases/109-anonymous-share-manager-inward-decomposition/{109-01-SUMMARY.md,109-02-SUMMARY.md,109-03-SUMMARY.md,109-VERIFICATION.md,109-VALIDATION.md}`
 
 ### Phase 110: Runtime snapshot surface reduction and milestone closeout
 **Goal:** 把 `core/coordinator/runtime/device/snapshot.py` 的 sourcing / formatting / arbitration seam 拆回更局部 home，并完成 `v1.30` 的 governance closeout / evidence convergence。

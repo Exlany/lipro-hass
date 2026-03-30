@@ -80,6 +80,7 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
     assert "## Phase 105 Governance Rule Datafication / Milestone Freeze" in verification_text
     assert "## Phase 107 REST/Auth/Status Hotspot Convergence / Support-surface Slimming" in verification_text
     assert "## Phase 108 MQTT Transport-runtime De-friendization" in verification_text
+    assert "## Phase 109 Anonymous-share Manager Inward Decomposition" in verification_text
     assert "## Phase 101 Anonymous-share Manager / REST Decoder Hotspot Decomposition Freeze" in verification_text
     assert CURRENT_ROUTE in verification_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in verification_text
@@ -97,6 +98,7 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
         "tests/meta/test_phase105_governance_freeze_guards.py",
         "tests/meta/test_phase107_rest_status_hotspot_guards.py",
         "tests/meta/test_phase108_mqtt_transport_de_friendization_guards.py",
+        "tests/meta/test_phase109_anonymous_share_manager_inward_decomposition_guards.py",
     ):
         assert guard in file_matrix_text
     assert "route-handoff gsd fast-path smoke guard home" in file_matrix_text
@@ -121,7 +123,7 @@ def test_gsd_fast_path_matches_current_archived_route_story() -> None:
     if CURRENT_MILESTONE_PENDING_PHASES:
         next_phase = _as_mapping(progress["next_phase"])
         assert _as_str(next_phase["number"]) == CURRENT_MILESTONE_PENDING_PHASES[0]
-        assert _as_str(next_phase["status"]) == "not_started"
+        assert _as_str(next_phase["status"]) == "pending"
     else:
         assert progress["next_phase"] is None
 

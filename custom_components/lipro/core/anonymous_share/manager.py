@@ -18,13 +18,13 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Sequence
 import logging
-import time
 from typing import TYPE_CHECKING
 
 import aiohttp
 
 from ..telemetry.models import OperationOutcome
 from .collector import AnonymousShareCollector
+from .manager_scope import AnonymousShareScopeViews
 from .manager_submission import (
     submit_developer_feedback as _submit_developer_feedback_flow,
     submit_if_needed as _submit_if_needed_flow,
@@ -32,17 +32,14 @@ from .manager_submission import (
 )
 from .manager_support import (
     _ScopeState,
-    aggregate_pending_count,
     build_aggregate_report_payload,
+    build_pending_report_payload,
     build_scope_report_payload,
     clear_scope_collectors,
     configure_scope_state,
-    get_scope_state,
+    finalize_successful_submit_state,
     has_pending_report_data,
-    iter_scope_states,
     load_reported_device_keys_for_state,
-    mark_reported_devices,
-    primary_scope_state,
     save_reported_device_keys_for_state,
     should_skip_report_submission,
     should_submit_if_needed,
@@ -71,7 +68,11 @@ class AnonymousShareManager:
         self._scope_key = _scope_key
         self._aggregate = _aggregate
         self._registry = {} if _registry is None else _registry
-        self._scoped_views: dict[str, AnonymousShareManager] = {}
+        self._scope_views = AnonymousShareScopeViews(
+            registry=self._registry,
+            manager_factory=self._create_scoped_manager,
+        )
+        self._scoped_views = self._scope_views.scoped_views
         self._aggregate_submit_outcome: OperationOutcome | None = None
 
     def aggregate_view(self) -> AnonymousShareManager:
@@ -84,34 +85,34 @@ class AnonymousShareManager:
 
     def for_scope(self, scope_key: str) -> AnonymousShareManager:
         """Return a manager bound to one explicit scope key."""
-        manager = self._scoped_views.get(scope_key)
-        if manager is None:
-            manager = AnonymousShareManager(
-                _scope_key=scope_key,
-                _registry=self._registry,
-            )
-            self._scoped_views[scope_key] = manager
-        return manager
+        return self._scope_views.for_scope(scope_key)
+
+    def _create_scoped_manager(self, scope_key: str) -> AnonymousShareManager:
+        """Build one scoped manager sharing this manager's state registry."""
+        return AnonymousShareManager(
+            _scope_key=scope_key,
+            _registry=self._registry,
+        )
 
     def _get_scope_state(self, scope_key: str) -> _ScopeState:
-        return get_scope_state(self._registry, scope_key)
+        return self._scope_views.get_scope_state(scope_key)
 
     @property
     def _state(self) -> _ScopeState:
         return self._get_scope_state(self._scope_key)
 
     def _iter_scope_states(self) -> list[tuple[str, _ScopeState]]:
-        return iter_scope_states(self._registry)
+        return self._scope_views.iter_scope_states()
 
     def _iter_managers(self) -> list[AnonymousShareManager]:
-        return [self.for_scope(scope_key) for scope_key, _ in self._iter_scope_states()]
+        return list(self._scope_views.iter_scoped_managers())
 
     def iter_scoped_managers(self) -> Sequence[AnonymousShareManager]:
         """Return scoped managers participating in aggregate submission."""
         return self._iter_managers()
 
     def _primary_state(self) -> _ScopeState:
-        return primary_scope_state(self._registry)
+        return self._scope_views.primary_scope_state()
 
     def get_submit_state(self) -> _ScopeState:
         """Return the current scope state for submit-flow helpers."""
@@ -125,11 +126,7 @@ class AnonymousShareManager:
         """Return the scoped manager matching the preferred aggregate submit state."""
         if not self._aggregate:
             return self
-        primary_state = self._primary_state()
-        for scope_key, state in self._iter_scope_states():
-            if state is primary_state:
-                return self.for_scope(scope_key)
-        return self.for_scope(_DEFAULT_SCOPE)
+        return self._scope_views.primary_manager(default_scope=_DEFAULT_SCOPE)
 
     @property
     def _collector(self) -> AnonymousShareCollector:
@@ -219,9 +216,7 @@ class AnonymousShareManager:
     def is_enabled(self) -> bool:
         """Return whether anonymous sharing is enabled."""
         if self._aggregate:
-            return any(
-                state.collector.is_enabled for _, state in self._iter_scope_states()
-            )
+            return self._scope_views.aggregate_enabled()
         return self._collector.is_enabled
 
     @property
@@ -229,7 +224,7 @@ class AnonymousShareManager:
         """Return count of pending items (devices, errors)."""
         if not self._aggregate:
             return self._collector.pending_count
-        return aggregate_pending_count(self._registry)
+        return self._scope_views.aggregate_pending_count()
 
     @property
     def last_submit_outcome(self) -> OperationOutcome | None:
@@ -337,9 +332,11 @@ class AnonymousShareManager:
 
     def get_pending_report(self) -> dict[str, object] | None:
         """Get pending report data for user review."""
-        if self.pending_count == (0, 0):
-            return None
-        return self.build_report()
+        return build_pending_report_payload(
+            aggregate=self._aggregate,
+            state=self._state,
+            registry=self._registry,
+        )
 
     async def async_submit_share_payload_with_outcome(
         self,
@@ -392,16 +389,14 @@ class AnonymousShareManager:
 
     async def async_finalize_successful_submit(self) -> None:
         """Finalize one successful current-scope anonymous-share submission."""
-        device_count, error_count = self.pending_count
-        _LOGGER.info(
-            "Anonymous share report submitted: %d devices, %d errors",
-            device_count,
-            error_count,
+        pending_count = self.pending_count
+        await asyncio.to_thread(
+            finalize_successful_submit_state,
+            self._state,
+            pending_count=pending_count,
+            logger=_LOGGER,
+            save_reported_devices=self._save_reported_devices,
         )
-        self._last_upload_time = time.time()
-        mark_reported_devices(self._state)
-        await asyncio.to_thread(self._save_reported_devices)
-        self.clear()
 
     def should_submit_if_needed(self) -> bool:
         """Return whether automatic submission thresholds are currently met."""

@@ -31,7 +31,7 @@ def _read(path: Path) -> str:
     return path.read_text(encoding='utf-8')
 
 
-def test_phase107_predecessor_bundle_remains_visible_under_phase108_route() -> None:
+def test_phase107_predecessor_bundle_remains_visible_under_phase109_route() -> None:
     project_text = _read(_PROJECT)
     roadmap_text = _read(_ROADMAP)
     requirements_text = _read(_REQUIREMENTS)
@@ -80,7 +80,7 @@ def test_phase107_ledgers_testing_and_file_matrix_freeze_predecessor_story() -> 
     assert_testing_inventory_snapshot(testing_text)
     assert '## Phase 107 REST/Auth/Status Hotspot Convergence / Support-surface Slimming' in verification_text
     for token in (
-        '$gsd-discuss-phase 109',
+        '$gsd-discuss-phase 110',
         'tests/meta/test_phase107_rest_status_hotspot_guards.py',
         '.planning/phases/107-rest-auth-status-hotspot-convergence-and-support-surface-slimming/{107-01-SUMMARY.md,107-02-SUMMARY.md,107-03-SUMMARY.md,107-VERIFICATION.md,107-VALIDATION.md}',
     ):
