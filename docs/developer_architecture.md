@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
 > **Last aligned through**: `v1.30 / Phase 110 runtime snapshot surface reduction and milestone closeout` (`2026-03-30`)
-> **Current route alignment**: `v1.30 active route / Phase 110 complete / latest archived baseline = v1.29` (`2026-03-30`)
+> **Current route alignment**: `no active milestone route / latest archived baseline = v1.30` (`2026-03-30`)
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
@@ -247,7 +247,7 @@ custom_components/lipro/
 
 ## Phase 102 Governance Portability / Verification Stratification / Open-Source Continuity Hardening Note
 
-- 当前 developer guidance 与 `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md` 已共同承认 `v1.30 active route / Phase 110 complete / latest archived baseline = v1.29`；默认下一步保持为 `$gsd-complete-milestone v1.30`。
+- 当前 developer guidance 与 `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md` 已共同承认 `no active milestone route / latest archived baseline = v1.30`；默认下一步保持为 `$gsd-new-milestone`。
 - `Phase 102` 不重开 production formal homes；它只把 governance/meta smoke 的 fast-path 耦合收口为 capability-aware proof，并把 verification matrix 当前真相、historical closeout note、docs-first / maintainer appendix continuity wording 一次性分层。
 - `tests/meta/test_governance_bootstrap_smoke.py`、`tests/meta/test_governance_route_handoff_smoke.py`、`tests/meta/governance_followup_route_current_milestones.py` 与 `tests/meta/test_phase102_governance_portability_guards.py` 现在共同冻结 archived-only latest truth、portable fast-path、promoted closeout bundle、runbook latest pointer 与 developer-facing topology note。
 
@@ -307,7 +307,7 @@ custom_components/lipro/
 - `tests/meta/governance_followup_route_specs.py` 现在承载 current-milestone / closeout / continuation follow-up route 的共享 case/spec truth，避免三套 governance suites 继续复制粘贴同一组期望与台账路径。
 - `scripts/check_file_matrix_registry_shared.py`、`scripts/check_file_matrix_registry_classifiers.py` 与 override lineage sync 共同把 file-matrix registry family 改成 data-driven builder；ownership / guard-home / predecessor-vs-active wording 不再散落在 tuple folklore 中。
 - `tests/meta/test_phase104_service_router_runtime_split_guards.py` 退为 predecessor visibility guard，`tests/meta/test_phase105_governance_freeze_guards.py` 现冻结 latest-archived closeout truth；这保证 `v1.29` archived selector、predecessor bundle 与 promoted closeout bundle 分工清晰。
-- `v1.29` 已完成 milestone closeout 并退回 latest archived baseline；它继续作为 `v1.30 active route / Phase 110 complete / latest archived baseline = v1.29` 的 pull-only predecessor source，而不是新的 active selector。
+- `v1.29` 已完成 milestone closeout 并退回 previous archived baseline；它继续作为 `v1.30` 的 pull-only predecessor source，而不是新的 active selector。
 
 ## Phase 107 REST/Auth/Status Hotspot Convergence Note
 
@@ -321,7 +321,7 @@ custom_components/lipro/
 - `custom_components/lipro/core/coordinator/runtime/device/snapshot.py` 继续保持 `SnapshotBuilder` 作为唯一 outward runtime snapshot orchestration home。
 - `custom_components/lipro/core/coordinator/runtime/device/snapshot_support.py` 承接 pagination/row/assembly mechanical helpers，仅承担 inward-only collaborator 身份。
 - `tests/meta/test_phase110_runtime_snapshot_closeout_guards.py` 现冻结 current-route owner truth 与 closeout evidence pointers，确保 `Phase 110` 成为 `v1.30` 唯一收口 owner。
-- `Phase 110` closeout bundle、`.planning/reviews/V1_30_EVIDENCE_INDEX.md` 与 `.planning/v1.30-MILESTONE-AUDIT.md` 已形成可审计证据链，下一步稳定收口到 `$gsd-complete-milestone v1.30`。
+- `Phase 110` closeout bundle、`.planning/reviews/V1_30_EVIDENCE_INDEX.md` 与 `.planning/v1.30-MILESTONE-AUDIT.md` 已形成可审计证据链，当前 follow-up 固定为 `$gsd-new-milestone`。
 
 ## Phase 109 Anonymous-share Manager Inward Decomposition Note
 
@@ -333,4 +333,4 @@ custom_components/lipro/
 
 - `custom_components/lipro/core/mqtt/transport_runtime.py` 现在通过 `MqttTransportCallbacks`、`MqttTransportOwnerState` 与 `MqttTransportRuntimeOwner` 显式消费 owner/state contract，而不是接收 whole transport owner 并穿透私有字段。
 - `custom_components/lipro/core/mqtt/transport.py` 继续保持唯一 concrete transport root，并通过 localized `_runtime_state` / `_runtime_owner` 投影连接 runtime；这没有引入第二 root、第二 façade 或 export drift。
-- `tests/meta/test_phase108_mqtt_transport_de_friendization_guards.py` 现冻结 predecessor visibility truth；当前 active-route owner 已上移到 `Phase 109`。
+- `tests/meta/test_phase108_mqtt_transport_de_friendization_guards.py` 现冻结 predecessor visibility truth；当前路线已归档为 `v1.30` latest archived baseline。

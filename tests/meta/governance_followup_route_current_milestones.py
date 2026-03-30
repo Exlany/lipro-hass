@@ -224,7 +224,7 @@ def test_v1_12_to_v1_13_archived_route_truth_uses_promoted_evidence_only() -> No
 
 
 
-def test_machine_readable_route_contracts_point_to_active_v1_30_and_latest_archived_v1_29() -> None:
+def test_machine_readable_route_contracts_point_to_archived_v1_30_and_previous_v1_29() -> None:
     contracts = assert_machine_readable_route_contracts()
     requirements_contract = _as_mapping(contracts["REQUIREMENTS"])
     requirements_active = _as_optional_mapping(requirements_contract["active_milestone"])
@@ -235,17 +235,11 @@ def test_machine_readable_route_contracts_point_to_active_v1_30_and_latest_archi
     state_contract = _as_mapping(contracts["STATE"])
     state_bootstrap = _as_mapping(state_contract["bootstrap"])
 
-    assert requirements_active is not None
-    assert requirements_active["version"] == "v1.30"
-    assert requirements_active["phase"] == "110"
-    assert requirements_active["route_mode"] == CURRENT_ROUTE_MODE
-    assert milestones_active is not None
-    assert milestones_active["version"] == "v1.30"
-    assert milestones_active["phase"] == "110"
-    assert milestones_active["route_mode"] == CURRENT_ROUTE_MODE
-    assert milestones_latest_archived["version"] == "v1.29"
-    assert milestones_latest_archived["phase"] == "105"
-    assert milestones_previous_archived["version"] == "v1.28"
+    assert requirements_active is None
+    assert milestones_active is None
+    assert milestones_latest_archived["version"] == "v1.30"
+    assert milestones_latest_archived["phase"] == "110"
+    assert milestones_previous_archived["version"] == "v1.29"
     assert state_bootstrap["current_route"] == CURRENT_ROUTE_MODE
     assert state_bootstrap["default_next_command"] == CURRENT_MILESTONE_DEFAULT_NEXT
     assert state_bootstrap["latest_archived_evidence_pointer"] == LATEST_ARCHIVED_EVIDENCE_PATH
@@ -274,7 +268,7 @@ def test_historical_route_truth_replaces_legacy_live_state_wording() -> None:
 
 
 
-def test_current_v1_30_active_state_and_archive_pointers_align() -> None:
+def test_current_v1_30_archived_state_and_archive_pointers_align() -> None:
     _assert_current_route_truth(_PROJECT_TEXT, _ROADMAP_TEXT, _STATE_TEXT)
     assert_contains_all(
         _PROJECT_TEXT,
@@ -292,7 +286,7 @@ def test_current_v1_30_active_state_and_archive_pointers_align() -> None:
         "### Phase 109: Anonymous-share manager inward decomposition",
         "### Phase 110: Runtime snapshot surface reduction and milestone closeout",
         CURRENT_MILESTONE_DEFAULT_NEXT,
-        ".planning/reviews/V1_29_EVIDENCE_INDEX.md",
+        ".planning/reviews/V1_30_EVIDENCE_INDEX.md",
         ".planning/phases/107-rest-auth-status-hotspot-convergence-and-support-surface-slimming/{107-01-SUMMARY.md,107-02-SUMMARY.md,107-03-SUMMARY.md,107-VERIFICATION.md,107-VALIDATION.md}",
         ".planning/phases/108-mqtt-transport-runtime-de-friendization/{108-01-SUMMARY.md,108-02-SUMMARY.md,108-03-SUMMARY.md,108-VERIFICATION.md,108-VALIDATION.md}",
         ".planning/phases/109-anonymous-share-manager-inward-decomposition/{109-01-SUMMARY.md,109-02-SUMMARY.md,109-03-SUMMARY.md,109-VERIFICATION.md,109-VALIDATION.md}",
@@ -315,4 +309,4 @@ def test_current_v1_30_active_state_and_archive_pointers_align() -> None:
         LATEST_ARCHIVED_AUDIT_PATH,
         LATEST_ARCHIVED_EVIDENCE_PATH,
     )
-    assert CURRENT_MILESTONE_STATUS == "active / Phase 110 complete / milestone-closeout-ready (2026-03-30)"
+    assert CURRENT_MILESTONE_STATUS == "archived / evidence-ready (2026-03-30)"

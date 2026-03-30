@@ -9,6 +9,7 @@ from tests.helpers.repo_root import repo_root
 from .governance_contract_helpers import assert_testing_inventory_snapshot
 from .governance_current_truth import (
     CURRENT_MILESTONE_DEFAULT_NEXT,
+    CURRENT_MILESTONE_HEADER,
     CURRENT_MILESTONE_STATUS,
     CURRENT_ROUTE,
 )
@@ -35,7 +36,7 @@ def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def test_phase110_active_route_bundle_is_current_truth() -> None:
+def test_phase110_route_bundle_is_current_truth() -> None:
     project_text = _read(_PROJECT)
     roadmap_text = _read(_ROADMAP)
     requirements_text = _read(_REQUIREMENTS)
@@ -60,9 +61,9 @@ def test_phase110_active_route_bundle_is_current_truth() -> None:
     assert CURRENT_MILESTONE_STATUS in project_text
     assert CURRENT_MILESTONE_STATUS in roadmap_text
     assert "### Phase 110: Runtime snapshot surface reduction and milestone closeout" in roadmap_text
-    assert "## Current Milestone (v1.30)" in project_text
-    assert "## Current Milestone (v1.30)" in requirements_text
-    assert "## Current Milestone (v1.30)" in milestones_text
+    assert CURRENT_MILESTONE_HEADER in project_text
+    assert CURRENT_MILESTONE_HEADER in requirements_text
+    assert CURRENT_MILESTONE_HEADER in milestones_text
     assert "Phase 110 Runtime Snapshot Surface Reduction and Milestone Closeout Note" in dev_arch_text
     assert "# Phase 110 Verification" in verification_doc
     assert "# Phase 110 Validation Contract" in validation_doc
@@ -95,7 +96,7 @@ def test_phase110_ledgers_testing_and_file_matrix_freeze_the_same_story() -> Non
         in verification_text
     )
     for token in (
-        "$gsd-complete-milestone v1.30",
+        CURRENT_MILESTONE_DEFAULT_NEXT,
         "tests/meta/test_phase110_runtime_snapshot_closeout_guards.py",
         ".planning/phases/110-runtime-snapshot-surface-reduction-and-milestone-closeout/{110-01-SUMMARY.md,110-02-SUMMARY.md,110-03-SUMMARY.md,110-04-SUMMARY.md,110-05-SUMMARY.md,110-06-SUMMARY.md,110-SUMMARY.md,110-VERIFICATION.md,110-VALIDATION.md}",
         ".planning/reviews/V1_30_EVIDENCE_INDEX.md",

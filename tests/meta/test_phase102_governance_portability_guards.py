@@ -14,6 +14,7 @@ from .governance_current_truth import (
     CURRENT_MILESTONE_DEFAULT_NEXT,
     CURRENT_PHASE,
     CURRENT_ROUTE,
+    LATEST_ARCHIVED_EVIDENCE_FILENAME,
 )
 
 _ROOT = repo_root(Path(__file__))
@@ -70,7 +71,10 @@ def test_phase102_latest_archived_closeout_bundle_remains_pull_only_truth() -> N
     assert '# Phase 102 Verification' in verification_doc
     assert '# Phase 102 Validation Contract' in validation_doc
     assert 'Phase 102' in summary_text
-    assert_runbook_points_to_latest_evidence(runbook_text, 'V1_29_EVIDENCE_INDEX.md')
+    assert_runbook_points_to_latest_evidence(
+        runbook_text,
+        LATEST_ARCHIVED_EVIDENCE_FILENAME,
+    )
 
 
 def test_phase102_maps_and_ledgers_keep_portability_hardening_visible() -> None:

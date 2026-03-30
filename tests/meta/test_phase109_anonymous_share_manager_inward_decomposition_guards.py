@@ -7,7 +7,11 @@ from pathlib import Path
 from tests.helpers.repo_root import repo_root
 
 from .governance_contract_helpers import assert_testing_inventory_snapshot
-from .governance_current_truth import CURRENT_MILESTONE_DEFAULT_NEXT, CURRENT_ROUTE
+from .governance_current_truth import (
+    CURRENT_MILESTONE_DEFAULT_NEXT,
+    CURRENT_MILESTONE_HEADER,
+    CURRENT_ROUTE,
+)
 
 _ROOT = repo_root(Path(__file__))
 _PROJECT = _ROOT / '.planning' / 'PROJECT.md'
@@ -55,9 +59,9 @@ def test_phase109_predecessor_bundle_remains_visible_under_phase110_route() -> N
         assert CURRENT_MILESTONE_DEFAULT_NEXT in text
 
     assert '### Phase 109: Anonymous-share manager inward decomposition' in roadmap_text
-    assert '## Current Milestone (v1.30)' in project_text
-    assert '## Current Milestone (v1.30)' in requirements_text
-    assert '## Current Milestone (v1.30)' in milestones_text
+    assert CURRENT_MILESTONE_HEADER in project_text
+    assert CURRENT_MILESTONE_HEADER in requirements_text
+    assert CURRENT_MILESTONE_HEADER in milestones_text
     assert 'Phase 109 Anonymous-share Manager Inward Decomposition Note' in dev_arch_text
     assert '# Phase 109 Verification' in verification_doc
     assert '# Phase 109 Validation Contract' in validation_doc
@@ -85,7 +89,7 @@ def test_phase109_ledgers_testing_and_file_matrix_freeze_predecessor_story() -> 
     assert_testing_inventory_snapshot(testing_text)
     assert '## Phase 109 Anonymous-share Manager Inward Decomposition' in verification_text
     for token in (
-        '$gsd-complete-milestone v1.30',
+        CURRENT_MILESTONE_DEFAULT_NEXT,
         'tests/meta/test_phase109_anonymous_share_manager_inward_decomposition_guards.py',
         '.planning/phases/109-anonymous-share-manager-inward-decomposition/{109-01-SUMMARY.md,109-02-SUMMARY.md,109-03-SUMMARY.md,109-VERIFICATION.md,109-VALIDATION.md}',
     ):

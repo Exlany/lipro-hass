@@ -7,7 +7,11 @@ from pathlib import Path
 from tests.helpers.repo_root import repo_root
 
 from .governance_contract_helpers import assert_testing_inventory_snapshot
-from .governance_current_truth import CURRENT_MILESTONE_DEFAULT_NEXT, CURRENT_ROUTE
+from .governance_current_truth import (
+    CURRENT_MILESTONE_DEFAULT_NEXT,
+    CURRENT_ROUTE,
+    PREVIOUS_ARCHIVED_PROJECT_HEADER,
+)
 from .governance_promoted_assets import _assert_exact_promoted_phase_assets
 
 _ROOT = repo_root(Path(__file__))
@@ -53,7 +57,7 @@ def test_phase105_latest_archived_bundle_remains_visible_under_phase109_route() 
         assert CURRENT_ROUTE in text
         assert CURRENT_MILESTONE_DEFAULT_NEXT in text
 
-    assert '## Latest Archived Milestone (v1.29)' in project_text
+    assert PREVIOUS_ARCHIVED_PROJECT_HEADER in project_text
     assert '### Phase 105: Governance rule datafication and milestone freeze' in roadmap_text
     assert 'Phase 105 Governance Rule Datafication / Milestone Freeze Note' in dev_arch_text
     assert '# Phase 105 Verification' in verification_doc

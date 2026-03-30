@@ -136,11 +136,12 @@ def test_gsd_fast_path_matches_current_archived_route_story() -> None:
     state = _run_gsd_tools("state", "json")
     assert _as_str(state["milestone"]) == CURRENT_MILESTONE
     assert _as_str(state["status"]) == ("active" if HAS_ACTIVE_MILESTONE else "archived")
+    total_milestone_plans = str(sum(CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE.values()))
     assert _as_mapping(state["progress"]) == {
         "total_phases": str(len(CURRENT_MILESTONE_PHASES)),
         "completed_phases": str(len(CURRENT_MILESTONE_COMPLETED_PHASES)),
-        "total_plans": str(CURRENT_MILESTONE_PLAN_COUNT),
-        "completed_plans": str(CURRENT_MILESTONE_PLAN_COUNT),
+        "total_plans": total_milestone_plans,
+        "completed_plans": total_milestone_plans,
     }
 
     plan_init = _run_gsd_tools("init", "plan-phase", CURRENT_PHASE)

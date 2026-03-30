@@ -1,21 +1,21 @@
 # v1.30 Evidence Index
 
 **Purpose:** 为 `v1.30 Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming` 提供 machine-readable closeout evidence chain 入口，集中索引 `Phase 107 -> 110` 的 promoted bundles 与 milestone audit verdict。
-**Status:** Active-route closeout evidence index (`phase-complete / milestone-closeout-ready`)
+**Status:** Archived milestone evidence index (`archived / evidence-ready`)
 **Updated:** 2026-03-30
 
 ## Pull Contract
 
 - 本文件只索引正式真源、promoted phase bundles 与 milestone audit；它不是新的 authority source。
-- `v1.29` 继续作为 latest archived baseline；`v1.30` archived selector 仅在 `$gsd-complete-milestone v1.30` 之后翻转。
+- `v1.30` 已固定为 latest archived baseline；`v1.29` 作为 previous archived baseline 保留 pull-only 身份。
 - `.planning/v1.30-MILESTONE-AUDIT.md` 是 `v1.30` verdict home；`.planning/reviews/PROMOTED_PHASE_ASSETS.md` 是 phase closeout bundle allowlist 真源。
 - 后续里程碑必须 pull 本文件中登记的证据链，不得重扫仓库拼装第二套 closeout 叙事。
 
-## Predecessor Baseline
+## Previous Archived Baseline
 
-- Latest archived baseline evidence: `.planning/reviews/V1_29_EVIDENCE_INDEX.md`
-- Latest archived baseline audit: `.planning/v1.29-MILESTONE-AUDIT.md`
-- Latest archived snapshots: `.planning/milestones/{v1.29-ROADMAP.md,v1.29-REQUIREMENTS.md}`
+- Previous archived baseline evidence: `.planning/reviews/V1_29_EVIDENCE_INDEX.md`
+- Previous archived baseline audit: `.planning/v1.29-MILESTONE-AUDIT.md`
+- Previous archived snapshots: `.planning/milestones/{v1.29-ROADMAP.md,v1.29-REQUIREMENTS.md}`
 
 ## Promoted Closeout Bundles
 
@@ -29,5 +29,5 @@
 - Milestone audit: `.planning/v1.30-MILESTONE-AUDIT.md`
 - Evidence index: `.planning/reviews/V1_30_EVIDENCE_INDEX.md`
 - Promoted allowlist home: `.planning/reviews/PROMOTED_PHASE_ASSETS.md`
-- Current route truth: `v1.30 active route / Phase 110 complete / latest archived baseline = v1.29`
-- Default next command: `$gsd-complete-milestone v1.30`
+- Current route truth: `no active milestone route / latest archived baseline = v1.30`
+- Default next command: `$gsd-new-milestone`

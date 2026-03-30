@@ -436,6 +436,18 @@ phases:
   - 102-03-SUMMARY.md
   - 102-VERIFICATION.md
   - 102-VALIDATION.md
+  103-root-adapter-thinning-test-topology-second-pass-and-terminology-contract-normalization:
+  - 103-01-SUMMARY.md
+  - 103-02-SUMMARY.md
+  - 103-03-SUMMARY.md
+  - 103-VERIFICATION.md
+  - 103-VALIDATION.md
+  104-service-router-family-split-and-command-runtime-second-pass-decomposition:
+  - 104-01-SUMMARY.md
+  - 104-02-SUMMARY.md
+  - 104-03-SUMMARY.md
+  - 104-VERIFICATION.md
+  - 104-VALIDATION.md
   105-governance-rule-datafication-and-milestone-freeze:
   - 105-01-SUMMARY.md
   - 105-02-SUMMARY.md
@@ -443,6 +455,24 @@ phases:
   - 105-SUMMARY.md
   - 105-VERIFICATION.md
   - 105-VALIDATION.md
+  107-rest-auth-status-hotspot-convergence-and-support-surface-slimming:
+  - 107-01-SUMMARY.md
+  - 107-02-SUMMARY.md
+  - 107-03-SUMMARY.md
+  - 107-VERIFICATION.md
+  - 107-VALIDATION.md
+  108-mqtt-transport-runtime-de-friendization:
+  - 108-01-SUMMARY.md
+  - 108-02-SUMMARY.md
+  - 108-03-SUMMARY.md
+  - 108-VERIFICATION.md
+  - 108-VALIDATION.md
+  109-anonymous-share-manager-inward-decomposition:
+  - 109-01-SUMMARY.md
+  - 109-02-SUMMARY.md
+  - 109-03-SUMMARY.md
+  - 109-VERIFICATION.md
+  - 109-VALIDATION.md
   110-runtime-snapshot-surface-reduction-and-milestone-closeout:
   - 110-01-SUMMARY.md
   - 110-02-SUMMARY.md
