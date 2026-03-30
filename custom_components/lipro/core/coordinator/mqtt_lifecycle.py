@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from dataclasses import dataclass
 import logging
 from typing import TYPE_CHECKING
 
@@ -30,6 +31,15 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 _MQTT_CONFIG_TIMEOUT_SECONDS = 10
 _MQTT_CONNECT_TIMEOUT_SECONDS = 15
+
+
+@dataclass(slots=True, frozen=True)
+class _MqttSetupPrerequisites:
+    access_key: str
+    secret_key: str
+    biz_id: str
+    device_ids: list[str]
+    phone_id: str
 
 
 async def _teardown_failed_mqtt_setup(
@@ -95,6 +105,35 @@ def _resolve_subscription_device_ids(
         return device_ids
     _LOGGER.warning("No valid device IDs available for MQTT subscriptions")
     return None
+
+
+def _resolve_setup_prerequisites(
+    *,
+    mqtt_config: CanonicalMqttConfig,
+    config_entry: ConfigEntry,
+    devices: dict[str, LiproDevice],
+) -> _MqttSetupPrerequisites | None:
+    credentials = _resolve_mqtt_credentials(mqtt_config)
+    if credentials is None:
+        return None
+    access_key, secret_key = credentials
+
+    biz_id = resolve_mqtt_biz_id(config_entry.data)
+    if biz_id is None:
+        _LOGGER.warning("No biz_id available for MQTT")
+        return None
+
+    device_ids = _resolve_subscription_device_ids(devices)
+    if device_ids is None:
+        return None
+
+    return _MqttSetupPrerequisites(
+        access_key=access_key,
+        secret_key=secret_key,
+        biz_id=biz_id,
+        device_ids=device_ids,
+        phone_id=str(config_entry.data.get(CONF_PHONE_ID, "")),
+    )
 
 
 def _build_message_bridge(
@@ -214,37 +253,31 @@ async def async_setup_mqtt(
         if mqtt_config is None:
             return None
 
-        credentials = _resolve_mqtt_credentials(mqtt_config)
-        if credentials is None:
-            return None
-        access_key, secret_key = credentials
-
-        biz_id = resolve_mqtt_biz_id(config_entry.data)
-        if biz_id is None:
-            _LOGGER.warning("No biz_id available for MQTT")
-            return None
-
-        device_ids = _resolve_subscription_device_ids(devices)
-        if device_ids is None:
+        prerequisites = _resolve_setup_prerequisites(
+            mqtt_config=mqtt_config,
+            config_entry=config_entry,
+            devices=devices,
+        )
+        if prerequisites is None:
             return None
 
         mqtt_facade = _bind_mqtt_transport(
             protocol=protocol,
             mqtt_runtime=mqtt_runtime,
             background_task_manager=background_task_manager,
-            access_key=access_key,
-            secret_key=secret_key,
-            biz_id=biz_id,
-            phone_id=str(config_entry.data.get(CONF_PHONE_ID, "")),
+            access_key=prerequisites.access_key,
+            secret_key=prerequisites.secret_key,
+            biz_id=prerequisites.biz_id,
+            phone_id=prerequisites.phone_id,
         )
         if not await _async_connect_bound_mqtt_transport(
             protocol=protocol,
             mqtt_runtime=mqtt_runtime,
             mqtt_facade=mqtt_facade,
-            device_ids=device_ids,
+            device_ids=prerequisites.device_ids,
         ):
             return None
-        return mqtt_facade, biz_id
+        return mqtt_facade, prerequisites.biz_id
 
     except asyncio.CancelledError:
         raise
