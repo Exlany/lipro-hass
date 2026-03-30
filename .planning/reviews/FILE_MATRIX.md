@@ -642,10 +642,10 @@
 | `tests/meta/test_modularization_surfaces.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase100_runtime_schedule_support_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 | 保留 | focused predecessor guard home for Phase 100 MQTT/runtime schedule support extraction / governance freeze |
 | `tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 | 保留 | focused predecessor guard home for Phase 101 anonymous-share / REST-boundary hotspot decomposition / governance freeze |
-| `tests/meta/test_phase102_governance_portability_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 | 保留 | focused latest-archived guard home for Phase 102 governance portability / verification stratification / open-source continuity hardening |
+| `tests/meta/test_phase102_governance_portability_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 | 保留 | focused archived-continuity guard home for Phase 102 governance portability / verification stratification / open-source continuity hardening |
 | `tests/meta/test_phase103_root_thinning_guards.py` | Assurance | Phase 103 | 保留 | focused predecessor guard home for Phase 103 root thinning / test topology / terminology normalization |
 | `tests/meta/test_phase104_service_router_runtime_split_guards.py` | Assurance | Phase 104 | 保留 | focused predecessor guard home for Phase 104 service-router/runtime split |
-| `tests/meta/test_phase105_governance_freeze_guards.py` | Assurance | Phase 105 | 保留 | focused active-route guard home for Phase 105 governance freeze |
+| `tests/meta/test_phase105_governance_freeze_guards.py` | Assurance | Phase 105 | 保留 | focused latest-archived closeout guard home for Phase 105 governance freeze |
 | `tests/meta/test_phase31_runtime_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase45_hotspot_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase50_rest_typed_budget_guards.py` | Assurance | Phase 6 | 保留 | - |

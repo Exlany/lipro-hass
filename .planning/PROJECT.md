@@ -1,76 +1,65 @@
 # Project: Lipro-HASS North Star Evolution
 
 
-**Status:** `Active milestone: v1.29`
-**Current route:** `v1.29 active route / Phase 105 complete / latest archived baseline = v1.28`；latest archived evidence index = `.planning/reviews/V1_28_EVIDENCE_INDEX.md`.
-**Goal:** `以 v1.28 latest archived baseline 为唯一 north-star 起点，把 HA 根入口 / pytest topology / 术语 contract 的残留热点继续压回 formal homes，并将 Phase 105 的治理规则数据化、里程碑冻结与 closeout handoff 收口为同一条可归档真源。`
-**Default next step:** `$gsd-complete-milestone v1.29`
-**Active baseline:** active milestone = `v1.29`；latest archived baseline = `v1.28`；previous archived baseline = `v1.27`.
+**Status:** `No active milestone route`
+**Current route:** `no active milestone route / latest archived baseline = v1.29`；latest archived evidence index = `.planning/reviews/V1_29_EVIDENCE_INDEX.md`.
+**Goal:** `保持 v1.29 archived bundle 作为唯一 pull-only north-star baseline，并把下一条正式路线收缩回 fresh milestone bootstrap / requirements routing。`
+**Default next step:** `$gsd-new-milestone`
+**Active baseline:** latest archived baseline = `v1.29`；previous archived baseline = `v1.28`.
 
 
 <!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.29
   name: Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization
-  status: active / Phase 105 complete / milestone-freeze ready (2026-03-28)
+  status: archived / evidence-ready (2026-03-30)
   phase: '105'
   phase_title: Governance rule datafication and milestone freeze
   phase_dir: 105-governance-rule-datafication-and-milestone-freeze
-  route_mode: v1.29 active route / Phase 105 complete / latest archived baseline =
-    v1.28
-latest_archived:
-  version: v1.28
-  name: Governance Portability, Verification Stratification & Open-Source Continuity
-    Hardening
-  status: archived / evidence-ready (2026-03-28)
-  phase: '102'
-  phase_title: Governance portability, verification stratification, and open-source
-    continuity hardening
-  phase_dir: 102-governance-portability-verification-stratification-and-open-source-continuity-hardening
-  audit_path: .planning/v1.28-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_28_EVIDENCE_INDEX.md
+  audit_path: .planning/v1.29-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_29_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.27
-  name: Final Carry-Forward Eradication & Route Reactivation
-  evidence_path: .planning/reviews/V1_27_EVIDENCE_INDEX.md
+  version: v1.28
+  name: Governance Portability, Verification Stratification & Open-Source Continuity Hardening
+  evidence_path: .planning/reviews/V1_28_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.29 active route / Phase 105 complete / latest archived baseline
-    = v1.28
-  default_next_command: $gsd-complete-milestone v1.29
-  latest_archived_evidence_pointer: .planning/reviews/V1_28_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.29
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_29_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
-## Current Milestone (v1.29)
+## Latest Archived Milestone (v1.29)
 
 **Name:** `Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization`
 
-**Why it matters:** `v1.28` 已把治理 portability 与 latest archived closeout bundle 冻结为 pull-only baseline，但 terminal audit 与本轮子代理仍同时指向三类高 ROI 残留：HA 根入口仍过厚、pytest topicized routing 仍集中在 `tests/conftest.py`、以及 support/surface/wiring/handlers/facade 术语在代码与文档层仍存在认知重叠。`
+**Why it mattered:** `v1.29` 没有把 terminal audit 与本轮复审再次同时点名的 residual hotspots 继续留在“已经 freeze、以后再封板”的半状态里，而是把 HA 根入口 thin-adapter 收窄、pytest topology second pass、术语契约显式化、service-router/runtime hotspot inward split，以及治理规则数据化 / 里程碑冻结 / closeout handoff 一次性冻结为 latest archived baseline。`
 
-**North-star fit:** `v1.29` 不重开第二主链，也不把刚归档的 `v1.28` closeout bundle 回写成 live debt；它只沿既有 formal homes 做 thin-adapter 收窄、test-topology second pass、terminology contract normalization 与治理规则数据化，并把里程碑冻结收口为唯一 closeout handoff。`
+**North-star fit:** `v1.29` 继续不引入第二条业务主链，也不把刚归档的 closeout bundle 回写成 live debt；它沿 `v1.28` archived baseline 的唯一 north-star 起点，把 root-thinning、test-topology second pass、terminology normalization、service-router/runtime second-pass split 与治理 rule datafication 一起压回 pull-only archived baseline。`
 
-**Current status:** `active / Phase 105 complete / milestone-freeze ready (2026-03-28)`
+**Current status:** `archived / evidence-ready (2026-03-30)`
 **Phase range:** `Phase 103 -> 105`
 **Starting baseline:** `.planning/v1.28-MILESTONE-AUDIT.md`, `.planning/reviews/V1_28_EVIDENCE_INDEX.md`, `.planning/milestones/v1.28-ROADMAP.md`, `.planning/milestones/v1.28-REQUIREMENTS.md`
 **Requirements basket:** `ARC-26`, `TST-35`, `DOC-09`, `QLT-43`, `HOT-44`, `HOT-45`, `TST-36`, `GOV-69`, `QLT-44`
-**Latest archived baseline:** `v1.28`
-**Latest archived pointer:** `.planning/reviews/V1_28_EVIDENCE_INDEX.md`
-**Current route mode:** `v1.29 active route / Phase 105 complete / latest archived baseline = v1.28`
-**Default next command:** `$gsd-complete-milestone v1.29`
-**Current follow-up target:** `v1.29` 里程碑封板 / closeout handoff，同时保持 `v1.28` closeout bundle 继续作为 latest archived baseline。
+**Latest archived baseline:** `v1.29`
+**Latest archived pointer:** `.planning/reviews/V1_29_EVIDENCE_INDEX.md`
+**Current route mode:** `no active milestone route / latest archived baseline = v1.29`
+**Default next command:** `$gsd-new-milestone`
+**Current follow-up target:** next milestone bootstrap / fresh requirements routing，同时保持 `v1.29` closeout bundle 作为 pull-only baseline。
 
-**Key accomplishments so far:**
-- `Phase 103` 已把 `custom_components/lipro/__init__.py` 的 lazy-load / entry-auth / service-registry adapter 支撑抽回 `custom_components/lipro/control/entry_root_support.py`，根入口继续只保留 thin adapter 装配。
+**Key accomplishments:**
+- `Phase 103` 已把 `custom_components/lipro/__init__.py` 的 lazy-load / entry-auth / service-registry adapter 支撑抽回 `custom_components/lipro/control/entry_root_support.py`，HA 根入口继续只保留 thin adapter 装配。
 - `tests/conftest.py` 已把 topicized collection hooks 与 `_CoordinatorDouble` 下沉到 `tests/topicized_collection.py` / `tests/coordinator_double.py`，降低 fixture 巨石继续吸附治理真相的风险。
-- `docs/adr/0005-entry-surface-terminology-contract.md` 已正式定义 `support / surface / wiring / handlers / facade` 的命名裁决，为已完成的 `Phase 104` split 与 `Phase 105` 治理数据化 / 里程碑冻结提供统一语言。
+- `docs/adr/0005-entry-surface-terminology-contract.md` 已正式定义 `support / surface / wiring / handlers / facade` 的命名裁决，为 `Phase 104` split 与 `Phase 105` closeout 继续提供统一语言。
 - `Phase 104` 已把 `custom_components/lipro/control/service_router_handlers.py` 拆为 focused handler families，并把 `CommandRuntime` outcome bookkeeping / reauth handling 下沉到 localized outcome-support home。
-- `Phase 105` 已把 `tests/meta` follow-up route suites、`scripts/check_file_matrix_registry_*` 与 planning/baseline/review/docs truth 同步收口；当前里程碑已进入 milestone-freeze ready，仅剩 `$gsd-complete-milestone v1.29`。
+- `Phase 105` 已把 `tests/meta` follow-up route suites、`scripts/check_file_matrix_registry_*` 与 planning/baseline/review/docs truth 数据化收口；`.planning/v1.29-MILESTONE-AUDIT.md`、`.planning/reviews/V1_29_EVIDENCE_INDEX.md`、archive snapshots 与 promoted closeout bundle 现已共同冻结 latest archived baseline `v1.29`.
 
-## Latest Archived Milestone (v1.28)
+## Previous Archived Milestone (v1.28)
 
 **Name:** `Governance Portability, Verification Stratification & Open-Source Continuity Hardening`
 
@@ -88,7 +77,7 @@ bootstrap:
 **Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.27`
 **Archive assets:** `.planning/v1.28-MILESTONE-AUDIT.md`, `.planning/reviews/V1_28_EVIDENCE_INDEX.md`, `.planning/milestones/v1.28-ROADMAP.md`, `.planning/milestones/v1.28-REQUIREMENTS.md`
 
-## Previous Archived Milestone (v1.27)
+## Historical Archived Milestone (v1.27)
 
 **Name:** `Final Carry-Forward Eradication & Route Reactivation`
 

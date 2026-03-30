@@ -2,65 +2,63 @@
 
 > Machine-readable bootstrap truth now lives in the shared `governance-route` contract block below; milestone chronology remains human-readable archive history instead of the parser-visible selector.
 
-<!-- governance-route-contract:start -->
 
+<!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.29
   name: Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization
-  status: active / Phase 105 complete / milestone-freeze ready (2026-03-28)
+  status: archived / evidence-ready (2026-03-30)
   phase: '105'
   phase_title: Governance rule datafication and milestone freeze
   phase_dir: 105-governance-rule-datafication-and-milestone-freeze
-  route_mode: v1.29 active route / Phase 105 complete / latest archived baseline =
-    v1.28
-latest_archived:
-  version: v1.28
-  name: Governance Portability, Verification Stratification & Open-Source Continuity
-    Hardening
-  status: archived / evidence-ready (2026-03-28)
-  phase: '102'
-  phase_title: Governance portability, verification stratification, and open-source
-    continuity hardening
-  phase_dir: 102-governance-portability-verification-stratification-and-open-source-continuity-hardening
-  audit_path: .planning/v1.28-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_28_EVIDENCE_INDEX.md
+  audit_path: .planning/v1.29-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_29_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.27
-  name: Final Carry-Forward Eradication & Route Reactivation
-  evidence_path: .planning/reviews/V1_27_EVIDENCE_INDEX.md
+  version: v1.28
+  name: Governance Portability, Verification Stratification & Open-Source Continuity Hardening
+  evidence_path: .planning/reviews/V1_28_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.29 active route / Phase 105 complete / latest archived baseline
-    = v1.28
-  default_next_command: $gsd-complete-milestone v1.29
-  latest_archived_evidence_pointer: .planning/reviews/V1_28_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.29
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_29_EVIDENCE_INDEX.md
 ```
-
 <!-- governance-route-contract:end -->
 
-## v1.29 Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization (Started: 2026-03-28)
+## v1.29 Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization (Shipped: 2026-03-30; Closeout: 2026-03-30)
 
 **Phase range:** `103 -> 105`
-**Status:** `active / Phase 105 complete / milestone-freeze ready (2026-03-28)`
-**Current route:** `v1.29 active route / Phase 105 complete / latest archived baseline = v1.28`
-**Latest archived pointer:** latest archived evidence index = `.planning/reviews/V1_28_EVIDENCE_INDEX.md`
-**Latest archived baseline:** `v1.28`
-**Default next command:** `$gsd-complete-milestone v1.29`
-**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.28`
-**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.27`
+**Phases completed:** 3 phases, 9 plans, 0 tasks
+**Status:** archived / evidence-ready
+**Route truth:** latest archived evidence index = `.planning/reviews/V1_29_EVIDENCE_INDEX.md`
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.29`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.28`
+**Default next command:** `$gsd-new-milestone`
 
-**Why now:**
-- `v1.28` 已把治理 portability 与 archive closeout bundle 冻结为 pull-only baseline，但 production / tests 双侧仍各自残留一个高密度 thin-shell 热点：HA 根入口与 `tests/conftest.py`。
-- `Phase 103` 先只做 root thinning、test topology second pass 与 terminology contract normalization，让 `Phase 104/105` 可以继续沿同一术语与 helper-home 裁决推进，而不是回到 conversation-only 分歧。
-- `v1.28` closeout 资产必须继续保持 latest archived baseline 身份，不能被 active route 重新占用。
-
-**Planned phase story:**
+**Archived phase story:**
 - `Phase 103`: root adapter thinning, test topology second pass, and terminology contract normalization ✅
 - `Phase 104`: service-router family split and command-runtime second-pass decomposition ✅
 - `Phase 105`: governance rule datafication and milestone freeze ✅
+
+**Key accomplishments:**
+- 把 `custom_components/lipro/__init__.py` 的 lazy-load / entry-auth / service-registry adapter 支撑抽回 `custom_components/lipro/control/entry_root_support.py`，保持 HA 根入口只承担 thin adapter 装配。
+- 把 `tests/conftest.py` 的 topicized collection hooks 与 `_CoordinatorDouble` 下沉到 `tests/topicized_collection.py` / `tests/coordinator_double.py`，fixture giant-root 不再继续承担 mixed governance truth。
+- 把 `support / surface / wiring / handlers / facade` 的术语裁决写入 ADR，并把 `service_router_handlers.py` / `command_runtime.py` 的 second-pass inward split 收口为 focused predecessor bundles。
+- 把 `tests/meta/governance_followup_route_specs.py` 与 `scripts/check_file_matrix_registry_*` 统一成 data-driven rule sources，减少规划台账 / classifier truth 的重复文字维护。
+- 把 `.planning/v1.29-MILESTONE-AUDIT.md`、`.planning/reviews/V1_29_EVIDENCE_INDEX.md`、archive snapshots 与 promoted closeout bundle 共同冻结为 latest pull-only evidence chain，让下一条正式路线只能经 `$gsd-new-milestone` 启动。
+
+**Closeout assets:**
+- `.planning/v1.29-MILESTONE-AUDIT.md`
+- `.planning/reviews/V1_29_EVIDENCE_INDEX.md`
+- `.planning/milestones/v1.29-ROADMAP.md`
+- `.planning/milestones/v1.29-REQUIREMENTS.md`
+- `.planning/phases/103-root-adapter-thinning-test-topology-second-pass-and-terminology-contract-normalization/{103-01-SUMMARY.md,103-02-SUMMARY.md,103-03-SUMMARY.md,103-VERIFICATION.md,103-VALIDATION.md}`
+- `.planning/phases/104-service-router-family-split-and-command-runtime-second-pass-decomposition/{104-01-SUMMARY.md,104-02-SUMMARY.md,104-03-SUMMARY.md,104-VERIFICATION.md,104-VALIDATION.md}`
+- `.planning/phases/105-governance-rule-datafication-and-milestone-freeze/{105-01-SUMMARY.md,105-02-SUMMARY.md,105-03-SUMMARY.md,105-SUMMARY.md,105-VERIFICATION.md,105-VALIDATION.md}`
 
 ## v1.28 Governance Portability, Verification Stratification & Open-Source Continuity Hardening (Shipped: 2026-03-28; Closeout: 2026-03-28)
 

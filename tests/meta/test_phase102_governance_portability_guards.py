@@ -6,7 +6,10 @@ from pathlib import Path
 
 from tests.helpers.repo_root import repo_root
 
-from .governance_contract_helpers import assert_testing_inventory_snapshot
+from .governance_contract_helpers import (
+    assert_runbook_points_to_latest_evidence,
+    assert_testing_inventory_snapshot,
+)
 from .governance_current_truth import (
     CURRENT_MILESTONE_DEFAULT_NEXT,
     CURRENT_PHASE,
@@ -62,13 +65,12 @@ def test_phase102_latest_archived_closeout_bundle_remains_pull_only_truth() -> N
 
     assert f'Phase {CURRENT_PHASE}' in state_text
     assert 'Phase 102 Governance Portability / Verification Stratification / Open-Source Continuity Hardening Note' in dev_arch_text
-    assert 'V1_28_EVIDENCE_INDEX.md' in runbook_text
-    assert 'v1.28-MILESTONE-AUDIT.md' in runbook_text
     assert 'no active milestone route / latest archived baseline = v1.28' in audit_text
     assert '# v1.28 Evidence Index' in evidence_text
     assert '# Phase 102 Verification' in verification_doc
     assert '# Phase 102 Validation Contract' in validation_doc
     assert 'Phase 102' in summary_text
+    assert_runbook_points_to_latest_evidence(runbook_text, 'V1_29_EVIDENCE_INDEX.md')
 
 
 def test_phase102_maps_and_ledgers_keep_portability_hardening_visible() -> None:
@@ -80,7 +82,7 @@ def test_phase102_maps_and_ledgers_keep_portability_hardening_visible() -> None:
     verification_text = _read(_VERIFICATION_MATRIX)
 
     assert 'tests/meta/test_phase102_governance_portability_guards.py' in file_matrix_text
-    assert 'focused latest-archived guard home for Phase 102 governance portability / verification stratification / open-source continuity hardening' in file_matrix_text
+    assert 'focused archived-continuity guard home for Phase 102 governance portability / verification stratification / open-source continuity hardening' in file_matrix_text
     assert_testing_inventory_snapshot(testing_text)
     assert 'Phase 102' in testing_text
     assert '102-governance-portability-verification-stratification-and-open-source-continuity-hardening' in promoted_text

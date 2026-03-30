@@ -25,35 +25,27 @@ _ROUTE_CONTRACT_PATHS = {
 PLANNING_ROUTE_CONTRACT: dict[str, object] = {
     "contract_version": 1,
     "contract_name": "governance-route",
-    "active_milestone": {
+    "active_milestone": None,
+    "latest_archived": {
         "version": "v1.29",
         "name": "Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization",
-        "status": "active / Phase 105 complete / milestone-freeze ready (2026-03-28)",
+        "status": "archived / evidence-ready (2026-03-30)",
         "phase": "105",
         "phase_title": "Governance rule datafication and milestone freeze",
         "phase_dir": "105-governance-rule-datafication-and-milestone-freeze",
-        "route_mode": "v1.29 active route / Phase 105 complete / latest archived baseline = v1.28",
-    },
-    "latest_archived": {
-        "version": "v1.28",
-        "name": "Governance Portability, Verification Stratification & Open-Source Continuity Hardening",
-        "status": "archived / evidence-ready (2026-03-28)",
-        "phase": "102",
-        "phase_title": "Governance portability, verification stratification, and open-source continuity hardening",
-        "phase_dir": "102-governance-portability-verification-stratification-and-open-source-continuity-hardening",
-        "audit_path": ".planning/v1.28-MILESTONE-AUDIT.md",
-        "evidence_path": ".planning/reviews/V1_28_EVIDENCE_INDEX.md",
+        "audit_path": ".planning/v1.29-MILESTONE-AUDIT.md",
+        "evidence_path": ".planning/reviews/V1_29_EVIDENCE_INDEX.md",
         "evidence_label": "latest archived evidence index",
     },
     "previous_archived": {
-        "version": "v1.27",
-        "name": "Final Carry-Forward Eradication & Route Reactivation",
-        "evidence_path": ".planning/reviews/V1_27_EVIDENCE_INDEX.md",
+        "version": "v1.28",
+        "name": "Governance Portability, Verification Stratification & Open-Source Continuity Hardening",
+        "evidence_path": ".planning/reviews/V1_28_EVIDENCE_INDEX.md",
     },
     "bootstrap": {
-        "current_route": "v1.29 active route / Phase 105 complete / latest archived baseline = v1.28",
-        "default_next_command": "$gsd-complete-milestone v1.29",
-        "latest_archived_evidence_pointer": ".planning/reviews/V1_28_EVIDENCE_INDEX.md",
+        "current_route": "no active milestone route / latest archived baseline = v1.29",
+        "default_next_command": "$gsd-new-milestone",
+        "latest_archived_evidence_pointer": ".planning/reviews/V1_29_EVIDENCE_INDEX.md",
     },
 }
 
@@ -244,6 +236,7 @@ CURRENT_ROUTE_PROSE_FORBIDDEN = (
     "v1.27 active route / Phase 100 complete / latest archived baseline = v1.26",
     "v1.27 active route / Phase 101 complete / latest archived baseline = v1.26",
     "v1.29 active route / Phase 104 complete / latest archived baseline = v1.28",
+    "v1.29 active route / Phase 105 complete / latest archived baseline = v1.28",
     "no active milestone route / latest archived baseline = v1.20",
     "no active milestone route / latest archived baseline = v1.21",
     "no active milestone route / latest archived baseline = v1.22",
@@ -259,11 +252,11 @@ CURRENT_RUNTIME_ROOT_TEST = "tests/core/coordinator/test_runtime_root.py"
 
 HISTORICAL_CLOSEOUT_ROUTE_TRUTH = (
     "historical closeout route truth = "
-    "`no active milestone route / latest archived baseline = v1.28`"
+    "`no active milestone route / latest archived baseline = v1.29`"
 )
 HISTORICAL_ARCHIVE_TRANSITION_ROUTE_TRUTH = (
     "historical archive-transition route truth = "
-    "`no active milestone route / latest archived baseline = v1.27`"
+    "`no active milestone route / latest archived baseline = v1.28`"
 )
 
 

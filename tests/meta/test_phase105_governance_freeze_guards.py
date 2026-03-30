@@ -88,14 +88,14 @@ def test_phase105_ledgers_testing_and_promoted_assets_freeze_the_same_story() ->
         'tests/meta/test_phase105_governance_freeze_guards.py',
     ):
         assert path in file_matrix_text
-    assert 'focused active-route guard home for Phase 105 governance freeze' in file_matrix_text
+    assert 'focused latest-archived closeout guard home for Phase 105 governance freeze' in file_matrix_text
     assert '## Phase 105 Residual Delta' in residual_text
     assert '## Phase 105 Status Update' in kill_text
     assert '## Phase 105 Testing Freeze' in testing_text
     assert_testing_inventory_snapshot(testing_text)
     assert '## Phase 105 Governance Rule Datafication / Milestone Freeze' in verification_text
     for token in (
-        '$gsd-complete-milestone v1.29',
+        '$gsd-new-milestone',
         '.planning/reviews/PROMOTED_PHASE_ASSETS.md',
         'tests/meta/test_phase105_governance_freeze_guards.py',
         'tests/meta/governance_followup_route_specs.py',

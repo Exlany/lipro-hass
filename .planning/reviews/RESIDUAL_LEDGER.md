@@ -10,9 +10,9 @@ _None currently registered._
 
 ## Phase 105 Residual Delta
 
-- `v1.29` active-route residual families 继续保持 zero-active ledger posture；`Phase 105` 的职责是把治理规则数据化与里程碑冻结写回正式真源，而不是创造新的 live residual family。
-- `tests/meta/governance_followup_route_specs.py`、`scripts/check_file_matrix_registry_shared.py` 与 `scripts/check_file_matrix_registry_classifiers.py` 现在承担共享规则真源；remaining work 只剩 `$gsd-complete-milestone v1.29`，不再计作 live technical residual。
-- `Phase 103` / `Phase 104` predecessor bundles 继续保留可见性，但不会重新升级为 active residual；`v1.28` closeout bundle 继续保持 pull-only latest archived baseline 身份。
+- `v1.29` archived closeout 后仍保持 zero-active ledger posture；`Phase 105` 的职责已经从 active-route freeze 转为 latest-archived closeout 证据冻结，而不是创造新的 residual family。
+- `tests/meta/governance_followup_route_specs.py`、`scripts/check_file_matrix_registry_shared.py` 与 `scripts/check_file_matrix_registry_classifiers.py` 现在承担共享规则真源；milestone closeout 已完成；后续工作切换为 `$gsd-new-milestone`，不再计作 live technical residual。
+- `Phase 103` / `Phase 104` predecessor bundles 继续保留可见性，但不会重新升级为 active residual；`v1.28` closeout bundle 继续保持 pull-only previous archived baseline 身份。
 
 ## Phase 85 Audit-Routed Carry-Forward
 
@@ -567,7 +567,7 @@ _None currently registered._
 ## Phase 104 Residual Delta
 
 - `service_router_handlers.py` family density 与 `command_runtime.py` second pass 已完成 inward split，已不再列为 active residual。
-- `v1.29` 剩余 live residual 只保留 `Phase 105` 的 governance rule datafication / milestone freeze；本 phase 未新增新的 orphan residual family。
+- `v1.29` 已无 live residual；`Phase 105` 的 governance rule datafication / milestone freeze 已全部并入 archived closeout bundle。
 
 ## Phase 102 Residual Delta
 

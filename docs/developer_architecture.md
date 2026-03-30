@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `v1.29 / Phase 105` active-route freeze (`2026-03-30`)
-> **Current route alignment**: `v1.29 active route / Phase 105 complete / latest archived baseline = v1.28` (`2026-03-30`)
+> **Last aligned through**: `v1.29 milestone closeout / archived-only route truth` (`2026-03-30`)
+> **Current route alignment**: `no active milestone route / latest archived baseline = v1.29` (`2026-03-30`)
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
@@ -208,7 +208,7 @@ custom_components/lipro/
 
 ## Phase 89 Freeze Note
 
-- Phase 89 closeout treats `V1_23_TERMINAL_AUDIT.md` as historical input evidence only; archived-only route truth now lives in `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`, `.planning/v1.28-MILESTONE-AUDIT.md`, `.planning/reviews/V1_28_EVIDENCE_INDEX.md`, and focused governance guards.
+- Phase 89 closeout treats `V1_23_TERMINAL_AUDIT.md` as historical input evidence only; archived-only route truth now lives in `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`, `.planning/v1.29-MILESTONE-AUDIT.md`, `.planning/reviews/V1_29_EVIDENCE_INDEX.md`, and focused governance guards.
 - `RESIDUAL_LEDGER.md` active residual families 为空、`KILL_LIST.md` 的 `Phase 85 Routed Delete Gates` 为空，都是显式 closeout verdict，而不是待补登记的空白。
 - `.planning/reviews/PROMOTED_PHASE_ASSETS.md` 是 phase evidence allowlist 的唯一 home；developer-facing guidance 只索引它，不私自提升 execution traces。
 
@@ -247,7 +247,7 @@ custom_components/lipro/
 
 ## Phase 102 Governance Portability / Verification Stratification / Open-Source Continuity Hardening Note
 
-- 当前 developer guidance 与 `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md` 已共同承认 `no active milestone route / latest archived baseline = v1.28`；默认下一步保持为 `$gsd-new-milestone`。
+- 当前 developer guidance 与 `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md` 已共同承认 `no active milestone route / latest archived baseline = v1.29`；默认下一步保持为 `$gsd-new-milestone`。
 - `Phase 102` 不重开 production formal homes；它只把 governance/meta smoke 的 fast-path 耦合收口为 capability-aware proof，并把 verification matrix 当前真相、historical closeout note、docs-first / maintainer appendix continuity wording 一次性分层。
 - `tests/meta/test_governance_bootstrap_smoke.py`、`tests/meta/test_governance_route_handoff_smoke.py`、`tests/meta/governance_followup_route_current_milestones.py` 与 `tests/meta/test_phase102_governance_portability_guards.py` 现在共同冻结 archived-only latest truth、portable fast-path、promoted closeout bundle、runbook latest pointer 与 developer-facing topology note。
 
@@ -306,5 +306,5 @@ custom_components/lipro/
 
 - `tests/meta/governance_followup_route_specs.py` 现在承载 current-milestone / closeout / continuation follow-up route 的共享 case/spec truth，避免三套 governance suites 继续复制粘贴同一组期望与台账路径。
 - `scripts/check_file_matrix_registry_shared.py`、`scripts/check_file_matrix_registry_classifiers.py` 与 override lineage sync 共同把 file-matrix registry family 改成 data-driven builder；ownership / guard-home / predecessor-vs-active wording 不再散落在 tuple folklore 中。
-- `tests/meta/test_phase104_service_router_runtime_split_guards.py` 退为 predecessor visibility guard，`tests/meta/test_phase105_governance_freeze_guards.py` 成为唯一 active-route freeze guard；这保证 `v1.29` 当前 selector、predecessor bundle 与 promoted closeout bundle 分工清晰。
-- `v1.29` 当前仍是 active milestone，但已进入 milestone-freeze ready；formal next step 只有 `$gsd-complete-milestone v1.29`，不得再把治理数据化描述成待规划的后续口头任务。
+- `tests/meta/test_phase104_service_router_runtime_split_guards.py` 退为 predecessor visibility guard，`tests/meta/test_phase105_governance_freeze_guards.py` 现冻结 latest-archived closeout truth；这保证 `v1.29` archived selector、predecessor bundle 与 promoted closeout bundle 分工清晰。
+- `v1.29` 已完成 milestone closeout 并退回 archived-only baseline；formal next step 只有 `$gsd-new-milestone`，不得再把治理数据化或 closeout 手续描述成待处理的后续口头任务。

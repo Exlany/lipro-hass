@@ -420,6 +420,50 @@ def test_v1_28_closeout_assets_exist_and_are_pull_only() -> None:
     )
 
 
+def test_v1_29_closeout_assets_exist_and_are_pull_only() -> None:
+    evidence_index = _ROOT / ".planning" / "reviews" / "V1_29_EVIDENCE_INDEX.md"
+    milestone_audit = _ROOT / ".planning" / "v1.29-MILESTONE-AUDIT.md"
+
+    assert evidence_index.exists()
+    assert milestone_audit.exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.29-ROADMAP.md").exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.29-REQUIREMENTS.md").exists()
+    _assert_promoted_phase_assets(
+        "103-root-adapter-thinning-test-topology-second-pass-and-terminology-contract-normalization",
+        "103-01-SUMMARY.md",
+        "103-02-SUMMARY.md",
+        "103-03-SUMMARY.md",
+        "103-VERIFICATION.md",
+        "103-VALIDATION.md",
+    )
+    _assert_promoted_phase_assets(
+        "104-service-router-family-split-and-command-runtime-second-pass-decomposition",
+        "104-01-SUMMARY.md",
+        "104-02-SUMMARY.md",
+        "104-03-SUMMARY.md",
+        "104-VERIFICATION.md",
+        "104-VALIDATION.md",
+    )
+    _assert_promoted_phase_assets(
+        "105-governance-rule-datafication-and-milestone-freeze",
+        "105-01-SUMMARY.md",
+        "105-02-SUMMARY.md",
+        "105-03-SUMMARY.md",
+        "105-SUMMARY.md",
+        "105-VERIFICATION.md",
+        "105-VALIDATION.md",
+    )
+
+    assert_pull_only_evidence_index(
+        evidence_index,
+        "103-01-SUMMARY.md",
+        "104-VERIFICATION.md",
+        "105-VALIDATION.md",
+        "archived / evidence-ready",
+        "V1_29_EVIDENCE_INDEX.md",
+    )
+
+
 def test_v1_27_closeout_assets_exist_and_are_pull_only() -> None:
     evidence_index = _ROOT / ".planning" / "reviews" / "V1_27_EVIDENCE_INDEX.md"
     milestone_audit = _ROOT / ".planning" / "v1.27-MILESTONE-AUDIT.md"

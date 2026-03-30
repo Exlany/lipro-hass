@@ -14,8 +14,8 @@ This repository currently follows a single-maintainer release model. Every tagge
 - Canonical public support/security paths: `README.md`, `README_zh.md`, `CONTRIBUTING.md`, `SUPPORT.md`, `SECURITY.md`
 - Canonical troubleshooting path: `docs/TROUBLESHOOTING.md`
 - Canonical release-notes summary: `CHANGELOG.md` (maintainer-facing release posture summary, not a second runbook)
-- Canonical latest archived evidence index: `.planning/reviews/V1_28_EVIDENCE_INDEX.md`
-- Canonical archived verdict home: `.planning/v1.28-MILESTONE-AUDIT.md` (pull-only evidence verdict, not current route truth)
+- Canonical latest archived evidence index: `.planning/reviews/V1_29_EVIDENCE_INDEX.md`
+- Canonical archived verdict home: `.planning/v1.29-MILESTONE-AUDIT.md` (pull-only evidence verdict, not current route truth)
 - Canonical firmware certification trust-root asset: `custom_components/lipro/firmware_support_manifest.json` (historical filename retained)
 
 Private repositories and forks skip CI HACS validation because HACS only supports public GitHub repositories; do not treat a skipped HACS job as a release blocker in that case.
@@ -53,7 +53,7 @@ Before creating or publishing a tag:
 1. Working tree is clean and all intended docs/code changes are committed.
 2. Version truth is synchronized across `pyproject.toml`, `manifest.json`, and `const/base.py`.
 3. Public navigation is synchronized across `README.md` / `README_zh.md` / `CONTRIBUTING.md` / `SUPPORT.md` / `SECURITY.md` / troubleshooting docs.
-4. Residual/governance closeout tables, `CHANGELOG.md`, `.planning/reviews/V1_28_EVIDENCE_INDEX.md`, and `.planning/v1.28-MILESTONE-AUDIT.md` are updated when the release carries architectural cleanup or release-route wording changes.
+4. Residual/governance closeout tables, `CHANGELOG.md`, `.planning/reviews/V1_29_EVIDENCE_INDEX.md`, and `.planning/v1.29-MILESTONE-AUDIT.md` are updated when the release carries architectural cleanup or release-route wording changes.
 5. Release custody, custody-restoration rules, freeze conditions, and rollback posture are reviewed before the tag is pushed; do not assume a delegate exists unless `.github/CODEOWNERS` and this runbook explicitly document one.
 6. The following commands pass locally whenever the change scope justifies a release:
 

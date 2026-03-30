@@ -250,7 +250,7 @@ with pytest.raises(ServiceValidationError):
 
 ## Phase 103 Testing Freeze
 
-- `tests/meta/test_phase103_root_thinning_guards.py` now freezes predecessor visibility for root-adapter thinning, test-topology second pass, and terminology-contract projection under the current `Phase 105` route.
+- `tests/meta/test_phase103_root_thinning_guards.py` now freezes predecessor visibility for root-adapter thinning, test-topology second pass, and terminology-contract projection under the archived `v1.29` closeout route.
 - Phase 103 proof must remain visible after Phase 105 completion; it is no longer the active-route selector.
 
 ## Phase 104 Testing Freeze
@@ -260,12 +260,12 @@ with pytest.raises(ServiceValidationError):
 
 ## Phase 105 Testing Freeze
 
-- `tests/meta/test_phase105_governance_freeze_guards.py` now freezes the active `v1.29` route, governance rule datafication, promoted closeout bundle, and milestone-closeout handoff truth.
+- `tests/meta/test_phase105_governance_freeze_guards.py` now freezes the latest archived `v1.29` closeout route, governance rule datafication, promoted closeout bundle, and next-milestone handoff truth.
 - `tests/meta/governance_followup_route_specs.py` centralizes repeated current-milestone / closeout / continuation case data, while `tests/meta/test_governance_route_handoff_smoke.py` keeps parser-stable GSD fast-path coverage honest.
-- Phase 105 verification requires focused governance meta suites, `check_file_matrix`, `ruff`, `mypy`, and `gsd-tools` state/progress/phase-plan-index proof before `$gsd-complete-milestone v1.29`.
+- Phase 105 verification requires focused governance meta suites, `check_file_matrix`, `ruff`, `mypy`, and `gsd-tools` state/progress/phase-plan-index proof before handing off to `$gsd-new-milestone`.
 
 ## Phase 102 Testing Freeze
 
-- `tests/meta/test_phase102_governance_portability_guards.py` 继续冻结 archived-only `v1.28` route contract、promoted closeout bundle、docs-first continuity wording、runbook latest pointer 与 residual/kill-ledger honesty。
+- `tests/meta/test_phase102_governance_portability_guards.py` 继续冻结 archived `v1.28` predecessor bundle、promoted closeout package、docs-first continuity wording 与 residual/kill-ledger honesty。
 - `tests/meta/test_governance_bootstrap_smoke.py`、`tests/meta/test_governance_route_handoff_smoke.py` 与 `tests/meta/governance_followup_route_current_milestones.py` 共同保证 capability-aware gsd fast-path、machine-readable contract 与 latest archived pointer 不再分叉。
 - Phase 102 verification requires focused governance/docs/archive guards、`tests/meta`、`scripts/check_file_matrix.py --check`、`ruff` 与 `mypy` 一起通过，之后 `$gsd-next` 的自然落点才允许稳定收口到 `$gsd-new-milestone`。

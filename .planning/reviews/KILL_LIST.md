@@ -43,7 +43,7 @@ _None currently registered._
 
 - 本 phase **无新增 active kill target**；被关闭的是治理规则的重复定义、route freeze 的口径分叉，以及 milestone-closeout handoff 的 conversation-only 残留，而不是新的 file-level delete campaign。
 - `tests/meta/governance_followup_route_specs.py` 与 `scripts/check_file_matrix_registry_*` 的 shared builder/datafication 是 formal governance truth，不是 future delete target。
-- `Phase 103` / `Phase 104` predecessor bundle 与 `Phase 105` promoted closeout bundle 已分别通过 focused guards 与 `.planning/reviews/PROMOTED_PHASE_ASSETS.md` 固定身份；下一步只剩 `$gsd-complete-milestone v1.29`。
+- `Phase 103` / `Phase 104` predecessor bundle 与 `Phase 105` promoted closeout bundle 已分别通过 focused guards 与 `.planning/reviews/PROMOTED_PHASE_ASSETS.md` 固定身份；closeout 已完成；下一步切换为 `$gsd-new-milestone`。
 
 ## Phase 65 Status Update
 

@@ -13,7 +13,7 @@
 - 设备诊断报告导出，并增强诊断脱敏相关测试覆盖。
 - `rest.device-list` / `rest.device-status` / `rest.mesh-group-status` 的 canonical boundary contracts 与 replay/contract fixtures。
 - `AuthSessionSnapshot` formal auth/session contract，供 `config_flow` / `entry_auth` / control adapters 统一消费。
-- 维护者附录现已显式指向 latest archived evidence index（`.planning/reviews/V1_28_EVIDENCE_INDEX.md`）与 archived milestone audit（`.planning/v1.28-MILESTONE-AUDIT.md`），保持 release pull-chain 单一路由。
+- 维护者附录现已显式指向 latest archived evidence index（`.planning/reviews/V1_29_EVIDENCE_INDEX.md`）与 archived milestone audit（`.planning/v1.29-MILESTONE-AUDIT.md`），保持 release pull-chain 单一路由。
 
 ### 变更（Changed）
 

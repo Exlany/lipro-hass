@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.29
 milestone_name: Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization
-current_phase: '105'
-status: active
+current_phase: null
+status: archived
 last_updated: "2026-03-30T00:00:00.000Z"
 progress:
   total_phases: 3
@@ -18,73 +18,60 @@ progress:
 
 See: `.planning/PROJECT.md`
 
-**Current milestone:** `v1.29 Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization`
-**Active milestone:** `v1.29`
-**Core value:** `以 v1.28 latest archived baseline 为唯一 north-star 起点，把 HA 根入口 / pytest topology / 术语 contract 的残留热点回收到诚实 formal homes，并把 Phase 105 的治理数据化 / 里程碑冻结收口为可归档 closeout truth。`
-**Current mode:** `v1.29 active route / Phase 105 complete / latest archived baseline = v1.28`
+**Current milestone:** `No active milestone route`
+**Active milestone:** `none`
+**Core value:** `以 v1.29 latest archived baseline 为唯一 north-star 起点，把下一条正式路线收缩回 fresh milestone bootstrap / requirements routing。`
+**Current mode:** `no active milestone route / latest archived baseline = v1.29`
 
 ## Current Position
 
-- `v1.28` 已完成 `Phase 102` 全部计划、focused closeout proof、repo-wide quality gates 与 milestone audit，现已升级为 latest archived baseline。
+- `v1.29` 已完成 `Phase 103 -> 105` 全部计划、focused closeout proof、repo-wide quality gates 与 milestone audit，现已升级为 latest archived baseline。
 - `Phase 103` 已把 `custom_components/lipro/__init__.py` 的 lazy-load / entry-auth / service-registry adapter 支撑抽回 `custom_components/lipro/control/entry_root_support.py`，HA 根入口继续只保留 thin adapter 职责。
-- `tests/conftest.py` 已把 topicized collection hooks 与 `_CoordinatorDouble` 下沉到 `tests/topicized_collection.py` / `tests/coordinator_double.py`，fixture giant-root 风险已开始收口。
-- `docs/adr/0005-entry-surface-terminology-contract.md` 已明确 `support / surface / wiring / handlers / facade` 的术语裁决，供已完成的 `Phase 104` split 与 `Phase 105` 治理数据化 / 里程碑冻结复用。
-- `Phase 104` 已把 `service_router_handlers.py` 收窄为 family index，并把 schedule/share/diagnostics/maintenance handler homes 显式化。
-- `Phase 104` 已把 `CommandRuntime` 的 outcome bookkeeping / reauth handling 抽到 `command_runtime_outcome_support.py`，formal orchestration root 仍留在 `command_runtime.py`。
-- `Phase 105` 已完成；governance rule datafication / milestone freeze 已同步到 planning / baseline / review / docs truth，当前里程碑只剩 `$gsd-complete-milestone v1.29` closeout 动作。
-- maintainer/delegate continuity 仍是组织层高风险；本里程碑继续只负责技术与治理入口写清楚。
+- `tests/conftest.py` 已把 topicized collection hooks 与 `_CoordinatorDouble` 下沉到 `tests/topicized_collection.py` / `tests/coordinator_double.py`，fixture giant-root 风险已完成 second-pass 收口。
+- `docs/adr/0005-entry-surface-terminology-contract.md` 已明确 `support / surface / wiring / handlers / facade` 的术语裁决，供 `Phase 104` split 与 `Phase 105` milestone closeout 继续复用。
+- `Phase 104` 已把 `service_router_handlers.py` 收窄为 family index，并把 `CommandRuntime` 的 outcome bookkeeping / reauth handling 抽到 `command_runtime_outcome_support.py`。
+- `Phase 105` 已完成 closeout handoff；`.planning/v1.29-MILESTONE-AUDIT.md`、`.planning/reviews/V1_29_EVIDENCE_INDEX.md`、archive snapshots 与 promoted bundle 现共同冻结 latest archived baseline `v1.29`。
+- `v1.28` 现退为 previous archived baseline；`Phase 102` closeout bundle 继续保持 pull-only 可审计身份。
+- maintainer/delegate continuity 仍是组织层高风险；本里程碑只负责把技术与治理入口写清楚，不伪装成可被单次代码提交解决。
 
 <!-- governance-route-contract:start -->
-
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.29
   name: Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization
-  status: active / Phase 105 complete / milestone-freeze ready (2026-03-28)
+  status: archived / evidence-ready (2026-03-30)
   phase: '105'
   phase_title: Governance rule datafication and milestone freeze
   phase_dir: 105-governance-rule-datafication-and-milestone-freeze
-  route_mode: v1.29 active route / Phase 105 complete / latest archived baseline =
-    v1.28
-latest_archived:
-  version: v1.28
-  name: Governance Portability, Verification Stratification & Open-Source Continuity
-    Hardening
-  status: archived / evidence-ready (2026-03-28)
-  phase: '102'
-  phase_title: Governance portability, verification stratification, and open-source
-    continuity hardening
-  phase_dir: 102-governance-portability-verification-stratification-and-open-source-continuity-hardening
-  audit_path: .planning/v1.28-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_28_EVIDENCE_INDEX.md
+  audit_path: .planning/v1.29-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_29_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.27
-  name: Final Carry-Forward Eradication & Route Reactivation
-  evidence_path: .planning/reviews/V1_27_EVIDENCE_INDEX.md
+  version: v1.28
+  name: Governance Portability, Verification Stratification & Open-Source Continuity Hardening
+  evidence_path: .planning/reviews/V1_28_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.29 active route / Phase 105 complete / latest archived baseline
-    = v1.28
-  default_next_command: $gsd-complete-milestone v1.29
-  latest_archived_evidence_pointer: .planning/reviews/V1_28_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.29
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_29_EVIDENCE_INDEX.md
 ```
-
 <!-- governance-route-contract:end -->
-## Current Milestone (v1.29)
-
+## Latest Archived Milestone (v1.29)
 - **Milestone:** `v1.29 Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization`
 - **Phase range:** `103 -> 105`
-- **Current phase:** `Phase 105`
-- **Milestone status:** `active / Phase 105 complete / milestone-freeze ready (2026-03-28)`
+- **Latest archived phase:** `Phase 105`
+- **Milestone status:** `archived / evidence-ready (2026-03-30)`
 - **Requirements basket:** `ARC-26`, `TST-35`, `DOC-09`, `QLT-43`, `HOT-44`, `HOT-45`, `TST-36`, `GOV-69`, `QLT-44`
 - **Milestone starting evidence:** `.planning/v1.28-MILESTONE-AUDIT.md`, `.planning/reviews/V1_28_EVIDENCE_INDEX.md`, `.planning/milestones/v1.28-ROADMAP.md`, `.planning/milestones/v1.28-REQUIREMENTS.md`
-- **Latest archived baseline:** `v1.28`
-- **Default next command:** `$gsd-complete-milestone v1.29`
-- **Current follow-up target:** milestone closeout / archive handoff while preserving `v1.28` archived truth
+- **Milestone closeout assets:** `.planning/v1.29-MILESTONE-AUDIT.md`, `.planning/reviews/V1_29_EVIDENCE_INDEX.md`, `.planning/milestones/v1.29-ROADMAP.md`, `.planning/milestones/v1.29-REQUIREMENTS.md`
+- **Current audit artifact:** `.planning/v1.29-MILESTONE-AUDIT.md`
+- **Default next command:** `$gsd-new-milestone`
+- **Current follow-up target:** next milestone bootstrap / fresh requirements routing
 
-## Latest Archived Milestone (v1.28)
+## Previous Archived Milestone (v1.28)
 - **Milestone:** `v1.28 Governance Portability, Verification Stratification & Open-Source Continuity Hardening`
 - **Phase range:** `102 -> 102`
 - **Latest archived phase:** `Phase 102`
@@ -94,9 +81,9 @@ bootstrap:
 - **Milestone closeout assets:** `.planning/v1.28-MILESTONE-AUDIT.md`, `.planning/reviews/V1_28_EVIDENCE_INDEX.md`, `.planning/milestones/v1.28-ROADMAP.md`, `.planning/milestones/v1.28-REQUIREMENTS.md`
 - **Current audit artifact:** `.planning/v1.28-MILESTONE-AUDIT.md`
 - **Default next command:** `$gsd-new-milestone`（historical closeout command）
-- **Current follow-up target:** serve as latest archived baseline for `v1.29`
+- **Current follow-up target:** serve as historical archived baseline after `v1.29`
 
-## Previous Archived Milestone (v1.27)
+## Historical Archived Milestone (v1.27)
 - **Milestone:** `v1.27 Final Carry-Forward Eradication & Route Reactivation`
 - **Phase range:** `98 -> 101`
 - **Latest archived phase:** `Phase 101`
@@ -116,7 +103,7 @@ bootstrap:
 - **Milestone closeout assets:** `.planning/v1.26-MILESTONE-AUDIT.md`, `.planning/reviews/V1_26_EVIDENCE_INDEX.md`, `.planning/milestones/v1.26-ROADMAP.md`, `.planning/milestones/v1.26-REQUIREMENTS.md`
 - **Current audit artifact:** `.planning/v1.26-MILESTONE-AUDIT.md`
 - **Default next command:** `$gsd-new-milestone`（historical closeout command）
-- **Current follow-up target:** serve as historical archived baseline after `v1.28`
+- **Current follow-up target:** serve as historical archived baseline after `v1.29`
 
 ## Historical Archived Milestone (v1.25)
 - **Milestone:** `v1.25 Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence`
@@ -127,7 +114,7 @@ bootstrap:
 - **Milestone closeout assets:** `.planning/v1.25-MILESTONE-AUDIT.md`, `.planning/reviews/V1_25_EVIDENCE_INDEX.md`, `.planning/milestones/v1.25-ROADMAP.md`, `.planning/milestones/v1.25-REQUIREMENTS.md`
 - **Current audit artifact:** `.planning/v1.25-MILESTONE-AUDIT.md`
 - **Default next command:** `$gsd-new-milestone`
-- **Current follow-up target:** serve as historical archived baseline after `v1.28`
+- **Current follow-up target:** serve as historical archived baseline after `v1.29`
 
 ## Historical Archived Milestone (v1.24)
 
@@ -171,12 +158,12 @@ bootstrap:
 - **Archived snapshots:** `.planning/milestones/v1.22-ROADMAP.md`, `.planning/milestones/v1.22-REQUIREMENTS.md`
 ## Recommended Next Command
 
-1. `$gsd-complete-milestone v1.29` —— 完成 `v1.29` 的正式里程碑封板，把 `Phase 105` freeze 真源推进到 archived closeout 轨道
-2. `$gsd-progress` —— 复核当前 milestone / phase / closeout 路由摘要是否与文档真源一致
-3. `$gsd-next` —— 复核自动路由是否已稳定前推到 milestone closeout / next-milestone 逻辑
-4. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" state json` —— 复核 parser-stable `current_phase = 105` 与 `status = active`
-5. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" phase-plan-index 105` —— 复核 `Phase 105` 的 3/3 plans 已完成且 wave 记录稳定
-6. `uv run pytest -q tests/meta/test_governance_route_handoff_smoke.py tests/meta/test_phase104_service_router_runtime_split_guards.py tests/meta/test_phase105_governance_freeze_guards.py` —— 复核 current-route handoff / predecessor / freeze focused guards
+1. `$gsd-new-milestone` —— 启动下一条正式路线，基于 `v1.29` archived bundle 建立 fresh milestone / requirements / roadmap
+2. `$gsd-progress` —— 复核 no-active milestone / latest archived baseline 摘要是否与文档真源一致
+3. `$gsd-next` —— 复核自动路由是否已稳定前推到 next-milestone bootstrap 逻辑
+4. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" state json` —— 复核 parser-stable `current_phase = null` 与 `status = archived`
+5. `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" init progress` —— 复核 `current_phase = null`、`next_phase = null` 与 `has_work_in_progress = false`
+6. `uv run pytest -q tests/meta/test_governance_route_handoff_smoke.py tests/meta/test_phase102_governance_portability_guards.py tests/meta/test_phase105_governance_freeze_guards.py` —— 复核 latest-archived handoff / predecessor continuity / closeout freeze focused guards
 7. `uv run ruff check .` —— 复核 repo-wide lint gate
 8. `uv run mypy` —— 复核 repo-wide typing gate
 
@@ -193,10 +180,10 @@ If resuming, read in this order:
 7. `.planning/phases/105-governance-rule-datafication-and-milestone-freeze/105-RESEARCH.md`
 8. `.planning/phases/105-governance-rule-datafication-and-milestone-freeze/105-VERIFICATION.md`
 9. `.planning/phases/105-governance-rule-datafication-and-milestone-freeze/105-VALIDATION.md`
-10. `.planning/v1.28-MILESTONE-AUDIT.md`
-11. `.planning/reviews/V1_28_EVIDENCE_INDEX.md`
-12. `.planning/milestones/v1.28-ROADMAP.md`
-13. `.planning/milestones/v1.28-REQUIREMENTS.md`
+10. `.planning/v1.29-MILESTONE-AUDIT.md`
+11. `.planning/reviews/V1_29_EVIDENCE_INDEX.md`
+12. `.planning/milestones/v1.29-ROADMAP.md`
+13. `.planning/milestones/v1.29-REQUIREMENTS.md`
 
 ## Historical Continuity Anchors
 
