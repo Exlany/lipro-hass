@@ -256,35 +256,22 @@ async def _query_subset(
         )
         return
 
-    try:
-        accumulator.extend_rows(
-            await context.query_rows(subset, semaphore=semaphore)
-        )
+    if await _query_subset_batch(
+        subset,
+        context=context,
+        semaphore=semaphore,
+        accumulator=accumulator,
+    ):
         return
-    except context.lipro_api_error as err:
-        if not context.is_retriable_device_error(err):
-            raise
 
-    left, right = _split_subset_ids(subset)
-    await asyncio.gather(
-        _query_subset(
-            left,
-            depth=depth + 1,
-            context=context,
-            semaphore=semaphore,
-            accumulator=accumulator,
-            small_subset_batch_query_threshold=small_subset_batch_query_threshold,
-            small_subset_batch_size=small_subset_batch_size,
-        ),
-        _query_subset(
-            right,
-            depth=depth + 1,
-            context=context,
-            semaphore=semaphore,
-            accumulator=accumulator,
-            small_subset_batch_query_threshold=small_subset_batch_query_threshold,
-            small_subset_batch_size=small_subset_batch_size,
-        ),
+    await _query_subset_branches(
+        subset,
+        depth=depth,
+        context=context,
+        semaphore=semaphore,
+        accumulator=accumulator,
+        small_subset_batch_query_threshold=small_subset_batch_query_threshold,
+        small_subset_batch_size=small_subset_batch_size,
     )
 
 
@@ -461,6 +448,95 @@ async def _query_with_batch_fallback(
     return all_results, max_fallback_depth
 
 
+async def _query_subset_batch(
+    subset: list[str],
+    *,
+    context: _BinarySplitQueryContext,
+    semaphore: asyncio.Semaphore,
+    accumulator: _BinarySplitAccumulator,
+) -> bool:
+    try:
+        accumulator.extend_rows(
+            await context.query_rows(subset, semaphore=semaphore)
+        )
+        return True
+    except context.lipro_api_error as err:
+        if not context.is_retriable_device_error(err):
+            raise
+        return False
+
+
+async def _query_subset_branches(
+    subset: list[str],
+    *,
+    depth: int,
+    context: _BinarySplitQueryContext,
+    semaphore: asyncio.Semaphore,
+    accumulator: _BinarySplitAccumulator,
+    small_subset_batch_query_threshold: int,
+    small_subset_batch_size: int,
+) -> None:
+    left, right = _split_subset_ids(subset)
+    await asyncio.gather(
+        _query_subset(
+            left,
+            depth=depth + 1,
+            context=context,
+            semaphore=semaphore,
+            accumulator=accumulator,
+            small_subset_batch_query_threshold=small_subset_batch_query_threshold,
+            small_subset_batch_size=small_subset_batch_size,
+        ),
+        _query_subset(
+            right,
+            depth=depth + 1,
+            context=context,
+            semaphore=semaphore,
+            accumulator=accumulator,
+            small_subset_batch_query_threshold=small_subset_batch_query_threshold,
+            small_subset_batch_size=small_subset_batch_size,
+        ),
+    )
+
+
+async def _query_primary_batch(
+    *,
+    context: _BinarySplitQueryContext,
+    ids: list[str],
+) -> tuple[MappingRows | None, Exception | None]:
+    try:
+        return await context.query_rows(ids, semaphore=asyncio.Semaphore(1)), None
+    except context.lipro_api_error as err:
+        if not context.is_retriable_device_error(err):
+            raise
+        return None, err
+
+
+async def _query_with_retriable_fallback(
+    *,
+    context: _BinarySplitQueryContext,
+    err: Exception,
+    expected_offline_codes: tuple[int | str, ...],
+    ids: list[str],
+    small_subset_batch_query_threshold: int,
+    small_subset_batch_size: int,
+    record_fallback_depth: RecordFallbackDepth | None,
+) -> MappingRows:
+    all_results, max_fallback_depth = await _query_with_batch_fallback(
+        context=context,
+        err=err,
+        expected_offline_codes=expected_offline_codes,
+        ids=ids,
+        small_subset_batch_query_threshold=small_subset_batch_query_threshold,
+        small_subset_batch_size=small_subset_batch_size,
+    )
+    _record_fallback_depth_if_needed(
+        record_fallback_depth,
+        max_fallback_depth,
+    )
+    return all_results
+
+
 async def query_with_fallback_impl(
     *,
     path: str,
@@ -492,27 +568,24 @@ async def query_with_fallback_impl(
         logger=logger,
         build_query_payload=build_query_payload,
     )
-    try:
-        result_rows = await context.query_rows(ids, semaphore=asyncio.Semaphore(1))
+    result_rows, fallback_error = await _query_primary_batch(
+        context=context,
+        ids=ids,
+    )
+    if result_rows is not None:
         _record_fallback_depth_if_needed(record_fallback_depth, 0)
         return result_rows
-    except lipro_api_error as err:
-        if not is_retriable_device_error(err):
-            raise
-
-        all_results, max_fallback_depth = await _query_with_batch_fallback(
-            context=context,
-            err=err,
-            expected_offline_codes=expected_offline_codes,
-            ids=ids,
-            small_subset_batch_query_threshold=small_subset_batch_query_threshold,
-            small_subset_batch_size=small_subset_batch_size,
-        )
-        _record_fallback_depth_if_needed(
-            record_fallback_depth,
-            max_fallback_depth,
-        )
-        return all_results
+    if fallback_error is None:
+        raise RuntimeError("fallback_error missing for retriable batch query")
+    return await _query_with_retriable_fallback(
+        context=context,
+        err=fallback_error,
+        expected_offline_codes=expected_offline_codes,
+        ids=ids,
+        small_subset_batch_query_threshold=small_subset_batch_query_threshold,
+        small_subset_batch_size=small_subset_batch_size,
+        record_fallback_depth=record_fallback_depth,
+    )
 
 
 __all__ = [
