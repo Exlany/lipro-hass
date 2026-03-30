@@ -234,6 +234,71 @@ async def _async_connect_bound_mqtt_transport(
     return False
 
 
+async def _async_resolve_setup_prerequisites(
+    *,
+    protocol: LiproProtocolFacade,
+    config_entry: ConfigEntry,
+    devices: dict[str, LiproDevice],
+    mqtt_runtime: MqttRuntime,
+) -> _MqttSetupPrerequisites | None:
+    """Fetch config and resolve the full prerequisite bundle for MQTT setup."""
+    mqtt_config = await _async_fetch_mqtt_config(
+        protocol=protocol,
+        mqtt_runtime=mqtt_runtime,
+    )
+    if mqtt_config is None:
+        return None
+    return _resolve_setup_prerequisites(
+        mqtt_config=mqtt_config,
+        config_entry=config_entry,
+        devices=devices,
+    )
+
+
+async def _async_bind_and_connect_mqtt_transport(
+    *,
+    protocol: LiproProtocolFacade,
+    background_task_manager: BackgroundTaskManager,
+    mqtt_runtime: MqttRuntime,
+    prerequisites: _MqttSetupPrerequisites,
+) -> LiproMqttFacade | None:
+    """Bind the MQTT facade and connect it using the resolved prerequisites."""
+    mqtt_facade = _bind_mqtt_transport(
+        protocol=protocol,
+        mqtt_runtime=mqtt_runtime,
+        background_task_manager=background_task_manager,
+        access_key=prerequisites.access_key,
+        secret_key=prerequisites.secret_key,
+        biz_id=prerequisites.biz_id,
+        phone_id=prerequisites.phone_id,
+    )
+    if not await _async_connect_bound_mqtt_transport(
+        protocol=protocol,
+        mqtt_runtime=mqtt_runtime,
+        mqtt_facade=mqtt_facade,
+        device_ids=prerequisites.device_ids,
+    ):
+        return None
+    return mqtt_facade
+
+
+async def _async_fail_mqtt_setup(
+    *,
+    protocol: LiproProtocolFacade,
+    mqtt_runtime: MqttRuntime,
+    mqtt_facade: LiproMqttFacade | None,
+    err: Exception,
+) -> None:
+    """Record, teardown, and log one MQTT setup failure."""
+    mqtt_runtime.handle_transport_error(err, stage="setup")
+    await _teardown_failed_mqtt_setup(
+        protocol=protocol,
+        mqtt_runtime=mqtt_runtime,
+        mqtt_facade=mqtt_facade,
+    )
+    _LOGGER.exception("Failed to setup MQTT")
+
+
 async def async_setup_mqtt(
     *,
     protocol: LiproProtocolFacade,
@@ -246,36 +311,22 @@ async def async_setup_mqtt(
     mqtt_facade: LiproMqttFacade | None = None
 
     try:
-        mqtt_config = await _async_fetch_mqtt_config(
+        prerequisites = await _async_resolve_setup_prerequisites(
             protocol=protocol,
-            mqtt_runtime=mqtt_runtime,
-        )
-        if mqtt_config is None:
-            return None
-
-        prerequisites = _resolve_setup_prerequisites(
-            mqtt_config=mqtt_config,
             config_entry=config_entry,
             devices=devices,
+            mqtt_runtime=mqtt_runtime,
         )
         if prerequisites is None:
             return None
 
-        mqtt_facade = _bind_mqtt_transport(
+        mqtt_facade = await _async_bind_and_connect_mqtt_transport(
             protocol=protocol,
-            mqtt_runtime=mqtt_runtime,
             background_task_manager=background_task_manager,
-            access_key=prerequisites.access_key,
-            secret_key=prerequisites.secret_key,
-            biz_id=prerequisites.biz_id,
-            phone_id=prerequisites.phone_id,
-        )
-        if not await _async_connect_bound_mqtt_transport(
-            protocol=protocol,
             mqtt_runtime=mqtt_runtime,
-            mqtt_facade=mqtt_facade,
-            device_ids=prerequisites.device_ids,
-        ):
+            prerequisites=prerequisites,
+        )
+        if mqtt_facade is None:
             return None
         return mqtt_facade, prerequisites.biz_id
 
@@ -291,13 +342,12 @@ async def async_setup_mqtt(
         TypeError,
         LookupError,
     ) as err:
-        mqtt_runtime.handle_transport_error(err, stage="setup")
-        await _teardown_failed_mqtt_setup(
+        await _async_fail_mqtt_setup(
             protocol=protocol,
             mqtt_runtime=mqtt_runtime,
             mqtt_facade=mqtt_facade,
+            err=err,
         )
-        _LOGGER.exception("Failed to setup MQTT")
         return None
 
 
