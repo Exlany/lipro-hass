@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from dataclasses import dataclass
 from typing import Protocol, TypedDict
 
 from aiohttp import ClientSession
@@ -47,6 +48,12 @@ class SharePreviewResponse(TypedDict, total=False):
 
 
 type ShareServiceResponse = ShareSubmitResponse | SharePreviewResponse
+
+
+@dataclass(slots=True, frozen=True)
+class _AnonymousShareSubmitRequest:
+    requested_entry_id: str | None
+    share_manager: AnonymousShareManager
 
 
 class AnonymousShareManager(Protocol):
@@ -105,9 +112,44 @@ def _resolve_share_manager(
     )
 
 
+def _build_share_submit_request(
+    hass: HomeAssistant,
+    call: ServiceCall,
+    *,
+    get_anonymous_share_manager: AnonymousShareManagerFactory,
+    attr_entry_id: str,
+) -> _AnonymousShareSubmitRequest:
+    requested_entry_id = _resolve_requested_entry_id(call, attr_entry_id)
+    return _AnonymousShareSubmitRequest(
+        requested_entry_id=requested_entry_id,
+        share_manager=get_anonymous_share_manager(
+            hass,
+            entry_id=requested_entry_id,
+        ),
+    )
+
+
 def _coerce_submit_outcome(value: object) -> OperationOutcome | None:
     """Normalize one optional manager-reported submit outcome."""
     return value if isinstance(value, OperationOutcome) else None
+
+
+def _build_no_pending_submit_response(
+    *,
+    requested_entry_id: str | None,
+) -> ShareSubmitResponse:
+    result = build_submit_anonymous_share_response(
+        success=True,
+        device_count=0,
+        error_count=0,
+        requested_entry_id=requested_entry_id,
+        outcome=build_operation_outcome(
+            kind="skipped",
+            reason_code="no_pending_data",
+        ),
+    )
+    result["message"] = "No data to submit"
+    return result
 
 
 def build_submit_anonymous_share_response(
@@ -188,42 +230,34 @@ async def async_handle_submit_anonymous_share(
 ) -> ShareSubmitResponse:
     """Handle submit_anonymous_share service."""
     del raise_service_error
-    share_manager = _resolve_share_manager(
+    request = _build_share_submit_request(
         hass,
         call,
         get_anonymous_share_manager=get_anonymous_share_manager,
         attr_entry_id=attr_entry_id,
     )
-    if not share_manager.is_enabled:
+    if not request.share_manager.is_enabled:
         raise ServiceValidationError(
             translation_domain=domain,
             translation_key="anonymous_share_not_enabled",
         )
 
-    device_count, error_count = share_manager.pending_count
-    requested_entry_id = _resolve_requested_entry_id(call, attr_entry_id)
+    device_count, error_count = request.share_manager.pending_count
     if device_count == 0 and error_count == 0:
-        result = build_submit_anonymous_share_response(
-            success=True,
-            device_count=0,
-            error_count=0,
-            requested_entry_id=requested_entry_id,
-            outcome=build_operation_outcome(
-                kind="skipped",
-                reason_code="no_pending_data",
-            ),
+        return _build_no_pending_submit_response(
+            requested_entry_id=request.requested_entry_id,
         )
-        result["message"] = "No data to submit"
-        return result
 
     session = get_client_session(hass)
-    success = await share_manager.submit_report(session, force=True)
-    outcome = _coerce_submit_outcome(getattr(share_manager, "last_submit_outcome", None))
+    success = await request.share_manager.submit_report(session, force=True)
+    outcome = _coerce_submit_outcome(
+        getattr(request.share_manager, "last_submit_outcome", None)
+    )
     return build_submit_anonymous_share_response(
         success=success,
         device_count=device_count,
         error_count=error_count,
-        requested_entry_id=requested_entry_id,
+        requested_entry_id=request.requested_entry_id,
         outcome=outcome,
     )
 
