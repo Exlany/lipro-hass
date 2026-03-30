@@ -1,4 +1,4 @@
-"""Focused active-route guards for Phase 109 anonymous-share manager inward decomposition."""
+"""Focused predecessor guards for Phase 109 anonymous-share manager inward decomposition."""
 
 from __future__ import annotations
 
@@ -7,11 +7,7 @@ from pathlib import Path
 from tests.helpers.repo_root import repo_root
 
 from .governance_contract_helpers import assert_testing_inventory_snapshot
-from .governance_current_truth import (
-    CURRENT_MILESTONE_DEFAULT_NEXT,
-    CURRENT_MILESTONE_STATUS,
-    CURRENT_ROUTE,
-)
+from .governance_current_truth import CURRENT_MILESTONE_DEFAULT_NEXT, CURRENT_ROUTE
 
 _ROOT = repo_root(Path(__file__))
 _PROJECT = _ROOT / '.planning' / 'PROJECT.md'
@@ -36,7 +32,7 @@ def _read(path: Path) -> str:
     return path.read_text(encoding='utf-8')
 
 
-def test_phase109_active_route_bundle_is_current_truth() -> None:
+def test_phase109_predecessor_bundle_remains_visible_under_phase110_route() -> None:
     project_text = _read(_PROJECT)
     roadmap_text = _read(_ROADMAP)
     requirements_text = _read(_REQUIREMENTS)
@@ -58,8 +54,6 @@ def test_phase109_active_route_bundle_is_current_truth() -> None:
         assert CURRENT_ROUTE in text
         assert CURRENT_MILESTONE_DEFAULT_NEXT in text
 
-    assert CURRENT_MILESTONE_STATUS in project_text
-    assert CURRENT_MILESTONE_STATUS in roadmap_text
     assert '### Phase 109: Anonymous-share manager inward decomposition' in roadmap_text
     assert '## Current Milestone (v1.30)' in project_text
     assert '## Current Milestone (v1.30)' in requirements_text
@@ -69,7 +63,7 @@ def test_phase109_active_route_bundle_is_current_truth() -> None:
     assert '# Phase 109 Validation Contract' in validation_doc
 
 
-def test_phase109_ledgers_testing_and_file_matrix_freeze_the_same_story() -> None:
+def test_phase109_ledgers_testing_and_file_matrix_freeze_predecessor_story() -> None:
     file_matrix_text = _read(_FILE_MATRIX)
     residual_text = _read(_RESIDUAL)
     kill_text = _read(_KILL)
@@ -84,14 +78,14 @@ def test_phase109_ledgers_testing_and_file_matrix_freeze_the_same_story() -> Non
         'tests/meta/test_phase109_anonymous_share_manager_inward_decomposition_guards.py',
     ):
         assert path in file_matrix_text
-    assert 'focused active-route guard home for Phase 109 anonymous-share manager inward decomposition' in file_matrix_text
+    assert 'focused predecessor guard home for Phase 109 anonymous-share manager inward decomposition' in file_matrix_text
     assert '## Phase 109 Residual Delta' in residual_text
     assert '## Phase 109 Status Update' in kill_text
     assert '## Phase 109 Testing Freeze' in testing_text
     assert_testing_inventory_snapshot(testing_text)
     assert '## Phase 109 Anonymous-share Manager Inward Decomposition' in verification_text
     for token in (
-        '$gsd-discuss-phase 110',
+        '$gsd-complete-milestone v1.30',
         'tests/meta/test_phase109_anonymous_share_manager_inward_decomposition_guards.py',
         '.planning/phases/109-anonymous-share-manager-inward-decomposition/{109-01-SUMMARY.md,109-02-SUMMARY.md,109-03-SUMMARY.md,109-VERIFICATION.md,109-VALIDATION.md}',
     ):

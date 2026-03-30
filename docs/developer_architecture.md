@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `v1.30 / Phase 109 anonymous-share manager inward decomposition` (`2026-03-30`)
-> **Current route alignment**: `v1.30 active route / Phase 109 complete / latest archived baseline = v1.29` (`2026-03-30`)
+> **Last aligned through**: `v1.30 / Phase 110 runtime snapshot surface reduction and milestone closeout` (`2026-03-30`)
+> **Current route alignment**: `v1.30 active route / Phase 110 complete / latest archived baseline = v1.29` (`2026-03-30`)
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
@@ -247,7 +247,7 @@ custom_components/lipro/
 
 ## Phase 102 Governance Portability / Verification Stratification / Open-Source Continuity Hardening Note
 
-- 当前 developer guidance 与 `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md` 已共同承认 `v1.30 active route / Phase 109 complete / latest archived baseline = v1.29`；默认下一步保持为 `$gsd-discuss-phase 110`。
+- 当前 developer guidance 与 `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md` 已共同承认 `v1.30 active route / Phase 110 complete / latest archived baseline = v1.29`；默认下一步保持为 `$gsd-complete-milestone v1.30`。
 - `Phase 102` 不重开 production formal homes；它只把 governance/meta smoke 的 fast-path 耦合收口为 capability-aware proof，并把 verification matrix 当前真相、historical closeout note、docs-first / maintainer appendix continuity wording 一次性分层。
 - `tests/meta/test_governance_bootstrap_smoke.py`、`tests/meta/test_governance_route_handoff_smoke.py`、`tests/meta/governance_followup_route_current_milestones.py` 与 `tests/meta/test_phase102_governance_portability_guards.py` 现在共同冻结 archived-only latest truth、portable fast-path、promoted closeout bundle、runbook latest pointer 与 developer-facing topology note。
 
@@ -307,7 +307,7 @@ custom_components/lipro/
 - `tests/meta/governance_followup_route_specs.py` 现在承载 current-milestone / closeout / continuation follow-up route 的共享 case/spec truth，避免三套 governance suites 继续复制粘贴同一组期望与台账路径。
 - `scripts/check_file_matrix_registry_shared.py`、`scripts/check_file_matrix_registry_classifiers.py` 与 override lineage sync 共同把 file-matrix registry family 改成 data-driven builder；ownership / guard-home / predecessor-vs-active wording 不再散落在 tuple folklore 中。
 - `tests/meta/test_phase104_service_router_runtime_split_guards.py` 退为 predecessor visibility guard，`tests/meta/test_phase105_governance_freeze_guards.py` 现冻结 latest-archived closeout truth；这保证 `v1.29` archived selector、predecessor bundle 与 promoted closeout bundle 分工清晰。
-- `v1.29` 已完成 milestone closeout 并退回 latest archived baseline；它继续作为 `v1.30 active route / Phase 109 complete / latest archived baseline = v1.29` 的 pull-only predecessor source，而不是新的 active selector。
+- `v1.29` 已完成 milestone closeout 并退回 latest archived baseline；它继续作为 `v1.30 active route / Phase 110 complete / latest archived baseline = v1.29` 的 pull-only predecessor source，而不是新的 active selector。
 
 ## Phase 107 REST/Auth/Status Hotspot Convergence Note
 
@@ -316,11 +316,18 @@ custom_components/lipro/
 - `custom_components/lipro/core/api/request_policy_support.py` 现以 `_CommandPacingCaches` 吸收 pacing caches / locks / trim cooperation，request-policy pacing state 不再以 parameter soup 方式扩散。
 - `tests/meta/test_phase107_rest_status_hotspot_guards.py` 现冻结 predecessor visibility truth；`Phase 107` 继续作为 completed predecessor bundle 可见，但不再承担 current-route selector 身份。
 
+## Phase 110 Runtime Snapshot Surface Reduction and Milestone Closeout Note
+
+- `custom_components/lipro/core/coordinator/runtime/device/snapshot.py` 继续保持 `SnapshotBuilder` 作为唯一 outward runtime snapshot orchestration home。
+- `custom_components/lipro/core/coordinator/runtime/device/snapshot_support.py` 承接 pagination/row/assembly mechanical helpers，仅承担 inward-only collaborator 身份。
+- `tests/meta/test_phase110_runtime_snapshot_closeout_guards.py` 现冻结 current-route owner truth 与 closeout evidence pointers，确保 `Phase 110` 成为 `v1.30` 唯一收口 owner。
+- `Phase 110` closeout bundle、`.planning/reviews/V1_30_EVIDENCE_INDEX.md` 与 `.planning/v1.30-MILESTONE-AUDIT.md` 已形成可审计证据链，下一步稳定收口到 `$gsd-complete-milestone v1.30`。
+
 ## Phase 109 Anonymous-share Manager Inward Decomposition Note
 
 - `custom_components/lipro/core/anonymous_share/manager.py` 继续保持唯一 outward manager home，而 `manager_scope.py` / `manager_support.py` 现在承接 scoped/aggregate orchestration、pending-report projection 与 finalize-submit 机械逻辑。
 - `tests/core/anonymous_share/test_manager_scope_views.py` 与既有 anonymous-share focused suites 已冻结 scoped cache、primary selection、aggregate pending 与 service-surface behavior；本轮没有引入第二 root 或 outward export drift。
-- `tests/meta/test_phase109_anonymous_share_manager_inward_decomposition_guards.py` 现冻结 current-route anonymous-share inward decomposition truth；`$gsd-discuss-phase 110` 之后只允许继续推进 snapshot surface reduction / milestone closeout。
+- `tests/meta/test_phase109_anonymous_share_manager_inward_decomposition_guards.py` 现冻结 predecessor visibility truth；current-route owner 已上移到 `Phase 110`。
 
 ## Phase 108 MQTT Transport-runtime De-friendization Note
 

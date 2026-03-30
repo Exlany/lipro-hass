@@ -23,6 +23,7 @@ from .governance_current_truth import (
     CURRENT_MILESTONE_PENDING_PHASES,
     CURRENT_MILESTONE_PHASES,
     CURRENT_MILESTONE_PLAN_COUNT,
+    CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE,
     CURRENT_MILESTONE_STATUS,
     CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE,
     CURRENT_PHASE,
@@ -99,6 +100,7 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
         "tests/meta/test_phase107_rest_status_hotspot_guards.py",
         "tests/meta/test_phase108_mqtt_transport_de_friendization_guards.py",
         "tests/meta/test_phase109_anonymous_share_manager_inward_decomposition_guards.py",
+        "tests/meta/test_phase110_runtime_snapshot_closeout_guards.py",
     ):
         assert guard in file_matrix_text
     assert "route-handoff gsd fast-path smoke guard home" in file_matrix_text
@@ -114,7 +116,7 @@ def test_gsd_fast_path_matches_current_archived_route_story() -> None:
     for phase_number in CURRENT_MILESTONE_COMPLETED_PHASES:
         phase_progress = _as_mapping(phase_by_number[phase_number])
         assert _as_str(phase_progress["status"]) == "complete"
-        assert phase_progress["plan_count"] == CURRENT_MILESTONE_PLAN_COUNT
+        assert phase_progress["plan_count"] == CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE[phase_number]
         assert phase_progress["summary_count"] == CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE[phase_number]
 
     assert progress["current_phase"] is None

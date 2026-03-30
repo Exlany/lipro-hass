@@ -214,7 +214,12 @@ _TEST_EXACT_RULES: tuple[ClassifierRule, ...] = build_exact_rules(
     ExactRuleFamily(
         area="Assurance",
         owner_phase="Phase 109",
-        residual_rows=(("tests/meta/test_phase109_anonymous_share_manager_inward_decomposition_guards.py", "focused active-route guard home for Phase 109 anonymous-share manager inward decomposition"),),
+        residual_rows=(("tests/meta/test_phase109_anonymous_share_manager_inward_decomposition_guards.py", "focused predecessor guard home for Phase 109 anonymous-share manager inward decomposition"),),
+    ),
+    ExactRuleFamily(
+        area="Assurance",
+        owner_phase="Phase 110",
+        residual_rows=(("tests/meta/test_phase110_runtime_snapshot_closeout_guards.py", "focused active-route guard home for Phase 110 runtime snapshot surface reduction and milestone closeout"),),
     ),
 )
 

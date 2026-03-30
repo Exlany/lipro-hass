@@ -443,6 +443,16 @@ phases:
   - 105-SUMMARY.md
   - 105-VERIFICATION.md
   - 105-VALIDATION.md
+  110-runtime-snapshot-surface-reduction-and-milestone-closeout:
+  - 110-01-SUMMARY.md
+  - 110-02-SUMMARY.md
+  - 110-03-SUMMARY.md
+  - 110-04-SUMMARY.md
+  - 110-05-SUMMARY.md
+  - 110-06-SUMMARY.md
+  - 110-SUMMARY.md
+  - 110-VERIFICATION.md
+  - 110-VALIDATION.md
 policy:
   default_identity: execution-trace
   promotion_contract: Only assets listed under `phases` count as long-term governance/CI

@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 739
+**Python files total:** 742
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -154,6 +154,7 @@
 | `custom_components/lipro/core/coordinator/runtime/device/refresh_strategy.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/device/snapshot.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/device/snapshot_models.py` | Runtime | Phase 33 | 保留 | typed snapshot container + rejection contract home |
+| `custom_components/lipro/core/coordinator/runtime/device/snapshot_support.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/device_runtime.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/mqtt/__init__.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/mqtt/adapters.py` | Runtime | Phase 33 | 保留 | MQTT callback adapter helper home |
@@ -432,6 +433,7 @@
 | `tests/core/coordinator/runtime/test_mqtt_runtime_notifications.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/runtime/test_mqtt_runtime_support.py` | Runtime | Phase 87 | 保留 | local support helper home for topicized MQTT runtime suites |
 | `tests/core/coordinator/runtime/test_runtime_telemetry_methods.py` | Runtime | Phase 5 / 6 | 保留 | - |
+| `tests/core/coordinator/runtime/test_snapshot_support.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/runtime/test_state_runtime.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/runtime/test_status_runtime.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/runtime/test_tuning_runtime.py` | Runtime | Phase 5 / 6 | 保留 | - |
@@ -651,7 +653,8 @@
 | `tests/meta/test_phase105_governance_freeze_guards.py` | Assurance | Phase 105 | 保留 | focused latest-archived closeout guard home for Phase 105 governance freeze |
 | `tests/meta/test_phase107_rest_status_hotspot_guards.py` | Assurance | Phase 107 | 保留 | focused predecessor guard home for Phase 107 REST/auth/status hotspot convergence |
 | `tests/meta/test_phase108_mqtt_transport_de_friendization_guards.py` | Assurance | Phase 108 | 保留 | focused predecessor guard home for Phase 108 MQTT transport-runtime de-friendization |
-| `tests/meta/test_phase109_anonymous_share_manager_inward_decomposition_guards.py` | Assurance | Phase 109 | 保留 | focused active-route guard home for Phase 109 anonymous-share manager inward decomposition |
+| `tests/meta/test_phase109_anonymous_share_manager_inward_decomposition_guards.py` | Assurance | Phase 109 | 保留 | focused predecessor guard home for Phase 109 anonymous-share manager inward decomposition |
+| `tests/meta/test_phase110_runtime_snapshot_closeout_guards.py` | Assurance | Phase 110 | 保留 | focused active-route guard home for Phase 110 runtime snapshot surface reduction and milestone closeout |
 | `tests/meta/test_phase31_runtime_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase45_hotspot_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase50_rest_typed_budget_guards.py` | Assurance | Phase 6 | 保留 | - |

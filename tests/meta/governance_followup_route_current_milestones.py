@@ -77,12 +77,12 @@ _V1_13_TRACES = (
 _V1_30_TRACES = (
     RequirementTrace("HOT-46", "107"),
     RequirementTrace("ARC-27", "107"),
-    RequirementTrace("TST-37", "107"),
-    RequirementTrace("QLT-45", "107"),
+    RequirementTrace("TST-37", "110", "Complete"),
+    RequirementTrace("QLT-45", "110", "Complete"),
     RequirementTrace("RUN-10", "108"),
     RequirementTrace("HOT-47", "109", "Complete"),
-    RequirementTrace("RUN-11", "110", "Planned"),
-    RequirementTrace("GOV-70", "110", "Planned"),
+    RequirementTrace("RUN-11", "110", "Complete"),
+    RequirementTrace("GOV-70", "110", "Complete"),
 )
 
 _V1_8_COVERAGE = CoverageSnapshot("v1.8 routed requirements", 8)
@@ -91,7 +91,7 @@ _V1_10_COVERAGE = CoverageSnapshot("v1.10 routed requirements", 3, mapped=3, com
 _V1_11_COVERAGE = CoverageSnapshot("v1.11 routed requirements", 4, mapped=4, complete=8, pending=0)
 _V1_12_COVERAGE = CoverageSnapshot("v1.12 routed requirements", 3, mapped=3, complete=9, pending=0)
 _V1_13_COVERAGE = CoverageSnapshot("v1.13 routed requirements", 9, mapped=9, complete=9, pending=0)
-_V1_30_COVERAGE = CoverageSnapshot("v1.30 routed requirements", 8, mapped=8, complete=6, pending=2)
+_V1_30_COVERAGE = CoverageSnapshot("v1.30 routed requirements", 8, mapped=8, complete=8, pending=0)
 
 
 def test_v1_8_followup_route_truth_is_recorded_in_roadmap_and_requirements() -> None:
@@ -237,11 +237,11 @@ def test_machine_readable_route_contracts_point_to_active_v1_30_and_latest_archi
 
     assert requirements_active is not None
     assert requirements_active["version"] == "v1.30"
-    assert requirements_active["phase"] == "109"
+    assert requirements_active["phase"] == "110"
     assert requirements_active["route_mode"] == CURRENT_ROUTE_MODE
     assert milestones_active is not None
     assert milestones_active["version"] == "v1.30"
-    assert milestones_active["phase"] == "109"
+    assert milestones_active["phase"] == "110"
     assert milestones_active["route_mode"] == CURRENT_ROUTE_MODE
     assert milestones_latest_archived["version"] == "v1.29"
     assert milestones_latest_archived["phase"] == "105"
@@ -296,6 +296,9 @@ def test_current_v1_30_active_state_and_archive_pointers_align() -> None:
         ".planning/phases/107-rest-auth-status-hotspot-convergence-and-support-surface-slimming/{107-01-SUMMARY.md,107-02-SUMMARY.md,107-03-SUMMARY.md,107-VERIFICATION.md,107-VALIDATION.md}",
         ".planning/phases/108-mqtt-transport-runtime-de-friendization/{108-01-SUMMARY.md,108-02-SUMMARY.md,108-03-SUMMARY.md,108-VERIFICATION.md,108-VALIDATION.md}",
         ".planning/phases/109-anonymous-share-manager-inward-decomposition/{109-01-SUMMARY.md,109-02-SUMMARY.md,109-03-SUMMARY.md,109-VERIFICATION.md,109-VALIDATION.md}",
+        ".planning/phases/110-runtime-snapshot-surface-reduction-and-milestone-closeout/{110-01-SUMMARY.md,110-02-SUMMARY.md,110-03-SUMMARY.md,110-04-SUMMARY.md,110-05-SUMMARY.md,110-06-SUMMARY.md,110-SUMMARY.md,110-VERIFICATION.md,110-VALIDATION.md}",
+        ".planning/reviews/V1_30_EVIDENCE_INDEX.md",
+        ".planning/v1.30-MILESTONE-AUDIT.md",
     )
     assert_contains_all(
         _REQUIREMENTS_TEXT,
@@ -312,5 +315,4 @@ def test_current_v1_30_active_state_and_archive_pointers_align() -> None:
         LATEST_ARCHIVED_AUDIT_PATH,
         LATEST_ARCHIVED_EVIDENCE_PATH,
     )
-    assert CURRENT_MILESTONE_STATUS == "active / Phase 109 complete / continuation-ready (2026-03-30)"
-
+    assert CURRENT_MILESTONE_STATUS == "active / Phase 110 complete / milestone-closeout-ready (2026-03-30)"

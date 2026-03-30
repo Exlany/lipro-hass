@@ -8,9 +8,15 @@ _None currently registered._
 
 > **Phase 88 freeze note:** 这里的 zero-active posture 是显式 closeout verdict，而不是尚未清点完成的空白。若未来出现新 residual，必须以新的 family 重新登记 owner、exit condition 与 evidence。
 
+## Phase 110 Residual Delta
+
+- `Phase 110` 未新增 active residual family：snapshot helper inward split、governance guards 与 evidence chain 收口均已落入 formal homes。
+- `custom_components/lipro/core/coordinator/runtime/device/snapshot.py` 继续保持唯一 outward snapshot orchestration home；`snapshot_support.py` 仅是 inward helper，不是 residual backdoor。
+- `Phase 107` / `108` / `109` 继续保持 predecessor-visible evidence；`.planning/reviews/V1_30_EVIDENCE_INDEX.md` 与 `.planning/v1.30-MILESTONE-AUDIT.md` 已接入 closeout chain。
+
 ## Phase 109 Residual Delta
 
-- `Phase 109` 没有创造新的无主 active residual family；anonymous-share manager hotspot 已被正式收口为 `v1.30 active route / Phase 109 complete / latest archived baseline = v1.29` 的完成态。
+- `Phase 109` 没有创造新的无主 active residual family；anonymous-share manager hotspot 已被正式收口为 predecessor-visible完成态。
 - `core/coordinator/runtime/device/snapshot.py` 仍是唯一 live follow-up，并已显式路由到 `Phase 110`，属于有 owner 的 continuation，而不是 orphan residual。
 - `Phase 108` predecessor bundle、`Phase 107` predecessor bundle、`Phase 105` promoted closeout bundle 与 `v1.29` latest archived baseline 继续保持可审计可见性，不会被当前 route 误清理或误回写。
 

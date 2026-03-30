@@ -2,8 +2,8 @@
 
 **Purpose:** 定义允许/禁止的跨平面依赖方向，并作为 architecture guards 的语义真源。
 **Status:** Baseline reference
-**Updated:** 2026-03-28 (Phase 97 governance-freeze aligned)
-**Alignment:** `v1.26 / Phase 97` dependency truth verified on `2026-03-28`
+**Updated:** 2026-03-30 (Phase 110 runtime-snapshot closeout aligned)
+**Alignment:** `v1.30 / Phase 110` dependency truth verified on `2026-03-30`
 
 ## Formal Role
 
@@ -22,6 +22,13 @@
 ## Phase 97 Governance / Assurance Freeze Clarifications
 
 - current-route docs、machine-readable contract、developer architecture 与 focused meta guards 现在共同构成唯一 governance closeout truth；任何后续 milestone closeout 都必须在这一组资产上原地推进，不得另起旁路故事线。
+
+## Phase 110 Runtime Snapshot Clarifications
+
+- `custom_components/lipro/core/coordinator/runtime/device/snapshot.py` 继续是 runtime snapshot orchestration 的唯一 outward home；`SnapshotBuilder.build_full_snapshot()` 仍是唯一 runtime refresh entrypoint。
+- `custom_components/lipro/core/coordinator/runtime/device/snapshot_support.py` 只允许承接 pagination/row/assembly mechanical helpers；它是 inward-only collaborator，不得作为 package export、public surface 或第二 runtime root。
+- `custom_components/lipro/core/coordinator/runtime/device_runtime.py` 继续只依赖 `SnapshotBuilder`；control/entity/platform 不得新增 direct dependency 到 `snapshot_support.py`。
+- `tests/core/coordinator/runtime/test_snapshot_support.py` 属于 helper-focused assurance seam；它可以直连 `snapshot_support.py` 做边界验证，但不改变 runtime public dependency direction。
 
 - 本文件定义 allowed / forbidden dependency direction 的 baseline truth。
 - `.planning/baseline/ARCHITECTURE_POLICY.md` 把这些语义规则翻译成可执行的 rule ids 与 enforcement chain；两者必须同步演进，不能各写各的 seed 文案。
@@ -234,4 +241,3 @@
 
 - assurance freeze does not add a new dependency direction; it only forces `FILE_MATRIX` / `TESTING` / `VERIFICATION_MATRIX` / route-contract docs to reflect the already-settled topology honestly.
 - diagnostics topicization remains a test-topology concern, not a production dependency story; the budget guard closes incidental typing drift without legitimizing new `Any` seams.
-

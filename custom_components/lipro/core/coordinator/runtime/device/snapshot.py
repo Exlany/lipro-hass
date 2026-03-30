@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Mapping
-from dataclasses import dataclass, field
 import logging
 from typing import TYPE_CHECKING, Any, Protocol, cast
 
@@ -14,7 +12,6 @@ from custom_components.lipro.core.api import (
     LiproConnectionError,
     LiproRefreshTokenExpiredError,
 )
-from custom_components.lipro.core.coordinator.types import PropertyDict
 from custom_components.lipro.core.device import LiproDevice
 from custom_components.lipro.core.device.group_status import sync_mesh_group_extra_data
 from custom_components.lipro.core.protocol.contracts import (
@@ -28,6 +25,14 @@ from .snapshot_models import (
     RuntimeSnapshotRefreshFailure,
     RuntimeSnapshotRefreshRejectedError,
 )
+from .snapshot_support import (
+    DeviceRow,
+    SnapshotAssembly,
+    canonical_page_has_more,
+    canonicalize_device_row,
+    device_ref_from_row,
+    record_snapshot_device,
+)
 
 if TYPE_CHECKING:
     from custom_components.lipro.core.device.identity_index import DeviceIdentityIndex
@@ -36,46 +41,6 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 _DEFAULT_DEVICE_PAGE_SIZE = 100
-
-type DeviceRow = PropertyDict
-
-
-def _coerce_total_count(
-    *,
-    offset: int,
-    devices_data: list[CanonicalDeviceListItem],
-    total: object,
-) -> int:
-    """Coerce one device-page total into a non-negative integer boundary."""
-    fallback_total = offset + len(devices_data)
-    if isinstance(total, bool):
-        return fallback_total
-    if isinstance(total, int):
-        return max(total, 0)
-    if isinstance(total, float) and total.is_integer():
-        return max(int(total), 0)
-    if isinstance(total, str):
-        try:
-            return max(int(total), 0)
-        except ValueError:
-            return fallback_total
-    return fallback_total
-
-
-@dataclass(slots=True)
-class _SnapshotAssembly:
-    """Mutable buckets used while assembling one fetched device snapshot."""
-
-    devices: dict[str, LiproDevice] = field(default_factory=dict)
-    device_by_id: dict[str, LiproDevice] = field(default_factory=dict)
-    identity_mapping: dict[str, LiproDevice] = field(default_factory=dict)
-    identity_aliases_by_serial: dict[str, tuple[str, ...]] = field(default_factory=dict)
-    iot_ids: list[str] = field(default_factory=list)
-    group_ids: list[str] = field(default_factory=list)
-    outlet_ids: list[str] = field(default_factory=list)
-    cloud_serials: set[str] = field(default_factory=set)
-    diagnostic_gateway_devices: dict[str, LiproDevice] = field(default_factory=dict)
-
 
 class SnapshotProtocolPort(Protocol):
     """Minimal protocol-facade surface consumed by snapshot builder."""
@@ -95,33 +60,6 @@ class SnapshotProtocolPort(Protocol):
 
 class SnapshotBuilder:
     """Builds device snapshots from API responses."""
-
-    @staticmethod
-    def _canonicalize_device_row(device_data: Mapping[str, object]) -> DeviceRow:
-        """Return one runtime-ready canonical device row."""
-        normalized = dict(device_data)
-        identity_aliases = normalized.get("identityAliases")
-        if not isinstance(identity_aliases, list):
-            derived_aliases = {
-                candidate.strip()
-                for candidate in (
-                    normalized.get("serial"),
-                    normalized.get("iotDeviceId"),
-                )
-                if isinstance(candidate, str) and candidate.strip()
-            }
-            if derived_aliases:
-                normalized["identityAliases"] = sorted(derived_aliases)
-        return cast(DeviceRow, normalized)
-
-    @staticmethod
-    def _device_ref_from_row(device_data: Mapping[str, object]) -> str | None:
-        """Return the best-effort device reference for one row."""
-        for key in ("serial", "iotDeviceId", "deviceId"):
-            candidate = device_data.get(key)
-            if isinstance(candidate, str) and candidate.strip():
-                return candidate.strip()
-        return None
 
     async def _async_enrich_mesh_group_metadata(
         self,
@@ -160,20 +98,6 @@ class SnapshotBuilder:
                 continue
             sync_mesh_group_extra_data(device, cast(dict[str, Any], row))
 
-    @staticmethod
-    def _canonical_page_has_more(
-        *,
-        offset: int,
-        devices_data: list[CanonicalDeviceListItem],
-        total: object,
-    ) -> bool:
-        """Return whether one canonical device page has more rows to fetch."""
-        return offset + len(devices_data) < _coerce_total_count(
-            offset=offset,
-            devices_data=devices_data,
-            total=total,
-        )
-
     async def _fetch_device_page(self, *, page: int) -> tuple[list[DeviceRow], bool]:
         """Fetch one device page through the formal canonical contract."""
         offset = (page - 1) * _DEFAULT_DEVICE_PAGE_SIZE
@@ -200,7 +124,7 @@ class SnapshotBuilder:
             raw_devices.append(row)
 
         devices_data = cast(list[DeviceRow], [dict(row) for row in raw_devices])
-        return devices_data, self._canonical_page_has_more(
+        return devices_data, canonical_page_has_more(
             offset=offset,
             devices_data=raw_devices,
             total=response.get("total"),
@@ -264,58 +188,6 @@ class SnapshotBuilder:
             )
         return all_devices
 
-    @staticmethod
-    def _build_index_identity_aliases(
-        normalized_row: DeviceRow,
-        device: LiproDevice,
-    ) -> tuple[str, ...]:
-        """Build the explicit identity aliases used by runtime lookup indexes."""
-        raw_identity_aliases = normalized_row.get("identityAliases")
-        identity_aliases = (
-            {
-                alias.strip()
-                for alias in raw_identity_aliases
-                if isinstance(alias, str) and alias.strip()
-            }
-            if isinstance(raw_identity_aliases, list)
-            else set()
-        )
-        identity_aliases.add(device.serial)
-        if device.iot_device_id:
-            identity_aliases.add(device.iot_device_id)
-        return tuple(sorted(identity_aliases))
-
-    def _record_snapshot_device(
-        self,
-        *,
-        normalized_row: DeviceRow,
-        device: LiproDevice,
-        assembly: _SnapshotAssembly,
-    ) -> None:
-        """Record one normalized device into runtime snapshot buckets."""
-        if device.capabilities.is_gateway:
-            assembly.diagnostic_gateway_devices[device.serial] = device
-            return
-
-        assembly.devices[device.serial] = device
-        identity_aliases = self._build_index_identity_aliases(normalized_row, device)
-        assembly.identity_aliases_by_serial[device.serial] = identity_aliases
-
-        for identity_alias in identity_aliases:
-            assembly.device_by_id[identity_alias] = device
-            assembly.identity_mapping[identity_alias] = device
-
-        assembly.cloud_serials.add(device.serial)
-
-        if device.is_group:
-            if device.iot_device_id:
-                assembly.group_ids.append(device.iot_device_id)
-        elif device.capabilities.is_outlet:
-            if device.iot_device_id:
-                assembly.outlet_ids.append(device.iot_device_id)
-        elif device.iot_device_id:
-            assembly.iot_ids.append(device.iot_device_id)
-
     async def build_full_snapshot(
         self,
         *,
@@ -324,11 +196,11 @@ class SnapshotBuilder:
         """Build complete device snapshot from paginated API."""
         all_devices = await self._collect_snapshot_pages(max_pages=max_pages)
 
-        assembly = _SnapshotAssembly()
+        assembly = SnapshotAssembly()
 
         for page_number, device_data in all_devices:
             try:
-                normalized_row = self._canonicalize_device_row(device_data)
+                normalized_row = canonicalize_device_row(device_data)
                 if not self._device_filter.is_device_included(normalized_row):
                     _LOGGER.debug("Device filtered out by configuration")
                     continue
@@ -340,11 +212,11 @@ class SnapshotBuilder:
                 raise RuntimeSnapshotRefreshRejectedError(
                     stage="parse_device",
                     page=page_number,
-                    device_ref=self._device_ref_from_row(device_data),
+                    device_ref=device_ref_from_row(device_data),
                     cause_type=type(err).__name__,
                 ) from err
 
-            self._record_snapshot_device(
+            record_snapshot_device(
                 normalized_row=normalized_row,
                 device=device,
                 assembly=assembly,

@@ -10,11 +10,11 @@ contract_name: governance-route
 active_milestone:
   version: v1.30
   name: Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming
-  status: active / Phase 109 complete / continuation-ready (2026-03-30)
-  phase: '109'
-  phase_title: Anonymous-share manager inward decomposition
-  phase_dir: 109-anonymous-share-manager-inward-decomposition
-  route_mode: v1.30 active route / Phase 109 complete / latest archived baseline = v1.29
+  status: active / Phase 110 complete / milestone-closeout-ready (2026-03-30)
+  phase: '110'
+  phase_title: Runtime snapshot surface reduction and milestone closeout
+  phase_dir: 110-runtime-snapshot-surface-reduction-and-milestone-closeout
+  route_mode: v1.30 active route / Phase 110 complete / latest archived baseline = v1.29
 latest_archived:
   version: v1.29
   name: Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization
@@ -30,8 +30,8 @@ previous_archived:
   name: Governance Portability, Verification Stratification & Open-Source Continuity Hardening
   evidence_path: .planning/reviews/V1_28_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.30 active route / Phase 109 complete / latest archived baseline = v1.29
-  default_next_command: $gsd-discuss-phase 110
+  current_route: v1.30 active route / Phase 110 complete / latest archived baseline = v1.29
+  default_next_command: $gsd-complete-milestone v1.30
   latest_archived_evidence_pointer: .planning/reviews/V1_29_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -39,22 +39,23 @@ bootstrap:
 ## Current Milestone (v1.30)
 
 **Phase range:** `107 -> 110`
-**Phases completed:** 3 phases, 9 plans, 0 tasks
-**Status:** `active / Phase 109 complete / continuation-ready (2026-03-30)`
-**Route truth:** `v1.30 active route / Phase 109 complete / latest archived baseline = v1.29`
+**Phases completed:** 4 phases, 15 plans, 0 tasks
+**Status:** `active / Phase 110 complete / milestone-closeout-ready (2026-03-30)`
+**Route truth:** `v1.30 active route / Phase 110 complete / latest archived baseline = v1.29`
 **Latest archived baseline:** `v1.29`
-**Default next command:** `$gsd-discuss-phase 110`
+**Default next command:** `$gsd-complete-milestone v1.30`
 
 **Current phase story:**
 - `Phase 107`: REST/auth/status hotspot convergence and support-surface slimming ✅
 - `Phase 108`: MQTT transport-runtime de-friendization ✅
 - `Phase 109`: anonymous-share manager inward decomposition ✅
-- `Phase 110`: runtime snapshot surface reduction and milestone closeout ⏳ planned
+- `Phase 110`: runtime snapshot surface reduction and milestone closeout ✅
 
 **Key accomplishments:**
 - 把 REST child-façade init path、status fallback recursion 与 request-policy pacing state 的热点继续压回更局部 formal/support homes。
 - 把 `core/mqtt/transport_runtime.py` / `transport.py` 收口为 explicit owner/state contract，去掉 friend-style private-state reach-through 而不引入第二 root。
-- 让 `v1.29` 继续保持 latest archived baseline 身份，同时把下一步稳定收口到 `$gsd-discuss-phase 110`。
+- 让 `v1.29` 继续保持 latest archived baseline 身份，同时把下一步稳定收口到 `$gsd-complete-milestone v1.30`。
+- `Phase 110` closeout bundle、`.planning/reviews/V1_30_EVIDENCE_INDEX.md` 与 `.planning/v1.30-MILESTONE-AUDIT.md` 已形成可审计 evidence chain。
 
 ## v1.29 Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization (Shipped: 2026-03-30; Closeout: 2026-03-30)
 
