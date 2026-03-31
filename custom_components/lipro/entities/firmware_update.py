@@ -209,7 +209,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         self._attr_in_progress = True
         self.async_write_ha_state()
         try:
-            success = await self.coordinator.async_send_command(
+            success = await self.runtime_coordinator.async_send_command(
                 self.device,
                 command,
                 properties,
@@ -218,7 +218,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
                 raise self._build_translated_error("firmware_install_failed")
 
             self._unverified_confirm_until = 0.0
-            await self.coordinator.async_request_refresh()
+            await self.runtime_coordinator.async_request_refresh()
             await self._async_refresh_ota(force=True)
         finally:
             self._attr_in_progress = False
@@ -300,7 +300,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
     def _ota_rows_cache_key(self) -> OtaRowsCacheKey:
         """Build a shared OTA rows cache key scoped by model-like identifiers."""
         return build_ota_rows_cache_key(
-            self.coordinator,
+            self.runtime_coordinator,
             device_type=self.device.device_type_hex,
             iot_name=self.device.iot_name,
             product_id=self.device.product_id,
@@ -318,7 +318,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
 
     async def _query_ota_rows_from_cloud(self) -> list[OtaRow]:
         """Query OTA rows once and normalize unknown payload variants."""
-        rows = await self.coordinator.async_query_device_ota_info(
+        rows = await self.runtime_coordinator.async_query_device_ota_info(
             self.device,
             allow_rich_v2_fallback=self.device.capabilities.is_light,
         )

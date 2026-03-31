@@ -2,8 +2,8 @@
 
 **Purpose:** 定义允许/禁止的跨平面依赖方向，并作为 architecture guards 的语义真源。
 **Status:** Baseline reference
-**Updated:** 2026-03-30 (Phase 110 runtime-snapshot closeout aligned)
-**Alignment:** `v1.30 / Phase 110` dependency truth verified on `2026-03-30`
+**Updated:** 2026-03-31 (Phase 111 runtime-boundary sealing aligned)
+**Alignment:** `v1.31 / Phase 111` dependency truth verified on `2026-03-31`
 
 ## Formal Role
 
@@ -68,12 +68,20 @@
 - `custom_components/lipro/control/diagnostics_surface.py` 只能消费 typed runtime projection 与 entry-scoped runtime lookup；`custom_components/lipro/control/service_router_support.py` 只能组合 service target resolution + runtime_access bridge；`custom_components/lipro/runtime_infra.py` 负责 listener/reload outward lifecycle，`runtime_infra_device_registry.py` 只允许作为 localized collaborator。
 - `custom_components/lipro/services/device_lookup.py` 与 `custom_components/lipro/services/maintenance.py` 都不得重新长回最终 `(device, coordinator)` 裁决、listener/pending-task state、direct coordinator traversal story 或反向 control lookup；`custom_components/lipro/services/diagnostics/helpers.py` / `feedback_handlers.py` 也不得再以 hidden import 方式依赖 control。
 
+## Phase 111 Entity / Runtime Boundary Clarifications
+
+- `custom_components/lipro/entities/base.py` 与 `custom_components/lipro/entities/firmware_update.py` 继续只允许通过 `LiproRuntimeCoordinator` / `runtime_coordinator` 访问命名 runtime verbs；entity adapters 不得 direct import `custom_components/lipro/core/coordinator/*`，也不得用 concrete `Coordinator` cast 仅为满足 HA 基类 typing。
+- `custom_components/lipro/control/runtime_access.py` 继续是 control-plane runtime read-model 的唯一 outward home；raw `runtime_data` probing、reflective member narrowing 与 coordinator-upcast 只能停留在 `custom_components/lipro/control/runtime_access_support_*` localized seam，不得扩散到 public control callers。
+- entity typed bridge 与 control runtime-access seam 的 no-regrowth proof 必须同时存在于 `.planning/baseline/ARCHITECTURE_POLICY.md`、`scripts/check_architecture_policy.py`、`tests/meta/test_governance_guards.py` 与 `tests/meta/test_phase111_runtime_boundary_guards.py`；任一处漂移都视为 boundary-law 失真，而非局部实现细节。
+
 ## Architecture Policy Mapping
 
 | Rule ID | Enforces | Notes |
 |--------|----------|-------|
 | `ENF-IMP-ENTITY-PROTOCOL-INTERNALS` | Entity / Platform 不直连 `core.api`、`core.mqtt`、`core.protocol.boundary` internals | 结构性 import 规则 |
 | `ENF-IMP-CONTROL-NO-BYPASS` | Control surface 不直连 protocol internals 或 runtime internals bypass | 阻断 backdoor / split-root 回流 |
+| `ENF-ADAPTER-ENTITY-RUNTIME-BRIDGE` | Entity 基座维持 `DataUpdateCoordinator` typed bridge，不回流 concrete `Coordinator` import/cast | targeted no-regrowth rule |
+| `ENF-BACKDOOR-RUNTIME-ACCESS-NO-RAW-RUNTIME-DATA` | `runtime_access.py` 不得重新探测 raw `runtime_data` 或 reflective narrowing helper | targeted no-regrowth rule |
 | `ENF-IMP-BOUNDARY-LOCALITY` | `core/protocol/boundary/*` 仅限 protocol-plane internal collaborators 合法消费 | future assurance-only 例外必须先登记 |
 | `ENF-IMP-NUCLEUS-NO-HOMEASSISTANT-IMPORT` | `core/auth` / `core/capability` / `core/device` nucleus homes 不吸入 `homeassistant` imports | host-neutral truth 不得宿主化 |
 | `ENF-IMP-NUCLEUS-NO-PLATFORM-BACKFLOW` | nucleus homes 不反向依赖 `helpers/platform.py` | HA platform projection 必须停留在 adapter seam |

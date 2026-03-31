@@ -8,11 +8,13 @@ from time import monotonic
 from typing import TYPE_CHECKING, Final, cast
 
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+    DataUpdateCoordinator,
+)
 
 from ..const.base import DOMAIN, MANUFACTURER
 from ..const.properties import CMD_CHANGE_STATE
-from ..core.coordinator.coordinator import Coordinator
 from ..core.utils.debounce import Debouncer
 from ..runtime_types import LiproRuntimeCoordinator
 
@@ -31,7 +33,10 @@ DEBOUNCE_PROTECTION_WINDOW: Final = 1.5
 _POST_COMMAND_PROTECTION_BUFFER: Final = 0.5
 
 
-class LiproEntity(CoordinatorEntity[Coordinator]):
+type _EntityCoordinatorBridge = DataUpdateCoordinator[object]
+
+
+class LiproEntity(CoordinatorEntity[_EntityCoordinatorBridge]):
     """Base class for Lipro entities."""
 
     _attr_has_entity_name = True
@@ -52,7 +57,7 @@ class LiproEntity(CoordinatorEntity[Coordinator]):
                 Falls back to class attribute _entity_suffix if not provided.
 
         """
-        super().__init__(cast(Coordinator, coordinator))
+        super().__init__(cast(_EntityCoordinatorBridge, coordinator))
         self._device = device
         self._entity_suffix = entity_suffix or getattr(type(self), "_entity_suffix", "")
         self._debouncer: Debouncer | None = None
@@ -86,7 +91,7 @@ class LiproEntity(CoordinatorEntity[Coordinator]):
     def device(self) -> LiproDevice:
         """Return the device."""
         # Get fresh device data from coordinator
-        return self.coordinator.get_device(self._device.serial) or self._device
+        return self.runtime_coordinator.get_device(self._device.serial) or self._device
 
     @property
     def runtime_coordinator(self) -> LiproRuntimeCoordinator:

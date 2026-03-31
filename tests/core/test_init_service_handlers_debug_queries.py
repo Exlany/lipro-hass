@@ -16,7 +16,11 @@ from custom_components.lipro.control.service_router import (
     async_handle_query_user_cloud,
 )
 from custom_components.lipro.core import LiproApiError
-from custom_components.lipro.core.command.result import COMMAND_RESULT_STATE_CONFIRMED
+from custom_components.lipro.core.command.result import (
+    COMMAND_RESULT_POLLING_STATE_UNCONFIRMED,
+    COMMAND_RESULT_STATE_CONFIRMED,
+    COMMAND_RESULT_STATE_FAILED,
+)
 from custom_components.lipro.services.contracts import (
     ATTR_DEVICE_ID,
     ATTR_ENTRY_ID,
@@ -250,6 +254,105 @@ class TestInitServiceHandlerDeveloperDebug(_InitServiceHandlerBase):
         assert result["retry_delays_seconds"] == pytest.approx((0.35, 0.7, 1.4, 0.55))
         assert sleep_mock.await_args_list == [call(0.35), call(0.7)]
         assert coordinator.protocol_service.async_query_command_result.await_count == 3
+
+    async def test_query_command_result_service_returns_failed_terminal_state(
+        self, hass
+    ) -> None:
+        """query_command_result should surface immediate failed terminal responses."""
+        device = self._create_device(serial="mesh_group_49155")
+        coordinator = self._attach_auth_service(MagicMock())
+        coordinator.get_device.return_value = device
+        coordinator.protocol_service.async_query_command_result = AsyncMock(
+            return_value={"code": "200001", "message": "设备离线", "success": False}
+        )
+
+        entry = MockConfigEntry(
+            domain=DOMAIN,
+            data={"phone": "13800000000"},
+            options={CONF_DEBUG_MODE: True},
+        )
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        sleep_mock = AsyncMock()
+        with patch(
+            "custom_components.lipro.core.command.result_policy.asyncio.sleep",
+            new=sleep_mock,
+        ):
+            result = await async_handle_query_command_result(
+                hass,
+                service_call(
+                    hass,
+                    {ATTR_DEVICE_ID: device.serial, ATTR_MSG_SN: "682550445474"},
+                ),
+            )
+
+        assert result["state"] == COMMAND_RESULT_STATE_FAILED
+        assert result["attempts"] == 1
+        assert result["attempt_limit"] == 5
+        assert result["result"] == {
+            "code": "200001",
+            "message": "设备离线",
+            "success": False,
+        }
+        assert sleep_mock.await_args_list == []
+        coordinator.protocol_service.async_query_command_result.assert_awaited_once_with(
+            msg_sn="682550445474",
+            device_id="mesh_group_49155",
+            device_type=device.device_type_hex,
+        )
+
+    async def test_query_command_result_service_returns_unconfirmed_terminal_state(
+        self, hass
+    ) -> None:
+        """query_command_result should surface budget exhaustion as unconfirmed."""
+        device = self._create_device(serial="mesh_group_49155")
+        coordinator = self._attach_auth_service(MagicMock())
+        coordinator.get_device.return_value = device
+        coordinator.protocol_service.async_query_command_result = AsyncMock(
+            side_effect=[
+                {"code": "140006", "message": "设备未响应", "success": False},
+                {"code": "100000", "message": "服务异常", "success": False},
+                {"code": "140006", "message": "设备未响应", "success": False},
+                {"code": "100000", "message": "服务异常", "success": False},
+                {"code": "140006", "message": "设备未响应", "success": False},
+            ]
+        )
+
+        entry = MockConfigEntry(
+            domain=DOMAIN,
+            data={"phone": "13800000000"},
+            options={CONF_DEBUG_MODE: True},
+        )
+        entry.add_to_hass(hass)
+        entry.runtime_data = coordinator
+
+        sleep_mock = AsyncMock()
+        with patch(
+            "custom_components.lipro.core.command.result_policy.asyncio.sleep",
+            new=sleep_mock,
+        ):
+            result = await async_handle_query_command_result(
+                hass,
+                service_call(
+                    hass,
+                    {ATTR_DEVICE_ID: device.serial, ATTR_MSG_SN: "682550445474"},
+                ),
+            )
+
+        assert result["state"] == COMMAND_RESULT_POLLING_STATE_UNCONFIRMED
+        assert result["attempts"] == 5
+        assert result["attempt_limit"] == 5
+        assert result["result"] == {
+            "code": "140006",
+            "message": "设备未响应",
+            "success": False,
+        }
+        assert result["retry_delays_seconds"] == pytest.approx((0.35, 0.7, 1.4, 0.55))
+        assert [args.args[0] for args in sleep_mock.await_args_list] == pytest.approx(
+            (0.35, 0.7, 1.4, 0.55)
+        )
+        assert coordinator.protocol_service.async_query_command_result.await_count == 5
 
     async def test_get_city_service(self, hass) -> None:
         """get_city service should return first coordinator city result."""

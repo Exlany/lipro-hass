@@ -25,7 +25,14 @@ _ROUTE_CONTRACT_PATHS = {
 PLANNING_ROUTE_CONTRACT: dict[str, object] = {
     "contract_version": 1,
     "contract_name": "governance-route",
-    "active_milestone": None,
+    "active_milestone": {
+        "version": "v1.31",
+        "name": "Boundary Sealing, Governance Truth & Quality Hardening",
+        "status": "active / phase 111 complete; phase 112 discussion-ready (2026-03-31)",
+        "phase": "112",
+        "phase_title": "Formal-home discoverability and governance-anchor normalization",
+        "phase_dir": "112-formal-home-discoverability-and-governance-anchor-normalization",
+    },
     "latest_archived": {
         "version": "v1.30",
         "name": "Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming",
@@ -43,8 +50,8 @@ PLANNING_ROUTE_CONTRACT: dict[str, object] = {
         "evidence_path": ".planning/reviews/V1_29_EVIDENCE_INDEX.md",
     },
     "bootstrap": {
-        "current_route": "no active milestone route / latest archived baseline = v1.30",
-        "default_next_command": "$gsd-new-milestone",
+        "current_route": "v1.31 active milestone route / starting from latest archived baseline = v1.30",
+        "default_next_command": "$gsd-discuss-phase 112",
         "latest_archived_evidence_pointer": ".planning/reviews/V1_30_EVIDENCE_INDEX.md",
     },
 }
@@ -169,12 +176,12 @@ else:
     CURRENT_PHASE_HEADING = LATEST_ARCHIVED_PHASE_HEADING
     CURRENT_ROUTE_MODE = CURRENT_ROUTE
 
-CURRENT_MILESTONE_PHASES = ("107", "108", "109", "110")
-CURRENT_MILESTONE_COMPLETED_PHASES = ("107", "108", "109", "110")
-CURRENT_MILESTONE_PENDING_PHASES: tuple[str, ...] = ()
-CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE = {"107": 3, "108": 3, "109": 3, "110": 6}
+CURRENT_MILESTONE_PHASES = ("111", "112", "113", "114")
+CURRENT_MILESTONE_COMPLETED_PHASES = ("111",)
+CURRENT_MILESTONE_PENDING_PHASES: tuple[str, ...] = ("112", "113", "114")
+CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE = {"111": 3, "112": 0, "113": 0, "114": 0}
 CURRENT_MILESTONE_PLAN_COUNT = CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE[CURRENT_PHASE]
-CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE = {"107": 3, "108": 3, "109": 3, "110": 7}
+CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE = {"111": 4, "112": 0, "113": 0, "114": 0}
 CURRENT_MILESTONE_SUMMARY_COUNT = CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE[CURRENT_PHASE]
 CURRENT_ROUTE_FOCUSED_GUARDS = (
     "tests/meta/test_governance_bootstrap_smoke.py",
@@ -198,6 +205,7 @@ CURRENT_ROUTE_FOCUSED_GUARDS = (
     "tests/meta/test_phase108_mqtt_transport_de_friendization_guards.py",
     "tests/meta/test_phase109_anonymous_share_manager_inward_decomposition_guards.py",
     "tests/meta/test_phase110_runtime_snapshot_closeout_guards.py",
+    "tests/meta/test_phase111_runtime_boundary_guards.py",
     "tests/meta/test_public_surface_guards.py",
     "tests/meta/test_dependency_guards.py",
 )

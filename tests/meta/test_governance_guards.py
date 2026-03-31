@@ -90,6 +90,8 @@ def test_architecture_policy_rule_inventory_is_stable() -> None:
         "ENF-SURFACE-PROTOCOL-EXPORTS",
         "ENF-BACKDOOR-COORDINATOR-PROPERTIES",
         "ENF-BACKDOOR-SERVICE-AUTH",
+        "ENF-ADAPTER-ENTITY-RUNTIME-BRIDGE",
+        "ENF-BACKDOOR-RUNTIME-ACCESS-NO-RAW-RUNTIME-DATA",
         "ENF-COMPAT-ROOT-NO-LEGACY-CLIENT",
         "ENF-COMPAT-CONFIG-FLOW-NO-LEGACY-CLIENT",
         "ENF-COMPAT-CORE-PACKAGE-NO-LEGACY-CLIENTS",
@@ -184,7 +186,7 @@ def test_project_primary_sources_do_not_include_phase_workspace_assets() -> None
     assert "Current Execution Workspace Inputs" in project_text
 
 
-def test_phase_60_tooling_closeout_is_frozen_in_current_story_truth() -> None:
+def test_phase_60_tooling_closeout_stays_archived_under_active_route_truth() -> None:
     project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
@@ -192,11 +194,12 @@ def test_phase_60_tooling_closeout_is_frozen_in_current_story_truth() -> None:
     file_matrix_text = _FILE_MATRIX.read_text(encoding="utf-8")
 
     assert "archived / evidence-ready (2026-03-22)" in project_text
-    assert "**Archive status:** `archived / evidence-ready (2026-03-22)`" in roadmap_text
+    assert "**Archive status:** `archived / evidence-ready (2026-03-22)`" not in roadmap_text
+    assert "v1.31 active milestone route / starting from latest archived baseline = v1.30" in roadmap_text
     assert "| HOT-14 | Phase 60 | Complete |" in requirements_text
     assert "| TST-12 | Phase 60 | Complete |" in requirements_text
     assert "| GOV-44 | Phase 60 | Complete |" in requirements_text
-    assert ".planning/v1.13-MILESTONE-AUDIT.md" in state_text
+    assert ".planning/reviews/V1_30_EVIDENCE_INDEX.md" in state_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
     assert "scripts/check_file_matrix_inventory.py" in file_matrix_text
     assert "tests/meta/toolchain_truth_python_stack.py" in file_matrix_text

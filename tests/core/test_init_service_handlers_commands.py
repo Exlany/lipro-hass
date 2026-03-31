@@ -138,6 +138,47 @@ class TestInitServiceHandlerCommandDispatch(_InitServiceHandlerBase):
             )
         assert exc.value.translation_key == "invalid_command_request"
 
+    async def test_send_command_handler_empty_command_fails_schema_validation(
+        self, hass
+    ) -> None:
+        """Direct handler calls should reject empty command strings."""
+        with pytest.raises(HomeAssistantError) as exc:
+            await async_handle_send_command(
+                hass,
+                service_call(
+                    hass,
+                    {
+                        ATTR_DEVICE_ID: "mesh_group_49155",
+                        ATTR_COMMAND: "",
+                    },
+                ),
+            )
+        assert exc.value.translation_key == "invalid_command_request"
+
+    @pytest.mark.parametrize(
+        "properties",
+        [
+            [{"key": "powerState"}],
+            [["not-a-dict"]],
+        ],
+    )
+    async def test_send_command_handler_invalid_property_items_fail_fast(
+        self, hass, properties
+    ) -> None:
+        """Direct handler calls should reject malformed property list items."""
+        with pytest.raises(HomeAssistantError) as exc:
+            await async_handle_send_command(
+                hass,
+                service_call(
+                    hass,
+                    {
+                        ATTR_COMMAND: "POWER_ON",
+                        ATTR_PROPERTIES: properties,
+                    },
+                ),
+            )
+        assert exc.value.translation_key == "invalid_command_request"
+
     async def test_send_command_handler_failure_raises(self, hass) -> None:
         """send_command raises HomeAssistantError when coordinator reports failure."""
         device = self._create_device()

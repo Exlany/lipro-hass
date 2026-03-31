@@ -115,6 +115,23 @@ def test_iter_runtime_entry_views_rejects_dynamic_probe_only_entries() -> None:
     assert [view.entry_id for view in views] == ["entry-1"]
 
 
+def test_build_runtime_entry_view_degrades_underspecified_runtime_data() -> None:
+    entry = SimpleNamespace(
+        entry_id="entry-bad",
+        options={},
+        runtime_data=cast(LiproCoordinator, SimpleNamespace()),
+    )
+
+    view = build_runtime_entry_view(entry)
+
+    assert view is not None
+    assert view.coordinator is not None
+    assert view.coordinator.last_update_success is False
+    assert view.coordinator.mqtt_connected is None
+    assert view.coordinator.runtime_telemetry_snapshot == {}
+    assert view.coordinator.devices is None
+
+
 def test_iter_runtime_entry_coordinators_skips_entries_without_runtime_data(hass) -> None:
     coordinator = MagicMock()
     missing_runtime = MockConfigEntry(domain=DOMAIN, options={})
@@ -170,3 +187,21 @@ def test_build_runtime_diagnostics_projection_marks_missing_device_cache() -> No
     assert projection.snapshot.entry_id == "entry-1"
     assert projection.snapshot.device_count == 0
     assert projection.degraded_fields == ("devices",)
+
+
+def test_build_runtime_diagnostics_projection_rejects_empty_entry_id() -> None:
+    coordinator = SimpleNamespace(
+        update_interval=None,
+        last_update_success=True,
+        mqtt_service=SimpleNamespace(connected=True),
+        protocol=None,
+        telemetry_service=SimpleNamespace(build_snapshot=dict),
+        devices={},
+    )
+    entry = SimpleNamespace(
+        entry_id="",
+        options={},
+        runtime_data=cast(LiproCoordinator, coordinator),
+    )
+
+    assert build_runtime_diagnostics_projection(entry) is None

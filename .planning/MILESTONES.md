@@ -25,7 +25,13 @@
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone: null
+active_milestone:
+  version: v1.31
+  name: Boundary Sealing, Governance Truth & Quality Hardening
+  status: active / phase 111 complete; phase 112 discussion-ready (2026-03-31)
+  phase: '112'
+  phase_title: Formal-home discoverability and governance-anchor normalization
+  phase_dir: 112-formal-home-discoverability-and-governance-anchor-normalization
 latest_archived:
   version: v1.30
   name: Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming
@@ -41,8 +47,8 @@ previous_archived:
   name: Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization
   evidence_path: .planning/reviews/V1_29_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.30
-  default_next_command: $gsd-new-milestone
+  current_route: v1.31 active milestone route / starting from latest archived baseline = v1.30
+  default_next_command: $gsd-discuss-phase 112
   latest_archived_evidence_pointer: .planning/reviews/V1_30_EVIDENCE_INDEX.md
 ```
 

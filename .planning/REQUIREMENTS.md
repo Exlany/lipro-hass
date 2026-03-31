@@ -1,12 +1,18 @@
-# Requirements: Lipro-HASS v1.30 Archived Route
+# Requirements: Lipro-HASS v1.31 Active Route
 
-> `v1.30` 已于 `2026-03-30` 完成 milestone closeout；本文件现在承载 latest archived milestone requirements / traceability / carry-forward honesty，而 `.planning/reviews/V1_30_EVIDENCE_INDEX.md` 继续作为 pull-only latest archived evidence index。
+> `v1.31` 启动于 `2026-03-31`；本文件现在承载当前 active milestone 的 requirements / traceability / blocker honesty，而 `.planning/reviews/V1_30_EVIDENCE_INDEX.md` 继续作为 latest archived baseline pointer。
 
 <!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone: null
+active_milestone:
+  version: v1.31
+  name: Boundary Sealing, Governance Truth & Quality Hardening
+  status: active / phase 111 complete; phase 112 discussion-ready (2026-03-31)
+  phase: '112'
+  phase_title: Formal-home discoverability and governance-anchor normalization
+  phase_dir: 112-formal-home-discoverability-and-governance-anchor-normalization
 latest_archived:
   version: v1.30
   name: Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming
@@ -22,11 +28,74 @@ previous_archived:
   name: Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization
   evidence_path: .planning/reviews/V1_29_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.30
-  default_next_command: $gsd-new-milestone
+  current_route: v1.31 active milestone route / starting from latest archived baseline = v1.30
+  default_next_command: $gsd-discuss-phase 112
   latest_archived_evidence_pointer: .planning/reviews/V1_30_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
+
+## Current Milestone (v1.31)
+
+**Milestone Goal:** 把 entity/runtime concrete binding、dependency-guard 缺口、formal-home discoverability 漂移、stale governance anchors 与 remaining hotspot / assurance gaps 收口为同一条 active route，同时对需要 maintainer 外部决策的 open-source reachability 问题保持 blocker honesty。
+**Milestone status:** `active / phase 111 complete; phase 112 discussion-ready (2026-03-31)`
+**Current route mode:** `v1.31 active milestone route / starting from latest archived baseline = v1.30`
+**Starting baseline:** `.planning/v1.30-MILESTONE-AUDIT.md`, `.planning/reviews/V1_30_EVIDENCE_INDEX.md`, `.planning/milestones/v1.30-ROADMAP.md`, `.planning/milestones/v1.30-REQUIREMENTS.md`
+**Requirements basket:** `ARC-28`, `ARC-29`, `GOV-71`, `GOV-72`, `QLT-46`, `TST-38`, `OSS-14`, `SEC-09`
+**Latest archived baseline:** `v1.30`
+**Archive pointer:** `.planning/reviews/V1_30_EVIDENCE_INDEX.md`
+**Default next command:** `$gsd-discuss-phase 112`
+
+### Architecture
+- [x] **ARC-28**: `custom_components/lipro/entities/**` 与其他 adapter 层已回到 runtime public surface / control contracts；concrete `Coordinator` import、cast 与 private-state reach-through 已从 current route 主链移除。
+- [ ] **ARC-29**: sanctioned root homes / formal-home discoverability 必须保持单一叙事；`runtime_infra.py`、`runtime_types.py`、`entry_auth.py` 等 root-level homes 要么被归并，要么在北极星 / baseline docs 中明确登记，不允许目录拓扑与 formal ownership 长期分叉。
+
+### Governance
+- [x] **GOV-71**: dependency guards / architecture policy / focused tests 已 machine-check entity / control → runtime internals bypass，不再让 concrete dependency drift 只能靠人工 review 发现。
+- [ ] **GOV-72**: `SUPPORT.md`、`SECURITY.md`、`docs/MAINTAINER_RELEASE_RUNBOOK.md`、planning/baseline/review docs 必须统一 latest archived pointer、maintainer continuity truth 与 blocker wording，消除 stale milestone anchor。
+
+### Quality
+- [ ] **QLT-46**: 当前 top-priority implementation hotspots 必须继续 inward split 或由 focused no-regrowth guards 固化，而不是被默许为 permanent large-file exception。
+- [x] **TST-38**: changed-surface validation 已覆盖 command/request failure branches、new dependency guards 与 renamed read-model seams，避免只靠 line coverage 掩盖关键错误路径。
+
+### Open Source
+- [ ] **OSS-14**: public-facing metadata 与 docs 必须明确区分 truly reachable public surfaces 与 access-gated private surfaces；不允许 `manifest.json` / `pyproject.toml` / support docs 暗示不存在的公开入口。
+- [ ] **SEC-09**: security reporting docs 必须把“缺少 guaranteed non-GitHub private fallback”显式登记为 governance gap 或真实 fallback；禁止把不可达 UI 误表述为已提供安全入口。
+
+## Future Requirements
+
+### Governance
+- **GOV-73**: 单维护者 continuity posture 仅能在 maintainer 提供真实 delegate / backup maintainer 身份后升级；在此之前继续保持 honest blocker state。
+
+### Open Source
+- **OSS-15**: 当真实 public hosting / mirror / docs surface 出现后，再把 `manifest.json`、`pyproject.toml` 与 docs URLs 迁移到稳定公开入口。
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| Fabricating a public docs / security / support URL that does not exist | 违反勿造虚妄原则，且会制造虚假的开源可达性承诺 |
+| Inventing a delegate or backup maintainer identity | 需要 maintainer 的现实授权，不能由仓内代码或文档臆造 |
+| Reopening closed compat shells or adding second roots during cleanup | 违反北极星 formal-home / single-mainline 裁决 |
+
+## Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| ARC-28 | Phase 111 | Complete |
+| GOV-71 | Phase 111 | Complete |
+| TST-38 | Phase 111 | Complete |
+| ARC-29 | Phase 112 | Pending |
+| GOV-72 | Phase 112 | Pending |
+| QLT-46 | Phase 113 | Pending |
+| OSS-14 | Phase 114 | Pending |
+| SEC-09 | Phase 114 | Pending |
+
+**Coverage:**
+- v1.31 requirements: 8 total
+- Mapped to phases: 8
+- Unmapped: 0 ✓
+- Current complete: 3
+- Current pending: 5
 
 ## Latest Archived Milestone (v1.30)
 
@@ -37,50 +106,9 @@ bootstrap:
 **Requirements basket:** `HOT-46`, `ARC-27`, `TST-37`, `QLT-45`, `RUN-10`, `HOT-47`, `RUN-11`, `GOV-70`
 **Latest archived baseline:** `v1.30`
 **Archive pointer:** `.planning/reviews/V1_30_EVIDENCE_INDEX.md`
-**Default next command:** `$gsd-new-milestone`
 **Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.30`
 **Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.29`
-
-### Phase 107 REST/auth/status hotspot convergence / support-surface slimming
-- [x] **HOT-46**: `custom_components/lipro/core/api/rest_facade.py`、`custom_components/lipro/core/api/status_fallback_support.py` 与 `custom_components/lipro/core/api/request_policy_support.py` 必须继续收窄 hotspot density，而不是被默许为 permanent large-file exception。
-- [x] **ARC-27**: REST child-façade collaborator assembly、fallback recursion 与 request-policy pacing state 必须继续保持 single-root / explicit-collaborator truth，不得回流 private backdoor 或第二 formal surface。
-- [x] **TST-37**: `Phase 107` 必须补齐 focused regressions / no-regrowth guards，冻结 rest/status/request-policy 新 seam 的 outward behavior 与 governance projection。
-- [x] **QLT-45**: `Phase 107` touched scope 必须通过 targeted pytest、`ruff`、`mypy`、`check_file_matrix`、`check_architecture_policy`、`check_markdown_links` 与 GSD fast-path proof。
-
-### Phase 108 MQTT transport-runtime de-friendization
-- [x] **RUN-10**: `core/mqtt/transport_runtime.py` / `core/mqtt/transport.py` 已转向显式 owner/state contract，friend-class 风格 private-state reach-through 已从 current route 主链移除。
-
-### Phase 109 anonymous-share manager inward decomposition
-- [x] **HOT-47**: `core/anonymous_share/manager.py` 已把 scope/aggregate orchestration、pending-report projection 与 finalize-submit 机械流程继续压回 inward collaborators，而不改变 `AnonymousShareManager` 作为唯一 outward home 的身份。
-
-### Phase 110 runtime snapshot surface reduction / governance closeout
-- [x] **RUN-11**: `core/coordinator/runtime/device/snapshot.py` 已完成 snapshot sourcing / formatting / arbitration seam inward split，`SnapshotBuilder` outward runtime contract 保持稳定。
-- [x] **GOV-70**: `v1.30` 的 planning/baseline/review/docs truth、focused guards 与 milestone closeout evidence 已统一到 `Phase 110` closeout bundle 与 `V1_30_EVIDENCE_INDEX`。
-
-## Traceability for archived v1.30 route
-
-| Requirement | Planned Phase | Status |
-|-------------|---------------|--------|
-| HOT-46 | Phase 107 | Complete |
-| ARC-27 | Phase 107 | Complete |
-| TST-37 | Phase 110 | Complete |
-| QLT-45 | Phase 110 | Complete |
-| RUN-10 | Phase 108 | Complete |
-| HOT-47 | Phase 109 | Complete |
-| RUN-11 | Phase 110 | Complete |
-| GOV-70 | Phase 110 | Complete |
-
-**Coverage:**
-- v1.30 routed requirements: 8 total
-- Current mapped: 8
-- Current complete: 8
-- Current pending: 0
-- Current unmapped: 0 ✓
-
-## Carry-Forward Notes (Deferred within / beyond v1.30)
-- [x] MQTT transport/runtime private-state reach-through 已被 `Phase 108` 正式吸收并关闭为 current-route topic，不再是 live continuation residual。
-- [x] `anonymous_share/manager.py` 已被 `Phase 109` 正式吸收并完成 inward decomposition，不再依赖 conversation-only follow-up。
-- [x] runtime snapshot surface reduction 与 `v1.30` milestone closeout 已在 `Phase 110` 完成；`v1.30` 已翻转为 latest archived baseline，并由 `.planning/reviews/V1_30_EVIDENCE_INDEX.md` 统一承载 pull-only pointer。
+**Default next command:** `$gsd-new-milestone`
 
 ## Previous Archived Milestone (v1.29)
 

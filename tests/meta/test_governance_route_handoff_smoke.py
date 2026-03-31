@@ -82,6 +82,7 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
     assert "## Phase 107 REST/Auth/Status Hotspot Convergence / Support-surface Slimming" in verification_text
     assert "## Phase 108 MQTT Transport-runtime De-friendization" in verification_text
     assert "## Phase 109 Anonymous-share Manager Inward Decomposition" in verification_text
+    assert "## Phase 111 Entity / Runtime Boundary Sealing and Dependency-Guard Hardening" in verification_text
     assert "## Phase 101 Anonymous-share Manager / REST Decoder Hotspot Decomposition Freeze" in verification_text
     assert CURRENT_ROUTE in verification_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in verification_text
@@ -101,12 +102,13 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
         "tests/meta/test_phase108_mqtt_transport_de_friendization_guards.py",
         "tests/meta/test_phase109_anonymous_share_manager_inward_decomposition_guards.py",
         "tests/meta/test_phase110_runtime_snapshot_closeout_guards.py",
+        "tests/meta/test_phase111_runtime_boundary_guards.py",
     ):
         assert guard in file_matrix_text
     assert "route-handoff gsd fast-path smoke guard home" in file_matrix_text
 
 
-def test_gsd_fast_path_matches_current_archived_route_story() -> None:
+def test_gsd_fast_path_matches_current_active_route_story() -> None:
     progress = _run_gsd_tools("init", "progress")
     phases = _as_mapping_list(progress["phases"])
 
@@ -119,37 +121,40 @@ def test_gsd_fast_path_matches_current_archived_route_story() -> None:
         assert phase_progress["plan_count"] == CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE[phase_number]
         assert phase_progress["summary_count"] == CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE[phase_number]
 
+    for phase_number in CURRENT_MILESTONE_PENDING_PHASES:
+        phase_progress = _as_mapping(phase_by_number[phase_number])
+        assert _as_str(phase_progress["status"]) == "not_started"
+        assert phase_progress["plan_count"] == CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE[phase_number]
+        assert phase_progress["summary_count"] == CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE[phase_number]
+
     assert progress["current_phase"] is None
     assert _as_bool(progress["has_work_in_progress"]) is False
 
-    if CURRENT_MILESTONE_PENDING_PHASES:
-        next_phase = _as_mapping(progress["next_phase"])
-        assert _as_str(next_phase["number"]) == CURRENT_MILESTONE_PENDING_PHASES[0]
-        assert _as_str(next_phase["status"]) == "pending"
-    else:
-        assert progress["next_phase"] is None
+    next_phase = _as_mapping(progress["next_phase"])
+    assert _as_str(next_phase["number"]) == CURRENT_MILESTONE_PENDING_PHASES[0]
+    assert _as_str(next_phase["status"]) == "not_started"
 
-    phase_index = _run_gsd_tools("phase-plan-index", CURRENT_PHASE)
-    assert _as_str(phase_index["phase"]) == CURRENT_PHASE
-    assert len(_as_mapping_list(phase_index["plans"])) == CURRENT_MILESTONE_PLAN_COUNT
+    completed_phase = CURRENT_MILESTONE_COMPLETED_PHASES[-1]
+    phase_index = _run_gsd_tools("phase-plan-index", completed_phase)
+    assert _as_str(phase_index["phase"]) == completed_phase
+    assert len(_as_mapping_list(phase_index["plans"])) == CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE[completed_phase]
 
     state = _run_gsd_tools("state", "json")
     assert _as_str(state["milestone"]) == CURRENT_MILESTONE
     assert _as_str(state["status"]) == ("active" if HAS_ACTIVE_MILESTONE else "archived")
-    total_milestone_plans = str(sum(CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE.values()))
     assert _as_mapping(state["progress"]) == {
         "total_phases": str(len(CURRENT_MILESTONE_PHASES)),
         "completed_phases": str(len(CURRENT_MILESTONE_COMPLETED_PHASES)),
-        "total_plans": total_milestone_plans,
-        "completed_plans": total_milestone_plans,
+        "total_plans": "3",
+        "completed_plans": "3",
     }
 
     plan_init = _run_gsd_tools("init", "plan-phase", CURRENT_PHASE)
     assert _as_bool(plan_init["phase_found"]) is True
     assert _as_str(plan_init["phase_number"]) == CURRENT_PHASE
-    assert _as_bool(plan_init["has_plans"]) is True
-    assert _as_bool(plan_init["has_context"]) is True
-    assert _as_bool(plan_init["has_research"]) is True
+    assert _as_bool(plan_init["has_plans"]) is False
+    assert _as_bool(plan_init["has_context"]) is False
+    assert _as_bool(plan_init["has_research"]) is False
     assert plan_init["plan_count"] == CURRENT_MILESTONE_PLAN_COUNT
 
     execute_init = _run_gsd_tools("init", "execute-phase", CURRENT_PHASE)
