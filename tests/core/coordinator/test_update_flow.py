@@ -57,6 +57,10 @@ class TestCoordinatorUpdateFlow:
         with pytest.raises(ConfigEntryAuthFailed):
             await coordinator._async_update_data()
 
+        telemetry = coordinator.telemetry_service.build_snapshot()
+        assert telemetry["last_runtime_failure_stage"] == "auth"
+        assert telemetry["failure_summary"]["error_type"] == "LiproAuthError"
+
     @pytest.mark.asyncio
     async def test_connection_error_raises_update_failed(
         self, coordinator, mock_auth_manager
@@ -69,6 +73,10 @@ class TestCoordinatorUpdateFlow:
         with pytest.raises(UpdateFailed):
             await coordinator._async_update_data()
 
+        telemetry = coordinator.telemetry_service.build_snapshot()
+        assert telemetry["last_runtime_failure_stage"] == "protocol"
+        assert telemetry["failure_summary"]["error_type"] == "LiproConnectionError"
+
     @pytest.mark.asyncio
     async def test_timeout_error_raises_timeout_update_failed(
         self, coordinator, mock_auth_manager
@@ -79,6 +87,10 @@ class TestCoordinatorUpdateFlow:
         with pytest.raises(UpdateFailed, match="Update timeout"):
             await coordinator._async_update_data()
 
+        telemetry = coordinator.telemetry_service.build_snapshot()
+        assert telemetry["last_runtime_failure_stage"] == "timeout"
+        assert telemetry["failure_summary"]["error_type"] == "TimeoutError"
+
     @pytest.mark.asyncio
     async def test_unexpected_error_raises_generic_update_failed(
         self, coordinator, mock_auth_manager
@@ -88,6 +100,10 @@ class TestCoordinatorUpdateFlow:
 
         with pytest.raises(UpdateFailed, match="Unexpected update failure"):
             await coordinator._async_update_data()
+
+        telemetry = coordinator.telemetry_service.build_snapshot()
+        assert telemetry["last_runtime_failure_stage"] == "unexpected"
+        assert telemetry["failure_summary"]["error_type"] == "RuntimeError"
 
     @pytest.mark.asyncio
     async def test_snapshot_rejection_raises_update_failed_and_records_runtime_failure(

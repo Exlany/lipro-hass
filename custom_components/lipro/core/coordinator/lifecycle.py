@@ -27,6 +27,74 @@ from .runtime.mqtt_runtime import MqttRuntime
 from .services import CoordinatorTelemetryService
 
 _LOGGER = logging.getLogger(__name__)
+_AUTH_UPDATE_EXCEPTIONS = (
+    LiproRefreshTokenExpiredError,
+    LiproAuthError,
+)
+_PROTOCOL_UPDATE_EXCEPTIONS = (
+    LiproConnectionError,
+    LiproApiError,
+)
+_UNEXPECTED_UPDATE_EXCEPTIONS = (
+    AttributeError,
+    LookupError,
+    OSError,
+    RuntimeError,
+    TypeError,
+    ValueError,
+)
+
+
+def _raise_timeout_update_failed(
+    telemetry_service: CoordinatorTelemetryService,
+) -> None:
+    """Raise the canonical timeout failure after recording telemetry."""
+    timeout_error = TimeoutError("Update timeout")
+    telemetry_service.record_update_failure(timeout_error, stage="timeout")
+    _LOGGER.error("Update data timeout after 30 seconds")
+    raise UpdateFailed("Update timeout") from None
+
+
+def _raise_auth_update_failed(
+    err: LiproRefreshTokenExpiredError | LiproAuthError,
+    telemetry_service: CoordinatorTelemetryService,
+) -> None:
+    """Raise the canonical auth failure after recording telemetry."""
+    telemetry_service.record_update_failure(err, stage="auth")
+    _LOGGER.error("Authentication failed: %s", err)
+    error_message = f"Authentication failed: {err}"
+    raise ConfigEntryAuthFailed(error_message) from err
+
+
+def _raise_protocol_update_failed(
+    err: LiproConnectionError | LiproApiError,
+    telemetry_service: CoordinatorTelemetryService,
+) -> None:
+    """Raise the canonical protocol failure after recording telemetry."""
+    telemetry_service.record_update_failure(err, stage="protocol")
+    _LOGGER.error("Update failed: %s", err)
+    error_message = f"Update failed: {err}"
+    raise UpdateFailed(error_message) from err
+
+
+def _raise_runtime_update_failed(
+    err: RuntimeSnapshotRefreshRejectedError,
+    telemetry_service: CoordinatorTelemetryService,
+) -> None:
+    """Raise the canonical runtime failure after recording telemetry."""
+    telemetry_service.record_update_failure(err, stage="runtime")
+    _LOGGER.warning("Device snapshot refresh rejected: %s", err)
+    raise UpdateFailed(str(err)) from err
+
+
+def _raise_unexpected_update_failed(
+    err: Exception,
+    telemetry_service: CoordinatorTelemetryService,
+) -> None:
+    """Raise the canonical unexpected failure after recording telemetry."""
+    telemetry_service.record_update_failure(err, stage="unexpected")
+    _LOGGER.exception("Unexpected update failure")
+    raise UpdateFailed("Unexpected update failure") from err
 
 
 class CoordinatorUpdateCycle:
@@ -242,53 +310,21 @@ async def async_update_data(
     """Fetch data for one update-coordinator cycle."""
     try:
         await run_update_cycle()
-        telemetry_service.record_update_success()
-        return devices
-
     except asyncio.CancelledError:
         raise
     except TimeoutError:
-        telemetry_service.record_update_failure(
-            TimeoutError("Update timeout"),
-            stage="timeout",
-        )
-        _LOGGER.error("Update data timeout after 30 seconds")
-        raise UpdateFailed("Update timeout") from None
-
-    except (
-        LiproRefreshTokenExpiredError,
-        LiproAuthError,
-    ) as err:
-        telemetry_service.record_update_failure(err, stage="auth")
-        _LOGGER.error("Authentication failed: %s", err)
-        error_message = f"Authentication failed: {err}"
-        raise ConfigEntryAuthFailed(error_message) from err
-
-    except (
-        LiproConnectionError,
-        LiproApiError,
-    ) as err:
-        telemetry_service.record_update_failure(err, stage="protocol")
-        _LOGGER.error("Update failed: %s", err)
-        error_message = f"Update failed: {err}"
-        raise UpdateFailed(error_message) from err
-
+        _raise_timeout_update_failed(telemetry_service)
+    except _AUTH_UPDATE_EXCEPTIONS as err:
+        _raise_auth_update_failed(err, telemetry_service)
+    except _PROTOCOL_UPDATE_EXCEPTIONS as err:
+        _raise_protocol_update_failed(err, telemetry_service)
     except RuntimeSnapshotRefreshRejectedError as err:
-        telemetry_service.record_update_failure(err, stage="runtime")
-        _LOGGER.warning("Device snapshot refresh rejected: %s", err)
-        raise UpdateFailed(str(err)) from err
+        _raise_runtime_update_failed(err, telemetry_service)
+    except _UNEXPECTED_UPDATE_EXCEPTIONS as err:
+        _raise_unexpected_update_failed(err, telemetry_service)
 
-    except (
-        AttributeError,
-        LookupError,
-        OSError,
-        RuntimeError,
-        TypeError,
-        ValueError,
-    ) as err:
-        telemetry_service.record_update_failure(err, stage="unexpected")
-        _LOGGER.exception("Unexpected update failure")
-        raise UpdateFailed("Unexpected update failure") from err
+    telemetry_service.record_update_success()
+    return devices
 
 
 __all__ = [
