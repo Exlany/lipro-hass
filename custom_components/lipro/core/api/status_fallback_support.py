@@ -614,6 +614,9 @@ async def query_with_fallback_impl(
     record_fallback_depth: RecordFallbackDepth | None = None,
 ) -> MappingRows:
     """Query API with binary-split fallback on retriable device errors."""
+    if not ids:
+        _record_fallback_depth_if_needed(record_fallback_depth, 0)
+        return []
     setup = _build_binary_split_setup(
         path=path,
         body_key=body_key,

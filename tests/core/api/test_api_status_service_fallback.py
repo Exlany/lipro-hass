@@ -259,6 +259,31 @@ async def test_query_items_by_binary_split_returns_empty_when_ids_empty() -> Non
     assert result == ([], 0, {}, 0)
     iot_request.assert_not_called()
 
+
+@pytest.mark.asyncio
+async def test_query_with_fallback_returns_empty_when_ids_empty() -> None:
+    iot_request = AsyncMock()
+    recorded_depth: list[int] = []
+
+    result = await query_with_fallback(
+        path="/v2/status/device",
+        body_key="deviceIdList",
+        ids=[],
+        item_name="device",
+        iot_request=iot_request,
+        extract_data_list=_extract_rows,
+        is_retriable_device_error=lambda _: True,
+        lipro_api_error=_DummyApiError,
+        normalize_response_code=_normalize_response_code,
+        expected_offline_codes=(140003, "140003"),
+        logger=MagicMock(),
+        record_fallback_depth=recorded_depth.append,
+    )
+
+    assert result == []
+    iot_request.assert_not_awaited()
+    assert recorded_depth == [0]
+
 @pytest.mark.asyncio
 async def test_query_with_fallback_logs_unknown_batch_code_when_normalizer_returns_none() -> (
     None
