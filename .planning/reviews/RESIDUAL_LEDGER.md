@@ -597,3 +597,9 @@ _None currently registered._
 
 - 无新增 active residual family；Phase 102 收口的是 governance portability、verification stratification、docs-first continuity wording 与 latest-archived closeout hardening，而不是新的 residual legalization。
 - `v1.27` closeout bundle 继续只承担 previous archived baseline 身份；任何后续优化都必须沿既有 planning/baseline/review truth 前进，不得重新拼装第二套 current-route 故事。
+
+## Phase 113 Residual Delta
+
+- 无新增 active residual family；Phase 113 关闭的是 `share_client_submit.py` 与 `result.py` 的 helper ballast，并把 remaining >400-line production hotspots 改写为显式 no-growth budget truth，而不是继续口头 carry-forward。
+- `status_fallback_support.py`、`rest_facade.py`、`anonymous_share/manager.py`、`rest_decoder.py`、`firmware_update.py`、`rest_decoder_support.py`、`result_policy.py`、`dispatch.py` 与 `auth/manager.py` 继续保留 formal homes / sanctioned carriers 身份；后续若仍要精修，只允许沿既有 home/support seams inward split 或 narrowing，不得长出第二 authority chain。
+- repo-level follow-up 仍诚实保留：私有 `gsd-tools` 进入测试/closeout guards、promoted assets 第二真源、planning route truth 多处硬编码、`.planning/codebase` freshness 漂移、planning link audit 未覆盖、contributor onramp / release continuity 单点；这些已进入最终审计，但不在本 phase 伪装成已关闭。

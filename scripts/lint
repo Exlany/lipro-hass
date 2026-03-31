@@ -89,10 +89,73 @@ governance_guard_tests=(
     tests/meta/test_version_sync.py
 )
 
+phase113_submit_surface_pattern='^(custom_components/lipro/core/anonymous_share/share_client_submit(_attempts|_outcomes)?\.py|tests/core/test_share_client_submit\.py)$'
+phase113_result_surface_pattern='^(custom_components/lipro/core/command/result(_support)?\.py|tests/core/test_command_result\.py)$'
+phase113_guard_surface_pattern='^(tests/meta/test_phase113_hotspot_assurance_guards\.py|\.planning/codebase/TESTING\.md|\.planning/baseline/VERIFICATION_MATRIX\.md|\.planning/reviews/FILE_MATRIX\.md|\.planning/reviews/RESIDUAL_LEDGER\.md|\.planning/reviews/KILL_LIST\.md)$'
+phase113_docs_contract_surface_pattern='^(scripts/lint|CONTRIBUTING\.md|\.planning/codebase/TESTING\.md|tests/meta/toolchain_truth_ci_contract\.py)$'
+phase113_handoff_surface_pattern='^(\.planning/PROJECT\.md|\.planning/ROADMAP\.md|\.planning/REQUIREMENTS\.md|\.planning/STATE\.md|\.planning/MILESTONES\.md|tests/meta/governance_current_truth\.py|tests/meta/test_governance_route_handoff_smoke\.py|tests/meta/governance_followup_route_current_milestones\.py)$'
+
+run_phase113_default_assurance() {
+    local surface_file="$1"
+
+    if [ "$full_mode" = "1" ] || [ ! -s "$surface_file" ]; then
+        return 0
+    fi
+
+    local ran_any=0
+
+    if grep -Eq "$phase113_submit_surface_pattern" "$surface_file"; then
+        echo ""
+        echo "Running Phase 113 submit focused assurance..."
+        uv run pytest -q tests/core/test_share_client_submit.py tests/meta/test_phase113_hotspot_assurance_guards.py
+        ran_any=1
+    fi
+
+    if grep -Eq "$phase113_result_surface_pattern" "$surface_file"; then
+        echo ""
+        echo "Running Phase 113 command-result focused assurance..."
+        uv run pytest -q tests/core/test_command_result.py tests/meta/test_phase113_hotspot_assurance_guards.py
+        ran_any=1
+    fi
+
+    if grep -Eq "$phase113_guard_surface_pattern" "$surface_file"; then
+        echo ""
+        echo "Running Phase 113 hotspot guard assurance..."
+        uv run pytest -q tests/meta/test_phase113_hotspot_assurance_guards.py
+        ran_any=1
+    fi
+
+    if grep -Eq "$phase113_docs_contract_surface_pattern" "$surface_file"; then
+        echo ""
+        echo "Running Phase 113 docs/toolchain fast-path assurance..."
+        uv run pytest -q tests/meta/toolchain_truth_ci_contract.py tests/meta/test_governance_release_docs.py tests/meta/toolchain_truth_docs_fast_path.py
+        ran_any=1
+    fi
+
+    if grep -Eq "$phase113_handoff_surface_pattern" "$surface_file"; then
+        echo ""
+        echo "Running Phase 113 governance handoff assurance..."
+        uv run pytest -q tests/meta/test_governance_route_handoff_smoke.py tests/meta/governance_followup_route_current_milestones.py
+        ran_any=1
+    fi
+
+    if [ "$ran_any" = "1" ]; then
+        echo ""
+        echo "Phase 113 focused changed-surface assurance finished."
+    fi
+}
+
+tmp_changed_coverage_surface="$(mktemp)"
+resolve_changed_coverage_surface "$tmp_changed_coverage_surface"
+
+if [ "$full_mode" = "0" ]; then
+    run_phase113_default_assurance "$tmp_changed_coverage_surface"
+fi
+
 if [ "$full_mode" = "1" ]; then
     echo "Running lint in full mode (static + governance + tests)..."
 else
-    echo "Running lint in default mode (static + docs-route + security smoke only)..."
+    echo "Running scripts/lint in default mode with Phase 113 focused assurance when matching changed surfaces are touched..."
     echo "Tip: use ./scripts/lint --full for governance + pytest + total/changed-surface coverage."
 fi
 
@@ -191,9 +254,6 @@ if [ "$full_mode" = "1" ]; then
         --cov-report=json \
         --cov-report=xml \
         --cov-report=term-missing
-
-    tmp_changed_coverage_surface="$(mktemp)"
-    resolve_changed_coverage_surface "$tmp_changed_coverage_surface"
 
     echo ""
     echo "Resolved changed coverage surface..."

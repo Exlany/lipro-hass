@@ -137,8 +137,8 @@ uv run mypy
 Notes:
 说明：
 
-- `./scripts/lint` 默认运行本地 static + translation + Markdown docs route + shell + runtime security smoke；它**不会**默认运行 governance 或 pytest。
-  `./scripts/lint` runs local static + translation + Markdown docs route + shell + runtime security smoke by default; it does **not** run governance or pytest unless asked.
+- `./scripts/lint` 默认运行本地 static + translation + Markdown docs route + shell + runtime security smoke；当 changed surfaces 命中 Phase 113 hotspot / toolchain / governance-handoff 家族时，还会自动补跑对应 focused pytest，但它**不会**默认跑通用 governance 套件或完整 pytest 矩阵。
+  `./scripts/lint` runs local static + translation + Markdown docs route + shell + runtime security smoke by default; when changed surfaces hit the Phase 113 hotspot / toolchain / governance-handoff families, it also auto-runs the matching focused pytest commands, but it does **not** run the generic governance suite or the full pytest matrix by default.
 - `./scripts/lint --full` 会在默认检查之上补跑 architecture/file-matrix、governance guards、完整测试覆盖率门禁，以及 total + changed-surface coverage / refactor floor 校验。
   `./scripts/lint --full` extends the default checks with architecture/file-matrix validation, governance guards, the full test coverage gate, plus total + changed-surface coverage and refactor floor validation.
 - To also audit dev dependencies locally (may be noisy), set `PIP_AUDIT_INCLUDE_DEV=1`; the dev audit checks the installed environment so security overrides are honored.

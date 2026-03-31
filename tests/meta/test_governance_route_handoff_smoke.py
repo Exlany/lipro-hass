@@ -144,9 +144,9 @@ def test_gsd_fast_path_matches_current_active_route_story() -> None:
     assert _as_mapping(state["progress"]) == {
         "total_phases": str(len(CURRENT_MILESTONE_PHASES)),
         "completed_phases": str(len(CURRENT_MILESTONE_COMPLETED_PHASES)),
-        "total_plans": "6",
-        "completed_plans": "8",
-        "percent": "50",
+        "total_plans": "10",
+        "completed_plans": "10",
+        "percent": "75",
     }
 
     plan_init = _run_gsd_tools("init", "plan-phase", CURRENT_PHASE)

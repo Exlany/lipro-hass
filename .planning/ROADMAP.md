@@ -12,10 +12,10 @@ contract_name: governance-route
 active_milestone:
   version: v1.31
   name: Boundary Sealing, Governance Truth & Quality Hardening
-  status: active / phase 112 complete; phase 113 discussion-ready (2026-03-31)
-  phase: '113'
-  phase_title: Hotspot burn-down and changed-surface assurance hardening
-  phase_dir: 113-hotspot-burn-down-and-changed-surface-assurance-hardening
+  status: active / phase 113 complete; phase 114 discussion-ready (2026-03-31)
+  phase: '114'
+  phase_title: Open-source reachability honesty and security-surface normalization
+  phase_dir: 114-open-source-reachability-honesty-and-security-surface-normalization
 latest_archived:
   version: v1.30
   name: Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming
@@ -32,7 +32,7 @@ previous_archived:
   evidence_path: .planning/reviews/V1_29_EVIDENCE_INDEX.md
 bootstrap:
   current_route: v1.31 active milestone route / starting from latest archived baseline = v1.30
-  default_next_command: $gsd-discuss-phase 113
+  default_next_command: $gsd-discuss-phase 114
   latest_archived_evidence_pointer: .planning/reviews/V1_30_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -42,12 +42,12 @@ bootstrap:
 `v1.31` 只沿单一 north-star 主线推进：封印 entity/control → runtime internals concrete bypass，统一 formal-home discoverability 与治理锚点，继续 burn-down 当前热点，并对 open-source reachability / security fallback 保持 honest-by-default。所有工作都以 `v1.30` 为 latest archived baseline，不引入 second root，不复活 compat shell。
 
 **Coverage:** `8/8` v1.31 requirements mapped exactly once.
-**Default next command:** `$gsd-discuss-phase 113`
+**Default next command:** `$gsd-discuss-phase 114`
 
 ## v1.31: Boundary Sealing, Governance Truth & Quality Hardening
 
-**Milestone status:** `active / phase 112 complete; phase 113 discussion-ready (2026-03-31)`
-**Default next command:** `$gsd-discuss-phase 113`
+**Milestone status:** `active / phase 113 complete; phase 114 discussion-ready (2026-03-31)`
+**Default next command:** `$gsd-discuss-phase 114`
 **Current route story:** `v1.31 active milestone route / starting from latest archived baseline = v1.30`
 **Latest archived pointer:** `.planning/reviews/V1_30_EVIDENCE_INDEX.md`
 
@@ -55,7 +55,7 @@ bootstrap:
 
 - [x] **Phase 111: Entity-runtime boundary sealing and dependency-guard hardening** - 已封印 entity/control 到 runtime internals 的 concrete bypass，并用 machine-checkable guards 与 changed-surface validation 固化完成态。
 - [x] **Phase 112: Formal-home discoverability and governance-anchor normalization** - 统一 sanctioned root homes、formal-home discoverability 与 stale governance anchors。 (completed 2026-03-31)
-- [ ] **Phase 113: Hotspot burn-down and changed-surface assurance hardening** - 继续 inward split 当前实现热点，或用 honest no-regrowth guards 固化 changed surface。
+- [x] **Phase 113: Hotspot burn-down and changed-surface assurance hardening** - 继续 inward split 当前实现热点，或用 honest no-regrowth guards 固化 changed surface。 (completed 2026-03-31)
 - [ ] **Phase 114: Open-source reachability honesty and security-surface normalization** - 让 public metadata / security docs 只陈述真实可达 surface 与未解 blocker。
 
 ## Phase Details
@@ -92,7 +92,9 @@ bootstrap:
   1. 当前 top-priority hotspots 至少达到二选一：体量/职责继续 inward split，或已有明确 no-regrowth guard 阻止热点再次膨胀。
   2. Maintainer 可通过 focused assurance runs 直接验证 changed hotspots 的关键 surface，而不是只依赖 repo-wide line coverage 掩盖热点回流。
   3. 治理与质量工件对剩余 hotspot allowance 采用显式、可删除、可审计的 bounded exception 叙事，而不是把 large-file exception 默许为长期合法状态。
-**Plans**: TBD
+**Status**: Complete (`2026-03-31`)
+**Plans**: 4/4 complete
+**Evidence**: `.planning/phases/113-hotspot-burn-down-and-changed-surface-assurance-hardening/{113-01-SUMMARY.md,113-02-SUMMARY.md,113-03-SUMMARY.md,113-04-SUMMARY.md,113-SUMMARY.md,113-VERIFICATION.md,113-AUDIT.md}`
 
 ### Phase 114: Open-source reachability honesty and security-surface normalization
 **Goal**: public metadata 与 security reporting 只陈述真实可达 surface，并把缺失的私有回报通道或 delegate continuity 明确保留为外部 blocker。

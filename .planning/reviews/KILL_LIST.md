@@ -471,3 +471,8 @@ _None currently registered._
 
 - 本 phase **无新增 active kill target**；它处理的是 archived-only governance/docs/evidence hardening，不是新的 file-level delete campaign。
 - latest archived pointer、verification stratification 与 docs-first continuity wording 必须继续沿现有 maintainer route / planning governance truth 演进，不得被 retroactively 写成“未来删除后就没问题”的临时 folklore。
+
+## Phase 113 Status Update
+
+- 本 phase **无新增 active kill target**；`share_client_submit_attempts.py`、`share_client_submit_outcomes.py` 与 `result_support.py` 代表的是 inward collaborator extraction，不是新的 file-level delete campaign。
+- `status_fallback_support.py`、`rest_facade.py`、`anonymous_share/manager.py`、`rest_decoder.py`、`firmware_update.py`、`rest_decoder_support.py`、`result_policy.py`、`dispatch.py` 与 `auth/manager.py` 都继续保留为 formal homes / sanctioned carriers；Phase 113 的贡献是把它们的增长空间改成显式 budget guard，而不是把它们重述成 future kill target。

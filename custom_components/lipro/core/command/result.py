@@ -50,6 +50,11 @@ from .result_policy import (
     should_schedule_delayed_refresh,
     should_skip_immediate_post_refresh,
 )
+from .result_support import (
+    build_unconfirmed_command_result_verify,
+    build_unconfirmed_failure,
+    log_command_result_unconfirmed,
+)
 
 
 class ApiErrorLike(Protocol):
@@ -62,7 +67,6 @@ type UpdateTraceWithException = Callable[..., None]
 
 
 _PUSH_FAILURE_TRACE_MESSAGE = "pushSuccess=false"
-
 
 
 def apply_command_result_rejected(
@@ -119,81 +123,6 @@ def apply_command_result_rejected(
     return failure
 
 
-def _build_unconfirmed_command_result_verify(
-    *,
-    msg_sn: str,
-    attempt_limit: int,
-    last_payload: CommandResultPayload | None,
-) -> CommandResultVerifyTrace:
-    """Build command-result verification trace for an unconfirmed polling outcome."""
-    command_result_verify: CommandResultVerifyTrace = {
-        "enabled": True,
-        "verified": False,
-        "attempts": attempt_limit,
-        "msg_sn": msg_sn,
-        "last_state": (
-            classify_command_result_payload(last_payload)
-            if isinstance(last_payload, dict)
-            else COMMAND_RESULT_TRACE_STATE_QUERY_ERROR
-        ),
-    }
-    last_code = extract_command_result_code(last_payload)
-    last_message = extract_command_result_message(last_payload)
-    if last_code is not None:
-        command_result_verify["last_code"] = last_code
-    if last_message is not None:
-        command_result_verify["last_message"] = last_message
-    return command_result_verify
-
-
-def _log_command_result_unconfirmed(
-    *,
-    route: str,
-    msg_sn: str,
-    device_serial: str,
-    attempt_limit: int,
-    elapsed_seconds: float,
-    logger: LoggerLike,
-    command_result_verify: CommandResultVerifyTrace,
-    last_code: object | None,
-) -> None:
-    """Log one unconfirmed command-result polling outcome."""
-    safe_device_serial = redact_identifier(device_serial) or "***"
-    safe_msg_sn = redact_identifier(msg_sn) or "***"
-    logger.warning(
-        "query_command_result not confirmed (device=%s, msgSn=%s, attempts=%s, elapsed=%.3fs, route=%s, last_state=%s, last_code=%s)",
-        safe_device_serial,
-        safe_msg_sn,
-        attempt_limit,
-        elapsed_seconds,
-        route,
-        command_result_verify["last_state"],
-        last_code,
-    )
-
-
-def _build_unconfirmed_failure(
-    *,
-    route: str,
-    msg_sn: str,
-    device_serial: str,
-    last_payload: CommandResultPayload | None,
-) -> CommandFailurePayload:
-    """Build failure payload for an unconfirmed command-result polling outcome."""
-    last_code = extract_command_result_code(last_payload)
-    last_message = extract_command_result_message(last_payload)
-    failure: CommandFailurePayload = {
-        "reason": COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED,
-        "code": last_code or COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED,
-        "route": route,
-        "msg_sn": msg_sn,
-        "device_id": device_serial,
-    }
-    if last_message is not None:
-        failure["message"] = last_message
-    return failure
-
-
 def apply_command_result_unconfirmed(
     *,
     trace: TracePayload,
@@ -207,7 +136,7 @@ def apply_command_result_unconfirmed(
 ) -> CommandFailurePayload:
     """Populate trace/failure fields for unconfirmed command-result polling."""
     last_code = extract_command_result_code(last_payload)
-    command_result_verify = _build_unconfirmed_command_result_verify(
+    command_result_verify = build_unconfirmed_command_result_verify(
         msg_sn=msg_sn,
         attempt_limit=attempt_limit,
         last_payload=last_payload,
@@ -217,7 +146,7 @@ def apply_command_result_unconfirmed(
     trace["error"] = "CommandResultUnconfirmed"
     trace["error_message"] = COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED
     trace["command_result_verify"] = command_result_verify
-    _log_command_result_unconfirmed(
+    log_command_result_unconfirmed(
         route=route,
         msg_sn=msg_sn,
         device_serial=device_serial,
@@ -227,7 +156,7 @@ def apply_command_result_unconfirmed(
         command_result_verify=command_result_verify,
         last_code=last_code,
     )
-    return _build_unconfirmed_failure(
+    return build_unconfirmed_failure(
         route=route,
         msg_sn=msg_sn,
         device_serial=device_serial,

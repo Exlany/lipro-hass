@@ -30,7 +30,7 @@ uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro 
 **Location:**
 - Tests live in a dedicated `tests/` tree, not beside production files.
 - Current topology is broad and intentional: `tests/core`, `tests/services`, `tests/flows`, `tests/platforms`, `tests/entities`, `tests/meta`, `tests/integration`, `tests/snapshots`, `tests/benchmarks`, `tests/harness`, and `tests/fixtures`.
-- Repository counts from current scanning: `408` Python files under `tests`, `325` runnable `test_*.py` files, `67` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
+- Repository counts from current scanning: `411` Python files under `tests`, `328` runnable `test_*.py` files, `70` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
 
 **Naming:**
 - Use `test_*.py` everywhere.
@@ -178,7 +178,7 @@ uv run python scripts/refactor_tools.py --coverage-json coverage.json --minimum-
 
 **Pre-commit / local gates:**
 - `.pre-commit-config.yaml` mirrors the same contract family with local Ruff, mypy, translations, Markdown docs-link checks, architecture/file-matrix scripts, focused diagnostics tests, and governance guards.
-- `scripts/lint` is the closest local umbrella entrypoint; default mode skips pytest/governance, while `--full` mirrors the heavy CI path.
+- `scripts/lint` is the closest local umbrella entrypoint; default mode still skips the generic governance/full-pytest matrix, but it now auto-runs the Phase 113 focused assurance chain when matching hotspot / toolchain / governance-handoff surfaces are touched, while `--full` mirrors the heavy CI path.
 
 ## Common Patterns
 
@@ -293,3 +293,9 @@ with pytest.raises(ServiceValidationError):
 - `tests/meta/test_phase102_governance_portability_guards.py` 继续冻结 archived `v1.28` predecessor bundle、promoted closeout package、docs-first continuity wording 与 residual/kill-ledger honesty。
 - `tests/meta/test_governance_bootstrap_smoke.py`、`tests/meta/test_governance_route_handoff_smoke.py` 与 `tests/meta/governance_followup_route_current_milestones.py` 共同保证 capability-aware gsd fast-path、machine-readable contract 与 latest archived pointer 不再分叉。
 - Phase 102 verification requires focused governance/docs/archive guards、`tests/meta`、`scripts/check_file_matrix.py --check`、`ruff` 与 `mypy` 一起通过，之后 `$gsd-next` 的自然落点才允许稳定收口到 `$gsd-new-milestone`。
+
+## Phase 113 Testing Freeze
+
+- `tests/meta/test_phase113_hotspot_assurance_guards.py` now freezes the Phase 113 hotspot line-budget registry, helper-import locality, and default `scripts/lint` changed-surface assurance contract.
+- `tests/core/test_share_client_submit.py` and `tests/core/test_command_result.py` remain the focused regression chain for the two low-blast-radius hotspot decompositions completed in this phase; `tests/meta/toolchain_truth_ci_contract.py`, `tests/meta/test_governance_release_docs.py`, and `tests/meta/toolchain_truth_docs_fast_path.py` keep the default-lint tooling/docs story honest when those surfaces move.
+- Phase 113 verification requires focused submit/command/meta suites, docs/toolchain fast-path guards when docs change, `scripts/check_file_matrix.py --check`, `ruff`, and governance handoff smoke before the current route advances to `Phase 114`.
