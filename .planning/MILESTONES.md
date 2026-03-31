@@ -1,20 +1,25 @@
 # Milestones
 
-## v1.31 Boundary Sealing, Governance Truth & Quality Hardening (Shipped: 2026-03-31; Closeout: 2026-03-31)
+## Current Milestone (v1.32)
 
-**Phases completed:** 4 phases, 13 plans, 0 tasks
+**Phase range:** `115 -> 117`
+**Phases completed:** 1 phase, 1 plan, 0 tasks
+**Status:** `active / phase 115 complete; phase 116 discuss-ready (2026-03-31)`
+**Route truth:** `v1.32 active milestone route / starting from latest archived baseline = v1.31`
+**Latest archived baseline:** `v1.31`
+**Default next command:** `$gsd-discuss-phase 116`
 
-**Status:** archived / evidence-ready
-**Route truth:** latest archived evidence index = `.planning/reviews/V1_31_EVIDENCE_INDEX.md`
-**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.31`
-**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.30`
-**Default next command:** `$gsd-new-milestone`
+**Current phase story:**
 
-**Key accomplishments:**
+- `Phase 115`: status-fallback query-flow normalization ✅
+- `Phase 116`: anonymous-share and REST façade hotspot slimming ⏳
+- `Phase 117`: validation backfill and continuity hardening ⏳
 
-- 完成 `Phase 111 -> 114` 全部计划与 closeout bundle，形成 `v1.31` latest archived baseline 的可审计证据链。
-- 封印 entity/control → runtime concrete bypass，并用 governance / dependency guards 固化 formal runtime access 主链。
-- 统一 sanctioned root homes、governance anchors、hotspot no-growth proof 与 open-source honesty wording，不再保留第二条 current story。
+**Current accomplishments:**
+
+- 已冻结 `status_fallback` 空输入 / fallback-depth / no-I/O contract，并把首个 focused regression 写入正式 test suite。
+- 已把 `v1.31` 诚实登记的 remaining hotspots 组织成 `v1.32` active route，而不是回写 archived truth。
+- 后续路线已明确：先继续收窄 `rest_facade.py` 与 `anonymous_share/manager.py`，再补齐 `Phase 112 -> 114` 的 validation / continuity 资产。
 
 ---
 
@@ -25,7 +30,13 @@
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone: null
+active_milestone:
+  version: v1.32
+  name: Residual Hotspot Eradication, Validation Completion & Continuity Hardening
+  status: active / phase 115 complete; phase 116 discuss-ready (2026-03-31)
+  phase: '115'
+  phase_title: Status-fallback query-flow normalization
+  phase_dir: 115-status-fallback-query-flow-normalization
 latest_archived:
   version: v1.31
   name: Boundary Sealing, Governance Truth & Quality Hardening
@@ -41,8 +52,8 @@ previous_archived:
   name: Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming
   evidence_path: .planning/reviews/V1_30_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.31
-  default_next_command: $gsd-new-milestone
+  current_route: v1.32 active milestone route / starting from latest archived baseline = v1.31
+  default_next_command: $gsd-discuss-phase 116
   latest_archived_evidence_pointer: .planning/reviews/V1_31_EVIDENCE_INDEX.md
 ```
 
@@ -57,7 +68,7 @@ bootstrap:
 **Latest archived baseline:** `v1.31`
 **Default next command:** `$gsd-new-milestone`
 
-**Current phase story:**
+**Archived phase story:**
 
 - `Phase 111`: entity-runtime boundary sealing and dependency-guard hardening ✅
 - `Phase 112`: formal-home discoverability and governance-anchor normalization ✅
@@ -66,9 +77,9 @@ bootstrap:
 
 **Key accomplishments:**
 
-- 把 entity/control → runtime 具体依赖与 raw runtime-data backflow 收口为 sanctioned runtime public surface。
-- 把 formal-home discoverability、runbook/archive pointer 与 root-level ownership truth 统一到单一治理主链。
-- 把 hotspot burn-down、no-growth budget 与 open-source honesty 固定为 `v1.31` archived baseline，而不是 closeout-ready 中间态。
+- 完成 `Phase 111 -> 114` 全部计划与 closeout bundle，形成 `v1.31` latest archived baseline 的可审计证据链。
+- 封印 entity/control → runtime concrete bypass，并用 governance / dependency guards 固化 formal runtime access 主链。
+- 统一 sanctioned root homes、governance anchors、hotspot no-growth proof 与 open-source honesty truth。
 
 ## v1.30 Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming (Shipped: 2026-03-30; Closeout: 2026-03-30)
 

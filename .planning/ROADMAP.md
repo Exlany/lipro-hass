@@ -1,13 +1,21 @@
 # Roadmap
 
-- ✅ **v1.31 Boundary Sealing, Governance Truth & Quality Hardening** - `Phase 111 -> 114` archived on 2026-03-31; current route = `no active milestone route / latest archived baseline = v1.31`; latest archived evidence index = `.planning/reviews/V1_31_EVIDENCE_INDEX.md`; default next = `$gsd-new-milestone`
-- ✅ **v1.30 Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming** - `Phase 107 -> 110` archived on 2026-03-30; milestone audit: `.planning/v1.30-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_30_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.30-ROADMAP.md` / `.planning/milestones/v1.30-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.30`
+## Milestones
+
+- ✅ **v1.31 Boundary Sealing, Governance Truth & Quality Hardening** - `Phase 111 -> 114` archived on 2026-03-31; latest archived baseline pointer = `.planning/reviews/V1_31_EVIDENCE_INDEX.md`
+- 🚧 **v1.32 Residual Hotspot Eradication, Validation Completion & Continuity Hardening** - `Phase 115 -> 117` is the current active route; starting from latest archived baseline = `v1.31`
 
 <!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone: null
+active_milestone:
+  version: v1.32
+  name: Residual Hotspot Eradication, Validation Completion & Continuity Hardening
+  status: active / phase 115 complete; phase 116 discuss-ready (2026-03-31)
+  phase: '115'
+  phase_title: Status-fallback query-flow normalization
+  phase_dir: 115-status-fallback-query-flow-normalization
 latest_archived:
   version: v1.31
   name: Boundary Sealing, Governance Truth & Quality Hardening
@@ -23,18 +31,75 @@ previous_archived:
   name: Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming
   evidence_path: .planning/reviews/V1_30_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.31
-  default_next_command: $gsd-new-milestone
+  current_route: v1.32 active milestone route / starting from latest archived baseline = v1.31
+  default_next_command: $gsd-discuss-phase 116
   latest_archived_evidence_pointer: .planning/reviews/V1_31_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
 ## Overview
 
-`v1.31` 已完成 closeout 并固定为 latest archived baseline：`Phase 111 -> 114` 共同把 entity/control → runtime boundary sealing、formal-home discoverability、hotspot no-regrowth assurance 与 open-source honesty 收口成单一 pull-only archived truth。后续工作必须以该 archived bundle 为起点开启新 milestone，而不是回写第二套 live 故事线。
+`v1.32` 继续只沿单一 north-star 主线推进：基于 `v1.31` latest archived baseline，先冻结 `status_fallback` 入口 contract，再继续收窄 `rest_facade.py`、`anonymous_share/manager.py` 与 validation / continuity debt。所有工作都必须在 formal homes 内完成，不引入 second root，不复活 compat shell。
 
-**Coverage:** `8/8` v1.31 requirements mapped exactly once.
-**Default next command:** `$gsd-new-milestone`
+**Coverage:** `4/4` v1.32 requirements mapped exactly once.
+**Default next command:** `$gsd-discuss-phase 116`
+
+## v1.32: Residual Hotspot Eradication, Validation Completion & Continuity Hardening
+
+**Milestone status:** `active / phase 115 complete; phase 116 discuss-ready (2026-03-31)`
+**Default next command:** `$gsd-discuss-phase 116`
+**Current route story:** `v1.32 active milestone route / starting from latest archived baseline = v1.31`
+**Latest archived pointer:** `.planning/reviews/V1_31_EVIDENCE_INDEX.md`
+
+## Phases
+
+- [x] **Phase 115: Status-fallback query-flow normalization** - 已冻结空输入 / fallback-depth / no-I/O contract，并补入 focused regression。 (completed 2026-03-31)
+- [ ] **Phase 116: Anonymous-share and REST façade hotspot slimming** - 继续 inward split `anonymous_share/manager.py` 与 `rest_facade.py`，不扩大 public contract。 (planned)
+- [ ] **Phase 117: Validation backfill and continuity hardening** - 补齐 `Phase 112 -> 114` validation / changed-surface / continuity 资产与 route continuity truth。 (planned)
+
+## Phase Details
+
+### Phase 115: Status-fallback query-flow normalization
+**Goal**: `status_fallback` family 的入口语义必须在空输入、primary batch 与 fallback-depth 维度上保持单一正式 contract，不再允许 public entry 与 binary-split support 再次分叉。
+**Depends on**: latest archived baseline `v1.31`
+**Requirements**: HOT-48
+**Status**: Complete (`2026-03-31`)
+**Success Criteria** (what must be TRUE):
+  1. 空 `ids` 下，`query_with_fallback()` 与 binary-split support 都立即返回空结果，不触发无意义 I/O。
+  2. `record_fallback_depth` 在空输入路径上保持 `0`，与“没有发生 fallback”的语义一致。
+  3. Focused regression 会冻结这一 contract，避免后续 hotspot slimming 让入口语义再次漂移。
+**Plans**: 1/1 complete
+**Evidence**: `.planning/phases/115-status-fallback-query-flow-normalization/{115-01-SUMMARY.md,115-SUMMARY.md,115-VERIFICATION.md}`
+
+### Phase 116: Anonymous-share and REST façade hotspot slimming
+**Goal**: `AnonymousShareManager` 与 `LiproRestFacade` 继续 inward split，但 formal outward home、stable import shell 与 child-façade composition truth 保持不变。
+**Depends on**: Phase 115
+**Requirements**: HOT-49
+**Success Criteria** (what must be TRUE):
+  1. aggregate/scoped submit semantics 与 façade state-proxy / wrapper density 继续下降，而不是通过新增 helper shell 掩盖复杂度。
+  2. `anonymous_share/manager.py` 与 `rest_facade.py` 不会长出第二条 production path、compat shell 或新的 outward root。
+  3. Focused tests 会明确冻结 formal home / factory / stable import / wrapper contract，不靠仓库全量测试碰运气。
+**Status**: Planned
+**Plans**: 0/0
+
+### Phase 117: Validation backfill and continuity hardening
+**Goal**: `Phase 112 -> 114` 的 validation / changed-surface / continuity proof 必须补齐，让 archived baseline 与下一条 active route 之间的 selector、runbook、evidence chain 继续保持单一 truth。
+**Depends on**: Phase 116
+**Requirements**: TST-39, GOV-73
+**Success Criteria** (what must be TRUE):
+  1. `Phase 112 -> 114` 缺失的 validation / changed-surface 资产被补齐，并与 latest archived evidence chain 对齐。
+  2. `docs/developer_architecture.md`、`docs/MAINTAINER_RELEASE_RUNBOOK.md` 与 planning selector family 会共同承认 `v1.32` active route / `v1.31` latest archived baseline truth。
+  3. 当前 route 的 next-step / archived pointer / continuity note 继续 machine-checkable，不回退成 conversation-only story。
+**Status**: Planned
+**Plans**: 0/0
+
+## Progress
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 115. Status-fallback query-flow normalization | 1/1 | Complete | 2026-03-31 |
+| 116. Anonymous-share and REST façade hotspot slimming | 0/0 | Planned | - |
+| 117. Validation backfill and continuity hardening | 0/0 | Planned | - |
 
 ## v1.31: Boundary Sealing, Governance Truth & Quality Hardening
 
