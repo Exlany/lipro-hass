@@ -225,7 +225,7 @@ async def test_submit_share_payload_with_outcome_handles_401_token_fallback_and_
     assert outcome.is_success is True
     assert outcome.kind == "success"
     assert outcome.reason_code == "submitted"
-    assert client.install_token is None
+    assert typing.cast(object, client.install_token) is None
     first_headers = session.post.call_args_list[0].kwargs["headers"]
     second_headers = session.post.call_args_list[1].kwargs["headers"]
     assert first_headers["Authorization"] == "Bearer tok-old"
@@ -300,6 +300,35 @@ async def test_submit_share_payload_with_outcome_handles_429_and_invalid_schema(
     assert invalid_schema.reason_code == "invalid_schema"
     assert invalid_schema.http_status == 400
     assert invalid_schema.failure_summary["handling_policy"] == "inspect"
+
+
+@pytest.mark.asyncio
+async def test_submit_share_payload_with_outcome_clears_rejected_token_before_terminal_failure() -> None:
+    client = ShareWorkerClient()
+    client.install_token = "tok-old"
+    session = MagicMock()
+    session.post = MagicMock(
+        side_effect=[
+            _response_context(_response(status=401, payload={"code": "TOKEN_EXPIRED"})),
+            _response_context(_response(status=400, payload={"code": "INVALID_SCHEMA"})),
+        ]
+    )
+
+    outcome = await client.submit_share_payload_with_outcome(
+        session,
+        _make_report(),
+        label="Anonymous share",
+        ensure_loaded=AsyncMock(),
+    )
+
+    assert outcome.is_success is False
+    assert outcome.kind == "failed"
+    assert outcome.reason_code == "invalid_schema"
+    assert typing.cast(object, client.install_token) is None
+    first_headers = session.post.call_args_list[0].kwargs["headers"]
+    second_headers = session.post.call_args_list[1].kwargs["headers"]
+    assert first_headers["Authorization"] == "Bearer tok-old"
+    assert "Authorization" not in second_headers
 
 
 @pytest.mark.asyncio
@@ -385,7 +414,7 @@ async def test_submit_share_payload_with_outcome_exposes_token_rejected_reason()
     assert outcome.kind == "failed"
     assert outcome.reason_code == "token_rejected"
     assert outcome.http_status == 401
-    assert client.install_token is None
+    assert typing.cast(object, client.install_token) is None
     assert session.post.call_count == 2
     assert all(call.args[0] == SHARE_REPORT_URL for call in session.post.call_args_list)
 

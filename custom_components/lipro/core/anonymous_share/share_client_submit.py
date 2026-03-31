@@ -326,6 +326,66 @@ async def _submit_variant_token_attempt(
         return response.status, response.headers, payload
 
 
+def _resolve_retryable_submit_attempt(
+    client: ShareWorkerClientLike,
+    *,
+    submit_variant: SubmitVariant,
+    http_status: int,
+    response_headers: ResponseHeadersLike,
+    now: Callable[[], float],
+) -> tuple[OperationOutcome | None, bool] | None:
+    """Resolve retry-oriented submit branches for one attempt."""
+    if http_status == 429:
+        return (
+            _build_rate_limited_submit_outcome(
+                client,
+                headers=response_headers,
+                now=now,
+            ),
+            False,
+        )
+    if http_status == 413 and submit_variant.fallback_on_payload_too_large:
+        return None, True
+    return None
+
+
+def _resolve_submit_token_rejection(
+    client: ShareWorkerClientLike,
+    *,
+    token: str | None,
+    http_status: int,
+    code: object,
+) -> tuple[OperationOutcome | None, bool] | None:
+    """Resolve token-rejection branches for one submit attempt."""
+    if not is_submit_token_rejected(http_status=http_status, code=code):
+        return None
+    if token:
+        client.clear_install_token()
+        return None, False
+    return (
+        build_token_rejected_outcome(
+            failure_origin=_SHARE_SUBMIT_ORIGIN,
+        ),
+        False,
+    )
+
+
+def _resolve_invalid_schema_submit_attempt(
+    *,
+    http_status: int,
+    code: object,
+) -> tuple[OperationOutcome, bool] | None:
+    """Resolve the invalid-schema terminal branch for one submit attempt."""
+    if http_status != 400 or code != "INVALID_SCHEMA":
+        return None
+    return (
+        build_invalid_schema_outcome(
+            failure_origin=_SHARE_SUBMIT_ORIGIN,
+        ),
+        False,
+    )
+
+
 def _resolve_submit_attempt_outcome(
     client: ShareWorkerClientLike,
     *,
@@ -349,37 +409,31 @@ def _resolve_submit_attempt_outcome(
         )
 
     code = extract_response_code(payload)
-    if http_status == 429:
-        return (
-            _build_rate_limited_submit_outcome(
-                client,
-                headers=response_headers,
-                now=now,
-            ),
-            False,
-        )
+    retryable_result = _resolve_retryable_submit_attempt(
+        client,
+        submit_variant=submit_variant,
+        http_status=http_status,
+        response_headers=response_headers,
+        now=now,
+    )
+    if retryable_result is not None:
+        return retryable_result
 
-    if http_status == 413 and submit_variant.fallback_on_payload_too_large:
-        return None, True
+    token_rejection_result = _resolve_submit_token_rejection(
+        client,
+        token=token,
+        http_status=http_status,
+        code=code,
+    )
+    if token_rejection_result is not None:
+        return token_rejection_result
 
-    if is_submit_token_rejected(http_status=http_status, code=code):
-        if token:
-            client.clear_install_token()
-            return None, False
-        return (
-            build_token_rejected_outcome(
-                failure_origin=_SHARE_SUBMIT_ORIGIN,
-            ),
-            False,
-        )
-
-    if http_status == 400 and code == "INVALID_SCHEMA":
-        return (
-            build_invalid_schema_outcome(
-                failure_origin=_SHARE_SUBMIT_ORIGIN,
-            ),
-            False,
-        )
+    invalid_schema_result = _resolve_invalid_schema_submit_attempt(
+        http_status=http_status,
+        code=code,
+    )
+    if invalid_schema_result is not None:
+        return invalid_schema_result
 
     return None, False
 
