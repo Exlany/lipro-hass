@@ -6,13 +6,11 @@ creating import cycles.
 
 from __future__ import annotations
 
-from typing import Any
-
 _TRUE_STRINGS = frozenset({"1", "true", "yes", "on"})
 _FALSE_STRINGS = frozenset({"0", "false", "no", "off", ""})
 
 
-def parse_boollike(value: Any) -> bool | None:
+def parse_boollike(value: object) -> bool | None:
     """Parse a bool-like value into ``bool``.
 
     Returns ``None`` when the value cannot be interpreted.

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from ..capability import CapabilityRegistry, CapabilitySnapshot
 from .identity import DeviceIdentity
@@ -37,7 +37,7 @@ def build_capabilities_snapshot(device: LiproDevice) -> CapabilitySnapshot:
     return CapabilityRegistry.from_device(device)
 
 
-def build_network_info(properties: Mapping[str, Any]) -> DeviceNetworkInfo:
+def build_network_info(properties: Mapping[str, object]) -> DeviceNetworkInfo:
     """Build structured network metadata from normalized properties."""
     return DeviceNetworkInfo.from_properties(dict(properties))
 

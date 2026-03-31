@@ -188,47 +188,54 @@ class SnapshotBuilder:
             )
         return all_devices
 
-    async def build_full_snapshot(
+    def _record_snapshot_row(
         self,
         *,
-        max_pages: int = 50,
-    ) -> FetchedDeviceSnapshot:
-        """Build complete device snapshot from paginated API."""
-        all_devices = await self._collect_snapshot_pages(max_pages=max_pages)
+        page_number: int,
+        device_data: DeviceRow,
+        assembly: SnapshotAssembly,
+    ) -> None:
+        """Normalize, filter, parse, and record one snapshot row."""
+        try:
+            normalized_row = canonicalize_device_row(device_data)
+            if not self._device_filter.is_device_included(normalized_row):
+                _LOGGER.debug("Device filtered out by configuration")
+                return
 
-        assembly = SnapshotAssembly()
+            device = LiproDevice.from_api_data(cast(dict[str, object], normalized_row))
+        except asyncio.CancelledError:
+            raise
+        except (RuntimeError, ValueError, TypeError, LookupError) as err:
+            raise RuntimeSnapshotRefreshRejectedError(
+                stage="parse_device",
+                page=page_number,
+                device_ref=device_ref_from_row(device_data),
+                cause_type=type(err).__name__,
+            ) from err
 
-        for page_number, device_data in all_devices:
-            try:
-                normalized_row = canonicalize_device_row(device_data)
-                if not self._device_filter.is_device_included(normalized_row):
-                    _LOGGER.debug("Device filtered out by configuration")
-                    continue
-
-                device = LiproDevice.from_api_data(cast(dict[str, object], normalized_row))
-            except asyncio.CancelledError:
-                raise
-            except (RuntimeError, ValueError, TypeError, LookupError) as err:
-                raise RuntimeSnapshotRefreshRejectedError(
-                    stage="parse_device",
-                    page=page_number,
-                    device_ref=device_ref_from_row(device_data),
-                    cause_type=type(err).__name__,
-                ) from err
-
-            record_snapshot_device(
-                normalized_row=normalized_row,
-                device=device,
-                assembly=assembly,
-            )
-
-        await self._async_enrich_mesh_group_metadata(
-            device_by_id=assembly.device_by_id,
-            group_ids=assembly.group_ids,
+        record_snapshot_device(
+            normalized_row=normalized_row,
+            device=device,
+            assembly=assembly,
         )
 
-        self._device_identity_index.replace(assembly.identity_mapping)
+    def _build_snapshot_assembly(
+        self,
+        *,
+        all_devices: list[tuple[int, DeviceRow]],
+    ) -> SnapshotAssembly:
+        """Build the in-memory snapshot assembly from canonical rows."""
+        assembly = SnapshotAssembly()
+        for page_number, device_data in all_devices:
+            self._record_snapshot_row(
+                page_number=page_number,
+                device_data=device_data,
+                assembly=assembly,
+            )
+        return assembly
 
+    def _log_snapshot_summary(self, assembly: SnapshotAssembly) -> None:
+        """Log the final snapshot summary after successful assembly."""
         _LOGGER.info(
             "Built device snapshot: %d devices (%d IoT, %d groups, %d outlets)",
             len(assembly.devices),
@@ -237,6 +244,8 @@ class SnapshotBuilder:
             len(assembly.outlet_ids),
         )
 
+    def _build_fetched_snapshot(self, assembly: SnapshotAssembly) -> FetchedDeviceSnapshot:
+        """Freeze assembly data into the fetched snapshot value object."""
         return FetchedDeviceSnapshot(
             devices=assembly.devices,
             device_by_id=assembly.device_by_id,
@@ -247,6 +256,23 @@ class SnapshotBuilder:
             cloud_serials=assembly.cloud_serials,
             diagnostic_gateway_devices=assembly.diagnostic_gateway_devices,
         )
+
+    async def build_full_snapshot(
+        self,
+        *,
+        max_pages: int = 50,
+    ) -> FetchedDeviceSnapshot:
+        """Build complete device snapshot from paginated API."""
+        all_devices = await self._collect_snapshot_pages(max_pages=max_pages)
+        assembly = self._build_snapshot_assembly(all_devices=all_devices)
+
+        await self._async_enrich_mesh_group_metadata(
+            device_by_id=assembly.device_by_id,
+            group_ids=assembly.group_ids,
+        )
+        self._device_identity_index.replace(assembly.identity_mapping)
+        self._log_snapshot_summary(assembly)
+        return self._build_fetched_snapshot(assembly)
 
 
 __all__ = [
