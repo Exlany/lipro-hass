@@ -154,42 +154,51 @@ class MqttSubscriptionManager:
             raise_on_error=True,
         )
 
-    async def sync_subscriptions(
+    async def _sync_added_subscriptions(
         self,
         *,
         client: aiomqtt.Client | None,
         connected: bool,
         subscribed_devices: set[str],
         pending_unsubscribe: set[str],
-        device_ids: set[str],
-    ) -> tuple[int, int]:
-        """Sync subscriptions to match the given device ID set."""
-        to_add = device_ids - subscribed_devices
-        to_remove = subscribed_devices - device_ids
-        if not to_add and not to_remove:
-            return 0, 0
-        added = 0
-        if to_add:
-            pending_unsubscribe.difference_update(to_add)
-            if connected and client is not None:
-                topic_pairs = self.build_topic_pairs(
-                    to_add,
-                    invalid_log_message=(
-                        "Skipping invalid MQTT device ID %s: invalid characters"
-                    ),
-                )
-                added = await self.subscribe_topic_pairs(
-                    client,
-                    topic_pairs,
-                    subscribed_devices=subscribed_devices,
-                    update_subscription_state=True,
-                    raise_on_error=False,
-                )
-            else:
-                subscribed_devices.update(to_add)
-                added += len(to_add)
+        to_add: set[str],
+    ) -> int:
+        """Sync the newly desired device IDs into the active subscription set."""
+        if not to_add:
+            return 0
+        pending_unsubscribe.difference_update(to_add)
+        if connected and client is not None:
+            topic_pairs = self.build_topic_pairs(
+                to_add,
+                invalid_log_message=(
+                    "Skipping invalid MQTT device ID %s: invalid characters"
+                ),
+            )
+            return await self.subscribe_topic_pairs(
+                client,
+                topic_pairs,
+                subscribed_devices=subscribed_devices,
+                update_subscription_state=True,
+                raise_on_error=False,
+            )
+
+        subscribed_devices.update(to_add)
+        return len(to_add)
+
+    async def _sync_removed_subscriptions(
+        self,
+        *,
+        client: aiomqtt.Client | None,
+        connected: bool,
+        subscribed_devices: set[str],
+        pending_unsubscribe: set[str],
+        to_remove: set[str],
+    ) -> int:
+        """Sync removed device IDs out of the active subscription set."""
         removed = len(to_remove)
-        if to_remove and connected and client is not None:
+        if not to_remove:
+            return removed
+        if connected and client is not None:
             pending_unsubscribe.update(to_remove)
 
             def _drop_invalid_device(device_id: str) -> None:
@@ -209,10 +218,41 @@ class MqttSubscriptionManager:
                 pending_unsubscribe=pending_unsubscribe,
                 subscribed_devices=subscribed_devices,
             )
-        elif to_remove:
-            for device_id in to_remove:
-                subscribed_devices.discard(device_id)
-                pending_unsubscribe.add(device_id)
+            return removed
+
+        for device_id in to_remove:
+            subscribed_devices.discard(device_id)
+            pending_unsubscribe.add(device_id)
+        return removed
+
+    async def sync_subscriptions(
+        self,
+        *,
+        client: aiomqtt.Client | None,
+        connected: bool,
+        subscribed_devices: set[str],
+        pending_unsubscribe: set[str],
+        device_ids: set[str],
+    ) -> tuple[int, int]:
+        """Sync subscriptions to match the given device ID set."""
+        to_add = device_ids - subscribed_devices
+        to_remove = subscribed_devices - device_ids
+        if not to_add and not to_remove:
+            return 0, 0
+        added = await self._sync_added_subscriptions(
+            client=client,
+            connected=connected,
+            subscribed_devices=subscribed_devices,
+            pending_unsubscribe=pending_unsubscribe,
+            to_add=to_add,
+        )
+        removed = await self._sync_removed_subscriptions(
+            client=client,
+            connected=connected,
+            subscribed_devices=subscribed_devices,
+            pending_unsubscribe=pending_unsubscribe,
+            to_remove=to_remove,
+        )
         return added, removed
 
 
