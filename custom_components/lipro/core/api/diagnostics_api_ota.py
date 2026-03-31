@@ -100,19 +100,14 @@ async def _query_rich_v2_fallback_rows(
     )
 
 
-async def _query_primary_ota_rows(
+async def _query_standard_ota_rows(
     *,
     iot_request: IotRequest,
     extract_data_list: ExtractDataList,
-    is_invalid_param_error_code: InvalidParamCodeChecker,
     lipro_api_error: type[Exception],
     ota_payload: RequestPayload,
-    rich_v2_payload: RequestPayload | None,
-) -> PrimaryOtaQueryResult:
-    """Query OTA primary endpoints and collapse their local fallback state."""
-    merged_rows: list[OtaInfoRow] = []
-    seen_keys: set[OtaRowDedupeKey] = set()
-
+) -> tuple[list[OtaInfoRow], Exception | None, list[OtaInfoRow], Exception | None]:
+    """Query the standard OTA v1/v2 endpoints with one shared payload."""
     v1_rows, v1_error = await query_ota_rows_with_payload(
         iot_request=iot_request,
         extract_data_list=extract_data_list,
@@ -127,26 +122,86 @@ async def _query_primary_ota_rows(
         path=PATH_QUERY_OTA_INFO_V2,
         payload=ota_payload,
     )
-    ota_success = _merge_primary_rows(merged_rows, seen_keys, v1_rows, error=v1_error)
-    ota_success = _merge_primary_rows(merged_rows, seen_keys, v2_rows, error=v2_error) or ota_success
-    ota_error = v2_error or v1_error
+    return v1_rows, v1_error, v2_rows, v2_error
 
-    rich_v2_rows, rich_v2_outcome, rich_v2_error, rich_v2_recovered = await _query_rich_v2_fallback_rows(
+
+def _resolve_primary_endpoint_state(
+    *,
+    v1_rows: list[OtaInfoRow],
+    v1_error: Exception | None,
+    v2_rows: list[OtaInfoRow],
+    v2_error: Exception | None,
+) -> tuple[list[OtaInfoRow], set[OtaRowDedupeKey], bool, Exception | None]:
+    """Collapse v1/v2 endpoint results into one merge state."""
+    merged_rows: list[OtaInfoRow] = []
+    seen_keys: set[OtaRowDedupeKey] = set()
+    ota_success = _merge_primary_rows(merged_rows, seen_keys, v1_rows, error=v1_error)
+    ota_success = (
+        _merge_primary_rows(merged_rows, seen_keys, v2_rows, error=v2_error)
+        or ota_success
+    )
+    return merged_rows, seen_keys, ota_success, v2_error or v1_error
+
+
+def _merge_rich_v2_fallback_state(
+    *,
+    merged_rows: list[OtaInfoRow],
+    seen_keys: set[OtaRowDedupeKey],
+    rich_v2_rows: list[OtaInfoRow],
+    rich_v2_error: Exception | None,
+    ota_success: bool,
+    ota_error: Exception | None,
+) -> tuple[bool, Exception | None]:
+    """Merge rich-v2 fallback rows and update success/error state."""
+    if rich_v2_error is not None:
+        return ota_success, rich_v2_error
+    if not rich_v2_rows:
+        return ota_success, ota_error
+    _merge_ota_rows(merged_rows, seen_keys, rich_v2_rows)
+    return True, ota_error
+
+
+async def _query_primary_ota_rows(
+    *,
+    iot_request: IotRequest,
+    extract_data_list: ExtractDataList,
+    is_invalid_param_error_code: InvalidParamCodeChecker,
+    lipro_api_error: type[Exception],
+    ota_payload: RequestPayload,
+    rich_v2_payload: RequestPayload | None,
+) -> PrimaryOtaQueryResult:
+    """Query OTA primary endpoints and collapse their local fallback state."""
+    v1_rows, v1_error, v2_rows, v2_error = await _query_standard_ota_rows(
         iot_request=iot_request,
         extract_data_list=extract_data_list,
-        is_invalid_param_error_code=is_invalid_param_error_code,
         lipro_api_error=lipro_api_error,
-        rich_v2_payload=rich_v2_payload,
-        v1_rows=v1_rows,
-        v2_rows=v2_rows,
+        ota_payload=ota_payload,
     )
-    if rich_v2_error is None:
-        if rich_v2_rows:
-            ota_success = True
-            _merge_ota_rows(merged_rows, seen_keys, rich_v2_rows)
-    else:
-        ota_error = rich_v2_error
-
+    merged_rows, seen_keys, ota_success, ota_error = _resolve_primary_endpoint_state(
+        v1_rows=v1_rows,
+        v1_error=v1_error,
+        v2_rows=v2_rows,
+        v2_error=v2_error,
+    )
+    rich_v2_rows, rich_v2_outcome, rich_v2_error, rich_v2_recovered = (
+        await _query_rich_v2_fallback_rows(
+            iot_request=iot_request,
+            extract_data_list=extract_data_list,
+            is_invalid_param_error_code=is_invalid_param_error_code,
+            lipro_api_error=lipro_api_error,
+            rich_v2_payload=rich_v2_payload,
+            v1_rows=v1_rows,
+            v2_rows=v2_rows,
+        )
+    )
+    ota_success, ota_error = _merge_rich_v2_fallback_state(
+        merged_rows=merged_rows,
+        seen_keys=seen_keys,
+        rich_v2_rows=rich_v2_rows,
+        rich_v2_error=rich_v2_error,
+        ota_success=ota_success,
+        ota_error=ota_error,
+    )
     return PrimaryOtaQueryResult(
         rows=merged_rows,
         error=ota_error,

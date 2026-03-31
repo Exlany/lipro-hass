@@ -328,6 +328,36 @@ async def test_query_ota_info_with_outcome_reports_rich_v2_invalid_param() -> No
 
 
 @pytest.mark.asyncio
+async def test_query_ota_info_with_outcome_reports_rich_v2_recovery() -> None:
+    row = {"deviceType": "ff000001", "latestVersion": "1.0.1"}
+    iot_request = AsyncMock(
+        side_effect=[
+            {"rows": []},
+            {"rows": []},
+            {"rows": [row]},
+            {"rows": []},
+        ]
+    )
+
+    result = await query_ota_info_with_outcome(
+        iot_request=iot_request,
+        extract_data_list=_extract_rows,
+        is_invalid_param_error_code=lambda code: code == "100000",
+        to_device_type_hex=lambda value: str(value),
+        lipro_api_error=DummyApiError,
+        device_id="mesh_group_1",
+        device_type="ff000001",
+        iot_name="21P3",
+        allow_rich_v2_fallback=True,
+    )
+
+    assert result.rows == [row]
+    assert result.error is None
+    assert result.outcome.kind == "degraded"
+    assert result.outcome.reason_code == "rich_v2_recovered"
+
+
+@pytest.mark.asyncio
 async def test_query_ota_info_handles_generic_error_on_richer_v2_payload() -> None:
     iot_request = AsyncMock(
         side_effect=[
