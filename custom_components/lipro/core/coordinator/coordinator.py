@@ -32,8 +32,6 @@ if TYPE_CHECKING:
     from .types import PropertyDict
 
 _LOGGER = logging.getLogger(__name__)
-
-# Preserve the historical patch seam for focused runtime-root tests.
 _PATCHABLE_RUNTIME_SERVICE_TYPES = (CoordinatorCommandService,)
 
 
@@ -48,15 +46,7 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         config_entry: ConfigEntry,
         update_interval: int = DEFAULT_SCAN_INTERVAL,
     ) -> None:
-        """Initialize the coordinator runtime.
-
-        Args:
-            hass: Home Assistant instance
-            protocol: Formal protocol facade
-            auth_manager: Authentication manager
-            config_entry: Configuration entry
-            update_interval: Polling interval in seconds
-        """
+        """Initialize the coordinator runtime root."""
         super().__init__(
             hass,
             _LOGGER,
@@ -154,7 +144,6 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         self.telemetry_service = bootstrap.service_layer.telemetry_service
         self._update_cycle = bootstrap.update_cycle
 
-    # RuntimeContext callback methods (injected into all runtimes)
     def _get_device_by_id(self, device_id: str) -> LiproDevice | None:
         """Get device by any known identifier (RuntimeContext callback)."""
         if hasattr(self, "_runtimes"):
@@ -174,7 +163,6 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         )
         if not filtered_properties:
             return False
-
         self._runtimes.command.observe_state_confirmation(
             device_serial=device.serial,
             properties=filtered_properties,
@@ -217,31 +205,16 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         """Return the canonical runtime device registry view."""
         return MappingProxyType(self._state.devices)
 
-    # Public methods for entity integration
     def iter_devices(self) -> tuple[LiproDevice, ...]:
         """Return a stable iterable of the current runtime devices."""
         return tuple(self.devices.values())
 
     def get_device(self, serial: str) -> LiproDevice | None:
-        """Get device by serial number.
-
-        Args:
-            serial: Device serial number
-
-        Returns:
-            Device if found, None otherwise
-        """
+        """Get one device by serial number."""
         return self.state_service.get_device(serial)
 
     def get_device_by_id(self, device_id: str) -> LiproDevice | None:
-        """Get device by any identifier (serial, iot_id, gateway_id, etc).
-
-        Args:
-            device_id: Device identifier
-
-        Returns:
-            Device if found, None otherwise
-        """
+        """Get one device by any known identifier."""
         return self.state_service.get_device_by_id(device_id)
 
     def register_entity(self, entity: LiproEntityProtocol) -> None:
@@ -267,22 +240,12 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         command: str,
         properties: list[dict[str, str]] | None = None,
     ) -> bool:
-        """Send command to device.
-
-        Args:
-            device: Target device
-            command: Command name
-            properties: Command properties
-
-        Returns:
-            True if command succeeded
-        """
+        """Send one command through the formal command surface."""
         success = await self.command_service.async_send_command(
             device, command, properties
         )
         if success:
             return True
-
         failure_summary = self.command_service.last_failure
         reauth_reason = (
             failure_summary.get("reauth_reason")
@@ -302,7 +265,6 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
         """Apply one optimistic property projection using runtime-owned locking."""
         if not properties:
             return
-
         device_lock = self.state_service.get_device_lock(device.serial)
         async with device_lock:
             device.update_properties(dict(properties))
