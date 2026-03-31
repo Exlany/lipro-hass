@@ -195,7 +195,9 @@ class RestAuthRecoveryCoordinator:
             error_type=error_type,
         )
 
-    def _complete_refresh_attempt(self, *, request_token: str | None, started_at: float) -> bool:
+    def _complete_refresh_attempt(
+        self, *, request_token: str | None, started_at: float
+    ) -> bool:
         """Finalize one token-refresh callback and report whether replay is safe."""
         refreshed_token = self._state.access_token
         duration_seconds = monotonic() - started_at
@@ -204,9 +206,7 @@ class RestAuthRecoveryCoordinator:
                 outcome="unchanged",
                 duration_seconds=duration_seconds,
             )
-            _LOGGER.warning(
-                "Token refresh callback completed but token is unchanged"
-            )
+            _LOGGER.warning("Token refresh callback completed but token is unchanged")
             return False
 
         self._refresh_success_count += 1
@@ -318,60 +318,81 @@ class RestAuthRecoveryCoordinator:
             return {} if data is None else data
         return result
 
+    def _start_refresh_attempt(self) -> float:
+        """Record one refresh attempt and return its monotonic start time."""
+        self._refresh_attempt_count += 1
+        return monotonic()
+
+    def _record_refresh_expired(self, *, started_at: float) -> None:
+        """Record one refresh-token-expired outcome before re-raising."""
+        duration_seconds = monotonic() - started_at
+        self._refresh_expired_count += 1
+        self._record_refresh_failure(
+            outcome="refresh_token_expired",
+            duration_seconds=duration_seconds,
+            error_type="LiproRefreshTokenExpiredError",
+        )
+        _LOGGER.warning("Refresh token expired, re-authentication required")
+
+    def _record_refresh_error(
+        self,
+        *,
+        outcome: str,
+        started_at: float,
+        err: Exception,
+        message: str,
+    ) -> None:
+        """Record one refresh failure that carries a typed exception."""
+        self._record_refresh_failure(
+            outcome=outcome,
+            duration_seconds=monotonic() - started_at,
+            error_type=type(err).__name__,
+        )
+        _LOGGER.warning(message, safe_error_placeholder(err))
+
+    async def _refresh_token_under_lock(self, request_token: str | None) -> bool:
+        """Refresh one access token while holding the shared refresh lock."""
+        if self._has_reusable_access_token(request_token):
+            return self._record_refresh_reuse(verified_in_lock=True)
+        refresh_callback = self._state.on_token_refresh
+        if refresh_callback is None:
+            return False
+        started_at = self._start_refresh_attempt()
+        try:
+            _LOGGER.debug("Executing token refresh")
+            await refresh_callback()
+            return self._complete_refresh_attempt(
+                request_token=request_token,
+                started_at=started_at,
+            )
+        except LiproRefreshTokenExpiredError:
+            self._record_refresh_expired(started_at=started_at)
+            raise
+        except LiproAuthError as err:
+            self._record_refresh_error(
+                outcome="auth_error",
+                started_at=started_at,
+                err=err,
+                message="Token refresh failed (%s)",
+            )
+            return False
+        except LiproConnectionError as err:
+            self._record_refresh_error(
+                outcome="connection_error",
+                started_at=started_at,
+                err=err,
+                message="Connection error during token refresh (%s)",
+            )
+            raise
+
     async def handle_401_with_refresh(self, request_token: str | None) -> bool:
         """Refresh tokens after one HTTP 401 and indicate whether replay is safe."""
         if not self._state.on_token_refresh:
             return False
-
         if self._has_reusable_access_token(request_token):
             return self._record_refresh_reuse(verified_in_lock=False)
-
         async with self._state.refresh_lock:
-            if self._has_reusable_access_token(request_token):
-                return self._record_refresh_reuse(verified_in_lock=True)
-
-            self._refresh_attempt_count += 1
-            started_at = monotonic()
-            try:
-                _LOGGER.debug("Executing token refresh")
-                await self._state.on_token_refresh()
-                return self._complete_refresh_attempt(
-                    request_token=request_token,
-                    started_at=started_at,
-                )
-            except LiproRefreshTokenExpiredError:
-                duration_seconds = monotonic() - started_at
-                self._refresh_expired_count += 1
-                self._record_refresh_failure(
-                    outcome="refresh_token_expired",
-                    duration_seconds=duration_seconds,
-                    error_type="LiproRefreshTokenExpiredError",
-                )
-                _LOGGER.warning("Refresh token expired, re-authentication required")
-                raise
-            except LiproAuthError as err:
-                duration_seconds = monotonic() - started_at
-                self._record_refresh_failure(
-                    outcome="auth_error",
-                    duration_seconds=duration_seconds,
-                    error_type=type(err).__name__,
-                )
-                _LOGGER.warning(
-                    "Token refresh failed (%s)", safe_error_placeholder(err)
-                )
-                return False
-            except LiproConnectionError as err:
-                duration_seconds = monotonic() - started_at
-                self._record_refresh_failure(
-                    outcome="connection_error",
-                    duration_seconds=duration_seconds,
-                    error_type=type(err).__name__,
-                )
-                _LOGGER.warning(
-                    "Connection error during token refresh (%s)",
-                    safe_error_placeholder(err),
-                )
-                raise
+            return await self._refresh_token_under_lock(request_token)
 
 
 __all__ = ["AuthRecoveryTelemetrySnapshot", "RestAuthRecoveryCoordinator"]
