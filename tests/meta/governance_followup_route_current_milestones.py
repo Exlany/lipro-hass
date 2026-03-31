@@ -1,4 +1,4 @@
-"""Archived-route and archived-baseline truth guards for v1.31."""
+"""Active-route and continuity truth guards for the current v1.32 milestone."""
 
 from __future__ import annotations
 
@@ -36,23 +36,22 @@ _REQUIREMENTS_TEXT = _SNAPSHOT.requirements
 _PROJECT_TEXT = _SNAPSHOT.project
 _STATE_TEXT = _SNAPSHOT.state
 
-_V1_31_TRACES = (
-    RequirementTrace("ARC-28", "111", "Complete"),
-    RequirementTrace("GOV-71", "111", "Complete"),
-    RequirementTrace("TST-38", "111", "Complete"),
-    RequirementTrace("ARC-29", "112", "Complete"),
-    RequirementTrace("GOV-72", "112", "Complete"),
-    RequirementTrace("QLT-46", "113", "Complete"),
-    RequirementTrace("OSS-14", "114", "Complete"),
-    RequirementTrace("SEC-09", "114", "Complete"),
+_V1_32_TRACES = (
+    RequirementTrace("HOT-48", "115"),
+    RequirementTrace("HOT-49", "116"),
+    RequirementTrace("TST-39", "117"),
+    RequirementTrace("GOV-73", "117"),
 )
 
 
-def test_machine_readable_route_contracts_point_to_archived_v1_31_and_previous_v1_30() -> None:
+def test_machine_readable_route_contracts_point_to_active_v1_32_phase117_closeout_ready() -> None:
     contracts = assert_machine_readable_route_contracts()
     for doc_name in ("PROJECT", "ROADMAP", "REQUIREMENTS", "STATE", "MILESTONES"):
         active = _as_optional_mapping(_as_mapping(contracts[doc_name])["active_milestone"])
-        assert active is None, doc_name
+        assert active is not None, doc_name
+        assert active["version"] == "v1.32"
+        assert active["phase"] == "117"
+        assert active["status"] == "active / phase 117 complete; closeout-ready (2026-03-31)"
 
     milestones_contract = _as_mapping(contracts["MILESTONES"])
     latest_archived = _as_mapping(milestones_contract["latest_archived"])
@@ -67,7 +66,7 @@ def test_machine_readable_route_contracts_point_to_archived_v1_31_and_previous_v
     assert state_bootstrap["latest_archived_evidence_pointer"] == LATEST_ARCHIVED_EVIDENCE_PATH
 
 
-def test_archived_v1_31_truth_is_reflected_in_live_docs() -> None:
+def test_active_v1_32_truth_is_reflected_in_live_docs() -> None:
     _assert_current_route_truth(_PROJECT_TEXT, _ROADMAP_TEXT, _STATE_TEXT)
 
     assert_contains_all(
@@ -77,48 +76,51 @@ def test_archived_v1_31_truth_is_reflected_in_live_docs() -> None:
         PREVIOUS_ARCHIVED_PROJECT_HEADER,
         f"**Current status:** `{CURRENT_MILESTONE_STATUS}`",
         f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`",
-        "Phase 111",
-        "Phase 112",
-        "Phase 113",
-        "Phase 114",
+        "Phase 115",
+        "Phase 116",
+        "Phase 117",
     )
     assert_contains_all(
         _ROADMAP_TEXT,
         CURRENT_MILESTONE_ROADMAP_HEADER,
         f"**Milestone status:** `{CURRENT_MILESTONE_STATUS}`",
         f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`",
-        "### Phase 111: Entity-runtime boundary sealing and dependency-guard hardening",
+        "### Phase 115: Status-fallback query-flow normalization",
+        "### Phase 116: Anonymous-share and REST façade hotspot slimming",
+        "### Phase 117: Validation backfill and continuity hardening",
         "**Status**: Complete (`2026-03-31`)",
         "**Plans**: 3/3 complete",
-        "### Phase 112: Formal-home discoverability and governance-anchor normalization",
+        "117-VERIFICATION.md",
     )
     assert_contains_all(
         _STATE_TEXT,
         f"**Current milestone:** `{CURRENT_MILESTONE_STATE_LABEL}`",
         f"**Current mode:** `{CURRENT_ROUTE_MODE}`",
-        "- **Phase:** `114 of 114`",
-        "- **Plan:** `13 of 13`",
+        "- **Phase:** `117 of 117`",
+        "- **Plan:** `7 of 7`",
         f"- **Status:** `{CURRENT_MILESTONE_STATUS}`",
         "- **Progress:** `[██████████] 100%`",
         "## Recommended Next Command",
-        "$gsd-new-milestone",
+        "$gsd-complete-milestone v1.32",
     )
 
 
-def test_requirements_traceability_is_fully_archived_for_v1_31() -> None:
+def test_v1_32_requirements_traceability_and_coverage_are_complete() -> None:
     assert_contains_all(
         _REQUIREMENTS_TEXT,
-        *requirement_checkbox_markers(*_V1_31_TRACES[:3]),
-        *requirement_table_markers(*_V1_31_TRACES),
-        "- Current complete: 8",
-        "- Current pending: 0",
+        *requirement_checkbox_markers(*_V1_32_TRACES),
+        *requirement_table_markers(*_V1_32_TRACES),
+        "- v1.32 requirements: 4 total",
+        "- Mapped to phases: 4",
+        "- Complete: 4",
+        "- Pending: 0",
         f"**Milestone status:** `{CURRENT_MILESTONE_STATUS}`",
         f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`",
         "**Latest archived baseline:** `v1.31`",
     )
 
 
-def test_historical_route_truth_stays_archived_without_legacy_live_state_wording() -> None:
+def test_historical_route_truth_stays_archived_without_stale_phase117_handoff_wording() -> None:
     assert_contains_all(
         _MILESTONES_TEXT,
         HISTORICAL_CLOSEOUT_ROUTE_TRUTH,
@@ -138,11 +140,15 @@ def test_historical_route_truth_stays_archived_without_legacy_live_state_wording
         LATEST_ARCHIVED_PROJECT_HEADER,
         LATEST_ARCHIVED_AUDIT_PATH,
     )
-    for text in (_MILESTONES_TEXT, _ROADMAP_TEXT, _REQUIREMENTS_TEXT, _PROJECT_TEXT):
+    for text in (_MILESTONES_TEXT, _ROADMAP_TEXT, _REQUIREMENTS_TEXT, _PROJECT_TEXT, _STATE_TEXT):
         assert_not_contains_any(
             text,
             "current governance state =",
             "当前治理状态已切换为",
             "当前治理状态现已切换为",
             "live governance state",
+            "active / phase 116 complete; phase 117 discuss-ready (2026-03-31)",
+            "$gsd-discuss-phase 117",
+            "$gsd-execute-phase 117",
+            "Phase 117 execution-ready",
         )

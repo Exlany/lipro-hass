@@ -4,7 +4,7 @@
 **Status:** `Active milestone route`
 **Current route:** `v1.32 active milestone route / starting from latest archived baseline = v1.31`；latest archived evidence index = `.planning/reviews/V1_31_EVIDENCE_INDEX.md`.
 **Goal:** `沿 v1.31 latest archived baseline，把 remaining hotspot debt、validation backfill 与 governance continuity hardening 收口为单一 active route；先冻结 status-fallback contract，再继续 inward split formal homes，而不复活 compat shell 或第二 root。`
-**Default next step:** `$gsd-discuss-phase 117`
+**Default next step:** `$gsd-complete-milestone v1.32`
 **Active baseline:** latest archived baseline = `v1.31`；previous archived baseline = `v1.30`.
 
 
@@ -15,10 +15,10 @@ contract_name: governance-route
 active_milestone:
   version: v1.32
   name: Residual Hotspot Eradication, Validation Completion & Continuity Hardening
-  status: active / phase 116 complete; phase 117 discuss-ready (2026-03-31)
-  phase: '116'
-  phase_title: Anonymous-share and REST façade hotspot slimming
-  phase_dir: 116-anonymous-share-and-rest-fa-ade-hotspot-slimming
+  status: active / phase 117 complete; closeout-ready (2026-03-31)
+  phase: '117'
+  phase_title: Validation backfill and continuity hardening
+  phase_dir: 117-validation-backfill-and-continuity-hardening
 latest_archived:
   version: v1.31
   name: Boundary Sealing, Governance Truth & Quality Hardening
@@ -35,7 +35,7 @@ previous_archived:
   evidence_path: .planning/reviews/V1_30_EVIDENCE_INDEX.md
 bootstrap:
   current_route: v1.32 active milestone route / starting from latest archived baseline = v1.31
-  default_next_command: $gsd-discuss-phase 117
+  default_next_command: $gsd-complete-milestone v1.32
   latest_archived_evidence_pointer: .planning/reviews/V1_31_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -48,21 +48,21 @@ bootstrap:
 
 **North-star fit:** `v1.32` 继续遵守 single mainline / formal homes / inward split，只处理仓内仍可由代码、测试与治理文档直接修复的问题；外部 maintainer continuity blocker 继续保持 honest-by-default，不伪造仓外能力。`
 
-**Current status:** `active / phase 116 complete; phase 117 discuss-ready (2026-03-31)`
+**Current status:** `active / phase 117 complete; closeout-ready (2026-03-31)`
 **Phase range:** `Phase 115 -> 117`
 **Starting baseline:** `.planning/v1.31-MILESTONE-AUDIT.md`, `.planning/reviews/V1_31_EVIDENCE_INDEX.md`, `.planning/milestones/v1.31-ROADMAP.md`, `.planning/milestones/v1.31-REQUIREMENTS.md`
 **Requirements basket:** `HOT-48`, `HOT-49`, `TST-39`, `GOV-73`
 **Latest archived baseline:** `v1.31`
 **Latest archived pointer:** `.planning/reviews/V1_31_EVIDENCE_INDEX.md`
 **Current route mode:** `v1.32 active milestone route / starting from latest archived baseline = v1.31`
-**Default next command:** `$gsd-discuss-phase 117`
-**Route checkpoint:** `Phase 115` 已冻结 `status_fallback` contract；`Phase 116` 已完成 `rest_facade.py` / `anonymous_share/manager.py` hotspot slimming；`Phase 117` 负责 validation backfill 与 continuity hardening。
-**Current follow-up target:** gather context for `Phase 117` (`Validation backfill and continuity hardening`).
+**Default next command:** `$gsd-complete-milestone v1.32`
+**Route checkpoint:** `Phase 115` 已冻结 `status_fallback` contract；`Phase 116` 已完成 `rest_facade.py` / `anonymous_share/manager.py` hotspot slimming；`Phase 117` 的 context / research / `117-01` ~ `117-03` plans 已就绪。
+**Current follow-up target:** execute `Phase 117` (`Validation backfill and continuity hardening`) via `$gsd-complete-milestone v1.32`.
 
 **Target features:**
 - `Phase 115` 已把 `status_fallback` family 的空输入与 fallback-entry contract 冻结成单一正式语义。
 - `Phase 116` 已继续瘦身 `custom_components/lipro/core/anonymous_share/manager.py` 与 `custom_components/lipro/core/api/rest_facade.py` 的 orchestration / pass-through 密度。
-- `Phase 117` 将补齐 `Phase 112 -> 114` 的 validation / changed-surface / continuity 资产，使 archived truth 不只停留在 verification-only。
+- `Phase 117` 已锁定 `Phase 112 -> 114` 的 validation / changed-surface / continuity contract；当前 handoff 直接进入 `$gsd-complete-milestone v1.32`。
 - archived baseline / runbook / evidence / selector family 继续保持单一、可机读、可追溯叙事。
 
 ## Latest Archived Milestone (v1.31)

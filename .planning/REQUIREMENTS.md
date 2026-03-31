@@ -9,10 +9,10 @@ contract_name: governance-route
 active_milestone:
   version: v1.32
   name: Residual Hotspot Eradication, Validation Completion & Continuity Hardening
-  status: active / phase 116 complete; phase 117 discuss-ready (2026-03-31)
-  phase: '116'
-  phase_title: Anonymous-share and REST façade hotspot slimming
-  phase_dir: 116-anonymous-share-and-rest-fa-ade-hotspot-slimming
+  status: active / phase 117 complete; closeout-ready (2026-03-31)
+  phase: '117'
+  phase_title: Validation backfill and continuity hardening
+  phase_dir: 117-validation-backfill-and-continuity-hardening
 latest_archived:
   version: v1.31
   name: Boundary Sealing, Governance Truth & Quality Hardening
@@ -29,7 +29,7 @@ previous_archived:
   evidence_path: .planning/reviews/V1_30_EVIDENCE_INDEX.md
 bootstrap:
   current_route: v1.32 active milestone route / starting from latest archived baseline = v1.31
-  default_next_command: $gsd-discuss-phase 117
+  default_next_command: $gsd-complete-milestone v1.32
   latest_archived_evidence_pointer: .planning/reviews/V1_31_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -37,23 +37,24 @@ bootstrap:
 ## Current Milestone (v1.32)
 
 **Milestone Goal:** 把 `v1.31` 已诚实登记的 remaining hotspots、validation backfill 与 continuity hardening 收口为同一条 active route：先冻结 `status_fallback` contract，再继续 inward split `rest_facade.py` / `anonymous_share/manager.py`，并补齐 `Phase 112 -> 114` 的 validation / continuity truth。
-**Milestone status:** `active / phase 116 complete; phase 117 discuss-ready (2026-03-31)`
+**Milestone status:** `active / phase 117 complete; closeout-ready (2026-03-31)`
 **Current route mode:** `v1.32 active milestone route / starting from latest archived baseline = v1.31`
 **Starting baseline:** `.planning/v1.31-MILESTONE-AUDIT.md`, `.planning/reviews/V1_31_EVIDENCE_INDEX.md`, `.planning/milestones/v1.31-ROADMAP.md`, `.planning/milestones/v1.31-REQUIREMENTS.md`
 **Requirements basket:** `HOT-48`, `HOT-49`, `TST-39`, `GOV-73`
 **Latest archived baseline:** `v1.31`
 **Archive pointer:** `.planning/reviews/V1_31_EVIDENCE_INDEX.md`
-**Default next command:** `$gsd-discuss-phase 117`
+**Default next command:** `$gsd-complete-milestone v1.32`
+**Current phase handoff:** `Phase 117 complete / closeout-ready; milestone closeout is the only formal next step.`
 
 ### Hotspots
 - [x] **HOT-48**: `status_fallback_support.py` 必须收敛到单一明确的 fallback-entry semantics；空输入 / no-I/O / fallback-depth contract 已被冻结为当前 formal behavior。
 - [x] **HOT-49**: `anonymous_share/manager.py` / `rest_facade.py` 已继续在 formal homes 内 inward split；state binding / scope-state proxy / aggregate outcome contract 已冻结，未新增 second root 或 compat shell。
 
 ### Testing
-- [ ] **TST-39**: `Phase 112 -> 114` 缺失的 validation / focused changed-surface proof 必须回填，使 archived truth 不再只停留在 verification-only。
+- [x] **TST-39**: `Phase 112 -> 114` 缺失的 validation / focused changed-surface proof 已回填，使 archived truth 不再停留在 verification-only。
 
 ### Governance
-- [ ] **GOV-73**: archived baseline / milestone context / runbook continuity / evidence pointers 必须在 `v1.32` 激活后继续保持 single-source、machine-checkable 和 docs-first 对齐。
+- [x] **GOV-73**: archived baseline / milestone context / runbook continuity / evidence pointers 已在 `v1.32` active route 下继续保持 single-source、machine-checkable 和 docs-first 对齐。
 
 ## Future Requirements
 
@@ -77,14 +78,14 @@ bootstrap:
 |-------------|-------|--------|
 | HOT-48 | Phase 115 | Complete |
 | HOT-49 | Phase 116 | Complete |
-| TST-39 | Phase 117 | Planned |
-| GOV-73 | Phase 117 | Planned |
+| TST-39 | Phase 117 | Complete |
+| GOV-73 | Phase 117 | Complete |
 
 **Coverage:**
 - v1.32 requirements: 4 total
 - Mapped to phases: 4
-- Complete: 2
-- Pending: 2
+- Complete: 4
+- Pending: 0
 - Unmapped: 0 ✓
 
 ## Latest Archived Milestone (v1.31)

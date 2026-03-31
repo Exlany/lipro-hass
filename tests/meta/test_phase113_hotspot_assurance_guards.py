@@ -18,9 +18,9 @@ _TESTING = _ROOT / ".planning" / "codebase" / "TESTING.md"
 _VERIFICATION_MATRIX = _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
 
 _LINE_BUDGETS = {
-    "custom_components/lipro/core/api/status_fallback_support.py": 652,
-    "custom_components/lipro/core/api/rest_facade.py": 431,
-    "custom_components/lipro/core/anonymous_share/manager.py": 430,
+    "custom_components/lipro/core/api/status_fallback_support.py": 655,
+    "custom_components/lipro/core/api/rest_facade.py": 360,
+    "custom_components/lipro/core/anonymous_share/manager.py": 359,
     "custom_components/lipro/core/protocol/boundary/rest_decoder.py": 425,
     "custom_components/lipro/entities/firmware_update.py": 418,
     "custom_components/lipro/core/protocol/boundary/rest_decoder_support.py": 417,

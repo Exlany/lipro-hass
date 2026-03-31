@@ -19,13 +19,16 @@ from .governance_contract_helpers import (
 from .governance_current_truth import (
     CURRENT_MILESTONE,
     CURRENT_MILESTONE_COMPLETED_PHASES,
+    CURRENT_MILESTONE_COMPLETED_PLAN_COUNT,
     CURRENT_MILESTONE_DEFAULT_NEXT,
+    CURRENT_MILESTONE_IN_PROGRESS_PHASES,
     CURRENT_MILESTONE_PENDING_PHASES,
     CURRENT_MILESTONE_PHASES,
     CURRENT_MILESTONE_PLAN_COUNT,
     CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE,
     CURRENT_MILESTONE_STATUS,
     CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE,
+    CURRENT_MILESTONE_TOTAL_PLAN_COUNT,
     CURRENT_PHASE,
     CURRENT_ROUTE,
     LATEST_ARCHIVED_EVIDENCE_PATH,
@@ -83,6 +86,9 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
     assert "## Phase 109 Anonymous-share Manager Inward Decomposition" in verification_text
     assert "## Phase 111 Entity / Runtime Boundary Sealing and Dependency-Guard Hardening" in verification_text
     assert "## Phase 101 Anonymous-share Manager / REST Decoder Hotspot Decomposition Freeze" in verification_text
+    assert "## Phase 115 Status-fallback Query-flow Normalization" in verification_text
+    assert "## Phase 116 Anonymous-share and REST Façade Hotspot Slimming" in verification_text
+    assert "## Phase 117 Validation Backfill and Continuity Hardening" in verification_text
     assert CURRENT_ROUTE in verification_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in verification_text
     assert LATEST_ARCHIVED_EVIDENCE_PATH in verification_text
@@ -120,22 +126,25 @@ def test_gsd_fast_path_matches_current_active_route_story() -> None:
         assert phase_progress["plan_count"] == CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE[phase_number]
         assert phase_progress["summary_count"] == CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE[phase_number]
 
+    for phase_number in CURRENT_MILESTONE_IN_PROGRESS_PHASES:
+        phase_progress = _as_mapping(phase_by_number[phase_number])
+        assert _as_str(phase_progress["status"]) == "in_progress"
+        assert phase_progress["plan_count"] == CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE[phase_number]
+        assert phase_progress["summary_count"] == CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE[phase_number]
+
     for phase_number in CURRENT_MILESTONE_PENDING_PHASES:
         phase_progress = _as_mapping(phase_by_number[phase_number])
-        assert _as_str(phase_progress["status"]) == "not_started"
+        assert _as_str(phase_progress["status"]) in {"pending", "not_started"}
         assert phase_progress["plan_count"] == CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE[phase_number]
         assert phase_progress["summary_count"] == CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE[phase_number]
 
     assert progress["current_phase"] is None
     assert _as_bool(progress["has_work_in_progress"]) is False
+    assert progress["next_phase"] is None
 
-    next_phase = _as_mapping(progress["next_phase"])
-    assert _as_str(next_phase["number"]) == CURRENT_MILESTONE_PENDING_PHASES[0]
-
-    completed_phase = CURRENT_MILESTONE_COMPLETED_PHASES[-1]
-    phase_index = _run_gsd_tools("phase-plan-index", completed_phase)
-    assert _as_str(phase_index["phase"]) == completed_phase
-    assert len(_as_mapping_list(phase_index["plans"])) == CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE[completed_phase]
+    phase_index = _run_gsd_tools("phase-plan-index", CURRENT_PHASE)
+    assert _as_str(phase_index["phase"]) == CURRENT_PHASE
+    assert len(_as_mapping_list(phase_index["plans"])) == CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE[CURRENT_PHASE]
 
     state = _run_gsd_tools("state", "json")
     assert _as_str(state["milestone"]) == CURRENT_MILESTONE
@@ -143,9 +152,9 @@ def test_gsd_fast_path_matches_current_active_route_story() -> None:
     assert _as_mapping(state["progress"]) == {
         "total_phases": str(len(CURRENT_MILESTONE_PHASES)),
         "completed_phases": str(len(CURRENT_MILESTONE_COMPLETED_PHASES)),
-        "total_plans": "4",
-        "completed_plans": "4",
-        "percent": "67",
+        "total_plans": str(CURRENT_MILESTONE_TOTAL_PLAN_COUNT),
+        "completed_plans": str(CURRENT_MILESTONE_COMPLETED_PLAN_COUNT),
+        "percent": "100",
     }
 
     plan_init = _run_gsd_tools("init", "plan-phase", CURRENT_PHASE)

@@ -420,6 +420,65 @@ def test_v1_28_closeout_assets_exist_and_are_pull_only() -> None:
     )
 
 
+def test_v1_31_closeout_assets_exist_and_are_pull_only() -> None:
+    evidence_index = _ROOT / ".planning" / "reviews" / "V1_31_EVIDENCE_INDEX.md"
+    milestone_audit = _ROOT / ".planning" / "v1.31-MILESTONE-AUDIT.md"
+
+    assert evidence_index.exists()
+    assert milestone_audit.exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.31-ROADMAP.md").exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.31-REQUIREMENTS.md").exists()
+    _assert_promoted_phase_assets(
+        "111-entity-runtime-boundary-sealing-and-dependency-guard-hardening",
+        "111-01-SUMMARY.md",
+        "111-02-SUMMARY.md",
+        "111-03-SUMMARY.md",
+        "111-SUMMARY.md",
+        "111-VERIFICATION.md",
+        "111-VALIDATION.md",
+    )
+    _assert_promoted_phase_assets(
+        "112-formal-home-discoverability-and-governance-anchor-normalization",
+        "112-01-SUMMARY.md",
+        "112-02-SUMMARY.md",
+        "112-03-SUMMARY.md",
+        "112-SUMMARY.md",
+        "112-VERIFICATION.md",
+        "112-VALIDATION.md",
+    )
+    _assert_promoted_phase_assets(
+        "113-hotspot-burn-down-and-changed-surface-assurance-hardening",
+        "113-01-SUMMARY.md",
+        "113-02-SUMMARY.md",
+        "113-03-SUMMARY.md",
+        "113-04-SUMMARY.md",
+        "113-SUMMARY.md",
+        "113-VERIFICATION.md",
+        "113-VALIDATION.md",
+        "113-AUDIT.md",
+    )
+    _assert_promoted_phase_assets(
+        "114-open-source-reachability-honesty-and-security-surface-normalization",
+        "114-01-SUMMARY.md",
+        "114-02-SUMMARY.md",
+        "114-03-SUMMARY.md",
+        "114-SUMMARY.md",
+        "114-VERIFICATION.md",
+        "114-VALIDATION.md",
+        "114-AUDIT.md",
+    )
+
+    assert_pull_only_evidence_index(
+        evidence_index,
+        "111-VALIDATION.md",
+        "112-VALIDATION.md",
+        "113-VALIDATION.md",
+        "114-VALIDATION.md",
+        "archived / evidence-ready",
+        "V1_31_EVIDENCE_INDEX.md",
+    )
+
+
 def test_v1_29_closeout_assets_exist_and_are_pull_only() -> None:
     evidence_index = _ROOT / ".planning" / "reviews" / "V1_29_EVIDENCE_INDEX.md"
     milestone_audit = _ROOT / ".planning" / "v1.29-MILESTONE-AUDIT.md"

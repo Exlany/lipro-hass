@@ -5,7 +5,7 @@
 This repository currently follows a single-maintainer release model. Every tagged release must reuse `.github/workflows/ci.yml`; `.github/workflows/release.yml` is only the tagged security / packaging / publishing tail of that same gate.
 
 > Continuity note / 连续性说明：this runbook defines the maintainer-unavailable drill. Do not imply hidden backup maintainers. No documented delegate exists today; if the maintainer is unavailable, freeze new tagged releases and freeze new release promises, keep `SUPPORT.md` / `SECURITY.md` / issue / PR template routing honest, and restore custody only after CODEOWNERS + runbook record the real successor or delegate.
-> Current route note / 当前路线说明：maintainer continuity currently follows `v1.32 active milestone route / starting from latest archived baseline = v1.31`; live selector truth stays in `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md`, while `.planning/MILESTONES.md` remains archive chronology only.
+> Current route note / 当前路线说明：maintainer continuity currently follows `v1.32 active milestone route / starting from latest archived baseline = v1.31`; current handoff = `Phase 117 complete / closeout-ready`, default next command = `$gsd-complete-milestone v1.32`; live selector truth stays in `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md`, while `.planning/MILESTONES.md` remains archive chronology only.
 
 ## Truth Sources
 
@@ -15,7 +15,7 @@ This repository currently follows a single-maintainer release model. Every tagge
 - Canonical public support/security paths: `README.md`, `README_zh.md`, `CONTRIBUTING.md`, `SUPPORT.md`, `SECURITY.md`
 - Canonical troubleshooting path: `docs/TROUBLESHOOTING.md`
 - Canonical release-notes summary: `CHANGELOG.md` (maintainer-facing release posture summary, not a second runbook)
-- Canonical active-route selector family: `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md` (`v1.32 active milestone route / starting from latest archived baseline = v1.31`)
+- Canonical active-route selector family: `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md` (`v1.32 active milestone route / starting from latest archived baseline = v1.31`; current handoff = `Phase 117 complete / closeout-ready`; default next = `$gsd-complete-milestone v1.32`)
 - Canonical latest archived evidence index: `.planning/reviews/V1_31_EVIDENCE_INDEX.md`
 - Canonical archived verdict home: `.planning/v1.31-MILESTONE-AUDIT.md` (pull-only evidence verdict, not current route truth)
 - Canonical firmware certification trust-root asset: `custom_components/lipro/firmware_support_manifest.json` (historical filename retained)

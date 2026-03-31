@@ -496,6 +496,7 @@ phases:
   - 112-03-SUMMARY.md
   - 112-SUMMARY.md
   - 112-VERIFICATION.md
+  - 112-VALIDATION.md
   113-hotspot-burn-down-and-changed-surface-assurance-hardening:
   - 113-01-SUMMARY.md
   - 113-02-SUMMARY.md
@@ -503,6 +504,7 @@ phases:
   - 113-04-SUMMARY.md
   - 113-SUMMARY.md
   - 113-VERIFICATION.md
+  - 113-VALIDATION.md
   - 113-AUDIT.md
   114-open-source-reachability-honesty-and-security-surface-normalization:
   - 114-01-SUMMARY.md
@@ -510,6 +512,7 @@ phases:
   - 114-03-SUMMARY.md
   - 114-SUMMARY.md
   - 114-VERIFICATION.md
+  - 114-VALIDATION.md
   - 114-AUDIT.md
 policy:
   default_identity: execution-trace

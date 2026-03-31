@@ -3,23 +3,26 @@
 ## Current Milestone (v1.32)
 
 **Phase range:** `115 -> 117`
-**Phases completed:** 2 phases, 4 plans, 0 tasks
-**Status:** `active / phase 116 complete; phase 117 discuss-ready (2026-03-31)`
+**Phases completed:** `3 phases, 7 plans, 0 tasks`
+**Status:** `active / phase 117 complete; closeout-ready (2026-03-31)`
 **Route truth:** `v1.32 active milestone route / starting from latest archived baseline = v1.31`
 **Latest archived baseline:** `v1.31`
-**Default next command:** `$gsd-discuss-phase 117`
+**Default next command:** `$gsd-complete-milestone v1.32`
+**Route truth:** latest archived evidence index = `.planning/reviews/V1_31_EVIDENCE_INDEX.md`
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.31`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.30`
 
 **Current phase story:**
 
 - `Phase 115`: status-fallback query-flow normalization ✅
 - `Phase 116`: anonymous-share and REST façade hotspot slimming ✅
-- `Phase 117`: validation backfill and continuity hardening ⏳
+- `Phase 117`: validation backfill and continuity hardening ✅
 
 **Current accomplishments:**
 
 - 已冻结 `status_fallback` 空输入 / fallback-depth / no-I/O contract，并把 focused regression 写入正式 test suite。
 - 已完成 `rest_facade.py` 与 `anonymous_share/manager.py` 的当前轮 hotspot slimming，冻结 stable import / scope-state / aggregate outcome contract。
-- 后续路线已明确：`Phase 117` 负责补齐 `Phase 112 -> 114` 的 validation / continuity 资产，而不是回写 archived truth。
+- 已完成 `Phase 112 -> 114` validation backfill、active-route continuity drift repair 与 `117` closeout bundle；下一步直接进入 milestone closeout，而不是回写 archived truth。
 
 ---
 
@@ -33,10 +36,10 @@ contract_name: governance-route
 active_milestone:
   version: v1.32
   name: Residual Hotspot Eradication, Validation Completion & Continuity Hardening
-  status: active / phase 116 complete; phase 117 discuss-ready (2026-03-31)
-  phase: '116'
-  phase_title: Anonymous-share and REST façade hotspot slimming
-  phase_dir: 116-anonymous-share-and-rest-fa-ade-hotspot-slimming
+  status: active / phase 117 complete; closeout-ready (2026-03-31)
+  phase: '117'
+  phase_title: Validation backfill and continuity hardening
+  phase_dir: 117-validation-backfill-and-continuity-hardening
 latest_archived:
   version: v1.31
   name: Boundary Sealing, Governance Truth & Quality Hardening
@@ -53,7 +56,7 @@ previous_archived:
   evidence_path: .planning/reviews/V1_30_EVIDENCE_INDEX.md
 bootstrap:
   current_route: v1.32 active milestone route / starting from latest archived baseline = v1.31
-  default_next_command: $gsd-discuss-phase 117
+  default_next_command: $gsd-complete-milestone v1.32
   latest_archived_evidence_pointer: .planning/reviews/V1_31_EVIDENCE_INDEX.md
 ```
 
