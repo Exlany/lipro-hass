@@ -54,8 +54,8 @@ class _BinarySplitQueryContext:
         return self.extract_data_list(result)
 
     def normalized_error_code(self, err: Exception) -> str:
-        normalized = self.normalize_response_code(getattr(err, 'code', None))
-        return str(normalized) if normalized is not None else 'unknown'
+        normalized = self.normalize_response_code(getattr(err, "code", None))
+        return str(normalized) if normalized is not None else "unknown"
 
 
 @dataclass(slots=True)
@@ -81,7 +81,7 @@ class _BinarySplitAccumulator:
     ) -> None:
         single_code = context.normalized_error_code(err)
         context.logger.debug(
-            'Failed to query %s %s: %s (code=%s, endpoint=%s)',
+            "Failed to query %s %s: %s (code=%s, endpoint=%s)",
             context.item_name,
             item_id,
             err,
@@ -100,6 +100,12 @@ class _BinarySplitQueryOptions:
     small_subset_batch_size: int
 
 
+@dataclass(slots=True, frozen=True)
+class _BinarySplitSetup:
+    context: _BinarySplitQueryContext
+    options: _BinarySplitQueryOptions
+
+
 def _build_query_options(
     *,
     small_subset_batch_query_threshold: int,
@@ -107,10 +113,10 @@ def _build_query_options(
 ) -> _BinarySplitQueryOptions:
     if small_subset_batch_query_threshold < 0:
         raise ValueError(
-            'small_subset_batch_query_threshold must be greater than or equal to 0'
+            "small_subset_batch_query_threshold must be greater than or equal to 0"
         )
     if small_subset_batch_size <= 0:
-        raise ValueError('small_subset_batch_size must be greater than 0')
+        raise ValueError("small_subset_batch_size must be greater than 0")
     return _BinarySplitQueryOptions(
         small_subset_batch_query_threshold=small_subset_batch_query_threshold,
         small_subset_batch_size=small_subset_batch_size,
@@ -152,25 +158,71 @@ def _record_fallback_depth_if_needed(
         record_fallback_depth(depth)
 
 
+def _build_binary_split_setup(
+    *,
+    path: str,
+    body_key: str,
+    item_name: str,
+    iot_request: IoTRequest,
+    extract_data_list: ExtractDataList,
+    is_retriable_device_error: IsRetriableDeviceError,
+    lipro_api_error: type[Exception],
+    normalize_response_code: NormalizeResponseCode,
+    logger: logging.Logger,
+    build_query_payload: BuildQueryPayload,
+    small_subset_batch_query_threshold: int,
+    small_subset_batch_size: int,
+) -> _BinarySplitSetup:
+    return _BinarySplitSetup(
+        context=_build_query_context(
+            path=path,
+            body_key=body_key,
+            item_name=item_name,
+            iot_request=iot_request,
+            extract_data_list=extract_data_list,
+            is_retriable_device_error=is_retriable_device_error,
+            lipro_api_error=lipro_api_error,
+            normalize_response_code=normalize_response_code,
+            logger=logger,
+            build_query_payload=build_query_payload,
+        ),
+        options=_build_query_options(
+            small_subset_batch_query_threshold=small_subset_batch_query_threshold,
+            small_subset_batch_size=small_subset_batch_size,
+        ),
+    )
+
+
+def _build_binary_split_result(
+    accumulator: _BinarySplitAccumulator,
+) -> tuple[MappingRows, int, dict[str, int], int]:
+    return (
+        accumulator.rows,
+        accumulator.failed_single_queries,
+        accumulator.single_error_codes,
+        accumulator.max_fallback_depth,
+    )
+
+
 def log_batch_query_fallback(
     *,
     context: _BinarySplitQueryContext,
     err: Exception,
     expected_offline_codes: tuple[int | str, ...],
 ) -> str | int:
-    normalized_code = context.normalize_response_code(getattr(err, 'code', None))
+    normalized_code = context.normalize_response_code(getattr(err, "code", None))
     if normalized_code is None:
-        normalized_code = 'unknown'
+        normalized_code = "unknown"
     if normalized_code in expected_offline_codes:
         context.logger.debug(
-            'Batch %s query failed with expected offline code (%s). Falling back to individual queries.',
+            "Batch %s query failed with expected offline code (%s). Falling back to individual queries.",
             context.item_name,
             normalized_code,
         )
         return normalized_code
 
     context.logger.warning(
-        'Batch %s query failed (code=%s, endpoint=%s): %s. Falling back to individual queries.',
+        "Batch %s query failed (code=%s, endpoint=%s): %s. Falling back to individual queries.",
         context.item_name,
         normalized_code,
         context.path,
@@ -360,8 +412,7 @@ async def query_items_by_binary_split_impl(
     """Query items by recursively splitting failing batches."""
     if not ids:
         return [], 0, {}, 0
-
-    context = _build_query_context(
+    setup = _build_binary_split_setup(
         path=path,
         body_key=body_key,
         item_name=item_name,
@@ -372,28 +423,18 @@ async def query_items_by_binary_split_impl(
         normalize_response_code=normalize_response_code,
         logger=logger,
         build_query_payload=build_query_payload,
-    )
-    options = _build_query_options(
         small_subset_batch_query_threshold=small_subset_batch_query_threshold,
         small_subset_batch_size=small_subset_batch_size,
     )
     accumulator = _BinarySplitAccumulator()
-    semaphore = asyncio.Semaphore(min(5, len(ids)))
-
     await _query_binary_split_root(
         ids,
-        context=context,
-        semaphore=semaphore,
+        context=setup.context,
+        semaphore=asyncio.Semaphore(min(5, len(ids))),
         accumulator=accumulator,
-        options=options,
+        options=setup.options,
     )
-
-    return (
-        accumulator.rows,
-        accumulator.failed_single_queries,
-        accumulator.single_error_codes,
-        accumulator.max_fallback_depth,
-    )
+    return _build_binary_split_result(accumulator)
 
 
 def log_empty_fallback_summary(
@@ -413,10 +454,10 @@ def log_empty_fallback_summary(
     dominant_single_code = (
         max(single_error_codes.items(), key=lambda item: item[1])[0]
         if single_error_codes
-        else 'unknown'
+        else "unknown"
     )
     logger.warning(
-        'Batch %s query fallback returned no data: %d/%d single queries failed (batch_code=%s, dominant_single_code=%s, endpoint=%s)',
+        "Batch %s query fallback returned no data: %d/%d single queries failed (batch_code=%s, dominant_single_code=%s, endpoint=%s)",
         item_name,
         failed_single_queries,
         len(ids),
@@ -480,9 +521,7 @@ async def _query_subset_batch(
     accumulator: _BinarySplitAccumulator,
 ) -> bool:
     try:
-        accumulator.extend_rows(
-            await context.query_rows(subset, semaphore=semaphore)
-        )
+        accumulator.extend_rows(await context.query_rows(subset, semaphore=semaphore))
         return True
     except context.lipro_api_error as err:
         if not context.is_retriable_device_error(err):
@@ -575,7 +614,7 @@ async def query_with_fallback_impl(
     record_fallback_depth: RecordFallbackDepth | None = None,
 ) -> MappingRows:
     """Query API with binary-split fallback on retriable device errors."""
-    context = _build_query_context(
+    setup = _build_binary_split_setup(
         path=path,
         body_key=body_key,
         item_name=item_name,
@@ -586,30 +625,28 @@ async def query_with_fallback_impl(
         normalize_response_code=normalize_response_code,
         logger=logger,
         build_query_payload=build_query_payload,
-    )
-    options = _build_query_options(
         small_subset_batch_query_threshold=small_subset_batch_query_threshold,
         small_subset_batch_size=small_subset_batch_size,
     )
     try:
         result_rows = await _query_primary_batch(
-            context=context,
+            context=setup.context,
             ids=ids,
         )
         _record_fallback_depth_if_needed(record_fallback_depth, 0)
         return result_rows
     except _RetriableBatchQueryError as failure:
         return await _query_with_retriable_fallback(
-            context=context,
+            context=setup.context,
             err=failure.error,
             expected_offline_codes=expected_offline_codes,
             ids=ids,
-            options=options,
+            options=setup.options,
             record_fallback_depth=record_fallback_depth,
         )
 
 
 __all__ = [
-    'query_items_by_binary_split_impl',
-    'query_with_fallback_impl',
+    "query_items_by_binary_split_impl",
+    "query_with_fallback_impl",
 ]
