@@ -79,67 +79,104 @@ def _has_any_property(properties: dict[str, Any], candidates: frozenset[str]) ->
     return any(prop_key in properties for prop_key in candidates)
 
 
+def _append_light_capabilities(
+    detected: list[str],
+    device: LiproDevice,
+    properties: dict[str, Any],
+) -> None:
+    """Append light-family capabilities in the canonical outward order."""
+    detected.append("light")
+    _append_capabilities_for_properties(
+        detected,
+        properties,
+        _LIGHT_PRIMARY_PROPERTY_CAPABILITIES,
+    )
+    if device.extras.has_gear_presets:
+        detected.append("gear_presets")
+    _append_capabilities_for_properties(
+        detected,
+        properties,
+        _LIGHT_SECONDARY_PROPERTY_CAPABILITIES,
+    )
+
+
+
+def _append_fan_capabilities(
+    detected: list[str],
+    properties: dict[str, Any],
+) -> None:
+    """Append fan-family capabilities in the canonical outward order."""
+    detected.append("fan")
+    _append_capabilities_for_properties(
+        detected,
+        properties,
+        _FAN_PROPERTY_CAPABILITIES,
+    )
+
+
+
+def _append_curtain_capabilities(
+    detected: list[str],
+    properties: dict[str, Any],
+) -> None:
+    """Append curtain-family capabilities in the canonical outward order."""
+    detected.append("cover")
+    if PROP_POSITION in properties:
+        detected.append("position")
+
+
+
+def _append_sensor_capabilities(
+    detected: list[str],
+    properties: dict[str, Any],
+) -> None:
+    """Append sensor-family capabilities in the canonical outward order."""
+    detected.append("sensor")
+    _append_capabilities_for_properties(
+        detected,
+        properties,
+        _SENSOR_PROPERTY_CAPABILITIES,
+    )
+    if _has_any_property(properties, _MOTION_SENSOR_TRIGGER_PROPERTIES):
+        detected.append("motion_sensor")
+
+
+
+def _append_heater_capabilities(
+    detected: list[str],
+    properties: dict[str, Any],
+) -> None:
+    """Append heater-family capabilities in the canonical outward order."""
+    detected.append("heater")
+    _append_capabilities_for_properties(
+        detected,
+        properties,
+        _HEATER_PROPERTY_CAPABILITIES,
+    )
+
+
 def detect_device_capabilities(device: LiproDevice) -> list[str]:
     """Detect device capabilities from properties and category."""
     detected: list[str] = []
     properties = device.properties
-
     capability_snapshot = device.capabilities
-    is_light = capability_snapshot.is_light
-    is_fan_light = capability_snapshot.is_fan_light
-    is_curtain = capability_snapshot.is_curtain
-    is_sensor = capability_snapshot.is_sensor
-    is_heater = capability_snapshot.is_heater
-    is_switch = capability_snapshot.is_switch
-    is_outlet = capability_snapshot.is_outlet
 
-    if is_light:
-        detected.append("light")
-        _append_capabilities_for_properties(
-            detected,
-            properties,
-            _LIGHT_PRIMARY_PROPERTY_CAPABILITIES,
-        )
-        if device.extras.has_gear_presets:
-            detected.append("gear_presets")
-        _append_capabilities_for_properties(
-            detected,
-            properties,
-            _LIGHT_SECONDARY_PROPERTY_CAPABILITIES,
-        )
+    if capability_snapshot.is_light:
+        _append_light_capabilities(detected, device, properties)
 
-    if is_fan_light:
-        detected.append("fan")
-        _append_capabilities_for_properties(
-            detected,
-            properties,
-            _FAN_PROPERTY_CAPABILITIES,
-        )
+    if capability_snapshot.is_fan_light:
+        _append_fan_capabilities(detected, properties)
 
-    if is_curtain:
-        detected.append("cover")
-        if PROP_POSITION in properties:
-            detected.append("position")
+    if capability_snapshot.is_curtain:
+        _append_curtain_capabilities(detected, properties)
 
-    if is_sensor:
-        detected.append("sensor")
-        _append_capabilities_for_properties(
-            detected,
-            properties,
-            _SENSOR_PROPERTY_CAPABILITIES,
-        )
-        if _has_any_property(properties, _MOTION_SENSOR_TRIGGER_PROPERTIES):
-            detected.append("motion_sensor")
+    if capability_snapshot.is_sensor:
+        _append_sensor_capabilities(detected, properties)
 
-    if is_heater:
-        detected.append("heater")
-        _append_capabilities_for_properties(
-            detected,
-            properties,
-            _HEATER_PROPERTY_CAPABILITIES,
-        )
+    if capability_snapshot.is_heater:
+        _append_heater_capabilities(detected, properties)
 
-    if is_switch or is_outlet:
+    if capability_snapshot.is_switch or capability_snapshot.is_outlet:
         detected.append("switch")
 
     return detected
