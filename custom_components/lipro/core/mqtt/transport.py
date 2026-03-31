@@ -39,23 +39,23 @@ class MqttTransport:
         on_error: Callable[[Exception], None] | None = None,
     ) -> None:
         """Initialize the transport and bind its focused runtime helpers."""
-        self._credentials = MqttCredentials.create(
-            access_key, secret_key, biz_id, phone_id
-        )
         self._biz_id = biz_id
-        self._on_message = on_message
-        self._on_connect = on_connect
-        self._on_disconnect = on_disconnect
-        self._on_error = on_error
-        self._message_processor = MqttMessageProcessor(biz_id)
-        self._topic_builder = MqttTopicBuilder(
-            biz_id, batch_size=_MQTT_SUBSCRIPTION_BATCH_SIZE
+        self._bind_transport_dependencies(
+            access_key=access_key,
+            secret_key=secret_key,
+            biz_id=biz_id,
+            phone_id=phone_id,
+            on_connect=on_connect,
+            on_disconnect=on_disconnect,
+            on_error=on_error,
         )
-        self._connection_manager = MqttConnectionManager(
-            on_connect, on_disconnect, on_error
-        )
-        self._subscription_manager = MqttSubscriptionManager(self._topic_builder)
         self._runtime_callbacks = MqttTransportCallbacks(
+            on_message=on_message,
+            on_connect=on_connect,
+            on_disconnect=on_disconnect,
+            on_error=on_error,
+        )
+        self._bind_runtime_callbacks(
             on_message=on_message,
             on_connect=on_connect,
             on_disconnect=on_disconnect,
@@ -75,6 +75,57 @@ class MqttTransport:
             connect_and_listen_entrypoint_provider=lambda: self._connect_and_listen,
         )
         transport_runtime = MqttTransportRuntime(self._runtime_owner)
+        self._bind_runtime_entrypoints(transport_runtime)
+
+    def _bind_transport_dependencies(
+        self,
+        *,
+        access_key: str,
+        secret_key: str,
+        biz_id: str,
+        phone_id: str,
+        on_connect: Callable[[], None] | None,
+        on_disconnect: Callable[[], None] | None,
+        on_error: Callable[[Exception], None] | None,
+    ) -> None:
+        """Bind focused MQTT collaborators owned by the transport."""
+        self._credentials = MqttCredentials.create(
+            access_key,
+            secret_key,
+            biz_id,
+            phone_id,
+        )
+        self._message_processor = MqttMessageProcessor(biz_id)
+        self._topic_builder = MqttTopicBuilder(
+            biz_id,
+            batch_size=_MQTT_SUBSCRIPTION_BATCH_SIZE,
+        )
+        self._connection_manager = MqttConnectionManager(
+            on_connect,
+            on_disconnect,
+            on_error,
+        )
+        self._subscription_manager = MqttSubscriptionManager(self._topic_builder)
+
+    def _bind_runtime_callbacks(
+        self,
+        *,
+        on_message: Callable[[str, MqttPayload], None] | None,
+        on_connect: Callable[[], None] | None,
+        on_disconnect: Callable[[], None] | None,
+        on_error: Callable[[Exception], None] | None,
+    ) -> None:
+        """Bind outward callback references mirrored on the transport shell."""
+        self._on_message = on_message
+        self._on_connect = on_connect
+        self._on_disconnect = on_disconnect
+        self._on_error = on_error
+
+    def _bind_runtime_entrypoints(
+        self,
+        transport_runtime: MqttTransportRuntime,
+    ) -> None:
+        """Bind runtime bridge entrypoints exposed through the transport shell."""
         self._build_topic_pairs = transport_runtime.build_topic_pairs
         self._batched_topic_pairs = transport_runtime.batched_topic_pairs
         self._set_last_error = transport_runtime.set_last_error
