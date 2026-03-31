@@ -127,6 +127,26 @@ def test_validate_reauth_submission_rejects_missing_entry_identity() -> None:
     assert errors == {"base": "unknown"}
 
 
+def test_validate_reauth_submission_rejects_invalid_phone_id_type() -> None:
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        unique_id="lipro_10001",
+        data={
+            CONF_PHONE: "13800000000",
+            CONF_PHONE_ID: 12345,
+        },
+    )
+
+    submission, errors = validate_reauth_submission(
+        entry,
+        {"password": "testpassword"},
+        logger=_LOGGER,
+    )
+
+    assert submission is None
+    assert errors == {"base": "unknown"}
+
+
 def test_validate_reconfigure_submission_uses_existing_defaults() -> None:
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -151,3 +171,26 @@ def test_validate_reconfigure_submission_uses_existing_defaults() -> None:
     assert submission.phone == "13800000000"
     assert submission.phone_id == "phone-id"
     assert submission.remember_password_hash is True
+
+
+def test_validate_reconfigure_submission_rejects_invalid_phone_id_type() -> None:
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            CONF_PHONE: "13800000000",
+            CONF_PHONE_ID: 12345,
+            CONF_PASSWORD_HASH: "stored-hash",
+        },
+    )
+
+    submission, errors = validate_reconfigure_submission(
+        entry,
+        {
+            CONF_PHONE: "13800000000",
+            "password": "testpassword",
+        },
+        logger=_LOGGER,
+    )
+
+    assert submission is None
+    assert errors == {"base": "unknown"}

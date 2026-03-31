@@ -455,6 +455,9 @@
     "command_failed": {
       "message": "Failed to send command to device."
     },
+    "invalid_command_request": {
+      "message": "Invalid send_command service payload."
+    },
     "command_device_not_connected": {
       "message": "Device is not connected. Check the device network and try again."
     },

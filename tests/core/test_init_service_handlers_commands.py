@@ -108,6 +108,36 @@ class TestInitServiceHandlerCommandDispatch(_InitServiceHandlerBase):
             fallback_device_id=requested_id,
         )
 
+    async def test_send_command_handler_invalid_properties_fail_fast(self, hass) -> None:
+        """Direct handler calls should reject invalid properties instead of dropping them."""
+        with pytest.raises(HomeAssistantError) as exc:
+            await async_handle_send_command(
+                hass,
+                service_call(
+                    hass,
+                    {
+                        ATTR_COMMAND: "POWER_ON",
+                        ATTR_PROPERTIES: {"key": "powerState", "value": "1"},
+                    },
+                ),
+            )
+        assert exc.value.translation_key == "invalid_command_request"
+
+    async def test_send_command_handler_invalid_device_id_type_fails_fast(self, hass) -> None:
+        """Direct handler calls should reject invalid device_id types."""
+        with pytest.raises(HomeAssistantError) as exc:
+            await async_handle_send_command(
+                hass,
+                service_call(
+                    hass,
+                    {
+                        ATTR_DEVICE_ID: 12345,
+                        ATTR_COMMAND: "POWER_ON",
+                    },
+                ),
+            )
+        assert exc.value.translation_key == "invalid_command_request"
+
     async def test_send_command_handler_failure_raises(self, hass) -> None:
         """send_command raises HomeAssistantError when coordinator reports failure."""
         device = self._create_device()

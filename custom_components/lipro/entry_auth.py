@@ -47,29 +47,58 @@ if TYPE_CHECKING:
 ConfigEntryLike = ConfigEntry[object]
 
 
+def _require_entry_string(
+    entry: ConfigEntryLike,
+    *,
+    key: str,
+    error_message: str,
+) -> str:
+    """Return one required string field from config-entry data."""
+    value = entry.data.get(key)
+    if isinstance(value, str) and value:
+        return value
+    raise ConfigEntryAuthFailed(error_message)
+
+
+def _optional_entry_string(entry: ConfigEntryLike, *, key: str) -> str | None:
+    """Return one optional string field from config-entry data."""
+    value = entry.data.get(key)
+    return value if isinstance(value, str) else None
+
+
+def _resolve_entry_password_seed(
+    entry: ConfigEntryLike,
+) -> tuple[str | None, bool]:
+    """Return persisted password-hash state for auth bootstrap."""
+    password_hash = _optional_entry_string(entry, key=CONF_PASSWORD_HASH)
+    remember_password_hash = entry.data.get(CONF_REMEMBER_PASSWORD_HASH)
+    if remember_password_hash is None:
+        remember_password_hash = bool(password_hash)
+    return password_hash, bool(remember_password_hash)
+
+
 def _build_entry_auth_seed(
     entry: ConfigEntryLike,
     *,
     logger: logging.Logger,
 ) -> AuthBootstrapSeed:
     """Build one host-neutral auth/bootstrap seed from config-entry state."""
-    phone_id = entry.data.get(CONF_PHONE_ID)
-    phone = entry.data.get(CONF_PHONE)
-    if not isinstance(phone_id, str) or not phone_id:
-        msg = (
+    phone_id = _require_entry_string(
+        entry,
+        key=CONF_PHONE_ID,
+        error_message=(
             "Missing phone_id in config entry data; "
             "please remove and re-add the integration"
-        )
-        raise ConfigEntryAuthFailed(msg)
-    if not isinstance(phone, str) or not phone:
-        msg = "Missing phone in config entry data; please remove and re-add the integration"
-        raise ConfigEntryAuthFailed(msg)
-
-    password_hash = entry.data.get(CONF_PASSWORD_HASH)
-    remember_password_hash = entry.data.get(CONF_REMEMBER_PASSWORD_HASH)
-    if remember_password_hash is None:
-        remember_password_hash = bool(password_hash)
-
+        ),
+    )
+    phone = _require_entry_string(
+        entry,
+        key=CONF_PHONE,
+        error_message=(
+            "Missing phone in config entry data; please remove and re-add the integration"
+        ),
+    )
+    password_hash, remember_password_hash = _resolve_entry_password_seed(entry)
     request_timeout = get_entry_int_option(
         entry,
         option_name=CONF_REQUEST_TIMEOUT,
@@ -78,31 +107,18 @@ def _build_entry_auth_seed(
         max_value=MAX_REQUEST_TIMEOUT,
         logger=logger,
     )
-
     return AuthBootstrapSeed(
         phone=phone,
         phone_id=phone_id,
-        password_hash=password_hash if isinstance(password_hash, str) else None,
-        remember_password_hash=bool(remember_password_hash),
+        password_hash=password_hash,
+        remember_password_hash=remember_password_hash,
         request_timeout=request_timeout,
         entry_id=entry.entry_id,
-        access_token=(
-            entry.data.get(CONF_ACCESS_TOKEN)
-            if isinstance(entry.data.get(CONF_ACCESS_TOKEN), str)
-            else None
-        ),
-        refresh_token=(
-            entry.data.get(CONF_REFRESH_TOKEN)
-            if isinstance(entry.data.get(CONF_REFRESH_TOKEN), str)
-            else None
-        ),
+        access_token=_optional_entry_string(entry, key=CONF_ACCESS_TOKEN),
+        refresh_token=_optional_entry_string(entry, key=CONF_REFRESH_TOKEN),
         user_id=entry.data.get(CONF_USER_ID),
         expires_at=entry.data.get(CONF_EXPIRES_AT),
-        biz_id=(
-            entry.data.get(CONF_BIZ_ID)
-            if isinstance(entry.data.get(CONF_BIZ_ID), str)
-            else None
-        ),
+        biz_id=_optional_entry_string(entry, key=CONF_BIZ_ID),
     )
 
 

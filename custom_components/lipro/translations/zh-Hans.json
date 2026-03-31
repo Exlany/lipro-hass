@@ -455,6 +455,9 @@
     "command_failed": {
       "message": "向设备发送命令失败。"
     },
+    "invalid_command_request": {
+      "message": "send_command 服务载荷无效。"
+    },
     "command_device_not_connected": {
       "message": "设备未联网，请检查设备网络后重试。"
     },

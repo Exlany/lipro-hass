@@ -72,6 +72,24 @@ def _validate_password_input(
         return None, "invalid_password"
 
 
+def _resolve_entry_phone_id(
+    entry: ConfigEntry,
+    *,
+    logger: logging.Logger,
+    context_name: str,
+) -> str | None:
+    """Return one stored phone_id only when the persisted entry data is valid."""
+    raw_phone_id = entry.data.get(CONF_PHONE_ID)
+    if isinstance(raw_phone_id, str) and raw_phone_id:
+        return raw_phone_id
+
+    logger.error(
+        "Missing or invalid phone_id in %s entry, please remove and re-add the integration",
+        context_name,
+    )
+    return None
+
+
 def resolve_entry_remember_password_hash(entry_data: Mapping[str, object]) -> bool:
     """Resolve whether one entry should persist the password hash."""
     return bool(
@@ -165,8 +183,12 @@ def validate_reauth_submission(
     errors: FlowErrors = {}
 
     raw_phone = reauth_entry.data.get(CONF_PHONE, "")
-    raw_phone_id = reauth_entry.data.get(CONF_PHONE_ID, "")
-    if not raw_phone or not raw_phone_id:
+    phone_id = _resolve_entry_phone_id(
+        reauth_entry,
+        logger=logger,
+        context_name="reauth",
+    )
+    if not raw_phone or phone_id is None:
         logger.error(
             "Missing phone or phone_id in reauth entry, "
             "please remove and re-add the integration"
@@ -195,7 +217,7 @@ def validate_reauth_submission(
     return (
         ExistingEntrySubmission(
             phone=phone,
-            phone_id=str(raw_phone_id),
+            phone_id=phone_id,
             password_hash=hash_password(password),
             remember_password_hash=resolve_entry_remember_password_hash(
                 reauth_entry.data
@@ -233,12 +255,12 @@ def validate_reconfigure_submission(
     if errors or phone is None or password is None:
         return None, errors
 
-    raw_phone_id = reconfigure_entry.data.get(CONF_PHONE_ID, "")
-    if not raw_phone_id:
-        logger.error(
-            "Missing phone_id in reconfigure entry, "
-            "please remove and re-add the integration"
-        )
+    phone_id = _resolve_entry_phone_id(
+        reconfigure_entry,
+        logger=logger,
+        context_name="reconfigure",
+    )
+    if phone_id is None:
         errors["base"] = "unknown"
         return None, errors
 
@@ -251,7 +273,7 @@ def validate_reconfigure_submission(
     return (
         ExistingEntrySubmission(
             phone=phone,
-            phone_id=str(raw_phone_id),
+            phone_id=phone_id,
             password_hash=hash_password(password),
             remember_password_hash=remember_password_hash,
         ),
