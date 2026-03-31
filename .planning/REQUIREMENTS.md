@@ -9,7 +9,7 @@ contract_name: governance-route
 active_milestone:
   version: v1.31
   name: Boundary Sealing, Governance Truth & Quality Hardening
-  status: active / phase 113 complete; phase 114 discussion-ready (2026-03-31)
+  status: active / phase 114 complete; closeout-ready (2026-03-31)
   phase: '114'
   phase_title: Open-source reachability honesty and security-surface normalization
   phase_dir: 114-open-source-reachability-honesty-and-security-surface-normalization
@@ -29,7 +29,7 @@ previous_archived:
   evidence_path: .planning/reviews/V1_29_EVIDENCE_INDEX.md
 bootstrap:
   current_route: v1.31 active milestone route / starting from latest archived baseline = v1.30
-  default_next_command: $gsd-discuss-phase 114
+  default_next_command: $gsd-complete-milestone v1.31
   latest_archived_evidence_pointer: .planning/reviews/V1_30_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -37,13 +37,13 @@ bootstrap:
 ## Current Milestone (v1.31)
 
 **Milestone Goal:** 把 entity/runtime concrete binding、dependency-guard 缺口、formal-home discoverability 漂移、stale governance anchors 与 remaining hotspot / assurance gaps 收口为同一条 active route，同时对需要 maintainer 外部决策的 open-source reachability 问题保持 blocker honesty。
-**Milestone status:** `active / phase 113 complete; phase 114 discussion-ready (2026-03-31)`
+**Milestone status:** `active / phase 114 complete; closeout-ready (2026-03-31)`
 **Current route mode:** `v1.31 active milestone route / starting from latest archived baseline = v1.30`
 **Starting baseline:** `.planning/v1.30-MILESTONE-AUDIT.md`, `.planning/reviews/V1_30_EVIDENCE_INDEX.md`, `.planning/milestones/v1.30-ROADMAP.md`, `.planning/milestones/v1.30-REQUIREMENTS.md`
 **Requirements basket:** `ARC-28`, `ARC-29`, `GOV-71`, `GOV-72`, `QLT-46`, `TST-38`, `OSS-14`, `SEC-09`
 **Latest archived baseline:** `v1.30`
 **Archive pointer:** `.planning/reviews/V1_30_EVIDENCE_INDEX.md`
-**Default next command:** `$gsd-discuss-phase 114`
+**Default next command:** `$gsd-complete-milestone v1.31`
 
 ### Architecture
 - [x] **ARC-28**: `custom_components/lipro/entities/**` 与其他 adapter 层已回到 runtime public surface / control contracts；concrete `Coordinator` import、cast 与 private-state reach-through 已从 current route 主链移除。
@@ -58,8 +58,8 @@ bootstrap:
 - [x] **TST-38**: changed-surface validation 已覆盖 command/request failure branches、new dependency guards 与 renamed read-model seams，避免只靠 line coverage 掩盖关键错误路径。
 
 ### Open Source
-- [ ] **OSS-14**: public-facing metadata 与 docs 必须明确区分 truly reachable public surfaces 与 access-gated private surfaces；不允许 `manifest.json` / `pyproject.toml` / support docs 暗示不存在的公开入口。
-- [ ] **SEC-09**: security reporting docs 必须把“缺少 guaranteed non-GitHub private fallback”显式登记为 governance gap 或真实 fallback；禁止把不可达 UI 误表述为已提供安全入口。
+- [x] **OSS-14**: public-facing metadata 与 docs 现已明确区分 truly reachable public surfaces 与 access-gated private surfaces；`manifest.json` / `pyproject.toml` / support docs 不再暗示不存在的公开入口，而是把 schema-limited projection truth 明确记录在治理真源中。
+- [x] **SEC-09**: security reporting docs 现已把“缺少 guaranteed non-GitHub private fallback”显式登记为 governance blocker；不可达 UI 不再被误表述为已提供安全入口。
 
 ## Future Requirements
 
@@ -87,15 +87,15 @@ bootstrap:
 | ARC-29 | Phase 112 | Complete |
 | GOV-72 | Phase 112 | Complete |
 | QLT-46 | Phase 113 | Complete |
-| OSS-14 | Phase 114 | Pending |
-| SEC-09 | Phase 114 | Pending |
+| OSS-14 | Phase 114 | Complete |
+| SEC-09 | Phase 114 | Complete |
 
 **Coverage:**
 - v1.31 requirements: 8 total
 - Mapped to phases: 8
 - Unmapped: 0 ✓
-- Current complete: 6
-- Current pending: 2
+- Current complete: 8
+- Current pending: 0
 
 ## Latest Archived Milestone (v1.30)
 

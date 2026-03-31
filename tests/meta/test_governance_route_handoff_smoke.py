@@ -129,9 +129,7 @@ def test_gsd_fast_path_matches_current_active_route_story() -> None:
     assert progress["current_phase"] is None
     assert _as_bool(progress["has_work_in_progress"]) is False
 
-    next_phase = _as_mapping(progress["next_phase"])
-    assert _as_str(next_phase["number"]) == CURRENT_PHASE
-    assert _as_str(next_phase["status"]) == "not_started"
+    assert progress["next_phase"] is None
 
     completed_phase = CURRENT_MILESTONE_COMPLETED_PHASES[-1]
     phase_index = _run_gsd_tools("phase-plan-index", completed_phase)
@@ -140,21 +138,21 @@ def test_gsd_fast_path_matches_current_active_route_story() -> None:
 
     state = _run_gsd_tools("state", "json")
     assert _as_str(state["milestone"]) == CURRENT_MILESTONE
-    assert _as_str(state["status"]) == "`Ready to discuss`"
+    assert _as_str(state["status"]) == "`Ready to complete milestone`"
     assert _as_mapping(state["progress"]) == {
         "total_phases": str(len(CURRENT_MILESTONE_PHASES)),
         "completed_phases": str(len(CURRENT_MILESTONE_COMPLETED_PHASES)),
-        "total_plans": "10",
-        "completed_plans": "10",
-        "percent": "75",
+        "total_plans": "13",
+        "completed_plans": "13",
+        "percent": "100",
     }
 
     plan_init = _run_gsd_tools("init", "plan-phase", CURRENT_PHASE)
     assert _as_bool(plan_init["phase_found"]) is True
     assert _as_str(plan_init["phase_number"]) == CURRENT_PHASE
-    assert _as_bool(plan_init["has_plans"]) is False
-    assert _as_bool(plan_init["has_context"]) is False
-    assert _as_bool(plan_init["has_research"]) is False
+    assert _as_bool(plan_init["has_plans"]) is True
+    assert _as_bool(plan_init["has_context"]) is True
+    assert _as_bool(plan_init["has_research"]) is True
     assert plan_init["plan_count"] == CURRENT_MILESTONE_PLAN_COUNT
 
     execute_init = _run_gsd_tools("init", "execute-phase", CURRENT_PHASE)

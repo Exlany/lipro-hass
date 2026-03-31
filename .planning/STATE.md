@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.31
 milestone_name: Boundary Sealing, Governance Truth & Quality Hardening
-status: `Ready to discuss`
-stopped_at: Phase 113 complete
-last_updated: "2026-03-31T12:00:14Z"
+status: `Ready to complete milestone`
+stopped_at: Phase 114 complete
+last_updated: "2026-03-31T17:00:00Z"
 last_activity: 2026-03-31
 progress:
   total_phases: 4
-  completed_phases: 3
-  total_plans: 10
-  completed_plans: 10
-  percent: 75
+  completed_phases: 4
+  total_plans: 13
+  completed_plans: 13
+  percent: 100
 ---
 
 # Project State
@@ -28,7 +28,7 @@ contract_name: governance-route
 active_milestone:
   version: v1.31
   name: Boundary Sealing, Governance Truth & Quality Hardening
-  status: active / phase 113 complete; phase 114 discussion-ready (2026-03-31)
+  status: active / phase 114 complete; closeout-ready (2026-03-31)
   phase: '114'
   phase_title: Open-source reachability honesty and security-surface normalization
   phase_dir: 114-open-source-reachability-honesty-and-security-surface-normalization
@@ -48,7 +48,7 @@ previous_archived:
   evidence_path: .planning/reviews/V1_29_EVIDENCE_INDEX.md
 bootstrap:
   current_route: v1.31 active milestone route / starting from latest archived baseline = v1.30
-  default_next_command: $gsd-discuss-phase 114
+  default_next_command: $gsd-complete-milestone v1.31
   latest_archived_evidence_pointer: .planning/reviews/V1_30_EVIDENCE_INDEX.md
 ```
 
@@ -63,14 +63,14 @@ bootstrap:
 ## Current Position
 
 - **Phase:** `114 of 114`
-- **Plan:** `0 of TBD`
-- **Status:** `Ready to discuss`
-- **Last activity:** `2026-03-31` — `Phase 113` closeout complete; default route advanced to `Phase 114`
-- **Progress:** `[███████░░░] 75%`
+- **Plan:** `3 of 3`
+- **Status:** `Ready to complete milestone`
+- **Last activity:** `2026-03-31` — `Phase 114` closeout complete; active route is now closeout-ready
+- **Progress:** `[██████████] 100%`
 
 ## Performance Metrics
 
-- **Total plans completed:** `10`
+- **Total plans completed:** `13`
 - **Average duration:** `-`
 - **Total execution time:** `0h`
 
@@ -79,8 +79,7 @@ bootstrap:
 | 111 | 3 | complete | 1.00 |
 | 112 | 3 | complete | 1.00 |
 | 113 | 4 | complete | 1.00 |
-| 113 | 0 | - | - |
-| 114 | 0 | - | - |
+| 114 | 3 | complete | 1.00 |
 
 ## Governance Truth Sources
 
@@ -97,7 +96,7 @@ bootstrap:
 - `v1.31` 固定为 active route，latest archived baseline pointer 保持 `v1.30`。
 - 覆盖映射唯一锁定：`ARC-28/GOV-71/TST-38 -> Phase 111`、`ARC-29/GOV-72 -> Phase 112`、`QLT-46 -> Phase 113`、`OSS-14/SEC-09 -> Phase 114`。
 - 北极星继续锁定 `single mainline / formal homes / no second root / no compat shell comeback`。
-- `Phase 111`、`Phase 112` 与 `Phase 113` 已完成并冻结 `ARC-28 / GOV-71 / TST-38 / ARC-29 / GOV-72 / QLT-46`；当前默认推进到 `Phase 114` 的 open-source reachability / security-surface normalization。
+- `Phase 111`、`Phase 112`、`Phase 113` 与 `Phase 114` 已全部完成并冻结 `ARC-28 / GOV-71 / TST-38 / ARC-29 / GOV-72 / QLT-46 / OSS-14 / SEC-09`；当前默认进入 milestone closeout，而不是再追加新的 active phase。
 
 ### Pending Todos
 
@@ -111,13 +110,13 @@ bootstrap:
 
 ## Recommended Next Command
 
-- **Primary:** `$gsd-discuss-phase 114` — 启动 `Phase 114` 的 discussion / planning 路由。
-- **Auto-route:** `$gsd-next` — 当前应继续路由到与 primary 一致的 discussion / planning 步骤。
+- **Primary:** `$gsd-complete-milestone v1.31` — 归档当前 active milestone，并把 `v1.31` 提升为新的 latest archived baseline。
+- **Auto-route:** `$gsd-next` — 当前应自动收敛到 milestone closeout，而不是再创建新的 active phase。
 - **Status check:** `$gsd-progress` — 若要复核 plan / summary / phase status，可先查看。
 
 ## Session Continuity
 
 - **Last session:** 2026-03-31T12:00:14Z
-- **Stopped at:** Phase 113 complete
+- **Stopped at:** Phase 114 complete
 - **Resume file:** .planning/ROADMAP.md
 - **Read next:** `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` → `.planning/PROJECT.md` → `.planning/ROADMAP.md` → `.planning/REQUIREMENTS.md` → `.planning/STATE.md` → `.planning/phases/111-entity-runtime-boundary-sealing-and-dependency-guard-hardening/111-VERIFICATION.md`

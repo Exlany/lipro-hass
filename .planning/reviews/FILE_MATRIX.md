@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 749
+**Python files total:** 750
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -643,7 +643,7 @@
 | `tests/meta/test_governance_phase_history_runtime.py` | Assurance | Phase 37 | 保留 | runtime closeout phase-history topic home |
 | `tests/meta/test_governance_phase_history_topology.py` | Assurance | Phase 37 | 保留 | thin shell after topology phase-history topicization |
 | `tests/meta/test_governance_promoted_phase_assets.py` | Assurance | Phase 49 | 保留 | promoted-asset topic suite |
-| `tests/meta/test_governance_release_continuity.py` | Assurance | Phase 79 | 保留 | release continuity/custody topic suite home |
+| `tests/meta/test_governance_release_continuity.py` | Assurance | Phase 79 / 114 | 保留 | release continuity/custody topic suite home + access-mode/fallback honesty assertions |
 | `tests/meta/test_governance_release_contract.py` | Assurance | Phase 33 / 77 / 79 | 保留 | release/governance workflow anchor suite |
 | `tests/meta/test_governance_release_docs.py` | Assurance | Phase 79 | 保留 | release/docs topic suite home |
 | `tests/meta/test_governance_route_handoff_smoke.py` | Assurance | Phase 79 / 105 | 保留 | route-handoff gsd fast-path smoke guard home |
@@ -662,6 +662,7 @@
 | `tests/meta/test_phase111_runtime_boundary_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase112_formal_home_governance_guards.py` | Assurance | Phase 112 | 保留 | focused active-route / sanctioned-home / archive-pointer guard home for Phase 112 governance normalization |
 | `tests/meta/test_phase113_hotspot_assurance_guards.py` | Assurance | Phase 113 | 保留 | focused hotspot budget / helper-locality / default-lint changed-surface guard home for Phase 113 |
+| `tests/meta/test_phase114_open_source_surface_honesty_guards.py` | Assurance | Phase 114 | 保留 | focused access-mode / schema-limited metadata projection / debug-mode developer-surface / privacy wording honesty guard home |
 | `tests/meta/test_phase31_runtime_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase45_hotspot_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase50_rest_typed_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
@@ -697,10 +698,10 @@
 | `tests/meta/test_service_translation_sync.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_toolchain_truth.py` | Assurance | Phase 16 / 60 | 保留 | thin daily runnable shell for topicized toolchain truth suites |
 | `tests/meta/test_translation_tree_sync.py` | Assurance | Phase 6 | 保留 | - |
-| `tests/meta/test_version_sync.py` | Assurance | Phase 6 / 77 / 79 / 105 | 保留 | version/runtime metadata sync guard home |
+| `tests/meta/test_version_sync.py` | Assurance | Phase 6 / 77 / 79 / 105 / 114 | 保留 | version/runtime metadata sync guard home + schema-limited projection truth |
 | `tests/meta/toolchain_truth_checker_paths.py` | Assurance | Phase 60 | 保留 | checker-path and local-develop smoke truth family |
 | `tests/meta/toolchain_truth_ci_contract.py` | Assurance | Phase 60 | 保留 | CI lane, pre-push, lint, and pytest contract truth family |
-| `tests/meta/toolchain_truth_docs_fast_path.py` | Assurance | Phase 44 / 60 | 保留 | docs fast-path, continuity, and machine-readable governance truth family; toolchain + docs navigation + terminology truth guard home |
+| `tests/meta/toolchain_truth_docs_fast_path.py` | Assurance | Phase 44 / 60 / 114 | 保留 | docs fast-path, continuity, and machine-readable governance truth family; toolchain + docs navigation + terminology + access-mode projection truth guard home |
 | `tests/meta/toolchain_truth_python_stack.py` | Assurance | Phase 60 | 保留 | Python pin, devcontainer, and pre-commit toolchain truth family |
 | `tests/meta/toolchain_truth_release_contract.py` | Assurance | Phase 60 | 保留 | release workflow and identity-evidence truth family |
 | `tests/meta/toolchain_truth_testing_governance.py` | Assurance | Phase 60 | 保留 | testing-map and derived-governance topology truth family |

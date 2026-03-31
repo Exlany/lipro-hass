@@ -22,6 +22,25 @@
     "private_repo_skips_hacs_validation": true,
     "stable_shell_guidance": "verified GitHub Release assets"
   },
+  "open_source_surface": {
+    "access_mode": "private-access",
+    "access_mode_entrypoint": "README.md",
+    "docs_first": true,
+    "github_surfaces_conditional": true,
+    "non_github_private_fallback_documented": false,
+    "developer_services_debug_mode_only": true,
+    "developer_report_redaction": "partial",
+    "anonymous_share_terms": [
+      "sanitized",
+      "pseudonymous"
+    ],
+    "schema_limited_projections": [
+      "pyproject.toml::project.urls",
+      "custom_components/lipro/manifest.json::documentation",
+      "custom_components/lipro/manifest.json::issue_tracker",
+      ".github/ISSUE_TEMPLATE/config.yml::contact_links"
+    ]
+  },
   "support": {
     "diagnostics_first": true,
     "developer_report_optional": true,

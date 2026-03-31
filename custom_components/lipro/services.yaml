@@ -174,9 +174,10 @@ delete_schedules:
 submit_anonymous_share:
   name: Submit Anonymous Share Report
   description: >-
-    Manually submit the anonymous device share report. This sends anonymized device
-    information and error reports to help improve the integration. Anonymous share
-    must be enabled in the integration options.
+    Manually submit the sanitized/pseudonymous device share report. The payload still
+    keeps stable installation and diagnostic identifiers (for example installation_id and
+    iotName) while sanitizing other device/error details. Anonymous share must be enabled
+    in the integration options.
   fields:
     entry_id:
       name: Entry ID (Optional)
@@ -191,8 +192,9 @@ submit_anonymous_share:
 get_anonymous_share_report:
   name: Get Anonymous Share Report
   description: >-
-    Preview the anonymous share report data that would be submitted. Use this to
-    review what information will be shared before enabling anonymous share.
+    Preview the sanitized/pseudonymous share report data that would be submitted. Use
+    this to review which stable installation/diagnostic identifiers remain before enabling
+    anonymous share.
   fields:
     entry_id:
       name: Entry ID (Optional)
@@ -207,10 +209,11 @@ get_anonymous_share_report:
 get_developer_report:
   name: Get Developer Report
   description: >-
-    Export a redacted runtime diagnostics report for local real-device debugging.
-    This local view keeps vendor diagnosis identifiers such as iotName and local labels so you can
-    identify the device under test. Includes mesh topology snapshot, panel capability snapshot,
-    IR remote inventory snapshot, recent command traces, and runtime options.
+    Debug-mode-only capability. Export a partially redacted runtime diagnostics report
+    for local real-device debugging. This local view still keeps vendor diagnosis identifiers
+    such as iotName and local labels so you can identify the device under test. Includes
+    mesh topology snapshot, panel capability snapshot, IR remote inventory snapshot, recent
+    command traces, and runtime options.
   fields:
     entry_id:
       name: Entry ID (Optional)
@@ -225,10 +228,10 @@ get_developer_report:
 submit_developer_feedback:
   name: Submit Developer Feedback
   description: >-
-    One-click submit developer diagnostics to the share worker. Upload keeps vendor
-    diagnosis identifiers such as iotName, but anonymizes user-defined labels such as
-    device/room/panel/IR names. Optionally limit the upload to one config entry and
-    include a note for easier triage.
+    Debug-mode-only capability. One-click submit developer diagnostics to the share
+    worker. Upload keeps vendor diagnosis identifiers such as iotName, but sanitizes
+    user-defined labels such as device/room/panel/IR names. Optionally limit the upload
+    to one config entry and include a note for easier triage.
   fields:
     entry_id:
       name: Entry ID (Optional)
@@ -251,7 +254,7 @@ submit_developer_feedback:
 query_command_result:
   name: Query Command Result (Developer)
   description: >-
-    Developer-only optional capability. Query cloud-reported command result status by msgSn
+    Debug-mode-only optional capability. Query cloud-reported command result status by msgSn
     with bounded polling inside the default retry budget. Actual attempts may
     be lower than max_attempts because exponential backoff is clipped by the
     time budget. This does not alter normal control flow.
@@ -301,20 +304,20 @@ query_command_result:
 get_city:
   name: Get City (Developer)
   description: >-
-    Developer-only optional capability. Query cloud city metadata using the
+    Debug-mode-only optional capability. Query cloud city metadata using the
     verified empty-object ({}) payload contract.
 
 query_user_cloud:
   name: Query User Cloud (Developer)
   description: >-
-    Developer-only optional capability. Query user cloud metadata using the
+    Debug-mode-only optional capability. Query user cloud metadata using the
     verified raw empty-body contract (`-d ''`). Tested responses may contain
     only a top-level `data` field without a `code` wrapper.
 
 fetch_body_sensor_history:
   name: Fetch Body Sensor History (Developer)
   description: >-
-    Developer-only optional capability. Fetch body sensor history payload for debugging.
+    Debug-mode-only optional capability. Fetch body sensor history payload for debugging.
   target:
     entity:
       integration: lipro
@@ -349,7 +352,7 @@ fetch_body_sensor_history:
 fetch_door_sensor_history:
   name: Fetch Door Sensor History (Developer)
   description: >-
-    Developer-only optional capability. Fetch door sensor history payload for debugging.
+    Debug-mode-only optional capability. Fetch door sensor history payload for debugging.
   target:
     entity:
       integration: lipro

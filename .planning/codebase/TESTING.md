@@ -30,7 +30,7 @@ uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro 
 **Location:**
 - Tests live in a dedicated `tests/` tree, not beside production files.
 - Current topology is broad and intentional: `tests/core`, `tests/services`, `tests/flows`, `tests/platforms`, `tests/entities`, `tests/meta`, `tests/integration`, `tests/snapshots`, `tests/benchmarks`, `tests/harness`, and `tests/fixtures`.
-- Repository counts from current scanning: `411` Python files under `tests`, `328` runnable `test_*.py` files, `70` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
+- Repository counts from current scanning: `412` Python files under `tests`, `329` runnable `test_*.py` files, `71` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
 
 **Naming:**
 - Use `test_*.py` everywhere.
@@ -299,3 +299,9 @@ with pytest.raises(ServiceValidationError):
 - `tests/meta/test_phase113_hotspot_assurance_guards.py` now freezes the Phase 113 hotspot line-budget registry, helper-import locality, and default `scripts/lint` changed-surface assurance contract.
 - `tests/core/test_share_client_submit.py` and `tests/core/test_command_result.py` remain the focused regression chain for the two low-blast-radius hotspot decompositions completed in this phase; `tests/meta/toolchain_truth_ci_contract.py`, `tests/meta/test_governance_release_docs.py`, and `tests/meta/toolchain_truth_docs_fast_path.py` keep the default-lint tooling/docs story honest when those surfaces move.
 - Phase 113 verification requires focused submit/command/meta suites, docs/toolchain fast-path guards when docs change, `scripts/check_file_matrix.py --check`, `ruff`, and governance handoff smoke before the current route advances to `Phase 114`.
+
+## Phase 114 Testing Freeze
+
+- `tests/meta/test_phase114_open_source_surface_honesty_guards.py` now freezes the access-mode/private-fallback truth, schema-limited metadata projection registry, debug-mode-only developer-service disclosure, privacy terminology, and default `scripts/lint` changed-surface help contract.
+- `tests/meta/test_governance_release_continuity.py`, `tests/meta/test_version_sync.py`, and `tests/meta/toolchain_truth_docs_fast_path.py` remain the focused continuity/metadata proof chain for docs-first routes, package metadata, issue contact links, and machine-readable governance truth touched in Phase 114.
+- Phase 114 verification requires the focused Phase 114/meta suites plus `scripts/check_file_matrix.py --check`, `ruff`, and governance handoff smoke before the current route may close to milestone completion.

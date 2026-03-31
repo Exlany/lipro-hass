@@ -4,7 +4,7 @@
 **Status:** `Active milestone route`
 **Current route:** `v1.31 active milestone route / starting from latest archived baseline = v1.30`；latest archived evidence index = `.planning/reviews/V1_30_EVIDENCE_INDEX.md`.
 **Goal:** `沿 v1.30 latest archived baseline，把仍可由仓内代码 / 文档直接修复的 boundary、governance 与 quality gaps 纳入单一 active route，并把依赖 maintainer 外部决策的 reachability 问题显式分层。`
-**Default next step:** `$gsd-discuss-phase 114`
+**Default next step:** `$gsd-complete-milestone v1.31`
 **Active baseline:** latest archived baseline = `v1.30`；previous archived baseline = `v1.29`.
 
 
@@ -15,7 +15,7 @@ contract_name: governance-route
 active_milestone:
   version: v1.31
   name: Boundary Sealing, Governance Truth & Quality Hardening
-  status: active / phase 113 complete; phase 114 discussion-ready (2026-03-31)
+  status: active / phase 114 complete; closeout-ready (2026-03-31)
   phase: '114'
   phase_title: Open-source reachability honesty and security-surface normalization
   phase_dir: 114-open-source-reachability-honesty-and-security-surface-normalization
@@ -35,7 +35,7 @@ previous_archived:
   evidence_path: .planning/reviews/V1_29_EVIDENCE_INDEX.md
 bootstrap:
   current_route: v1.31 active milestone route / starting from latest archived baseline = v1.30
-  default_next_command: $gsd-discuss-phase 114
+  default_next_command: $gsd-complete-milestone v1.31
   latest_archived_evidence_pointer: .planning/reviews/V1_30_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -48,16 +48,16 @@ bootstrap:
 
 **North-star fit:** `v1.31` 继续遵守 single mainline / formal homes / inward split，不扩 public root，不复活 compat shell；只处理仓内仍可被正式基线直接修复的问题，并把需要 maintainer 外部决策的 public reachability / delegate identity 显式标为 governance blocker，而不是伪装成代码已解。`
 
-**Current status:** `active / phase 113 complete; phase 114 discussion-ready (2026-03-31)`
+**Current status:** `active / phase 114 complete; closeout-ready (2026-03-31)`
 **Phase range:** `Phase 111 -> 114`
 **Starting baseline:** `.planning/v1.30-MILESTONE-AUDIT.md`, `.planning/reviews/V1_30_EVIDENCE_INDEX.md`, `.planning/milestones/v1.30-ROADMAP.md`, `.planning/milestones/v1.30-REQUIREMENTS.md`
 **Requirements basket:** `ARC-28`, `ARC-29`, `GOV-71`, `GOV-72`, `QLT-46`, `TST-38`, `OSS-14`, `SEC-09`
 **Latest archived baseline:** `v1.30`
 **Latest archived pointer:** `.planning/reviews/V1_30_EVIDENCE_INDEX.md`
 **Current route mode:** `v1.31 active milestone route / starting from latest archived baseline = v1.30`
-**Default next command:** `$gsd-discuss-phase 114`
-**Route checkpoint:** `Phase 111`, `Phase 112`, and `Phase 113` are complete; `Phase 114` is discussion-ready.
-**Current follow-up target:** start `Phase 114` discussion / planning via `$gsd-discuss-phase 114`, then continue milestone burn-down via `$gsd-next`.
+**Default next command:** `$gsd-complete-milestone v1.31`
+**Route checkpoint:** `Phase 111`, `Phase 112`, `Phase 113`, and `Phase 114` are complete; the active route is now closeout-ready.
+**Current follow-up target:** execute `$gsd-complete-milestone v1.31` to archive the active milestone route and promote the `v1.31` closeout bundle.
 
 **Target features:**
 - 封印 entity / control → runtime internals 的 concrete dependency，并补齐 machine-checkable guards。

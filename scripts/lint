@@ -11,7 +11,7 @@ Usage: ./scripts/lint [--full]
 
 Default mode:
   Runs local static + translation + docs-route + shell + runtime security checks.
-  It does NOT run governance or pytest.
+  It may also run focused pytest/governance assurance when matching changed surfaces are touched.
 
 --full:
   Extends the default checks with governance guards, full test coverage,

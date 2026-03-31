@@ -28,7 +28,7 @@ contract_name: governance-route
 active_milestone:
   version: v1.31
   name: Boundary Sealing, Governance Truth & Quality Hardening
-  status: active / phase 113 complete; phase 114 discussion-ready (2026-03-31)
+  status: active / phase 114 complete; closeout-ready (2026-03-31)
   phase: '114'
   phase_title: Open-source reachability honesty and security-surface normalization
   phase_dir: 114-open-source-reachability-honesty-and-security-surface-normalization
@@ -48,7 +48,7 @@ previous_archived:
   evidence_path: .planning/reviews/V1_29_EVIDENCE_INDEX.md
 bootstrap:
   current_route: v1.31 active milestone route / starting from latest archived baseline = v1.30
-  default_next_command: $gsd-discuss-phase 114
+  default_next_command: $gsd-complete-milestone v1.31
   latest_archived_evidence_pointer: .planning/reviews/V1_30_EVIDENCE_INDEX.md
 ```
 

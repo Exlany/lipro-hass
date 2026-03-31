@@ -78,8 +78,8 @@ Please do **not** open a public GitHub issue for security vulnerabilities.
 
 - Preferred private path when your current access mode exposes it / 当前访问模式可见时的首选私密路径：`https://github.com/Exlany/lipro-hass/security/advisories/new`
 - Policy landing page with the same access caveat / 带同样访问前提的安全策略入口：`https://github.com/Exlany/lipro-hass/security/policy`
-- If those GitHub security routes are not reachable in your current access mode, do not infer a public fallback from this private repository; keep the report private and return to this policy once a repository-access path is actually available.
-- 若这些 GitHub 安全入口在你当前访问模式下不可达，不要把当前 private repository 误读为已经提供公开替代路径；请继续保持私密，并在真实可达的仓库访问路径出现后回到本策略执行。
+- If those GitHub security routes are not reachable in your current access mode, do not infer a public fallback from this private repository; no guaranteed non-GitHub private fallback is documented today. Keep the report private and return to this policy once a repository-access path is actually available.
+- 若这些 GitHub 安全入口在你当前访问模式下不可达，不要把当前 private repository 误读为已经提供公开替代路径；当前也没有已文档化、保证可达的非 GitHub 私密回报通道。请继续保持私密，并在真实可达的仓库访问路径出现后回到本策略执行。
 - Include / 请附带：
   - affected version(s) and install path / 受影响版本与安装路径（例如 tagged release、`latest`、`ARCHIVE_TAG=main`、manual zip、mirror、fork）
   - integration version plus Home Assistant version / 集成版本与 Home Assistant 版本

@@ -429,10 +429,36 @@ def test_project_urls_keep_private_access_routes_honest() -> None:
     urls = pyproject["project"]["urls"]
 
     assert urls["Documentation"].endswith("docs/README.md")
+    assert urls["Access Mode"].endswith("README.md")
     assert urls["Support"].endswith("SUPPORT.md")
     assert urls["Security"].endswith("SECURITY.md")
     assert "Discussions" not in urls
     assert "Issues" not in urls
+
+
+def test_open_source_surface_registry_marks_schema_limited_metadata() -> None:
+    registry = _load_governance_registry()
+    pyproject = tomllib.loads(_PYPROJECT.read_text(encoding="utf-8"))
+    manifest = json.loads(_MANIFEST.read_text(encoding="utf-8"))
+    surface = registry["open_source_surface"]
+
+    assert surface["access_mode"] == "private-access"
+    assert surface["access_mode_entrypoint"] == "README.md"
+    assert surface["docs_first"] is True
+    assert surface["github_surfaces_conditional"] is True
+    assert surface["non_github_private_fallback_documented"] is False
+    assert surface["developer_services_debug_mode_only"] is True
+    assert surface["developer_report_redaction"] == "partial"
+    assert surface["anonymous_share_terms"] == ["sanitized", "pseudonymous"]
+    assert surface["schema_limited_projections"] == [
+        "pyproject.toml::project.urls",
+        "custom_components/lipro/manifest.json::documentation",
+        "custom_components/lipro/manifest.json::issue_tracker",
+        ".github/ISSUE_TEMPLATE/config.yml::contact_links",
+    ]
+    assert pyproject["project"]["urls"]["Access Mode"].endswith("/README.md")
+    assert manifest["documentation"].endswith("/docs/README.md")
+    assert manifest["issue_tracker"].endswith("/SUPPORT.md")
 
 
 def test_package_metadata_marks_stable_release_posture() -> None:

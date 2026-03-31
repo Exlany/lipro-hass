@@ -12,7 +12,7 @@ contract_name: governance-route
 active_milestone:
   version: v1.31
   name: Boundary Sealing, Governance Truth & Quality Hardening
-  status: active / phase 113 complete; phase 114 discussion-ready (2026-03-31)
+  status: active / phase 114 complete; closeout-ready (2026-03-31)
   phase: '114'
   phase_title: Open-source reachability honesty and security-surface normalization
   phase_dir: 114-open-source-reachability-honesty-and-security-surface-normalization
@@ -32,7 +32,7 @@ previous_archived:
   evidence_path: .planning/reviews/V1_29_EVIDENCE_INDEX.md
 bootstrap:
   current_route: v1.31 active milestone route / starting from latest archived baseline = v1.30
-  default_next_command: $gsd-discuss-phase 114
+  default_next_command: $gsd-complete-milestone v1.31
   latest_archived_evidence_pointer: .planning/reviews/V1_30_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -42,12 +42,12 @@ bootstrap:
 `v1.31` 只沿单一 north-star 主线推进：封印 entity/control → runtime internals concrete bypass，统一 formal-home discoverability 与治理锚点，继续 burn-down 当前热点，并对 open-source reachability / security fallback 保持 honest-by-default。所有工作都以 `v1.30` 为 latest archived baseline，不引入 second root，不复活 compat shell。
 
 **Coverage:** `8/8` v1.31 requirements mapped exactly once.
-**Default next command:** `$gsd-discuss-phase 114`
+**Default next command:** `$gsd-complete-milestone v1.31`
 
 ## v1.31: Boundary Sealing, Governance Truth & Quality Hardening
 
-**Milestone status:** `active / phase 113 complete; phase 114 discussion-ready (2026-03-31)`
-**Default next command:** `$gsd-discuss-phase 114`
+**Milestone status:** `active / phase 114 complete; closeout-ready (2026-03-31)`
+**Default next command:** `$gsd-complete-milestone v1.31`
 **Current route story:** `v1.31 active milestone route / starting from latest archived baseline = v1.30`
 **Latest archived pointer:** `.planning/reviews/V1_30_EVIDENCE_INDEX.md`
 
@@ -56,7 +56,7 @@ bootstrap:
 - [x] **Phase 111: Entity-runtime boundary sealing and dependency-guard hardening** - 已封印 entity/control 到 runtime internals 的 concrete bypass，并用 machine-checkable guards 与 changed-surface validation 固化完成态。
 - [x] **Phase 112: Formal-home discoverability and governance-anchor normalization** - 统一 sanctioned root homes、formal-home discoverability 与 stale governance anchors。 (completed 2026-03-31)
 - [x] **Phase 113: Hotspot burn-down and changed-surface assurance hardening** - 继续 inward split 当前实现热点，或用 honest no-regrowth guards 固化 changed surface。 (completed 2026-03-31)
-- [ ] **Phase 114: Open-source reachability honesty and security-surface normalization** - 让 public metadata / security docs 只陈述真实可达 surface 与未解 blocker。
+- [x] **Phase 114: Open-source reachability honesty and security-surface normalization** - 让 public metadata / security docs 只陈述真实可达 surface 与未解 blocker。 (completed 2026-03-31)
 
 ## Phase Details
 
@@ -104,7 +104,9 @@ bootstrap:
   1. Public-facing metadata 与 docs 会清楚区分 truly reachable public surfaces 和 access-gated private surfaces，不再暗示不存在的公开入口。
   2. Security reporting docs 会明确说明是否存在 guaranteed non-GitHub private fallback；若不存在，则以 governance blocker 诚实登记，而不是伪装成已解决入口。
   3. `manifest.json`、`pyproject.toml`、support/security docs 与 planning truth 不会编造 public endpoint、delegate identity 或 backup maintainer；外部 blocker 保持显式待 maintainer 处理。
-**Plans**: TBD
+**Status**: Complete (`2026-03-31`)
+**Plans**: 3/3 complete
+**Evidence**: `.planning/phases/114-open-source-reachability-honesty-and-security-surface-normalization/{114-01-SUMMARY.md,114-02-SUMMARY.md,114-03-SUMMARY.md,114-VERIFICATION.md,114-SUMMARY.md,114-AUDIT.md}`
 
 ## Progress
 
@@ -112,5 +114,5 @@ bootstrap:
 |-------|----------------|--------|-----------|
 | 111. Entity-runtime boundary sealing and dependency-guard hardening | 3/3 | Complete | 2026-03-31 |
 | 112. Formal-home discoverability and governance-anchor normalization | 3/3 | Complete    | 2026-03-31 |
-| 113. Hotspot burn-down and changed-surface assurance hardening | 0/TBD | Not started | - |
-| 114. Open-source reachability honesty and security-surface normalization | 0/TBD | Not started | - |
+| 113. Hotspot burn-down and changed-surface assurance hardening | 4/4 | Complete | 2026-03-31 |
+| 114. Open-source reachability honesty and security-surface normalization | 3/3 | Complete | 2026-03-31 |

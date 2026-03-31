@@ -37,19 +37,14 @@ def test_normalize_phone_rejects_too_long_input() -> None:
         normalize_phone("+" + "1" * 50)
 
 
-def test_normalize_phone_rejects_sql_injection_chars() -> None:
-    """Test that SQL injection characters are rejected."""
-    with pytest.raises(vol.Invalid, match="contains invalid characters"):
-        normalize_phone("138000'; DROP")
-
-    with pytest.raises(vol.Invalid, match="contains invalid characters"):
-        normalize_phone('138000"')
-
-    with pytest.raises(vol.Invalid, match="contains invalid characters"):
-        normalize_phone("138000/**/")
-
-    with pytest.raises(vol.Invalid, match="contains invalid characters"):
-        normalize_phone("138000--")
+@pytest.mark.parametrize("value", ["138000'; DROP", '138000"', "138000/**/", "138000--"])
+def test_normalize_phone_rejects_non_phone_characters(value: str) -> None:
+    """Test that non-phone characters are rejected by the format contract."""
+    with pytest.raises(
+        vol.Invalid,
+        match=r"Phone number must be 6-20 digits \(optionally starting with \+\)",
+    ):
+        normalize_phone(value)
 
 
 def test_normalize_phone_accepts_valid_numbers() -> None:
@@ -102,10 +97,11 @@ def test_validate_password_rejects_null_bytes() -> None:
         validate_password("password\x00admin")
 
 
-def test_validate_password_rejects_control_chars() -> None:
+@pytest.mark.parametrize("value", ["password\x01\x02", "password\nadmin", "password\tadmin", "password\radmin"])
+def test_validate_password_rejects_control_chars(value: str) -> None:
     """Test that passwords with control characters are rejected."""
     with pytest.raises(vol.Invalid, match="contains invalid characters"):
-        validate_password("password\x01\x02")
+        validate_password(value)
 
 
 def test_validate_password_accepts_valid_value() -> None:

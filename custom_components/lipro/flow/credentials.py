@@ -17,9 +17,8 @@ def normalize_phone(phone: object) -> str:
 
     Validates:
     - Type must be string
-    - Length must not exceed 30 chars (防止过长输入)
+    - Length must not exceed 30 chars
     - Format must be 6-20 digits with optional + prefix
-    - No SQL injection characters allowed
 
     Args:
         phone: User input phone number
@@ -36,14 +35,9 @@ def normalize_phone(phone: object) -> str:
 
     normalized = phone.strip()
 
-    # 防止过长输入（DoS攻击）
+    # Reject excessively long input.
     if len(normalized) > _MAX_PHONE_LEN:
         msg = f"Phone number too long (max {_MAX_PHONE_LEN} characters)"
-        raise vol.Invalid(msg)
-
-    # 防止SQL注入和特殊字符
-    if any(char in normalized for char in ("'", '"', ";", "--", "/*", "*/")):
-        msg = "Phone number contains invalid characters"
         raise vol.Invalid(msg)
 
     if not _PHONE_INPUT_PATTERN.fullmatch(normalized):
@@ -106,8 +100,8 @@ def validate_password(password: object) -> str:
         msg = f"Password too long (maximum {_MAX_PASSWORD_LEN} characters)"
         raise vol.Invalid(msg)
 
-    # 防止空字节和控制字符（安全风险）
-    if "\x00" in password or any(ord(c) < 32 and c not in "\t\n\r" for c in password):
+    # Reject null bytes and all ASCII control characters.
+    if any(ord(c) < 32 or ord(c) == 127 for c in password):
         msg = "Password contains invalid characters"
         raise vol.Invalid(msg)
 

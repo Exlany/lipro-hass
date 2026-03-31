@@ -48,6 +48,8 @@ def test_latest_closeout_pointer_and_archived_route_stay_current() -> None:
 
 def test_security_disclosure_path_is_present() -> None:
     security_text = _SECURITY.read_text(encoding="utf-8")
+    registry = _load_json(_GOVERNANCE_REGISTRY)
+    open_source_surface = _as_mapping(registry["open_source_surface"])
     issue_config = _load_yaml(_ISSUE_CONFIG)
     contact_links = _as_mapping_list(issue_config["contact_links"])
     docs_link = next(
@@ -60,8 +62,12 @@ def test_security_disclosure_path_is_present() -> None:
     assert "/security/advisories/new" in security_text
     assert "public GitHub issue" in security_text
     assert "private-access" in security_text
+    assert "no guaranteed non-github private fallback is documented today" in security_text.lower()
+    assert open_source_surface["access_mode"] == "private-access"
+    assert open_source_surface["non_github_private_fallback_documented"] is False
     assert _as_str(docs_link["url"]).endswith("/docs/README.md")
     assert "access mode" in _as_str(security_link["about"]).lower()
+    assert "no guaranteed non-github private fallback" in _as_str(security_link["about"]).lower()
 
 def test_manifest_codeowners_match_repo_codeowners() -> None:
     manifest = _load_json(_MANIFEST)
@@ -144,6 +150,8 @@ def test_support_and_issue_routing_are_consistent() -> None:
     assert any("access mode" in about.lower() for about in contact_abouts)
     assert "Discussion" in support_text or "讨论" in support_text
     assert "SECURITY.md" in support_text
+    assert "No guaranteed non-GitHub private fallback is documented today." in support_text
+    assert "no guaranteed non-github private fallback is documented today" in security_text.lower()
     assert "single-maintainer" in support_text
     assert "verified GitHub Release assets" in support_text
     assert "private-access" in readme_text

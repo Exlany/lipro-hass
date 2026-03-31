@@ -43,8 +43,8 @@ _V1_31_TRACES = (
     RequirementTrace("ARC-29", "112", "Complete"),
     RequirementTrace("GOV-72", "112", "Complete"),
     RequirementTrace("QLT-46", "113", "Complete"),
-    RequirementTrace("OSS-14", "114", "Pending"),
-    RequirementTrace("SEC-09", "114", "Pending"),
+    RequirementTrace("OSS-14", "114", "Complete"),
+    RequirementTrace("SEC-09", "114", "Complete"),
 )
 
 
@@ -99,10 +99,11 @@ def test_phase_113_closeout_and_phase_114_handoff_are_reflected_in_live_docs() -
         f"**Current milestone:** `{CURRENT_MILESTONE_STATE_LABEL}`",
         f"**Current mode:** `{CURRENT_ROUTE_MODE}`",
         "- **Phase:** `114 of 114`",
-        "- **Status:** `Ready to discuss`",
-        "- **Progress:** `[███████░░░] 75%`",
+        "- **Plan:** `3 of 3`",
+        "- **Status:** `Ready to complete milestone`",
+        "- **Progress:** `[██████████] 100%`",
         "## Recommended Next Command",
-        "$gsd-discuss-phase 114",
+        "$gsd-complete-milestone v1.31",
     )
 
 
@@ -111,8 +112,8 @@ def test_requirements_traceability_advances_phase_111_and_keeps_future_work_pend
         _REQUIREMENTS_TEXT,
         *requirement_checkbox_markers(*_V1_31_TRACES[:3]),
         *requirement_table_markers(*_V1_31_TRACES),
-        "- Current complete: 6",
-        "- Current pending: 2",
+        "- Current complete: 8",
+        "- Current pending: 0",
         f"**Milestone status:** `{CURRENT_MILESTONE_STATUS}`",
         f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`",
     )

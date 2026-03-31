@@ -202,6 +202,7 @@ def test_docs_index_and_retired_tooling_contract_are_machine_readable() -> None:
     docs_link = next(
         link for link in issue_config["contact_links"] if "Documentation" in link["name"]
     )
+    open_source_surface = registry["open_source_surface"]
     discussions_link = next(
         link for link in issue_config["contact_links"] if "Discussions" in link["name"]
     )
@@ -217,7 +218,22 @@ def test_docs_index_and_retired_tooling_contract_are_machine_readable() -> None:
     ]
     assert registry["support"]["documentation_route"] == "docs/README.md"
     assert registry["docs"]["index_route"] == "docs/README.md"
+    assert open_source_surface["access_mode"] == "private-access"
+    assert open_source_surface["access_mode_entrypoint"] == "README.md"
+    assert open_source_surface["docs_first"] is True
+    assert open_source_surface["github_surfaces_conditional"] is True
+    assert open_source_surface["non_github_private_fallback_documented"] is False
+    assert open_source_surface["developer_services_debug_mode_only"] is True
+    assert open_source_surface["developer_report_redaction"] == "partial"
+    assert open_source_surface["anonymous_share_terms"] == ["sanitized", "pseudonymous"]
+    assert open_source_surface["schema_limited_projections"] == [
+        "pyproject.toml::project.urls",
+        "custom_components/lipro/manifest.json::documentation",
+        "custom_components/lipro/manifest.json::issue_tracker",
+        ".github/ISSUE_TEMPLATE/config.yml::contact_links",
+    ]
     assert pyproject["project"]["urls"]["Documentation"].endswith("/docs/README.md")
+    assert pyproject["project"]["urls"]["Access Mode"].endswith("/README.md")
     assert pyproject["project"]["urls"]["Support"].endswith("/SUPPORT.md")
     assert pyproject["project"]["urls"]["Security"].endswith("/SECURITY.md")
     assert "Discussions" not in pyproject["project"]["urls"]
@@ -226,6 +242,7 @@ def test_docs_index_and_retired_tooling_contract_are_machine_readable() -> None:
     assert "docs-first" in docs_link["about"]
     assert "access mode" in discussions_link["about"].lower()
     assert "access mode" in security_link["about"].lower()
+    assert "no guaranteed non-github private fallback" in security_link["about"].lower()
     assert "Community-Health Contract" in docs_text
     assert "private-access" in docs_text
     assert "maintainer appendix" in docs_text.lower()

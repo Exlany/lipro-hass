@@ -10,7 +10,7 @@
 | Confirmed bug / regression | `docs/TROUBLESHOOTING.md`, then the bug template | Include diagnostics first; GitHub issue forms are access-mode dependent rather than the universal default for this private-access repo |
 | Security-sensitive report | `SECURITY.md` | Use private disclosure; the GitHub security UI is also access-mode-aware rather than a guaranteed public route |
 
-Current access-mode truth: this repository is private-access. If you only need user / contributor routing, stop at the docs files above: `docs/README.md` is the docs map, `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md` explains change boundaries, `docs/TROUBLESHOOTING.md` handles troubleshooting, and `SECURITY.md` handles private disclosure. GitHub-hosted Issues / Discussions / Security UI only apply when your current access mode exposes them or when a future public mirror preserves the same contract. `docs/MAINTAINER_RELEASE_RUNBOOK.md` stays maintainer-only for release / packaging / custody work.
+Current access-mode truth: this repository is private-access. If you only need user / contributor routing, stop at the docs files above: `docs/README.md` is the docs map, `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md` explains change boundaries, `docs/TROUBLESHOOTING.md` handles troubleshooting, and `SECURITY.md` handles private disclosure. GitHub-hosted Issues / Discussions / Security UI only apply when your current access mode exposes them or when a future public mirror preserves the same contract. No guaranteed non-GitHub private fallback is documented today. `docs/MAINTAINER_RELEASE_RUNBOOK.md` stays maintainer-only for release / packaging / custody work.
 
 ## Version & Validation Truth
 
@@ -65,7 +65,7 @@ This repository currently follows a single-maintainer review model. No documente
 
 - Usage questions or “is this expected?”: start with `docs/TROUBLESHOOTING.md`, then `SUPPORT.md`; use GitHub Discussions only when that route is visible in your current access mode or a future public mirror preserves it.
 - Confirmed bugs/regressions: use the bug template and include diagnostics first; GitHub issue forms apply only when they are reachable in your current access mode. Add developer report / one-click feedback plus `failure_summary` / `failure_entries` when diagnostics are insufficient or those fields are available.
-- Security-sensitive reports: use the private path in `SECURITY.md`, not a public Issue.
+- Security-sensitive reports: use the private path in `SECURITY.md`, not a public Issue. No guaranteed non-GitHub private fallback is documented today.
 - Maintainer-only release / packaging / custody work: `docs/MAINTAINER_RELEASE_RUNBOOK.md` (not part of the public first hop).
 
 ## Triage Expectations / 分诊预期

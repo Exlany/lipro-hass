@@ -57,15 +57,15 @@ Home Assistant 集成，用于控制 Lipro 智能家居设备。
 - `lipro.get_schedules` - 获取按周重复的定时任务；星期使用 `1=周一` 到 `7=周日`。mesh group 的读取以 BLE/gateway-member 候选为准。对已测 mesh BLE schedule，标准 `schedule/get.do` 可能返回空成功，不能假定为可靠读回退
 - `lipro.add_schedule` - 添加按周重复的定时任务；当前不暴露绝对日期定时模式。mesh group 仅通过 BLE/gateway-member 候选写入，因为实测标准 `schedule/addOrUpdate.do` 不是可靠回退链路
 - `lipro.delete_schedules` - 按 ID 删除定时任务；mesh group 仅通过 BLE/gateway-member 候选删除，因为实测标准 `schedule/delete.do` 可能回成功但并未删除目标任务
-- `lipro.submit_anonymous_share` - 手动提交匿名分享报告
-- `lipro.get_anonymous_share_report` - 预览匿名分享报告
-- `lipro.get_developer_report` - 导出本地调试用脱敏报告；保留 `iotName` 等供应商诊断标识与本地标签，方便识别正在测试的设备（全部条目或指定 entry_id）
-- `lipro.submit_developer_feedback` - 一键提交开发者诊断反馈；上传保留 `iotName`，但会匿名化设备/房间/面板/红外资产名称等用户自定义标签（全部条目或指定 entry_id）
-- `lipro.query_command_result` - 按消息序列号查询云端上报的命令状态（开发者能力）
-- `lipro.get_city` - 按已验证的空对象 payload 契约查询云端城市元数据（开发者能力）
-- `lipro.query_user_cloud` - 按已验证的原始空 body 契约（`-d ''`）查询用户云端元数据；实测响应可能只有顶层 `data`，没有 `code` 包装（开发者能力）
-- `lipro.fetch_body_sensor_history` - 拉取人体传感器历史载荷用于调试（开发者能力）
-- `lipro.fetch_door_sensor_history` - 拉取门窗传感器历史载荷用于调试（开发者能力）
+- `lipro.submit_anonymous_share` - 手动提交已脱敏/伪匿名的分享报告
+- `lipro.get_anonymous_share_report` - 预览上传前的已脱敏/伪匿名分享载荷
+- `lipro.get_developer_report` - 仅在调试模式下可用的本地诊断导出；属于部分脱敏视图，但仍保留 `iotName` 等供应商诊断标识与本地标签，方便识别正在测试的设备（全部条目或指定 entry_id）
+- `lipro.submit_developer_feedback` - 仅在调试模式下可用的一键开发者诊断反馈；上传保留 `iotName`，但会脱敏设备/房间/面板/红外资产名称等用户自定义标签（全部条目或指定 entry_id）
+- `lipro.query_command_result` - 仅在调试模式下可用的开发者能力：按消息序列号查询云端上报的命令状态
+- `lipro.get_city` - 仅在调试模式下可用的开发者能力：按已验证的空对象 payload 契约查询云端城市元数据
+- `lipro.query_user_cloud` - 仅在调试模式下可用的开发者能力：按已验证的原始空 body 契约（`-d ''`）查询用户云端元数据；实测响应可能只有顶层 `data`，没有 `code` 包装
+- `lipro.fetch_body_sensor_history` - 仅在调试模式下可用的开发者能力：拉取人体传感器历史载荷用于调试
+- `lipro.fetch_door_sensor_history` - 仅在调试模式下可用的开发者能力：拉取门窗传感器历史载荷用于调试
 - `lipro.refresh_devices` - 强制刷新设备列表（全部条目或指定 entry_id）
 
 固件验证清单：
@@ -171,7 +171,7 @@ ARCHIVE_TAG=main LIPRO_ALLOW_MIRROR=1 HUB_DOMAIN=ghfast.top bash ./install.sh
 
 - **手机号**：注册 Lipro 的手机号
 - **密码**：Lipro 账号密码
-- **记住密码**：会在本地存储密码的 MD5 哈希值，用于 refresh token 过期时自动重新登录。关闭可减少本地泄露面，但后续可能需要手动重新认证。
+- **记住密码**：会在本地存储密码的 MD5 哈希值，作为 hashed login 的凭证等价秘密，用于 refresh token 过期时自动重新登录。关闭可减少本地泄露面，但后续可能需要手动重新认证。
 
 ### 重新配置
 
@@ -302,11 +302,11 @@ data:
 - **启用 MQTT 实时更新**：使用 MQTT 推送状态（推荐）
 - **启用功率监测**：查询插座功率数据
 - **匿名分享设备信息**：开启后可帮助完善设备支持
-- **匿名分享错误报告**：开启后可帮助更快定位问题
+- **匿名分享错误报告**：开启后可上传已脱敏/伪匿名的错误报告（载荷仍保留稳定 installation/diagnostic 标识）
 - **高级选项**：
   - **功率查询间隔**：插座功率查询频率（默认 300 秒 / 约 5 分钟，范围 30-300 秒）
   - **请求超时**：API 请求超时时间（10-60 秒）
-  - **调试模式（诊断）**：采集运行诊断（mesh 拓扑 + 命令轨迹）。更详细日志请通过 Home Assistant 的日志配置开启。
+  - **调试模式（诊断）**：采集运行诊断（mesh 拓扑 + 命令轨迹），并启用仅限调试模式的开发者服务。更详细日志请通过 Home Assistant 的日志配置开启。
   - **关灯时调亮度/色温自动开灯**：关灯状态下调节亮度/色温也会自动开灯（如需保持 Lipro 行为可关闭）
   - **强制用云端房间覆盖 HA 区域**：始终以云端房间覆盖 HA 区域（谨慎）
   - **检查命令结果状态**：默认开启（推荐）。发送命令后基于 `msgSn` 轮询云端命令结果状态，用于辅助判断控制闭环；不等同于送达确认或设备已执行
@@ -343,7 +343,7 @@ data:
 
 - 先确认手机号、密码在 Lipro 官方 App 中仍可正常使用。
 - 若密码已变更，请使用重新配置/更新凭据，不要直接删除集成。
-- 若 reauth 反复失败，请先附上 diagnostics；只有当 diagnostics 仍不足以解释问题，或维护者要求进一步排查时，再补充脱敏后的 developer report。
+- 若 reauth 反复失败，请先附上 diagnostics；只有当 diagnostics 仍不足以解释问题，或维护者要求进一步排查时，再补充本地专用、部分脱敏的 developer report。
 - 若可获取，请同时附上 diagnostics / system health / developer report 导出的 `failure_summary` / `failure_entries`。
 
 #### 设备不可用 / 未显示
@@ -368,10 +368,10 @@ data:
 脱敏范围包含账号凭据/Token（`phone`, `password`, `access_token`, `refresh_token`）、云端/设备标识（`userId`/`bizId`, `serial`/`deviceId`/`iotDeviceId`）以及网络标识（WiFi SSID/MAC/IP）。
 
 若 diagnostics 仍不足以解释问题，或维护者要求进一步排查，可再在本地预览或上报以下载荷：
-- `lipro.get_developer_report` - 本地调试报告；保留 `iotName` 等供应商诊断标识与本地标签，便于识别实测设备
-- `lipro.submit_developer_feedback` - 上传契约；保留 `iotName`，但会匿名化设备/房间/面板/红外资产名称等用户自定义标签
+- `lipro.get_developer_report` - 仅在调试模式下可用的本地诊断导出；属于部分脱敏视图，但仍保留 `iotName` 等供应商诊断标识与本地标签，便于识别实测设备
+- `lipro.submit_developer_feedback` - 仅在调试模式下可用的上传契约；保留 `iotName`，但会脱敏设备/房间/面板/红外资产名称等用户自定义标签
 - 若可获取，请把 `failure_summary` / `failure_entries` 与 diagnostics 一并提供，便于维护者快速判型
-- `lipro.get_anonymous_share_report` - 脱敏匿名分享报告
+- `lipro.get_anonymous_share_report` - 已脱敏/伪匿名的 share-worker 载荷预览（仍包含稳定 installation/diagnostic 标识）
 
 另见：`SUPPORT.md`（公开问题分流）与 `SECURITY.md`（私密漏洞披露）。`docs/MAINTAINER_RELEASE_RUNBOOK.md` 仅供维护者处理发版 / rehearsal / custody 工作。
 

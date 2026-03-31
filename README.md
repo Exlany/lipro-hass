@@ -57,15 +57,15 @@ Access-mode note: this repository is currently private-access. GitHub Issues / D
 - `lipro.get_schedules` - Get recurring weekly schedules; weekdays use `1=Monday` to `7=Sunday`. For mesh groups, reads use BLE/gateway-member candidates as the source of truth. On tested mesh BLE schedules, standard `schedule/get.do` may return empty success, so do not assume a reliable read fallback
 - `lipro.add_schedule` - Add a recurring weekly schedule; no absolute-date schedule mode is exposed. Mesh groups write through BLE/gateway-member candidates only, because tested standard `schedule/addOrUpdate.do` is not a reliable fallback
 - `lipro.delete_schedules` - Delete schedules by IDs; mesh groups delete through BLE/gateway-member candidates only, because tested standard `schedule/delete.do` may report success without deleting the target schedule
-- `lipro.submit_anonymous_share` - Submit anonymous share report manually
-- `lipro.get_anonymous_share_report` - Preview anonymous share report
-- `lipro.get_developer_report` - Export a redacted local debugging report; keeps vendor diagnosis identifiers such as `iotName` plus local labels to identify the device under test (all entries or one `entry_id`)
-- `lipro.submit_developer_feedback` - One-click submit developer diagnostics; upload keeps `iotName` but anonymizes user-defined labels such as device/room/panel/IR names (all entries or one `entry_id`)
-- `lipro.query_command_result` - Query cloud-reported command status by message serial number with bounded polling (developer capability)
-- `lipro.get_city` - Query cloud city metadata using the verified empty-object payload contract (developer capability)
-- `lipro.query_user_cloud` - Query user cloud metadata using the verified raw empty-body contract (`-d ''`); tested responses may contain only top-level `data` without a `code` wrapper (developer capability)
-- `lipro.fetch_body_sensor_history` - Fetch body sensor history payload for debugging (developer capability)
-- `lipro.fetch_door_sensor_history` - Fetch door sensor history payload for debugging (developer capability)
+- `lipro.submit_anonymous_share` - Submit the opt-in sanitized share report manually
+- `lipro.get_anonymous_share_report` - Preview the sanitized/pseudonymous share payload before upload
+- `lipro.get_developer_report` - Debug-mode-only local diagnostics export; partially redacted, but still keeps vendor diagnosis identifiers such as `iotName` plus local labels so you can identify the device under test (all entries or one `entry_id`)
+- `lipro.submit_developer_feedback` - Debug-mode-only developer diagnostics upload; keeps `iotName` but sanitizes user-defined labels such as device/room/panel/IR names (all entries or one `entry_id`)
+- `lipro.query_command_result` - Debug-mode-only developer capability. Query cloud-reported command status by message serial number with bounded polling
+- `lipro.get_city` - Debug-mode-only developer capability. Query cloud city metadata using the verified empty-object payload contract
+- `lipro.query_user_cloud` - Debug-mode-only developer capability. Query user cloud metadata using the verified raw empty-body contract (`-d ''`); tested responses may contain only top-level `data` without a `code` wrapper
+- `lipro.fetch_body_sensor_history` - Debug-mode-only developer capability. Fetch body sensor history payload for debugging
+- `lipro.fetch_door_sensor_history` - Debug-mode-only developer capability. Fetch door sensor history payload for debugging
 - `lipro.refresh_devices` - Force a full device list refresh (all entries or one `entry_id`)
 
 Firmware validation list:
@@ -171,7 +171,7 @@ When adding the integration, enter your Lipro account credentials:
 
 - **Phone**: Phone number registered with Lipro
 - **Password**: Lipro account password
-- **Remember password**: Store the password MD5 hash locally to allow automatic re-login when refresh tokens expire. Disable to reduce local exposure; you may need to re-authenticate later.
+- **Remember password**: Store the password MD5 hash locally as a credential-equivalent secret for hashed login when refresh tokens expire. Disable to reduce local exposure; you may need to re-authenticate later.
 
 ### Reconfiguration
 
@@ -301,11 +301,11 @@ Available options in integration settings:
 - **Enable MQTT Real-time Updates**: Use MQTT push updates (recommended)
 - **Enable Power Monitoring**: Query outlet power metrics
 - **Anonymous Share Device Info**: Opt-in device capability sharing
-- **Anonymous Share Error Reports**: Opt-in anonymized error reports
+- **Anonymous Share Error Reports**: Opt-in sanitized/pseudonymous error reports (the payload still keeps stable installation/diagnostic identifiers)
 - **Advanced Options**:
   - **Power Query Interval**: Outlet power query frequency (default 300 seconds / ~5 minutes, range 30-300 seconds)
   - **Request Timeout**: API request timeout (10-60 seconds)
-  - **Debug Mode (Diagnostics)**: Capture runtime diagnostics (mesh topology + command traces). For verbose logs, configure Home Assistant logger settings.
+  - **Debug Mode (Diagnostics)**: Capture runtime diagnostics (mesh topology + command traces) and enable debug-mode-only developer services. For verbose logs, configure Home Assistant logger settings.
   - **Auto Turn On When Adjusting While Off**: When enabled, adjusting brightness/color temperature while off will also turn on the light (disable to keep Lipro behavior)
   - **Force Cloud Room → HA Area**: Always overwrite Home Assistant area with cloud room assignment (use with caution)
   - **Check Command Result Status**: Default on (recommended). Poll cloud-reported command result status by `msgSn` after sending commands for a safer control loop. This does not guarantee delivery or device execution
@@ -342,7 +342,7 @@ Canonical troubleshooting guide: `docs/TROUBLESHOOTING.md`.
 
 - Ensure the phone number and password still work in the Lipro app.
 - If the password changed, use reconfigure/update credentials instead of deleting the integration.
-- For repeated reauth failures, start with diagnostics; add a redacted developer report only when diagnostics still do not explain the failure or when a maintainer asks for deeper debugging.
+- For repeated reauth failures, start with diagnostics; add a local-only partially redacted developer report only when diagnostics still do not explain the failure or when a maintainer asks for deeper debugging.
 - If available, also include `failure_summary` / `failure_entries` from diagnostics, system health, or developer-report exports.
 
 #### Device Unavailable / Not Showing
@@ -367,10 +367,10 @@ Canonical troubleshooting guide: `docs/TROUBLESHOOTING.md`.
 Redaction includes account credentials/tokens (`phone`, `password`, `access_token`, `refresh_token`), cloud/device identifiers (`userId`/`bizId`, `serial`/`deviceId`/`iotDeviceId`), and network identifiers (WiFi SSID/MAC/IP).
 
 If diagnostics are not enough, or a maintainer asks for deeper debugging, you can preview or submit the opt-in payloads first:
-- `lipro.get_developer_report` - local debugging report; keeps vendor diagnosis identifiers such as `iotName` plus local labels so you can recognize the device under test
-- `lipro.submit_developer_feedback` - upload contract; keeps `iotName` but anonymizes user-defined labels such as device/room/panel/IR names before upload
+- `lipro.get_developer_report` - debug-mode-only local diagnostics export; partially redacted, but still keeps vendor diagnosis identifiers such as `iotName` plus local labels so you can recognize the device under test
+- `lipro.submit_developer_feedback` - debug-mode-only upload contract; keeps `iotName` but sanitizes user-defined labels such as device/room/panel/IR names before upload
 - When available, include `failure_summary` / `failure_entries` alongside diagnostics so maintainers can classify the failure path faster
-- `lipro.get_anonymous_share_report` - sanitized anonymous-share payload
+- `lipro.get_anonymous_share_report` - sanitized/pseudonymous share-worker payload (still includes stable installation/diagnostic identifiers)
 
 See also: `SUPPORT.md` for public routing and `SECURITY.md` for private vulnerability disclosure. `docs/MAINTAINER_RELEASE_RUNBOOK.md` stays maintainer-only for release / rehearsal / custody work.
 
