@@ -221,6 +221,36 @@ async def test_async_handle_submit_developer_feedback_forwards_entry_id() -> Non
 
 
 @pytest.mark.asyncio
+async def test_async_handle_submit_developer_feedback_raises_service_error_on_submit_failure() -> None:
+    """submit_developer_feedback should raise the canonical service error on failed upload."""
+    hass = cast(HomeAssistant, MagicMock())
+    call = service_call(hass, {"entry_id": "entry-2", "note": "manual run"})
+    collect_reports = MagicMock(return_value=[_developer_feedback_report_fixture()])
+    share_manager = MagicMock()
+    share_manager.submit_developer_feedback = AsyncMock(return_value=False)
+    get_anonymous_share_manager = MagicMock(return_value=share_manager)
+    session = MagicMock()
+    get_client_session = MagicMock(return_value=session)
+    raise_service_error = MagicMock(side_effect=ServiceValidationError("boom"))
+
+    with pytest.raises(ServiceValidationError, match="boom"):
+        await async_handle_submit_developer_feedback(
+            hass,
+            call,
+            collect_reports=collect_reports,
+            get_anonymous_share_manager=get_anonymous_share_manager,
+            get_client_session=get_client_session,
+            domain="lipro",
+            service_submit_developer_feedback="submit_developer_feedback",
+            attr_note="note",
+            attr_entry_id="entry_id",
+            raise_service_error=raise_service_error,
+        )
+
+    raise_service_error.assert_called_once_with("developer_feedback_submit_failed")
+
+
+@pytest.mark.asyncio
 async def test_async_handle_get_developer_report_propagates_entry_validation() -> None:
     """get_developer_report should surface entry validation errors from the collector."""
     hass = cast(HomeAssistant, MagicMock())
