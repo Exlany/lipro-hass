@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, call
 
 import aiomqtt
 import pytest
@@ -135,6 +135,72 @@ async def test_connection_manager_run_connection_loop_retries_after_mqtt_error()
     assert str(err) == "boom"
     handle_disconnect.assert_called_once_with("MQTT error: boom")
     assert sleep_calls == [MQTT_RECONNECT_MIN_DELAY]
+
+
+@pytest.mark.asyncio
+async def test_connection_manager_run_connection_loop_increases_backoff_after_repeated_failure() -> None:
+    manager = MqttConnectionManager()
+    set_last_error = MagicMock()
+    handle_disconnect = MagicMock()
+    sleep_calls: list[float] = []
+    state = {"running": True}
+
+    async def _sleep(wait_time: float) -> None:
+        sleep_calls.append(wait_time)
+        if len(sleep_calls) >= 2:
+            state["running"] = False
+
+    connect_and_listen = AsyncMock(
+        side_effect=[aiomqtt.MqttError("boom-1"), aiomqtt.MqttError("boom-2")]
+    )
+
+    await manager.run_connection_loop(
+        is_running=lambda: state["running"],
+        connect_and_listen=connect_and_listen,
+        set_last_error=set_last_error,
+        handle_disconnect=handle_disconnect,
+        sleep=_sleep,
+        jitter_source=lambda _low, _high: 0.0,
+    )
+
+    assert sleep_calls == [MQTT_RECONNECT_MIN_DELAY, MQTT_RECONNECT_MIN_DELAY * 2]
+    assert handle_disconnect.call_args_list == [
+        call("MQTT error: boom-1"),
+        call("MQTT error: boom-2"),
+    ]
+    err = set_last_error.call_args.args[0]
+    assert isinstance(err, aiomqtt.MqttError)
+    assert str(err) == "boom-2"
+
+
+@pytest.mark.asyncio
+async def test_connection_manager_run_connection_loop_reports_unexpected_runtime_error(caplog) -> None:
+    manager = MqttConnectionManager()
+    set_last_error = MagicMock()
+    handle_disconnect = MagicMock()
+    sleep_calls: list[float] = []
+    state = {"running": True}
+
+    async def _sleep(wait_time: float) -> None:
+        sleep_calls.append(wait_time)
+        state["running"] = False
+
+    with caplog.at_level(logging.ERROR):
+        await manager.run_connection_loop(
+            is_running=lambda: state["running"],
+            connect_and_listen=AsyncMock(side_effect=RuntimeError("loop boom")),
+            set_last_error=set_last_error,
+            handle_disconnect=handle_disconnect,
+            sleep=_sleep,
+            jitter_source=lambda _low, _high: 0.0,
+        )
+
+    err = set_last_error.call_args.args[0]
+    assert isinstance(err, RuntimeError)
+    assert str(err) == "loop boom"
+    handle_disconnect.assert_called_once_with("Unexpected MQTT loop error (RuntimeError)")
+    assert sleep_calls == [MQTT_RECONNECT_MIN_DELAY]
+    assert "Unexpected MQTT loop error (RuntimeError)" in caplog.text
 
 
 @pytest.mark.asyncio

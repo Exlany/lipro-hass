@@ -21,6 +21,14 @@ _CALLBACK_BOUNDARY_EXCEPTIONS = (RuntimeError, ValueError, LookupError)
 _RECOVERABLE_LOOP_EXCEPTIONS = (RuntimeError, LookupError)
 
 
+@dataclass(frozen=True, slots=True)
+class _ConnectionAttemptOutcome:
+    """Describe one connection-loop attempt outcome."""
+
+    connect_succeeded: bool = False
+    should_stop: bool = False
+
+
 @dataclass(slots=True)
 class MqttConnectionManager:
     """Manage MQTT callback/error handling and reconnect loop behavior."""
@@ -119,6 +127,107 @@ class MqttConnectionManager:
         if err is not None:
             set_last_error(err)
 
+    @staticmethod
+    def _record_connection_error(
+        err: Exception,
+        *,
+        disconnect_reason: str,
+        set_last_error: Callable[[Exception], None],
+        handle_disconnect: Callable[[str], None],
+    ) -> None:
+        """Persist one recoverable connection error and disconnect reason."""
+        set_last_error(err)
+        handle_disconnect(disconnect_reason)
+
+    @classmethod
+    def _record_unexpected_loop_error(
+        cls,
+        err: Exception,
+        *,
+        set_last_error: Callable[[Exception], None],
+        handle_disconnect: Callable[[str], None],
+    ) -> None:
+        """Log and normalize one unexpected-but-recoverable loop failure."""
+        _LOGGER.exception(
+            "Unexpected MQTT loop error (%s)",
+            type(err).__name__,
+        )
+        cls._record_connection_error(
+            err,
+            disconnect_reason=f"Unexpected MQTT loop error ({type(err).__name__})",
+            set_last_error=set_last_error,
+            handle_disconnect=handle_disconnect,
+        )
+
+    async def _attempt_connection(
+        self,
+        *,
+        connect_and_listen: Callable[[], Awaitable[None]],
+        set_last_error: Callable[[Exception], None],
+        handle_disconnect: Callable[[str], None],
+    ) -> _ConnectionAttemptOutcome:
+        """Run one connect/listen attempt and normalize recoverable outcomes."""
+        try:
+            await connect_and_listen()
+            return _ConnectionAttemptOutcome(connect_succeeded=True)
+        except aiomqtt.MqttError as err:
+            self._record_connection_error(
+                err,
+                disconnect_reason=f"MQTT error: {err}",
+                set_last_error=set_last_error,
+                handle_disconnect=handle_disconnect,
+            )
+        except asyncio.CancelledError:
+            return _ConnectionAttemptOutcome(should_stop=True)
+        except OSError as err:
+            self._record_connection_error(
+                err,
+                disconnect_reason=f"Connection error: {err}",
+                set_last_error=set_last_error,
+                handle_disconnect=handle_disconnect,
+            )
+        except ValueError as err:
+            self._record_connection_error(
+                err,
+                disconnect_reason=f"MQTT value error: {err}",
+                set_last_error=set_last_error,
+                handle_disconnect=handle_disconnect,
+            )
+        except _RECOVERABLE_LOOP_EXCEPTIONS as err:
+            self._record_unexpected_loop_error(
+                err,
+                set_last_error=set_last_error,
+                handle_disconnect=handle_disconnect,
+            )
+        return _ConnectionAttemptOutcome()
+
+    @staticmethod
+    async def _sleep_before_reconnect(
+        reconnect_delay: float,
+        *,
+        sleep: Callable[[float], Awaitable[None]],
+        jitter_source: Callable[[float, float], float],
+    ) -> None:
+        """Sleep for one jittered reconnect window."""
+        jitter = 1 + jitter_source(
+            -MQTT_RECONNECT_JITTER,
+            MQTT_RECONNECT_JITTER,
+        )
+        wait_time = reconnect_delay * jitter
+        _LOGGER.info("Reconnecting in %.1fs...", wait_time)
+        await sleep(wait_time)
+
+    @staticmethod
+    def _next_reconnect_delay(
+        reconnect_delay: float,
+        *,
+        connect_succeeded: bool,
+    ) -> float:
+        """Advance reconnect delay while preserving success reset semantics."""
+        if connect_succeeded:
+            return MQTT_RECONNECT_MIN_DELAY
+        return min(reconnect_delay * 2, MQTT_RECONNECT_MAX_DELAY)
+
     async def run_connection_loop(
         self,
         *,
@@ -130,48 +239,25 @@ class MqttConnectionManager:
         jitter_source: Callable[[float, float], float] = random.uniform,
     ) -> None:
         """Run the reconnect loop with bounded backoff and jitter."""
-        reconnect_delay = MQTT_RECONNECT_MIN_DELAY
+        reconnect_delay: float = MQTT_RECONNECT_MIN_DELAY
         while is_running():
-            connect_succeeded = False
-            try:
-                await connect_and_listen()
-                connect_succeeded = True
-            except aiomqtt.MqttError as err:
-                set_last_error(err)
-                handle_disconnect(f"MQTT error: {err}")
-            except asyncio.CancelledError:
+            attempt = await self._attempt_connection(
+                connect_and_listen=connect_and_listen,
+                set_last_error=set_last_error,
+                handle_disconnect=handle_disconnect,
+            )
+            if attempt.should_stop:
                 break
-            except OSError as err:
-                set_last_error(err)
-                handle_disconnect(f"Connection error: {err}")
-            except ValueError as err:
-                set_last_error(err)
-                handle_disconnect(f"MQTT value error: {err}")
-            except _RECOVERABLE_LOOP_EXCEPTIONS as err:
-                _LOGGER.exception(
-                    "Unexpected MQTT loop error (%s)",
-                    type(err).__name__,
-                )
-                set_last_error(err)
-                handle_disconnect(
-                    f"Unexpected MQTT loop error ({type(err).__name__})"
-                )
-
-            if connect_succeeded:
+            if attempt.connect_succeeded:
                 reconnect_delay = MQTT_RECONNECT_MIN_DELAY
-
-            if is_running():
-                jitter = 1 + jitter_source(
-                    -MQTT_RECONNECT_JITTER,
-                    MQTT_RECONNECT_JITTER,
-                )
-                wait_time = reconnect_delay * jitter
-                _LOGGER.info("Reconnecting in %.1fs...", wait_time)
-                await sleep(wait_time)
-                if connect_succeeded:
-                    reconnect_delay = MQTT_RECONNECT_MIN_DELAY
-                else:
-                    reconnect_delay = min(
-                        reconnect_delay * 2,
-                        MQTT_RECONNECT_MAX_DELAY,
-                    )
+            if not is_running():
+                continue
+            await self._sleep_before_reconnect(
+                reconnect_delay,
+                sleep=sleep,
+                jitter_source=jitter_source,
+            )
+            reconnect_delay = self._next_reconnect_delay(
+                reconnect_delay,
+                connect_succeeded=attempt.connect_succeeded,
+            )
