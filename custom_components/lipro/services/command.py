@@ -36,6 +36,13 @@ class _SendCommandRequest:
     properties_summary: ServicePropertySummary
 
 
+@dataclass(slots=True, frozen=True)
+class _SendCommandExecution:
+    device: CommandDevice
+    coordinator: CommandCoordinator
+    is_alias_resolution: bool
+
+
 class CommandDevice(Protocol):
     """Service-layer command device contract."""
 
@@ -111,7 +118,9 @@ class CommandFailureTranslationResolver(Protocol):
         """Return one translated command failure key."""
 
 
-def _raise_invalid_send_command_request(*, logger: logging.Logger, field_name: str) -> NoReturn:
+def _raise_invalid_send_command_request(
+    *, logger: logging.Logger, field_name: str
+) -> NoReturn:
     """Raise one translated service validation error for invalid direct payloads."""
     logger.warning("Rejecting invalid send_command field type: %s", field_name)
     raise ServiceValidationError(
@@ -144,11 +153,15 @@ def _validate_send_command_payload_types(
 
     for item in properties:
         if not isinstance(item, dict):
-            _raise_invalid_send_command_request(logger=logger, field_name=attr_properties)
+            _raise_invalid_send_command_request(
+                logger=logger, field_name=attr_properties
+            )
         key = item.get("key")
         value = item.get("value")
         if not isinstance(key, str) or not isinstance(value, str):
-            _raise_invalid_send_command_request(logger=logger, field_name=attr_properties)
+            _raise_invalid_send_command_request(
+                logger=logger, field_name=attr_properties
+            )
 
 
 def _validate_send_command_payload(
@@ -310,6 +323,27 @@ def build_send_command_result(
     return result
 
 
+async def _prepare_send_command_execution(
+    *,
+    hass: HomeAssistant,
+    call: ServiceCall,
+    request: _SendCommandRequest,
+    get_device_and_coordinator: DeviceAndCoordinatorGetter,
+    log_send_command_call: SendCommandLogger,
+) -> _SendCommandExecution:
+    device, coordinator = await get_device_and_coordinator(hass, call)
+    return _SendCommandExecution(
+        device=device,
+        coordinator=coordinator,
+        is_alias_resolution=log_send_command_call(
+            request.requested_device_id,
+            device.serial,
+            request.command,
+            request.properties_summary,
+        ),
+    )
+
+
 async def async_handle_send_command(
     hass: HomeAssistant,
     call: ServiceCall,
@@ -333,18 +367,16 @@ async def async_handle_send_command(
         attr_properties=attr_properties,
         attr_device_id=attr_device_id,
     )
-
-    device, coordinator = await get_device_and_coordinator(hass, call)
-    is_alias_resolution = log_send_command_call(
-        request.requested_device_id,
-        device.serial,
-        request.command,
-        request.properties_summary,
+    execution = await _prepare_send_command_execution(
+        hass=hass,
+        call=call,
+        request=request,
+        get_device_and_coordinator=get_device_and_coordinator,
+        log_send_command_call=log_send_command_call,
     )
-
     await async_send_command_with_service_errors(
-        coordinator,
-        device,
+        execution.coordinator,
+        execution.device,
         command=request.command,
         properties=request.properties,
         requested_device_id=request.requested_device_id,
@@ -358,7 +390,7 @@ async def async_handle_send_command(
         logger=logger,
     )
     return build_send_command_result(
-        device.serial,
+        execution.device.serial,
         requested_device_id=request.requested_device_id,
-        is_alias_resolution=is_alias_resolution,
+        is_alias_resolution=execution.is_alias_resolution,
     )
