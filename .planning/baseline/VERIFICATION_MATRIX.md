@@ -673,10 +673,10 @@
 
 ## Phase 115 Status-fallback Query-flow Normalization
 
-- **Required artifacts:** `custom_components/lipro/core/api/{status_fallback.py,status_fallback_support.py}`、`tests/core/test_status_fallback.py`、`.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md,MILESTONES.md}`、`.planning/baseline/VERIFICATION_MATRIX.md`、`.planning/phases/115-status-fallback-query-flow-normalization/{115-01-SUMMARY.md,115-SUMMARY.md,115-VERIFICATION.md}`。
+- **Required artifacts:** `custom_components/lipro/core/api/{status_fallback.py,status_fallback_support.py}`、`tests/core/api/test_api_status_service_fallback.py`、`.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md,MILESTONES.md}`、`.planning/baseline/VERIFICATION_MATRIX.md`、`.planning/phases/115-status-fallback-query-flow-normalization/{115-01-SUMMARY.md,115-SUMMARY.md,115-VERIFICATION.md}`。
 - **Required governance proof:** `status_fallback` family 必须把空输入 / no-I/O / fallback-depth 语义冻结为单一 formal contract；`PROJECT.md`、`ROADMAP.md`、`REQUIREMENTS.md`、`STATE.md` 与 `MILESTONES.md` 只能沿 `v1.32` active milestone route 叙述这次 hotspot freeze，不得复活 compat shell、second root 或 parallel truth。
 - **Default next command:** `$gsd-execute-phase 116`
-- **Required runnable proof:** `uv run pytest -q tests/core/test_status_fallback.py`、`uv run pytest -q tests/meta/test_governance_route_handoff_smoke.py tests/meta/test_version_sync.py`、`uv run ruff check custom_components/lipro/core/api/status_fallback.py custom_components/lipro/core/api/status_fallback_support.py tests/core/test_status_fallback.py tests/meta/test_governance_route_handoff_smoke.py`。
+- **Required runnable proof:** `uv run pytest -q tests/core/api/test_api_status_service_fallback.py`、`uv run pytest -q tests/meta/test_governance_route_handoff_smoke.py tests/meta/test_version_sync.py`、`uv run ruff check custom_components/lipro/core/api/status_fallback.py custom_components/lipro/core/api/status_fallback_support.py tests/core/api/test_api_status_service_fallback.py tests/meta/test_governance_route_handoff_smoke.py`。
 - **Unblock effect:** `HOT-48` 的 query-flow freeze 成为 `v1.32` active route 的第一块稳定基石，后续 hotspot slimming 与 continuity hardening 都以它为 pull-only prerequisite。
 
 ## Phase 116 Anonymous-share and REST Façade Hotspot Slimming

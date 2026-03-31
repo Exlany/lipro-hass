@@ -56,8 +56,8 @@ bootstrap:
 **Latest archived pointer:** `.planning/reviews/V1_31_EVIDENCE_INDEX.md`
 **Current route mode:** `v1.32 active milestone route / starting from latest archived baseline = v1.31`
 **Default next command:** `$gsd-complete-milestone v1.32`
-**Route checkpoint:** `Phase 115` 已冻结 `status_fallback` contract；`Phase 116` 已完成 `rest_facade.py` / `anonymous_share/manager.py` hotspot slimming；`Phase 117` 的 context / research / `117-01` ~ `117-03` plans 已就绪。
-**Current follow-up target:** execute `Phase 117` (`Validation backfill and continuity hardening`) via `$gsd-complete-milestone v1.32`.
+**Route checkpoint:** `Phase 115` 已冻结 `status_fallback` contract；`Phase 116` 已完成 `rest_facade.py` / `anonymous_share/manager.py` hotspot slimming；`Phase 117` 已完成 validation backfill / continuity hardening 并收口为 closeout-ready bundle。
+**Current follow-up target:** milestone closeout / archive promotion via `$gsd-complete-milestone v1.32`.
 
 **Target features:**
 - `Phase 115` 已把 `status_fallback` family 的空输入与 fallback-entry contract 冻结成单一正式语义。

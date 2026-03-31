@@ -236,6 +236,14 @@ def test_scripts_lint_full_mode_matches_ci_coverage_contract() -> None:
 
 
 
+def test_scripts_lint_preserves_changed_surface_manifest_for_full_mode() -> None:
+    lint_text = _LINT_SCRIPT.read_text(encoding="utf-8")
+
+    assert 'tmp_changed_coverage_surface="$(mktemp)"' in lint_text
+    assert 'resolve_changed_coverage_surface "$tmp_changed_coverage_surface"' in lint_text
+    assert 'tmp_changed_coverage_surface=""' not in lint_text
+
+
 def test_contributing_docs_keep_command_manifest_in_sync() -> None:
     docs_text = _CONTRIBUTING.read_text(encoding="utf-8")
 

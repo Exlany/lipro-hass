@@ -86,6 +86,7 @@ bootstrap:
 - Route execution map: `.planning/ROADMAP.md`
 - Requirement coverage truth: `.planning/REQUIREMENTS.md`
 - Latest archived evidence pointer: `.planning/reviews/V1_31_EVIDENCE_INDEX.md`
+- Promoted phase evidence allowlist: `.planning/reviews/PROMOTED_PHASE_ASSETS.md`
 - Latest archived audit verdict: `.planning/v1.31-MILESTONE-AUDIT.md`
 - North-star authority: `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`
 

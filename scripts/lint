@@ -193,7 +193,6 @@ echo "Running pip-audit..."
 tmp_requirements_runtime="$(mktemp)"
 tmp_requirements_dev=""
 tmp_pip_audit_cache=""
-tmp_changed_coverage_surface=""
 trap 'rm -f "$tmp_requirements_runtime" "${tmp_requirements_dev:-}" "${tmp_changed_coverage_surface:-}"; if [ -n "${tmp_pip_audit_cache:-}" ]; then rm -rf "$tmp_pip_audit_cache"; fi' EXIT
 
 uv export \

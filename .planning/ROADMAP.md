@@ -50,6 +50,7 @@ bootstrap:
 **Default next command:** `$gsd-complete-milestone v1.32`
 **Current route story:** `v1.32 active milestone route / starting from latest archived baseline = v1.31`
 **Latest archived pointer:** `.planning/reviews/V1_31_EVIDENCE_INDEX.md`
+**Promoted phase evidence allowlist:** `.planning/reviews/PROMOTED_PHASE_ASSETS.md`
 
 ## Phases
 
