@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from .manifest import (
     build_manifest_type_candidates,
@@ -93,6 +93,112 @@ def consume_confirmation(
     return True, 0.0
 
 
+def _evaluate_update_availability(
+    candidate: _OtaCandidate | None,
+    *,
+    confirm_until: float,
+) -> OtaInstallEvaluation | None:
+    """Reject install attempts when no upgrade candidate is currently available."""
+    if candidate is not None and candidate.update_available:
+        return None
+    return OtaInstallEvaluation(
+        install_command=None,
+        confirm_until=confirm_until,
+        error_key="firmware_no_update",
+    )
+
+
+def _evaluate_requested_version(
+    candidate: _OtaCandidate,
+    *,
+    requested_version: str | None,
+    confirm_until: float,
+) -> OtaInstallEvaluation | None:
+    """Reject install requests that target a different version than the candidate."""
+    if (
+        requested_version is None
+        or candidate.latest_version is None
+        or requested_version == candidate.latest_version
+    ):
+        return None
+    return OtaInstallEvaluation(
+        install_command=None,
+        confirm_until=confirm_until,
+        error_key="firmware_version_mismatch",
+        error_placeholders={"version": requested_version},
+    )
+
+
+def _evaluate_confirmation_window(
+    candidate: _OtaCandidate,
+    *,
+    confirm_until: float,
+    now_monotonic: float,
+    confirmation_window_seconds: int,
+) -> OtaInstallEvaluation | None:
+    """Require explicit confirmation before unverified installs proceed."""
+    if candidate.certified:
+        return None
+
+    confirmed, next_confirm_until = consume_confirmation(
+        confirm_until,
+        now_monotonic=now_monotonic,
+    )
+    if confirmed:
+        return None
+
+    next_confirm_until = start_confirmation_window(
+        now_monotonic=now_monotonic,
+        confirmation_window_seconds=confirmation_window_seconds,
+    )
+    return OtaInstallEvaluation(
+        install_command=None,
+        confirm_until=next_confirm_until,
+        error_key="firmware_unverified_confirm_required",
+        error_placeholders={"seconds": str(confirmation_window_seconds)},
+    )
+
+
+def _resolve_install_confirmation_deadline(
+    candidate: _OtaCandidate,
+    *,
+    confirm_until: float,
+    now_monotonic: float,
+) -> float:
+    """Return the post-validation confirmation deadline for a permitted install."""
+    if candidate.certified:
+        return confirm_until
+    _confirmed, next_confirm_until = consume_confirmation(
+        confirm_until,
+        now_monotonic=now_monotonic,
+    )
+    return next_confirm_until
+
+
+def _build_install_outcome(
+    candidate: _OtaCandidate,
+    *,
+    confirm_until: float,
+    now_monotonic: float,
+) -> OtaInstallEvaluation:
+    """Return the final install outcome after all policy gates have passed."""
+    next_confirm_until = _resolve_install_confirmation_deadline(
+        candidate,
+        confirm_until=confirm_until,
+        now_monotonic=now_monotonic,
+    )
+    if candidate.install_command is None:
+        return OtaInstallEvaluation(
+            install_command=None,
+            confirm_until=next_confirm_until,
+            error_key="firmware_install_unsupported",
+        )
+    return OtaInstallEvaluation(
+        install_command=candidate.install_command,
+        confirm_until=next_confirm_until,
+    )
+
+
 def evaluate_install(
     candidate: _OtaCandidate | None,
     *,
@@ -102,53 +208,35 @@ def evaluate_install(
     confirmation_window_seconds: int,
 ) -> OtaInstallEvaluation:
     """Validate install intent and return the install/confirmation decision."""
-    if candidate is None or not candidate.update_available:
-        return OtaInstallEvaluation(
-            install_command=None,
-            confirm_until=confirm_until,
-            error_key="firmware_no_update",
-        )
+    no_update = _evaluate_update_availability(
+        candidate,
+        confirm_until=confirm_until,
+    )
+    if no_update is not None:
+        return no_update
 
-    if (
-        requested_version is not None
-        and candidate.latest_version is not None
-        and requested_version != candidate.latest_version
-    ):
-        return OtaInstallEvaluation(
-            install_command=None,
-            confirm_until=confirm_until,
-            error_key="firmware_version_mismatch",
-            error_placeholders={"version": requested_version},
-        )
+    candidate = cast("_OtaCandidate", candidate)
+    version_mismatch = _evaluate_requested_version(
+        candidate,
+        requested_version=requested_version,
+        confirm_until=confirm_until,
+    )
+    if version_mismatch is not None:
+        return version_mismatch
 
-    next_confirm_until = confirm_until
-    if not candidate.certified:
-        confirmed, next_confirm_until = consume_confirmation(
-            confirm_until,
-            now_monotonic=now_monotonic,
-        )
-        if not confirmed:
-            next_confirm_until = start_confirmation_window(
-                now_monotonic=now_monotonic,
-                confirmation_window_seconds=confirmation_window_seconds,
-            )
-            return OtaInstallEvaluation(
-                install_command=None,
-                confirm_until=next_confirm_until,
-                error_key="firmware_unverified_confirm_required",
-                error_placeholders={"seconds": str(confirmation_window_seconds)},
-            )
+    confirmation_required = _evaluate_confirmation_window(
+        candidate,
+        confirm_until=confirm_until,
+        now_monotonic=now_monotonic,
+        confirmation_window_seconds=confirmation_window_seconds,
+    )
+    if confirmation_required is not None:
+        return confirmation_required
 
-    if candidate.install_command is None:
-        return OtaInstallEvaluation(
-            install_command=None,
-            confirm_until=next_confirm_until,
-            error_key="firmware_install_unsupported",
-        )
-
-    return OtaInstallEvaluation(
-        install_command=candidate.install_command,
-        confirm_until=next_confirm_until,
+    return _build_install_outcome(
+        candidate,
+        confirm_until=confirm_until,
+        now_monotonic=now_monotonic,
     )
 
 
