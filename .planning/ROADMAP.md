@@ -12,10 +12,10 @@ contract_name: governance-route
 active_milestone:
   version: v1.31
   name: Boundary Sealing, Governance Truth & Quality Hardening
-  status: active / phase 111 complete; phase 112 discussion-ready (2026-03-31)
-  phase: '112'
-  phase_title: Formal-home discoverability and governance-anchor normalization
-  phase_dir: 112-formal-home-discoverability-and-governance-anchor-normalization
+  status: active / phase 112 complete; phase 113 discussion-ready (2026-03-31)
+  phase: '113'
+  phase_title: Hotspot burn-down and changed-surface assurance hardening
+  phase_dir: 113-hotspot-burn-down-and-changed-surface-assurance-hardening
 latest_archived:
   version: v1.30
   name: Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming
@@ -32,7 +32,7 @@ previous_archived:
   evidence_path: .planning/reviews/V1_29_EVIDENCE_INDEX.md
 bootstrap:
   current_route: v1.31 active milestone route / starting from latest archived baseline = v1.30
-  default_next_command: $gsd-discuss-phase 112
+  default_next_command: $gsd-discuss-phase 113
   latest_archived_evidence_pointer: .planning/reviews/V1_30_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -42,19 +42,19 @@ bootstrap:
 `v1.31` 只沿单一 north-star 主线推进：封印 entity/control → runtime internals concrete bypass，统一 formal-home discoverability 与治理锚点，继续 burn-down 当前热点，并对 open-source reachability / security fallback 保持 honest-by-default。所有工作都以 `v1.30` 为 latest archived baseline，不引入 second root，不复活 compat shell。
 
 **Coverage:** `8/8` v1.31 requirements mapped exactly once.
-**Default next command:** `$gsd-discuss-phase 112`
+**Default next command:** `$gsd-discuss-phase 113`
 
 ## v1.31: Boundary Sealing, Governance Truth & Quality Hardening
 
-**Milestone status:** `active / phase 111 complete; phase 112 discussion-ready (2026-03-31)`
-**Default next command:** `$gsd-discuss-phase 112`
+**Milestone status:** `active / phase 112 complete; phase 113 discussion-ready (2026-03-31)`
+**Default next command:** `$gsd-discuss-phase 113`
 **Current route story:** `v1.31 active milestone route / starting from latest archived baseline = v1.30`
 **Latest archived pointer:** `.planning/reviews/V1_30_EVIDENCE_INDEX.md`
 
 ## Phases
 
 - [x] **Phase 111: Entity-runtime boundary sealing and dependency-guard hardening** - 已封印 entity/control 到 runtime internals 的 concrete bypass，并用 machine-checkable guards 与 changed-surface validation 固化完成态。
-- [ ] **Phase 112: Formal-home discoverability and governance-anchor normalization** - 统一 sanctioned root homes、formal-home discoverability 与 stale governance anchors。
+- [x] **Phase 112: Formal-home discoverability and governance-anchor normalization** - 统一 sanctioned root homes、formal-home discoverability 与 stale governance anchors。 (completed 2026-03-31)
 - [ ] **Phase 113: Hotspot burn-down and changed-surface assurance hardening** - 继续 inward split 当前实现热点，或用 honest no-regrowth guards 固化 changed surface。
 - [ ] **Phase 114: Open-source reachability honesty and security-surface normalization** - 让 public metadata / security docs 只陈述真实可达 surface 与未解 blocker。
 
@@ -80,7 +80,9 @@ bootstrap:
   1. Maintainer 阅读 north-star / baseline / planning / runbook 文档时，能无歧义识别 runtime、control、auth 与 root-level homes 的正式归属，不再被 `coordinator.coordinator` 一类折返叙事误导。
   2. `SUPPORT.md`、`SECURITY.md`、`docs/MAINTAINER_RELEASE_RUNBOOK.md`、planning / baseline / review docs 全部指向 `v1.31` active route 与 `v1.30` latest archived baseline，不再保留 stale milestone anchors。
   3. `runtime_infra.py`、`runtime_types.py`、`entry_auth.py` 等 root-level homes 要么被归并，要么在正式治理真源中显式登记为 sanctioned homes，使目录拓扑与 formal ownership 一致。
-**Plans**: TBD
+**Status**: Complete (`2026-03-31`)
+**Plans**: 3/3 complete
+**Evidence**: `.planning/phases/112-formal-home-discoverability-and-governance-anchor-normalization/{112-01-SUMMARY.md,112-02-SUMMARY.md,112-03-SUMMARY.md,112-SUMMARY.md,112-VERIFICATION.md}`
 
 ### Phase 113: Hotspot burn-down and changed-surface assurance hardening
 **Goal**: 当前 top-priority implementation hotspots 继续 inward split，或被 bounded no-regrowth guards 冻结，不再依赖“永久大型文件例外”叙事存活。
@@ -107,6 +109,6 @@ bootstrap:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 111. Entity-runtime boundary sealing and dependency-guard hardening | 3/3 | Complete | 2026-03-31 |
-| 112. Formal-home discoverability and governance-anchor normalization | 0/TBD | Discussion-ready | - |
+| 112. Formal-home discoverability and governance-anchor normalization | 3/3 | Complete    | 2026-03-31 |
 | 113. Hotspot burn-down and changed-surface assurance hardening | 0/TBD | Not started | - |
 | 114. Open-source reachability honesty and security-surface normalization | 0/TBD | Not started | - |

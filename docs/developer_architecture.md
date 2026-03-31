@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `v1.30 / Phase 110 runtime snapshot surface reduction and milestone closeout` (`2026-03-30`)
-> **Current route alignment**: `no active milestone route / latest archived baseline = v1.30` (`2026-03-30`)
+> **Last aligned through**: `v1.31 / Phase 112 formal-home discoverability and governance-anchor normalization` (`2026-03-31`)
+> **Current route alignment**: `v1.31 active milestone route / starting from latest archived baseline = v1.30` (`2026-03-31`)
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
@@ -29,9 +29,17 @@
 | Domain truth | `custom_components/lipro/core/device/`, `custom_components/lipro/core/capability/` | device aggregate 与 capability truth |
 | Control formal home | `custom_components/lipro/control/` | lifecycle / service router / runtime access / diagnostics / system health |
 | Shared runtime infra | `custom_components/lipro/runtime_infra.py` | device-registry listener / pending reload / shared runtime bootstrap ownership |
+| Root runtime contracts | `custom_components/lipro/runtime_types.py` | typed runtime coordinator / telemetry contract home |
+| Auth/bootstrap root helper | `custom_components/lipro/entry_auth.py` | config-entry auth seed / token persistence / setup-exception home |
 | Control service adapters | `custom_components/lipro/services/` | service declarations、request shaping、thin service helpers |
 | Platform adapters | `custom_components/lipro/*.py` platform files | entity projection / HA platform binding |
 | Assurance | `tests/`, `scripts/`, `.planning/baseline/`, `.planning/reviews/` | tests / guards / governance truth |
+
+## Sanctioned Root-level Homes
+
+- `custom_components/lipro/runtime_infra.py`：shared runtime infra / device-registry listener / pending reload ownership 的 sanctioned root-level home。
+- `custom_components/lipro/runtime_types.py`：typed runtime coordinator / telemetry contract 的 sanctioned root-level home；它是 formal contract entry，不是 accidental helper。
+- `custom_components/lipro/entry_auth.py`：config-entry auth/bootstrap seed、token persistence、setup-exception mapping 的 sanctioned root-level home。
 
 ## 五大平面
 
@@ -70,6 +78,8 @@
 - `ServiceRouter` 是 service callback home；`RuntimeAccess` 是 control → runtime 的 typed read-model 与 runtime locator。
 - `DiagnosticsSurface` / `SystemHealthSurface` / `EntryLifecycleController` 是 formal control collaborators。
 - `custom_components/lipro/runtime_infra.py` 是 device-registry listener、pending reload coordination 与 runtime listener ownership 的正式 home。
+- `custom_components/lipro/runtime_types.py` 是 root-level typed runtime contract 的正式 home；它固定 coordinator-facing protocol / telemetry typing，而不是 accidental glue。
+- `custom_components/lipro/entry_auth.py` 是 config-entry auth/bootstrap 的正式 home；它复用 shared bootstrap / auth contract，而不是第二 control root。
 - 根层 `__init__.py`、`diagnostics.py`、`system_health.py`、`config_flow.py` 继续保持 thin adapter 身份。
 - `custom_components/lipro/services/` 不再承载“legacy carrier”身份；它的正式角色是：
   - HA service declaration / registration
@@ -120,7 +130,9 @@ custom_components/lipro/
 ├── diagnostics.py             # thin adapter -> control.diagnostics_surface
 ├── system_health.py           # thin adapter -> control.system_health_surface
 ├── config_flow.py             # control-plane flow adapter
-└── runtime_*.py               # typed HA runtime glue
+├── runtime_infra.py           # sanctioned root-level runtime infra / listener ownership home
+├── runtime_types.py           # sanctioned root-level typed runtime contract home
+└── entry_auth.py              # sanctioned root-level config-entry auth/bootstrap home
 ```
 
 ## 关键数据流
@@ -247,7 +259,7 @@ custom_components/lipro/
 
 ## Phase 102 Governance Portability / Verification Stratification / Open-Source Continuity Hardening Note
 
-- 当前 developer guidance 与 `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md` 已共同承认 `no active milestone route / latest archived baseline = v1.30`；默认下一步保持为 `$gsd-new-milestone`。
+- 当前 developer guidance 与 `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md` 已共同承认 `v1.31 active milestone route / starting from latest archived baseline = v1.30`；当前 continuation 以 `.planning/STATE.md` 与 `$gsd-next` 为准，`$gsd-new-milestone` 只属于 active milestone 全部完成之后。
 - `Phase 102` 不重开 production formal homes；它只把 governance/meta smoke 的 fast-path 耦合收口为 capability-aware proof，并把 verification matrix 当前真相、historical closeout note、docs-first / maintainer appendix continuity wording 一次性分层。
 - `tests/meta/test_governance_bootstrap_smoke.py`、`tests/meta/test_governance_route_handoff_smoke.py`、`tests/meta/governance_followup_route_current_milestones.py` 与 `tests/meta/test_phase102_governance_portability_guards.py` 现在共同冻结 archived-only latest truth、portable fast-path、promoted closeout bundle、runbook latest pointer 与 developer-facing topology note。
 

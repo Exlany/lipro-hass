@@ -2,14 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.31
 milestone_name: Boundary Sealing, Governance Truth & Quality Hardening
-current_phase: 112
-status: active
-last_updated: "2026-03-31T08:24:42+00:00"
+status: `Ready to discuss`
+stopped_at: Phase 112 complete
+last_updated: "2026-03-31T10:14:12.781Z"
+last_activity: 2026-03-31
 progress:
   total_phases: 4
-  completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  completed_phases: 2
+  total_plans: 6
+  completed_plans: 8
+  percent: 50
 ---
 
 # Project State
@@ -19,16 +21,17 @@ progress:
 See: `.planning/PROJECT.md`
 
 <!-- governance-route-contract:start -->
+
 ```yaml
 contract_version: 1
 contract_name: governance-route
 active_milestone:
   version: v1.31
   name: Boundary Sealing, Governance Truth & Quality Hardening
-  status: active / phase 111 complete; phase 112 discussion-ready (2026-03-31)
-  phase: '112'
-  phase_title: Formal-home discoverability and governance-anchor normalization
-  phase_dir: 112-formal-home-discoverability-and-governance-anchor-normalization
+  status: active / phase 112 complete; phase 113 discussion-ready (2026-03-31)
+  phase: '113'
+  phase_title: Hotspot burn-down and changed-surface assurance hardening
+  phase_dir: 113-hotspot-burn-down-and-changed-surface-assurance-hardening
 latest_archived:
   version: v1.30
   name: Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming
@@ -45,25 +48,25 @@ previous_archived:
   evidence_path: .planning/reviews/V1_29_EVIDENCE_INDEX.md
 bootstrap:
   current_route: v1.31 active milestone route / starting from latest archived baseline = v1.30
-  default_next_command: $gsd-discuss-phase 112
+  default_next_command: $gsd-discuss-phase 113
   latest_archived_evidence_pointer: .planning/reviews/V1_30_EVIDENCE_INDEX.md
 ```
+
 <!-- governance-route-contract:end -->
 
 **Current milestone:** `v1.31 Boundary Sealing, Governance Truth & Quality Hardening`
 **Active milestone:** `v1.31`
 **Core value:** `沿 v1.30 latest archived baseline，把仍可由仓内代码 / 文档直接修复的 boundary、governance 与 quality gaps 收口到单一 active route，同时对外部 blocker 保持 honest-by-default。`
-**Current focus:** `Phase 112: Formal-home discoverability and governance-anchor normalization`
+**Current focus:** `Phase 113: Hotspot burn-down and changed-surface assurance hardening`
 **Current mode:** `v1.31 active milestone route / starting from latest archived baseline = v1.30`
 
 ## Current Position
 
-- **Phase:** `112 of 114` — `Formal-home discoverability and governance-anchor normalization`
+- **Phase:** `113 of 114`
 - **Plan:** `0 of TBD`
 - **Status:** `Ready to discuss`
-- **Last activity:** `2026-03-31` — `Phase 111` closeout 证据已完成并把默认路由前推到 `Phase 112`
-- **Progress:** `[██░░░░░░░░] 25%`
-- **Default next command:** `$gsd-discuss-phase 112`
+- **Last activity:** `2026-03-31` — `Phase 112` closeout complete; default route advanced to `Phase 113`
+- **Progress:** `[█████░░░░░] 50%`
 
 ## Performance Metrics
 
@@ -89,28 +92,31 @@ bootstrap:
 ## Accumulated Context
 
 ### Decisions
+
 - `v1.31` 固定为 active route，latest archived baseline pointer 保持 `v1.30`。
 - 覆盖映射唯一锁定：`ARC-28/GOV-71/TST-38 -> Phase 111`、`ARC-29/GOV-72 -> Phase 112`、`QLT-46 -> Phase 113`、`OSS-14/SEC-09 -> Phase 114`。
 - 北极星继续锁定 `single mainline / formal homes / no second root / no compat shell comeback`。
-- `Phase 111` 已完成并冻结 `ARC-28 / GOV-71 / TST-38`；当前默认推进到 `Phase 112` 的 formal-home / governance-anchor 归一化。
+- `Phase 111` 与 `Phase 112` 已完成并冻结 `ARC-28 / GOV-71 / TST-38 / ARC-29 / GOV-72`；当前默认推进到 `Phase 113` 的 hotspot burn-down / changed-surface assurance hardening。
 
 ### Pending Todos
+
 - 无。
 
 ### Blockers/Concerns
+
 - `Phase 114 / OSS-14`: 若 maintainer 未提供真实 public docs / support / security surface，仓内不得伪造公开 URL 或 reachability story。
 - `Phase 114 / SEC-09`: 若不存在 guaranteed non-GitHub private fallback 或真实 delegate identity，必须继续按 governance blocker 诚实登记。
 - `All phases`: 任何修复都不得复活 compat shell、创建 second root，或让 formal-home 叙事再次分叉。
 
 ## Recommended Next Command
 
-- **Primary:** `$gsd-discuss-phase 112` — 进入 sanctioned home discoverability 与 governance-anchor normalization 的上下文收集。
-- **Auto-route:** `$gsd-next` — 当前应解析到与 primary 相同的下一步。
-- **Status check:** `$gsd-progress` — 若要在讨论前重新确认 phase / summary / archive pointer 同步状态，可先复查。
+- **Primary:** `$gsd-discuss-phase 113` — 启动 `Phase 113` 的 discussion / planning 路由。
+- **Auto-route:** `$gsd-next` — 当前应继续路由到与 primary 一致的 discussion / planning 步骤。
+- **Status check:** `$gsd-progress` — 若要复核 plan / summary / phase status，可先查看。
 
 ## Session Continuity
 
-- **Last session:** 2026-03-31 06:38 UTC
-- **Stopped at:** Phase 111 completed; Phase 112 discussion-ready
-- **Resume file:** none
+- **Last session:** 2026-03-31T08:56:32.144Z
+- **Stopped at:** Phase 112 complete
+- **Resume file:** .planning/ROADMAP.md
 - **Read next:** `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` → `.planning/PROJECT.md` → `.planning/ROADMAP.md` → `.planning/REQUIREMENTS.md` → `.planning/STATE.md` → `.planning/phases/111-entity-runtime-boundary-sealing-and-dependency-guard-hardening/111-VERIFICATION.md`

@@ -64,7 +64,7 @@ def build_developer_runtime_coordinator_iterator(
 ) -> RuntimeCoordinatorIterator:
     """Freeze the current debug-enabled coordinators into one iterator factory."""
     coordinators = [
-        view.coordinator.coordinator
+        view.coordinator.runtime_coordinator
         for view in _iter_runtime_entry_views(hass)
         if view.coordinator is not None and _is_debug_mode_enabled_for_entry(view.entry)
     ]
@@ -137,7 +137,7 @@ def collect_developer_reports(
         )
 
     coordinators = [
-        view.coordinator.coordinator
+        view.coordinator.runtime_coordinator
         for view in _iter_runtime_entry_views(hass)
         if view.coordinator is not None and _is_debug_mode_enabled_for_entry(view.entry)
     ]

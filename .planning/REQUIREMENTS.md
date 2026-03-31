@@ -9,10 +9,10 @@ contract_name: governance-route
 active_milestone:
   version: v1.31
   name: Boundary Sealing, Governance Truth & Quality Hardening
-  status: active / phase 111 complete; phase 112 discussion-ready (2026-03-31)
-  phase: '112'
-  phase_title: Formal-home discoverability and governance-anchor normalization
-  phase_dir: 112-formal-home-discoverability-and-governance-anchor-normalization
+  status: active / phase 112 complete; phase 113 discussion-ready (2026-03-31)
+  phase: '113'
+  phase_title: Hotspot burn-down and changed-surface assurance hardening
+  phase_dir: 113-hotspot-burn-down-and-changed-surface-assurance-hardening
 latest_archived:
   version: v1.30
   name: Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming
@@ -29,7 +29,7 @@ previous_archived:
   evidence_path: .planning/reviews/V1_29_EVIDENCE_INDEX.md
 bootstrap:
   current_route: v1.31 active milestone route / starting from latest archived baseline = v1.30
-  default_next_command: $gsd-discuss-phase 112
+  default_next_command: $gsd-discuss-phase 113
   latest_archived_evidence_pointer: .planning/reviews/V1_30_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -37,21 +37,21 @@ bootstrap:
 ## Current Milestone (v1.31)
 
 **Milestone Goal:** 把 entity/runtime concrete binding、dependency-guard 缺口、formal-home discoverability 漂移、stale governance anchors 与 remaining hotspot / assurance gaps 收口为同一条 active route，同时对需要 maintainer 外部决策的 open-source reachability 问题保持 blocker honesty。
-**Milestone status:** `active / phase 111 complete; phase 112 discussion-ready (2026-03-31)`
+**Milestone status:** `active / phase 112 complete; phase 113 discussion-ready (2026-03-31)`
 **Current route mode:** `v1.31 active milestone route / starting from latest archived baseline = v1.30`
 **Starting baseline:** `.planning/v1.30-MILESTONE-AUDIT.md`, `.planning/reviews/V1_30_EVIDENCE_INDEX.md`, `.planning/milestones/v1.30-ROADMAP.md`, `.planning/milestones/v1.30-REQUIREMENTS.md`
 **Requirements basket:** `ARC-28`, `ARC-29`, `GOV-71`, `GOV-72`, `QLT-46`, `TST-38`, `OSS-14`, `SEC-09`
 **Latest archived baseline:** `v1.30`
 **Archive pointer:** `.planning/reviews/V1_30_EVIDENCE_INDEX.md`
-**Default next command:** `$gsd-discuss-phase 112`
+**Default next command:** `$gsd-discuss-phase 113`
 
 ### Architecture
 - [x] **ARC-28**: `custom_components/lipro/entities/**` 与其他 adapter 层已回到 runtime public surface / control contracts；concrete `Coordinator` import、cast 与 private-state reach-through 已从 current route 主链移除。
-- [ ] **ARC-29**: sanctioned root homes / formal-home discoverability 必须保持单一叙事；`runtime_infra.py`、`runtime_types.py`、`entry_auth.py` 等 root-level homes 要么被归并，要么在北极星 / baseline docs 中明确登记，不允许目录拓扑与 formal ownership 长期分叉。
+- [x] **ARC-29**: sanctioned root homes / formal-home discoverability 必须保持单一叙事；`runtime_infra.py`、`runtime_types.py`、`entry_auth.py` 等 root-level homes 要么被归并，要么在北极星 / baseline docs 中明确登记，不允许目录拓扑与 formal ownership 长期分叉。
 
 ### Governance
 - [x] **GOV-71**: dependency guards / architecture policy / focused tests 已 machine-check entity / control → runtime internals bypass，不再让 concrete dependency drift 只能靠人工 review 发现。
-- [ ] **GOV-72**: `SUPPORT.md`、`SECURITY.md`、`docs/MAINTAINER_RELEASE_RUNBOOK.md`、planning/baseline/review docs 必须统一 latest archived pointer、maintainer continuity truth 与 blocker wording，消除 stale milestone anchor。
+- [x] **GOV-72**: `SUPPORT.md`、`SECURITY.md`、`docs/MAINTAINER_RELEASE_RUNBOOK.md`、planning/baseline/review docs 必须统一 latest archived pointer、maintainer continuity truth 与 blocker wording，消除 stale milestone anchor。
 
 ### Quality
 - [ ] **QLT-46**: 当前 top-priority implementation hotspots 必须继续 inward split 或由 focused no-regrowth guards 固化，而不是被默许为 permanent large-file exception。
@@ -84,8 +84,8 @@ bootstrap:
 | ARC-28 | Phase 111 | Complete |
 | GOV-71 | Phase 111 | Complete |
 | TST-38 | Phase 111 | Complete |
-| ARC-29 | Phase 112 | Pending |
-| GOV-72 | Phase 112 | Pending |
+| ARC-29 | Phase 112 | Complete |
+| GOV-72 | Phase 112 | Complete |
 | QLT-46 | Phase 113 | Pending |
 | OSS-14 | Phase 114 | Pending |
 | SEC-09 | Phase 114 | Pending |
@@ -94,8 +94,8 @@ bootstrap:
 - v1.31 requirements: 8 total
 - Mapped to phases: 8
 - Unmapped: 0 ✓
-- Current complete: 3
-- Current pending: 5
+- Current complete: 5
+- Current pending: 3
 
 ## Latest Archived Milestone (v1.30)
 

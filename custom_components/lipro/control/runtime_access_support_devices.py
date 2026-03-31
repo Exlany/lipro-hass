@@ -103,7 +103,7 @@ def _find_runtime_entry_for_coordinator_support(
     config_entry = _get_explicit_member(coordinator, "config_entry")
     runtime_entry = _build_runtime_entry_view_support(config_entry)
     if runtime_entry is not None and runtime_entry.coordinator is not None:
-        if runtime_entry.coordinator.coordinator is coordinator:
+        if runtime_entry.coordinator.runtime_coordinator is coordinator:
             return runtime_entry.entry
     for entry in _iter_runtime_entries_support(hass):
         if _get_entry_runtime_coordinator_support(entry) is coordinator:
@@ -140,7 +140,7 @@ def _is_developer_runtime_coordinator_support(
 def _iter_developer_runtime_coordinators_support(hass: HomeAssistant) -> list[LiproCoordinator]:
     """Return runtime coordinators that explicitly opted into debug mode."""
     return [
-        view.coordinator.coordinator
+        view.coordinator.runtime_coordinator
         for view in _iter_runtime_entry_views_support(hass)
         if view.coordinator is not None and _is_debug_mode_enabled_for_entry_support(view.entry)
     ]

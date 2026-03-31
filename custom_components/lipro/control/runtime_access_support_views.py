@@ -128,7 +128,7 @@ def _get_entry_runtime_coordinator_support(
     runtime_entry = _build_runtime_entry_view_support(entry)
     if runtime_entry is None or runtime_entry.coordinator is None:
         return None
-    return runtime_entry.coordinator.coordinator
+    return runtime_entry.coordinator.runtime_coordinator
 
 
 def _iter_runtime_entries_support(
@@ -169,7 +169,7 @@ def _iter_runtime_coordinators_support(
 ) -> list[LiproCoordinator]:
     """Return loaded runtime coordinators for the Lipro domain."""
     return [
-        view.coordinator.coordinator
+        view.coordinator.runtime_coordinator
         for view in _iter_runtime_entry_views_support(hass, entry_id=entry_id)
         if view.coordinator is not None
     ]
@@ -181,7 +181,7 @@ def _build_runtime_entry_coordinator_pair(
     """Return the live entry/coordinator pair for one runtime view."""
     if view.coordinator is None:
         return None
-    return view.entry, view.coordinator.coordinator
+    return view.entry, view.coordinator.runtime_coordinator
 
 
 def _iter_runtime_entry_coordinators_support(

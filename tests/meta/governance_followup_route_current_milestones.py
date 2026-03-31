@@ -40,8 +40,8 @@ _V1_31_TRACES = (
     RequirementTrace("ARC-28", "111"),
     RequirementTrace("GOV-71", "111"),
     RequirementTrace("TST-38", "111"),
-    RequirementTrace("ARC-29", "112", "Pending"),
-    RequirementTrace("GOV-72", "112", "Pending"),
+    RequirementTrace("ARC-29", "112", "Complete"),
+    RequirementTrace("GOV-72", "112", "Complete"),
     RequirementTrace("QLT-46", "113", "Pending"),
     RequirementTrace("OSS-14", "114", "Pending"),
     RequirementTrace("SEC-09", "114", "Pending"),
@@ -54,7 +54,7 @@ def test_machine_readable_route_contracts_point_to_active_v1_31_and_archived_v1_
         active = _as_optional_mapping(_as_mapping(contracts[doc_name])["active_milestone"])
         assert active is not None, doc_name
         assert active["version"] == "v1.31"
-        assert active["phase"] == "112"
+        assert active["phase"] == "113"
 
     milestones_contract = _as_mapping(contracts["MILESTONES"])
     latest_archived = _as_mapping(milestones_contract["latest_archived"])
@@ -69,7 +69,7 @@ def test_machine_readable_route_contracts_point_to_active_v1_31_and_archived_v1_
     assert state_bootstrap["latest_archived_evidence_pointer"] == LATEST_ARCHIVED_EVIDENCE_PATH
 
 
-def test_phase_111_closeout_is_reflected_in_live_docs() -> None:
+def test_phase_112_closeout_and_phase_113_handoff_are_reflected_in_live_docs() -> None:
     _assert_current_route_truth(_PROJECT_TEXT, _ROADMAP_TEXT, _STATE_TEXT)
 
     assert_contains_all(
@@ -81,6 +81,7 @@ def test_phase_111_closeout_is_reflected_in_live_docs() -> None:
         f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`",
         "Phase 111",
         "Phase 112",
+        "Phase 113",
     )
     assert_contains_all(
         _ROADMAP_TEXT,
@@ -96,11 +97,11 @@ def test_phase_111_closeout_is_reflected_in_live_docs() -> None:
         _STATE_TEXT,
         f"**Current milestone:** `{CURRENT_MILESTONE_STATE_LABEL}`",
         f"**Current mode:** `{CURRENT_ROUTE_MODE}`",
-        "- **Phase:** `112 of 114`",
+        "- **Phase:** `113 of 114`",
         "- **Status:** `Ready to discuss`",
-        "- **Progress:** `[██░░░░░░░░] 25%`",
+        "- **Progress:** `[█████░░░░░] 50%`",
         "## Recommended Next Command",
-        "$gsd-progress",
+        "$gsd-discuss-phase 113",
     )
 
 
@@ -109,8 +110,8 @@ def test_requirements_traceability_advances_phase_111_and_keeps_future_work_pend
         _REQUIREMENTS_TEXT,
         *requirement_checkbox_markers(*_V1_31_TRACES[:3]),
         *requirement_table_markers(*_V1_31_TRACES),
-        "- Current complete: 3",
-        "- Current pending: 5",
+        "- Current complete: 5",
+        "- Current pending: 3",
         f"**Milestone status:** `{CURRENT_MILESTONE_STATUS}`",
         f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`",
     )

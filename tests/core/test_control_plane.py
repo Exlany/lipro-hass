@@ -191,7 +191,7 @@ def test_build_runtime_entry_view_materializes_typed_read_model() -> None:
     assert view.entry_id == "entry-1"
     assert view.options == {"debug_mode": True}
     assert view.coordinator is not None
-    assert view.coordinator.coordinator is coordinator
+    assert view.coordinator.runtime_coordinator is coordinator
     assert view.coordinator.last_update_success is True
     assert view.coordinator.mqtt_connected is False
     assert view.coordinator.runtime_telemetry_snapshot == {"runtime": "ok"}

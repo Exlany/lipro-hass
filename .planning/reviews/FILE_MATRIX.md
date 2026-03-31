@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 744
+**Python files total:** 745
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -278,7 +278,7 @@
 | `custom_components/lipro/entities/commands.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/entities/descriptors.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/entities/firmware_update.py` | Domain | Phase 90 | 保留 | protected thin OTA projection shell after runtime-boundary tightening |
-| `custom_components/lipro/entry_auth.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/entry_auth.py` | Cross-cutting | Phase 7 | 保留 | config-entry auth/bootstrap formal home for auth seed, token persistence, and setup-exception mapping |
 | `custom_components/lipro/entry_options.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/fan.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/firmware_manifest.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -293,7 +293,7 @@
 | `custom_components/lipro/helpers/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/helpers/platform.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/light.py` | Domain | Phase 4 | 保留 | - |
-| `custom_components/lipro/runtime_infra.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/runtime_infra.py` | Control | Phase 3 | 保留 | shared runtime infra formal home for device-registry listener, pending reload coordination, and runtime listener ownership |
 | `custom_components/lipro/runtime_infra_device_registry.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/runtime_types.py` | Cross-cutting | Phase 91 | 保留 | runtime/control public protocol surface and telemetry projection type home |
 | `custom_components/lipro/select.py` | Domain | Phase 4 | 保留 | - |
@@ -657,6 +657,7 @@
 | `tests/meta/test_phase109_anonymous_share_manager_inward_decomposition_guards.py` | Assurance | Phase 109 | 保留 | focused predecessor guard home for Phase 109 anonymous-share manager inward decomposition |
 | `tests/meta/test_phase110_runtime_snapshot_closeout_guards.py` | Assurance | Phase 110 | 保留 | focused active-route guard home for Phase 110 runtime snapshot surface reduction and milestone closeout |
 | `tests/meta/test_phase111_runtime_boundary_guards.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_phase112_formal_home_governance_guards.py` | Assurance | Phase 112 | 保留 | focused active-route / sanctioned-home / archive-pointer guard home for Phase 112 governance normalization |
 | `tests/meta/test_phase31_runtime_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase45_hotspot_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase50_rest_typed_budget_guards.py` | Assurance | Phase 6 | 保留 | - |

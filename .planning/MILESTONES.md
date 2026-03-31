@@ -28,10 +28,10 @@ contract_name: governance-route
 active_milestone:
   version: v1.31
   name: Boundary Sealing, Governance Truth & Quality Hardening
-  status: active / phase 111 complete; phase 112 discussion-ready (2026-03-31)
-  phase: '112'
-  phase_title: Formal-home discoverability and governance-anchor normalization
-  phase_dir: 112-formal-home-discoverability-and-governance-anchor-normalization
+  status: active / phase 112 complete; phase 113 discussion-ready (2026-03-31)
+  phase: '113'
+  phase_title: Hotspot burn-down and changed-surface assurance hardening
+  phase_dir: 113-hotspot-burn-down-and-changed-surface-assurance-hardening
 latest_archived:
   version: v1.30
   name: Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming
@@ -48,7 +48,7 @@ previous_archived:
   evidence_path: .planning/reviews/V1_29_EVIDENCE_INDEX.md
 bootstrap:
   current_route: v1.31 active milestone route / starting from latest archived baseline = v1.30
-  default_next_command: $gsd-discuss-phase 112
+  default_next_command: $gsd-discuss-phase 113
   latest_archived_evidence_pointer: .planning/reviews/V1_30_EVIDENCE_INDEX.md
 ```
 

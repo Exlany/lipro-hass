@@ -57,6 +57,11 @@ class RuntimeCoordinatorView:
     runtime_telemetry_snapshot: Mapping[str, object]
     devices: Mapping[str, LiproDevice] | None
 
+    @property
+    def runtime_coordinator(self) -> LiproCoordinator:
+        """Return the runtime root carried by this view."""
+        return self.coordinator
+
 
 @dataclass(frozen=True, slots=True)
 class RuntimeEntryView:

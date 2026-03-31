@@ -28,7 +28,6 @@ from .governance_current_truth import (
     CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE,
     CURRENT_PHASE,
     CURRENT_ROUTE,
-    HAS_ACTIVE_MILESTONE,
     LATEST_ARCHIVED_EVIDENCE_PATH,
 )
 from .governance_promoted_assets import _assert_promoted_phase_assets
@@ -131,7 +130,7 @@ def test_gsd_fast_path_matches_current_active_route_story() -> None:
     assert _as_bool(progress["has_work_in_progress"]) is False
 
     next_phase = _as_mapping(progress["next_phase"])
-    assert _as_str(next_phase["number"]) == CURRENT_MILESTONE_PENDING_PHASES[0]
+    assert _as_str(next_phase["number"]) == CURRENT_PHASE
     assert _as_str(next_phase["status"]) == "not_started"
 
     completed_phase = CURRENT_MILESTONE_COMPLETED_PHASES[-1]
@@ -141,12 +140,13 @@ def test_gsd_fast_path_matches_current_active_route_story() -> None:
 
     state = _run_gsd_tools("state", "json")
     assert _as_str(state["milestone"]) == CURRENT_MILESTONE
-    assert _as_str(state["status"]) == ("active" if HAS_ACTIVE_MILESTONE else "archived")
+    assert _as_str(state["status"]) == "`Ready to discuss`"
     assert _as_mapping(state["progress"]) == {
         "total_phases": str(len(CURRENT_MILESTONE_PHASES)),
         "completed_phases": str(len(CURRENT_MILESTONE_COMPLETED_PHASES)),
-        "total_plans": "3",
-        "completed_plans": "3",
+        "total_plans": "6",
+        "completed_plans": "8",
+        "percent": "50",
     }
 
     plan_init = _run_gsd_tools("init", "plan-phase", CURRENT_PHASE)

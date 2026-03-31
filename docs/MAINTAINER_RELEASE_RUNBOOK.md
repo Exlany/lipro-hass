@@ -5,6 +5,7 @@
 This repository currently follows a single-maintainer release model. Every tagged release must reuse `.github/workflows/ci.yml`; `.github/workflows/release.yml` is only the tagged security / packaging / publishing tail of that same gate.
 
 > Continuity note / 连续性说明：this runbook defines the maintainer-unavailable drill. Do not imply hidden backup maintainers. No documented delegate exists today; if the maintainer is unavailable, freeze new tagged releases and freeze new release promises, keep `SUPPORT.md` / `SECURITY.md` / issue / PR template routing honest, and restore custody only after CODEOWNERS + runbook record the real successor or delegate.
+> Current route note / 当前路线说明：maintainer continuity currently follows `v1.31 active milestone route / starting from latest archived baseline = v1.30`; live selector truth stays in `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md`, while `.planning/MILESTONES.md` remains archive chronology only.
 
 ## Truth Sources
 
@@ -14,6 +15,7 @@ This repository currently follows a single-maintainer release model. Every tagge
 - Canonical public support/security paths: `README.md`, `README_zh.md`, `CONTRIBUTING.md`, `SUPPORT.md`, `SECURITY.md`
 - Canonical troubleshooting path: `docs/TROUBLESHOOTING.md`
 - Canonical release-notes summary: `CHANGELOG.md` (maintainer-facing release posture summary, not a second runbook)
+- Canonical active-route selector family: `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md` (`v1.31 active milestone route / starting from latest archived baseline = v1.30`)
 - Canonical latest archived evidence index: `.planning/reviews/V1_30_EVIDENCE_INDEX.md`
 - Canonical archived verdict home: `.planning/v1.30-MILESTONE-AUDIT.md` (pull-only evidence verdict, not current route truth)
 - Canonical firmware certification trust-root asset: `custom_components/lipro/firmware_support_manifest.json` (historical filename retained)
@@ -106,7 +108,7 @@ uv run pytest -q tests/meta/test_governance*.py tests/meta/test_toolchain_truth.
 - Spot-check one asset with `cosign verify-blob --bundle ...` and confirm the certificate identity matches `.github/workflows/release.yml` for the tagged release path only, even when the workflow was manually re-run for that same tag.
 - Spot-check README / README_zh / CONTRIBUTING / SUPPORT / SECURITY links on the rendered release page.
 - Review the workflow summary and confirm the release artifact install smoke passed against the temporary Home Assistant-style target tree before trusting the published zip/install pair.
-- If the release contains troubleshooting, public-entry, or runbook changes, ensure those docs still point at each other, at `.planning/reviews/V1_28_EVIDENCE_INDEX.md`, at `.planning/v1.28-MILESTONE-AUDIT.md`, and at the canonical public entry points.
+- If the release contains troubleshooting, public-entry, or runbook changes, ensure those docs still point at each other, at `.planning/reviews/V1_30_EVIDENCE_INDEX.md`, at `.planning/v1.30-MILESTONE-AUDIT.md`, and at the canonical public entry points.
 
 ## Maintainer-Unavailable Drill / Continuity Drill Checklist
 
