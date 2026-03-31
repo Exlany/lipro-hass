@@ -138,7 +138,7 @@ def test_gsd_fast_path_matches_current_active_route_story() -> None:
 
     state = _run_gsd_tools("state", "json")
     assert _as_str(state["milestone"]) == CURRENT_MILESTONE
-    assert _as_str(state["status"]) == "`Ready to complete milestone`"
+    assert _as_str(state["status"]) == CURRENT_MILESTONE_STATUS
     assert _as_mapping(state["progress"]) == {
         "total_phases": str(len(CURRENT_MILESTONE_PHASES)),
         "completed_phases": str(len(CURRENT_MILESTONE_COMPLETED_PHASES)),

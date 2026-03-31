@@ -129,8 +129,8 @@
 | `custom_components/lipro/core/command/expectation.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/command/post_refresh.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/command/result.py` | Cross-cutting | Phase 7 / 113 | 保留 | command-result stable export / failure arbitration home with local unconfirmed-support collaborator after Phase 113 |
-| `custom_components/lipro/core/command/result_support.py` | Cross-cutting | Phase 113 | 保留 | command-result unconfirmed/failure local collaborator behind the stable export home |
 | `custom_components/lipro/core/command/result_policy.py` | Cross-cutting | Phase 33 / 113 | 保留 | typed command-result contract classification / retry / delayed-refresh policy home with Phase 113 no-growth hotspot budget freeze |
+| `custom_components/lipro/core/command/result_support.py` | Cross-cutting | Phase 113 | 保留 | command-result unconfirmed/failure local collaborator behind the stable export home |
 | `custom_components/lipro/core/command/trace.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/coordinator/__init__.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/coordinator.py` | Runtime | Phase 5 / 14 / 36 | 重构 | HA-facing runtime façade with polling ballast reduced |

@@ -25,34 +25,27 @@ _ROUTE_CONTRACT_PATHS = {
 PLANNING_ROUTE_CONTRACT: dict[str, object] = {
     "contract_version": 1,
     "contract_name": "governance-route",
-    "active_milestone": {
+    "active_milestone": None,
+    "latest_archived": {
         "version": "v1.31",
         "name": "Boundary Sealing, Governance Truth & Quality Hardening",
-        "status": "active / phase 114 complete; closeout-ready (2026-03-31)",
+        "status": "archived / evidence-ready (2026-03-31)",
         "phase": "114",
         "phase_title": "Open-source reachability honesty and security-surface normalization",
         "phase_dir": "114-open-source-reachability-honesty-and-security-surface-normalization",
-    },
-    "latest_archived": {
-        "version": "v1.30",
-        "name": "Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming",
-        "status": "archived / evidence-ready (2026-03-30)",
-        "phase": "110",
-        "phase_title": "Runtime snapshot surface reduction and milestone closeout",
-        "phase_dir": "110-runtime-snapshot-surface-reduction-and-milestone-closeout",
-        "audit_path": ".planning/v1.30-MILESTONE-AUDIT.md",
-        "evidence_path": ".planning/reviews/V1_30_EVIDENCE_INDEX.md",
+        "audit_path": ".planning/v1.31-MILESTONE-AUDIT.md",
+        "evidence_path": ".planning/reviews/V1_31_EVIDENCE_INDEX.md",
         "evidence_label": "latest archived evidence index",
     },
     "previous_archived": {
-        "version": "v1.29",
-        "name": "Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization",
-        "evidence_path": ".planning/reviews/V1_29_EVIDENCE_INDEX.md",
+        "version": "v1.30",
+        "name": "Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming",
+        "evidence_path": ".planning/reviews/V1_30_EVIDENCE_INDEX.md",
     },
     "bootstrap": {
-        "current_route": "v1.31 active milestone route / starting from latest archived baseline = v1.30",
-        "default_next_command": "$gsd-complete-milestone v1.31",
-        "latest_archived_evidence_pointer": ".planning/reviews/V1_30_EVIDENCE_INDEX.md",
+        "current_route": "no active milestone route / latest archived baseline = v1.31",
+        "default_next_command": "$gsd-new-milestone",
+        "latest_archived_evidence_pointer": ".planning/reviews/V1_31_EVIDENCE_INDEX.md",
     },
 }
 
@@ -256,6 +249,7 @@ CURRENT_ROUTE_PROSE_FORBIDDEN = (
     "v1.30 active route / Phase 107 complete / latest archived baseline = v1.29",
     "v1.30 active route / Phase 109 complete / latest archived baseline = v1.29",
     "v1.30 active route / Phase 110 complete / latest archived baseline = v1.29",
+    "v1.31 active milestone route / starting from latest archived baseline = v1.30",
     "no active milestone route / latest archived baseline = v1.20",
     "no active milestone route / latest archived baseline = v1.21",
     "no active milestone route / latest archived baseline = v1.22",
@@ -272,11 +266,11 @@ CURRENT_RUNTIME_ROOT_TEST = "tests/core/coordinator/test_runtime_root.py"
 
 HISTORICAL_CLOSEOUT_ROUTE_TRUTH = (
     "historical closeout route truth = "
-    "`no active milestone route / latest archived baseline = v1.30`"
+    "`no active milestone route / latest archived baseline = v1.31`"
 )
 HISTORICAL_ARCHIVE_TRANSITION_ROUTE_TRUTH = (
     "historical archive-transition route truth = "
-    "`no active milestone route / latest archived baseline = v1.29`"
+    "`no active milestone route / latest archived baseline = v1.30`"
 )
 
 

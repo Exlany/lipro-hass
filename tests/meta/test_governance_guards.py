@@ -20,7 +20,11 @@ from .conftest import (
     _extract_labeled_bullets,
     _extract_markdown_section,
 )
-from .governance_current_truth import CURRENT_MILESTONE_DEFAULT_NEXT
+from .governance_current_truth import (
+    CURRENT_MILESTONE_DEFAULT_NEXT,
+    CURRENT_ROUTE,
+    LATEST_ARCHIVED_EVIDENCE_PATH,
+)
 
 _FILE_MATRIX = _ROOT / ".planning" / "reviews" / "FILE_MATRIX.md"
 
@@ -195,11 +199,11 @@ def test_phase_60_tooling_closeout_stays_archived_under_active_route_truth() -> 
 
     assert "archived / evidence-ready (2026-03-22)" in project_text
     assert "**Archive status:** `archived / evidence-ready (2026-03-22)`" not in roadmap_text
-    assert "v1.31 active milestone route / starting from latest archived baseline = v1.30" in roadmap_text
+    assert CURRENT_ROUTE in roadmap_text
     assert "| HOT-14 | Phase 60 | Complete |" in requirements_text
     assert "| TST-12 | Phase 60 | Complete |" in requirements_text
     assert "| GOV-44 | Phase 60 | Complete |" in requirements_text
-    assert ".planning/reviews/V1_30_EVIDENCE_INDEX.md" in state_text
+    assert LATEST_ARCHIVED_EVIDENCE_PATH in state_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
     assert "scripts/check_file_matrix_inventory.py" in file_matrix_text
     assert "tests/meta/toolchain_truth_python_stack.py" in file_matrix_text

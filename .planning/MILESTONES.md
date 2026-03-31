@@ -1,5 +1,75 @@
 # Milestones
 
+## v1.31 Boundary Sealing, Governance Truth & Quality Hardening (Shipped: 2026-03-31; Closeout: 2026-03-31)
+
+**Phases completed:** 4 phases, 13 plans, 0 tasks
+
+**Status:** archived / evidence-ready
+**Route truth:** latest archived evidence index = `.planning/reviews/V1_31_EVIDENCE_INDEX.md`
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.31`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.30`
+**Default next command:** `$gsd-new-milestone`
+
+**Key accomplishments:**
+
+- 完成 `Phase 111 -> 114` 全部计划与 closeout bundle，形成 `v1.31` latest archived baseline 的可审计证据链。
+- 封印 entity/control → runtime concrete bypass，并用 governance / dependency guards 固化 formal runtime access 主链。
+- 统一 sanctioned root homes、governance anchors、hotspot no-growth proof 与 open-source honesty wording，不再保留第二条 current story。
+
+---
+
+> Machine-readable bootstrap truth now lives in the shared `governance-route` contract block below; milestone chronology remains human-readable archive history instead of the parser-visible selector.
+
+<!-- governance-route-contract:start -->
+
+```yaml
+contract_version: 1
+contract_name: governance-route
+active_milestone: null
+latest_archived:
+  version: v1.31
+  name: Boundary Sealing, Governance Truth & Quality Hardening
+  status: archived / evidence-ready (2026-03-31)
+  phase: '114'
+  phase_title: Open-source reachability honesty and security-surface normalization
+  phase_dir: 114-open-source-reachability-honesty-and-security-surface-normalization
+  audit_path: .planning/v1.31-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_31_EVIDENCE_INDEX.md
+  evidence_label: latest archived evidence index
+previous_archived:
+  version: v1.30
+  name: Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming
+  evidence_path: .planning/reviews/V1_30_EVIDENCE_INDEX.md
+bootstrap:
+  current_route: no active milestone route / latest archived baseline = v1.31
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_31_EVIDENCE_INDEX.md
+```
+
+<!-- governance-route-contract:end -->
+
+## Latest Archived Milestone (v1.31)
+
+**Phase range:** `111 -> 114`
+**Phases completed:** 4 phases, 13 plans, 0 tasks
+**Status:** `archived / evidence-ready (2026-03-31)`
+**Route truth:** `no active milestone route / latest archived baseline = v1.31`
+**Latest archived baseline:** `v1.31`
+**Default next command:** `$gsd-new-milestone`
+
+**Current phase story:**
+
+- `Phase 111`: entity-runtime boundary sealing and dependency-guard hardening ✅
+- `Phase 112`: formal-home discoverability and governance-anchor normalization ✅
+- `Phase 113`: hotspot burn-down and changed-surface assurance hardening ✅
+- `Phase 114`: open-source reachability honesty and security-surface normalization ✅
+
+**Key accomplishments:**
+
+- 把 entity/control → runtime 具体依赖与 raw runtime-data backflow 收口为 sanctioned runtime public surface。
+- 把 formal-home discoverability、runbook/archive pointer 与 root-level ownership truth 统一到单一治理主链。
+- 把 hotspot burn-down、no-growth budget 与 open-source honesty 固定为 `v1.31` archived baseline，而不是 closeout-ready 中间态。
+
 ## v1.30 Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming (Shipped: 2026-03-30; Closeout: 2026-03-30)
 
 **Phases completed:** 4 phases, 15 plans, 0 tasks
@@ -15,67 +85,6 @@
 - 完成 `Phase 107 -> 110` 全部计划与 closeout bundle，形成可审计证据链。
 - `snapshot.py` inward split 到 `snapshot_support.py`，保持 `SnapshotBuilder` 唯一 outward home。
 - 统一 planning/baseline/review/docs/tests truth，冻结 `v1.30` archived closeout story。
-
----
-
-> Machine-readable bootstrap truth now lives in the shared `governance-route` contract block below; milestone chronology remains human-readable archive history instead of the parser-visible selector.
-
-<!-- governance-route-contract:start -->
-
-```yaml
-contract_version: 1
-contract_name: governance-route
-active_milestone:
-  version: v1.31
-  name: Boundary Sealing, Governance Truth & Quality Hardening
-  status: active / phase 114 complete; closeout-ready (2026-03-31)
-  phase: '114'
-  phase_title: Open-source reachability honesty and security-surface normalization
-  phase_dir: 114-open-source-reachability-honesty-and-security-surface-normalization
-latest_archived:
-  version: v1.30
-  name: Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming
-  status: archived / evidence-ready (2026-03-30)
-  phase: '110'
-  phase_title: Runtime snapshot surface reduction and milestone closeout
-  phase_dir: 110-runtime-snapshot-surface-reduction-and-milestone-closeout
-  audit_path: .planning/v1.30-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_30_EVIDENCE_INDEX.md
-  evidence_label: latest archived evidence index
-previous_archived:
-  version: v1.29
-  name: Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization
-  evidence_path: .planning/reviews/V1_29_EVIDENCE_INDEX.md
-bootstrap:
-  current_route: v1.31 active milestone route / starting from latest archived baseline = v1.30
-  default_next_command: $gsd-complete-milestone v1.31
-  latest_archived_evidence_pointer: .planning/reviews/V1_30_EVIDENCE_INDEX.md
-```
-
-<!-- governance-route-contract:end -->
-
-## Latest Archived Milestone (v1.30)
-
-**Phase range:** `107 -> 110`
-**Phases completed:** 4 phases, 15 plans, 0 tasks
-**Status:** `archived / evidence-ready (2026-03-30)`
-**Route truth:** `no active milestone route / latest archived baseline = v1.30`
-**Latest archived baseline:** `v1.30`
-**Default next command:** `$gsd-new-milestone`
-
-**Current phase story:**
-
-- `Phase 107`: REST/auth/status hotspot convergence and support-surface slimming ✅
-- `Phase 108`: MQTT transport-runtime de-friendization ✅
-- `Phase 109`: anonymous-share manager inward decomposition ✅
-- `Phase 110`: runtime snapshot surface reduction and milestone closeout ✅
-
-**Key accomplishments:**
-
-- 把 REST child-façade init path、status fallback recursion 与 request-policy pacing state 的热点继续压回更局部 formal/support homes。
-- 把 `core/mqtt/transport_runtime.py` / `transport.py` 收口为 explicit owner/state contract，去掉 friend-style private-state reach-through 而不引入第二 root。
-- 完成 `v1.30` selector 翻转并固定下一步为 `$gsd-new-milestone`。
-- `Phase 110` closeout bundle、`.planning/reviews/V1_30_EVIDENCE_INDEX.md` 与 `.planning/v1.30-MILESTONE-AUDIT.md` 已形成可审计 evidence chain。
 
 ## v1.29 Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization (Shipped: 2026-03-30; Closeout: 2026-03-30)
 

@@ -1,82 +1,80 @@
 # Project: Lipro-HASS North Star Evolution
 
 
-**Status:** `Active milestone route`
-**Current route:** `v1.31 active milestone route / starting from latest archived baseline = v1.30`；latest archived evidence index = `.planning/reviews/V1_30_EVIDENCE_INDEX.md`.
-**Goal:** `沿 v1.30 latest archived baseline，把仍可由仓内代码 / 文档直接修复的 boundary、governance 与 quality gaps 纳入单一 active route，并把依赖 maintainer 外部决策的 reachability 问题显式分层。`
-**Default next step:** `$gsd-complete-milestone v1.31`
-**Active baseline:** latest archived baseline = `v1.30`；previous archived baseline = `v1.29`.
+**Status:** `Archived-only route`
+**Current route:** `no active milestone route / latest archived baseline = v1.31`；latest archived evidence index = `.planning/reviews/V1_31_EVIDENCE_INDEX.md`.
+**Goal:** `以 v1.31 latest archived baseline 作为 pull-only 真源，为下一条正式路线提供唯一 north-star 起点；不回写第二套 live 故事线。`
+**Default next step:** `$gsd-new-milestone`
+**Active baseline:** latest archived baseline = `v1.31`；previous archived baseline = `v1.30`.
 
 
 <!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.31
   name: Boundary Sealing, Governance Truth & Quality Hardening
-  status: active / phase 114 complete; closeout-ready (2026-03-31)
+  status: archived / evidence-ready (2026-03-31)
   phase: '114'
   phase_title: Open-source reachability honesty and security-surface normalization
   phase_dir: 114-open-source-reachability-honesty-and-security-surface-normalization
-latest_archived:
-  version: v1.30
-  name: Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming
-  status: archived / evidence-ready (2026-03-30)
-  phase: '110'
-  phase_title: Runtime snapshot surface reduction and milestone closeout
-  phase_dir: 110-runtime-snapshot-surface-reduction-and-milestone-closeout
-  audit_path: .planning/v1.30-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_30_EVIDENCE_INDEX.md
+  audit_path: .planning/v1.31-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_31_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.29
-  name: Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization
-  evidence_path: .planning/reviews/V1_29_EVIDENCE_INDEX.md
+  version: v1.30
+  name: Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming
+  evidence_path: .planning/reviews/V1_30_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.31 active milestone route / starting from latest archived baseline = v1.30
-  default_next_command: $gsd-complete-milestone v1.31
-  latest_archived_evidence_pointer: .planning/reviews/V1_30_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.31
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_31_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
-## Current Milestone (v1.31)
+## Latest Archived Milestone (v1.31)
 
 **Name:** `Boundary Sealing, Governance Truth & Quality Hardening`
 
-**Why now:** `v1.30` 已把 protocol/runtime hot spots 收束为 latest archived baseline，但终极审阅仍发现 entity→runtime concrete binding、dependency-guard 漏洞、formal-home discoverability 漂移、release/runbook stale anchors、以及 changed-surface quality gates 不够精确等问题；若不立刻进入 active route，这些缺口会重新滑回 conversation-only carry-forward。`
+**Why it mattered:** `v1.31` 把 entity/control → runtime concrete bypass、formal-home discoverability 漂移、hotspot no-growth guard 与 open-source honesty 收口成单一 archived baseline；这次 closeout 之后，仓库不再保留第二条 current story。`
 
-**North-star fit:** `v1.31` 继续遵守 single mainline / formal homes / inward split，不扩 public root，不复活 compat shell；只处理仓内仍可被正式基线直接修复的问题，并把需要 maintainer 外部决策的 public reachability / delegate identity 显式标为 governance blocker，而不是伪装成代码已解。`
+**North-star fit:** `v1.31` 沿 single mainline / formal homes / inward split 完成终段收口；对 maintainer 外部 continuity blocker 保持 honest-by-default，而不是伪装为仓内已解。`
 
-**Current status:** `active / phase 114 complete; closeout-ready (2026-03-31)`
+**Current status:** `archived / evidence-ready (2026-03-31)`
 **Phase range:** `Phase 111 -> 114`
 **Starting baseline:** `.planning/v1.30-MILESTONE-AUDIT.md`, `.planning/reviews/V1_30_EVIDENCE_INDEX.md`, `.planning/milestones/v1.30-ROADMAP.md`, `.planning/milestones/v1.30-REQUIREMENTS.md`
 **Requirements basket:** `ARC-28`, `ARC-29`, `GOV-71`, `GOV-72`, `QLT-46`, `TST-38`, `OSS-14`, `SEC-09`
-**Latest archived baseline:** `v1.30`
-**Latest archived pointer:** `.planning/reviews/V1_30_EVIDENCE_INDEX.md`
-**Current route mode:** `v1.31 active milestone route / starting from latest archived baseline = v1.30`
-**Default next command:** `$gsd-complete-milestone v1.31`
-**Route checkpoint:** `Phase 111`, `Phase 112`, `Phase 113`, and `Phase 114` are complete; the active route is now closeout-ready.
-**Current follow-up target:** execute `$gsd-complete-milestone v1.31` to archive the active milestone route and promote the `v1.31` closeout bundle.
+**Latest archived baseline:** `v1.31`
+**Latest archived pointer:** `.planning/reviews/V1_31_EVIDENCE_INDEX.md`
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.31`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.30`
+**Current route mode:** `no active milestone route / latest archived baseline = v1.31`
+**Default next command:** `$gsd-new-milestone`
+**Route checkpoint:** `Phase 111`, `Phase 112`, `Phase 113`, and `Phase 114` are complete; the route is now archived-only.
+**Current follow-up target:** start the next formal route with `$gsd-new-milestone`.
 
 **Target features:**
 - 封印 entity / control → runtime internals 的 concrete dependency，并补齐 machine-checkable guards。
-- 明确 sanctioned root homes / formal-home discoverability，减少 `coordinator.coordinator` 这类命名折返。
-- 收口 stale governance anchors、focused coverage blind spots 与 remaining implementation hotspots。
-- 对 open-source reachability / security fallback / steward continuity 采用 honest-by-default 文档与 blocker 分层，而不是制造虚假公开承诺。
+- 明确 sanctioned root homes / formal-home discoverability，减少命名折返与 stale governance anchors。
+- 收口 remaining hotspots，并把 no-growth budget 固定为长期诚实债务，而不是 conversation-only 宽容。
+- 对 open-source reachability / security fallback / steward continuity 采用 honest-by-default 文档与 blocker 分层。
 
-## Latest Archived Milestone (v1.30)
+## Previous Archived Milestone (v1.30)
 
 **Name:** `Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming`
 **Current status:** `archived / evidence-ready (2026-03-30)`
 **Phase range:** `Phase 107 -> 110`
 **Requirements basket:** `HOT-46`, `ARC-27`, `TST-37`, `QLT-45`, `RUN-10`, `HOT-47`, `RUN-11`, `GOV-70`
 **Latest archived pointer:** `.planning/reviews/V1_30_EVIDENCE_INDEX.md`
+**Current audit artifact:** `.planning/v1.30-MILESTONE-AUDIT.md`
 **Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.30`
 **Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.29`
-**Current follow-up target:** serve as latest archived baseline for `v1.31`.
+**Current follow-up target:** serve as previous archived baseline for `v1.31`.
 
 ## Previous Archived Milestone (v1.29)
+
 
 **Name:** `Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization`
 **Current status:** `archived / evidence-ready (2026-03-30)`

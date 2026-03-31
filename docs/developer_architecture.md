@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `v1.31 / Phase 112 formal-home discoverability and governance-anchor normalization` (`2026-03-31`)
-> **Current route alignment**: `v1.31 active milestone route / starting from latest archived baseline = v1.30` (`2026-03-31`)
+> **Last aligned through**: `v1.31 archived closeout / latest archived baseline promotion` (`2026-03-31`)
+> **Current route alignment**: `no active milestone route / latest archived baseline = v1.31` (`2026-03-31`)
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
@@ -259,7 +259,7 @@ custom_components/lipro/
 
 ## Phase 102 Governance Portability / Verification Stratification / Open-Source Continuity Hardening Note
 
-- 当前 developer guidance 与 `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md` 已共同承认 `v1.31 active milestone route / starting from latest archived baseline = v1.30`；当前 continuation 以 `.planning/STATE.md` 与 `$gsd-next` 为准，`$gsd-new-milestone` 只属于 active milestone 全部完成之后。
+- 当前 developer guidance 与 `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md` 已共同承认 `no active milestone route / latest archived baseline = v1.31`；当前 continuation 应直接从 `$gsd-new-milestone` 启动下一条正式路线，而不是回写 `v1.31` 的 archived truth。 默认下一步保持为 `$gsd-new-milestone`。
 - `Phase 102` 不重开 production formal homes；它只把 governance/meta smoke 的 fast-path 耦合收口为 capability-aware proof，并把 verification matrix 当前真相、historical closeout note、docs-first / maintainer appendix continuity wording 一次性分层。
 - `tests/meta/test_governance_bootstrap_smoke.py`、`tests/meta/test_governance_route_handoff_smoke.py`、`tests/meta/governance_followup_route_current_milestones.py` 与 `tests/meta/test_phase102_governance_portability_guards.py` 现在共同冻结 archived-only latest truth、portable fast-path、promoted closeout bundle、runbook latest pointer 与 developer-facing topology note。
 

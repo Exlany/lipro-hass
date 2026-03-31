@@ -483,6 +483,34 @@ phases:
   - 110-SUMMARY.md
   - 110-VERIFICATION.md
   - 110-VALIDATION.md
+  111-entity-runtime-boundary-sealing-and-dependency-guard-hardening:
+  - 111-01-SUMMARY.md
+  - 111-02-SUMMARY.md
+  - 111-03-SUMMARY.md
+  - 111-SUMMARY.md
+  - 111-VERIFICATION.md
+  - 111-VALIDATION.md
+  112-formal-home-discoverability-and-governance-anchor-normalization:
+  - 112-01-SUMMARY.md
+  - 112-02-SUMMARY.md
+  - 112-03-SUMMARY.md
+  - 112-SUMMARY.md
+  - 112-VERIFICATION.md
+  113-hotspot-burn-down-and-changed-surface-assurance-hardening:
+  - 113-01-SUMMARY.md
+  - 113-02-SUMMARY.md
+  - 113-03-SUMMARY.md
+  - 113-04-SUMMARY.md
+  - 113-SUMMARY.md
+  - 113-VERIFICATION.md
+  - 113-AUDIT.md
+  114-open-source-reachability-honesty-and-security-surface-normalization:
+  - 114-01-SUMMARY.md
+  - 114-02-SUMMARY.md
+  - 114-03-SUMMARY.md
+  - 114-SUMMARY.md
+  - 114-VERIFICATION.md
+  - 114-AUDIT.md
 policy:
   default_identity: execution-trace
   promotion_contract: Only assets listed under `phases` count as long-term governance/CI
