@@ -358,3 +358,24 @@ async def test_aggregate_developer_feedback_uses_primary_scope_client_without_ov
     assert aggregate_manager.last_submit_outcome.is_success is True
     assert default_manager.last_submit_outcome is not None
     assert default_manager.last_submit_outcome.reason_code == "default_scope_outcome"
+
+
+def test_aggregate_views_share_submit_outcome_state_without_overwriting_scoped_outcome() -> None:
+    root_manager = AnonymousShareManager()
+    scoped_manager = root_manager.for_scope("entry-1")
+    scoped_manager.set_last_submit_outcome(
+        build_operation_outcome(kind="failed", reason_code="scoped_outcome")
+    )
+
+    aggregate_one = root_manager.aggregate_view()
+    aggregate_two = root_manager.aggregate_view()
+    aggregate_one.set_last_submit_outcome(
+        build_operation_outcome(kind="success", reason_code="aggregate_outcome")
+    )
+
+    assert aggregate_one.last_submit_outcome is not None
+    assert aggregate_two.last_submit_outcome is not None
+    assert aggregate_one.last_submit_outcome.reason_code == "aggregate_outcome"
+    assert aggregate_two.last_submit_outcome.reason_code == "aggregate_outcome"
+    assert scoped_manager.last_submit_outcome is not None
+    assert scoped_manager.last_submit_outcome.reason_code == "scoped_outcome"

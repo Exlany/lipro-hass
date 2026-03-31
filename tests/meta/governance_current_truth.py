@@ -28,10 +28,10 @@ PLANNING_ROUTE_CONTRACT: dict[str, object] = {
     "active_milestone": {
         "version": "v1.32",
         "name": "Residual Hotspot Eradication, Validation Completion & Continuity Hardening",
-        "status": "active / phase 115 complete; phase 116 discuss-ready (2026-03-31)",
-        "phase": "115",
-        "phase_title": "Status-fallback query-flow normalization",
-        "phase_dir": "115-status-fallback-query-flow-normalization",
+        "status": "active / phase 116 complete; phase 117 discuss-ready (2026-03-31)",
+        "phase": "116",
+        "phase_title": "Anonymous-share and REST façade hotspot slimming",
+        "phase_dir": "116-anonymous-share-and-rest-fa-ade-hotspot-slimming",
     },
     "latest_archived": {
         "version": "v1.31",
@@ -51,7 +51,7 @@ PLANNING_ROUTE_CONTRACT: dict[str, object] = {
     },
     "bootstrap": {
         "current_route": "v1.32 active milestone route / starting from latest archived baseline = v1.31",
-        "default_next_command": "$gsd-discuss-phase 116",
+        "default_next_command": "$gsd-discuss-phase 117",
         "latest_archived_evidence_pointer": ".planning/reviews/V1_31_EVIDENCE_INDEX.md",
     },
 }
@@ -177,11 +177,11 @@ else:
     CURRENT_ROUTE_MODE = CURRENT_ROUTE
 
 CURRENT_MILESTONE_PHASES = ("115", "116", "117")
-CURRENT_MILESTONE_COMPLETED_PHASES = ("115",)
-CURRENT_MILESTONE_PENDING_PHASES: tuple[str, ...] = ("116", "117")
-CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE = {"115": 1, "116": 0, "117": 0}
+CURRENT_MILESTONE_COMPLETED_PHASES = ("115", "116")
+CURRENT_MILESTONE_PENDING_PHASES: tuple[str, ...] = ("117",)
+CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE = {"115": 1, "116": 3, "117": 0}
 CURRENT_MILESTONE_PLAN_COUNT = CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE[CURRENT_PHASE]
-CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE = {"115": 2, "116": 0, "117": 0}
+CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE = {"115": 2, "116": 4, "117": 0}
 CURRENT_MILESTONE_SUMMARY_COUNT = CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE[CURRENT_PHASE]
 CURRENT_ROUTE_FOCUSED_GUARDS = (
     "tests/meta/test_governance_bootstrap_smoke.py",

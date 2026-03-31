@@ -378,3 +378,26 @@ class TestScopedAnonymousShareManager:
         assert report is not None
         assert report["device_count"] == 1
         assert report["error_count"] == 1
+
+    def test_scoped_manager_state_bindings_round_trip_through_registry(self):
+        root_manager = AnonymousShareManager()
+        scoped_manager = root_manager.for_scope("entry-7")
+        share_client = MagicMock()
+
+        scoped_manager._last_upload_time = 12.5
+        scoped_manager._installation_id = "install-7"
+        scoped_manager._ha_version = "2026.3.0"
+        scoped_manager._share_client = share_client
+        scoped_manager._reported_device_keys = {"lipro_led"}
+        scoped_manager._storage_path = "cache/lipro-share"
+        scoped_manager._cache_loaded = False
+
+        state = scoped_manager.get_submit_state()
+
+        assert state.last_upload_time == 12.5
+        assert state.installation_id == "install-7"
+        assert state.ha_version == "2026.3.0"
+        assert state.share_client is share_client
+        assert state.reported_device_keys == {"lipro_led"}
+        assert state.storage_path == "cache/lipro-share"
+        assert state.cache_loaded is False

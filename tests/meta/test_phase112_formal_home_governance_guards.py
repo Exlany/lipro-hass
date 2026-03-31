@@ -22,7 +22,7 @@ def test_phase112_developer_architecture_uses_active_route_and_sanctioned_root_h
     text = _DEVELOPER.read_text(encoding="utf-8")
 
     assert "v1.32 active milestone route / starting from latest archived baseline = v1.31" in text
-    assert "默认下一步现在切到 `$gsd-discuss-phase 116`" in text
+    assert "默认下一步现在切到 `$gsd-discuss-phase 117`" in text
     for token in (
         "custom_components/lipro/runtime_infra.py",
         "custom_components/lipro/runtime_types.py",

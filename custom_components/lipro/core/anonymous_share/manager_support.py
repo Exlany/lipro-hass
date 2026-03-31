@@ -41,6 +41,47 @@ class _ScopeState:
     last_submit_outcome: OperationOutcome | None = None
 
 
+@dataclass(slots=True)
+class _AggregateViewState:
+    """Shared aggregate-view state reused across manager views."""
+
+    last_submit_outcome: OperationOutcome | None = None
+
+
+def scope_state_property(attr: str) -> property:
+    """Build one internal `AnonymousShareManager` property bound to `_scope_state`."""
+
+    def _getter(owner: object) -> object:
+        state = object.__getattribute__(owner, "_scope_state")
+        return getattr(state, attr)
+
+    def _setter(owner: object, value: object) -> None:
+        state = object.__getattribute__(owner, "_scope_state")
+        setattr(state, attr, value)
+
+    return property(_getter, _setter)
+
+
+def collector_method(
+    method_name: str,
+    *,
+    doc: str | None = None,
+    inject_reported_device_keys: bool = False,
+):
+    """Build one internal `AnonymousShareManager` method bound to `_share_collector`."""
+
+    def _method(owner: object, *args: object, **kwargs: object) -> object:
+        if inject_reported_device_keys:
+            reported_device_keys = object.__getattribute__(owner, "_reported_device_keys")
+            kwargs.setdefault("reported_device_keys", reported_device_keys)
+        collector = object.__getattribute__(owner, "_share_collector")
+        return getattr(collector, method_name)(*args, **kwargs)
+
+    _method.__name__ = method_name
+    _method.__doc__ = doc
+    return _method
+
+
 def get_scope_state(
     registry: dict[str, _ScopeState],
     scope_key: str,

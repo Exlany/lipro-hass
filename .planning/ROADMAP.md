@@ -12,10 +12,10 @@ contract_name: governance-route
 active_milestone:
   version: v1.32
   name: Residual Hotspot Eradication, Validation Completion & Continuity Hardening
-  status: active / phase 115 complete; phase 116 discuss-ready (2026-03-31)
-  phase: '115'
-  phase_title: Status-fallback query-flow normalization
-  phase_dir: 115-status-fallback-query-flow-normalization
+  status: active / phase 116 complete; phase 117 discuss-ready (2026-03-31)
+  phase: '116'
+  phase_title: Anonymous-share and REST façade hotspot slimming
+  phase_dir: 116-anonymous-share-and-rest-fa-ade-hotspot-slimming
 latest_archived:
   version: v1.31
   name: Boundary Sealing, Governance Truth & Quality Hardening
@@ -32,7 +32,7 @@ previous_archived:
   evidence_path: .planning/reviews/V1_30_EVIDENCE_INDEX.md
 bootstrap:
   current_route: v1.32 active milestone route / starting from latest archived baseline = v1.31
-  default_next_command: $gsd-discuss-phase 116
+  default_next_command: $gsd-discuss-phase 117
   latest_archived_evidence_pointer: .planning/reviews/V1_31_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -42,19 +42,19 @@ bootstrap:
 `v1.32` 继续只沿单一 north-star 主线推进：基于 `v1.31` latest archived baseline，先冻结 `status_fallback` 入口 contract，再继续收窄 `rest_facade.py`、`anonymous_share/manager.py` 与 validation / continuity debt。所有工作都必须在 formal homes 内完成，不引入 second root，不复活 compat shell。
 
 **Coverage:** `4/4` v1.32 requirements mapped exactly once.
-**Default next command:** `$gsd-discuss-phase 116`
+**Default next command:** `$gsd-discuss-phase 117`
 
 ## v1.32: Residual Hotspot Eradication, Validation Completion & Continuity Hardening
 
-**Milestone status:** `active / phase 115 complete; phase 116 discuss-ready (2026-03-31)`
-**Default next command:** `$gsd-discuss-phase 116`
+**Milestone status:** `active / phase 116 complete; phase 117 discuss-ready (2026-03-31)`
+**Default next command:** `$gsd-discuss-phase 117`
 **Current route story:** `v1.32 active milestone route / starting from latest archived baseline = v1.31`
 **Latest archived pointer:** `.planning/reviews/V1_31_EVIDENCE_INDEX.md`
 
 ## Phases
 
 - [x] **Phase 115: Status-fallback query-flow normalization** - 已冻结空输入 / fallback-depth / no-I/O contract，并补入 focused regression。 (completed 2026-03-31)
-- [ ] **Phase 116: Anonymous-share and REST façade hotspot slimming** - 继续 inward split `anonymous_share/manager.py` 与 `rest_facade.py`，不扩大 public contract。 (planned)
+- [x] **Phase 116: Anonymous-share and REST façade hotspot slimming** - 已收敛 `rest_facade.py` 的 state binding 样板与 `anonymous_share/manager.py` 的 scope-state / aggregate outcome 语义，并补齐 focused regressions。 (completed 2026-03-31)
 - [ ] **Phase 117: Validation backfill and continuity hardening** - 补齐 `Phase 112 -> 114` validation / changed-surface / continuity 资产与 route continuity truth。 (planned)
 
 ## Phase Details
@@ -79,8 +79,9 @@ bootstrap:
   1. aggregate/scoped submit semantics 与 façade state-proxy / wrapper density 继续下降，而不是通过新增 helper shell 掩盖复杂度。
   2. `anonymous_share/manager.py` 与 `rest_facade.py` 不会长出第二条 production path、compat shell 或新的 outward root。
   3. Focused tests 会明确冻结 formal home / factory / stable import / wrapper contract，不靠仓库全量测试碰运气。
-**Status**: Planned
-**Plans**: 0/0
+**Status**: Complete (`2026-03-31`)
+**Plans**: 3/3 complete
+**Evidence**: `.planning/phases/116-anonymous-share-and-rest-fa-ade-hotspot-slimming/{116-01-SUMMARY.md,116-02-SUMMARY.md,116-03-SUMMARY.md,116-SUMMARY.md,116-VERIFICATION.md}`
 
 ### Phase 117: Validation backfill and continuity hardening
 **Goal**: `Phase 112 -> 114` 的 validation / changed-surface / continuity proof 必须补齐，让 archived baseline 与下一条 active route 之间的 selector、runbook、evidence chain 继续保持单一 truth。
@@ -90,8 +91,9 @@ bootstrap:
   1. `Phase 112 -> 114` 缺失的 validation / changed-surface 资产被补齐，并与 latest archived evidence chain 对齐。
   2. `docs/developer_architecture.md`、`docs/MAINTAINER_RELEASE_RUNBOOK.md` 与 planning selector family 会共同承认 `v1.32` active route / `v1.31` latest archived baseline truth。
   3. 当前 route 的 next-step / archived pointer / continuity note 继续 machine-checkable，不回退成 conversation-only story。
-**Status**: Planned
-**Plans**: 0/0
+**Status**: Complete (`2026-03-31`)
+**Plans**: 3/3 complete
+**Evidence**: `.planning/phases/116-anonymous-share-and-rest-fa-ade-hotspot-slimming/{116-01-SUMMARY.md,116-02-SUMMARY.md,116-03-SUMMARY.md,116-SUMMARY.md,116-VERIFICATION.md}`
 
 ## Progress
 

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.32
 milestone_name: Residual Hotspot Eradication, Validation Completion & Continuity Hardening
-status: active / phase 115 complete; phase 116 discuss-ready (2026-03-31)
-stopped_at: Phase 115 complete
+status: active / phase 116 complete; phase 117 discuss-ready (2026-03-31)
+stopped_at: Phase 116 complete
 last_updated: "2026-03-31T20:30:00Z"
 last_activity: 2026-03-31
 progress:
   total_phases: 3
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
-  percent: 33
+  completed_phases: 2
+  total_plans: 4
+  completed_plans: 4
+  percent: 67
 ---
 
 # Project State
@@ -28,10 +28,10 @@ contract_name: governance-route
 active_milestone:
   version: v1.32
   name: Residual Hotspot Eradication, Validation Completion & Continuity Hardening
-  status: active / phase 115 complete; phase 116 discuss-ready (2026-03-31)
-  phase: '115'
-  phase_title: Status-fallback query-flow normalization
-  phase_dir: 115-status-fallback-query-flow-normalization
+  status: active / phase 116 complete; phase 117 discuss-ready (2026-03-31)
+  phase: '116'
+  phase_title: Anonymous-share and REST façade hotspot slimming
+  phase_dir: 116-anonymous-share-and-rest-fa-ade-hotspot-slimming
 latest_archived:
   version: v1.31
   name: Boundary Sealing, Governance Truth & Quality Hardening
@@ -48,7 +48,7 @@ previous_archived:
   evidence_path: .planning/reviews/V1_30_EVIDENCE_INDEX.md
 bootstrap:
   current_route: v1.32 active milestone route / starting from latest archived baseline = v1.31
-  default_next_command: $gsd-discuss-phase 116
+  default_next_command: $gsd-discuss-phase 117
   latest_archived_evidence_pointer: .planning/reviews/V1_31_EVIDENCE_INDEX.md
 ```
 
@@ -57,27 +57,27 @@ bootstrap:
 **Current milestone:** `v1.32 Residual Hotspot Eradication, Validation Completion & Continuity Hardening`
 **Active milestone:** `v1.32`
 **Core value:** `沿 v1.31 latest archived baseline，把 remaining hotspots、validation backfill 与 continuity hardening 收口到单一 active route，同时对仓外 continuity blocker 保持 honest-by-default。`
-**Current focus:** `Phase 115: Status-fallback query-flow normalization`
+**Current focus:** `Phase 116: Anonymous-share and REST façade hotspot slimming`
 **Current mode:** `v1.32 active milestone route / starting from latest archived baseline = v1.31`
 
 ## Current Position
 
-- **Phase:** `115 of 117`
-- **Plan:** `1 of 1`
-- **Status:** `active / phase 115 complete; phase 116 discuss-ready (2026-03-31)`
-- **Last activity:** `2026-03-31` — `Phase 115` complete; `Phase 116` is the next logical continuation
-- **Progress:** `[███░░░░░░░] 33%`
+- **Phase:** `116 of 117`
+- **Plan:** `3 of 3`
+- **Status:** `active / phase 116 complete; phase 117 discuss-ready (2026-03-31)`
+- **Last activity:** `2026-03-31` — `Phase 116` complete; `Phase 117` is the next logical continuation
+- **Progress:** `[██████░░░░] 67%`
 
 ## Performance Metrics
 
-- **Total plans completed:** `1`
+- **Total plans completed:** `4`
 - **Average duration:** `-`
 - **Total execution time:** `0h`
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 115 | 1 | complete | 1.00 |
-| 116 | 0 | pending | - |
+| 116 | 3 | complete | 1.00 |
 | 117 | 0 | pending | - |
 
 ## Governance Truth Sources
@@ -96,7 +96,7 @@ bootstrap:
 - `v1.32` 固定为 active route，latest archived baseline pointer 保持 `v1.31`。
 - 覆盖映射当前锁定：`HOT-48 -> Phase 115`、`HOT-49 -> Phase 116`、`TST-39/GOV-73 -> Phase 117`。
 - 北极星继续锁定 `single mainline / formal homes / no second root / no compat shell comeback`。
-- `Phase 115` 已完成，先冻结 `status_fallback` contract；后续默认进入 `Phase 116`，而不是回写 `v1.31` archived truth。
+- `Phase 115` 已冻结 `status_fallback` contract，`Phase 116` 已完成 REST façade / anonymous-share hotspot slimming；后续默认进入 `Phase 117`，而不是回写 `v1.31` archived truth。
 
 ### Pending Todos
 
@@ -105,19 +105,19 @@ bootstrap:
 ### Blockers/Concerns
 
 - guaranteed non-GitHub private fallback、repo-visible public mirror continuity 与 documented delegate identity 仍是 maintainer 外部治理 blocker。
-- `rest_facade.py` 与 `anonymous_share/manager.py` 仍属当前 active route 的 P1 hotspot debt。
 - `Phase 112 -> 114` validation / continuity 资产仍需在 `Phase 117` 内补齐。
+- planning selector family、developer guidance 与 meta truth 必须继续保持 `Phase 117 discuss-ready` 的单一 current story。
 - 任何后续实现都不得复活 compat shell、创建 second root，或让 formal-home 叙事再次分叉。
 
 ## Recommended Next Command
 
-- **Primary:** `$gsd-discuss-phase 116` — 为 `Anonymous-share and REST façade hotspot slimming` 收集上下文并锁定拆分边界。
-- **Fast path:** `$gsd-plan-phase 116` — 若要直接定计划，可跳过讨论进入 planning。
+- **Primary:** `$gsd-discuss-phase 117` — 为 `Validation backfill and continuity hardening` 收集上下文并锁定补证边界。
+- **Fast path:** `$gsd-plan-phase 117` — 若要直接定计划，可跳过讨论进入 planning。
 - **Status check:** `$gsd-progress` — 若要复核 `v1.32` active route 与 phase stats，可先查看。
 
 ## Session Continuity
 
 - **Last session:** 2026-03-31T20:30:00Z
-- **Stopped at:** Phase 115 complete
+- **Stopped at:** Phase 116 complete
 - **Resume file:** .planning/ROADMAP.md
-- **Read next:** `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` → `.planning/PROJECT.md` → `.planning/ROADMAP.md` → `.planning/REQUIREMENTS.md` → `.planning/STATE.md` → `.planning/phases/115-status-fallback-query-flow-normalization/115-VERIFICATION.md`
+- **Read next:** `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` → `.planning/PROJECT.md` → `.planning/ROADMAP.md` → `.planning/REQUIREMENTS.md` → `.planning/STATE.md` → `.planning/phases/116-anonymous-share-and-rest-fa-ade-hotspot-slimming/116-VERIFICATION.md`

@@ -259,7 +259,7 @@ custom_components/lipro/
 
 ## Phase 102 Governance Portability / Verification Stratification / Open-Source Continuity Hardening Note
 
-- 当前 developer guidance 与 `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md` 已共同承认 `v1.32 active milestone route / starting from latest archived baseline = v1.31`；当前 continuation 应沿 `Phase 115 -> 117` 的 active route 前推，而不是回写 `v1.31` 的 archived truth。默认下一步现在切到 `$gsd-discuss-phase 116`。
+- 当前 developer guidance 与 `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md` 已共同承认 `v1.32 active milestone route / starting from latest archived baseline = v1.31`；当前 continuation 应沿 `Phase 115 -> 117` 的 active route 前推，而不是回写 `v1.31` 的 archived truth。默认下一步现在切到 `$gsd-discuss-phase 117`。
 - `Phase 102` 不重开 production formal homes；它只把 governance/meta smoke 的 fast-path 耦合收口为 capability-aware proof，并把 verification matrix 当前真相、historical closeout note、docs-first / maintainer appendix continuity wording 一次性分层。
 - `tests/meta/test_governance_bootstrap_smoke.py`、`tests/meta/test_governance_route_handoff_smoke.py`、`tests/meta/governance_followup_route_current_milestones.py` 与 `tests/meta/test_phase102_governance_portability_guards.py` 现在共同冻结 archived-only latest truth、portable fast-path、promoted closeout bundle、runbook latest pointer 与 developer-facing topology note。
 

@@ -33,6 +33,10 @@ from custom_components.lipro.core.api import (
     LiproConnectionError,
     LiproRestFacade,
 )
+from custom_components.lipro.core.api.client import (
+    LiproRestFacade as StableLiproRestFacade,
+)
+from custom_components.lipro.core.api.session_state import RestSessionState
 
 
 class TestLiproRestFacadeInit:
@@ -62,6 +66,10 @@ class TestLiproRestFacadeInit:
         assert callable(client.auth_api.login)
         assert callable(client.auth_api.refresh_access_token)
 
+    def test_stable_import_home_exports_same_rest_facade_class(self):
+        """Stable import shell should continue exporting the formal REST facade."""
+        assert StableLiproRestFacade is LiproRestFacade
+
 
 class TestLiproRestFacadeTokens:
     """Tests for token management."""
@@ -87,6 +95,49 @@ class TestLiproRestFacadeTokens:
         client.set_token_refresh_callback(callback)
 
         assert client.on_token_refresh is callback
+
+    def test_state_bindings_round_trip_through_injected_session_state(self):
+        """State-backed façade fields should continue round-tripping via RestSessionState."""
+        state = RestSessionState(
+            phone_id="550e8400-e29b-41d4-a716-446655440000",
+            session=None,
+            request_timeout=30,
+            entry_id="entry-1",
+        )
+        client = LiproRestFacade(
+            "550e8400-e29b-41d4-a716-446655440000",
+            session_state=state,
+        )
+        callback = AsyncMock()
+        session = MagicMock(spec=aiohttp.ClientSession)
+
+        client.request_timeout = 45
+        client.entry_id = "entry-2"
+        client.access_token = "access-1"
+        client.refresh_token = "refresh-1"
+        client.user_id = 10001
+        client.biz_id = "biz-1"
+        client.on_token_refresh = callback
+        client.session = session
+
+        assert client.phone_id == state.phone_id
+        assert client.refresh_lock is state.refresh_lock
+        assert client.request_timeout == 45
+        assert state.request_timeout == 45
+        assert client.entry_id == "entry-2"
+        assert state.entry_id == "entry-2"
+        assert client.access_token == "access-1"
+        assert state.access_token == "access-1"
+        assert client.refresh_token == "refresh-1"
+        assert state.refresh_token == "refresh-1"
+        assert client.user_id == 10001
+        assert state.user_id == 10001
+        assert client.biz_id == "biz-1"
+        assert state.biz_id == "biz-1"
+        assert client.on_token_refresh is callback
+        assert state.on_token_refresh is callback
+        assert client.session is session
+        assert state.session is session
 
 
 class TestLiproRestFacadeSignature:

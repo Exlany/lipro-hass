@@ -23,7 +23,6 @@ from typing import TYPE_CHECKING
 import aiohttp
 
 from ..telemetry.models import OperationOutcome
-from .collector import AnonymousShareCollector
 from .manager_scope import AnonymousShareScopeViews
 from .manager_submission import (
     submit_developer_feedback as _submit_developer_feedback_flow,
@@ -31,23 +30,24 @@ from .manager_submission import (
     submit_report as _submit_report_flow,
 )
 from .manager_support import (
+    _AggregateViewState,
     _ScopeState,
     build_aggregate_report_payload,
     build_pending_report_payload,
     build_scope_report_payload,
     clear_scope_collectors,
+    collector_method,
     configure_scope_state,
     finalize_successful_submit_state,
     has_pending_report_data,
     load_reported_device_keys_for_state,
     save_reported_device_keys_for_state,
+    scope_state_property,
     should_skip_report_submission,
     should_submit_if_needed,
 )
-from .share_client import ShareWorkerClient
 
 if TYPE_CHECKING:
-    from ..device import LiproDevice
     from .manager_support import _ScopeState
 
 _LOGGER = logging.getLogger(__package__ or __name__)
@@ -63,6 +63,7 @@ class AnonymousShareManager:
         _scope_key: str = _DEFAULT_SCOPE,
         _registry: dict[str, _ScopeState] | None = None,
         _aggregate: bool = False,
+        _aggregate_submit_outcome: _AggregateViewState | None = None,
     ) -> None:
         """Initialize the share manager or a scoped facade."""
         self._scope_key = _scope_key
@@ -73,11 +74,17 @@ class AnonymousShareManager:
             manager_factory=self._create_scoped_manager,
         )
         self._scoped_views = self._scope_views.scoped_views
-        self._aggregate_submit_outcome: OperationOutcome | None = None
+        self._aggregate_submit_outcome = (
+            _aggregate_submit_outcome or _AggregateViewState()
+        )
 
     def aggregate_view(self) -> AnonymousShareManager:
         """Return an aggregate view sharing the same registry."""
-        return AnonymousShareManager(_registry=self._registry, _aggregate=True)
+        return AnonymousShareManager(
+            _registry=self._registry,
+            _aggregate=True,
+            _aggregate_submit_outcome=self._aggregate_submit_outcome,
+        )
 
     def is_aggregate_view(self) -> bool:
         """Return whether this manager represents the aggregate submission view."""
@@ -92,13 +99,14 @@ class AnonymousShareManager:
         return AnonymousShareManager(
             _scope_key=scope_key,
             _registry=self._registry,
+            _aggregate_submit_outcome=self._aggregate_submit_outcome,
         )
 
     def _get_scope_state(self, scope_key: str) -> _ScopeState:
         return self._scope_views.get_scope_state(scope_key)
 
     @property
-    def _state(self) -> _ScopeState:
+    def _scope_state(self) -> _ScopeState:
         return self._get_scope_state(self._scope_key)
 
     def _iter_scope_states(self) -> list[tuple[str, _ScopeState]]:
@@ -111,16 +119,16 @@ class AnonymousShareManager:
         """Return scoped managers participating in aggregate submission."""
         return self._iter_managers()
 
-    def _primary_state(self) -> _ScopeState:
+    def _primary_scope_state(self) -> _ScopeState:
         return self._scope_views.primary_scope_state()
 
     def get_submit_state(self) -> _ScopeState:
         """Return the current scope state for submit-flow helpers."""
-        return self._state
+        return self._scope_state
 
     def get_primary_submit_state(self) -> _ScopeState:
         """Return the preferred state for aggregate-only submit helpers."""
-        return self._primary_state()
+        return self._primary_scope_state()
 
     def _primary_manager(self) -> AnonymousShareManager:
         """Return the scoped manager matching the preferred aggregate submit state."""
@@ -128,69 +136,14 @@ class AnonymousShareManager:
             return self
         return self._scope_views.primary_manager(default_scope=_DEFAULT_SCOPE)
 
-    @property
-    def _collector(self) -> AnonymousShareCollector:
-        return self._state.collector
-
-    @_collector.setter
-    def _collector(self, value: AnonymousShareCollector) -> None:
-        self._state.collector = value
-
-    @property
-    def _last_upload_time(self) -> float:
-        return self._state.last_upload_time
-
-    @_last_upload_time.setter
-    def _last_upload_time(self, value: float) -> None:
-        self._state.last_upload_time = value
-
-    @property
-    def _installation_id(self) -> str | None:
-        return self._state.installation_id
-
-    @_installation_id.setter
-    def _installation_id(self, value: str | None) -> None:
-        self._state.installation_id = value
-
-    @property
-    def _ha_version(self) -> str | None:
-        return self._state.ha_version
-
-    @_ha_version.setter
-    def _ha_version(self, value: str | None) -> None:
-        self._state.ha_version = value
-
-    @property
-    def _share_client(self) -> ShareWorkerClient:
-        return self._state.share_client
-
-    @_share_client.setter
-    def _share_client(self, value: ShareWorkerClient) -> None:
-        self._state.share_client = value
-
-    @property
-    def _reported_device_keys(self) -> set[str]:
-        return self._state.reported_device_keys
-
-    @_reported_device_keys.setter
-    def _reported_device_keys(self, value: set[str]) -> None:
-        self._state.reported_device_keys = value
-
-    @property
-    def _storage_path(self) -> str | None:
-        return self._state.storage_path
-
-    @_storage_path.setter
-    def _storage_path(self, value: str | None) -> None:
-        self._state.storage_path = value
-
-    @property
-    def _cache_loaded(self) -> bool:
-        return self._state.cache_loaded
-
-    @_cache_loaded.setter
-    def _cache_loaded(self, value: bool) -> None:
-        self._state.cache_loaded = value
+    _share_collector = scope_state_property("collector")
+    _last_upload_time = scope_state_property("last_upload_time")
+    _installation_id = scope_state_property("installation_id")
+    _ha_version = scope_state_property("ha_version")
+    _share_client = scope_state_property("share_client")
+    _reported_device_keys = scope_state_property("reported_device_keys")
+    _storage_path = scope_state_property("storage_path")
+    _cache_loaded = scope_state_property("cache_loaded")
 
     def set_enabled(
         self,
@@ -202,7 +155,7 @@ class AnonymousShareManager:
     ) -> None:
         """Enable or disable anonymous sharing for the current scope."""
         configure_scope_state(
-            self._state,
+            self._scope_state,
             enabled=enabled,
             error_reporting=error_reporting,
             installation_id=installation_id,
@@ -217,28 +170,28 @@ class AnonymousShareManager:
         """Return whether anonymous sharing is enabled."""
         if self._aggregate:
             return self._scope_views.aggregate_enabled()
-        return self._collector.is_enabled
+        return self._share_collector.is_enabled
 
     @property
     def pending_count(self) -> tuple[int, int]:
         """Return count of pending items (devices, errors)."""
         if not self._aggregate:
-            return self._collector.pending_count
+            return self._share_collector.pending_count
         return self._scope_views.aggregate_pending_count()
 
     @property
     def last_submit_outcome(self) -> OperationOutcome | None:
         """Return the latest typed submit outcome for this manager view."""
         if self._aggregate:
-            return self._aggregate_submit_outcome
-        return self._state.last_submit_outcome
+            return self._aggregate_submit_outcome.last_submit_outcome
+        return self._scope_state.last_submit_outcome
 
     def set_last_submit_outcome(self, outcome: OperationOutcome | None) -> None:
         """Persist the latest typed submit outcome for this manager view."""
         if self._aggregate:
-            self._aggregate_submit_outcome = outcome
+            self._aggregate_submit_outcome.last_submit_outcome = outcome
             return
-        self._state.last_submit_outcome = outcome
+        self._scope_state.last_submit_outcome = outcome
 
     @property
     def _install_token(self) -> str | None:
@@ -250,11 +203,11 @@ class AnonymousShareManager:
         if self._aggregate:
             clear_scope_collectors(self._registry)
             return
-        self._collector.clear()
+        self._share_collector.clear()
 
     async def async_ensure_loaded(self) -> None:
         """Load reported device cache in a thread to avoid blocking the event loop."""
-        state = self._state
+        state = self._scope_state
         if state.cache_loaded:
             return
         await asyncio.to_thread(self._load_reported_devices)
@@ -262,79 +215,55 @@ class AnonymousShareManager:
 
     def _load_reported_devices(self) -> None:
         """Load previously reported device keys from storage."""
-        loaded, keys = load_reported_device_keys_for_state(self._state, logger=_LOGGER)
+        loaded, keys = load_reported_device_keys_for_state(self._scope_state, logger=_LOGGER)
         self._reported_device_keys = keys if loaded else set()
 
     def _save_reported_devices(self) -> None:
         """Save reported device keys to storage."""
-        save_reported_device_keys_for_state(self._state, logger=_LOGGER)
+        save_reported_device_keys_for_state(self._scope_state, logger=_LOGGER)
 
-    def record_device(self, device: LiproDevice) -> None:
-        """Record device information for the current scope."""
-        self._collector.record_device(
-            device, reported_device_keys=self._reported_device_keys
-        )
-
-    def record_devices(self, devices: list[LiproDevice]) -> None:
-        """Record multiple devices for the current scope."""
-        self._collector.record_devices(
-            devices, reported_device_keys=self._reported_device_keys
-        )
-
-    def record_unknown_property(
-        self, device_type: str, key: str, value: object
-    ) -> None:
-        """Record one unknown property for the current scope."""
-        self._collector.record_unknown_property(device_type, key, value)
-
-    def record_unknown_device_type(
-        self,
-        physical_model: str | None,
-        type_id: int,
-        iot_name: str = "",
-    ) -> None:
-        """Record one unknown device type for the current scope."""
-        self._collector.record_unknown_device_type(physical_model, type_id, iot_name)
-
-    def record_api_error(
-        self, endpoint: str, code: str | int, message: str, method: str = ""
-    ) -> None:
-        """Record one API error for the current scope."""
-        self._collector.record_api_error(endpoint, code, message, method)
-
-    def record_parse_error(
-        self,
-        location: str,
-        exception: Exception,
-        input_sample: str | None = None,
-    ) -> None:
-        """Record one parse error for the current scope."""
-        self._collector.record_parse_error(location, exception, input_sample)
-
-    def record_command_error(
-        self,
-        command: str,
-        device_type: str,
-        code: str | int,
-        message: str,
-        params: str = "",
-    ) -> None:
-        """Record one command error for the current scope."""
-        self._collector.record_command_error(
-            command, device_type, code, message, params
-        )
+    record_device = collector_method(
+        "record_device",
+        doc="Record device information for the current scope.",
+        inject_reported_device_keys=True,
+    )
+    record_devices = collector_method(
+        "record_devices",
+        doc="Record multiple devices for the current scope.",
+        inject_reported_device_keys=True,
+    )
+    record_unknown_property = collector_method(
+        "record_unknown_property",
+        doc="Record one unknown property for the current scope.",
+    )
+    record_unknown_device_type = collector_method(
+        "record_unknown_device_type",
+        doc="Record one unknown device type for the current scope.",
+    )
+    record_api_error = collector_method(
+        "record_api_error",
+        doc="Record one API error for the current scope.",
+    )
+    record_parse_error = collector_method(
+        "record_parse_error",
+        doc="Record one parse error for the current scope.",
+    )
+    record_command_error = collector_method(
+        "record_command_error",
+        doc="Record one command error for the current scope.",
+    )
 
     def build_report(self) -> dict[str, object]:
         """Build the anonymous share report."""
         if not self._aggregate:
-            return build_scope_report_payload(self._state)
+            return build_scope_report_payload(self._scope_state)
         return build_aggregate_report_payload(self._registry)
 
     def get_pending_report(self) -> dict[str, object] | None:
         """Get pending report data for user review."""
         return build_pending_report_payload(
             aggregate=self._aggregate,
-            state=self._state,
+            state=self._scope_state,
             registry=self._registry,
         )
 
@@ -377,7 +306,7 @@ class AnonymousShareManager:
 
     def has_pending_report_data(self) -> bool:
         """Return whether the current scope has reportable pending data."""
-        return has_pending_report_data(self._state, logger=_LOGGER)
+        return has_pending_report_data(self._scope_state, logger=_LOGGER)
 
     def should_skip_report_submission(self, *, force: bool) -> bool:
         """Return whether the current scope should skip one upload attempt."""
@@ -392,7 +321,7 @@ class AnonymousShareManager:
         pending_count = self.pending_count
         await asyncio.to_thread(
             finalize_successful_submit_state,
-            self._state,
+            self._scope_state,
             pending_count=pending_count,
             logger=_LOGGER,
             save_reported_devices=self._save_reported_devices,
