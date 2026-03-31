@@ -115,6 +115,94 @@ def initialize_support_services(
     )
 
 
+def _build_command_service(
+    *,
+    runtimes: CoordinatorRuntimes,
+) -> CoordinatorCommandService:
+    """Build the coordinator command service from owned runtimes."""
+    return CoordinatorCommandService(
+        command_runtime=runtimes.command,
+        tuning_runtime=runtimes.tuning,
+    )
+
+
+
+def _build_mqtt_service(
+    *,
+    state: CoordinatorStateContainers,
+    runtimes: CoordinatorRuntimes,
+    async_setup_mqtt: Callable[[], Awaitable[bool]],
+) -> CoordinatorMqttService:
+    """Build the coordinator MQTT service from runtime-owned dependencies."""
+    return CoordinatorMqttService(
+        devices_getter=lambda: state.devices,
+        mqtt_runtime_getter=lambda: runtimes.mqtt,
+        setup_callback=async_setup_mqtt,
+    )
+
+
+
+def _build_polling_service(
+    *,
+    runtimes: CoordinatorRuntimes,
+    state: CoordinatorStateContainers,
+    protocol_service: CoordinatorProtocolService,
+    mqtt_service: CoordinatorMqttService,
+    replace_devices: Callable[[dict[str, LiproDevice]], None],
+    publish_updated_data: Callable[[dict[str, LiproDevice]], None],
+    get_device_by_id: Callable[[str], LiproDevice | None],
+    logger: logging.Logger,
+) -> CoordinatorPollingService:
+    """Build the coordinator polling service from runtime-owned dependencies."""
+    return CoordinatorPollingService(
+        device_runtime=runtimes.device,
+        status_runtime=runtimes.status,
+        tuning_runtime=runtimes.tuning,
+        protocol_service=protocol_service,
+        mqtt_service=mqtt_service,
+        devices_getter=lambda: state.devices,
+        replace_devices=replace_devices,
+        publish_updated_data=publish_updated_data,
+        get_device_by_id=get_device_by_id,
+        has_mqtt_transport_getter=lambda: runtimes.mqtt.has_transport,
+        logger=logger,
+    )
+
+
+
+def _build_device_refresh_service(
+    *,
+    runtimes: CoordinatorRuntimes,
+    async_refresh_devices: Callable[[], Awaitable[dict[str, LiproDevice]]],
+) -> CoordinatorDeviceRefreshService:
+    """Build the coordinator device-refresh service from runtime-owned dependencies."""
+    return CoordinatorDeviceRefreshService(
+        device_runtime=runtimes.device,
+        state_runtime=runtimes.state,
+        refresh_callback=async_refresh_devices,
+    )
+
+
+
+def _build_telemetry_service(
+    *,
+    runtimes: CoordinatorRuntimes,
+    state: CoordinatorStateContainers,
+    mqtt_service: CoordinatorMqttService,
+    update_interval_seconds_getter: Callable[[], int | None],
+) -> CoordinatorTelemetryService:
+    """Build the coordinator telemetry service from runtime-owned dependencies."""
+    return CoordinatorTelemetryService(
+        mqtt_service=mqtt_service,
+        command_runtime=runtimes.command,
+        status_runtime=runtimes.status,
+        tuning_runtime=runtimes.tuning,
+        mqtt_runtime_getter=lambda: runtimes.mqtt,
+        device_count_getter=lambda: len(state.devices),
+        polling_interval_seconds_getter=update_interval_seconds_getter,
+    )
+
+
 def initialize_service_layer(
     *,
     runtimes: CoordinatorRuntimes,
@@ -129,54 +217,36 @@ def initialize_service_layer(
     logger: logging.Logger,
 ) -> CoordinatorServiceLayer:
     """Build the formal runtime service surfaces owned by `Coordinator`."""
-    command_service = CoordinatorCommandService(
-        command_runtime=runtimes.command,
-        tuning_runtime=runtimes.tuning,
-    )
-    mqtt_service = CoordinatorMqttService(
-        devices_getter=lambda: state.devices,
-        mqtt_runtime_getter=lambda: runtimes.mqtt,
-        setup_callback=async_setup_mqtt,
-    )
-    state_service = CoordinatorStateService(state_runtime=runtimes.state)
-    polling_service = CoordinatorPollingService(
-        device_runtime=runtimes.device,
-        status_runtime=runtimes.status,
-        tuning_runtime=runtimes.tuning,
-        protocol_service=protocol_service,
-        mqtt_service=mqtt_service,
-        devices_getter=lambda: state.devices,
-        replace_devices=replace_devices,
-        publish_updated_data=publish_updated_data,
-        get_device_by_id=get_device_by_id,
-        has_mqtt_transport_getter=lambda: runtimes.mqtt.has_transport,
-        logger=logger,
-    )
-    schedule_service = CoordinatorScheduleService(
-        protocol_service=protocol_service,
-    )
-    device_refresh_service = CoordinatorDeviceRefreshService(
-        device_runtime=runtimes.device,
-        state_runtime=runtimes.state,
-        refresh_callback=async_refresh_devices,
-    )
-    telemetry_service = CoordinatorTelemetryService(
-        mqtt_service=mqtt_service,
-        command_runtime=runtimes.command,
-        status_runtime=runtimes.status,
-        tuning_runtime=runtimes.tuning,
-        mqtt_runtime_getter=lambda: runtimes.mqtt,
-        device_count_getter=lambda: len(state.devices),
-        polling_interval_seconds_getter=update_interval_seconds_getter,
+    mqtt_service = _build_mqtt_service(
+        state=state,
+        runtimes=runtimes,
+        async_setup_mqtt=async_setup_mqtt,
     )
     return CoordinatorServiceLayer(
-        command_service=command_service,
+        command_service=_build_command_service(runtimes=runtimes),
         mqtt_service=mqtt_service,
-        state_service=state_service,
-        polling_service=polling_service,
-        schedule_service=schedule_service,
-        device_refresh_service=device_refresh_service,
-        telemetry_service=telemetry_service,
+        state_service=CoordinatorStateService(state_runtime=runtimes.state),
+        polling_service=_build_polling_service(
+            runtimes=runtimes,
+            state=state,
+            protocol_service=protocol_service,
+            mqtt_service=mqtt_service,
+            replace_devices=replace_devices,
+            publish_updated_data=publish_updated_data,
+            get_device_by_id=get_device_by_id,
+            logger=logger,
+        ),
+        schedule_service=CoordinatorScheduleService(protocol_service=protocol_service),
+        device_refresh_service=_build_device_refresh_service(
+            runtimes=runtimes,
+            async_refresh_devices=async_refresh_devices,
+        ),
+        telemetry_service=_build_telemetry_service(
+            runtimes=runtimes,
+            state=state,
+            mqtt_service=mqtt_service,
+            update_interval_seconds_getter=update_interval_seconds_getter,
+        ),
     )
 
 
