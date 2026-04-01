@@ -106,8 +106,8 @@ bootstrap:
   2. `status_fallback_support.py`、`rest_decoder` family，且在预算允许时 `firmware_update.py` / `anonymous_share/manager.py`，继续在既有 formal homes 内 inward split，而不引入 compat shell 或 second root。
   3. `115/116/117-VALIDATION.md` 被补齐，`118` 自身 summary/verification 落地后，live route 再诚实回到 `closeout-ready`。
 **Status**: Execution-ready (`2026-04-01`)
-**Plans**: 0/3 complete
-**Planning Assets**: `.planning/phases/118-final-hotspot-decomposition-and-validation-closure/{118-CONTEXT.md,118-RESEARCH.md,118-01-PLAN.md,118-02-PLAN.md,118-03-PLAN.md}`
+**Plans**: 1/3 complete
+**Planning Assets**: `.planning/phases/118-final-hotspot-decomposition-and-validation-closure/{118-CONTEXT.md,118-RESEARCH.md,118-01-PLAN.md,118-01-SUMMARY.md,118-02-PLAN.md,118-03-PLAN.md}`
 **Current activation proof**: `118-01` 已交付 `GOV-75` route truth sync；remaining execution queue = `118-02` hotspot decomposition + `118-03` validation closure.
 
 ## Progress
@@ -117,7 +117,7 @@ bootstrap:
 | 115. Status-fallback query-flow normalization | 1/1 | Complete | 2026-03-31 |
 | 116. Anonymous-share and REST façade hotspot slimming | 3/3 | Complete | 2026-03-31 |
 | 117. Validation backfill and continuity hardening | 3/3 | Complete | 2026-03-31 |
-| 118. Final hotspot decomposition and validation closure | 0/3 | Execution-ready | - |
+| 118. Final hotspot decomposition and validation closure | 1/3 | Execution-ready | 2026-04-01 |
 
 
 ## Latest Archived Milestone (v1.31)

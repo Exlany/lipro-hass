@@ -28,10 +28,10 @@ PLANNING_ROUTE_CONTRACT: dict[str, object] = {
     "active_milestone": {
         "version": "v1.32",
         "name": "Residual Hotspot Eradication, Validation Completion & Continuity Hardening",
-        "status": "active / phase 117 complete; closeout-ready (2026-03-31)",
-        "phase": "117",
-        "phase_title": "Validation backfill and continuity hardening",
-        "phase_dir": "117-validation-backfill-and-continuity-hardening",
+        "status": "active / phase 118 execution-ready (2026-04-01)",
+        "phase": "118",
+        "phase_title": "Final hotspot decomposition and validation closure",
+        "phase_dir": "118-final-hotspot-decomposition-and-validation-closure",
     },
     "latest_archived": {
         "version": "v1.31",
@@ -51,7 +51,7 @@ PLANNING_ROUTE_CONTRACT: dict[str, object] = {
     },
     "bootstrap": {
         "current_route": "v1.32 active milestone route / starting from latest archived baseline = v1.31",
-        "default_next_command": "$gsd-complete-milestone v1.32",
+        "default_next_command": "$gsd-execute-phase 118",
         "latest_archived_evidence_pointer": ".planning/reviews/V1_31_EVIDENCE_INDEX.md",
     },
 }
@@ -176,18 +176,21 @@ else:
     CURRENT_PHASE_HEADING = LATEST_ARCHIVED_PHASE_HEADING
     CURRENT_ROUTE_MODE = CURRENT_ROUTE
 
-CURRENT_MILESTONE_PHASES = ("115", "116", "117")
+CURRENT_MILESTONE_PHASES = ("115", "116", "117", "118")
 CURRENT_MILESTONE_COMPLETED_PHASES = ("115", "116", "117")
-CURRENT_MILESTONE_IN_PROGRESS_PHASES: tuple[str, ...] = ()
+CURRENT_MILESTONE_IN_PROGRESS_PHASES: tuple[str, ...] = ("118",)
 CURRENT_MILESTONE_PENDING_PHASES: tuple[str, ...] = ()
-CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE = {"115": 1, "116": 3, "117": 3}
+CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE = {"115": 1, "116": 3, "117": 3, "118": 3}
 CURRENT_MILESTONE_PLAN_COUNT = CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE[CURRENT_PHASE]
-CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE = {"115": 2, "116": 4, "117": 4}
+CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE = {"115": 2, "116": 4, "117": 4, "118": 1}
 CURRENT_MILESTONE_SUMMARY_COUNT = CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE[CURRENT_PHASE]
 CURRENT_MILESTONE_TOTAL_PLAN_COUNT = sum(CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE.values())
 CURRENT_MILESTONE_COMPLETED_PLAN_COUNT = sum(
     CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE[phase]
     for phase in CURRENT_MILESTONE_COMPLETED_PHASES
+) + sum(
+    CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE[phase]
+    for phase in CURRENT_MILESTONE_IN_PROGRESS_PHASES
 )
 CURRENT_ROUTE_FOCUSED_GUARDS = (
     "tests/meta/test_governance_bootstrap_smoke.py",

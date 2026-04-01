@@ -3,7 +3,7 @@
 ## Current Milestone (v1.32)
 
 **Phase range:** `115 -> 118`
-**Phases completed:** `3/4 phases, 7/10 plans, 0 tasks`
+**Phases completed:** `3/4 phases, 8/10 plans, 0 tasks`
 **Status:** `active / phase 118 execution-ready (2026-04-01)`
 **Route truth:** `v1.32 active milestone route / starting from latest archived baseline = v1.31`
 **Latest archived baseline:** `v1.31`

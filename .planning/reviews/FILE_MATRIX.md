@@ -54,7 +54,7 @@
 | `custom_components/lipro/core/anonymous_share/capabilities.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/collector.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/const.py` | Protocol | Phase 2.6 | 保留 | - |
-| `custom_components/lipro/core/anonymous_share/manager.py` | Protocol | Phase 90 / 113 | 重构 | formal anonymous-share aggregate manager home with scope-state support collaborators; Phase 113 freezes its no-growth hotspot budget |
+| `custom_components/lipro/core/anonymous_share/manager.py` | Protocol | Phase 90 / 113 / 118 | 重构 | formal anonymous-share aggregate manager home with scope-state support collaborators; Phase 118 continues bounded orchestration slimming after the Phase 113 no-growth freeze |
 | `custom_components/lipro/core/anonymous_share/manager_scope.py` | Protocol | Phase 2.6 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/manager_submission.py` | Protocol | Phase 101 | 保留 | anonymous-share submit-flow inward collaborator home |
 | `custom_components/lipro/core/anonymous_share/manager_support.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 | 保留 | anonymous-share scope-state / pending aggregation helper home |
@@ -110,7 +110,7 @@
 | `custom_components/lipro/core/api/schedule_service_support.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 | 保留 | schedule-service local candidate batching/timeout/request support collaborator |
 | `custom_components/lipro/core/api/session_state.py` | Protocol | Phase 2 / 15 / 17 | 重构 | RestSessionState formal REST session-state home |
 | `custom_components/lipro/core/api/status_fallback.py` | Protocol | Phase 14 | 保留 | status fallback outward home with support-backed binary-split implementation |
-| `custom_components/lipro/core/api/status_fallback_support.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 / 113 | 保留 | status fallback local recursion/logging support collaborator with Phase 113 no-growth hotspot budget freeze |
+| `custom_components/lipro/core/api/status_fallback_support.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 / 113 / 118 | 保留 | status fallback local recursion/logging support collaborator; Phase 118 resumes inward split after the Phase 113 no-growth hotspot budget freeze |
 | `custom_components/lipro/core/api/status_service.py` | Protocol | Phase 2 / 13 / 14 | 重构 | public status orchestration home |
 | `custom_components/lipro/core/api/transport_core.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/transport_executor.py` | Protocol | Phase 2 / 35 | 重构 | REST signed transport execution + response normalization home |
@@ -243,7 +243,7 @@
 | `custom_components/lipro/core/protocol/__init__.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/protocol/boundary/__init__.py` | Protocol | Phase 7.1 | 保留 | - |
 | `custom_components/lipro/core/protocol/boundary/mqtt_decoder.py` | Protocol | Phase 7.1 | 保留 | canonical MQTT topic/payload decode authority |
-| `custom_components/lipro/core/protocol/boundary/rest_decoder.py` | Protocol | Phase 101 / 113 | 保留 | REST boundary decoder family home with Phase 113 no-growth hotspot budget freeze |
+| `custom_components/lipro/core/protocol/boundary/rest_decoder.py` | Protocol | Phase 101 / 113 / 118 | 保留 | REST boundary decoder family home; Phase 118 continues family/topic split after the Phase 113 no-growth hotspot budget freeze |
 | `custom_components/lipro/core/protocol/boundary/rest_decoder_support.py` | Protocol | Phase 33 / 113 | 保留 | REST decoder canonicalization helper home with Phase 113 no-growth hotspot budget freeze |
 | `custom_components/lipro/core/protocol/boundary/result.py` | Protocol | Phase 91 | 保留 | typed protocol-boundary decode result home |
 | `custom_components/lipro/core/protocol/boundary/schema_registry.py` | Protocol | Phase 91 | 保留 | typed boundary decoder registry home |
@@ -281,7 +281,7 @@
 | `custom_components/lipro/entities/base.py` | Domain | Phase 90 | 保留 | protected thin entity command / state projection shell |
 | `custom_components/lipro/entities/commands.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/entities/descriptors.py` | Domain | Phase 4 | 保留 | - |
-| `custom_components/lipro/entities/firmware_update.py` | Domain | Phase 90 / 113 | 保留 | protected thin OTA projection shell after runtime-boundary tightening; Phase 113 freezes its no-growth hotspot budget |
+| `custom_components/lipro/entities/firmware_update.py` | Domain | Phase 90 / 113 / 118 | 保留 | protected thin OTA projection shell after runtime-boundary tightening; Phase 118 revisits the remaining orchestration density under the same outward contract |
 | `custom_components/lipro/entry_auth.py` | Cross-cutting | Phase 7 | 保留 | config-entry auth/bootstrap formal home for auth seed, token persistence, and setup-exception mapping |
 | `custom_components/lipro/entry_options.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/fan.py` | Domain | Phase 4 | 保留 | - |
@@ -611,10 +611,10 @@
 | `tests/meta/dependency_guards_review_ledgers.py` | Assurance | Phase 48 / 49 / 54 / 55 / 56 / 58 / 62 | 保留 | dependency-note / verification / naming topic guard family |
 | `tests/meta/dependency_guards_service_runtime.py` | Assurance | Phase 40 / 43 / 50 / 53 / 68 | 保留 | service/runtime dependency-story guard family |
 | `tests/meta/governance_contract_helpers.py` | Assurance | Phase 6 / 77 / 79 / 105 | 保留 | shared governance route/doc helper home |
-| `tests/meta/governance_current_truth.py` | Assurance | Phase 6 / 77 / 79 / 105 | 保留 | governance-route contract + shared current/latest archive truth helper |
+| `tests/meta/governance_current_truth.py` | Assurance | Phase 6 / 77 / 79 / 105 / 118 | 保留 | governance-route contract + shared current/latest archive truth helper for the active selector family |
 | `tests/meta/governance_followup_route_closeouts.py` | Assurance | Phase 59 | 保留 | followup-route closeout topic home |
 | `tests/meta/governance_followup_route_continuation.py` | Assurance | Phase 59 | 保留 | followup-route continuation topic home |
-| `tests/meta/governance_followup_route_current_milestones.py` | Assurance | Phase 79 / 105 | 保留 | governance-route contract + current/latest archive pointer-drift guard |
+| `tests/meta/governance_followup_route_current_milestones.py` | Assurance | Phase 79 / 105 / 118 | 保留 | governance-route contract + current/latest archive pointer-drift guard for the active milestone story |
 | `tests/meta/governance_followup_route_specs.py` | Assurance | Phase 105 | 保留 | shared follow-up route spec + planning-doc snapshot helper home |
 | `tests/meta/governance_milestone_archives_assets.py` | Assurance | Phase 49 | 保留 | milestone-archive asset existence topic home |
 | `tests/meta/governance_milestone_archives_ordering.py` | Assurance | Phase 49 / 77 / 80 | 保留 | milestone-archive snapshot ordering + historical-route topic home |
@@ -647,7 +647,7 @@
 | `tests/meta/test_governance_release_continuity.py` | Assurance | Phase 79 / 114 | 保留 | release continuity/custody topic suite home + access-mode/fallback honesty assertions |
 | `tests/meta/test_governance_release_contract.py` | Assurance | Phase 33 / 77 / 79 | 保留 | release/governance workflow anchor suite |
 | `tests/meta/test_governance_release_docs.py` | Assurance | Phase 79 | 保留 | release/docs topic suite home |
-| `tests/meta/test_governance_route_handoff_smoke.py` | Assurance | Phase 79 / 105 | 保留 | route-handoff gsd fast-path smoke guard home |
+| `tests/meta/test_governance_route_handoff_smoke.py` | Assurance | Phase 79 / 105 / 118 | 保留 | route-handoff gsd fast-path smoke guard home |
 | `tests/meta/test_install_sh_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_modularization_surfaces.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase100_runtime_schedule_support_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 | 保留 | focused predecessor guard home for Phase 100 MQTT/runtime schedule support extraction / governance freeze |
@@ -661,7 +661,7 @@
 | `tests/meta/test_phase109_anonymous_share_manager_inward_decomposition_guards.py` | Assurance | Phase 109 | 保留 | focused predecessor guard home for Phase 109 anonymous-share manager inward decomposition |
 | `tests/meta/test_phase110_runtime_snapshot_closeout_guards.py` | Assurance | Phase 110 | 保留 | focused active-route guard home for Phase 110 runtime snapshot surface reduction and milestone closeout |
 | `tests/meta/test_phase111_runtime_boundary_guards.py` | Assurance | Phase 6 | 保留 | - |
-| `tests/meta/test_phase112_formal_home_governance_guards.py` | Assurance | Phase 112 | 保留 | focused active-route / sanctioned-home / archive-pointer guard home for Phase 112 governance normalization |
+| `tests/meta/test_phase112_formal_home_governance_guards.py` | Assurance | Phase 112 / 118 | 保留 | focused active-route / sanctioned-home / archive-pointer guard home for Phase 112 governance normalization and Phase 118 route wording |
 | `tests/meta/test_phase113_hotspot_assurance_guards.py` | Assurance | Phase 113 | 保留 | focused hotspot budget / helper-locality / default-lint changed-surface guard home for Phase 113 |
 | `tests/meta/test_phase114_open_source_surface_honesty_guards.py` | Assurance | Phase 114 | 保留 | focused access-mode / schema-limited metadata projection / debug-mode developer-surface / privacy wording honesty guard home |
 | `tests/meta/test_phase31_runtime_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
@@ -699,7 +699,7 @@
 | `tests/meta/test_service_translation_sync.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_toolchain_truth.py` | Assurance | Phase 16 / 60 | 保留 | thin daily runnable shell for topicized toolchain truth suites |
 | `tests/meta/test_translation_tree_sync.py` | Assurance | Phase 6 | 保留 | - |
-| `tests/meta/test_version_sync.py` | Assurance | Phase 6 / 77 / 79 / 105 / 114 | 保留 | version/runtime metadata sync guard home + schema-limited projection truth |
+| `tests/meta/test_version_sync.py` | Assurance | Phase 6 / 77 / 79 / 105 / 114 / 118 | 保留 | version/runtime metadata sync guard home + schema-limited projection truth + active-route docs alignment |
 | `tests/meta/toolchain_truth_checker_paths.py` | Assurance | Phase 60 | 保留 | checker-path and local-develop smoke truth family |
 | `tests/meta/toolchain_truth_ci_contract.py` | Assurance | Phase 60 | 保留 | CI lane, pre-push, lint, and pytest contract truth family |
 | `tests/meta/toolchain_truth_docs_fast_path.py` | Assurance | Phase 44 / 60 / 114 | 保留 | docs fast-path, continuity, and machine-readable governance truth family; toolchain + docs navigation + terminology + access-mode projection truth guard home |

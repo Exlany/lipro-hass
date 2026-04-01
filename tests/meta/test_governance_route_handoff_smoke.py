@@ -89,6 +89,7 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
     assert "## Phase 115 Status-fallback Query-flow Normalization" in verification_text
     assert "## Phase 116 Anonymous-share and REST Façade Hotspot Slimming" in verification_text
     assert "## Phase 117 Validation Backfill and Continuity Hardening" in verification_text
+    assert "## Phase 118 Final Hotspot Decomposition and Validation Closure" in verification_text
     assert CURRENT_ROUTE in verification_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in verification_text
     assert LATEST_ARCHIVED_EVIDENCE_PATH in verification_text
@@ -108,6 +109,10 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
         "tests/meta/test_phase109_anonymous_share_manager_inward_decomposition_guards.py",
         "tests/meta/test_phase110_runtime_snapshot_closeout_guards.py",
         "tests/meta/test_phase111_runtime_boundary_guards.py",
+        "tests/meta/governance_current_truth.py",
+        "tests/meta/governance_followup_route_current_milestones.py",
+        "tests/meta/test_phase112_formal_home_governance_guards.py",
+        "tests/meta/test_version_sync.py",
     ):
         assert guard in file_matrix_text
     assert "route-handoff gsd fast-path smoke guard home" in file_matrix_text
@@ -151,7 +156,7 @@ def test_gsd_fast_path_matches_current_active_route_story() -> None:
         "completed_phases": str(len(CURRENT_MILESTONE_COMPLETED_PHASES)),
         "total_plans": str(CURRENT_MILESTONE_TOTAL_PLAN_COUNT),
         "completed_plans": str(CURRENT_MILESTONE_COMPLETED_PLAN_COUNT),
-        "percent": "100",
+        "percent": str((CURRENT_MILESTONE_COMPLETED_PLAN_COUNT * 100) // CURRENT_MILESTONE_TOTAL_PLAN_COUNT),
     }
 
     plan_init = _run_gsd_tools("init", "plan-phase", CURRENT_PHASE)
