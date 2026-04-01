@@ -1,5 +1,22 @@
 # Milestones
 
+## Current Milestone (v1.36)
+
+**Name:** `Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening`
+**Status:** `active / phase 126 complete; phase 127 planning-ready (2026-04-01)`
+**Current route:** `v1.36 active milestone route / starting from latest archived baseline = v1.35`
+**Phase range:** `126 -> 128`
+**Progress:** `1/3 phases, 1/1 plans`
+**Default next command:** `$gsd-discuss-phase 127`
+**Latest archived pointer:** `.planning/reviews/V1_35_EVIDENCE_INDEX.md`
+**Starting baseline snapshots:** `.planning/milestones/v1.35-ROADMAP.md`, `.planning/milestones/v1.35-REQUIREMENTS.md`
+
+**Active phase story:**
+
+- `Phase 126`: service-router developer callback-home convergence and diagnostics helper residual slimming ✅ (`126-01` diagnostics helper shell thinning + route bootstrap + focused/full verification complete)
+- `Phase 127`: runtime-access de-reflection, typed runtime entry contracts, and hotspot continuation ⏳ (pending planning)
+- `Phase 128`: open-source readiness, benchmark-coverage gates, and maintainer continuity hardening ⏳ (pending planning)
+
 ## Latest Archived Milestone (v1.35)
 
 **Name:** `Master Audit Closure, Public Surface Finalization & Release Traceability`
@@ -50,14 +67,19 @@ projection_targets:
 - .planning/REQUIREMENTS.md
 - .planning/STATE.md
 - .planning/MILESTONES.md
-active_milestone: null
+active_milestone:
+  version: v1.36
+  name: Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening
+  status: active / phase 126 complete; phase 127 planning-ready (2026-04-01)
+  phase: '126'
+  phase_title: service-router developer callback-home convergence and diagnostics helper residual slimming
+  phase_dir: 126-service-router-developer-callback-home-convergence-and-diagnostics-helper-residual-slimming
 latest_archived:
   version: v1.35
   name: Master Audit Closure, Public Surface Finalization & Release Traceability
   status: archived / evidence-ready (2026-04-01)
   phase: '125'
-  phase_title: terminal residual eradication, runtime-types decomposition, adapter
-    final thinning, and machine-readable governance extraction
+  phase_title: terminal residual eradication, runtime-types decomposition, adapter final thinning, and machine-readable governance extraction
   phase_dir: 125-terminal-residual-eradication-runtime-types-decomposition-adapter-final-thinning-and-machine-readable-governance-extraction
   audit_path: .planning/v1.35-MILESTONE-AUDIT.md
   evidence_path: .planning/reviews/V1_35_EVIDENCE_INDEX.md
@@ -67,12 +89,11 @@ previous_archived:
   name: Terminal Audit Closure, Contract Hardening & Governance Truth Slimming
   evidence_path: .planning/reviews/V1_34_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.35
-  default_next_command: $gsd-new-milestone
+  current_route: v1.36 active milestone route / starting from latest archived baseline = v1.35
+  default_next_command: $gsd-discuss-phase 127
   latest_archived_evidence_pointer: .planning/reviews/V1_35_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
-
 ## Latest Archived Milestone (v1.35)
 
 **Phase range:** `122 -> 125`

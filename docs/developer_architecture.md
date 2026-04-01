@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `v1.35 archived baseline / no active milestone route` (`2026-04-01`)
-> **Current route alignment**: `no active milestone route / latest archived baseline = v1.35` (`2026-04-01`)
+> **Last aligned through**: `v1.36 active route / Phase 126 complete` (`2026-04-01`)
+> **Current route alignment**: `v1.36 active milestone route / starting from latest archived baseline = v1.35` (`2026-04-01`)
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
@@ -41,6 +41,12 @@
 - `custom_components/lipro/runtime_infra.py`：shared runtime infra / device-registry listener / pending reload ownership 的 sanctioned root-level home。
 - `custom_components/lipro/runtime_types.py`：typed runtime coordinator / telemetry contract 的 sanctioned root-level home；它是 formal contract entry，不是 accidental helper。
 - `custom_components/lipro/entry_auth.py`：config-entry auth/bootstrap seed、token persistence、setup-exception mapping 的 sanctioned root-level home。
+
+## Phase 126 Execution Notes
+
+- `custom_components/lipro/services/diagnostics/handlers.py` 现在直接消费 `helper_support.py` 的 pure mechanics helper；`helpers.py` 继续保留 stable outward helper home，但不再承担未使用 duplicate capability collector。
+- `custom_components/lipro/control/developer_router_support.py` 的 non-entry-specific developer report branch 已复用 `build_developer_runtime_coordinator_iterator()`，保持 runtime iterator freezing 的单一 control-local story。
+- `v1.36` 把 remaining audit findings 显式拆到 `Phase 126 -> 128`：本轮先清 diagnostics helper shell residual，后续再推进 `runtime_access` typed seam 与 open-source readiness governance contract。
 
 ## Phase 125 Execution Notes
 

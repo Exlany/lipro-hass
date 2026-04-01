@@ -23,12 +23,12 @@ from .command_result_handlers import (
     _build_last_error_payload,
     async_handle_query_command_result as _async_handle_query_command_result_flow,
 )
-from .helpers import (
-    _async_get_first_authenticated_coordinator_capability_result,
+from .helper_support import (
     _coerce_service_float,
     _coerce_service_int,
     _get_required_service_string,
 )
+from .helpers import _async_get_first_authenticated_coordinator_capability_result
 from .types import (
     CapabilityResponse,
     GetDeviceAndCoordinator,

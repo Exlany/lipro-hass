@@ -22,12 +22,15 @@ from .conftest import (
     _load_yaml,
 )
 from .governance_current_truth import (
+    CURRENT_MILESTONE,
     CURRENT_MILESTONE_DEFAULT_NEXT,
     CURRENT_MILESTONE_STATUS,
     CURRENT_PHASE,
     CURRENT_ROUTE,
+    HAS_ACTIVE_MILESTONE,
     LATEST_ARCHIVED_AUDIT_PATH,
     LATEST_ARCHIVED_EVIDENCE_PATH,
+    LATEST_ARCHIVED_MILESTONE,
 )
 
 _CODEQL_WORKFLOW = _ROOT / ".github" / "workflows" / "codeql.yml"
@@ -142,9 +145,16 @@ def test_governance_registry_publishes_canonical_planning_route_truth() -> None:
     projection_targets = _as_str_list(planning_route["projection_targets"])
 
     assert _as_str(planning_route["contract_name"]) == "governance-route"
-    assert active is None
-    assert _as_str(latest_archived["phase"]) == CURRENT_PHASE
-    assert _as_str(latest_archived["status"]) == CURRENT_MILESTONE_STATUS
+    if HAS_ACTIVE_MILESTONE:
+        active_mapping = _as_mapping(active)
+        assert _as_str(active_mapping["version"]) == CURRENT_MILESTONE
+        assert _as_str(active_mapping["phase"]) == CURRENT_PHASE
+        assert _as_str(active_mapping["status"]) == CURRENT_MILESTONE_STATUS
+        assert _as_str(latest_archived["version"]) == LATEST_ARCHIVED_MILESTONE
+    else:
+        assert active is None
+        assert _as_str(latest_archived["phase"]) == CURRENT_PHASE
+        assert _as_str(latest_archived["status"]) == CURRENT_MILESTONE_STATUS
     assert _as_str(bootstrap["current_route"]) == CURRENT_ROUTE
     assert _as_str(bootstrap["default_next_command"]) == CURRENT_MILESTONE_DEFAULT_NEXT
     assert projection_targets == [

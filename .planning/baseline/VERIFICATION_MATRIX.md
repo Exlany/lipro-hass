@@ -2,18 +2,18 @@
 
 **Purpose:** 建立 requirement → artifact → test → doc → phase acceptance / handoff 的统一验证闭环。
 **Status:** Formal baseline asset (`BASE-03` phase acceptance truth source)
-**Updated:** 2026-04-01 (v1.35 archived baseline aligned)
+**Updated:** 2026-04-01 (v1.36 active route aligned)
 
 ## Formal Role
 
 ## Current Route
 
-- **Current route story:** `no active milestone route / latest archived baseline = v1.35`
-- **Current milestone status:** `archived / evidence-ready (2026-04-01)`
-- **Default next command:** `$gsd-new-milestone`
+- **Current route story:** `v1.36 active milestone route / starting from latest archived baseline = v1.35`
+- **Current milestone status:** `active / phase 126 complete; phase 127 planning-ready (2026-04-01)`
+- **Default next command:** `$gsd-discuss-phase 127`
 - **Latest archived pointer:** `.planning/reviews/V1_35_EVIDENCE_INDEX.md`
-- **Active audit ledger:** `.planning/reviews/V1_35_MASTER_AUDIT_LEDGER.md`
-- **Focused guards:** `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/governance_followup_route_current_milestones.py`, `tests/meta/test_runtime_contract_truth.py`, `tests/meta/test_governance_release_docs.py`, `tests/meta/toolchain_truth_checker_paths.py`, `tests/meta/test_phase89_tooling_decoupling_guards.py`
+- **Carry-forward audit anchors:** `.planning/reviews/V1_35_EVIDENCE_INDEX.md`, `.planning/v1.35-MILESTONE-AUDIT.md`
+- **Focused guards:** `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/governance_followup_route_current_milestones.py`, `tests/meta/test_runtime_contract_truth.py`, `tests/meta/test_governance_release_docs.py`, `tests/meta/toolchain_truth_checker_paths.py`, `tests/meta/test_phase89_tooling_decoupling_guards.py`, `tests/meta/test_governance_release_contract.py`, `tests/services/test_services_diagnostics_capabilities.py`, `tests/services/test_services_diagnostics_payloads.py`
 
 - 本文件是 `Phase 1.5` 及其下游 phases 的正式 acceptance truth；phase docs / summaries 只能引用、实例化或扩展，不得平行定义 exit contract。
 - 任一 phase 只有同时交付 requirement evidence、artifact updates、verification proof 与 governance disposition，才可宣称完成。
@@ -23,6 +23,14 @@
 - 若 `.planning/reviews/FILE_MATRIX.md`、`.planning/reviews/RESIDUAL_LEDGER.md`、`.planning/reviews/KILL_LIST.md` 无变化，phase summary 也必须明确写出“为何无变化”。
 - `.planning/codebase/*.md` 若被保留，必须通过 `README.md`、统一 derived collaboration map disclaimer、snapshot/freshness/authority 头部与治理守卫声明其从属身份，不能越权成为第二条 authority chain。
 - `.planning/baseline/GOVERNANCE_REGISTRY.json` 若更新，必须同步 public docs / contributor templates / release-contract tests，并明确 `break-glass verify-only` 与 `non-publish rehearsal` 是否新增或变更。
+
+## Phase 126 Exit Contract
+
+- **Route truth:** `active / phase 126 complete; phase 127 planning-ready (2026-04-01)`
+- **Focused guards:** `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/test_governance_release_contract.py`, `tests/services/test_services_diagnostics_capabilities.py`, `tests/services/test_services_diagnostics_payloads.py`
+- **Proof chain:** diagnostics helper shell thinning + canonical helper_support mechanics + developer iterator builder unification + v1.36 route bootstrap → `uv run pytest -q tests/services/test_services_diagnostics_capabilities.py tests/services/test_services_diagnostics_payloads.py` → `uv run ruff check .` → `uv run python scripts/check_file_matrix.py --check` → `uv run pytest -q` → isolated `gsd-tools state json` / `init progress`
+- **Phase asset bundle:** `.planning/phases/126-service-router-developer-callback-home-convergence-and-diagnostics-helper-residual-slimming/{126-01-SUMMARY.md,126-SUMMARY.md,126-VERIFICATION.md}`
+- **Touched formal homes:** `custom_components/lipro/services/diagnostics/{handlers.py,helpers.py,helper_support.py}`, `custom_components/lipro/control/developer_router_support.py`, `.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md,MILESTONES.md}`, `.planning/baseline/{GOVERNANCE_REGISTRY.json,VERIFICATION_MATRIX.md}`, `docs/developer_architecture.md`, `.planning/codebase/{ARCHITECTURE.md,CONCERNS.md,TESTING.md}`
 
 ## Phase 125 Exit Contract
 

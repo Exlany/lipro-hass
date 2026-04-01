@@ -14,6 +14,12 @@
 - Medium priority: 大型测试热点、性能回归非 PR 阻塞、平台基线过新、匿名分享/诊断长期复杂度。
 - Low priority: 固件 advisory 远端新鲜度、`outlet_power` legacy side-car fallback。
 
+## Phase 126 Concern Update
+
+- diagnostics helper family 的 high-value low-risk residual 已清掉一层：handler-facing mechanics 不再经 helper shell 中转，但 `helpers.py` 仍保留 outward stable home 以保护 import surface。
+- 当前 remaining P0 concern 已前移到 `runtime_access`：typed telemetry 仍会被擦回 dict，runtime entry / protocol narrowing 仍残留反射式 seam；它们已被显式 carry-forward 到 `Phase 127`。
+- open-source readiness / benchmark / coverage / continuity 仍是治理层 concern，而非可由本轮代码伪造闭环的事项；已显式登记到 `Phase 128`。
+
 ## Phase 125 Concern Update
 
 - `Phase 125` 已关闭 machine-readable governance current-route drift：selector docs 现在围绕 registry projection 同步，而不是各自手写 current truth。

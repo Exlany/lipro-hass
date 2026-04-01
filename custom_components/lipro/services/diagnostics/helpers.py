@@ -49,7 +49,6 @@ from .types import (
 
 _LOGGER = logging.getLogger(__name__)
 _ResultT = TypeVar("_ResultT")
-_CoordinatorT = TypeVar("_CoordinatorT")
 _CAPABILITY_PROJECTION_ERRORS = (RuntimeError, ValueError, TypeError, LookupError)
 
 
@@ -60,28 +59,6 @@ _coerce_service_int = _support_coerce_service_int
 _coerce_service_float = _support_coerce_service_float
 
 
-def _collect_coordinator_capability_results(
-    coordinators: Iterator[_CoordinatorT],
-    *,
-    capability: str,
-    collector: Callable[[_CoordinatorT], _ResultT],
-) -> list[_ResultT]:
-    """Collect capability results across coordinators with per-entry fault tolerance."""
-    results: list[_ResultT] = []
-    for coordinator in coordinators:
-        try:
-            results.append(collector(coordinator))
-        except asyncio.CancelledError:
-            raise
-        except HomeAssistantError:
-            raise
-        except _CAPABILITY_PROJECTION_ERRORS as err:
-            _LOGGER.warning(
-                "Skip one %s capability due to error (%s)",
-                capability,
-                type(err).__name__,
-            )
-    return results
 
 
 async def _async_get_first_coordinator_capability_result(

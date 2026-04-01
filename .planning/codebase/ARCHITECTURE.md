@@ -9,6 +9,12 @@
 
 ## Pattern Overview
 
+## Phase 126 Execution Notes
+
+- diagnostics service topology 维持不变：`services/diagnostics/__init__.py` 仍是 outward import surface，`helpers.py` 只保留 stable helper home，而 handler-facing pure mechanics 已继续 inward 指回 `helper_support.py`。
+- `developer_router_support.py` 继续是 developer diagnostics glue / typed helper home；本轮只统一 iterator builder，不重开 service-router formal topology。
+- `v1.36` 作为 current route 重新显式登记 remaining concern：`Phase 126` 先 seal helper shell residual，`Phase 127` 再处理 runtime_access de-reflection / typed telemetry seam。
+
 ## Phase 125 Execution Notes
 
 - `custom_components/lipro/runtime_types.py` 继续是 sanctioned outward contract home；`ScheduleMeshDeviceLike`、`CommandProperties` 与 `DeviceRefreshServiceLike` 现回到同一 formal truth，不再由下游 runtime/service helper 各自 shadow。

@@ -134,10 +134,9 @@ def collect_developer_reports(
             translation_placeholders={"entry_id": requested_entry_id},
         )
 
-    coordinators = list(_iter_developer_runtime_coordinators(hass))
     return _collect_developer_reports_service(
         hass,
-        iter_runtime_coordinators=lambda _hass: iter(coordinators),
+        iter_runtime_coordinators=build_developer_runtime_coordinator_iterator(hass),
         find_runtime_entry_for_coordinator=_find_runtime_entry_for_coordinator,
         get_entry_telemetry_view=_telemetry_surface.get_entry_telemetry_view,
     )

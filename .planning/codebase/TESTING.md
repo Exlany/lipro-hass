@@ -53,6 +53,12 @@ tests/
 └── harness/
 ```
 
+## Phase 126 Execution Freeze
+
+- `tests/services/test_services_diagnostics_capabilities.py` 与 `tests/services/test_services_diagnostics_payloads.py` 继续冻结 diagnostics helper shell thinning 的 outward behavior。
+- `uv run ruff check .`、`uv run python scripts/check_file_matrix.py --check` 与 `uv run pytest -q` 共同构成本轮 phase exit proof；route docs 与 gsd-tools state 也需同步识别 `v1.36 / Phase 126 complete`。
+- `Phase 126` 不重开 service-router topology，也不扩张 diagnostics public surface；测试目标仅验证 inward thinning 与 current-route truth 同步。
+
 ## Phase 125 Execution Freeze
 
 - Focused proof 现在覆盖三条 Phase 125 主链：governance route contract (`tests/meta/governance_followup_route_current_milestones.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/test_governance_release_contract.py`)、runtime contract cleanup (`tests/meta/test_runtime_contract_truth.py`, `tests/meta/public_surface_architecture_policy.py`, `tests/services/test_service_resilience.py`) 与 flow/auth thinning (`tests/flows/test_config_flow_user.py`, `tests/flows/test_config_flow_reauth.py`, `tests/flows/test_config_flow_reconfigure.py`, `tests/core/test_token_persistence.py`)。

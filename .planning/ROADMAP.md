@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- 🚧 **v1.36 Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening** - `Phase 126 -> 128` active on 2026-04-01; current route truth = `v1.36 active milestone route / starting from latest archived baseline = v1.35`; next step = `$gsd-discuss-phase 127`
 - ✅ **v1.35 Master Audit Closure, Public Surface Finalization & Release Traceability** - `Phase 122 -> 125` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.35`; evidence index = `.planning/reviews/V1_35_EVIDENCE_INDEX.md`
 - ✅ **v1.34 Terminal Audit Closure, Contract Hardening & Governance Truth Slimming** - `Phase 120 -> 121` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.34`; evidence index = `.planning/reviews/V1_34_EVIDENCE_INDEX.md`
 - ✅ **v1.33 MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance Hardening** - `Phase 119` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.33`; evidence index = `.planning/reviews/V1_33_EVIDENCE_INDEX.md`
@@ -19,14 +20,19 @@ projection_targets:
 - .planning/REQUIREMENTS.md
 - .planning/STATE.md
 - .planning/MILESTONES.md
-active_milestone: null
+active_milestone:
+  version: v1.36
+  name: Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening
+  status: active / phase 126 complete; phase 127 planning-ready (2026-04-01)
+  phase: '126'
+  phase_title: service-router developer callback-home convergence and diagnostics helper residual slimming
+  phase_dir: 126-service-router-developer-callback-home-convergence-and-diagnostics-helper-residual-slimming
 latest_archived:
   version: v1.35
   name: Master Audit Closure, Public Surface Finalization & Release Traceability
   status: archived / evidence-ready (2026-04-01)
   phase: '125'
-  phase_title: terminal residual eradication, runtime-types decomposition, adapter
-    final thinning, and machine-readable governance extraction
+  phase_title: terminal residual eradication, runtime-types decomposition, adapter final thinning, and machine-readable governance extraction
   phase_dir: 125-terminal-residual-eradication-runtime-types-decomposition-adapter-final-thinning-and-machine-readable-governance-extraction
   audit_path: .planning/v1.35-MILESTONE-AUDIT.md
   evidence_path: .planning/reviews/V1_35_EVIDENCE_INDEX.md
@@ -36,17 +42,82 @@ previous_archived:
   name: Terminal Audit Closure, Contract Hardening & Governance Truth Slimming
   evidence_path: .planning/reviews/V1_34_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.35
-  default_next_command: $gsd-new-milestone
+  current_route: v1.36 active milestone route / starting from latest archived baseline = v1.35
+  default_next_command: $gsd-discuss-phase 127
   latest_archived_evidence_pointer: .planning/reviews/V1_35_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 ## Overview
 
-`v1.35` 已完成 closeout，并以 archived baseline `v1.35` 的身份冻结 `Phase 122 -> 125` 的正式证据链：repo-wide audit ledger、public first-hop boundary、service-router reconvergence、auth-seed / schedule contract 收口、runtime-types hotspot 减法，以及 registry-backed governance truth 现共同成为 pull-only archived selector proof。
+`v1.36` 继续把 master-audit carry-forward residual 从 archived folklore 重新登记为 live route：`Phase 126` 先消掉 diagnostics helper family 的 duplicate mechanics / callback-home shadow，`Phase 127` 再显式推进 `runtime_access` de-reflection 与 typed telemetry seam，`Phase 128` 最后收口开源 readiness、benchmark/coverage gates 与 maintainer continuity hardening。
 
-**Coverage:** `21/21` v1.35 requirements mapped exactly once.
-**Default next command:** `$gsd-new-milestone`
+**Coverage:** `12/12` `v1.36` requirements mapped exactly once.
+**Default next command:** `$gsd-discuss-phase 127`
+
+## Current Milestone
+
+## v1.36: Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening
+
+**Milestone status:** `active / phase 126 complete; phase 127 planning-ready (2026-04-01)`
+**Default next command:** `$gsd-discuss-phase 127`
+**Current route story:** `v1.36 active milestone route / starting from latest archived baseline = v1.35`
+**Latest archived pointer:** `.planning/reviews/V1_35_EVIDENCE_INDEX.md`
+**Starting baseline snapshots:** `.planning/milestones/v1.35-ROADMAP.md`, `.planning/milestones/v1.35-REQUIREMENTS.md`
+**Promoted phase evidence allowlist:** `.planning/reviews/PROMOTED_PHASE_ASSETS.md`
+
+## Phases
+
+- [x] **Phase 126: service-router developer callback-home convergence and diagnostics helper residual slimming** - 已完成 diagnostics helper inward thinning：`handlers.py` 直连 mechanics home、`helpers.py` 删除未使用 duplicate helper、`developer_router_support.py` 复用统一 iterator builder，并同步 v1.36 route / plan / verification truth。 (complete 2026-04-01)
+- [ ] **Phase 127: runtime-access de-reflection, typed runtime entry contracts, and hotspot continuation** - 待显式收紧 `runtime_access` 的 typed telemetry seam 与 entry-port narrowing，避免 control/runtime seam 继续依赖 dict fallback 与 `type(...).__getattribute__` 反射。 (pending)
+- [ ] **Phase 128: open-source readiness, benchmark-coverage gates, and maintainer continuity hardening** - 待把 private-access / single-maintainer continuity / benchmark & coverage diff gating 等治理 gap 收敛为诚实 open-source readiness contract。 (pending)
+
+## Phase Details
+
+### Phase 126: service-router developer callback-home convergence and diagnostics helper residual slimming
+**Goal**: 在不改变 public diagnostics surface 的前提下，继续压薄 `services/diagnostics/helpers.py`：把 handler-facing mechanics 指回 `helper_support.py`，删除未使用 duplicate helper，统一 developer diagnostics runtime iterator story，并同步 `v1.36` current-route truth / phase assets / verification evidence。
+**Depends on**: latest archived baseline `v1.35`
+**Requirements**: ARC-38, HOT-57, GOV-85, TST-48, QLT-50, DOC-15
+**Success Criteria** (what must be TRUE):
+  1. `services/diagnostics/handlers.py` 不再经 `helpers.py` 转发获取纯 mechanics helper，而是直连 `helper_support.py` 的 canonical helper truth。
+  2. `services/diagnostics/helpers.py` 删除未使用 duplicate mechanics，保留 outward stable helper home 身份但不再承担第二套实现真源。
+  3. `developer_router_support.py` 复用统一 runtime iterator builder，不再保留同语义 lambda / list freeze 分支。
+  4. `v1.36` 的 `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / GOVERNANCE_REGISTRY` 与 `Phase 126` 资产一致；focused/full validation 通过。
+**Status**: Complete (`2026-04-01`)
+**Plans**: 1/1 complete
+**Plan assets**: `126-01-PLAN.md`
+**Summary assets**: `126-01-SUMMARY.md`, `126-SUMMARY.md`
+**Verification**: `126-VERIFICATION.md`
+**Closeout proof**: `126-01` 已完成 diagnostics helper shell thinning、route bootstrap、focused guard refresh 与 full validation 证据落盘。
+
+### Phase 127: runtime-access de-reflection, typed runtime entry contracts, and hotspot continuation
+**Goal**: 让 `runtime_access` 直接消费 typed telemetry contract，并把 entry/coordinator narrowing 从反射式 `object` probe 收紧到显式 port / adapter story。
+**Depends on**: Phase 126
+**Requirements**: ARC-39, HOT-58, TST-49
+**Success Criteria** (what must be TRUE):
+  1. `runtime_access.build_entry_system_health_view()` 与 `build_runtime_snapshot()` 不再把 typed telemetry 先降成 stringly dict 再回捞 key。
+  2. `runtime_access_support_views.py` 的 runtime entry / protocol 读取不再依赖 `type(...).__getattribute__` 作为主要窄化手段。
+  3. Focused tests 保住 slot-backed / MagicMock / degraded fallback 语义，同时让 new typed contract 成为唯一 formal truth。
+**Status**: Pending
+**Plans**: 0/0 complete
+
+### Phase 128: open-source readiness, benchmark-coverage gates, and maintainer continuity hardening
+**Goal**: 把终审中无法单靠代码伪造闭环的 open-source readiness gap 诚实写进治理 contract，并补齐可自动化的 benchmark/coverage diff gates。
+**Depends on**: Phase 127
+**Requirements**: OSS-17, GOV-86, QLT-51
+**Success Criteria** (what must be TRUE):
+  1. benchmark / coverage diff baseline 的 PR gate story 被显式 codify，并有 focused verification。
+  2. private-access / single-maintainer continuity / security fallback 等不可伪造项被诚实登记为 maintainer decision boundary，而不是继续留在口头审阅里。
+  3. docs / roadmap / requirements / state 与 final review report 对 remaining governance gap 的描述完全一致。
+**Status**: Pending
+**Plans**: 0/0 complete
+
+## Progress
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 126. service-router developer callback-home convergence and diagnostics helper residual slimming | 1/1 | Complete | 2026-04-01 |
+| 127. runtime-access de-reflection, typed runtime entry contracts, and hotspot continuation | 0/0 | Pending | - |
+| 128. open-source readiness, benchmark-coverage gates, and maintainer continuity hardening | 0/0 | Pending | - |
 
 ## Latest Archived Milestone
 
