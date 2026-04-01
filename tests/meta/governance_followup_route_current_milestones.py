@@ -135,6 +135,10 @@ def test_current_requirements_traceability_and_coverage_stay_in_sync() -> None:
     if CURRENT_MILESTONE == "v1.37":
         assert_contains_all(
             _REQUIREMENTS_TEXT,
+            "- [x] **AUD-06**",
+            "- [x] **GOV-87**",
+            "- [x] **DOC-16**",
+            "- [x] **OSS-18**",
             "- [x] **ARC-40**",
             "- [x] **HOT-59**",
             "- [x] **TST-50**",
@@ -142,6 +146,11 @@ def test_current_requirements_traceability_and_coverage_stay_in_sync() -> None:
             "- [x] **ARC-41**",
             "- [x] **HOT-60**",
             "- [x] **TST-51**",
+            "- [x] **QLT-53**",
+            "| AUD-06 | Phase 131 | Complete |",
+            "| GOV-87 | Phase 131 | Complete |",
+            "| DOC-16 | Phase 131 | Complete |",
+            "| OSS-18 | Phase 131 | Complete |",
             "| ARC-40 | Phase 129 | Complete |",
             "| HOT-59 | Phase 129 | Complete |",
             "| TST-50 | Phase 129 | Complete |",
@@ -149,10 +158,11 @@ def test_current_requirements_traceability_and_coverage_stay_in_sync() -> None:
             "| ARC-41 | Phase 130 | Complete |",
             "| HOT-60 | Phase 130 | Complete |",
             "| TST-51 | Phase 130 | Complete |",
+            "| QLT-53 | Phase 131 | Complete |",
             "- v1.37 requirements: 12 total",
             "- Mapped to phases: 12",
-            "- Complete: 7",
-            "- Pending: 5",
+            "- Complete: 12",
+            "- Pending: 0",
         )
         return
 

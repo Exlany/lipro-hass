@@ -11,7 +11,6 @@
   "install": {
     "remote_default_archive_tag": "latest",
     "stable_paths": [
-      "HACS",
       "verified_release_assets"
     ],
     "preview_paths": [
@@ -20,7 +19,11 @@
       "mirror_install"
     ],
     "private_repo_skips_hacs_validation": true,
-    "stable_shell_guidance": "verified GitHub Release assets"
+    "stable_shell_guidance": "verified GitHub Release assets",
+    "conditional_paths": [
+      "HACS"
+    ],
+    "conditional_reason": "requires public GitHub repository access or a future public mirror preserving the same contract"
   },
   "open_source_surface": {
     "access_mode": "private-access",
@@ -176,10 +179,10 @@
     "active_milestone": {
       "version": "v1.37",
       "name": "Repo-Wide Terminal Audit, Hotspot Decomposition & Governance Continuity Decisions",
-      "status": "active / phase 130 complete; phase 131 planning-ready (2026-04-01)",
-      "phase": "130",
-      "phase_title": "runtime command and firmware-update hotspot decomposition",
-      "phase_dir": "130-runtime-command-and-firmware-update-hotspot-decomposition"
+      "status": "active / phase 131 complete; closeout-ready (2026-04-01)",
+      "phase": "131",
+      "phase_title": "repo-wide terminal audit closeout and governance continuity decisions",
+      "phase_dir": "131-repo-wide-terminal-audit-closeout-and-governance-continuity-decisions"
     },
     "latest_archived": {
       "version": "v1.36",
@@ -199,7 +202,7 @@
     },
     "bootstrap": {
       "current_route": "v1.37 active milestone route / starting from latest archived baseline = v1.36",
-      "default_next_command": "$gsd-plan-phase 131",
+      "default_next_command": "$gsd-complete-milestone v1.37",
       "latest_archived_evidence_pointer": ".planning/reviews/V1_36_EVIDENCE_INDEX.md"
     }
   }

@@ -9,10 +9,10 @@
 
 ## Risk Summary
 
-- Overall posture: `Medium`. 当前已进入 `Phase 128 complete / closeout-ready` posture；主要风险已从 typed telemetry / de-reflection hotspot 转向 repo-external delegate / private fallback reality、以及后续 milestone 仍需继续处理的 architecture debt。
-- Highest priority: `High` = 单维护者连续性 / private-access 治理约束、runtime/protocol hotspots、typed boundary debt 与 benchmark/preview 非阻塞门禁。
-- Medium priority: 大型测试热点、性能回归非 PR 阻塞、平台基线过新、匿名分享/诊断长期复杂度。
-- Low priority: 固件 advisory 远端新鲜度、`outlet_power` legacy side-car fallback。
+- Overall posture: `Medium`. 当前已进入 `Phase 131 complete / closeout-ready` posture；高优先级漂移已从 route/docs honesty 转为长期 sanctioned hotspot 压力与 repo-external continuity boundary，而非 live execution blocker。
+- Highest priority: `High` = 单维护者连续性 / private-access 治理约束、repo-external private fallback reality、以及仍需持续减压的 protocol/runtime formal hotspots。
+- Medium priority: 宽契约 formal homes（如 `runtime_types.py`）、大型 meta/governance tests、performance smoke 仍属非 PR 阻塞的 benchmark/preview lane。
+- Low priority: 固件 advisory 远端新鲜度、`outlet_power` legacy side-car fallback、历史执行痕迹的 discoverability 噪音。
 
 ## Phase 127 Concern Update
 

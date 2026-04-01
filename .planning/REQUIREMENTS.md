@@ -13,18 +13,16 @@ projection_targets:
 active_milestone:
   version: v1.37
   name: Repo-Wide Terminal Audit, Hotspot Decomposition & Governance Continuity Decisions
-  status: active / phase 130 complete; phase 131 planning-ready (2026-04-01)
-  phase: '130'
-  phase_title: runtime command and firmware-update hotspot decomposition
-  phase_dir: 130-runtime-command-and-firmware-update-hotspot-decomposition
+  status: active / phase 131 complete; closeout-ready (2026-04-01)
+  phase: '131'
+  phase_title: repo-wide terminal audit closeout and governance continuity decisions
+  phase_dir: 131-repo-wide-terminal-audit-closeout-and-governance-continuity-decisions
 latest_archived:
   version: v1.36
-  name: Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source
-    Readiness Hardening
+  name: Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening
   status: archived / evidence-ready (2026-04-01)
   phase: '128'
-  phase_title: open-source readiness, benchmark-coverage gates, and maintainer continuity
-    hardening
+  phase_title: open-source readiness, benchmark-coverage gates, and maintainer continuity hardening
   phase_dir: 128-open-source-readiness-benchmark-coverage-gates-and-maintainer-continuity-hardening
   audit_path: .planning/v1.36-MILESTONE-AUDIT.md
   evidence_path: .planning/reviews/V1_36_EVIDENCE_INDEX.md
@@ -34,30 +32,29 @@ previous_archived:
   name: Master Audit Closure, Public Surface Finalization & Release Traceability
   evidence_path: .planning/reviews/V1_35_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.37 active milestone route / starting from latest archived baseline
-    = v1.36
-  default_next_command: $gsd-plan-phase 131
+  current_route: v1.37 active milestone route / starting from latest archived baseline = v1.36
+  default_next_command: $gsd-complete-milestone v1.37
   latest_archived_evidence_pointer: .planning/reviews/V1_36_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 ## Current Milestone (v1.37)
 
 **Milestone Goal:** 基于 `v1.36` latest archived baseline，先完成一次不遗漏 Python/docs/config/governance 切面的 repo-wide terminal audit，再把首批 repo-internal hotspots（REST fallback / runtime-command / firmware-update）继续 inward decomposition，最后把 open-source continuity / private fallback reality 诚实固化为治理决策边界与最终审阅报告。
-**Milestone status:** `active / phase 130 complete; phase 131 planning-ready (2026-04-01)`
+**Milestone status:** `active / phase 131 complete; closeout-ready (2026-04-01)`
 **Current route mode:** `v1.37 active milestone route / starting from latest archived baseline = v1.36`
 **Starting baseline:** `.planning/v1.36-MILESTONE-AUDIT.md, .planning/reviews/V1_36_EVIDENCE_INDEX.md, .planning/milestones/v1.36-ROADMAP.md, .planning/milestones/v1.36-REQUIREMENTS.md`
 **Requirements basket:** `AUD-06, ARC-40, HOT-59, TST-50, QLT-52, ARC-41, HOT-60, TST-51, GOV-87, DOC-16, OSS-18, QLT-53`
 **Latest archived baseline:** `v1.36`
 **Archive pointer:** `.planning/reviews/V1_36_EVIDENCE_INDEX.md`
 **Latest archived audit artifact:** `.planning/v1.36-MILESTONE-AUDIT.md`
-**Default next command:** `$gsd-plan-phase 131`
-**Current phase handoff:** `Phase 130 已完成 runtime/entity hotspot inward split；下一步进入 Phase 131 planning，统一 repo-wide audit closeout、governance continuity decisions 与最终审查报告。`
+**Default next command:** `$gsd-complete-milestone v1.37`
+**Current phase handoff:** `Phase 131 已完成终极审阅报告、docs/toolchain honesty 修正、selector closeout 与 final validation；下一步进入 $gsd-complete-milestone v1.37，把 v1.37 提升为 archived baseline truth。`
 
 ### Audit & Governance
-- [ ] **AUD-06**: 必须完成一次 repo-wide terminal audit，覆盖全部 Python/docs/config/governance 切面，并把问题、优先级、证据与 phase mapping 落到单一当前真源，避免再依赖零散 phase folklore。
-- [ ] **GOV-87**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES` 必须共同承认 `v1.37 active milestone route / starting from latest archived baseline = v1.36`，并显式区分 repo-internal 可落地修复项与 repo-external continuity/private-fallback decision boundary。
-- [ ] **DOC-16**: developer/open-source docs 必须能把本轮终审发现、热点优先级、phase mapping 与 external governance debt 讲成单一 current story，而不是散落在临时报告或上下文里。
-- [ ] **OSS-18**: maintainer continuity、delegate stewardship 与 private disclosure fallback 只能陈述仓库已知真实状态；允许自动化的仓内 compensating controls 要落地，无法仓内保证的能力必须保留为 honest unresolved governance boundary。
+- [x] **AUD-06**: 必须完成一次 repo-wide terminal audit，覆盖全部 Python/docs/config/governance 切面，并把问题、优先级、证据与 phase mapping 落到单一当前真源，避免再依赖零散 phase folklore。
+- [x] **GOV-87**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES` 必须共同承认 `v1.37 active milestone route / starting from latest archived baseline = v1.36`，并显式区分 repo-internal 可落地修复项与 repo-external continuity/private-fallback decision boundary。
+- [x] **DOC-16**: developer/open-source docs 必须能把本轮终审发现、热点优先级、phase mapping 与 external governance debt 讲成单一 current story，而不是散落在临时报告或上下文里。
+- [x] **OSS-18**: maintainer continuity、delegate stewardship 与 private disclosure fallback 只能陈述仓库已知真实状态；允许自动化的仓内 compensating controls 要落地，无法仓内保证的能力必须保留为 honest unresolved governance boundary。
 
 ### Architecture & Hotspots
 - [x] **ARC-40**: `custom_components/lipro/core/api/rest_facade.py` 已压低 metaprogramming / generic delegation 负担，显式组合与 façade surface 更易审阅，动态 helper 魔法不再承担正式读写路径。
@@ -69,16 +66,16 @@ bootstrap:
 - [x] **TST-50**: `rest_facade.py` / `status_fallback_support.py` touched scope 已补齐 focused regressions，显式 surface 收口与 fallback 行为未回退。
 - [x] **QLT-52**: touched hotspot 已移除 generic delegation helper 对正式 surface 的遮蔽；虽然 formal home 仍保留体量，但职责边界、测试锚点与命名已更直接稳定。
 - [x] **TST-51**: `command_runtime.py` / `firmware_update.py` 的后续 decomposition 必须由 focused/full suites 保驾护航，防止 runtime/entity 行为在 inward split 后漂移。
-- [ ] **QLT-53**: 本轮 closeout 前必须形成可验证的终审证据链：repo-wide audit summary、hotspot ranking、phase completion 与 validation 结果在 planning docs / tests / final report 中讲同一条 current story。
+- [x] **QLT-53**: 本轮 closeout 前必须形成可验证的终审证据链：repo-wide audit summary、hotspot ranking、phase completion 与 validation 结果在 planning docs / tests / final report 中讲同一条 current story。
 
 ## Traceability for active v1.37 route
 
 | Requirement | Planned Phase | Status |
 |-------------|---------------|--------|
-| AUD-06 | Phase 131 | Planned |
-| GOV-87 | Phase 131 | Planned |
-| DOC-16 | Phase 131 | Planned |
-| OSS-18 | Phase 131 | Planned |
+| AUD-06 | Phase 131 | Complete |
+| GOV-87 | Phase 131 | Complete |
+| DOC-16 | Phase 131 | Complete |
+| OSS-18 | Phase 131 | Complete |
 | ARC-40 | Phase 129 | Complete |
 | HOT-59 | Phase 129 | Complete |
 | TST-50 | Phase 129 | Complete |
@@ -86,13 +83,13 @@ bootstrap:
 | ARC-41 | Phase 130 | Complete |
 | HOT-60 | Phase 130 | Complete |
 | TST-51 | Phase 130 | Complete |
-| QLT-53 | Phase 131 | Planned |
+| QLT-53 | Phase 131 | Complete |
 
 **Coverage:**
 - v1.37 requirements: 12 total
 - Mapped to phases: 12
-- Complete: 7
-- Pending: 5
+- Complete: 12
+- Pending: 0
 - Unmapped: 0 ✓
 
 ## Latest Archived Milestone (v1.36)
@@ -274,7 +271,7 @@ bootstrap:
 - v1.34 requirements: 14 total
 - Mapped to phases: 14
 - Complete: 14
-- Pending: 5
+- Pending: 0
 - Unmapped: 0 ✓
 
 ## Previous Archived Milestone (v1.33)

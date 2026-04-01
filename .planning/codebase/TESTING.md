@@ -25,6 +25,12 @@ uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro 
 ./scripts/lint --full
 ```
 
+## Phase 131 Execution Freeze
+
+- `Phase 131` 的 final proof chain 由三层组成：repo-wide docs/governance/toolchain truth guards、selector-route/promoted-assets guards，以及 `ruff` / `check_file_matrix` / markdown-link validation。
+- current closeout proof 必须共同承认：`v1.37` 仍是 active milestone route，latest archived baseline 仍是 `v1.36`，但 execution state 已进入 `Phase 131 complete / closeout-ready`，下一步只剩 `$gsd-complete-milestone v1.37`。
+- 本轮 focused proof 还额外冻结了两类 honesty 修正：docs-first public routing 不再自相矛盾，Python/toolchain truth 与 registry install semantics 不再分叉。
+
 ## Test File Organization
 
 **Location:**

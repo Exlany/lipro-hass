@@ -9,6 +9,12 @@
 
 ## Pattern Overview
 
+## Phase 131 Terminal Audit Closeout
+
+- `v1.37` 当前已进入 `Phase 131 complete / closeout-ready`：repo-wide terminal audit、developer topology guide、docs-first routing 与 selector governance 已重新对齐，不再停留在 v1.36 archived-only route wording。
+- 架构主结论不变：`LiproProtocolFacade` / `Coordinator` / `control/` 三条 formal homes 仍构成单一正式主链；本轮 closeout 没有引入第二 root，也没有把 compat / residual 洗回 public story。
+- remaining architecture work 已被重新降级为 next-wave optimization candidates：主要是 sanctioned hotspot 的持续 inward slimming 与 contract breadth tightening，而不是 current-route blocker。
+
 ## Phase 127 Execution Notes
 
 - `custom_components/lipro/control/runtime_access.py` 现在直接消费 typed `SystemHealthTelemetryView`，不再先把 system-health sink 擦回 `dict[str, object]` surrogate 再回捞 key。

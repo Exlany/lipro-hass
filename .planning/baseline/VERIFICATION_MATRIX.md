@@ -2,15 +2,15 @@
 
 **Purpose:** 建立 requirement → artifact → test → doc → phase acceptance / handoff 的统一验证闭环。
 **Status:** Formal baseline asset (`BASE-03` phase acceptance truth source)
-**Updated:** 2026-04-01 (v1.37 phase 130 execution aligned)
+**Updated:** 2026-04-01 (v1.37 phase 131 closeout-ready proof aligned)
 
 ## Formal Role
 
 ## Current Route
 
 - **Current route story:** `v1.37 active milestone route / starting from latest archived baseline = v1.36`
-- **Current milestone status:** `active / phase 130 complete; phase 131 planning-ready (2026-04-01)`
-- **Default next command:** `$gsd-plan-phase 131`
+- **Current milestone status:** `active / phase 131 complete; closeout-ready (2026-04-01)`
+- **Default next command:** `$gsd-complete-milestone v1.37`
 - **Latest archived pointer:** `.planning/reviews/V1_36_EVIDENCE_INDEX.md`
 - **Carry-forward audit anchors:** `.planning/reviews/V1_36_EVIDENCE_INDEX.md`, `.planning/v1.36-MILESTONE-AUDIT.md`
 - **Focused guards:** `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/governance_followup_route_current_milestones.py`, `tests/meta/test_runtime_contract_truth.py`, `tests/meta/test_governance_release_docs.py`, `tests/meta/toolchain_truth_checker_paths.py`, `tests/meta/test_phase89_tooling_decoupling_guards.py`, `tests/meta/test_governance_release_contract.py`, `tests/services/test_services_diagnostics_capabilities.py`, `tests/services/test_services_diagnostics_payloads.py`
@@ -47,6 +47,15 @@
 - **Proof chain:** readiness honesty / continuity / version-source sync + baseline-aware coverage diff / artifact upload + benchmark smoke / strict-marker governance + review-ledger closeout freeze → `uv run pytest -q tests/meta/test_governance_release_continuity.py tests/meta/toolchain_truth_docs_fast_path.py tests/meta/test_version_sync.py tests/meta/toolchain_truth_ci_contract.py tests/meta/test_governance_release_contract.py tests/meta/toolchain_truth_testing_governance.py tests/meta/test_governance_route_handoff_smoke.py` → `uv run pytest -q tests/benchmarks/test_command_benchmark.py tests/benchmarks/test_mqtt_benchmark.py tests/benchmarks/test_device_refresh_benchmark.py --benchmark-only --benchmark-json=.benchmarks/benchmark-smoke.json` → `uv run python scripts/check_benchmark_baseline.py .benchmarks/benchmark-smoke.json --manifest tests/benchmarks/benchmark_baselines.json --benchmark-set smoke` → `uv run python scripts/check_file_matrix.py --check` → `uv run ruff check .` → `uv run pytest -q` → isolated `gsd-tools state json` / `init progress` / `phase-plan-index 128`
 - **Phase asset bundle:** `.planning/phases/128-open-source-readiness-benchmark-coverage-gates-and-maintainer-continuity-hardening/{128-01-SUMMARY.md,128-02-SUMMARY.md,128-03-SUMMARY.md,128-SUMMARY.md,128-VERIFICATION.md,128-VALIDATION.md}`
 - **Touched formal homes:** `.github/workflows/ci.yml`, `pyproject.toml`, `scripts/{coverage_diff.py,check_benchmark_baseline.py,lint}`, `tests/benchmarks/benchmark_baselines.json`, `tests/meta/{test_governance_release_continuity.py,toolchain_truth_docs_fast_path.py,test_version_sync.py,toolchain_truth_ci_contract.py,test_governance_release_contract.py,toolchain_truth_testing_governance.py,test_governance_route_handoff_smoke.py}`, `SECURITY.md`, `CONTRIBUTING.md`, `docs/MAINTAINER_RELEASE_RUNBOOK.md`, `.github/{ISSUE_TEMPLATE/bug.yml,pull_request_template.md}`, `.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md,MILESTONES.md}`, `.planning/baseline/{GOVERNANCE_REGISTRY.json,VERIFICATION_MATRIX.md}`, `.planning/reviews/{FILE_MATRIX.md,RESIDUAL_LEDGER.md,KILL_LIST.md}`, `.planning/codebase/{ARCHITECTURE.md,CONCERNS.md,TESTING.md}`, `docs/developer_architecture.md`
+
+
+## Phase 131 Exit Contract
+
+- **Route truth:** `active / phase 131 complete; closeout-ready (2026-04-01)`
+- **Focused guards:** `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/governance_followup_route_current_milestones.py`, `tests/meta/test_governance_release_contract.py`, `tests/meta/test_governance_release_docs.py`, `tests/meta/test_governance_release_continuity.py`, `tests/meta/toolchain_truth_docs_fast_path.py`, `tests/meta/toolchain_truth_python_stack.py`, `tests/meta/test_governance_promoted_phase_assets.py`, `tests/meta/test_phase114_open_source_surface_honesty_guards.py`
+- **Proof chain:** repo-wide terminal audit synthesis + developer/codebase topology forward sync + docs-first/private-access wording repair + patch-accurate Python floor / 3.14-family CI truth + selector/promoted-assets/ledgers freeze → `uv run pytest -q tests/meta/test_governance_bootstrap_smoke.py tests/meta/test_governance_route_handoff_smoke.py tests/meta/governance_followup_route_current_milestones.py tests/meta/test_governance_release_contract.py tests/meta/test_governance_release_docs.py tests/meta/test_governance_release_continuity.py tests/meta/toolchain_truth_docs_fast_path.py tests/meta/toolchain_truth_python_stack.py tests/meta/test_governance_promoted_phase_assets.py tests/meta/test_phase114_open_source_surface_honesty_guards.py` → `uv run python scripts/check_markdown_links.py` → `uv run python scripts/check_file_matrix.py --check` → `uv run ruff check .`
+- **Phase asset bundle:** `.planning/phases/131-repo-wide-terminal-audit-closeout-and-governance-continuity-decisions/{131-01-SUMMARY.md,131-02-SUMMARY.md,131-03-SUMMARY.md,131-SUMMARY.md,131-VERIFICATION.md,131-VALIDATION.md,131-TERMINAL-AUDIT.md}`
+- **Touched formal homes:** `.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md,MILESTONES.md}`, `.planning/baseline/{GOVERNANCE_REGISTRY.json,VERIFICATION_MATRIX.md}`, `.planning/reviews/{PROMOTED_PHASE_ASSETS.md,RESIDUAL_LEDGER.md,KILL_LIST.md}`, `.planning/codebase/{ARCHITECTURE.md,CONCERNS.md,TESTING.md}`, `docs/{README.md,developer_architecture.md,MAINTAINER_RELEASE_RUNBOOK.md}`, `CONTRIBUTING.md`, `pyproject.toml`, `tests/meta/{governance_followup_route_current_milestones.py,toolchain_truth_python_stack.py,test_governance_promoted_phase_assets.py}`
 
 ## Phase 130 Exit Contract
 

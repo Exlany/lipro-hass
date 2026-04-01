@@ -22,6 +22,8 @@ _CI_WORKFLOW = _ROOT / ".github" / "workflows" / "ci.yml"
 
 _RELEASE_WORKFLOW = _ROOT / ".github" / "workflows" / "release.yml"
 
+_GOVERNANCE_REGISTRY = _ROOT / ".planning" / "baseline" / "GOVERNANCE_REGISTRY.json"
+
 _SETUP_PYTHON = "actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405"
 
 
@@ -60,12 +62,17 @@ def test_python_toolchain_truth_is_aligned_to_314() -> None:
     devcontainer = _load_devcontainer()
     ci = _load_yaml(_CI_WORKFLOW)
     release = _load_yaml(_RELEASE_WORKFLOW)
+    registry = json.loads(_GOVERNANCE_REGISTRY.read_text(encoding="utf-8"))
 
     assert project["requires-python"] == ">=3.14.2"
     assert mypy["python_version"] == "3.14"
     assert ruff["target-version"] == "py314"
     assert pre_commit["default_language_version"]["python"] == "python3.14"
     assert devcontainer["image"].endswith("python:3.14")
+    assert registry["python"]["minimum_version"] == "3.14.2"
+    assert registry["python"]["requires_python"] == ">=3.14.2"
+    assert registry["install"]["stable_paths"] == ["verified_release_assets"]
+    assert registry["install"]["conditional_paths"] == ["HACS"]
 
     setup_python_versions: list[str] = []
     for workflow in (ci, release):

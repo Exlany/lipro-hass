@@ -23,8 +23,8 @@ Thank you for your interest in contributing to the Lipro Smart Home integration!
 ### Version Truth / 版本真源
 
 - Canonical minimum supported Home Assistant version: `2026.3.1` from `hacs.json`, kept in sync with the `pyproject.toml` dev pin (`homeassistant==2026.3.1`).
-- Canonical Python toolchain truth: minimum Python `3.14.2`, with development / CI targeting Python `3.14` (`requires-python`, `mypy`, `ruff`, `pre-commit`, devcontainer, and CI stay aligned under that contract).
-- 唯一 Python 工具链真相：最低 Python `3.14.2`，开发 / CI 目标为 Python `3.14`（`requires-python`、`mypy`、`ruff`、`pre-commit`、devcontainer 与 CI 都遵守这条契约）。
+- Canonical Python toolchain truth: minimum Python `3.14.2` (the dependency floor enforced by `requires-python` and Home Assistant), with development / CI targeting the `3.14` family (`mypy`, `ruff`, `pre-commit`, devcontainer, and CI stay aligned at the minor-version contract while the floor stays patch-accurate).
+- 唯一 Python 工具链真相：最低 Python `3.14.2`（由 `requires-python` 与 Home Assistant 依赖底线共同约束），开发 / CI 继续对齐 `3.14` 次版本族（`mypy`、`ruff`、`pre-commit`、devcontainer 与 CI 保持 minor-version 契约，而最低支持版本仍需精确到 patch）。
 - 唯一最低支持 Home Assistant 版本基线来源于 `hacs.json`，并与 `pyproject.toml` 中的开发 pin `homeassistant==2026.3.1` 保持同步。
 - Private repository / fork note: CI skips HACS validation because HACS only supports public GitHub repositories.
 - 私有仓库 / fork 说明：CI 会跳过 HACS validation，因为 HACS 只支持公开 GitHub 仓库。
@@ -36,6 +36,9 @@ Thank you for your interest in contributing to the Lipro Smart Home integration!
    git clone https://github.com/Exlany/lipro-hass.git
    cd lipro-hass
    ```
+
+   This clone route assumes your current access mode can already read the repository; if a future public mirror preserves the same contract, use that mirror instead of assuming this private-access checkout is universally reachable.
+   该克隆路径默认你当前已经具备仓库读取权限；若未来存在保持同一契约的 public mirror，请改用 mirror 路径，而不要假定当前 private-access 仓库对所有贡献者都天然可达。
 
 2. **Set up development environment / 设置开发环境**
    ```bash

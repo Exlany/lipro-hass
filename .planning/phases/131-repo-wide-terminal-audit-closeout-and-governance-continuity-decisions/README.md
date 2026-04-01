@@ -1,6 +1,6 @@
-# Phase 131 planning-ready
+# Phase 131 complete bundle
 
-此目录已从 queued placeholder 升级为 planning-ready phase workspace。
+此目录已完成 `Phase 131` 执行、验证与 closeout 收口。
 
-- 当前状态：`131-CONTEXT.md` 与 `131-RESEARCH.md` 已生成，下一步是 `$gsd-plan-phase 131`。
-- 目的：统一 repo-wide terminal audit closeout、最终审查报告、validation evidence 与 governance continuity decision boundary。
+- 当前状态：已具备 `CONTEXT` / `RESEARCH` / `PLAN` / `TERMINAL-AUDIT` / `SUMMARY` / `VERIFICATION` / `VALIDATION` 资产。
+- 目的：保留 repo-wide terminal audit、docs/toolchain honesty sync、selector closeout 与 final governance proof 的可审计执行链，并直接为 `$gsd-complete-milestone v1.37` 提供证据。

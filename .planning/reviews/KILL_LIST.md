@@ -1,5 +1,12 @@
 # Kill List
 
+
+## Phase 131 Status Update
+
+- `Phase 131` 没有创造新的 active kill target；本轮是 final audit、docs honesty、toolchain contract 与 selector/promoted-evidence freeze 的 closeout，不是新的 file-level delete campaign。
+- repo-external continuity / private fallback 仍只是 honest governance boundary；它们既不被伪装成已解决能力，也不构成仓内 file-level delete gate。
+- sanctioned hotspot formal homes 继续保留为可审计正式归属；若后续继续减压，只能通过新 milestone / phase 显式推进，而不是回写当前 closeout truth。
+
 ## Phase 130 Status Update
 
 - `Phase 130` 没有创造新的 active kill target；本轮是 `command_runtime.py` / `firmware_update.py` sanctioned hotspot 的 inward slimming，而不是新的 file-level delete campaign。

@@ -548,62 +548,82 @@ phases:
   - 119-VERIFICATION.md
   - 119-VALIDATION.md
 
-120-terminal-audit-contract-hardening-and-governance-truth-slimming:
-- 120-01-SUMMARY.md
-- 120-02-SUMMARY.md
-- 120-03-SUMMARY.md
-- 120-VERIFICATION.md
-121-residual-contract-closure-flow-invariant-tightening-surface-hygiene-cleanup:
-- 121-01-SUMMARY.md
-- 121-02-SUMMARY.md
-- 121-03-SUMMARY.md
-- 121-VERIFICATION.md
-122-master-audit-ledger-public-first-hop-boundary-finalization-metadata-traceability-and-focused-guard-sealing:
-- 122-01-SUMMARY.md
-- 122-02-SUMMARY.md
-- 122-03-SUMMARY.md
-- 122-VERIFICATION.md
-123-service-router-family-reconvergence-control-plane-locality-tightening-and-public-architecture-hygiene:
-- 123-01-SUMMARY.md
-- 123-02-SUMMARY.md
-- 123-03-SUMMARY.md
-- 123-VERIFICATION.md
-124-config-entry-auth-seed-normalization-config-flow-adapter-thinning-and-schedule-contract-closure:
-- 124-01-SUMMARY.md
-- 124-02-SUMMARY.md
-- 124-03-SUMMARY.md
-- 124-04-SUMMARY.md
-- 124-05-SUMMARY.md
-- 124-SUMMARY.md
-- 124-VERIFICATION.md
-125-terminal-residual-eradication-runtime-types-decomposition-adapter-final-thinning-and-machine-readable-governance-extraction:
-- 125-01-SUMMARY.md
-- 125-02-SUMMARY.md
-- 125-03-SUMMARY.md
-- 125-04-SUMMARY.md
-- 125-05-SUMMARY.md
-- 125-SUMMARY.md
-- 125-VERIFICATION.md
+  120-terminal-audit-contract-hardening-and-governance-truth-slimming:
+  - 120-01-SUMMARY.md
+  - 120-02-SUMMARY.md
+  - 120-03-SUMMARY.md
+  - 120-VERIFICATION.md
+  121-residual-contract-closure-flow-invariant-tightening-surface-hygiene-cleanup:
+  - 121-01-SUMMARY.md
+  - 121-02-SUMMARY.md
+  - 121-03-SUMMARY.md
+  - 121-VERIFICATION.md
+  122-master-audit-ledger-public-first-hop-boundary-finalization-metadata-traceability-and-focused-guard-sealing:
+  - 122-01-SUMMARY.md
+  - 122-02-SUMMARY.md
+  - 122-03-SUMMARY.md
+  - 122-VERIFICATION.md
+  123-service-router-family-reconvergence-control-plane-locality-tightening-and-public-architecture-hygiene:
+  - 123-01-SUMMARY.md
+  - 123-02-SUMMARY.md
+  - 123-03-SUMMARY.md
+  - 123-VERIFICATION.md
+  124-config-entry-auth-seed-normalization-config-flow-adapter-thinning-and-schedule-contract-closure:
+  - 124-01-SUMMARY.md
+  - 124-02-SUMMARY.md
+  - 124-03-SUMMARY.md
+  - 124-04-SUMMARY.md
+  - 124-05-SUMMARY.md
+  - 124-SUMMARY.md
+  - 124-VERIFICATION.md
+  125-terminal-residual-eradication-runtime-types-decomposition-adapter-final-thinning-and-machine-readable-governance-extraction:
+  - 125-01-SUMMARY.md
+  - 125-02-SUMMARY.md
+  - 125-03-SUMMARY.md
+  - 125-04-SUMMARY.md
+  - 125-05-SUMMARY.md
+  - 125-SUMMARY.md
+  - 125-VERIFICATION.md
 
-126-service-router-developer-callback-home-convergence-and-diagnostics-helper-residual-slimming:
-- 126-01-SUMMARY.md
-- 126-SUMMARY.md
-- 126-VERIFICATION.md
-- 126-VALIDATION.md
-127-runtime-access-de-reflection-typed-runtime-entry-contracts-and-hotspot-continuation:
-- 127-01-SUMMARY.md
-- 127-02-SUMMARY.md
-- 127-03-SUMMARY.md
-- 127-SUMMARY.md
-- 127-VERIFICATION.md
-- 127-VALIDATION.md
-128-open-source-readiness-benchmark-coverage-gates-and-maintainer-continuity-hardening:
-- 128-01-SUMMARY.md
-- 128-02-SUMMARY.md
-- 128-03-SUMMARY.md
-- 128-SUMMARY.md
-- 128-VERIFICATION.md
-- 128-VALIDATION.md
+  126-service-router-developer-callback-home-convergence-and-diagnostics-helper-residual-slimming:
+  - 126-01-SUMMARY.md
+  - 126-SUMMARY.md
+  - 126-VERIFICATION.md
+  - 126-VALIDATION.md
+  127-runtime-access-de-reflection-typed-runtime-entry-contracts-and-hotspot-continuation:
+  - 127-01-SUMMARY.md
+  - 127-02-SUMMARY.md
+  - 127-03-SUMMARY.md
+  - 127-SUMMARY.md
+  - 127-VERIFICATION.md
+  - 127-VALIDATION.md
+  128-open-source-readiness-benchmark-coverage-gates-and-maintainer-continuity-hardening:
+  - 128-01-SUMMARY.md
+  - 128-02-SUMMARY.md
+  - 128-03-SUMMARY.md
+  - 128-SUMMARY.md
+  - 128-VERIFICATION.md
+  - 128-VALIDATION.md
+  129-rest-fallback-explicit-surface-convergence-and-api-hotspot-slimming:
+  - 129-01-SUMMARY.md
+  - 129-02-SUMMARY.md
+  - 129-SUMMARY.md
+  - 129-VERIFICATION.md
+  - 129-VALIDATION.md
+  130-runtime-command-and-firmware-update-hotspot-decomposition:
+  - 130-01-SUMMARY.md
+  - 130-02-SUMMARY.md
+  - 130-SUMMARY.md
+  - 130-VERIFICATION.md
+  - 130-VALIDATION.md
+  131-repo-wide-terminal-audit-closeout-and-governance-continuity-decisions:
+  - 131-01-SUMMARY.md
+  - 131-02-SUMMARY.md
+  - 131-03-SUMMARY.md
+  - 131-SUMMARY.md
+  - 131-VERIFICATION.md
+  - 131-VALIDATION.md
+  - 131-TERMINAL-AUDIT.md
 policy:
   default_identity: execution-trace
   promotion_contract: Only assets listed under `phases` count as long-term governance/CI

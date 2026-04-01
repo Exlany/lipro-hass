@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `v1.36 archived closeout / Phase 128 complete` (`2026-04-01`)
-> **Current route alignment**: `no active milestone route / latest archived baseline = v1.36` (`2026-04-01`)
+> **Last aligned through**: `v1.37 closeout-ready / Phase 131 complete` (`2026-04-01`)
+> **Current route alignment**: `v1.37 active milestone route / starting from latest archived baseline = v1.36` (`2026-04-01`, closeout-ready)
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
@@ -14,6 +14,12 @@
 - 先看下方的“快速导航”“五大平面”“当前正式主链”，这是 current-topology first hop。
 - historical freeze / typed-boundary / sanitizer / assurance notes 已下沉到 `docs/architecture_archive.md`，作为 pull-only appendix 供回溯，不再占据当前开发入口主线。
 - predecessor archive selector note 仍可在本文回溯到：`no active milestone route / latest archived baseline = v1.34`；这只是历史锚点，不再代表当前 live route。
+
+## Phase 131 Terminal Audit Closeout
+
+- `Phase 131` 已把 repo-wide terminal audit、docs-first routing、toolchain truth 与 selector governance 收敛到同一条 current story：当前 active route 仍是 `v1.37`，但工作状态已进入 `Phase 131 complete / closeout-ready`，下一步只剩 `$gsd-complete-milestone v1.37`。
+- sanctioned hotspot 仍保留为正式 home，而不是被重新叙述成 delete target：重点关注 `rest_facade.py`、`runtime_types.py`、`request_policy.py`、`dispatch.py`、`auth/manager.py` 与 `firmware_update.py` 这类仍需后续持续减压的 formal files。
+- repo-external continuity / private fallback 仍是 honest governance boundary：仓内文档与 registry 已明确 freeze posture / no-hidden-delegate / no-guaranteed-non-GitHub-private-fallback，而不是伪装成已在仓内解决。
 
 ## 快速导航
 

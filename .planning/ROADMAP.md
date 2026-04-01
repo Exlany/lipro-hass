@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🚧 **v1.37 Repo-Wide Terminal Audit, Hotspot Decomposition & Governance Continuity Decisions** - `Phase 129 -> 131` active on 2026-04-01; current route truth = `v1.37 active milestone route / starting from latest archived baseline = v1.36`; phase handoff = `active / phase 130 complete; phase 131 planning-ready (2026-04-01)`; next step = `$gsd-plan-phase 131`
+- 🚧 **v1.37 Repo-Wide Terminal Audit, Hotspot Decomposition & Governance Continuity Decisions** - `Phase 129 -> 131` active on 2026-04-01; current route truth = `v1.37 active milestone route / starting from latest archived baseline = v1.36`; phase handoff = `active / phase 131 complete; closeout-ready (2026-04-01)`; next step = `$gsd-complete-milestone v1.37`
 - ✅ **v1.36 Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening** - `Phase 126 -> 128` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.36`; evidence index = `.planning/reviews/V1_36_EVIDENCE_INDEX.md`
 - ✅ **v1.35 Master Audit Closure, Public Surface Finalization & Release Traceability** - `Phase 122 -> 125` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.35`; evidence index = `.planning/reviews/V1_35_EVIDENCE_INDEX.md`
 - ✅ **v1.34 Terminal Audit Closure, Contract Hardening & Governance Truth Slimming** - `Phase 120 -> 121` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.34`; evidence index = `.planning/reviews/V1_34_EVIDENCE_INDEX.md`
@@ -24,18 +24,16 @@ projection_targets:
 active_milestone:
   version: v1.37
   name: Repo-Wide Terminal Audit, Hotspot Decomposition & Governance Continuity Decisions
-  status: active / phase 130 complete; phase 131 planning-ready (2026-04-01)
-  phase: '130'
-  phase_title: runtime command and firmware-update hotspot decomposition
-  phase_dir: 130-runtime-command-and-firmware-update-hotspot-decomposition
+  status: active / phase 131 complete; closeout-ready (2026-04-01)
+  phase: '131'
+  phase_title: repo-wide terminal audit closeout and governance continuity decisions
+  phase_dir: 131-repo-wide-terminal-audit-closeout-and-governance-continuity-decisions
 latest_archived:
   version: v1.36
-  name: Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source
-    Readiness Hardening
+  name: Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening
   status: archived / evidence-ready (2026-04-01)
   phase: '128'
-  phase_title: open-source readiness, benchmark-coverage gates, and maintainer continuity
-    hardening
+  phase_title: open-source readiness, benchmark-coverage gates, and maintainer continuity hardening
   phase_dir: 128-open-source-readiness-benchmark-coverage-gates-and-maintainer-continuity-hardening
   audit_path: .planning/v1.36-MILESTONE-AUDIT.md
   evidence_path: .planning/reviews/V1_36_EVIDENCE_INDEX.md
@@ -45,9 +43,8 @@ previous_archived:
   name: Master Audit Closure, Public Surface Finalization & Release Traceability
   evidence_path: .planning/reviews/V1_35_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.37 active milestone route / starting from latest archived baseline
-    = v1.36
-  default_next_command: $gsd-plan-phase 131
+  current_route: v1.37 active milestone route / starting from latest archived baseline = v1.36
+  default_next_command: $gsd-complete-milestone v1.37
   latest_archived_evidence_pointer: .planning/reviews/V1_36_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -56,14 +53,14 @@ bootstrap:
 `v1.37` 以 archived baseline `v1.36` 为起点，先用 `Phase 129` 收口 `rest_facade.py` / `status_fallback_support.py` 的显式组合与 fallback hotspot，再用 `Phase 130` 继续 inward split `command_runtime.py` / `firmware_update.py` 的 multi-topic formal homes，最后由 `Phase 131` 固化 repo-wide terminal audit 报告、governance continuity decision boundary 与 final validation evidence。
 
 **Coverage:** `12/12` `v1.37` requirements mapped exactly once.
-**Default next command:** `$gsd-plan-phase 131`
+**Default next command:** `$gsd-complete-milestone v1.37`
 
 ## Current Milestone
 
 ## v1.37: Repo-Wide Terminal Audit, Hotspot Decomposition & Governance Continuity Decisions
 
-**Milestone status:** `active / phase 130 complete; phase 131 planning-ready (2026-04-01)`
-**Default next command:** `$gsd-plan-phase 131`
+**Milestone status:** `active / phase 131 complete; closeout-ready (2026-04-01)`
+**Default next command:** `$gsd-complete-milestone v1.37`
 **Current route story:** `v1.37 active milestone route / starting from latest archived baseline = v1.36`
 **Latest archived pointer:** `.planning/reviews/V1_36_EVIDENCE_INDEX.md`
 **Latest archived audit artifact:** `.planning/v1.36-MILESTONE-AUDIT.md`
@@ -74,7 +71,7 @@ bootstrap:
 
 - [x] **Phase 129: rest fallback explicit-surface convergence and api hotspot slimming** - 已完成 `rest_facade.py` / `status_fallback_support.py` 的显式组合化瘦身、focused regression 冻结与 active-route sync。 (complete 2026-04-01)
 - [x] **Phase 130: runtime command and firmware-update hotspot decomposition** - 已完成 `command_runtime.py` / `entities/firmware_update.py` 的 inward split、focused proof freeze 与 active-route/governance sync。 (complete 2026-04-01)
-- [ ] **Phase 131: repo-wide terminal audit closeout and governance continuity decisions** - 产出终极审阅报告、统一 current docs/governance truth，并把 external continuity/private-fallback debt 诚实 codify 为 decision boundary。
+- [x] **Phase 131: repo-wide terminal audit closeout and governance continuity decisions** - 已完成终极审阅报告、统一 current docs/governance truth、补齐 promoted evidence / selector closeout，并将 external continuity/private-fallback debt 冻结为 honest governance boundary。
 
 ## Phase Details
 
@@ -114,7 +111,11 @@ bootstrap:
   2. `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES`、关键 docs 与 final report 对 active route / latest archived baseline / external decision boundary 讲同一条 current story。
   3. repo-internal 可修项与 repo-external 现实 debt 明确分流：前者有代码/文档/测试证据，后者明确保留为 honest unresolved governance boundary。
   4. validation evidence 会冻结本轮 touched hotspots、repo-wide audit truth 与 docs/governance selector 一致性。
-**Plans:** 0 plans
+**Plans:** 3/3 complete — `131-01` terminal audit synthesis / topology closeout、`131-02` docs-first/toolchain/registry honesty hardening、`131-03` governance closeout / promoted evidence / validation route sync
+**Execution summaries**: `131-01-SUMMARY.md`, `131-02-SUMMARY.md`, `131-03-SUMMARY.md`, `131-SUMMARY.md`
+**Verification**: `131-VERIFICATION.md`
+**Validation**: `131-VALIDATION.md`
+**Audit report**: `131-TERMINAL-AUDIT.md`
 
 ## Latest Archived Milestone
 

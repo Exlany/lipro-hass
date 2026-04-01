@@ -493,3 +493,81 @@ def test_phase_89_closeout_assets_exist_and_are_promoted() -> None:
         "## Phase 89 Runtime Boundary Tightening / Tooling Kernel Decoupling / Open-Source Entry Convergence"
         in verification_text
     )
+
+
+def test_phase_129_closeout_assets_exist_and_are_promoted() -> None:
+    _assert_promoted_phase_assets(
+        "129-rest-fallback-explicit-surface-convergence-and-api-hotspot-slimming",
+        "129-01-SUMMARY.md",
+        "129-02-SUMMARY.md",
+        "129-SUMMARY.md",
+        "129-VERIFICATION.md",
+        "129-VALIDATION.md",
+    )
+
+    verification_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
+
+    assert "## Phase 129 Exit Contract" in verification_text
+
+
+def test_phase_130_closeout_assets_exist_and_are_promoted() -> None:
+    _assert_promoted_phase_assets(
+        "130-runtime-command-and-firmware-update-hotspot-decomposition",
+        "130-01-SUMMARY.md",
+        "130-02-SUMMARY.md",
+        "130-SUMMARY.md",
+        "130-VERIFICATION.md",
+        "130-VALIDATION.md",
+    )
+
+    verification_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    residual_text = (
+        _ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md"
+    ).read_text(encoding="utf-8")
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "## Phase 130 Exit Contract" in verification_text
+    assert "## Phase 130 Residual Delta" in residual_text
+    assert "## Phase 130 Status Update" in kill_text
+
+
+def test_phase_131_closeout_assets_exist_and_are_promoted() -> None:
+    _assert_promoted_phase_assets(
+        "131-repo-wide-terminal-audit-closeout-and-governance-continuity-decisions",
+        "131-01-SUMMARY.md",
+        "131-02-SUMMARY.md",
+        "131-03-SUMMARY.md",
+        "131-SUMMARY.md",
+        "131-VERIFICATION.md",
+        "131-VALIDATION.md",
+        "131-TERMINAL-AUDIT.md",
+    )
+    _assert_phase_assets_not_promoted(
+        "131-repo-wide-terminal-audit-closeout-and-governance-continuity-decisions",
+        "131-CONTEXT.md",
+        "131-RESEARCH.md",
+        "131-01-PLAN.md",
+        "131-02-PLAN.md",
+        "131-03-PLAN.md",
+    )
+
+    verification_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    residual_text = (
+        _ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md"
+    ).read_text(encoding="utf-8")
+    kill_text = (_ROOT / ".planning" / "reviews" / "KILL_LIST.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "## Phase 131 Exit Contract" in verification_text
+    assert "## Phase 131 Residual Delta" in residual_text
+    assert "## Phase 131 Status Update" in kill_text
+
