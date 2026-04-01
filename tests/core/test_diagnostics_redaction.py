@@ -8,6 +8,10 @@ from custom_components.lipro.control.diagnostics_surface import (
     DiagnosticsPayload,
     DiagnosticsValue,
 )
+from custom_components.lipro.core.utils.redaction import (
+    EXPLICIT_SENSITIVE_KEY_VARIANTS,
+    PROPERTY_REDACTION_KEY_VARIANTS,
+)
 from custom_components.lipro.diagnostics import (
     PROPERTY_KEYS_TO_REDACT,
     TO_REDACT,
@@ -207,3 +211,13 @@ class TestPropertyKeysToRedact:
 
     def test_count(self):
         assert len(PROPERTY_KEYS_TO_REDACT) == 7
+
+class TestSharedRedactionRegistries:
+    """Tests for shared diagnostics/share redaction registries."""
+
+    def test_top_level_redaction_keys_follow_shared_registry(self):
+        assert set(EXPLICIT_SENSITIVE_KEY_VARIANTS) == TO_REDACT
+
+    def test_property_redaction_keys_follow_shared_registry(self):
+        assert set(PROPERTY_REDACTION_KEY_VARIANTS) == PROPERTY_KEYS_TO_REDACT
+

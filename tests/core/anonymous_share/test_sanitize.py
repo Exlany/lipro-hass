@@ -9,11 +9,13 @@ from custom_components.lipro.core.anonymous_share.sanitize import (
     _MAX_DICT_ITEMS,
     _MAX_NESTED_DEPTH,
     _MAX_STRING_LENGTH,
+    REDACT_KEYS,
     looks_sensitive,
     sanitize_properties,
     sanitize_string,
     sanitize_value,
 )
+from custom_components.lipro.core.utils.redaction import EXPLICIT_SENSITIVE_KEY_VARIANTS
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -228,6 +230,18 @@ class TestSanitizeProperties:
         result = sanitize_properties(props)
 
         assert result == {"safe": "ok"}
+
+    def test_iot_name_remains_preserved_under_shared_registry(self):
+        props = {
+            "iotName": "Living Room Light",
+            "deviceId": "secret-id",
+        }
+        result = sanitize_properties(props)
+
+        assert result == {"iotName": "Living Room Light"}
+
+    def test_share_redaction_keys_follow_shared_registry(self):
+        assert REDACT_KEYS == EXPLICIT_SENSITIVE_KEY_VARIANTS
 
     def test_secret_like_string_fragments_keep_share_markers(self):
         result = sanitize_string(

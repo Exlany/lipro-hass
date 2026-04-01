@@ -17,7 +17,7 @@ This repository currently follows a single-maintainer release model. Every tagge
 - Canonical release-notes summary: `CHANGELOG.md` (maintainer-facing release posture summary, not a second runbook)
 - Canonical route-selector family: `.planning/baseline/GOVERNANCE_REGISTRY.json::planning_route` → `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md` (registry-owned current selector family; current resolution = `no active milestone route / latest archived baseline = v1.35`; default next = `$gsd-new-milestone`)
 - Canonical latest archived evidence index: `.planning/reviews/V1_35_EVIDENCE_INDEX.md`
-- Canonical latest archived milestone audit: `.planning/v1.34-MILESTONE-AUDIT.md` (pull-only evidence verdict, not current route truth)
+- Canonical latest archived milestone audit: `.planning/v1.35-MILESTONE-AUDIT.md` (pull-only evidence verdict, not current route truth)
 - Canonical firmware certification trust-root asset: `custom_components/lipro/firmware_support_manifest.json` (historical filename retained)
 
 Private repositories and forks skip CI HACS validation because HACS only supports public GitHub repositories; do not treat a skipped HACS job as a release blocker in that case.

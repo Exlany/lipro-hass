@@ -12,12 +12,11 @@ from ..const.config import (
     CONF_DEVICE_FILTER_HOME_LIST,
     CONF_DEVICE_FILTER_MODEL_LIST,
     CONF_DEVICE_FILTER_SSID_LIST,
-    CONF_PHONE,
-    CONF_PHONE_ID,
 )
-from ..const.properties import PROP_BLE_MAC, PROP_IP, PROP_MAC, PROP_WIFI_SSID
 from ..core.utils.redaction import (
     DIAGNOSTICS_REDACTION_MARKERS,
+    EXPLICIT_SENSITIVE_KEY_VARIANTS,
+    PROPERTY_REDACTION_KEY_VARIANTS,
     PROPERTY_SENSITIVE_KEY_NAMES,
     is_sensitive_key_name,
     normalize_redaction_key,
@@ -25,30 +24,7 @@ from ..core.utils.redaction import (
     redact_sensitive_text,
 )
 
-TO_REDACT: Final = {
-    CONF_PHONE,
-    CONF_PHONE_ID,
-    "password",
-    "password_hash",
-    "access_token",
-    "access_key",
-    "refresh_token",
-    "refresh_access_key",
-    "secret",
-    "secret_key",
-    "user_id",
-    "userId",
-    "biz_id",
-    "bizId",
-    "serial",
-    "device_id",
-    "deviceId",
-    "iot_device_id",
-    "iotDeviceId",
-    "groupId",
-    "iotName",
-    "gatewayDeviceId",
-}
+TO_REDACT: Final = set(EXPLICIT_SENSITIVE_KEY_VARIANTS)
 
 OPTIONS_TO_REDACT: Final = TO_REDACT | {
     CONF_DEVICE_FILTER_HOME_LIST,
@@ -57,15 +33,7 @@ OPTIONS_TO_REDACT: Final = TO_REDACT | {
     CONF_DEVICE_FILTER_DID_LIST,
 }
 
-PROPERTY_KEYS_TO_REDACT: Final = {
-    PROP_MAC,
-    PROP_IP,
-    PROP_BLE_MAC,
-    PROP_WIFI_SSID,
-    "wifiSsid",
-    "macAddress",
-    "ipAddress",
-}
+PROPERTY_KEYS_TO_REDACT: Final = set(PROPERTY_REDACTION_KEY_VARIANTS)
 
 _NESTED_KEYS_TO_REDACT: Final[frozenset[str]] = frozenset(
     {

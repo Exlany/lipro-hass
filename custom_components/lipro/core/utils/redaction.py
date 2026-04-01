@@ -94,6 +94,65 @@ PROPERTY_SENSITIVE_KEY_NAMES: Final[frozenset[str]] = frozenset(
     }
 )
 
+EXPLICIT_SENSITIVE_KEY_VARIANTS: Final[frozenset[str]] = frozenset(
+    {
+        "accessKey",
+        "access_key",
+        "access_token",
+        "accessToken",
+        "apiKey",
+        "biz_id",
+        "bizId",
+        "bleMac",
+        "deviceId",
+        "deviceName",
+        "device_id",
+        "gatewayDeviceId",
+        "gateway_device_id",
+        "groupId",
+        "installToken",
+        "install_token",
+        "iotDeviceId",
+        "iotName",
+        "iot_device_id",
+        "ip",
+        "ipAddress",
+        "mac",
+        "macAddress",
+        "password",
+        "password_hash",
+        "phone",
+        "phoneId",
+        "phone_id",
+        "refresh_access_key",
+        "refresh_token",
+        "refreshToken",
+        "roomId",
+        "roomName",
+        "secret",
+        "secretKey",
+        "secret_key",
+        "serial",
+        "ssid",
+        "userId",
+        "user_id",
+        "wifiSsid",
+        "wifi_ssid",
+    }
+)
+
+PROPERTY_REDACTION_KEY_VARIANTS: Final[frozenset[str]] = frozenset(
+    {
+        "bleMac",
+        "ip",
+        "ipAddress",
+        "mac",
+        "macAddress",
+        "wifiSsid",
+        "wifi_ssid",
+    }
+)
+
 TELEMETRY_REFERENCE_ALIASES: Final[dict[str, str]] = {
     "device_id": "device_ref",
     "deviceid": "device_ref",
@@ -301,6 +360,8 @@ def redact_sensitive_text(
 
 __all__ = [
     "DIAGNOSTICS_REDACTION_MARKERS",
+    "EXPLICIT_SENSITIVE_KEY_VARIANTS",
+    "PROPERTY_REDACTION_KEY_VARIANTS",
     "PROPERTY_SENSITIVE_KEY_NAMES",
     "SHARED_SENSITIVE_KEY_NAMES",
     "SHARE_REDACTION_MARKERS",

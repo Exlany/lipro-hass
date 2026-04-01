@@ -6,6 +6,7 @@ import json
 from typing import Any, Final
 
 from ..utils.redaction import (
+    EXPLICIT_SENSITIVE_KEY_VARIANTS,
     SHARE_REDACTION_MARKERS,
     is_sensitive_key_name,
     looks_sensitive_value,
@@ -13,46 +14,7 @@ from ..utils.redaction import (
     redact_sensitive_text,
 )
 
-REDACT_KEYS: Final = frozenset(
-    {
-        "accessKey",
-        "access_token",
-        "accessToken",
-        "apiKey",
-        "biz_id",
-        "bizId",
-        "bleMac",
-        "deviceId",
-        "deviceName",
-        "device_id",
-        "gatewayDeviceId",
-        "gateway_device_id",
-        "groupId",
-        "installToken",
-        "install_token",
-        "iotDeviceId",
-        "iot_device_id",
-        "ip",
-        "ipAddress",
-        "mac",
-        "macAddress",
-        "password",
-        "phone",
-        "phoneId",
-        "phone_id",
-        "refresh_token",
-        "refreshToken",
-        "roomId",
-        "roomName",
-        "secretKey",
-        "serial",
-        "ssid",
-        "userId",
-        "user_id",
-        "wifiSsid",
-        "wifi_ssid",
-    }
-)
+REDACT_KEYS: Final = EXPLICIT_SENSITIVE_KEY_VARIANTS
 
 _REDACT_KEYS_NORMALIZED: Final[frozenset[str]] = frozenset(
     normalize_redaction_key(key) for key in REDACT_KEYS
