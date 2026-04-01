@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import tomllib
-from typing import Any
 
 import yaml
 
@@ -32,13 +31,13 @@ def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def _load_json(path: Path) -> dict[str, Any]:
+def _load_json(path: Path) -> dict[str, object]:
     loaded = json.loads(path.read_text(encoding="utf-8"))
     assert isinstance(loaded, dict)
     return loaded
 
 
-def _load_yaml(path: Path) -> dict[str, Any]:
+def _load_yaml(path: Path) -> dict[str, object]:
     loaded = yaml.safe_load(path.read_text(encoding="utf-8"))
     assert isinstance(loaded, dict)
     return loaded

@@ -89,6 +89,16 @@ bootstrap:
 - Promoted phase evidence allowlist: `.planning/reviews/PROMOTED_PHASE_ASSETS.md`
 - Latest archived audit verdict: `.planning/v1.31-MILESTONE-AUDIT.md`
 - North-star authority: `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`
+- Historical terminal audit pointer: `.planning/reviews/V1_23_TERMINAL_AUDIT.md`
+
+## Historical Continuity Anchors
+
+以下锚点仅用于保留历史 phase / milestone 搜索可见性，不重新激活旧 route。
+
+- `v1.1` 已完成全部计划执行：`15 phases / 58 plans` 全绿落表
+- `Phase 17` 已完成：最终 residual retirement / typed contract tightening / milestone closeout 已归档为历史基线。
+- `Phase 24` 已完成并于 2026-03-17 重新验证
+- `Phase 85` terminal audit archive anchor: `.planning/reviews/V1_23_TERMINAL_AUDIT.md`
 
 ## Accumulated Context
 

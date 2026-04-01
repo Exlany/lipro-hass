@@ -46,14 +46,12 @@ type OtaRow = dict[str, object]
 type OtaCommandProperty = dict[str, str]
 type FirmwareManifestVersions = tuple[frozenset[str], dict[str, frozenset[str]]]
 
-
 @dataclass(slots=True)
 class _InstallCommand:
     """Normalized install command payload."""
 
     command: str
     properties: list[OtaCommandProperty] | None
-
 
 @dataclass(slots=True)
 class _OtaCandidate:

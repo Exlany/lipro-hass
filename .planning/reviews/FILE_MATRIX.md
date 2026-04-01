@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 750
+**Python files total:** 751
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -234,6 +234,7 @@
 | `custom_components/lipro/core/mqtt/transport_runtime.py` | Protocol | Phase 2.5 | 重构 | - |
 | `custom_components/lipro/core/ota/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/ota/candidate.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/ota/candidate_certification_support.py` | Cross-cutting | Phase 117 | 保留 | ota certification inward collaborator home |
 | `custom_components/lipro/core/ota/candidate_support.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/ota/manifest.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/ota/query_support.py` | Cross-cutting | Phase 7 | 保留 | - |

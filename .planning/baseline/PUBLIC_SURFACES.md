@@ -260,7 +260,7 @@
 - `custom_components/lipro/core/device/extras.py` 继续是 `DeviceExtras` formal home；`custom_components/lipro/core/device/extras_support.py` 只承接 payload / panel parsing support mechanics，名称已与 `extras*` family 对齐，但它不是新的 public root。
 - `custom_components/lipro/core/api/endpoint_surface.py` 继续只作为 REST endpoint operations localized collaborator 存在；尽管名称保留历史写法，它仍不是第二 façade、第二 public surface 或 package export。
 - diagnostics public/import story 不变：`custom_components/lipro/control/service_router.py` 继续是 diagnostics public handler home，`helpers.py` 继续是 focused diagnostics import home，而 `feedback_handlers.py`、`command_result_handlers.py`、`capability_handlers.py` 与 `helper_support.py` 都只作为 inward collaborators / mechanics seams 存在。
-- `manager.py` / `share_client.py` / `candidate.py` / `select.py` 的 outward-home truth 不变；`manager_submission.py`、`share_client_{flows,ports,refresh,submit}.py`、`candidate_support.py` 与 `select_internal/gear.py` 继续只以 inward collaborator 身份存在。
+- `manager.py` / `share_client.py` / `candidate.py` / `select.py` 的 outward-home truth 不变；`manager_submission.py`、`share_client_{flows,ports,refresh,submit}.py`、`candidate_{support,certification_support}.py` 与 `select_internal/gear.py` 继续只以 inward collaborator 身份存在。
 - public discoverability 继续保持单一路由：`README(.md/.zh)` 负责 public first hop，`docs/README.md` 负责 canonical docs map，`docs/MAINTAINER_RELEASE_RUNBOOK.md` 继续是 maintainer-only appendix。
 
 

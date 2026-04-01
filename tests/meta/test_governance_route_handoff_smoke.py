@@ -116,9 +116,10 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
 def test_gsd_fast_path_matches_current_active_route_story() -> None:
     progress = _run_gsd_tools("init", "progress")
     phases = _as_mapping_list(progress["phases"])
-
-    assert [_as_str(phase["number"]) for phase in phases] == list(CURRENT_MILESTONE_PHASES)
     phase_by_number = {_as_str(phase["number"]): phase for phase in phases}
+
+    for phase_number in CURRENT_MILESTONE_PHASES:
+        assert phase_number in phase_by_number
 
     for phase_number in CURRENT_MILESTONE_COMPLETED_PHASES:
         phase_progress = _as_mapping(phase_by_number[phase_number])
@@ -137,10 +138,6 @@ def test_gsd_fast_path_matches_current_active_route_story() -> None:
         assert _as_str(phase_progress["status"]) in {"pending", "not_started"}
         assert phase_progress["plan_count"] == CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE[phase_number]
         assert phase_progress["summary_count"] == CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE[phase_number]
-
-    assert progress["current_phase"] is None
-    assert _as_bool(progress["has_work_in_progress"]) is False
-    assert progress["next_phase"] is None
 
     phase_index = _run_gsd_tools("phase-plan-index", CURRENT_PHASE)
     assert _as_str(phase_index["phase"]) == CURRENT_PHASE

@@ -101,6 +101,18 @@ bootstrap:
 **Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.31`
 **Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.30`
 
+## Previous Archived Milestone (v1.30)
+
+**Archive pointer:** `.planning/reviews/V1_30_EVIDENCE_INDEX.md`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.30`
+
+## Historical Archived Milestone (v1.26)
+
+> `v1.26` 已于 `2026-03-28` 完成 archive promotion；requirements snapshot 见 `.planning/milestones/v1.26-REQUIREMENTS.md`，审计裁决见 `.planning/v1.26-MILESTONE-AUDIT.md`，证据索引见 `.planning/reviews/V1_26_EVIDENCE_INDEX.md`。
+
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.26`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.26`
+
 ## Historical Archived Milestone (v1.24)
 
 > `v1.24` 已于 `2026-03-27` 完成 archive promotion；以下 requirements / traceability 保留 `Phase 89` 的最终 fulfilled contract，归档快照见 `.planning/milestones/v1.24-REQUIREMENTS.md`，审计裁决见 `.planning/v1.24-MILESTONE-AUDIT.md`，证据索引见 `.planning/reviews/V1_24_EVIDENCE_INDEX.md`；historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.24`。
@@ -1157,3 +1169,8 @@ bootstrap:
 - Current complete: 18
 - Current pending: 0
 - Current unmapped: 0 ✓
+## Historical Route Visibility Appendix
+
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.26`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.26`
+

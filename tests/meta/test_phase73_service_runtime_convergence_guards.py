@@ -46,7 +46,7 @@ def test_phase73_platform_helper_uses_formal_runtime_contract() -> None:
 
     assert ".runtime_data" not in entity_text
     assert ".devices" not in entity_text
-    assert "self.coordinator.get_device(self._device.serial)" in entity_text
+    assert "self.runtime_coordinator.get_device(self._device.serial)" in entity_text
 
 
 def test_phase73_schedule_service_calls_use_coordinator_schedule_surface() -> None:

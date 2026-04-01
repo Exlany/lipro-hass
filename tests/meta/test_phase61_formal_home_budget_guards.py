@@ -20,6 +20,7 @@ _LINE_BUDGETS = {
     "services/diagnostics/handlers.py": 163,
     "core/ota/candidate.py": 229,
     "core/ota/candidate_support.py": 249,
+    "core/ota/candidate_certification_support.py": 160,
     "select.py": 400,
     "select_internal/gear.py": 130,
 }
@@ -27,6 +28,7 @@ _LINE_BUDGETS = {
 _CLEAN_SUPPORT_TARGETS = {
     "core/ota/candidate.py",
     "core/ota/candidate_support.py",
+    "core/ota/candidate_certification_support.py",
     "select.py",
     "select_internal/gear.py",
 }
@@ -34,6 +36,9 @@ _CLEAN_SUPPORT_TARGETS = {
 _INTERNAL_SUPPORT_IMPORTS = {
     "custom_components.lipro.core.ota.candidate_support": {
         "custom_components/lipro/core/ota/candidate.py",
+    },
+    "custom_components.lipro.core.ota.candidate_certification_support": {
+        "custom_components/lipro/core/ota/candidate_support.py",
     },
     "custom_components.lipro.select_internal.gear": {
         "custom_components/lipro/select.py",

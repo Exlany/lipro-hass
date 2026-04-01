@@ -104,6 +104,8 @@ bootstrap:
 | 116. Anonymous-share and REST façade hotspot slimming | 3/3 | Complete | 2026-03-31 |
 | 117. Validation backfill and continuity hardening | 3/3 | Complete | 2026-03-31 |
 
+## Latest Archived Milestone (v1.31)
+
 ## v1.31: Boundary Sealing, Governance Truth & Quality Hardening
 
 > `v1.31` 沿 `v1.30` latest archived baseline 的唯一 north-star 主线，把 `Phase 111 -> 114` 的 boundary / governance / quality / honesty 修复收口为 closeout bundle，并翻转为 archived-only baseline。
@@ -115,6 +117,8 @@ bootstrap:
 **Latest archived baseline:** `v1.31`
 **Latest archived pointer:** `.planning/reviews/V1_31_EVIDENCE_INDEX.md`
 **Current route mode:** `no active milestone route / latest archived baseline = v1.31`
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.31`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.30`
 **Default next command:** `$gsd-new-milestone`
 **Current follow-up target:** start next route with `$gsd-new-milestone`.
 
@@ -151,3 +155,82 @@ bootstrap:
 **Closeout assets**: `.planning/phases/114-open-source-reachability-honesty-and-security-surface-normalization/{114-01-SUMMARY.md,114-02-SUMMARY.md,114-03-SUMMARY.md,114-SUMMARY.md,114-VERIFICATION.md,114-AUDIT.md}`
 **Closeout evidence index**: `.planning/reviews/V1_31_EVIDENCE_INDEX.md`
 **Milestone audit**: `.planning/v1.31-MILESTONE-AUDIT.md`
+
+## Historical Phase Visibility Appendix
+
+> 该附录只保留历史 phase 的可搜索锚点、计划计数与 archived milestone 索引，供治理守卫与审计追踪使用；它不重新激活任何旧 route，也不覆盖当前 `v1.32` active milestone story。
+
+## v1.25: Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.25`
+
+## v1.26: Terminal Architecture Audit Follow-through, Typed Mapping Retirement & Hotspot Decomposition
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.26`
+
+| Phase | Milestone | Plans | Status | Date |
+|-------|-----------|-------|--------|------|
+| 16 Post-audit Truth Alignment, Hotspot Decomposition & Residual Endgame | v1.1 | 6/6 | Complete | 2026-03-15 |
+| 17 Final Residual Retirement, Typed-Contract Tightening & Milestone Closeout | v1.1 | 4/4 | Complete | 2026-03-15 |
+
+### Phase 16: Post-audit truth alignment, hotspot decomposition, and residual endgame
+**Plans:** 6/6 complete across 3 waves
+
+### Phase 17: Final residual retirement, typed-contract tightening and milestone closeout
+**Plans:** 4/4 complete
+
+### Phase 19: Headless Consumer Proof & Adapter Demotion
+**Requirements**: [CORE-02]
+**Status**: Complete (`2026-03-16`)
+**Plans**: 4/4 complete
+
+### Phase 30: Protocol/control typed contract tightening
+**Status**: Complete (`2026-03-17`)
+**Plans**: 3/3 complete
+
+### Phase 31: Runtime/service typed budget and exception closure
+**Status**: Complete (`2026-03-17`)
+**Plans**: 4/4 complete
+
+### Phase 43: Control-services boundary decoupling and typed runtime access
+**Status**: Complete (`2026-03-20`)
+**Plans**: 4/4 complete
+
+### Phase 98: Carry-forward eradication, route reactivation, and closeout proof
+**Status**: Complete (`2026-03-28`)
+**Plans**: 3/3 complete
+
+### Phase 99: Runtime hotspot support extraction and terminal audit freeze
+**Status**: Complete (`2026-03-28`)
+**Plans**: 3/3 complete
+
+### Phase 100: MQTT runtime and schedule service support extraction freeze
+**Status**: Complete (`2026-03-28`)
+**Plans**: 3/3 complete
+
+### Phase 103: Root adapter thinning, test topology second pass, and terminology contract normalization
+**Status**: Complete (`2026-03-28`)
+**Plans**: 3/3 complete
+
+### Phase 104: Service-router family split and command-runtime second-pass decomposition
+**Status**: Complete (`2026-03-30`)
+**Plans**: 3/3 complete
+
+### Phase 105: Governance rule datafication and milestone freeze
+**Status**: Complete (`2026-03-30`)
+**Plans**: 3/3 complete
+
+### Phase 107: REST/auth/status hotspot convergence and support-surface slimming
+**Status**: Complete (`2026-03-30`)
+**Plans**: 3/3 complete
+
+### Phase 108: MQTT transport-runtime de-friendization
+**Status**: Complete (`2026-03-30`)
+**Plans**: 3/3 complete
+
+### Phase 109: Anonymous-share manager inward decomposition
+**Status**: Complete (`2026-03-30`)
+**Plans**: 3/3 complete
+
+### Phase 110: Runtime snapshot surface reduction and milestone closeout
+**Status**: Complete (`2026-03-30`)
+**Plans**: 6/6 complete
+

@@ -38,6 +38,8 @@ _INTERNAL_IMPORT_LOCALITY = {
         "custom_components/lipro/core/anonymous_share/share_client_flows.py",
         "custom_components/lipro/core/anonymous_share/share_client_refresh.py",
         "custom_components/lipro/core/anonymous_share/share_client_submit.py",
+        "custom_components/lipro/core/anonymous_share/share_client_submit_attempts.py",
+        "custom_components/lipro/core/anonymous_share/share_client_submit_outcomes.py",
     },
     "custom_components.lipro.core.anonymous_share.share_client_refresh": {
         "custom_components/lipro/core/anonymous_share/share_client_flows.py",

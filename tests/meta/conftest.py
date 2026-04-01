@@ -143,6 +143,16 @@ def _assert_current_mode_tracks_phase_lifecycle(state_text: str) -> None:
             state_text,
         )
         is not None
+        or re.search(
+            r"\*\*Current mode:\*\* `v1\.\d+ active milestone route / starting from latest archived baseline = v1\.\d+`",
+            state_text,
+        )
+        is not None
+        or re.search(
+            r"\*\*Current mode:\*\* `v1\.\d+ active milestone route / Phase \d+(?:\.\d+)? (?:complete|[a-z][a-z0-9_ -]+) / latest archived baseline = v1\.\d+`",
+            state_text,
+        )
+        is not None
         or re.search(r"\*\*Current mode:\*\* `v1\.\d+ archived`", state_text)
         is not None
         or re.search(
