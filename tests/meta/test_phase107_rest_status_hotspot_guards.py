@@ -102,6 +102,9 @@ def test_phase107_code_boundaries_keep_formal_and_support_homes_visible() -> Non
     for token in (
         'class _BinarySplitQueryContext:',
         'class _BinarySplitAccumulator:',
+        'from .status_fallback_split_executor import (',
+        'execute_batch_fallback_query,',
+        'execute_binary_split_query,',
         'async def _query_items_individually(',
         'def _split_subset_ids(subset: list[str]) -> tuple[list[str], list[str]]:',
         'async def _query_binary_split_root(',

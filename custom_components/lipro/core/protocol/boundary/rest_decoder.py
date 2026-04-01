@@ -3,17 +3,22 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, Protocol, TypeVar, cast
+from typing import TYPE_CHECKING, cast
 
 from ...api.schedule_codec import parse_mesh_schedule_json
-from .rest_decoder_support import (
-    _build_payload_fingerprint,
-    _decode_device_list_canonical,
-    _decode_device_status_canonical,
-    _decode_list_envelope_canonical,
-    _decode_mesh_group_status_canonical,
+from .rest_decoder_family import (
+    DeviceListRestDecoder,
+    DeviceStatusRestDecoder,
+    ListEnvelopeRestDecoder,
+    MeshGroupStatusRestDecoder,
 )
+from .rest_decoder_registry import (
+    RestBoundaryDecoder,
+    RestDecodeContext,
+    _REST_MQTT_CONFIG_CONTEXT,
+    _REST_SCHEDULE_JSON_CONTEXT,
+)
+from .rest_decoder_utility import _build_payload_fingerprint
 from .result import BoundaryDecodeResult, BoundaryDecoderKey
 
 if TYPE_CHECKING:
@@ -25,28 +30,6 @@ if TYPE_CHECKING:
         CanonicalMqttConfig,
         CanonicalScheduleJson,
     )
-
-CanonicalT_co = TypeVar("CanonicalT_co", covariant=True)
-_REST_MQTT_CONFIG_FAMILY = "rest.mqtt-config"
-_REST_MQTT_CONFIG_VERSION = "v1"
-_REST_MQTT_CONFIG_AUTHORITY = "tests/fixtures/api_contracts/get_mqtt_config.*.json"
-_REST_DEVICE_LIST_FAMILY = "rest.device-list"
-_REST_DEVICE_LIST_VERSION = "v1"
-_REST_DEVICE_LIST_AUTHORITY = "tests/fixtures/api_contracts/get_device_list.*.json"
-_REST_DEVICE_STATUS_FAMILY = "rest.device-status"
-_REST_DEVICE_STATUS_VERSION = "v1"
-_REST_DEVICE_STATUS_AUTHORITY = "tests/fixtures/api_contracts/query_device_status.*.json"
-_REST_MESH_GROUP_STATUS_FAMILY = "rest.mesh-group-status"
-_REST_MESH_GROUP_STATUS_VERSION = "v1"
-_REST_MESH_GROUP_STATUS_AUTHORITY = (
-    "tests/fixtures/api_contracts/query_mesh_group_status.*.json"
-)
-_REST_LIST_ENVELOPE_FAMILY = "rest.list-envelope"
-_REST_LIST_ENVELOPE_VERSION = "v1"
-_REST_LIST_ENVELOPE_AUTHORITY = "tests/fixtures/api_contracts/get_device_list.*.json"
-_REST_SCHEDULE_JSON_FAMILY = "rest.schedule-json"
-_REST_SCHEDULE_JSON_VERSION = "v1"
-_REST_SCHEDULE_JSON_AUTHORITY = "tests/fixtures/api_contracts/query_mesh_schedule_json.v1.json"
 
 
 def _extract_mqtt_config_mapping(
@@ -99,74 +82,26 @@ def _build_schedule_json_fingerprint(canonical: CanonicalScheduleJson) -> str:
     )
 
 
-@dataclass(frozen=True, slots=True)
-class RestDecodeContext:
-    """Describe one REST decoder family's endpoint-scoped authority."""
-
-    family: str
-    endpoint: str
-    authority: str
-    version: str = "v1"
-
-    @property
-    def key(self) -> BoundaryDecoderKey:
-        """Return the stable family/version identity for registry use."""
-        return BoundaryDecoderKey(family=self.family, version=self.version)
-
-
-class RestBoundaryDecoder(Protocol[CanonicalT_co]):
-    """Protocol for one REST payload decoder family."""
-
-    @property
-    def context(self) -> RestDecodeContext:
-        """Return endpoint-bound decoder metadata."""
-        ...
-
-    @property
-    def key(self) -> BoundaryDecoderKey:
-        """Return the registry key for this family implementation."""
-        ...
-
-    @property
-    def authority(self) -> str:
-        """Return the authoritative source backing this decoder family."""
-        ...
-
-    def decode(self, payload: object) -> BoundaryDecodeResult[CanonicalT_co]:
-        """Decode one REST payload to a canonical protocol contract."""
-        ...
-
-
 class MqttConfigRestDecoder:
     """Decode the MQTT-config REST family into the canonical contract shape."""
 
     def __init__(self, *, is_success_code: Callable[[object], bool]) -> None:
-        """Store the success-code predicate used by the vendor REST envelope."""
         self._is_success_code = is_success_code
-        self._context = RestDecodeContext(
-            family=_REST_MQTT_CONFIG_FAMILY,
-            endpoint="get_mqtt_config",
-            authority=_REST_MQTT_CONFIG_AUTHORITY,
-            version=_REST_MQTT_CONFIG_VERSION,
-        )
+        self._context = _REST_MQTT_CONFIG_CONTEXT
 
     @property
     def context(self) -> RestDecodeContext:
-        """Return the metadata describing this decoder family."""
         return self._context
 
     @property
     def key(self) -> BoundaryDecoderKey:
-        """Return the family/version identity used by the registry."""
         return self._context.key
 
     @property
     def authority(self) -> str:
-        """Return the authoritative source backing this family."""
         return self._context.authority
 
     def decode(self, payload: object) -> BoundaryDecodeResult[CanonicalMqttConfig]:
-        """Decode the MQTT-config response into a canonical mapping."""
         canonical = _extract_mqtt_config_mapping(
             payload,
             is_success_code=self._is_success_code,
@@ -182,198 +117,31 @@ class MqttConfigRestDecoder:
         )
 
 
-class ListEnvelopeRestDecoder:
-    """Decode generic REST list envelopes into a canonical transport shape."""
-
-    def __init__(self, *, offset: int = 0) -> None:
-        """Bind the decoder to one pagination offset for `has_more` calculation."""
-        self._offset = offset
-        self._context = RestDecodeContext(
-            family=_REST_LIST_ENVELOPE_FAMILY,
-            endpoint="get_device_list",
-            authority=_REST_LIST_ENVELOPE_AUTHORITY,
-            version=_REST_LIST_ENVELOPE_VERSION,
-        )
-
-    @property
-    def context(self) -> RestDecodeContext:
-        """Return the metadata describing this decoder family."""
-        return self._context
-
-    @property
-    def key(self) -> BoundaryDecoderKey:
-        """Return the family/version identity used by the registry."""
-        return self._context.key
-
-    @property
-    def authority(self) -> str:
-        """Return the authoritative source backing this family."""
-        return self._context.authority
-
-    def decode(self, payload: object) -> BoundaryDecodeResult[CanonicalListEnvelope]:
-        """Decode one REST list envelope into canonical rows/metadata."""
-        return BoundaryDecodeResult(
-            key=self.key,
-            canonical=_decode_list_envelope_canonical(payload, offset=self._offset),
-            authority=self.authority,
-            fingerprint=_build_payload_fingerprint(payload),
-        )
-
-
 class ScheduleJsonRestDecoder:
     """Decode scheduleJson payloads into canonical schedule triples."""
 
     def __init__(self) -> None:
-        """Initialize one decoder bound to the schedule-json authority family."""
-        self._context = RestDecodeContext(
-            family=_REST_SCHEDULE_JSON_FAMILY,
-            endpoint="query_mesh_schedule_json",
-            authority=_REST_SCHEDULE_JSON_AUTHORITY,
-            version=_REST_SCHEDULE_JSON_VERSION,
-        )
+        self._context = _REST_SCHEDULE_JSON_CONTEXT
 
     @property
     def context(self) -> RestDecodeContext:
-        """Return the metadata describing this decoder family."""
         return self._context
 
     @property
     def key(self) -> BoundaryDecoderKey:
-        """Return the family/version identity used by the registry."""
         return self._context.key
 
     @property
     def authority(self) -> str:
-        """Return the authoritative source backing this family."""
         return self._context.authority
 
     def decode(self, payload: object) -> BoundaryDecodeResult[CanonicalScheduleJson]:
-        """Decode one scheduleJson payload into the canonical triple contract."""
         canonical = _decode_schedule_json_canonical(payload)
         return BoundaryDecodeResult(
             key=self.key,
             canonical=canonical,
             authority=self.authority,
             fingerprint=_build_schedule_json_fingerprint(canonical),
-        )
-
-
-class DeviceListRestDecoder:
-    """Decode device-list payloads into a canonical catalog page contract."""
-
-    def __init__(self, *, offset: int = 0) -> None:
-        """Bind the decoder to one pagination offset for `has_more` calculation."""
-        self._offset = offset
-        self._context = RestDecodeContext(
-            family=_REST_DEVICE_LIST_FAMILY,
-            endpoint="get_device_list",
-            authority=_REST_DEVICE_LIST_AUTHORITY,
-            version=_REST_DEVICE_LIST_VERSION,
-        )
-
-    @property
-    def context(self) -> RestDecodeContext:
-        """Return the metadata describing this decoder family."""
-        return self._context
-
-    @property
-    def key(self) -> BoundaryDecoderKey:
-        """Return the family/version identity used by the registry."""
-        return self._context.key
-
-    @property
-    def authority(self) -> str:
-        """Return the authoritative fixture source backing this family."""
-        return self._context.authority
-
-    def decode(self, payload: object) -> BoundaryDecodeResult[CanonicalDeviceListPage]:
-        """Decode one device-list payload into the canonical catalog page."""
-        canonical = _decode_device_list_canonical(payload, offset=self._offset)
-        return BoundaryDecodeResult(
-            key=self.key,
-            canonical=canonical,
-            authority=self.authority,
-            fingerprint=_build_payload_fingerprint(payload),
-        )
-
-
-class DeviceStatusRestDecoder:
-    """Decode device-status payloads into canonical status rows."""
-
-    def __init__(self) -> None:
-        """Initialize one device-status decoder bound to its authority family."""
-        self._context = RestDecodeContext(
-            family=_REST_DEVICE_STATUS_FAMILY,
-            endpoint="query_device_status",
-            authority=_REST_DEVICE_STATUS_AUTHORITY,
-            version=_REST_DEVICE_STATUS_VERSION,
-        )
-
-    @property
-    def context(self) -> RestDecodeContext:
-        """Return the metadata describing this decoder family."""
-        return self._context
-
-    @property
-    def key(self) -> BoundaryDecoderKey:
-        """Return the family/version identity used by the registry."""
-        return self._context.key
-
-    @property
-    def authority(self) -> str:
-        """Return the authoritative fixture source backing this family."""
-        return self._context.authority
-
-    def decode(
-        self,
-        payload: object,
-    ) -> BoundaryDecodeResult[list[CanonicalDeviceStatusRow]]:
-        """Decode one device-status payload into canonical rows."""
-        return BoundaryDecodeResult(
-            key=self.key,
-            canonical=_decode_device_status_canonical(payload),
-            authority=self.authority,
-            fingerprint=_build_payload_fingerprint(payload),
-        )
-
-
-class MeshGroupStatusRestDecoder:
-    """Decode mesh-group-status payloads into canonical topology rows."""
-
-    def __init__(self) -> None:
-        """Initialize one device-status decoder bound to its authority family."""
-        self._context = RestDecodeContext(
-            family=_REST_MESH_GROUP_STATUS_FAMILY,
-            endpoint="query_mesh_group_status",
-            authority=_REST_MESH_GROUP_STATUS_AUTHORITY,
-            version=_REST_MESH_GROUP_STATUS_VERSION,
-        )
-
-    @property
-    def context(self) -> RestDecodeContext:
-        """Return the metadata describing this decoder family."""
-        return self._context
-
-    @property
-    def key(self) -> BoundaryDecoderKey:
-        """Return the family/version identity used by the registry."""
-        return self._context.key
-
-    @property
-    def authority(self) -> str:
-        """Return the authoritative fixture source backing this family."""
-        return self._context.authority
-
-    def decode(
-        self,
-        payload: object,
-    ) -> BoundaryDecodeResult[list[CanonicalMeshGroupStatusRow]]:
-        """Decode one mesh-group-status payload into canonical topology rows."""
-        return BoundaryDecodeResult(
-            key=self.key,
-            canonical=_decode_mesh_group_status_canonical(payload),
-            authority=self.authority,
-            fingerprint=_build_payload_fingerprint(payload),
         )
 
 

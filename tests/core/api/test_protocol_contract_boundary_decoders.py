@@ -110,6 +110,53 @@ def _is_success_code(code: object) -> bool:
     return code in {0, "0", "0000"}
 
 
+def test_rest_decoder_public_home_reexports_family_registry_and_utility_collaborators() -> None:
+    root = Path(__file__).resolve().parents[3]
+    decoder_text = (
+        root
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "protocol"
+        / "boundary"
+        / "rest_decoder.py"
+    ).read_text(encoding="utf-8")
+    family_text = (
+        root
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "protocol"
+        / "boundary"
+        / "rest_decoder_family.py"
+    ).read_text(encoding="utf-8")
+    registry_text = (
+        root
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "protocol"
+        / "boundary"
+        / "rest_decoder_registry.py"
+    ).read_text(encoding="utf-8")
+    support_text = (
+        root
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "protocol"
+        / "boundary"
+        / "rest_decoder_support.py"
+    ).read_text(encoding="utf-8")
+
+    assert "from .rest_decoder_family import (" in decoder_text
+    assert "from .rest_decoder_registry import (" in decoder_text
+    assert "from .rest_decoder_utility import _build_payload_fingerprint" in decoder_text
+    assert "class DeviceListRestDecoder:" in family_text
+    assert "class RestDecodeContext:" in registry_text
+    assert "def _decode_list_envelope_canonical(" in support_text
+
+
 @pytest.mark.parametrize(
     "fixture_name",
     ["get_mqtt_config.direct.json", "get_mqtt_config.wrapped.json"],

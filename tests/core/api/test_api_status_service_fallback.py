@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import cast
 from unittest.mock import ANY, AsyncMock, MagicMock
 
@@ -58,6 +59,40 @@ def _row_string(row: JsonObject, key: str) -> str:
     value = row.get(key)
     assert isinstance(value, str)
     return value
+
+
+def test_status_fallback_support_routes_split_and_logging_collaborators() -> None:
+    root = Path(__file__).resolve().parents[3]
+    support_text = (
+        root
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "api"
+        / "status_fallback_support.py"
+    ).read_text(encoding="utf-8")
+    executor_text = (
+        root
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "api"
+        / "status_fallback_split_executor.py"
+    ).read_text(encoding="utf-8")
+    logging_text = (
+        root
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "api"
+        / "status_fallback_summary_logging.py"
+    ).read_text(encoding="utf-8")
+
+    assert "from .status_fallback_split_executor import (" in support_text
+    assert "execute_binary_split_query," in support_text
+    assert "execute_batch_fallback_query," in support_text
+    assert "from .status_fallback_summary_logging import (" in executor_text
+    assert "def log_batch_query_fallback(" in logging_text
 
 @pytest.mark.asyncio
 async def test_query_with_fallback_non_retriable_raises() -> None:

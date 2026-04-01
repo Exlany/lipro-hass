@@ -116,6 +116,8 @@ def test_phase101_anonymous_share_and_rest_boundary_formal_homes_preserve_single
     assert "def _should_include_fallback_property(" in rest_decoder_support_text
     assert "_FALLBACK_PROPERTY_EXCLUDED_KEYS" in rest_decoder_support_text
     assert "_build_schedule_json_fingerprint(" in rest_decoder_text
+    assert "from .rest_decoder_family import (" in rest_decoder_text
+    assert "from .rest_decoder_registry import (" in rest_decoder_text
     assert "from importlib import import_module" in mqtt_api_service_text
     assert "custom_components.lipro.core.protocol.boundary" in mqtt_api_service_text
     assert "decode_mqtt_config_payload" in mqtt_api_service_text

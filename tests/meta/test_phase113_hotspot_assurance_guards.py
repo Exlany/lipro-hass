@@ -18,12 +18,12 @@ _TESTING = _ROOT / ".planning" / "codebase" / "TESTING.md"
 _VERIFICATION_MATRIX = _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
 
 _LINE_BUDGETS = {
-    "custom_components/lipro/core/api/status_fallback_support.py": 655,
+    "custom_components/lipro/core/api/status_fallback_support.py": 340,
     "custom_components/lipro/core/api/rest_facade.py": 360,
     "custom_components/lipro/core/anonymous_share/manager.py": 359,
-    "custom_components/lipro/core/protocol/boundary/rest_decoder.py": 425,
+    "custom_components/lipro/core/protocol/boundary/rest_decoder.py": 210,
     "custom_components/lipro/entities/firmware_update.py": 418,
-    "custom_components/lipro/core/protocol/boundary/rest_decoder_support.py": 417,
+    "custom_components/lipro/core/protocol/boundary/rest_decoder_support.py": 180,
     "custom_components/lipro/core/command/result_policy.py": 417,
     "custom_components/lipro/core/command/dispatch.py": 412,
     "custom_components/lipro/core/auth/manager.py": 407,
@@ -32,6 +32,12 @@ _LINE_BUDGETS = {
 }
 
 _INTERNAL_IMPORT_LOCALITY = {
+    "custom_components.lipro.core.api.status_fallback_split_executor": {
+        "custom_components/lipro/core/api/status_fallback_support.py",
+    },
+    "custom_components.lipro.core.api.status_fallback_summary_logging": {
+        "custom_components/lipro/core/api/status_fallback_split_executor.py",
+    },
     "custom_components.lipro.core.anonymous_share.share_client_submit_attempts": {
         "custom_components/lipro/core/anonymous_share/share_client_submit.py",
     },
@@ -41,6 +47,18 @@ _INTERNAL_IMPORT_LOCALITY = {
     },
     "custom_components.lipro.core.command.result_support": {
         "custom_components/lipro/core/command/result.py",
+    },
+    "custom_components.lipro.core.protocol.boundary.rest_decoder_family": {
+        "custom_components/lipro/core/protocol/boundary/rest_decoder.py",
+    },
+    "custom_components.lipro.core.protocol.boundary.rest_decoder_registry": {
+        "custom_components/lipro/core/protocol/boundary/rest_decoder.py",
+        "custom_components/lipro/core/protocol/boundary/rest_decoder_family.py",
+    },
+    "custom_components.lipro.core.protocol.boundary.rest_decoder_utility": {
+        "custom_components/lipro/core/protocol/boundary/rest_decoder.py",
+        "custom_components/lipro/core/protocol/boundary/rest_decoder_family.py",
+        "custom_components/lipro/core/protocol/boundary/rest_decoder_support.py",
     },
 }
 
