@@ -8,6 +8,7 @@ from homeassistant.core import HomeAssistant
 
 from ..core.device import LiproDevice
 from ..core.telemetry import RuntimeTelemetryExporter
+from ..core.telemetry.models import SystemHealthTelemetryView
 from ..runtime_types import LiproCoordinator
 from . import runtime_access_support as _support
 from .models import (
@@ -41,7 +42,6 @@ from .runtime_access_types import (
     RuntimeEntryView,
 )
 
-type RuntimeTelemetryView = dict[str, object]
 type RuntimeEntryLike = RuntimeEntryPort | object
 type RuntimeEntryCoordinator = tuple[RuntimeEntryPort, LiproCoordinator]
 type RuntimeDeviceAndCoordinator = tuple[LiproDevice, LiproCoordinator]
@@ -190,26 +190,26 @@ def is_runtime_device_mapping_degraded(
 
 def build_entry_system_health_view(
     entry: RuntimeEntryLike,
-) -> RuntimeTelemetryView:
+) -> SystemHealthTelemetryView | None:
     """Return the control-plane system-health projection for one config entry."""
     exporter = build_entry_telemetry_exporter(entry)
     if exporter is None:
-        return {}
-
-    return dict(exporter.export_views().system_health)
+        return None
+    return exporter.export_views().system_health
 
 
 def _coerce_device_count(
-    telemetry_view: RuntimeTelemetryView,
+    telemetry_view: SystemHealthTelemetryView | None,
     coordinator: RuntimeCoordinatorView,
 ) -> int:
-    device_count = telemetry_view.get("device_count")
     coordinator_count = len(coordinator.devices or {})
-    if isinstance(device_count, int):
-        if device_count == 0 and coordinator_count > 0:
-            return coordinator_count
-        return device_count
-    return coordinator_count
+    if telemetry_view is None:
+        return coordinator_count
+
+    device_count = telemetry_view["device_count"]
+    if device_count == 0 and coordinator_count > 0:
+        return coordinator_count
+    return device_count
 
 
 def _coerce_update_interval(coordinator: RuntimeCoordinatorView) -> str:
@@ -218,38 +218,41 @@ def _coerce_update_interval(coordinator: RuntimeCoordinatorView) -> str:
 
 
 def _coerce_mqtt_connected(
-    telemetry_view: RuntimeTelemetryView,
+    telemetry_view: SystemHealthTelemetryView | None,
     coordinator: RuntimeCoordinatorView,
 ) -> bool | None:
-    mqtt_connected = telemetry_view.get("mqtt_connected")
-    if isinstance(mqtt_connected, bool):
-        return mqtt_connected
-    return coordinator.mqtt_connected
+    if telemetry_view is None or telemetry_view["mqtt_connected"] is None:
+        return coordinator.mqtt_connected
+    return telemetry_view["mqtt_connected"]
 
 
 def _coerce_last_update_success(
-    telemetry_view: RuntimeTelemetryView,
+    telemetry_view: SystemHealthTelemetryView | None,
     coordinator: RuntimeCoordinatorView,
 ) -> bool:
-    last_update_success = telemetry_view.get("last_update_success")
-    if isinstance(last_update_success, bool):
-        return last_update_success
-    return coordinator.last_update_success
+    if telemetry_view is None or telemetry_view["last_update_success"] is None:
+        return coordinator.last_update_success
+    return telemetry_view["last_update_success"]
 
 
-def _coerce_entry_ref(telemetry_view: RuntimeTelemetryView) -> str | None:
-    entry_ref = telemetry_view.get("entry_ref")
-    return entry_ref if isinstance(entry_ref, str) else None
+def _coerce_entry_ref(
+    telemetry_view: SystemHealthTelemetryView | None,
+) -> str | None:
+    if telemetry_view is None:
+        return None
+    return telemetry_view["entry_ref"]
 
 
-def _coerce_failure_summary(telemetry_view: RuntimeTelemetryView) -> FailureSummary:
-    failure_summary = telemetry_view.get("failure_summary")
+def _coerce_failure_summary(
+    telemetry_view: SystemHealthTelemetryView | None,
+) -> FailureSummary:
     normalized = empty_failure_summary()
-    if not isinstance(failure_summary, Mapping):
+    if telemetry_view is None:
         return normalized
+
     for key in normalized:
-        value = failure_summary.get(key)
-        normalized[key] = value if isinstance(value, str) else None
+        value = telemetry_view["failure_summary"].get(key)
+        normalized[key] = value if isinstance(value, str) or value is None else None
     return normalized
 
 

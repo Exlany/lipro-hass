@@ -176,10 +176,10 @@
     "active_milestone": {
       "version": "v1.36",
       "name": "Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening",
-      "status": "active / phase 126 complete; phase 127 planning-ready (2026-04-01)",
-      "phase": "126",
-      "phase_title": "service-router developer callback-home convergence and diagnostics helper residual slimming",
-      "phase_dir": "126-service-router-developer-callback-home-convergence-and-diagnostics-helper-residual-slimming"
+      "status": "active / phase 128 complete; closeout-ready (2026-04-01)",
+      "phase": "128",
+      "phase_title": "open-source readiness, benchmark-coverage gates, and maintainer continuity hardening",
+      "phase_dir": "128-open-source-readiness-benchmark-coverage-gates-and-maintainer-continuity-hardening"
     },
     "latest_archived": {
       "version": "v1.35",
@@ -199,7 +199,7 @@
     },
     "bootstrap": {
       "current_route": "v1.36 active milestone route / starting from latest archived baseline = v1.35",
-      "default_next_command": "$gsd-discuss-phase 127",
+      "default_next_command": "$gsd-complete-milestone v1.36",
       "latest_archived_evidence_pointer": ".planning/reviews/V1_35_EVIDENCE_INDEX.md"
     }
   }

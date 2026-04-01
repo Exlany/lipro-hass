@@ -12,8 +12,8 @@
 The contributor guides and public troubleshooting paths assume a minimum supported Home Assistant version of `2026.3.1`.
 贡献文档与公开排障路径统一以 `2026.3.1` 作为最低支持的 Home Assistant 版本口径。
 
-The canonical source is the `homeassistant==2026.3.1` pin in `pyproject.toml`.
-唯一真源是 `pyproject.toml` 中的 `homeassistant==2026.3.1`。
+The canonical source is `hacs.json` (`homeassistant`: `2026.3.1`); `pyproject.toml` only keeps the development pin in sync (`homeassistant==2026.3.1`).
+唯一真源是 `hacs.json` 中的 `homeassistant: 2026.3.1`；`pyproject.toml` 只负责同步开发 pin（`homeassistant==2026.3.1`）。
 
 The runtime dependency envelope is declared in `pyproject.toml` (full runtime floor/bounds) plus `custom_components/lipro/manifest.json` (Home Assistant-installed subset).
 运行时依赖边界以 `pyproject.toml`（完整 runtime floor/bounds）和 `custom_components/lipro/manifest.json`（Home Assistant 安装子集）共同为准。

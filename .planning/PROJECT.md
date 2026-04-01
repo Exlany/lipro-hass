@@ -2,8 +2,8 @@
 
 **Status:** `Active milestone route`
 **Current route:** `v1.36 active milestone route / starting from latest archived baseline = v1.35`；latest archived evidence index = `.planning/reviews/V1_35_EVIDENCE_INDEX.md`.
-**Goal:** `在 v1.36 把终审 carry-forward residual 从 archived folklore 重新登记为显式 current story：Phase 126 先清掉 diagnostics helper family 的 duplicate mechanics 与 callback-home shadow，Phase 127 再显式推进 runtime_access de-reflection / typed telemetry seam，Phase 128 最后把开源 readiness、benchmark/coverage gates 与 maintainer continuity gap 收束为诚实治理 contract。`
-**Default next step:** `$gsd-discuss-phase 127`
+**Goal:** `在 v1.36 把终审 carry-forward residual 从 archived folklore 重新登记为显式 current story：Phase 126 已清掉 diagnostics helper family 的 duplicate mechanics 与 callback-home shadow，Phase 127 已完成 runtime_access de-reflection / typed telemetry seam，Phase 128 已把开源 readiness、benchmark/coverage gates 与 maintainer continuity gap 收束为诚实治理 contract，并把里程碑推进到 closeout-ready。`
+**Default next step:** `$gsd-complete-milestone v1.36`
 **Active baseline:** latest archived baseline = `v1.35`；previous archived baseline = `v1.34`.
 
 <!-- governance-route-contract:start -->
@@ -19,10 +19,10 @@ projection_targets:
 active_milestone:
   version: v1.36
   name: Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening
-  status: active / phase 126 complete; phase 127 planning-ready (2026-04-01)
-  phase: '126'
-  phase_title: service-router developer callback-home convergence and diagnostics helper residual slimming
-  phase_dir: 126-service-router-developer-callback-home-convergence-and-diagnostics-helper-residual-slimming
+  status: active / phase 128 complete; closeout-ready (2026-04-01)
+  phase: '128'
+  phase_title: open-source readiness, benchmark-coverage gates, and maintainer continuity hardening
+  phase_dir: 128-open-source-readiness-benchmark-coverage-gates-and-maintainer-continuity-hardening
 latest_archived:
   version: v1.35
   name: Master Audit Closure, Public Surface Finalization & Release Traceability
@@ -39,7 +39,7 @@ previous_archived:
   evidence_path: .planning/reviews/V1_34_EVIDENCE_INDEX.md
 bootstrap:
   current_route: v1.36 active milestone route / starting from latest archived baseline = v1.35
-  default_next_command: $gsd-discuss-phase 127
+  default_next_command: $gsd-complete-milestone v1.36
   latest_archived_evidence_pointer: .planning/reviews/V1_35_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -51,15 +51,15 @@ bootstrap:
 
 **North-star fit:** `v1.36` 继续沿 single mainline / formal homes / honesty over folklore 推进：不把 archived v1.35 伪装成“全部问题已闭环”，而是把 remaining concern 分解成显式 phases，并保持 public surface 不变、helper mechanics inward 收口、runtime/control seam typed 化，以及治理 gap 诚实登记。`
 
-**Current status:** `active / phase 126 complete; phase 127 planning-ready (2026-04-01)`
+**Current status:** `active / phase 128 complete; closeout-ready (2026-04-01)`
 **Phase range:** `Phase 126 -> 128`
 **Starting baseline:** `.planning/v1.35-MILESTONE-AUDIT.md`, `.planning/reviews/V1_35_EVIDENCE_INDEX.md`, `.planning/milestones/v1.35-ROADMAP.md`, `.planning/milestones/v1.35-REQUIREMENTS.md`
 **Requirements basket:** `ARC-38, HOT-57, GOV-85, TST-48, QLT-50, DOC-15, ARC-39, HOT-58, TST-49, OSS-17, GOV-86, QLT-51`
 **Latest archived baseline:** `v1.35`
 **Latest archived pointer:** `.planning/reviews/V1_35_EVIDENCE_INDEX.md`
 **Latest archived audit artifact:** `.planning/v1.35-MILESTONE-AUDIT.md`
-**Default next command:** `$gsd-discuss-phase 127`
-**Current phase handoff:** `Phase 126 已完成 diagnostics helper shell thinning、duplicate mechanics 收口、v1.36 route bootstrap 与 focused guard 同步；下一步应为 Phase 127 明确 runtime_access de-reflection / typed telemetry plan。`
+**Default next command:** `$gsd-complete-milestone v1.36`
+**Current phase handoff:** `Phase 128 已完成 open-source readiness honesty contract、baseline-aware coverage diff gate、benchmark smoke / strict-marker governance 与 final evidence freeze；下一步应执行 milestone closeout。`
 
 ## Latest Archived Milestone (v1.35)
 

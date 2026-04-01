@@ -13,10 +13,10 @@ projection_targets:
 active_milestone:
   version: v1.36
   name: Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening
-  status: active / phase 126 complete; phase 127 planning-ready (2026-04-01)
-  phase: '126'
-  phase_title: service-router developer callback-home convergence and diagnostics helper residual slimming
-  phase_dir: 126-service-router-developer-callback-home-convergence-and-diagnostics-helper-residual-slimming
+  status: active / phase 128 complete; closeout-ready (2026-04-01)
+  phase: '128'
+  phase_title: open-source readiness, benchmark-coverage gates, and maintainer continuity hardening
+  phase_dir: 128-open-source-readiness-benchmark-coverage-gates-and-maintainer-continuity-hardening
 latest_archived:
   version: v1.35
   name: Master Audit Closure, Public Surface Finalization & Release Traceability
@@ -33,42 +33,42 @@ previous_archived:
   evidence_path: .planning/reviews/V1_34_EVIDENCE_INDEX.md
 bootstrap:
   current_route: v1.36 active milestone route / starting from latest archived baseline = v1.35
-  default_next_command: $gsd-discuss-phase 127
+  default_next_command: $gsd-complete-milestone v1.36
   latest_archived_evidence_pointer: .planning/reviews/V1_35_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 ## Current Milestone (v1.36)
 
 **Milestone Goal:** 基于 `v1.35` latest archived baseline，把终审 carry-forward residual 从 archived folklore 重新登记为显式 live route：先完成 diagnostics helper shell thinning / duplicate mechanics 收口，再显式推进 `runtime_access` de-reflection / typed telemetry seam，最后把开源 readiness / benchmark / coverage / continuity gap 收束为诚实治理 contract。
-**Milestone status:** `active / phase 126 complete; phase 127 planning-ready (2026-04-01)`
+**Milestone status:** `active / phase 128 complete; closeout-ready (2026-04-01)`
 **Current route mode:** `v1.36 active milestone route / starting from latest archived baseline = v1.35`
 **Starting baseline:** `.planning/v1.35-MILESTONE-AUDIT.md`, `.planning/reviews/V1_35_EVIDENCE_INDEX.md`, `.planning/milestones/v1.35-ROADMAP.md`, `.planning/milestones/v1.35-REQUIREMENTS.md`
 **Requirements basket:** `ARC-38, HOT-57, GOV-85, TST-48, QLT-50, DOC-15, ARC-39, HOT-58, TST-49, OSS-17, GOV-86, QLT-51`
 **Latest archived baseline:** `v1.35`
 **Archive pointer:** `.planning/reviews/V1_35_EVIDENCE_INDEX.md`
 **Latest archived audit artifact:** `.planning/v1.35-MILESTONE-AUDIT.md`
-**Default next command:** `$gsd-discuss-phase 127`
-**Current phase handoff:** `Phase 126 已完成 diagnostics helper inward thinning 与 current-route bootstrap；Phase 127 将继续显式收口 runtime_access seam。`
+**Default next command:** `$gsd-complete-milestone v1.36`
+**Current phase handoff:** `Phase 128 已完成 readiness honesty、coverage baseline compare、benchmark smoke / strict markers 与 final evidence freeze；下一步应执行 milestone closeout。`
 
 ### Architecture & Hotspots
 - [x] **ARC-38**: `services/diagnostics/handlers.py` 必须直连 `helper_support.py` 的 canonical mechanics truth；`helpers.py` 只能保留 outward stable helper home 身份，不得继续成为第二套 implementation source。
 - [x] **HOT-57**: `services/diagnostics/helpers.py` 中未使用或 duplicated 的 capability helper 必须继续 inward 收口，避免 helper shell 与 helper_support 双真源。
-- [ ] **ARC-39**: `runtime_access.build_entry_system_health_view()` 与 `build_runtime_snapshot()` 必须消费 typed telemetry contract，而不是先降为 `dict[str, object]` 再回捞字符串 key。
-- [ ] **HOT-58**: `runtime_access_support_views.py` 的 runtime entry / protocol narrowing 必须退出 `type(...).__getattribute__` 主导的反射式 seam，回到显式 port / adapter story。
+- [x] **ARC-39**: `runtime_access.build_entry_system_health_view()` 与 `build_runtime_snapshot()` 必须消费 typed telemetry contract，而不是先降为 `dict[str, object]` 再回捞字符串 key。
+- [x] **HOT-58**: `runtime_access_support_views.py` 的 runtime entry / protocol narrowing 必须退出 `type(...).__getattribute__` 主导的反射式 seam，回到显式 port / adapter story。
 
 ### Governance & Documentation
 - [x] **GOV-85**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / GOVERNANCE_REGISTRY` 必须共同承认 `v1.36 active milestone route / starting from latest archived baseline = v1.35`，并把 `Phase 126 -> 128` 的 carry-forward plan 讲成一条诚实 current story。
 - [x] **DOC-15**: 本轮终审发现的 remaining issues、优先级、phase mapping 与完成态必须在 phase assets 与最终审阅报告里明确落表，不得继续停留在口头结论。
-- [ ] **GOV-86**: private-access / single-maintainer continuity / external security fallback 等非代码闭环项必须写入治理 contract，明确 maintainer decision boundary 与 carry-forward status。
+- [x] **GOV-86**: private-access / single-maintainer continuity / external security fallback 等非代码闭环项必须写入治理 contract，明确 maintainer decision boundary 与 carry-forward status。
 
 ### Testing & Quality
 - [x] **TST-48**: touched diagnostics helper / developer router scope 必须有 focused regressions 或现有 focused/full suites 证明 shell thinning 不破坏行为。
 - [x] **QLT-50**: 本轮 touched scope 与 route docs 必须通过 `uv run ruff check .`、`uv run python scripts/check_file_matrix.py --check` 与 `uv run pytest -q`。
-- [ ] **TST-49**: `runtime_access` typed telemetry / de-reflection 收口必须补齐 focused tests，覆盖 slot-backed entry、MagicMock/probe-only object 与 degraded fallback 语义。
-- [ ] **QLT-51**: benchmark baseline / coverage diff gating 必须从 non-blocking review note 升级为显式可验证的 quality contract。
+- [x] **TST-49**: `runtime_access` typed telemetry / de-reflection 收口必须补齐 focused tests，覆盖 slot-backed entry、MagicMock/probe-only object 与 degraded fallback 语义。
+- [x] **QLT-51**: benchmark baseline / coverage diff gating 必须从 non-blocking review note 升级为显式可验证的 quality contract。
 
 ### Open Source Readiness
-- [ ] **OSS-17**: 仓库面向开源协作的不足（private-access、single-maintainer continuity、delegated stewardship、security fallback）必须被诚实 codify；代码可自动化的 guard 要落地，无法自动化的决策边界要明确写出。
+- [x] **OSS-17**: 仓库面向开源协作的不足（private-access、single-maintainer continuity、delegated stewardship、security fallback）必须被诚实 codify；代码可自动化的 guard 要落地，无法自动化的决策边界要明确写出。
 
 ## Traceability for current v1.36 route
 
@@ -80,18 +80,18 @@ bootstrap:
 | TST-48 | Phase 126 | Complete |
 | QLT-50 | Phase 126 | Complete |
 | DOC-15 | Phase 126 | Complete |
-| ARC-39 | Phase 127 | Pending |
-| HOT-58 | Phase 127 | Pending |
-| TST-49 | Phase 127 | Pending |
-| OSS-17 | Phase 128 | Pending |
-| GOV-86 | Phase 128 | Pending |
-| QLT-51 | Phase 128 | Pending |
+| ARC-39 | Phase 127 | Complete |
+| HOT-58 | Phase 127 | Complete |
+| TST-49 | Phase 127 | Complete |
+| OSS-17 | Phase 128 | Complete |
+| GOV-86 | Phase 128 | Complete |
+| QLT-51 | Phase 128 | Complete |
 
 **Coverage:**
 - v1.36 requirements: 12 total
 - Mapped to phases: 12
-- Complete: 6
-- Pending: 6
+- Complete: 12
+- Pending: 0
 - Unmapped: 0 ✓
 
 ## Latest Archived Milestone (v1.35)

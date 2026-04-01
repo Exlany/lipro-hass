@@ -12,8 +12,8 @@ body:
         若你要报告的是安全漏洞，请不要使用此公开表单；请改走 `SECURITY.md` 中的私密披露路径。
         If you are reporting a security vulnerability, do not use this public form; follow the private disclosure path in `SECURITY.md`.
 
-        最低支持的 Home Assistant 版本真源为 `pyproject.toml` 中的 `2026.3.1`。若当前仓库或 fork 为私有，CI 会跳过 HACS validation。HACS only supports public GitHub repositories，因此它不是当前 private-access 仓库对所有读者都保证存在的默认入口。
-        The canonical minimum supported Home Assistant version is `2026.3.1` from `pyproject.toml`. If this repository or fork is private, CI skips HACS validation. HACS only supports public GitHub repositories, so it is not a guaranteed default route for every reader of the current private-access repository.
+        最低支持的 Home Assistant 版本真源为 `hacs.json` 中的 `2026.3.1`，`pyproject.toml` 只同步开发 pin。若当前仓库或 fork 为私有，CI 会跳过 HACS validation。HACS only supports public GitHub repositories，因此它不是当前 private-access 仓库对所有读者都保证存在的默认入口。
+        The canonical minimum supported Home Assistant version is `2026.3.1` from `hacs.json`; `pyproject.toml` only mirrors the development pin. If this repository or fork is private, CI skips HACS validation. HACS only supports public GitHub repositories, so it is not a guaranteed default route for every reader of the current private-access repository.
 
         若安装脚本以 remote 模式运行且未显式指定 archive/tag，则默认会解析最新 tagged release（`latest`）；若你使用了 `ARCHIVE_TAG=main` / branch fallback / mirror 之类预览路径，请在报告里明确写出。若你还没开始系统排障，请先从 `docs/README.md` 进入文档总索引，再阅读 `docs/TROUBLESHOOTING.md`；若问题涉及发版/打包，请维护者参考 `docs/MAINTAINER_RELEASE_RUNBOOK.md`。
         If the installer runs in remote mode without a pinned archive/tag, it resolves the latest tagged release (`latest`) by default; if you used `ARCHIVE_TAG=main`, branch fallback, or a mirror-backed preview path, say so explicitly. If you have not started structured troubleshooting yet, enter through the `docs/README.md` documentation index first, then read `docs/TROUBLESHOOTING.md`; maintainer-only release/package issues belong in `docs/MAINTAINER_RELEASE_RUNBOOK.md`.

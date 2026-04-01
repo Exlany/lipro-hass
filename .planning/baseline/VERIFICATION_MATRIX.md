@@ -9,8 +9,8 @@
 ## Current Route
 
 - **Current route story:** `v1.36 active milestone route / starting from latest archived baseline = v1.35`
-- **Current milestone status:** `active / phase 126 complete; phase 127 planning-ready (2026-04-01)`
-- **Default next command:** `$gsd-discuss-phase 127`
+- **Current milestone status:** `active / phase 128 complete; closeout-ready (2026-04-01)`
+- **Default next command:** `$gsd-complete-milestone v1.36`
 - **Latest archived pointer:** `.planning/reviews/V1_35_EVIDENCE_INDEX.md`
 - **Carry-forward audit anchors:** `.planning/reviews/V1_35_EVIDENCE_INDEX.md`, `.planning/v1.35-MILESTONE-AUDIT.md`
 - **Focused guards:** `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/governance_followup_route_current_milestones.py`, `tests/meta/test_runtime_contract_truth.py`, `tests/meta/test_governance_release_docs.py`, `tests/meta/toolchain_truth_checker_paths.py`, `tests/meta/test_phase89_tooling_decoupling_guards.py`, `tests/meta/test_governance_release_contract.py`, `tests/services/test_services_diagnostics_capabilities.py`, `tests/services/test_services_diagnostics_payloads.py`
@@ -31,6 +31,22 @@
 - **Proof chain:** diagnostics helper shell thinning + canonical helper_support mechanics + developer iterator builder unification + v1.36 route bootstrap → `uv run pytest -q tests/services/test_services_diagnostics_capabilities.py tests/services/test_services_diagnostics_payloads.py` → `uv run ruff check .` → `uv run python scripts/check_file_matrix.py --check` → `uv run pytest -q` → isolated `gsd-tools state json` / `init progress`
 - **Phase asset bundle:** `.planning/phases/126-service-router-developer-callback-home-convergence-and-diagnostics-helper-residual-slimming/{126-01-SUMMARY.md,126-SUMMARY.md,126-VERIFICATION.md}`
 - **Touched formal homes:** `custom_components/lipro/services/diagnostics/{handlers.py,helpers.py,helper_support.py}`, `custom_components/lipro/control/developer_router_support.py`, `.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md,MILESTONES.md}`, `.planning/baseline/{GOVERNANCE_REGISTRY.json,VERIFICATION_MATRIX.md}`, `docs/developer_architecture.md`, `.planning/codebase/{ARCHITECTURE.md,CONCERNS.md,TESTING.md}`
+
+## Phase 127 Exit Contract
+
+- **Route truth:** `active / phase 127 complete; phase 128 planning-ready (2026-04-01)`
+- **Focused guards:** `tests/core/test_runtime_access.py`, `tests/core/test_control_plane.py`, `tests/core/test_system_health.py`, `tests/meta/test_phase111_runtime_boundary_guards.py`, `tests/meta/test_runtime_contract_truth.py`
+- **Proof chain:** typed system-health telemetry bridge + explicit runtime-entry/coordinator narrowing + focused runtime/meta guards + governance/codebase/docs sync → `uv run pytest -q tests/core/test_runtime_access.py tests/core/test_control_plane.py tests/core/test_system_health.py tests/meta/test_phase111_runtime_boundary_guards.py tests/meta/test_runtime_contract_truth.py` → `uv run python scripts/check_file_matrix.py --check` → `uv run ruff check .` → `uv run pytest -q` → isolated `gsd-tools state json` / `phase-plan-index 127`
+- **Phase asset bundle:** `.planning/phases/127-runtime-access-de-reflection-typed-runtime-entry-contracts-and-hotspot-continuation/{127-01-SUMMARY.md,127-02-SUMMARY.md,127-03-SUMMARY.md,127-SUMMARY.md,127-VERIFICATION.md,127-VALIDATION.md}`
+- **Touched formal homes:** `custom_components/lipro/control/{models.py,runtime_access.py,runtime_access_support_views.py,telemetry_surface.py}`, `custom_components/lipro/core/anonymous_share/share_client.py`, `tests/{core/test_runtime_access.py,meta/test_phase111_runtime_boundary_guards.py,meta/test_runtime_contract_truth.py}`, `.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md,MILESTONES.md}`, `.planning/baseline/{GOVERNANCE_REGISTRY.json,VERIFICATION_MATRIX.md}`, `.planning/reviews/{FILE_MATRIX.md,RESIDUAL_LEDGER.md,KILL_LIST.md}`, `.planning/codebase/{ARCHITECTURE.md,CONCERNS.md,TESTING.md}`, `docs/developer_architecture.md`
+
+## Phase 128 Exit Contract
+
+- **Route truth:** `active / phase 128 complete; closeout-ready (2026-04-01)`
+- **Focused guards:** `tests/meta/test_governance_release_continuity.py`, `tests/meta/toolchain_truth_docs_fast_path.py`, `tests/meta/test_version_sync.py`, `tests/meta/toolchain_truth_ci_contract.py`, `tests/meta/test_governance_release_contract.py`, `tests/meta/toolchain_truth_testing_governance.py`, `tests/meta/test_governance_route_handoff_smoke.py`
+- **Proof chain:** readiness honesty / continuity / version-source sync + baseline-aware coverage diff / artifact upload + benchmark smoke / strict-marker governance + review-ledger closeout freeze → `uv run pytest -q tests/meta/test_governance_release_continuity.py tests/meta/toolchain_truth_docs_fast_path.py tests/meta/test_version_sync.py tests/meta/toolchain_truth_ci_contract.py tests/meta/test_governance_release_contract.py tests/meta/toolchain_truth_testing_governance.py tests/meta/test_governance_route_handoff_smoke.py` → `uv run pytest -q tests/benchmarks/test_command_benchmark.py tests/benchmarks/test_mqtt_benchmark.py tests/benchmarks/test_device_refresh_benchmark.py --benchmark-only --benchmark-json=.benchmarks/benchmark-smoke.json` → `uv run python scripts/check_benchmark_baseline.py .benchmarks/benchmark-smoke.json --manifest tests/benchmarks/benchmark_baselines.json --benchmark-set smoke` → `uv run python scripts/check_file_matrix.py --check` → `uv run ruff check .` → `uv run pytest -q` → isolated `gsd-tools state json` / `init progress` / `phase-plan-index 128`
+- **Phase asset bundle:** `.planning/phases/128-open-source-readiness-benchmark-coverage-gates-and-maintainer-continuity-hardening/{128-01-SUMMARY.md,128-02-SUMMARY.md,128-03-SUMMARY.md,128-SUMMARY.md,128-VERIFICATION.md,128-VALIDATION.md}`
+- **Touched formal homes:** `.github/workflows/ci.yml`, `pyproject.toml`, `scripts/{coverage_diff.py,check_benchmark_baseline.py,lint}`, `tests/benchmarks/benchmark_baselines.json`, `tests/meta/{test_governance_release_continuity.py,toolchain_truth_docs_fast_path.py,test_version_sync.py,toolchain_truth_ci_contract.py,test_governance_release_contract.py,toolchain_truth_testing_governance.py,test_governance_route_handoff_smoke.py}`, `SECURITY.md`, `CONTRIBUTING.md`, `docs/MAINTAINER_RELEASE_RUNBOOK.md`, `.github/{ISSUE_TEMPLATE/bug.yml,pull_request_template.md}`, `.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md,MILESTONES.md}`, `.planning/baseline/{GOVERNANCE_REGISTRY.json,VERIFICATION_MATRIX.md}`, `.planning/reviews/{FILE_MATRIX.md,RESIDUAL_LEDGER.md,KILL_LIST.md}`, `.planning/codebase/{ARCHITECTURE.md,CONCERNS.md,TESTING.md}`, `docs/developer_architecture.md`
 
 ## Phase 125 Exit Contract
 

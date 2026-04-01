@@ -9,16 +9,16 @@
 
 ## Risk Summary
 
-- Overall posture: `Medium`. 当前已进入 `Phase 125 execution-ready` residual-eradication posture；主要风险不再是 selector truth 漂移，而是 terminal residual 收口 discipline、深层 hotspot 复杂度与单维护者连续性。
+- Overall posture: `Medium`. 当前已进入 `Phase 128 complete / closeout-ready` posture；主要风险已从 typed telemetry / de-reflection hotspot 转向 repo-external delegate / private fallback reality、以及后续 milestone 仍需继续处理的 architecture debt。
 - Highest priority: `High` = 单维护者连续性 / private-access 治理约束、runtime/protocol hotspots、typed boundary debt 与 benchmark/preview 非阻塞门禁。
 - Medium priority: 大型测试热点、性能回归非 PR 阻塞、平台基线过新、匿名分享/诊断长期复杂度。
 - Low priority: 固件 advisory 远端新鲜度、`outlet_power` legacy side-car fallback。
 
-## Phase 126 Concern Update
+## Phase 127 Concern Update
 
-- diagnostics helper family 的 high-value low-risk residual 已清掉一层：handler-facing mechanics 不再经 helper shell 中转，但 `helpers.py` 仍保留 outward stable home 以保护 import surface。
-- 当前 remaining P0 concern 已前移到 `runtime_access`：typed telemetry 仍会被擦回 dict，runtime entry / protocol narrowing 仍残留反射式 seam；它们已被显式 carry-forward 到 `Phase 127`。
-- open-source readiness / benchmark / coverage / continuity 仍是治理层 concern，而非可由本轮代码伪造闭环的事项；已显式登记到 `Phase 128`。
+- `runtime_access` typed telemetry / de-reflection hotspot 已关闭：system-health sink 直连 typed contract，support-view narrowing 也已退出 reflective mainline。
+- 当前 remaining P0 concern 已完全转到治理层：open-source readiness honesty、benchmark / coverage diff gate 与 maintainer continuity / security fallback contract。
+- runtime/protocol giant-file concentration 与 typed boundary debt 仍是结构性风险，但已从 current-route blocker 降为后续持续治理议题。
 
 ## Phase 125 Concern Update
 

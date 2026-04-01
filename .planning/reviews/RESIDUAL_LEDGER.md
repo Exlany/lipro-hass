@@ -8,6 +8,24 @@ _None currently registered._
 
 > **Phase 88 freeze note:** 这里的 zero-active posture 是显式 closeout verdict，而不是尚未清点完成的空白。若未来出现新 residual，必须以新的 family 重新登记 owner、exit condition 与 evidence。
 
+## Phase 128 Residual Delta
+
+- `Phase 128` 未新增 active residual family；本轮是把 readiness honesty、coverage baseline diff、benchmark smoke 与 continuity limits 正式 codify 为 closeout-ready governance contract。
+- 仍未闭环的 repo-external 现实限制（documented delegate 仍不存在、non-GitHub private fallback 仍未建立）已被诚实写入 docs / templates / registry，而不是被伪装成仓内已解决 residual。
+- 更深层 architecture / stewardship debt 已明确移交后续 milestone；`Phase 128` 自身没有留下新的 active residual。
+
+## Phase 127 Residual Delta
+
+- `Phase 127` 未新增 active residual family；`runtime_access` stringly system-health surrogate 与 `runtime_access_support_views.py` reflective narrowing seam 已一起收口。
+- `custom_components/lipro/control/runtime_access.py` 继续保持 protected thin runtime read-model home；后续若继续切薄，只允许 inward decomposition / typed narrowing，不得把 runtime internals 重新合法化。
+- 当前 remaining live concern 已前移到 `Phase 128`：open-source readiness honesty、benchmark / coverage diff gate 与 single-maintainer continuity / security fallback contract。
+
+## Phase 126 Residual Delta
+
+- `Phase 126` 未新增 active residual family；diagnostics helper shell thinning 只是把 mechanics 指回 canonical helper home，没有创造新的 lingering exception。
+- `services/diagnostics/helpers.py` 仍保留 outward stable helper home 身份，但 duplicate capability collector 已删除，不再承担第二套 mechanics truth。
+- `Phase 126` 关闭后，remaining hotspot 已显式前推给 `Phase 127` 与 `Phase 128`，没有 orphan residual family 留在当前 route。
+
 ## Phase 125 Residual Delta
 
 - `Phase 125` 未新增 active residual family；machine-readable governance current-route truth 已收敛到 `.planning/baseline/GOVERNANCE_REGISTRY.json::planning_route`，selector docs 只保留 projection 身份。

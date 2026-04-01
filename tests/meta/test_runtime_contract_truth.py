@@ -41,10 +41,14 @@ def test_runtime_types_is_single_source_for_service_facing_runtime_contracts() -
     assert "class CoordinatorRuntimeLike(LiproCoordinator, Protocol):" in lifecycle_text
     assert "coordinator: CoordinatorRuntimeLike" in lifecycle_text
 
-    assert "_get_explicit_member(coordinator" not in runtime_views_text
-    assert "_get_explicit_bool_member(coordinator" not in runtime_views_text
-    assert "_get_explicit_mapping_member(coordinator" not in runtime_views_text
-    assert "_get_explicit_member(mqtt_service" not in runtime_views_text
+    assert '_get_explicit_member(coordinator, "protocol")' in runtime_views_text
+    assert '_get_explicit_member(coordinator, "mqtt_service")' in runtime_views_text
+    assert '_get_explicit_mapping_member(coordinator, "devices")' in runtime_views_text
+    assert '_get_explicit_member(entry, "entry_id")' in runtime_views_text
+    assert '_get_explicit_mapping_member(entry, "options")' in runtime_views_text
+    assert "type(entry).__getattribute__" not in runtime_views_text
+    assert "type(coordinator).__getattribute__" not in runtime_views_text
+
     assert "_get_explicit_member(coordinator, getter_name)" not in runtime_devices_text
     assert '"config_entry")' not in runtime_devices_text
     assert "_get_explicit_member(self._protocol" not in runtime_telemetry_text

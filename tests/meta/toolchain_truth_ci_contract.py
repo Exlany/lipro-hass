@@ -36,6 +36,11 @@ _CHANGED_SURFACE_COMMAND = (
 _COVERAGE_GATES_COMMAND = (
     "uv run python scripts/coverage_diff.py coverage.json --minimum 95 --changed-files .coverage-changed-files --changed-minimum 95"
 )
+_BENCHMARK_SMOKE_TESTS = (
+    "tests/benchmarks/test_command_benchmark.py",
+    "tests/benchmarks/test_mqtt_benchmark.py",
+    "tests/benchmarks/test_device_refresh_benchmark.py",
+)
 
 
 def _load_pyproject() -> dict[str, object]:
@@ -144,15 +149,17 @@ def test_ci_test_and_benchmark_lanes_keep_one_snapshot_story() -> None:
     test_step_names = {_as_str(step["name"]) for step in test_steps}
     assert "Run snapshot tests" not in test_step_names
     assert "Resolve changed coverage surface" in test_step_names
+    assert "Generate coverage baseline evidence" in test_step_names
     contract_step = next(
         step for step in test_steps if step.get("name") == "Record test lane contract"
     )
     contract_run = _as_str(contract_step["run"])
     assert "snapshot coverage: included in the main tests/ lane" in contract_run
     assert (
-        "coverage gates: total floor is blocking; changed measured files must meet the changed-surface floor; explicit baseline diff remains opt-in"
+        "coverage gates: total floor is blocking; changed measured files must meet the changed-surface floor; merge-base/previous-commit baseline compare blocks regressions when baseline evidence is available"
         in contract_run
     )
+    assert "coverage artifacts:" in contract_run
 
     coverage_step = next(
         step
@@ -160,9 +167,11 @@ def test_ci_test_and_benchmark_lanes_keep_one_snapshot_story() -> None:
         if step.get("name") == "Check total + changed-surface coverage gates"
     )
     coverage_run = _as_str(coverage_step["run"])
-    assert "uv run python scripts/coverage_diff.py coverage.json" in coverage_run
+    assert "uv run python scripts/coverage_diff.py" in coverage_run
     assert "--changed-files .coverage-changed-files" in coverage_run
     assert "--changed-minimum 95" in coverage_run
+    assert "--baseline .coverage-baseline.json" in coverage_run
+    assert "--fail-on-changed-regression" in coverage_run
     coverage_diff_script = (_ROOT / "scripts" / "coverage_diff.py").read_text(
         encoding="utf-8"
     )
@@ -174,6 +183,34 @@ def test_ci_test_and_benchmark_lanes_keep_one_snapshot_story() -> None:
         "Changed-surface coverage: skipped (no measured files in change set)"
         in coverage_diff_script
     )
+
+    coverage_upload_step = next(
+        step for step in test_steps if step.get("name") == "Upload coverage artifact"
+    )
+    assert _as_str(coverage_upload_step["uses"]) == _UPLOAD_ARTIFACT
+    coverage_upload_with = _as_mapping(coverage_upload_step["with"])
+    assert "coverage.json" in _as_str(coverage_upload_with["path"])
+    assert "coverage.xml" in _as_str(coverage_upload_with["path"])
+
+    benchmark_smoke_job = _as_mapping(ci_jobs["benchmark_smoke"])
+    benchmark_smoke_steps = _as_mapping_list(benchmark_smoke_job["steps"])
+    benchmark_smoke_run = next(
+        step
+        for step in benchmark_smoke_steps
+        if step.get("name") == "Run benchmark smoke suite"
+    )
+    benchmark_smoke_run_text = _as_str(benchmark_smoke_run["run"])
+    for token in _BENCHMARK_SMOKE_TESTS:
+        assert token in benchmark_smoke_run_text
+    assert "--benchmark-json=.benchmarks/benchmark-smoke.json" in benchmark_smoke_run_text
+
+    benchmark_smoke_compare = next(
+        step
+        for step in benchmark_smoke_steps
+        if step.get("name") == "Compare benchmark smoke against baseline manifest subset"
+    )
+    benchmark_smoke_compare_run = _as_str(benchmark_smoke_compare["run"])
+    assert "--benchmark-set smoke" in benchmark_smoke_compare_run
 
     benchmark_job = _as_mapping(ci_jobs["benchmark"])
     benchmark_steps = _as_mapping_list(benchmark_job["steps"])
@@ -214,12 +251,14 @@ def test_ci_test_and_benchmark_lanes_keep_one_snapshot_story() -> None:
     assert "no-regression gate" in summary_run
     assert "steps.benchmark_run.outcome" in summary_run
     assert "steps.benchmark_contract.outcome" in summary_run
+    assert "benchmark smoke lane remains the PR/push/workflow_call subset feedback path" in summary_run
 
     benchmark_script = (_ROOT / "scripts" / "check_benchmark_baseline.py").read_text(
         encoding="utf-8"
     )
     assert "Benchmark contract: warnings only" in benchmark_script
     assert "blocking regression" in benchmark_script
+    assert "--benchmark-set" in benchmark_script
 
 
 
@@ -233,6 +272,8 @@ def test_scripts_lint_full_mode_matches_ci_coverage_contract() -> None:
     assert "resolve_changed_coverage_surface" in lint_text
     assert '--changed-files "$tmp_changed_coverage_surface"' in lint_text
     assert "--changed-minimum 95" in lint_text
+    assert "COVERAGE_BASELINE_JSON" in lint_text
+    assert "--fail-on-changed-regression" in lint_text
 
 
 
@@ -268,4 +309,7 @@ def test_pytest_marker_contract_has_no_dead_declarations() -> None:
     assert isinstance(pytest_table, dict)
     pytest_options = pytest_table["ini_options"]
     assert isinstance(pytest_options, dict)
-    assert "markers" not in pytest_options
+    assert _as_str(pytest_options["addopts"]) == "--strict-markers"
+    markers = pytest_options["markers"]
+    assert isinstance(markers, list)
+    assert markers == ["benchmark: governed benchmark contract and PR smoke performance checks"]

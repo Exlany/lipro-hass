@@ -68,7 +68,35 @@ def build_parser() -> argparse.ArgumentParser:
         default="tests/benchmarks/benchmark_baselines.json",
         help="Machine-readable benchmark baseline manifest",
     )
+    parser.add_argument(
+        "--benchmark-set",
+        choices=("all", "smoke"),
+        default="all",
+        help="Select the full manifest or the policy-declared smoke subset",
+    )
     return parser
+
+
+def _select_manifest(policy: dict[str, Any], manifest: dict[str, dict[str, Any]], benchmark_set: str) -> dict[str, dict[str, Any]]:
+    if benchmark_set == "all":
+        return manifest
+
+    smoke_benchmarks = policy.get("smoke_benchmarks")
+    if not isinstance(smoke_benchmarks, list) or not smoke_benchmarks:
+        msg = "Manifest missing policy.smoke_benchmarks for smoke benchmark set"
+        raise TypeError(msg)
+
+    selected: dict[str, dict[str, Any]] = {}
+    for benchmark_id in smoke_benchmarks:
+        if not isinstance(benchmark_id, str):
+            msg = "policy.smoke_benchmarks entries must be strings"
+            raise TypeError(msg)
+        contract = manifest.get(benchmark_id)
+        if contract is None:
+            msg = f"Smoke benchmark missing from manifest: {benchmark_id}"
+            raise KeyError(msg)
+        selected[benchmark_id] = contract
+    return selected
 
 
 def main() -> int:
@@ -77,7 +105,8 @@ def main() -> int:
     benchmark_path = Path(args.benchmark_json)
     manifest_path = Path(args.manifest)
 
-    policy, manifest = load_manifest(manifest_path)
+    policy, full_manifest = load_manifest(manifest_path)
+    manifest = _select_manifest(policy, full_manifest, args.benchmark_set)
     results = load_benchmark_means(benchmark_path)
 
     default_warning_ratio = float(policy.get("default_warning_ratio", 2.0))
@@ -85,6 +114,7 @@ def main() -> int:
 
     sys.stdout.write(f"Benchmark manifest: {manifest_path}\n")
     sys.stdout.write(f"Benchmark sample: {benchmark_path}\n")
+    sys.stdout.write(f"Benchmark set: {args.benchmark_set}\n")
 
     warnings: list[str] = []
     failures: list[str] = []

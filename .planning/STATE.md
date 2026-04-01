@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.36
 milestone_name: Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening
-status: active / phase 126 complete; phase 127 planning-ready (2026-04-01)
-stopped_at: Phase 126 complete; next step = $gsd-discuss-phase 127
-last_updated: "2026-04-01T16:31:47Z"
+status: active / phase 128 complete; closeout-ready (2026-04-01)
+stopped_at: Phase 128 complete; milestone closeout-ready for $gsd-complete-milestone v1.36
+last_updated: "2026-04-01T20:30:00Z"
 last_activity: 2026-04-01
 progress:
   total_phases: 3
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  completed_phases: 3
+  total_plans: 7
+  completed_plans: 7
   percent: 100
 ---
 
@@ -33,10 +33,10 @@ projection_targets:
 active_milestone:
   version: v1.36
   name: Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening
-  status: active / phase 126 complete; phase 127 planning-ready (2026-04-01)
-  phase: '126'
-  phase_title: service-router developer callback-home convergence and diagnostics helper residual slimming
-  phase_dir: 126-service-router-developer-callback-home-convergence-and-diagnostics-helper-residual-slimming
+  status: active / phase 128 complete; closeout-ready (2026-04-01)
+  phase: '128'
+  phase_title: open-source readiness, benchmark-coverage gates, and maintainer continuity hardening
+  phase_dir: 128-open-source-readiness-benchmark-coverage-gates-and-maintainer-continuity-hardening
 latest_archived:
   version: v1.35
   name: Master Audit Closure, Public Surface Finalization & Release Traceability
@@ -53,35 +53,35 @@ previous_archived:
   evidence_path: .planning/reviews/V1_34_EVIDENCE_INDEX.md
 bootstrap:
   current_route: v1.36 active milestone route / starting from latest archived baseline = v1.35
-  default_next_command: $gsd-discuss-phase 127
+  default_next_command: $gsd-complete-milestone v1.36
   latest_archived_evidence_pointer: .planning/reviews/V1_35_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 **Current milestone:** `v1.36 Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening`
 **Latest archived milestone:** `v1.35 Master Audit Closure, Public Surface Finalization & Release Traceability`
-**Core value:** `把终审 carry-forward residual 从 archived folklore 重新登记为显式 current story：Phase 126 已完成 diagnostics helper shell thinning，Phase 127/128 将继续推进 runtime_access typed seam 与 open-source readiness hardening。`
-**Current focus:** `Phase 126 complete — diagnostics helper residual sealed; Phase 127 planning-ready`
+**Core value:** `把终审 carry-forward residual 从 archived folklore 重新登记为显式 current story：Phase 126 已完成 diagnostics helper shell thinning，Phase 127 已完成 runtime_access typed seam / de-reflection 收口，Phase 128 已把 open-source readiness / benchmark-coverage / continuity hardening 冻结成 closeout-ready 治理合同。`
+**Current focus:** `Phase 128 complete — milestone closeout-ready`
 **Current mode:** `v1.36 active milestone route / starting from latest archived baseline = v1.35`
 
 ## Current Position
 
-- **Phase:** `126 of 128`
-- **Plan:** `1 of 1`
-- **Status:** `complete; next phase planning-ready`
-- **Last activity:** `2026-04-01` — `Phase 126` 已完成 diagnostics helper shell thinning、v1.36 route bootstrap 与 full verification；默认下一步为 `$gsd-discuss-phase 127`
+- **Phase:** `128 of 128`
+- **Plan:** `7 of 7`
+- **Status:** `complete; closeout-ready`
+- **Last activity:** `2026-04-01` — `Phase 128` 已完成 readiness honesty、baseline-aware coverage diff、benchmark smoke / strict markers 与 final evidence freeze；默认下一步为 `$gsd-complete-milestone v1.36`
 - **Progress:** `[██████████] 100%`
 
 ## Performance Metrics
 
-- **Total plans completed:** `1`
+- **Total plans completed:** `7`
 - **Average duration:** `-`
 - **Total execution time:** `-`
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 126 | complete | 1/1 | 2026-04-01 |
-| 127 | pending | 0/0 | - |
-| 128 | pending | 0/0 | - |
+| 127 | complete | 3/3 | 2026-04-01 |
+| 128 | complete | 3/3 | 2026-04-01 |
 
 ## Governance Truth Sources
 
@@ -93,7 +93,7 @@ bootstrap:
 - Archived audit ledger: `.planning/reviews/V1_35_MASTER_AUDIT_LEDGER.md`
 - Latest archived snapshots: `.planning/milestones/v1.35-ROADMAP.md`, `.planning/milestones/v1.35-REQUIREMENTS.md`
 - Promoted phase evidence allowlist: `.planning/reviews/PROMOTED_PHASE_ASSETS.md`
-- Current phase workspace: `.planning/phases/126-service-router-developer-callback-home-convergence-and-diagnostics-helper-residual-slimming/`
+- Current phase workspace: `.planning/phases/128-open-source-readiness-benchmark-coverage-gates-and-maintainer-continuity-hardening/`
 - North-star authority: `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`
 
 ## Historical Continuity Anchors
@@ -114,28 +114,27 @@ bootstrap:
 
 - `v1.35` 在 closeout 前通过 `Phase 125` 清零最后一批 terminal residual，随后完成 archive promotion；latest archived baseline 已从 `v1.34` 前推到 `v1.35`。
 - `Phase 122 -> 125` 的 summaries / verification、`.planning/v1.35-MILESTONE-AUDIT.md`、`.planning/reviews/V1_35_EVIDENCE_INDEX.md` 与 archived snapshots 现共同构成 pull-only closeout truth。
-- `Phase 122` 完成 repo-wide audit ledger、public first-hop boundary、metadata tagged-release traceability 与 focused guard sealing。
-- `Phase 123` 完成 `service_router` non-diagnostics callback family reconvergence、developer/public architecture drift cleanup、file-matrix / route truth / focused guard refresh。
-- `Phase 124` 已完成 persisted auth seed truth closure、config-flow adapter thinning、schedule direct-call contract closure、governance/codebase freeze 与 closeout evidence 链。
+- `Phase 126` 已完成 diagnostics helper shell thinning、developer iterator builder 统一与 `v1.36` route bootstrap。
+- `Phase 127` 已完成 typed system-health telemetry seam 收口、`runtime_access_support_views.py` de-reflection 与 focused/full guard 冻结。
+- `Phase 128` 已完成：open-source readiness honesty、benchmark/coverage diff gate 与 maintainer continuity contract 现已形成 machine-checkable governance story。
 
 ### Pending Todos
 
-- 执行 `$gsd-new-milestone`，为下一轮 requirements / roadmap / phases 建立新的 current route。
-- 若下一轮仍要沿本次终审结论推进，应先 pull `.planning/reviews/V1_35_EVIDENCE_INDEX.md` 与 `.planning/milestones/v1.35-{ROADMAP,REQUIREMENTS}.md`，避免重新发明旧 closeout 叙事。
+- 无 active implementation todo；下一步执行 `$gsd-complete-milestone v1.36` 完成里程碑归档。
 
 ### Blockers/Concerns
 
-- 当前没有 execution blocker；主要注意事项已从 closeout discipline 切换为新里程碑定义 discipline：不得把 archived `v1.35` residual / phase truth 重新激活为 current route。
-- remaining non-blocking concern 主要集中在更深层 runtime/protocol hotspot 规模、single-maintainer continuity 约束，以及 benchmark / preview 仍属非 PR 阻塞门禁。
+- 当前没有 execution blocker；里程碑已达到 closeout-ready，可以进入 `$gsd-complete-milestone v1.36`。
+- 更深层 architecture debt（repo-external delegate / private fallback reality beyond docs honesty、后续 boundary decomposition）仍需在后续 milestone 继续推进，但不再属于 `Phase 128` 的 active residual。
 
 ## Recommended Next Command
 
-- **Primary:** `$gsd-new-milestone` — 当前无 active milestone route；下一步应建立新的 requirements / roadmap / phase current story。
-- **Status check:** `$gsd-progress` — 若要先复核 archived baseline / evidence pointers，可先查看。
+- **Primary:** `$gsd-complete-milestone v1.36` — `Phase 128` 已完成并冻结 closeout-ready evidence；下一步应执行里程碑归档。
+- **Status check:** `\$gsd-progress` — 若要先复核 current route、plan inventory 与 closeout proof，可先查看。
 
 ## Session Continuity
 
-- **Last session:** 2026-04-01T12:59:32Z
-- **Stopped at:** No active milestone route
-- **Resume file:** `.planning/reviews/V1_35_EVIDENCE_INDEX.md`
-- **Read next:** `.planning/milestones/v1.35-ROADMAP.md` → `.planning/milestones/v1.35-REQUIREMENTS.md`
+- **Last session:** 2026-04-01T17:38:32Z
+- **Stopped at:** Phase 128 closeout evidence frozen; next planned action is documented in the command section above.
+- **Resume file:** `.planning/phases/128-open-source-readiness-benchmark-coverage-gates-and-maintainer-continuity-hardening/128-VERIFICATION.md`
+- **Read next:** `.planning/ROADMAP.md` → `.planning/phases/128-open-source-readiness-benchmark-coverage-gates-and-maintainer-continuity-hardening/128-CONTEXT.md`

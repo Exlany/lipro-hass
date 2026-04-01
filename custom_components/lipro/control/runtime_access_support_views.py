@@ -13,7 +13,12 @@ from ..runtime_types import (
     LiproRuntimeCoordinator,
     ProtocolTelemetryFacadeLike,
 )
-from .runtime_access_support_members import _has_explicit_runtime_member
+from .runtime_access_support_members import (
+    _get_explicit_bool_member,
+    _get_explicit_mapping_member,
+    _get_explicit_member,
+    _has_explicit_runtime_member,
+)
 from .runtime_access_support_telemetry import _build_runtime_telemetry_snapshot
 from .runtime_access_types import (
     RuntimeCoordinatorFacts,
@@ -31,54 +36,37 @@ type RuntimeEntryCoordinator = tuple[RuntimeEntryPort, LiproCoordinator]
 
 
 def _read_update_interval(coordinator: LiproCoordinator) -> str | None:
-    try:
-        update_interval = coordinator.update_interval
-    except AttributeError:
-        return None
+    update_interval = _get_explicit_member(coordinator, "update_interval")
     return None if update_interval is None else str(update_interval)
 
 
 def _read_last_update_success(coordinator: LiproCoordinator) -> bool:
-    try:
-        last_update_success = coordinator.last_update_success
-    except AttributeError:
-        return False
-    return last_update_success if isinstance(last_update_success, bool) else False
+    last_update_success = _get_explicit_bool_member(
+        coordinator,
+        "last_update_success",
+    )
+    return last_update_success if last_update_success is not None else False
 
 
 def _read_mqtt_connected(coordinator: LiproCoordinator) -> bool | None:
-    try:
-        mqtt_service = coordinator.mqtt_service
-    except AttributeError:
+    mqtt_service = _get_explicit_member(coordinator, "mqtt_service")
+    if mqtt_service is None:
         return None
-
-    try:
-        connected = mqtt_service.connected
-    except AttributeError:
-        return None
-    return connected if isinstance(connected, bool) else None
+    return _get_explicit_bool_member(mqtt_service, "connected")
 
 
 def _read_protocol(
     coordinator: LiproCoordinator,
 ) -> ProtocolTelemetryFacadeLike | None:
-    if not _has_explicit_runtime_member(coordinator, "protocol"):
-        return None
-    try:
-        protocol = type(coordinator).__getattribute__(coordinator, "protocol")
-    except AttributeError:
-        return None
+    protocol = _get_explicit_member(coordinator, "protocol")
     return cast(ProtocolTelemetryFacadeLike, protocol) if protocol is not None else None
 
 
 def _read_devices(
     coordinator: LiproCoordinator,
 ) -> Mapping[str, LiproDevice] | None:
-    try:
-        devices = coordinator.devices
-    except AttributeError:
-        return None
-    return cast("Mapping[str, LiproDevice]", devices) if isinstance(devices, Mapping) else None
+    devices = _get_explicit_mapping_member(coordinator, "devices")
+    return cast("Mapping[str, LiproDevice] | None", devices)
 
 
 def _build_runtime_coordinator_view(
@@ -131,14 +119,11 @@ def _coerce_runtime_entry_port(
     if not _has_explicit_runtime_member(entry, "runtime_data"):
         return None
 
-    try:
-        entry_id = type(entry).__getattribute__(entry, "entry_id")
-        options = type(entry).__getattribute__(entry, "options")
-        runtime_data = type(entry).__getattribute__(entry, "runtime_data")
-    except AttributeError:
-        return None
+    entry_id = _get_explicit_member(entry, "entry_id")
+    options = _get_explicit_mapping_member(entry, "options")
+    runtime_data = _get_explicit_member(entry, "runtime_data")
 
-    if not isinstance(entry_id, str) or not isinstance(options, Mapping):
+    if not isinstance(entry_id, str) or options is None:
         return None
 
     return cast(RuntimeEntryPort, entry), RuntimeEntryFacts(

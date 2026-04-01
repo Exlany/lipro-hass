@@ -3,19 +3,19 @@
 ## Current Milestone (v1.36)
 
 **Name:** `Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening`
-**Status:** `active / phase 126 complete; phase 127 planning-ready (2026-04-01)`
+**Status:** `active / phase 128 complete; closeout-ready (2026-04-01)`
 **Current route:** `v1.36 active milestone route / starting from latest archived baseline = v1.35`
 **Phase range:** `126 -> 128`
-**Progress:** `1/3 phases, 1/1 plans`
-**Default next command:** `$gsd-discuss-phase 127`
+**Progress:** `3/3 phases, 7/7 plans`
+**Default next command:** `$gsd-complete-milestone v1.36`
 **Latest archived pointer:** `.planning/reviews/V1_35_EVIDENCE_INDEX.md`
 **Starting baseline snapshots:** `.planning/milestones/v1.35-ROADMAP.md`, `.planning/milestones/v1.35-REQUIREMENTS.md`
 
 **Active phase story:**
 
 - `Phase 126`: service-router developer callback-home convergence and diagnostics helper residual slimming ✅ (`126-01` diagnostics helper shell thinning + route bootstrap + focused/full verification complete)
-- `Phase 127`: runtime-access de-reflection, typed runtime entry contracts, and hotspot continuation ⏳ (pending planning)
-- `Phase 128`: open-source readiness, benchmark-coverage gates, and maintainer continuity hardening ⏳ (pending planning)
+- `Phase 127`: runtime-access de-reflection, typed runtime entry contracts, and hotspot continuation ✅ (`127-01` typed telemetry seam + `127-02` support-view de-reflection + `127-03` focused/full verification and governance sync complete)
+- `Phase 128`: open-source readiness, benchmark-coverage gates, and maintainer continuity hardening ✅ (`128-01` readiness honesty / version-source / selector projection sync + `128-02` coverage baseline diff / artifacts + `128-03` benchmark smoke / strict markers / evidence freeze complete)
 
 ## Latest Archived Milestone (v1.35)
 
@@ -70,10 +70,10 @@ projection_targets:
 active_milestone:
   version: v1.36
   name: Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening
-  status: active / phase 126 complete; phase 127 planning-ready (2026-04-01)
-  phase: '126'
-  phase_title: service-router developer callback-home convergence and diagnostics helper residual slimming
-  phase_dir: 126-service-router-developer-callback-home-convergence-and-diagnostics-helper-residual-slimming
+  status: active / phase 128 complete; closeout-ready (2026-04-01)
+  phase: '128'
+  phase_title: open-source readiness, benchmark-coverage gates, and maintainer continuity hardening
+  phase_dir: 128-open-source-readiness-benchmark-coverage-gates-and-maintainer-continuity-hardening
 latest_archived:
   version: v1.35
   name: Master Audit Closure, Public Surface Finalization & Release Traceability
@@ -90,7 +90,7 @@ previous_archived:
   evidence_path: .planning/reviews/V1_34_EVIDENCE_INDEX.md
 bootstrap:
   current_route: v1.36 active milestone route / starting from latest archived baseline = v1.35
-  default_next_command: $gsd-discuss-phase 127
+  default_next_command: $gsd-complete-milestone v1.36
   latest_archived_evidence_pointer: .planning/reviews/V1_35_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->

@@ -3,7 +3,11 @@
 from __future__ import annotations
 
 from ..core.telemetry import RuntimeTelemetryExporter, TelemetrySnapshot, TelemetryViews
-from ..core.telemetry.models import TelemetrySinkPayload
+from ..core.telemetry.models import (
+    DiagnosticsTelemetryView,
+    SystemHealthTelemetryView,
+    TelemetrySinkPayload,
+)
 from .runtime_access import build_entry_telemetry_exporter
 
 
@@ -55,14 +59,20 @@ def get_entry_telemetry_view(
     return _select_telemetry_view(views, sink_name)
 
 
-def build_entry_system_health_view(entry: object) -> TelemetrySinkPayload | None:
+def build_entry_system_health_view(entry: object) -> SystemHealthTelemetryView | None:
     """Return the system-health telemetry projection for one entry."""
-    return get_entry_telemetry_view(entry, "system_health")
+    views = build_entry_telemetry_views(entry)
+    if views is None:
+        return None
+    return views.system_health
 
 
-def build_entry_diagnostics_view(entry: object) -> TelemetrySinkPayload | None:
+def build_entry_diagnostics_view(entry: object) -> DiagnosticsTelemetryView | None:
     """Return the diagnostics telemetry projection for one entry."""
-    return get_entry_telemetry_view(entry, "diagnostics")
+    views = build_entry_telemetry_views(entry)
+    if views is None:
+        return None
+    return views.diagnostics
 
 
 __all__ = [

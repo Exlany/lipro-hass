@@ -1,6 +1,6 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `v1.36 active route / Phase 126 complete` (`2026-04-01`)
+> **Last aligned through**: `v1.36 active route / Phase 127 complete` (`2026-04-01`)
 > **Current route alignment**: `v1.36 active milestone route / starting from latest archived baseline = v1.35` (`2026-04-01`)
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
@@ -42,11 +42,17 @@
 - `custom_components/lipro/runtime_types.py`：typed runtime coordinator / telemetry contract 的 sanctioned root-level home；它是 formal contract entry，不是 accidental helper。
 - `custom_components/lipro/entry_auth.py`：config-entry auth/bootstrap seed、token persistence、setup-exception mapping 的 sanctioned root-level home。
 
+## Phase 127 Execution Notes
+
+- `custom_components/lipro/control/runtime_access.py` 已直接消费 typed `SystemHealthTelemetryView`；control-plane runtime snapshot 不再先 materialize stringly dict surrogate。
+- `custom_components/lipro/control/runtime_access_support_views.py` 已切回显式 member/helper narrowing；slot-backed ports 继续支持，但 `type(...).__getattribute__` 不再是正式主链。
+- `v1.36` 当前 live route 现为 `Phase 128 complete; closeout-ready`：runtime-access hotspot 已收口，readiness honesty / benchmark-coverage / continuity governance contract 也已冻结为里程碑 closeout evidence。
+
 ## Phase 126 Execution Notes
 
 - `custom_components/lipro/services/diagnostics/handlers.py` 现在直接消费 `helper_support.py` 的 pure mechanics helper；`helpers.py` 继续保留 stable outward helper home，但不再承担未使用 duplicate capability collector。
 - `custom_components/lipro/control/developer_router_support.py` 的 non-entry-specific developer report branch 已复用 `build_developer_runtime_coordinator_iterator()`，保持 runtime iterator freezing 的单一 control-local story。
-- `v1.36` 把 remaining audit findings 显式拆到 `Phase 126 -> 128`：本轮先清 diagnostics helper shell residual，后续再推进 `runtime_access` typed seam 与 open-source readiness governance contract。
+- `Phase 126` 现只保留 predecessor-visible diagnostics helper shell thinning proof，不再作为 current runtime hotspot owner。
 
 ## Phase 125 Execution Notes
 

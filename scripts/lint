@@ -264,7 +264,14 @@ if [ "$full_mode" = "1" ]; then
 
     echo ""
     echo "Checking total + changed-surface coverage gates..."
-    uv run python scripts/coverage_diff.py coverage.json --minimum 95 --changed-files "$tmp_changed_coverage_surface" --changed-minimum 95
+    coverage_diff_args=(coverage.json --minimum 95 --changed-files "$tmp_changed_coverage_surface" --changed-minimum 95)
+    if [ -n "${COVERAGE_BASELINE_JSON:-}" ]; then
+        echo "Using local coverage baseline mirror: $COVERAGE_BASELINE_JSON"
+        coverage_diff_args+=(--baseline "$COVERAGE_BASELINE_JSON" --fail-on-changed-regression)
+    else
+        echo "Local coverage baseline mirror: skipped (set COVERAGE_BASELINE_JSON to mirror CI baseline compare)"
+    fi
+    uv run python scripts/coverage_diff.py "${coverage_diff_args[@]}"
 
     echo ""
     echo "Checking refactor coverage floor..."

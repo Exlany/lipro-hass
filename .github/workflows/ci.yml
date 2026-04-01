@@ -235,22 +235,84 @@ jobs:
             echo "changed coverage surface: none detected" >> "$GITHUB_STEP_SUMMARY"
           fi
 
+      - name: Generate coverage baseline evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          baseline_ref=""
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ] && git rev-parse --verify origin/main >/dev/null 2>&1; then
+            baseline_ref="$(git merge-base origin/main HEAD)"
+          elif { [ "${GITHUB_REF_NAME}" = "main" ] || [ "${GITHUB_EVENT_NAME}" = "schedule" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_call" ]; }             && git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+            baseline_ref="$(git rev-parse HEAD^)"
+          elif git rev-parse --verify origin/main >/dev/null 2>&1; then
+            baseline_ref="$(git merge-base origin/main HEAD)"
+          elif git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+            baseline_ref="$(git rev-parse HEAD^)"
+          fi
+
+          if [[ -z "$baseline_ref" ]]; then
+            echo "coverage baseline: unavailable (no merge-base / previous commit found)" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          baseline_worktree="$(mktemp -d)"
+          cleanup() {
+            git worktree remove --force "$baseline_worktree" >/dev/null 2>&1 || true
+            rm -rf "$baseline_worktree"
+          }
+          trap cleanup EXIT
+
+          git worktree add --detach "$baseline_worktree" "$baseline_ref"
+          (
+            cd "$baseline_worktree"
+            uv sync --frozen --extra dev
+            uv run pytest tests/               -q               --ignore=tests/benchmarks               --cov=custom_components/lipro               --cov-fail-under=0               --cov-report=json:coverage-baseline.json
+          )
+          cp "$baseline_worktree/coverage-baseline.json" .coverage-baseline.json
+          echo "coverage baseline ref: $baseline_ref" >> "$GITHUB_STEP_SUMMARY"
+          echo "coverage baseline artifact: .coverage-baseline.json" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Record test lane contract
         if: always()
         run: |
           echo "snapshot coverage: included in the main tests/ lane; no separate snapshot rerun" >> "$GITHUB_STEP_SUMMARY"
-          echo "benchmark coverage: excluded from the blocking test lane and handled by the schedule/manual benchmark contract lane" >> "$GITHUB_STEP_SUMMARY"
-          echo "coverage gates: total floor is blocking; changed measured files must meet the changed-surface floor; explicit baseline diff remains opt-in" >> "$GITHUB_STEP_SUMMARY"
+          echo "benchmark coverage: excluded from the blocking test lane and handled by the benchmark smoke lane plus the schedule/manual full benchmark contract lane" >> "$GITHUB_STEP_SUMMARY"
+          echo "coverage gates: total floor is blocking; changed measured files must meet the changed-surface floor; merge-base/previous-commit baseline compare blocks regressions when baseline evidence is available" >> "$GITHUB_STEP_SUMMARY"
+          echo "coverage artifacts: coverage.json + coverage.xml + changed-surface file list are uploaded for audit/debug parity" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Check total + changed-surface coverage gates
-        run: >-
-          uv run python scripts/coverage_diff.py coverage.json
-          --minimum 95
-          --changed-files .coverage-changed-files
-          --changed-minimum 95
+        shell: bash
+        run: |
+          set -euo pipefail
+          coverage_args=(
+            coverage.json
+            --minimum 95
+            --changed-files .coverage-changed-files
+            --changed-minimum 95
+          )
+          if [[ -f .coverage-baseline.json ]]; then
+            coverage_args+=(
+              --baseline .coverage-baseline.json
+              --fail-on-changed-regression
+            )
+          fi
+          uv run python scripts/coverage_diff.py "${coverage_args[@]}"
 
       - name: Run refactor tool smoke check
         run: uv run python scripts/refactor_tools.py --coverage-json coverage.json --minimum-coverage 95
+
+      - name: Upload coverage artifact
+        if: always() && hashFiles('coverage.json', 'coverage.xml') != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: coverage-artifacts-${{ github.run_id }}
+          path: |
+            coverage.json
+            coverage.xml
+            .coverage-changed-files
+            .coverage-baseline.json
+          if-no-files-found: error
 
       - name: Upload coverage to Codecov
         if: github.event_name == 'push'
@@ -260,6 +322,69 @@ jobs:
           fail_ci_if_error: false
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  benchmark_smoke:
+    name: Benchmark Smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_call'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: "3.14"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@0ca8f610542aa7f4acaf39e65cf4eb3c35091883
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen --extra dev
+
+      - name: Run benchmark smoke suite
+        id: benchmark_smoke_run
+        run: >-
+          uv run pytest -q
+          tests/benchmarks/test_command_benchmark.py
+          tests/benchmarks/test_mqtt_benchmark.py
+          tests/benchmarks/test_device_refresh_benchmark.py
+          --benchmark-only
+          --benchmark-json=.benchmarks/benchmark-smoke.json
+
+      - name: Upload benchmark smoke artifact
+        if: always() && hashFiles('.benchmarks/benchmark-smoke.json') != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: benchmark-smoke-json-${{ github.run_id }}
+          path: .benchmarks/benchmark-smoke.json
+          if-no-files-found: error
+
+      - name: Compare benchmark smoke against baseline manifest subset
+        id: benchmark_smoke_contract
+        if: always() && hashFiles('.benchmarks/benchmark-smoke.json') != ''
+        run: >-
+          uv run python scripts/check_benchmark_baseline.py .benchmarks/benchmark-smoke.json
+          --manifest tests/benchmarks/benchmark_baselines.json
+          --benchmark-set smoke
+
+      - name: Record benchmark smoke posture
+        if: always()
+        run: |
+          echo "benchmark smoke lane: PR/push/workflow_call governed subset from benchmark manifest" >> "$GITHUB_STEP_SUMMARY"
+          echo "benchmark smoke run outcome: ${{ steps.benchmark_smoke_run.outcome }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "benchmark smoke contract outcome: ${{ steps.benchmark_smoke_contract.outcome }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "benchmark smoke manifest set: smoke" >> "$GITHUB_STEP_SUMMARY"
+          if [[ -f .benchmarks/benchmark-smoke.json ]]; then
+            echo "benchmark smoke artifact: .benchmarks/benchmark-smoke.json" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "benchmark smoke artifact: missing" >> "$GITHUB_STEP_SUMMARY"
+          fi
 
   benchmark:
     name: Benchmark
@@ -311,7 +436,8 @@ jobs:
       - name: Record benchmark governed posture
         if: always()
         run: |
-          echo "benchmark lane: baseline compare + threshold warning + no-regression gate; still only runs on schedule/workflow_dispatch" >> "$GITHUB_STEP_SUMMARY"
+          echo "benchmark lane: full manifest compare + threshold warning + no-regression gate; schedule/workflow_dispatch only" >> "$GITHUB_STEP_SUMMARY"
+          echo "benchmark smoke lane remains the PR/push/workflow_call subset feedback path" >> "$GITHUB_STEP_SUMMARY"
           echo "benchmark run outcome: ${{ steps.benchmark_run.outcome }}" >> "$GITHUB_STEP_SUMMARY"
           echo "benchmark contract outcome: ${{ steps.benchmark_contract.outcome }}" >> "$GITHUB_STEP_SUMMARY"
           echo "benchmark manifest: tests/benchmarks/benchmark_baselines.json" >> "$GITHUB_STEP_SUMMARY"

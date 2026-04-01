@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🚧 **v1.36 Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening** - `Phase 126 -> 128` active on 2026-04-01; current route truth = `v1.36 active milestone route / starting from latest archived baseline = v1.35`; next step = `$gsd-discuss-phase 127`
+- 🚧 **v1.36 Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening** - `Phase 126 -> 128` active on 2026-04-01; current route truth = `v1.36 active milestone route / starting from latest archived baseline = v1.35`; next step = `$gsd-complete-milestone v1.36`
 - ✅ **v1.35 Master Audit Closure, Public Surface Finalization & Release Traceability** - `Phase 122 -> 125` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.35`; evidence index = `.planning/reviews/V1_35_EVIDENCE_INDEX.md`
 - ✅ **v1.34 Terminal Audit Closure, Contract Hardening & Governance Truth Slimming** - `Phase 120 -> 121` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.34`; evidence index = `.planning/reviews/V1_34_EVIDENCE_INDEX.md`
 - ✅ **v1.33 MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance Hardening** - `Phase 119` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.33`; evidence index = `.planning/reviews/V1_33_EVIDENCE_INDEX.md`
@@ -23,10 +23,10 @@ projection_targets:
 active_milestone:
   version: v1.36
   name: Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening
-  status: active / phase 126 complete; phase 127 planning-ready (2026-04-01)
-  phase: '126'
-  phase_title: service-router developer callback-home convergence and diagnostics helper residual slimming
-  phase_dir: 126-service-router-developer-callback-home-convergence-and-diagnostics-helper-residual-slimming
+  status: active / phase 128 complete; closeout-ready (2026-04-01)
+  phase: '128'
+  phase_title: open-source readiness, benchmark-coverage gates, and maintainer continuity hardening
+  phase_dir: 128-open-source-readiness-benchmark-coverage-gates-and-maintainer-continuity-hardening
 latest_archived:
   version: v1.35
   name: Master Audit Closure, Public Surface Finalization & Release Traceability
@@ -43,23 +43,23 @@ previous_archived:
   evidence_path: .planning/reviews/V1_34_EVIDENCE_INDEX.md
 bootstrap:
   current_route: v1.36 active milestone route / starting from latest archived baseline = v1.35
-  default_next_command: $gsd-discuss-phase 127
+  default_next_command: $gsd-complete-milestone v1.36
   latest_archived_evidence_pointer: .planning/reviews/V1_35_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 ## Overview
 
-`v1.36` 继续把 master-audit carry-forward residual 从 archived folklore 重新登记为 live route：`Phase 126` 先消掉 diagnostics helper family 的 duplicate mechanics / callback-home shadow，`Phase 127` 再显式推进 `runtime_access` de-reflection 与 typed telemetry seam，`Phase 128` 最后收口开源 readiness、benchmark/coverage gates 与 maintainer continuity hardening。
+`v1.36` 已把 master-audit carry-forward residual 从 archived folklore 重新登记为 live route：`Phase 126` 消掉 diagnostics helper family 的 duplicate mechanics / callback-home shadow，`Phase 127` 完成 `runtime_access` de-reflection 与 typed telemetry seam，`Phase 128` 则把开源 readiness、benchmark/coverage gates 与 maintainer continuity hardening 冻结成 closeout-ready 治理合同。
 
 **Coverage:** `12/12` `v1.36` requirements mapped exactly once.
-**Default next command:** `$gsd-discuss-phase 127`
+**Default next command:** `$gsd-complete-milestone v1.36`
 
 ## Current Milestone
 
 ## v1.36: Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening
 
-**Milestone status:** `active / phase 126 complete; phase 127 planning-ready (2026-04-01)`
-**Default next command:** `$gsd-discuss-phase 127`
+**Milestone status:** `active / phase 128 complete; closeout-ready (2026-04-01)`
+**Default next command:** `$gsd-complete-milestone v1.36`
 **Current route story:** `v1.36 active milestone route / starting from latest archived baseline = v1.35`
 **Latest archived pointer:** `.planning/reviews/V1_35_EVIDENCE_INDEX.md`
 **Starting baseline snapshots:** `.planning/milestones/v1.35-ROADMAP.md`, `.planning/milestones/v1.35-REQUIREMENTS.md`
@@ -68,8 +68,8 @@ bootstrap:
 ## Phases
 
 - [x] **Phase 126: service-router developer callback-home convergence and diagnostics helper residual slimming** - 已完成 diagnostics helper inward thinning：`handlers.py` 直连 mechanics home、`helpers.py` 删除未使用 duplicate helper、`developer_router_support.py` 复用统一 iterator builder，并同步 v1.36 route / plan / verification truth。 (complete 2026-04-01)
-- [ ] **Phase 127: runtime-access de-reflection, typed runtime entry contracts, and hotspot continuation** - 待显式收紧 `runtime_access` 的 typed telemetry seam 与 entry-port narrowing，避免 control/runtime seam 继续依赖 dict fallback 与 `type(...).__getattribute__` 反射。 (pending)
-- [ ] **Phase 128: open-source readiness, benchmark-coverage gates, and maintainer continuity hardening** - 待把 private-access / single-maintainer continuity / benchmark & coverage diff gating 等治理 gap 收敛为诚实 open-source readiness contract。 (pending)
+- [x] **Phase 127: runtime-access de-reflection, typed runtime entry contracts, and hotspot continuation** - 已完成 `runtime_access` typed telemetry seam 收口、support-view de-reflection 与 focused/full verification 证据冻结，control/runtime seam 不再依赖 stringly dict fallback 或 `type(...).__getattribute__` 反射。 (complete 2026-04-01)
+- [x] **Phase 128: open-source readiness, benchmark-coverage gates, and maintainer continuity hardening** - 已把 private-access / single-maintainer continuity / security fallback 限制诚实 codify，并把 coverage baseline diff、benchmark smoke、strict markers 与 final evidence freeze 固化为 closeout-ready contract。 (complete 2026-04-01)
 
 ## Phase Details
 
@@ -97,8 +97,12 @@ bootstrap:
   1. `runtime_access.build_entry_system_health_view()` 与 `build_runtime_snapshot()` 不再把 typed telemetry 先降成 stringly dict 再回捞 key。
   2. `runtime_access_support_views.py` 的 runtime entry / protocol 读取不再依赖 `type(...).__getattribute__` 作为主要窄化手段。
   3. Focused tests 保住 slot-backed / MagicMock / degraded fallback 语义，同时让 new typed contract 成为唯一 formal truth。
-**Status**: Pending
-**Plans**: 0/0 complete
+**Status**: Complete (`2026-04-01`)
+**Plans**: 3/3 complete
+**Plan assets**: `127-01-PLAN.md`, `127-02-PLAN.md`, `127-03-PLAN.md`
+**Summary assets**: `127-01-SUMMARY.md`, `127-02-SUMMARY.md`, `127-03-SUMMARY.md`, `127-SUMMARY.md`
+**Verification**: `127-VERIFICATION.md`
+**Closeout proof**: `127-01` 已完成 typed system-health telemetry seam 收口，`127-02` 已完成 runtime_access_support_views de-reflection，`127-03` 已冻结 focused guards / governance projections / full validation 证据。
 
 ### Phase 128: open-source readiness, benchmark-coverage gates, and maintainer continuity hardening
 **Goal**: 把终审中无法单靠代码伪造闭环的 open-source readiness gap 诚实写进治理 contract，并补齐可自动化的 benchmark/coverage diff gates。
@@ -108,16 +112,20 @@ bootstrap:
   1. benchmark / coverage diff baseline 的 PR gate story 被显式 codify，并有 focused verification。
   2. private-access / single-maintainer continuity / security fallback 等不可伪造项被诚实登记为 maintainer decision boundary，而不是继续留在口头审阅里。
   3. docs / roadmap / requirements / state 与 final review report 对 remaining governance gap 的描述完全一致。
-**Status**: Pending
-**Plans**: 0/0 complete
+**Status**: Complete (`2026-04-01`)
+**Plans**: 3/3 complete
+**Plan assets**: `128-01-PLAN.md`, `128-02-PLAN.md`, `128-03-PLAN.md`
+**Summary assets**: `128-01-SUMMARY.md`, `128-02-SUMMARY.md`, `128-03-SUMMARY.md`, `128-SUMMARY.md`
+**Verification**: `128-VERIFICATION.md`
+**Closeout proof**: `128-01` 已统一 readiness honesty / continuity / minimum-version 真源，`128-02` 已固化 baseline-aware coverage diff 与 coverage artifact 契约，`128-03` 已把 benchmark smoke / strict markers / review ledgers / validation evidence 冻结到同一条 closeout-ready 故事线。
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 126. service-router developer callback-home convergence and diagnostics helper residual slimming | 1/1 | Complete | 2026-04-01 |
-| 127. runtime-access de-reflection, typed runtime entry contracts, and hotspot continuation | 0/0 | Pending | - |
-| 128. open-source readiness, benchmark-coverage gates, and maintainer continuity hardening | 0/0 | Pending | - |
+| 127. runtime-access de-reflection, typed runtime entry contracts, and hotspot continuation | 3/3 | Complete | 2026-04-01 |
+| 128. open-source readiness, benchmark-coverage gates, and maintainer continuity hardening | 3/3 | Complete | 2026-04-01 |
 
 ## Latest Archived Milestone
 

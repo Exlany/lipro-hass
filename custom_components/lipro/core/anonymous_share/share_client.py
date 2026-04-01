@@ -61,7 +61,7 @@ class ShareWorkerClient:
         }
         try:
             seconds = parse_http_retry_after(normalized_headers)
-        except AttributeError, TypeError, ValueError:
+        except (AttributeError, TypeError, ValueError):
             return None
         if seconds is None:
             return None

@@ -98,6 +98,11 @@ def build_parser() -> argparse.ArgumentParser:
         type=float,
         help="Blocking per-file floor for changed measured files (defaults to --minimum)",
     )
+    parser.add_argument(
+        "--fail-on-changed-regression",
+        action="store_true",
+        help="Fail when a changed measured file regresses below its baseline coverage",
+    )
     return parser
 
 
@@ -143,6 +148,9 @@ def main() -> int:
         else:
             sys.stdout.write(f"Changed-surface coverage floor: {changed_floor:.2f}%\n")
             changed_surface_failed = False
+            baseline_file_percents = (
+                load_file_percents(Path(args.baseline)) if args.baseline else {}
+            )
             for file_path in measured_paths:
                 percent = file_percents[file_path]
                 sys.stdout.write(
@@ -154,6 +162,23 @@ def main() -> int:
                         f"{file_path}: {percent:.2f}% < {changed_floor:.2f}%\n"
                     )
                     changed_surface_failed = True
+                if args.fail_on_changed_regression and file_path in baseline_file_percents:
+                    baseline_percent = baseline_file_percents[file_path]
+                    sys.stdout.write(
+                        "Changed-surface baseline: "
+                        f"{file_path} = {baseline_percent:.2f}%\n"
+                    )
+                    if percent < baseline_percent:
+                        sys.stdout.write(
+                            "Changed-surface coverage regressed below baseline for "
+                            f"{file_path}: {percent:.2f}% < {baseline_percent:.2f}%\n"
+                        )
+                        changed_surface_failed = True
+                elif args.fail_on_changed_regression:
+                    sys.stdout.write(
+                        "Changed-surface baseline: skipped for new measured file "
+                        f"{file_path}\n"
+                    )
 
             for file_path in missing_source_paths:
                 sys.stdout.write(

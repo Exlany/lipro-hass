@@ -53,11 +53,11 @@ tests/
 └── harness/
 ```
 
-## Phase 126 Execution Freeze
+## Phase 128 Execution Freeze
 
-- `tests/services/test_services_diagnostics_capabilities.py` 与 `tests/services/test_services_diagnostics_payloads.py` 继续冻结 diagnostics helper shell thinning 的 outward behavior。
-- `uv run ruff check .`、`uv run python scripts/check_file_matrix.py --check` 与 `uv run pytest -q` 共同构成本轮 phase exit proof；route docs 与 gsd-tools state 也需同步识别 `v1.36 / Phase 126 complete`。
-- `Phase 126` 不重开 service-router topology，也不扩张 diagnostics public surface；测试目标仅验证 inward thinning 与 current-route truth 同步。
+- `tests/meta/test_governance_release_continuity.py`、`tests/meta/toolchain_truth_docs_fast_path.py`、`tests/meta/test_version_sync.py`、`tests/meta/toolchain_truth_ci_contract.py`、`tests/meta/test_governance_release_contract.py`、`tests/meta/toolchain_truth_testing_governance.py` 与 `tests/meta/test_governance_route_handoff_smoke.py` 共同冻结 readiness honesty、route selector、CI lane contract 与 closeout-ready governance truth。
+- `uv run pytest -q tests/benchmarks/test_command_benchmark.py tests/benchmarks/test_mqtt_benchmark.py tests/benchmarks/test_device_refresh_benchmark.py --benchmark-only --benchmark-json=.benchmarks/benchmark-smoke.json` 与 `uv run python scripts/check_benchmark_baseline.py .benchmarks/benchmark-smoke.json --manifest tests/benchmarks/benchmark_baselines.json --benchmark-set smoke` 冻结 PR smoke benchmark contract；`pyproject.toml` 的 `--strict-markers` 则防止 marker silently drift。
+- `uv run ruff check .`、`uv run python scripts/check_file_matrix.py --check` 与 `uv run pytest -q` 共同构成本轮 phase exit proof；route docs 与 gsd-tools state 也需同步识别 `v1.36 / Phase 128 complete; closeout-ready`。
 
 ## Phase 125 Execution Freeze
 

@@ -11,6 +11,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.lipro.const.base import DOMAIN
 from custom_components.lipro.control.runtime_access import (
+    build_entry_system_health_view,
     build_runtime_diagnostics_projection,
     build_runtime_entry_view,
     find_runtime_device,
@@ -97,6 +98,43 @@ def test_build_runtime_entry_view_accepts_slots_backed_runtime_ports() -> None:
     assert view.coordinator.runtime_telemetry_snapshot == {"slot": "ok"}
 
 
+def test_build_entry_system_health_view_materializes_typed_projection() -> None:
+    protocol = SimpleNamespace(
+        protocol_diagnostics_snapshot=lambda: {
+            "entry_id": "entry-1",
+            "telemetry": {"mqtt_last_error_type": "TimeoutError"},
+        }
+    )
+    coordinator = SimpleNamespace(
+        update_interval=None,
+        last_update_success=False,
+        mqtt_service=SimpleNamespace(connected=False),
+        protocol=protocol,
+        telemetry_service=SimpleNamespace(
+            build_snapshot=lambda: {
+                "device_count": 2,
+                "last_update_success": False,
+                "mqtt": {"connected": False},
+            }
+        ),
+        devices={"device-1": object(), "device-2": object()},
+    )
+    entry = SimpleNamespace(
+        entry_id="entry-1",
+        options={},
+        runtime_data=cast(LiproCoordinator, coordinator),
+    )
+
+    view = build_entry_system_health_view(entry)
+
+    assert view is not None
+    assert view["device_count"] == 2
+    assert view["last_update_success"] is False
+    assert view["mqtt_connected"] is False
+    assert view["entry_ref"] is not None
+    assert view["failure_summary"]["failure_origin"] == "protocol.mqtt"
+
+
 def test_iter_runtime_entry_views_rejects_dynamic_probe_only_entries() -> None:
     class ProbeOnlyEntry:
         def __getattr__(self, name: str) -> object:
@@ -130,6 +168,34 @@ def test_build_runtime_entry_view_degrades_underspecified_runtime_data() -> None
     assert view.coordinator is not None
     assert view.coordinator.last_update_success is False
     assert view.coordinator.mqtt_connected is None
+    assert view.coordinator.runtime_telemetry_snapshot == {}
+    assert view.coordinator.devices is None
+
+
+def test_build_runtime_entry_view_rejects_probe_only_runtime_data_members() -> None:
+    class ProbeOnlyCoordinator:
+        def __getattr__(self, name: str) -> object:
+            return {
+                "update_interval": "0:00:30",
+                "last_update_success": True,
+                "mqtt_service": SimpleNamespace(connected=True),
+                "protocol": SimpleNamespace(),
+                "devices": {"ghost": object()},
+            }[name]
+
+    entry = SimpleNamespace(
+        entry_id="entry-probe",
+        options={},
+        runtime_data=cast(LiproCoordinator, ProbeOnlyCoordinator()),
+    )
+
+    view = build_runtime_entry_view(entry)
+
+    assert view is not None
+    assert view.coordinator is not None
+    assert view.coordinator.last_update_success is False
+    assert view.coordinator.mqtt_connected is None
+    assert view.coordinator.protocol is None
     assert view.coordinator.runtime_telemetry_snapshot == {}
     assert view.coordinator.devices is None
 
@@ -207,6 +273,7 @@ def test_build_runtime_diagnostics_projection_rejects_empty_entry_id() -> None:
     )
 
     assert build_runtime_diagnostics_projection(entry) is None
+
 
 def test_build_runtime_diagnostics_projection_uses_view_facts_without_runtime_backdoor() -> None:
     coordinator = SimpleNamespace(

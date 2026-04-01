@@ -9,11 +9,17 @@
 
 ## Pattern Overview
 
+## Phase 127 Execution Notes
+
+- `custom_components/lipro/control/runtime_access.py` 现在直接消费 typed `SystemHealthTelemetryView`，不再先把 system-health sink 擦回 `dict[str, object]` surrogate 再回捞 key。
+- `custom_components/lipro/control/runtime_access_support_views.py` 已改为显式 member/helper narrowing：slot-backed ports 仍受支持，probe-only object / reflective seam 不再是正式主链。
+- `v1.36` current route 已前推到 `Phase 128 complete; closeout-ready`；runtime-access hotspot 已关单，当前 route proof 集中在 open-source readiness honesty、baseline-aware quality gates 与 maintainer continuity governance contract。
+
 ## Phase 126 Execution Notes
 
 - diagnostics service topology 维持不变：`services/diagnostics/__init__.py` 仍是 outward import surface，`helpers.py` 只保留 stable helper home，而 handler-facing pure mechanics 已继续 inward 指回 `helper_support.py`。
 - `developer_router_support.py` 继续是 developer diagnostics glue / typed helper home；本轮只统一 iterator builder，不重开 service-router formal topology。
-- `v1.36` 作为 current route 重新显式登记 remaining concern：`Phase 126` 先 seal helper shell residual，`Phase 127` 再处理 runtime_access de-reflection / typed telemetry seam。
+- `Phase 126` 现作为 predecessor-visible proof 保留；current route 不再把 diagnostics helper residual 误写为 active hotspot。
 
 ## Phase 125 Execution Notes
 

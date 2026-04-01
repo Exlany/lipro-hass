@@ -105,7 +105,41 @@ def test_ci_security_and_test_jobs_keep_expected_gate_steps() -> None:
     assert "Run snapshot tests" not in test_step_names
     assert "Record test lane contract" in test_step_names
     assert "Resolve changed coverage surface" in test_step_names
+    assert "Generate coverage baseline evidence" in test_step_names
     assert "Check total + changed-surface coverage gates" in test_step_names
+    assert "Upload coverage artifact" in test_step_names
+
+
+def test_ci_benchmark_smoke_lane_enforces_governed_subset_contract() -> None:
+    ci_workflow = _load_yaml(_CI_WORKFLOW)
+    ci_jobs = _as_mapping(ci_workflow["jobs"])
+    benchmark_smoke_job = _as_mapping(ci_jobs["benchmark_smoke"])
+    benchmark_smoke_steps = _as_mapping_list(benchmark_smoke_job["steps"])
+    benchmark_smoke_step_names = _step_names(benchmark_smoke_steps)
+
+    assert "Run benchmark smoke suite" in benchmark_smoke_step_names
+    assert "Upload benchmark smoke artifact" in benchmark_smoke_step_names
+    assert "Compare benchmark smoke against baseline manifest subset" in benchmark_smoke_step_names
+    assert "Record benchmark smoke posture" in benchmark_smoke_step_names
+
+    benchmark_smoke_run = _step_named(benchmark_smoke_steps, "Run benchmark smoke suite")
+    _assert_run_contains(
+        _as_str(benchmark_smoke_run["run"]),
+        "tests/benchmarks/test_command_benchmark.py",
+        "tests/benchmarks/test_mqtt_benchmark.py",
+        "tests/benchmarks/test_device_refresh_benchmark.py",
+        "--benchmark-json=.benchmarks/benchmark-smoke.json",
+    )
+
+    benchmark_smoke_compare = _step_run(
+        benchmark_smoke_steps, "Compare benchmark smoke against baseline manifest subset"
+    )
+    _assert_run_contains(
+        benchmark_smoke_compare,
+        "scripts/check_benchmark_baseline.py",
+        "tests/benchmarks/benchmark_baselines.json",
+        "--benchmark-set smoke",
+    )
 
 
 def test_ci_benchmark_lane_enforces_baseline_and_artifact_contract() -> None:
@@ -133,6 +167,7 @@ def test_ci_benchmark_lane_enforces_baseline_and_artifact_contract() -> None:
     _assert_run_contains(compare_run, "scripts/check_benchmark_baseline.py", "tests/benchmarks/benchmark_baselines.json")
     benchmark_summary = _step_run(benchmark_steps, "Record benchmark governed posture")
     assert "no-regression gate" in benchmark_summary
+    assert "benchmark smoke lane remains the PR/push/workflow_call subset feedback path" in benchmark_summary
 
 
 def test_governance_registry_publishes_canonical_planning_route_truth() -> None:

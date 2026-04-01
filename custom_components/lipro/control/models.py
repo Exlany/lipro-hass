@@ -4,17 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-type FailureSummary = dict[str, str | None]
-
-
-def empty_failure_summary() -> FailureSummary:
-    """Return the stable empty failure-summary shape."""
-    return {
-        "failure_category": None,
-        "failure_origin": None,
-        "handling_policy": None,
-        "error_type": None,
-    }
+from ..core.telemetry.models import FailureSummary, empty_failure_summary
 
 
 @dataclass(frozen=True, slots=True)
@@ -36,3 +26,11 @@ class RuntimeDiagnosticsProjection:
     snapshot: RuntimeCoordinatorSnapshot
     update_interval: str
     degraded_fields: tuple[str, ...] = ()
+
+
+__all__ = [
+    "FailureSummary",
+    "RuntimeCoordinatorSnapshot",
+    "RuntimeDiagnosticsProjection",
+    "empty_failure_summary",
+]

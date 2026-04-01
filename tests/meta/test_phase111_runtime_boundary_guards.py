@@ -52,4 +52,8 @@ def test_phase111_runtime_access_keeps_runtime_data_narrowing_support_local() ->
 
     assert '_has_explicit_runtime_member(entry, "runtime_data")' in support_views_text
     assert "_coerce_runtime_entry_port(" in support_views_text
+    assert '_get_explicit_member(entry, "entry_id")' in support_views_text
+    assert '_get_explicit_member(coordinator, "protocol")' in support_views_text
+    assert "type(entry).__getattribute__" not in support_views_text
+    assert "type(coordinator).__getattribute__" not in support_views_text
     assert "entry.runtime_data" not in support_views_text

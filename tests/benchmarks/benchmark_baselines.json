@@ -1,11 +1,16 @@
 {
   "schema_version": "benchmark-baselines.v1",
   "policy": {
-    "lane_policy": "schedule-workflow_dispatch-only; benchmark compare is not part of the PR blocking lane",
+    "lane_policy": "pull_request/push/workflow_call smoke subset + schedule/workflow_dispatch full benchmark contract",
     "warning_semantics": "mean_seconds above baseline * warning_ratio emits a warning but does not fail",
     "failure_semantics": "mean_seconds above baseline * failure_ratio fails the benchmark contract lane as a no-regression gate",
     "default_warning_ratio": 2.0,
-    "default_failure_ratio": 4.0
+    "default_failure_ratio": 4.0,
+    "smoke_benchmarks": [
+      "tests/benchmarks/test_command_benchmark.py::test_command_result_classifier_benchmark",
+      "tests/benchmarks/test_mqtt_benchmark.py::test_mqtt_message_processing_benchmark",
+      "tests/benchmarks/test_device_refresh_benchmark.py::test_device_update_properties_benchmark"
+    ]
   },
   "benchmarks": {
     "tests/benchmarks/test_command_benchmark.py::test_command_result_classifier_benchmark": {

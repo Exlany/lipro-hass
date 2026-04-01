@@ -71,6 +71,10 @@ testpaths = ["tests"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 pythonpath = ["."]
+addopts = "--strict-markers"
+markers = [
+    "benchmark: governed benchmark contract and PR smoke performance checks",
+]
 filterwarnings = [
     # Suppress DeprecationWarnings from third-party dependencies only;
     # our own code should not trigger deprecation warnings.

@@ -1,5 +1,23 @@
 # Kill List
 
+## Phase 128 Status Update
+
+- `Phase 128` 没有创造新的 active kill target；本轮是治理 contract、CI gate 与 evidence freeze 的 formalization，不是新的 file-level delete campaign。
+- `.github/workflows/ci.yml`、`scripts/{coverage_diff.py,check_benchmark_baseline.py,lint}`、`tests/benchmarks/benchmark_baselines.json` 与相关 docs / ledgers 继续保留为 formal homes / proof carriers，不被误登记为 future delete target。
+- open-source readiness 的 operational limits 已被诚实 codify，但它们不是仓内待删对象，也不构成新的 delete gate。
+
+## Phase 127 Status Update
+
+- `Phase 127` 没有创造新的 active kill target；本轮是 `runtime_access` typed seam / de-reflection 收口，而不是新的 file-level delete campaign。
+- `custom_components/lipro/control/{runtime_access.py,runtime_access_support_views.py,telemetry_surface.py,models.py}` 与对应 focused/meta tests 继续保留为 formal homes / proof carriers，不被误登记为 future delete target。
+- incidental `share_client.py` 语法修复只用于恢复测试收集，不构成新的 residual 或 delete gate。
+
+## Phase 126 Status Update
+
+- `Phase 126` 没有创造新的 active kill target；diagnostics helper shell thinning 与 developer iterator builder 统一均发生在既有 formal homes 内。
+- `services/diagnostics/{handlers.py,helpers.py,helper_support.py}` 与 `control/developer_router_support.py` 继续保留为 formal/support homes，不被误写成 future delete campaign。
+- 当前 delete-discipline 只要求继续防止 duplicate helper / callback-home shadow 回流，不要求新增 file-level kill gate。
+
 ## Phase 125 Status Update
 
 - `Phase 125` 没有创造新的 active kill target；本轮是 machine-readable governance truth、runtime contract dedupe 与 flow/auth thin-adapter residual 的收口，而不是新的 delete campaign。
