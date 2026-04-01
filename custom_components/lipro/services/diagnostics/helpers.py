@@ -16,7 +16,6 @@ from homeassistant.exceptions import HomeAssistantError
 
 from ...const.base import DOMAIN
 from ...core import LiproApiError
-from ...core.api.types import DiagnosticsApiResponse
 from ...core.utils.log_safety import safe_error_placeholder
 from ...runtime_types import LiproCoordinator
 from ..execution import ServiceErrorRaiser, async_execute_coordinator_call
@@ -38,7 +37,6 @@ from .helper_support import (
 from .types import (
     AnonymousShareManagerFactory,
     ClientSessionGetter,
-    DeveloperFeedbackPayload,
     DeveloperFeedbackResponse,
     DeveloperReport,
     DeveloperReportCollector,
@@ -47,7 +45,6 @@ from .types import (
     EntryTelemetryViewGetter,
     RuntimeCoordinatorIterator,
     RuntimeEntryResolver,
-    SensorHistoryResponse,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -56,24 +53,11 @@ _CoordinatorT = TypeVar("_CoordinatorT")
 _CAPABILITY_PROJECTION_ERRORS = (RuntimeError, ValueError, TypeError, LookupError)
 
 
-def _get_optional_service_string(call: ServiceCall, key: str) -> str | None:
-    return _support_get_optional_service_string(call, key)
-
-
-def _get_required_service_string(call: ServiceCall, key: str) -> str:
-    return _support_get_required_service_string(call, key)
-
-
-def _get_optional_note(call: ServiceCall, key: str) -> str:
-    return _support_get_optional_note(call, key)
-
-
-def _coerce_service_int(call: ServiceCall, key: str, default: int) -> int:
-    return _support_coerce_service_int(call, key, default)
-
-
-def _coerce_service_float(call: ServiceCall, key: str, default: float) -> float:
-    return _support_coerce_service_float(call, key, default)
+_get_optional_service_string = _support_get_optional_service_string
+_get_required_service_string = _support_get_required_service_string
+_get_optional_note = _support_get_optional_note
+_coerce_service_int = _support_coerce_service_int
+_coerce_service_float = _support_coerce_service_float
 
 
 def _collect_coordinator_capability_results(
@@ -177,22 +161,7 @@ def collect_developer_reports(
     return reports
 
 
-def build_developer_feedback_payload(
-    *,
-    reports: list[DeveloperReport],
-    note: str,
-    domain: str,
-    service_name: str,
-    requested_entry_id: str | None,
-) -> DeveloperFeedbackPayload:
-    """Build the canonical developer-feedback service payload."""
-    return _build_developer_feedback_payload_flow(
-        reports=reports,
-        note=note,
-        domain=domain,
-        service_name=service_name,
-        requested_entry_id=requested_entry_id,
-    )
+build_developer_feedback_payload = _build_developer_feedback_payload_flow
 
 
 async def async_handle_get_developer_report(
@@ -291,16 +260,4 @@ async def async_call_optional_capability(
         raise_optional_error(capability, err)
 
 
-def build_sensor_history_result(
-    serial: str,
-    sensor_device_id: str,
-    mesh_type: str,
-    result: DiagnosticsApiResponse,
-) -> SensorHistoryResponse:
-    """Build the common response payload for sensor-history diagnostics."""
-    return _support_build_sensor_history_result(
-        serial=serial,
-        sensor_device_id=sensor_device_id,
-        mesh_type=mesh_type,
-        result=result,
-    )
+build_sensor_history_result = _support_build_sensor_history_result
