@@ -124,7 +124,7 @@ def test_validate_reauth_submission_rejects_missing_entry_identity() -> None:
     )
 
     assert submission is None
-    assert errors == {"base": "unknown"}
+    assert errors == {"base": "invalid_entry"}
 
 
 def test_validate_reauth_submission_rejects_invalid_phone_id_type() -> None:
@@ -144,7 +144,27 @@ def test_validate_reauth_submission_rejects_invalid_phone_id_type() -> None:
     )
 
     assert submission is None
-    assert errors == {"base": "unknown"}
+    assert errors == {"base": "invalid_entry"}
+
+
+def test_validate_reauth_submission_rejects_invalid_stored_phone() -> None:
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        unique_id="lipro_10001",
+        data={
+            CONF_PHONE: "not-a-phone",
+            CONF_PHONE_ID: "phone-id",
+        },
+    )
+
+    submission, errors = validate_reauth_submission(
+        entry,
+        {"password": "testpassword"},
+        logger=_LOGGER,
+    )
+
+    assert submission is None
+    assert errors == {"base": "invalid_entry"}
 
 
 def test_validate_reconfigure_submission_uses_existing_defaults() -> None:
@@ -193,4 +213,4 @@ def test_validate_reconfigure_submission_rejects_invalid_phone_id_type() -> None
     )
 
     assert submission is None
-    assert errors == {"base": "unknown"}
+    assert errors == {"base": "invalid_entry"}

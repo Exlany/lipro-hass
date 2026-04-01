@@ -208,7 +208,7 @@ async def test_reauth_flow_missing_phone_id(
     hass: HomeAssistant,
     mock_lipro_client,
 ) -> None:
-    """Test reauth flow shows unknown error when phone_id is missing."""
+    """Test reauth flow shows invalid_entry when phone_id is missing."""
     entry = MockConfigEntry(
         domain=DOMAIN,
         title="Lipro (138****0000)",
@@ -244,5 +244,5 @@ async def test_reauth_flow_missing_phone_id(
 
     assert result["type"] is FlowResultType.FORM
     assert result["step_id"] == "reauth_confirm"
-    assert result["errors"] == {"base": "unknown"}
+    assert result["errors"] == {"base": "invalid_entry"}
     mock_lipro_client.login.assert_not_awaited()

@@ -273,7 +273,7 @@ async def test_form_cannot_connect(
 async def test_form_malformed_login_response(
     hass: HomeAssistant,
 ) -> None:
-    """Test form shows unknown error on malformed login response."""
+    """Test form maps malformed login responses to invalid_response."""
     with patch(
         "custom_components.lipro.config_flow.LiproProtocolFacade",
         autospec=True,
@@ -294,12 +294,12 @@ async def test_form_malformed_login_response(
         )
 
         assert result["type"] is FlowResultType.FORM
-        assert result["errors"] == {"base": "unknown"}
+        assert result["errors"] == {"base": "invalid_response"}
 
-async def test_form_unexpected_error_maps_to_unknown(
+async def test_form_unexpected_error_maps_to_unexpected_error(
     hass: HomeAssistant,
 ) -> None:
-    """Test truly unexpected exceptions map to unknown form error."""
+    """Test truly unexpected exceptions map to unexpected_error."""
     with patch(
         "custom_components.lipro.config_flow.LiproProtocolFacade",
         autospec=True,
@@ -320,12 +320,12 @@ async def test_form_unexpected_error_maps_to_unknown(
         )
 
         assert result["type"] is FlowResultType.FORM
-        assert result["errors"] == {"base": "unknown"}
+        assert result["errors"] == {"base": "unexpected_error"}
 
-async def test_form_lipro_api_error_maps_to_unknown(
+async def test_form_lipro_api_error_maps_to_api_error(
     hass: HomeAssistant,
 ) -> None:
-    """Test form maps non-auth/non-connection LiproApiError to unknown."""
+    """Test form maps non-auth/non-connection LiproApiError to api_error."""
     with patch(
         "custom_components.lipro.config_flow.LiproProtocolFacade",
         autospec=True,
@@ -346,7 +346,7 @@ async def test_form_lipro_api_error_maps_to_unknown(
         )
 
         assert result["type"] is FlowResultType.FORM
-        assert result["errors"] == {"base": "unknown"}
+        assert result["errors"] == {"base": "api_error"}
 
 async def test_form_abortflow_propagates(
     hass: HomeAssistant,
