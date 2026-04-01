@@ -7,28 +7,12 @@ from typing import NoReturn, Protocol, TypeVar
 
 from ..core import LiproApiError, LiproAuthError, LiproRefreshTokenExpiredError
 from ..core.utils.log_safety import safe_error_placeholder
+from ..runtime_types import LiproCoordinator, RuntimeAuthServiceLike
 
 _ResultT = TypeVar("_ResultT")
 
-
-class CoordinatorAuthSurface(Protocol):
-    """Formal runtime-auth surface used by service execution."""
-
-    async def async_ensure_authenticated(self) -> None:
-        """Validate runtime auth state before a service call."""
-
-    async def async_trigger_reauth(self, reason: str) -> None:
-        """Start the Home Assistant reauth flow for one failure reason."""
-
-
-class AuthenticatedCoordinator(Protocol):
-    """Coordinator contract required by authenticated service calls."""
-
-    @property
-    def auth_service(self) -> CoordinatorAuthSurface:
-        """Return the formal coordinator auth surface."""
-        ...
-
+type CoordinatorAuthSurface = RuntimeAuthServiceLike
+type AuthenticatedCoordinator = LiproCoordinator
 
 
 class ServiceErrorRaiser(Protocol):

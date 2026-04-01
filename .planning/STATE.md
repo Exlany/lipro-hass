@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.32
-milestone_name: Residual Hotspot Eradication, Validation Completion & Continuity Hardening
-status: archived / evidence-ready (2026-04-01)
-stopped_at: Milestone v1.32 closeout complete
-last_updated: "2026-04-01T01:39:27Z"
+milestone: v1.33
+milestone_name: MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance Hardening
+status: active / phase 119 complete; closeout-ready (2026-04-01)
+stopped_at: Phase 119 complete; milestone closeout ready
+last_updated: "2026-04-01T04:10:00Z"
 last_activity: 2026-04-01
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 10
-  completed_plans: 10
+  total_phases: 1
+  completed_phases: 1
+  total_plans: 3
+  completed_plans: 3
   percent: 100
 ---
 
@@ -24,7 +24,13 @@ See: `.planning/PROJECT.md`
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone: null
+active_milestone:
+  version: v1.33
+  name: MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance Hardening
+  status: active / phase 119 complete; closeout-ready (2026-04-01)
+  phase: '119'
+  phase_title: MQTT boundary, runtime contract, and release governance hardening
+  phase_dir: 119-mqtt-boundary-runtime-contract-and-release-governance-hardening
 latest_archived:
   version: v1.32
   name: Residual Hotspot Eradication, Validation Completion & Continuity Hardening
@@ -40,45 +46,43 @@ previous_archived:
   name: Boundary Sealing, Governance Truth & Quality Hardening
   evidence_path: .planning/reviews/V1_31_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.32
-  default_next_command: $gsd-new-milestone
+  current_route: v1.33 active milestone route / starting from latest archived baseline = v1.32
+  default_next_command: $gsd-complete-milestone v1.33
   latest_archived_evidence_pointer: .planning/reviews/V1_32_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
 
-**Current milestone:** `No active milestone route`
-**Active milestone:** `none`
-**Core value:** `把 v1.32 作为 latest archived baseline 固化下来，保持 single mainline / formal homes / no second root / no compat shell comeback，并为下一轮 milestone 留出清晰起点。`
-**Current focus:** `Milestone v1.32 archived; next route not started`
-**Current mode:** `no active milestone route / latest archived baseline = v1.32`
+**Current milestone:** `v1.33 MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance Hardening`
+**Active milestone:** `v1.33`
+**Core value:** `把 MQTT boundary authority、runtime/service contract 真源与 release/governance public story 一次性压回同一条正式主线；继续保持 single mainline / formal homes / no second root / no compat shell comeback。`
+**Current focus:** `Phase 119 complete: MQTT boundary cycle break, runtime contract unification, semver release hardening, governance/changelog freshness all converged; milestone closeout bundle is next.`
+**Current mode:** `v1.33 active milestone route / starting from latest archived baseline = v1.32`
 
 ## Current Position
 
-- **Phase:** `118 of 118`
+- **Phase:** `119 of 119`
 - **Plan:** `3 of 3`
-- **Status:** `archived / evidence-ready (2026-04-01)`
-- **Last activity:** `2026-04-01` — milestone closeout complete；`v1.32` 已完成 archive promotion，并成为 latest archived baseline
+- **Status:** `active / phase 119 complete; closeout-ready (2026-04-01)`
+- **Last activity:** `2026-04-01` — `v1.33` route completed `Phase 119` and is now ready for milestone closeout
 - **Progress:** `[██████████] 100%`
 
 ## Performance Metrics
 
-- **Total plans completed:** `10`
+- **Total plans completed:** `3`
 - **Average duration:** `-`
 - **Total execution time:** `0h`
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 115 | complete | 1/1 | 1.00 |
-| 116 | complete | 3/3 | 1.00 |
-| 117 | complete | 3/3 | 1.00 |
-| 118 | complete | 3/3 | 1.00 |
+| 119 | complete | 3/3 | — |
 
 ## Governance Truth Sources
 
 - Primary route contract: `.planning/PROJECT.md`
 - Route execution map: `.planning/ROADMAP.md`
 - Requirement coverage truth: `.planning/REQUIREMENTS.md`
+- Milestone chronology / parser contract: `.planning/MILESTONES.md`
 - Latest archived evidence pointer: `.planning/reviews/V1_32_EVIDENCE_INDEX.md`
 - Promoted phase evidence allowlist: `.planning/reviews/PROMOTED_PHASE_ASSETS.md`
 - Latest archived audit verdict: `.planning/v1.32-MILESTONE-AUDIT.md`
@@ -98,28 +102,29 @@ bootstrap:
 
 ### Decisions
 
-- `v1.32` 现已固定为 latest archived baseline；previous archived baseline pointer 前移到 `v1.31`。
-- 覆盖映射继续锁定：`HOT-48 -> Phase 115`、`HOT-49 -> Phase 116`、`TST-39/GOV-73 -> Phase 117`、`HOT-50/HOT-51/TST-40/GOV-75 -> Phase 118`。
-- 北极星继续锁定 `single mainline / formal homes / no second root / no compat shell comeback`。
-- 当前正式下一步已切换为 `$gsd-new-milestone`。
+- `v1.33` 已作为 active milestone route 启动并完成唯一 phase；latest archived baseline 固定为 `v1.32`，previous archived baseline 为 `v1.31`。
+- 当前覆盖映射锁定：`ARC-30/ARC-31/GOV-76/GOV-77/TST-41 -> Phase 119`，本 milestone 不再拆出额外 v1.33 phase。
+- `Phase 119` 计划预算为 `3` 个 plans，现已全部交付；正式下一步为 `$gsd-complete-milestone v1.33`。
+- `Coordinator` 的 public runtime home 继续保留在 `custom_components/lipro/coordinator_entry.py`；本轮只收敛 typing / contract truth，没有制造第二 root。
+- 北极星继续锁定 `single mainline / formal homes / no second root / no compat shell comeback / honesty over invented continuity`。
 
 ### Pending Todos
 
-- 无。
+- 执行 `$gsd-complete-milestone v1.33`，把 `v1.33` 升格为 next latest archived baseline。
 
 ### Blockers/Concerns
 
 - guaranteed non-GitHub private fallback、repo-visible public mirror continuity 与 documented delegate identity 仍是 maintainer 外部治理 blocker。
-- 后续 route 不得伪造仓外 continuity 已解决，也不得借新 milestone 复活 compat shell、second root 或 stale selector truth。
+- 本轮不得为了“彻底”而误改 `Coordinator` public home truth、误删 archived milestone assets，或把 internal milestone tag 叙事重新混入 public release story。
 
 ## Recommended Next Command
 
-- **Primary:** `$gsd-new-milestone` — 以 `v1.32` latest archived baseline 为起点定义下一轮 milestone。
-- **Status check:** `$gsd-progress` — 若要复核 archived baseline 与 closeout stats，可先查看。
+- **Primary:** `$gsd-complete-milestone v1.33` — 归档 `v1.33` closeout bundle，生成最新 archived baseline 证据链。
+- **Status check:** `$gsd-progress` — 若要复核 active route / archived baseline / phase inventory，可先查看。
 
 ## Session Continuity
 
-- **Last session:** 2026-04-01T00:20:00Z
-- **Stopped at:** Milestone v1.32 closeout complete
-- **Resume file:** .planning/reviews/V1_32_EVIDENCE_INDEX.md
-- **Read next:** `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` → `.planning/PROJECT.md` → `.planning/ROADMAP.md` → `.planning/REQUIREMENTS.md` → `.planning/STATE.md` → `.planning/reviews/V1_32_EVIDENCE_INDEX.md`
+- **Last session:** 2026-04-01T04:10:00Z
+- **Stopped at:** Phase 119 complete; milestone closeout ready
+- **Resume file:** `.planning/phases/119-mqtt-boundary-runtime-contract-and-release-governance-hardening/119-SUMMARY.md`
+- **Read next:** `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` → `.planning/PROJECT.md` → `.planning/ROADMAP.md` → `.planning/REQUIREMENTS.md` → `.planning/STATE.md` → `.planning/phases/119-mqtt-boundary-runtime-contract-and-release-governance-hardening/119-VERIFICATION.md`

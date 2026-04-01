@@ -238,8 +238,7 @@ def test_phase_68_dependency_notes_keep_boundary_and_inward_helpers_local() -> N
     assert "mqtt_decoder.py" in dependency_text
     assert "boundary-backed adapter" in dependency_text
     assert "runtime_access_support.py" in dependency_text
-    assert (
-        'import_module("custom_components.lipro.core.protocol.boundary")' in topics_text
-    )
+    assert "from ..protocol.boundary.mqtt_decoder import" in topics_text
+    assert "import_module(" not in topics_text
     assert 'topic.split("/")' not in topics_text
     assert "from . import runtime_access_support as _support" in runtime_access_text

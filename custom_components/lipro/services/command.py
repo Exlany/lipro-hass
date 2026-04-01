@@ -14,8 +14,10 @@ from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 
 from ..const.base import DOMAIN
 from ..core import LiproApiError
+from ..core.device import LiproDevice
 from ..core.utils.log_safety import safe_error_placeholder as _safe_error_placeholder
 from ..core.utils.redaction import redact_identifier as _redact_identifier
+from ..runtime_types import CommandServiceLike, LiproCoordinator
 from .contracts import (
     SERVICE_SEND_COMMAND_SCHEMA,
     CommandFailureSummary,
@@ -43,33 +45,9 @@ class _SendCommandExecution:
     is_alias_resolution: bool
 
 
-class CommandDevice(Protocol):
-    """Service-layer command device contract."""
-
-    serial: str
-
-
-class CommandService(Protocol):
-    """Command service contract used by the send_command service."""
-
-    @property
-    def last_failure(self) -> CommandFailureSummary | None:
-        """Return the latest command failure payload, if any."""
-
-    async def async_send_command(
-        self,
-        device: CommandDevice,
-        command: str,
-        properties: CommandProperties | None = None,
-        fallback_device_id: str | None = None,
-    ) -> bool:
-        """Dispatch one command via the coordinator."""
-
-
-class CommandCoordinator(Protocol):
-    """Coordinator contract used by the send_command service."""
-
-    command_service: CommandService
+type CommandDevice = LiproDevice
+type CommandService = CommandServiceLike
+type CommandCoordinator = LiproCoordinator
 
 
 class DeviceAndCoordinatorGetter(Protocol):

@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 757
+**Python files total:** 759
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -653,7 +653,7 @@
 | `tests/meta/test_governance_release_continuity.py` | Assurance | Phase 79 / 114 | 保留 | release continuity/custody topic suite home + access-mode/fallback honesty assertions |
 | `tests/meta/test_governance_release_contract.py` | Assurance | Phase 33 / 77 / 79 | 保留 | release/governance workflow anchor suite |
 | `tests/meta/test_governance_release_docs.py` | Assurance | Phase 79 | 保留 | release/docs topic suite home |
-| `tests/meta/test_governance_route_handoff_smoke.py` | Assurance | Phase 79 / 105 | 保留 | route-handoff gsd fast-path smoke guard home |
+| `tests/meta/test_governance_route_handoff_smoke.py` | Assurance | Phase 79 / 105 / 119 | 保留 | route-handoff gsd fast-path smoke guard home |
 | `tests/meta/test_install_sh_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_modularization_surfaces.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase100_runtime_schedule_support_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 | 保留 | focused predecessor guard home for Phase 100 MQTT/runtime schedule support extraction / governance freeze |
@@ -670,6 +670,7 @@
 | `tests/meta/test_phase112_formal_home_governance_guards.py` | Assurance | Phase 112 | 保留 | focused active-route / sanctioned-home / archive-pointer guard home for Phase 112 governance normalization |
 | `tests/meta/test_phase113_hotspot_assurance_guards.py` | Assurance | Phase 113 | 保留 | focused hotspot budget / helper-locality / default-lint changed-surface guard home for Phase 113 |
 | `tests/meta/test_phase114_open_source_surface_honesty_guards.py` | Assurance | Phase 114 | 保留 | focused access-mode / schema-limited metadata projection / debug-mode developer-surface / privacy wording honesty guard home |
+| `tests/meta/test_phase119_mqtt_boundary_guards.py` | Assurance | Phase 119 | 保留 | focused MQTT boundary one-way dependency guard home |
 | `tests/meta/test_phase31_runtime_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase45_hotspot_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase50_rest_typed_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
@@ -693,7 +694,7 @@
 | `tests/meta/test_phase89_tooling_decoupling_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase90_hotspot_map_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase91_typed_boundary_guards.py` | Assurance | Phase 91 | 保留 | focused no-regrowth guard home for Phase 91 typed-boundary hardening |
-| `tests/meta/test_phase92_redaction_convergence_guards.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_phase92_redaction_convergence_guards.py` | Assurance | Phase 92 | 保留 | focused no-regrowth guard home for shared redaction truth / thin-shell topicization |
 | `tests/meta/test_phase94_typed_boundary_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 | 保留 | focused no-regrowth guard home for Phase 94 typed payload contraction |
 | `tests/meta/test_phase95_hotspot_decomposition_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 | 保留 | focused no-regrowth guard home for Phase 95 hotspot inward decomposition |
 | `tests/meta/test_phase96_sanitizer_burndown_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 | 保留 | focused no-regrowth guard home for Phase 96 sanitizer burn-down |
@@ -702,6 +703,7 @@
 | `tests/meta/test_phase99_runtime_hotspot_support_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 | 保留 | focused predecessor guard home for Phase 99 runtime hotspot support extraction / governance freeze |
 | `tests/meta/test_protocol_replay_assets.py` | Assurance | Phase 7.4 | 保留 | - |
 | `tests/meta/test_public_surface_guards.py` | Assurance | Phase 6 | 保留 | thin shell after public-surface topicization |
+| `tests/meta/test_runtime_contract_truth.py` | Assurance | Phase 119 | 保留 | focused runtime/service contract single-source truth guard home |
 | `tests/meta/test_service_translation_sync.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_toolchain_truth.py` | Assurance | Phase 16 / 60 | 保留 | thin daily runnable shell for topicized toolchain truth suites |
 | `tests/meta/test_translation_tree_sync.py` | Assurance | Phase 6 | 保留 | - |

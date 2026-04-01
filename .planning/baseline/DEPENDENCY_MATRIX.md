@@ -216,7 +216,7 @@
 
 ## Phase 68 Hotspot / Docs Closeout Clarifications
 
-- `custom_components/lipro/core/mqtt/topics.py` 可以 lazy-import `custom_components/lipro.core.protocol.boundary` 作为 legacy topic helper import home，但它只能充当 boundary-backed adapter；topic/payload grammar authority 仍锁定在 `custom_components/lipro/core/protocol/boundary/mqtt_decoder.py`。
+- `custom_components/lipro/core/mqtt/{payload,topics,message_processor}.py` 只能 direct-import `custom_components/lipro/core/protocol/boundary/mqtt_decoder.py` 的 boundary-owned decode/support helpers，绝不允许 `mqtt_decoder.py` 反向依赖任何 `core/mqtt/*` helper；topic/payload grammar authority 继续锁定在 protocol-boundary family。
 - `custom_components/lipro/core/telemetry/outcomes.py` 与 `custom_components/lipro/core/telemetry/json_payloads.py` 只允许被 `custom_components/lipro/core/telemetry/models.py` inward 依赖；其他 production surfaces 不得把它们提升为第二 telemetry root。
 - `custom_components/lipro/control/runtime_access_support.py` 继续只允许由 `custom_components/lipro/control/runtime_access.py` 聚合导出；services / diagnostics / system-health / telemetry consumers 不得直连 support seam。
 - docs/metadata current-story drift 的治理回写只允许沿 `README* -> docs/README.md -> SUPPORT.md/SECURITY.md/.github/* -> planning/baseline/reviews` 的既有链路推进，不得长出 parallel docs route。

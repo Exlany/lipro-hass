@@ -132,6 +132,10 @@ def test_release_validate_and_security_gates_reuse_tagged_ref_contract() -> None
     release_jobs = _as_mapping(release_workflow["jobs"])
     release_permissions = _as_mapping(release_workflow["permissions"])
 
+    release_on = _as_mapping(release_workflow["on"])
+    release_push = _as_mapping(release_on["push"])
+    assert _as_str_list(release_push["tags"]) == ["v*.*.*"]
+
     validate_job = _as_mapping(release_jobs["validate"])
     assert _as_str(validate_job["uses"]) == "./.github/workflows/ci.yml"
     validate_with = _as_mapping(validate_job["with"])
@@ -234,7 +238,7 @@ def test_codeql_tag_workflow_matches_release_scanning_contract() -> None:
     assert "workflow_dispatch" in codeql_on
     assert "push" in codeql_on
     codeql_push = _as_mapping(codeql_on["push"])
-    assert "v*" in _as_str_list(codeql_push["tags"])
+    assert _as_str_list(codeql_push["tags"]) == ["v*.*.*"]
 
 
 def test_architecture_policy_checker_consumes_script_owned_helpers() -> None:

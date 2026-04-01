@@ -35,7 +35,7 @@ _TYPE_GUARD_TARGETS = {
 _ANY_BUDGET: dict[str, _AnyBudgetEntry] = {
     "core/mqtt/message_processor.py": {
         "sanctioned_any": {
-            "from typing import TYPE_CHECKING, Any, Protocol, cast": 1,
+            "from typing import TYPE_CHECKING, Any": 1,
             "type MqttPayload = dict[str, Any]": 1,
             "parse_payload: Callable[[Any], dict[str, Any]],": 2,
             ") -> dict[str, Any] | OperationOutcome:": 1,

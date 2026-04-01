@@ -1,12 +1,18 @@
-# Requirements: Lipro-HASS v1.32 Archived Route
+# Requirements: Lipro-HASS v1.33 Active Route
 
-> `v1.32` 已于 `2026-04-01` 完成 milestone closeout；本文件现在承载 latest archived baseline 的 requirements / traceability / blocker honesty，而 `.planning/reviews/V1_32_EVIDENCE_INDEX.md` 作为 canonical archived evidence pointer。
+> `v1.33` 现已从 `v1.32` latest archived baseline 启动；本文件承载当前 active route 的 requirements / traceability / blocker honesty，而 archived evidence 继续只由 `.planning/reviews/V1_32_EVIDENCE_INDEX.md` 提供 pull-only predecessor truth。
 
 <!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone: null
+active_milestone:
+  version: v1.33
+  name: MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance Hardening
+  status: active / phase 119 complete; closeout-ready (2026-04-01)
+  phase: '119'
+  phase_title: MQTT boundary, runtime contract, and release governance hardening
+  phase_dir: 119-mqtt-boundary-runtime-contract-and-release-governance-hardening
 latest_archived:
   version: v1.32
   name: Residual Hotspot Eradication, Validation Completion & Continuity Hardening
@@ -22,15 +28,57 @@ previous_archived:
   name: Boundary Sealing, Governance Truth & Quality Hardening
   evidence_path: .planning/reviews/V1_31_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.32
-  default_next_command: $gsd-new-milestone
+  current_route: v1.33 active milestone route / starting from latest archived baseline = v1.32
+  default_next_command: $gsd-complete-milestone v1.33
   latest_archived_evidence_pointer: .planning/reviews/V1_32_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
+
+## Current Milestone (v1.33)
+
+**Milestone Goal:** 让 MQTT boundary authority、runtime/service contract truth、release namespace 与 governance docs/changelog freshness 同时回到单一正式主线，不再依赖 boundary ↔ transport 互相 lazy import、service-local 平行 Protocol，或把内部里程碑标签误当 public release namespace。
+**Milestone status:** `active / phase 119 complete; closeout-ready (2026-04-01)`
+**Current route mode:** `v1.33 active milestone route / starting from latest archived baseline = v1.32`
+**Starting baseline:** `.planning/v1.32-MILESTONE-AUDIT.md`, `.planning/reviews/V1_32_EVIDENCE_INDEX.md`, `.planning/milestones/v1.32-ROADMAP.md`, `.planning/milestones/v1.32-REQUIREMENTS.md`
+**Requirements basket:** `ARC-30`, `ARC-31`, `GOV-76`, `GOV-77`, `TST-41`
+**Latest archived baseline:** `v1.32`
+**Archive pointer:** `.planning/reviews/V1_32_EVIDENCE_INDEX.md`
+**Starting audit artifact:** `.planning/v1.32-MILESTONE-AUDIT.md`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.32`
+**Default next command:** `$gsd-complete-milestone v1.33`
+**Current phase handoff:** `Phase 119 complete; MQTT boundary one-way dependency、runtime contract unification、release-governance hardening 与 current-story freshness 已完成同轮闭环，当前只剩 milestone closeout。`
+
+### Architecture
+- [x] **ARC-30**: `custom_components/lipro/core/protocol/boundary/mqtt_decoder.py` 不再反向依赖 `core/mqtt/*`；`payload.py` / `topics.py` / `message_processor.py` 直接复用 protocol-boundary decoder/support，彻底去掉循环 lazy-import folklore。
+- [x] **ARC-31**: `runtime_types.py` 成为 runtime/service 正式 contract 真源；service handlers 与 lifecycle support 不再平行重定义 `auth_service` / `command_service` / concrete `Coordinator` typing。
+
+### Governance
+- [x] **GOV-76**: `.github/workflows/release.yml` / `codeql.yml` 只接受 semver public release tag namespace，避免内部 milestone tags 误触发 release workflow 并在 version gate 处失败。
+- [x] **GOV-77**: governance route helper/test 不再在 Python 中硬编码整份 current-route contract；`PROJECT.md` 的 machine-readable contract 成为 canonical truth，`ROADMAP` / `REQUIREMENTS` / `STATE` / `MILESTONES` 只需对齐它。
+
+### Testing & Docs
+- [x] **TST-41**: focused tests / guards / docs 已共同冻结 MQTT one-way boundary dependency、runtime contract reuse、release namespace 区分与 `CHANGELOG.md` current-story freshness。
+
+## Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| ARC-30 | Phase 119 | Complete |
+| ARC-31 | Phase 119 | Complete |
+| GOV-76 | Phase 119 | Complete |
+| GOV-77 | Phase 119 | Complete |
+| TST-41 | Phase 119 | Complete |
+
+**Coverage:**
+- v1.33 requirements: 5 total
+- Mapped to phases: 5
+- Complete: 5
+- Pending: 0
+- Unmapped: 0 ✓
 ## Latest Archived Milestone (v1.32)
 
-**Milestone Goal:** 已把 `v1.31` 已诚实登记的 remaining hotspots、validation backfill 与 continuity hardening 收口为同一条 active route：在 `Phase 115 -> 117` 已完成 contract freeze / continuity repair 的基础上，`Phase 118` 进一步完成了 route truth sync、remaining hotspot decomposition 与 phase-local validation closure。
+**Milestone Goal:** 已把 `v1.31` 已诚实登记的 remaining hotspots、validation backfill 与 continuity hardening 收口为同一条 archived-only baseline；`Phase 118` 完成 route truth sync、remaining hotspot decomposition 与 phase-local validation closure 后，`v1.32` 已固定为 latest archived baseline。
 **Milestone status:** `archived / evidence-ready (2026-04-01)`
 **Current route mode:** `no active milestone route / latest archived baseline = v1.32`
 **Starting baseline:** `.planning/v1.31-MILESTONE-AUDIT.md`, `.planning/reviews/V1_31_EVIDENCE_INDEX.md`, `.planning/milestones/v1.31-ROADMAP.md`, `.planning/milestones/v1.31-REQUIREMENTS.md`
@@ -40,59 +88,6 @@ bootstrap:
 **Current audit artifact:** `.planning/v1.32-MILESTONE-AUDIT.md`
 **Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.32`
 **Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.31`
-**Default next command:** `$gsd-new-milestone`
-**Current phase handoff:** `Phase 118 closeout complete; HOT-50 / HOT-51 / TST-40 / GOV-75 remain closed in-place, and v1.32 now serves as the latest archived baseline.`
-
-### Hotspots
-- [x] **HOT-48**: `status_fallback_support.py` 必须收敛到单一明确的 fallback-entry semantics；空输入 / no-I/O / fallback-depth contract 已被冻结为当前 formal behavior。
-- [x] **HOT-49**: `anonymous_share/manager.py` / `rest_facade.py` 已继续在 formal homes 内 inward split；state binding / scope-state proxy / aggregate outcome contract 已冻结，未新增 second root 或 compat shell。
-- [x] **HOT-50**: `status_fallback_support.py` 与 `rest_decoder` family 已继续 inward split，进一步降低 giant-home 决策密度，同时保持 public entry / registry truth 稳定。
-- [x] **HOT-51**: `firmware_update.py` 已 inward split 到 `firmware_update_support.py`；`anonymous_share/manager.py` 经终局审计后保留为 bounded façade/watchlist，并继续由 no-growth guard 约束，outward entity / aggregate contract 保持不变。
-
-### Testing
-- [x] **TST-39**: `Phase 112 -> 114` 缺失的 validation / focused changed-surface proof 已回填，使 archived truth 不再停留在 verification-only。
-- [x] **TST-40**: `Phase 115 -> 117` 的 phase-local `VALIDATION.md` 已补齐，并以 focused + repo-wide gates 证明 `v1.32` 达到 verification + validation 双闭环。
-
-### Governance
-- [x] **GOV-73**: archived baseline / milestone context / runbook continuity / evidence pointers 已在 `v1.32` archived closeout 后保持 single-source、machine-checkable 和 docs-first 对齐。
-- [x] **GOV-75**: live selector family、developer guidance、runbook 与 focused governance guards 已把 current story 诚实翻转为 `no active milestone route / latest archived baseline = v1.32`；默认下一步现已切换到 `$gsd-new-milestone`。
-
-## Traceability
-
-| Requirement | Phase | Status |
-|-------------|-------|--------|
-| HOT-48 | Phase 115 | Complete |
-| HOT-49 | Phase 116 | Complete |
-| TST-39 | Phase 117 | Complete |
-| GOV-73 | Phase 117 | Complete |
-| HOT-50 | Phase 118 | Complete |
-| HOT-51 | Phase 118 | Complete |
-| TST-40 | Phase 118 | Complete |
-| GOV-75 | Phase 118 | Complete |
-
-**Coverage:**
-- v1.32 requirements: 8 total
-- Mapped to phases: 8
-- Complete: 8
-- Pending: 0
-- Unmapped: 0 ✓
-
-
-## Future Requirements
-
-### Governance
-- **GOV-74**: 单维护者 continuity posture 只有在 maintainer 提供真实 delegate / backup maintainer 身份后才可升级；在此之前继续保持 honest blocker state。
-
-### Open Source
-- **OSS-15**: 当真实 public hosting / mirror / docs surface 出现后，再把 `manifest.json`、`pyproject.toml` 与 docs URLs 迁移到稳定公开入口。
-
-## Out of Scope
-
-| Feature | Reason |
-|---------|--------|
-| Fabricating a public docs / security / support URL that does not exist | 违反勿造虚妄原则，且会制造虚假的开源可达性承诺 |
-| Inventing a delegate or backup maintainer identity | 需要 maintainer 的现实授权，不能由仓内代码或文档臆造 |
-| Reopening closed compat shells or adding second roots during hotspot cleanup | 违反北极星 formal-home / single-mainline 裁决 |
 
 ## Previous Archived Milestone (v1.31)
 

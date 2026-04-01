@@ -43,7 +43,6 @@ _PRODUCTION_IMPORT_LOCALITY = {
     "custom_components.lipro.core.mqtt.payload": {
         "custom_components/lipro/core/mqtt/message_processor.py",
         "custom_components/lipro/core/mqtt/transport_runtime.py",
-        "custom_components/lipro/core/protocol/boundary/mqtt_decoder.py",
     },
 }
 

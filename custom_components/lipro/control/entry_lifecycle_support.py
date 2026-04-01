@@ -18,9 +18,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from ..const.config import DEFAULT_SCAN_INTERVAL
-from ..coordinator_entry import Coordinator
 from ..core import LiproAuthManager, LiproProtocolFacade
-from ..runtime_types import LiproRuntimeCoordinator
+from ..runtime_types import LiproCoordinator, LiproRuntimeCoordinator
 from .entry_root_wiring import EntryLifecycleControllerDependencies
 
 type EntryLike = ConfigEntry[LiproRuntimeCoordinator | None]
@@ -44,7 +43,7 @@ class EntrySetupArtifacts:
     """Prepared setup collaborators for one config entry."""
 
     auth_manager: LiproAuthManager
-    coordinator: Coordinator
+    coordinator: CoordinatorRuntimeLike
 
 
 class SetupDeviceRegistryListener(Protocol):
@@ -61,7 +60,7 @@ class HasOtherRuntimeEntries(Protocol):
         """Return whether another runtime entry remains active."""
 
 
-class CoordinatorRuntimeLike(Protocol):
+class CoordinatorRuntimeLike(LiproCoordinator, Protocol):
     """Minimal coordinator lifecycle surface owned by the control plane."""
 
     async def async_config_entry_first_refresh(self) -> None:
@@ -82,7 +81,7 @@ class CoordinatorFactory(Protocol):
         config_entry: EntryLike,
         *,
         update_interval: int = DEFAULT_SCAN_INTERVAL,
-    ) -> Coordinator:
+    ) -> CoordinatorRuntimeLike:
         """Return one configured runtime coordinator."""
 
 
@@ -170,7 +169,7 @@ class EntryLifecycleSupport:
     ) -> None:
         """Run refresh, platform forwarding, shared-service sync, and hook attachment."""
         await setup_artifacts.coordinator.async_config_entry_first_refresh()
-        entry.runtime_data = cast(Coordinator | None, setup_artifacts.coordinator)
+        entry.runtime_data = cast(LiproRuntimeCoordinator | None, setup_artifacts.coordinator)
         self._persist_entry_tokens_if_changed(hass, entry, setup_artifacts.auth_manager)
         await hass.config_entries.async_forward_entry_setups(entry, self._platforms)
         await self._service_registry.async_sync_with_lock(hass)

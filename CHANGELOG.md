@@ -9,49 +9,21 @@
 
 ### 新增（Added）
 
-- 一键安装脚本，便于自定义集成部署。
-- 设备诊断报告导出，并增强诊断脱敏相关测试覆盖。
-- `rest.device-list` / `rest.device-status` / `rest.mesh-group-status` 的 canonical boundary contracts 与 replay/contract fixtures。
-- `AuthSessionSnapshot` formal auth/session contract，供 `config_flow` / `entry_auth` / control adapters 统一消费。
-- 维护者附录现已显式指向 latest archived evidence index（`.planning/reviews/V1_29_EVIDENCE_INDEX.md`）与 archived milestone audit（`.planning/v1.29-MILESTONE-AUDIT.md`），保持 release pull-chain 单一路由。
+- `Phase 119` closeout 资产：`119-01/02/03-SUMMARY.md`、`119-SUMMARY.md` 与 `119-VERIFICATION.md`，为 MQTT boundary 解环、runtime contract 真源统一与 release/governance 收口提供 machine-checkable handoff。
+- `119-RESEARCH.md`，把当前 residual bundle 的根因、正式裁决与执行分层沉淀为 phase-local research artifact。
 
 ### 变更（Changed）
 
-- 迁移依赖元数据到 `pyproject.toml`，并引入 `uv.lock`。
-- 将 CI 的类型检查合并到 lint 工作流，减少重复环境初始化。
-- 重构 coordinator 的更新/指令工作流，提升可维护性。
-- 重构匿名分享能力检测逻辑，改为更清晰的规则映射。
-- 重构共享 sensor 实体初始化，并进行更广泛的类型安全/代码质量清理。
-- 删除 room sync / stale-device 的 shadow runtime 链（含历史 `device_registry_sync.py`），让正式 coordinator 主链只保留编排职责。
-- 重构 device identity index，使用更严格的注册 API，并移除遗留的直接修改兼容路径。
-- 移除 `core.api` 的旧兼容别名，改为使用标准子模块符号（`api_response_safety` / `request_policy`）。
-- 移除 `login_with_hash` 兼容入口；config flow 直接使用
-  `login(..., password_is_hashed=True)`。
-- 重构平台模块：直接导入 helper 子模块，移除 `helpers` 包级兼容 re-export。
-- 移除根模块遗留的 service contract re-export；以 `services/contracts.py` 作为权威来源。
-- `core/__init__.py` 不再导出 `Coordinator`；HA runtime-home public surface 固定为 `custom_components/lipro/coordinator_entry.py`。
-- control adapters 改为消费 formal auth/session/result contracts，而不是依赖 raw login dict shape。
-- governance / replay / meta guards 已同步到 `Phase 10 completed` 口径，future-host 叙事仅允许建立在 formal boundary/auth/device nucleus 之上。
-- maintainer-facing release route 现统一承认 `docs/README.md` maintainer appendix → `docs/MAINTAINER_RELEASE_RUNBOOK.md` → version-sync triad / tagged workflows / archived evidence pointer 的单一路径。
-- governance/meta smoke 现改为 capability-aware fast-path proof：缺少本机 `node` 或 `gsd-tools` 时仅跳过 fast-path，不跳过 docs / baseline / route-contract truth。
-- release notes 已补齐 CI reuse、tagged `pip-audit` / `CodeQL`、`SBOM` / attestation / `cosign` / release identity manifest、verify-only / non-publish rehearsal 与 compatibility preview advisory lane 的同一故事。
+- MQTT topic/payload decode authority 已统一回 `custom_components/lipro/core/protocol/boundary/mqtt_decoder.py`，`core/mqtt` helpers 仅单向消费 boundary truth，不再保留 reverse import / lazy-import folklore。
+- `runtime_types.py` 现为 runtime/service 合同的唯一正式真源；`services/execution.py`、`services/command.py` 与 `control/entry_lifecycle_support.py` 已去除平行 Protocol / concrete typing 漂移。
+- release / governance current story 现只承认 semver public release namespace 与 canonical route contract；`release.yml` / `codeql.yml`、`docs/developer_architecture.md`、`docs/MAINTAINER_RELEASE_RUNBOOK.md` 与 live planning docs 已对齐 `v1.33` closeout-ready truth。
+- release notes 继续保留 `CI reuse`、`CodeQL`、`SBOM`、`cosign`、`release identity` 与 `compatibility preview` 的单一 release-security 叙事，但已移除过时的内部 milestone / stale archive-pointer folklore。
 
 ### 修复（Fixed）
 
-- 改进认证问题生命周期处理（repair 通知与 reauth 流程）。
-- 修复匿名分享的崩溃路径，并提升刷新稳定性。
-- 在 diagnostics/anonymous share 载荷中脱敏 `wifiSsid` 等敏感字段。
-- 加固属性解析逻辑，防御畸形 API item。
-- 恢复 `PROP_FAN_ONOFF` 导出，并修复 import 顺序问题。
-- 修正亮度取整与人体传感器能力检测行为。
-- 通过收紧依赖约束修复 aiodns/pycares 兼容性问题。
-- 补齐灯光平台 icons，并修正 command/device-id 示例。
-- 修复强制房间-区域同步：即使云端房间名不变，也能收敛用户在 HA 中手动修改的 area。
-- 修复 stale-device 对账：使用未过滤的云端 serials 并在冷启动时以 registry 为基线，避免过滤器误删。
-- 加固 bool-like coercion 的 debug 日志，避免记录原始异常值。
-- 加固敏感信息脱敏：覆盖国际化手机号与数值型 `user_id`/`biz_id`，并在 UI 中遮罩 reauth phone 占位符。
-- 减少状态兜底流程中冗余的全量 batch 重试，降低可重试批量失败时的重复 API 调用。
-- `v1.21` archived evidence index 与 milestone audit 不再冒充当前 active-route / default-next truth，历史 closeout 语态已退回 archive-only 身份。
+- 修复 governance current-truth helper 的硬编码 archived-route 漂移：current route 现直接读取 `.planning/PROJECT.md` machine-readable contract，而不再维护第二份 Python dict。
+- 修复 route-handoff / follow-up milestone guards 对旧 `v1.32 archived` 叙事、旧 phase counters 与旧默认命令的耦合，当前只承认 `Phase 119 complete; closeout-ready` 的 live selector truth。
+- 修复 maintainer-facing route note 与 changelog freshness 漂移：不再引用 `.planning/reviews/V1_29_EVIDENCE_INDEX.md`、`.planning/v1.29-MILESTONE-AUDIT.md` 或 `Phase 10 completed` 口径。
 
 ## [1.0.0] - 2026-02-08
 

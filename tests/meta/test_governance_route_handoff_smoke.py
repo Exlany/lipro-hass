@@ -1,4 +1,4 @@
-"""Focused archived-route smoke guards for latest-archive truth and continuity."""
+"""Focused active-route smoke guards for the current v1.33 handoff."""
 
 from __future__ import annotations
 
@@ -27,6 +27,10 @@ from .governance_current_truth import (
     CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE,
     CURRENT_MILESTONE_TOTAL_PLAN_COUNT,
     CURRENT_PHASE,
+    CURRENT_PHASE_HEADING,
+    CURRENT_PHASE_PLAN_FILENAMES,
+    CURRENT_PHASE_SUMMARY_FILENAMES,
+    CURRENT_PHASE_VERIFICATION_FILENAME,
     CURRENT_ROUTE,
 )
 from .governance_promoted_assets import _assert_promoted_phase_assets
@@ -72,17 +76,13 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
     assert CURRENT_MILESTONE_DEFAULT_NEXT in roadmap_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in requirements_text
-    assert "### Phase 118: Final hotspot decomposition and validation closure" in roadmap_text
+    assert CURRENT_PHASE_HEADING in roadmap_text
     assert "**Plans**: 3/3 complete" in roadmap_text
-    assert "118-02-SUMMARY.md" in roadmap_text
-    assert "118-03-PLAN.md" in roadmap_text
-    assert "118-03-SUMMARY.md" in roadmap_text
-    assert "118-SUMMARY.md" in roadmap_text
-    assert "118-VERIFICATION.md" in roadmap_text
-    assert "`v1.32` 已完成 closeout 并固定为 latest archived baseline" in roadmap_text
+    for filename in CURRENT_PHASE_PLAN_FILENAMES + CURRENT_PHASE_SUMMARY_FILENAMES + (CURRENT_PHASE_VERIFICATION_FILENAME,):
+        assert filename in roadmap_text
     assert "- **Plan:** `3 of 3`" in state_text
     assert "- **Progress:** `[██████████] 100%`" in state_text
-    assert "4/4 phases, 10/10 plans" in (_ROOT / ".planning" / "MILESTONES.md").read_text(encoding="utf-8")
+    assert "1/1 phases, 3/3 plans" in (_ROOT / ".planning" / "MILESTONES.md").read_text(encoding="utf-8")
 
 
 def test_gsd_fast_path_matches_current_archived_route_story() -> None:

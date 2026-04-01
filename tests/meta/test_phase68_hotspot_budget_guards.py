@@ -102,7 +102,8 @@ def test_phase68_mqtt_topic_helper_stays_boundary_backed() -> None:
         _PRODUCTION_ROOT / "core" / "mqtt" / "message_processor.py"
     ).read_text(encoding="utf-8")
 
-    assert 'import_module("custom_components.lipro.core.protocol.boundary")' in topics_text
+    assert "from ..protocol.boundary.mqtt_decoder import" in topics_text
+    assert "import_module(" not in topics_text
     assert "decode_mqtt_topic_payload(" in topics_text
     assert 'topic.split("/")' not in topics_text
     assert "decode_mqtt_topic_payload(" in message_processor_text

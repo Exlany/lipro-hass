@@ -33,6 +33,10 @@ def test_release_workflow_keeps_identity_evidence_tools_in_sync() -> None:
     release = _load_yaml(_RELEASE_WORKFLOW)
     codeql = _load_yaml(_CODEQL_WORKFLOW)
 
+    release_on = release["on"]
+    assert isinstance(release_on, dict)
+    assert release_on["push"]["tags"] == ["v*.*.*"]
+
     build_job = release["jobs"]["build"]
     steps = build_job["steps"]
     step_names = {step["name"] for step in steps}
@@ -48,7 +52,7 @@ def test_release_workflow_keeps_identity_evidence_tools_in_sync() -> None:
     assert isinstance(codeql_on, dict)
     assert "workflow_dispatch" in codeql_on
     assert "push" in codeql_on
-    assert "v*" in codeql_on["push"]["tags"]
+    assert codeql_on["push"]["tags"] == ["v*.*.*"]
     assert codeql["permissions"]["security-events"] == "write"
     analyze_job = codeql["jobs"]["analyze"]
     analyze_step_names = {step["name"] for step in analyze_job["steps"]}

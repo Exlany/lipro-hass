@@ -1,8 +1,8 @@
 # Testing Patterns
 
-**Analysis Date:** 2026-03-30
+**Analysis Date:** 2026-04-01
 
-> Snapshot: `2026-03-30`
+> Snapshot: `2026-04-01`
 > Freshness: 基于 `tests/**`、`pyproject.toml`、`.github/workflows/{ci,release}.yml`、`scripts/{lint,check_architecture_policy.py,check_file_matrix.py,check_markdown_links.py}` 与 `.planning/baseline/VERIFICATION_MATRIX.md` 的当前截面。
 > Derived collaboration map: 本文件是受约束的协作图谱 / 派生视图，仅用于导航、审阅与后续实现对齐。
 > Authority: 若与 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md}`、`.planning/baseline/*.md`、`.planning/reviews/*.md` 或 `docs/developer_architecture.md` 冲突，以后者为准；本文件不得反向充当当前治理真源。
@@ -30,7 +30,7 @@ uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro 
 **Location:**
 - Tests live in a dedicated `tests/` tree, not beside production files.
 - Current topology is broad and intentional: `tests/core`, `tests/services`, `tests/flows`, `tests/platforms`, `tests/entities`, `tests/meta`, `tests/integration`, `tests/snapshots`, `tests/benchmarks`, `tests/harness`, and `tests/fixtures`.
-- Repository counts from current scanning: `412` Python files under `tests`, `329` runnable `test_*.py` files, `71` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
+- Repository counts from current scanning: `414` Python files under `tests`, `331` runnable `test_*.py` files, `73` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
 
 **Naming:**
 - Use `test_*.py` everywhere.
@@ -82,7 +82,7 @@ from .dependency_guards_service_runtime import *
 **Patterns:**
 - Use topicized suites to keep failure localization narrow. This pattern appears in `tests/meta/test_dependency_guards.py`, `tests/meta/test_governance_milestone_archives.py`, and multiple API/runtime roots described in the planning baselines.
 - Prefer explicit fixture-driven setup over ad-hoc inline state creation. `tests/conftest.py` remains the main shared fixture home and also manages thin-shell collection rules.
-- Keep async tests as plain `async def test_*` functions; current scanning finds `841` async tests, matching the repo's async integration style.
+- Keep async tests as plain `async def test_*` functions; current scanning finds `859` async tests, matching the repo's async integration style.
 - Use file-reading assertions for governance/docs/workflow truth instead of mocking the filesystem. Example: `tests/meta/test_governance_release_contract.py` reads `.github/workflows/*.yml`, `CONTRIBUTING.md`, and governance docs directly.
 
 ## Mocking
@@ -196,8 +196,8 @@ with pytest.raises(ServiceValidationError):
     await service_call(...)
 ```
 
-- `pytest.raises` appears heavily across the suite; current grep count is `211` occurrences.
-- Parametrization is used, but selectively (`46` occurrences), so new table-driven coverage should usually land in targeted concern files rather than giant omnibus tests.
+- `pytest.raises` appears heavily across the suite; current grep count is `215` occurrences.
+- Parametrization is used, but selectively (`52` occurrences), so new table-driven coverage should usually land in targeted concern files rather than giant omnibus tests.
 
 ## Recommendations
 

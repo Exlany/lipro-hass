@@ -9,8 +9,6 @@ from typing import TYPE_CHECKING, Protocol, TypeVar, cast
 
 from ....const.api import MQTT_TOPIC_PREFIX
 from ...api.types import DevicePropertyMap, JsonObject
-from ...mqtt.payload import _MAX_MQTT_PAYLOAD_BYTES
-from ...mqtt.topics import normalize_mqtt_biz_id
 from ...utils.property_normalization import normalize_properties
 from .result import BoundaryDecodeResult, BoundaryDecoderKey
 
@@ -34,6 +32,8 @@ _MQTT_PROPERTIES_FAMILY = "mqtt.properties"
 _MQTT_PROPERTIES_VERSION = "v1"
 _MQTT_PROPERTIES_AUTHORITY = "tests/fixtures/protocol_boundary/mqtt_properties.device_state.v1.json"
 _MQTT_STATE_TOPIC_FAMILY = f"{MQTT_TOPIC_PREFIX}/*"
+_MAX_MQTT_PAYLOAD_BYTES = 64 * 1024
+
 _MQTT_PROPERTY_GROUPS = (
     "common",
     "light",
@@ -44,6 +44,21 @@ _MQTT_PROPERTY_GROUPS = (
     "gateway",
 )
 _NOISE_VALUES = frozenset({"-1", ""})
+
+
+def normalize_mqtt_biz_id(value: object) -> str | None:
+    """Normalize MQTT biz ID, tolerating whitespace and `lip_` prefix."""
+    if value is None:
+        return None
+
+    normalized = str(value).strip()
+    if not normalized:
+        return None
+    if normalized[:4].casefold() == "lip_":
+        normalized = normalized[4:]
+    if not normalized or not all(char.isalnum() or char in "-_" for char in normalized):
+        return None
+    return normalized
 
 
 def _normalize_device_id(value: object) -> str | None:

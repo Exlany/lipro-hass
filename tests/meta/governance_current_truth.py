@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 import re
@@ -22,32 +23,25 @@ _ROUTE_CONTRACT_PATHS = {
 }
 
 
-PLANNING_ROUTE_CONTRACT: dict[str, object] = {
-    "contract_version": 1,
-    "contract_name": "governance-route",
-    "active_milestone": None,
-    "latest_archived": {
-        "version": "v1.32",
-        "name": "Residual Hotspot Eradication, Validation Completion & Continuity Hardening",
-        "status": "archived / evidence-ready (2026-04-01)",
-        "phase": "118",
-        "phase_title": "Final hotspot decomposition and validation closure",
-        "phase_dir": "118-final-hotspot-decomposition-and-validation-closure",
-        "audit_path": ".planning/v1.32-MILESTONE-AUDIT.md",
-        "evidence_path": ".planning/reviews/V1_32_EVIDENCE_INDEX.md",
-        "evidence_label": "latest archived evidence index",
-    },
-    "previous_archived": {
-        "version": "v1.31",
-        "name": "Boundary Sealing, Governance Truth & Quality Hardening",
-        "evidence_path": ".planning/reviews/V1_31_EVIDENCE_INDEX.md",
-    },
-    "bootstrap": {
-        "current_route": "no active milestone route / latest archived baseline = v1.32",
-        "default_next_command": "$gsd-new-milestone",
-        "latest_archived_evidence_pointer": ".planning/reviews/V1_32_EVIDENCE_INDEX.md",
-    },
-}
+@dataclass(frozen=True)
+class PhaseAssetSnapshot:
+    phase: str
+    directory: str
+    plan_files: tuple[str, ...]
+    plan_summary_files: tuple[str, ...]
+    summary_files: tuple[str, ...]
+
+    @property
+    def plan_count(self) -> int:
+        return len(self.plan_files)
+
+    @property
+    def plan_summary_count(self) -> int:
+        return len(self.plan_summary_files)
+
+    @property
+    def summary_count(self) -> int:
+        return len(self.summary_files)
 
 
 def _as_mapping(value: object) -> dict[str, object]:
@@ -95,12 +89,40 @@ def load_planning_route_contract(path: Path) -> dict[str, object]:
     return _extract_route_contract(path.read_text(encoding="utf-8"))
 
 
+@lru_cache(maxsize=1)
+def load_canonical_route_contract() -> dict[str, object]:
+    return load_planning_route_contracts()["PROJECT"]
+
+
 def assert_machine_readable_route_contracts() -> dict[str, dict[str, object]]:
     contracts = load_planning_route_contracts()
+    canonical = load_canonical_route_contract()
     for doc_name, contract in contracts.items():
-        assert contract == PLANNING_ROUTE_CONTRACT, f"{doc_name} route contract drifted"
+        assert contract == canonical, f"{doc_name} route contract drifted"
     return contracts
 
+
+def _load_phase_asset_snapshot(phase: str, phase_dir_name: str) -> PhaseAssetSnapshot:
+    phase_root = _ROOT / ".planning" / "phases" / phase_dir_name
+    plan_files = tuple(sorted(path.name for path in phase_root.glob(f"{phase}-*-PLAN.md")))
+    plan_summary_files = tuple(
+        sorted(
+            path.name
+            for path in phase_root.glob(f"{phase}-*-SUMMARY.md")
+            if path.name != f"{phase}-SUMMARY.md"
+        )
+    )
+    summary_files = tuple(sorted(path.name for path in phase_root.glob(f"{phase}*-SUMMARY.md")))
+    return PhaseAssetSnapshot(
+        phase=phase,
+        directory=phase_dir_name,
+        plan_files=plan_files,
+        plan_summary_files=plan_summary_files,
+        summary_files=summary_files,
+    )
+
+
+PLANNING_ROUTE_CONTRACT: dict[str, object] = load_canonical_route_contract()
 
 _ACTIVE = _as_optional_mapping(PLANNING_ROUTE_CONTRACT["active_milestone"])
 _LATEST = _as_mapping(PLANNING_ROUTE_CONTRACT["latest_archived"])
@@ -152,6 +174,7 @@ if HAS_ACTIVE_MILESTONE:
     CURRENT_PHASE = _as_str(_ACTIVE["phase"])
     CURRENT_PHASE_TITLE = _as_str(_ACTIVE["phase_title"])
     CURRENT_PHASE_HEADING = f"### Phase {CURRENT_PHASE}: {CURRENT_PHASE_TITLE}"
+    CURRENT_PHASE_DIR = _as_str(_ACTIVE["phase_dir"])
     route_mode = _ACTIVE.get("route_mode", CURRENT_ROUTE)
     CURRENT_ROUTE_MODE = _as_str(route_mode)
 else:
@@ -167,52 +190,39 @@ else:
     CURRENT_PHASE = LATEST_ARCHIVED_PHASE
     CURRENT_PHASE_TITLE = LATEST_ARCHIVED_PHASE_TITLE
     CURRENT_PHASE_HEADING = LATEST_ARCHIVED_PHASE_HEADING
+    CURRENT_PHASE_DIR = LATEST_ARCHIVED_PHASE_DIR
     CURRENT_ROUTE_MODE = CURRENT_ROUTE
 
-CURRENT_MILESTONE_PHASES = ("115", "116", "117", "118")
-CURRENT_MILESTONE_COMPLETED_PHASES = ("115", "116", "117", "118")
-CURRENT_MILESTONE_IN_PROGRESS_PHASES: tuple[str, ...] = ()
+_CURRENT_PHASE_ASSETS = _load_phase_asset_snapshot(CURRENT_PHASE, CURRENT_PHASE_DIR)
+CURRENT_PHASE_PLAN_FILENAMES = _CURRENT_PHASE_ASSETS.plan_files
+CURRENT_PHASE_PLAN_SUMMARY_FILENAMES = _CURRENT_PHASE_ASSETS.plan_summary_files
+CURRENT_PHASE_SUMMARY_FILENAMES = _CURRENT_PHASE_ASSETS.summary_files
+CURRENT_PHASE_VERIFICATION_FILENAME = f"{CURRENT_PHASE}-VERIFICATION.md"
+
+CURRENT_MILESTONE_PHASES = (CURRENT_PHASE,)
+if _CURRENT_PHASE_ASSETS.plan_summary_count >= _CURRENT_PHASE_ASSETS.plan_count:
+    CURRENT_MILESTONE_COMPLETED_PHASES = (CURRENT_PHASE,)
+    CURRENT_MILESTONE_IN_PROGRESS_PHASES: tuple[str, ...] = ()
+else:
+    CURRENT_MILESTONE_COMPLETED_PHASES = ()
+    CURRENT_MILESTONE_IN_PROGRESS_PHASES = (CURRENT_PHASE,)
 CURRENT_MILESTONE_PENDING_PHASES: tuple[str, ...] = ()
-CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE = {"115": 1, "116": 3, "117": 3, "118": 3}
+CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE = {CURRENT_PHASE: _CURRENT_PHASE_ASSETS.plan_count}
 CURRENT_MILESTONE_PLAN_COUNT = CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE[CURRENT_PHASE]
-CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE = {"115": 2, "116": 4, "117": 4, "118": 4}
+CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE = {CURRENT_PHASE: _CURRENT_PHASE_ASSETS.summary_count}
 CURRENT_MILESTONE_SUMMARY_COUNT = CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE[CURRENT_PHASE]
 CURRENT_MILESTONE_TOTAL_PLAN_COUNT = sum(CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE.values())
-CURRENT_MILESTONE_COMPLETED_PLAN_COUNT = sum(
-    CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE[phase]
-    for phase in CURRENT_MILESTONE_COMPLETED_PHASES
-) + sum(
-    CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE[phase]
-    for phase in CURRENT_MILESTONE_IN_PROGRESS_PHASES
-)
+CURRENT_MILESTONE_COMPLETED_PLAN_COUNT = _CURRENT_PHASE_ASSETS.plan_summary_count
 CURRENT_ROUTE_FOCUSED_GUARDS = (
     "tests/meta/test_governance_bootstrap_smoke.py",
     "tests/meta/test_governance_route_handoff_smoke.py",
-    "tests/meta/test_phase90_hotspot_map_guards.py",
-    "tests/meta/test_phase91_typed_boundary_guards.py",
-    "tests/meta/test_phase92_redaction_convergence_guards.py",
-    "tests/meta/test_phase94_typed_boundary_guards.py",
-    "tests/meta/test_phase95_hotspot_decomposition_guards.py",
-    "tests/meta/test_phase96_sanitizer_burndown_guards.py",
-    "tests/meta/test_phase97_governance_assurance_freeze_guards.py",
-    "tests/meta/test_phase98_route_reactivation_guards.py",
-    "tests/meta/test_phase99_runtime_hotspot_support_guards.py",
-    "tests/meta/test_phase100_runtime_schedule_support_guards.py",
-    "tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py",
-    "tests/meta/test_phase102_governance_portability_guards.py",
-    "tests/meta/test_phase103_root_thinning_guards.py",
-    "tests/meta/test_phase104_service_router_runtime_split_guards.py",
-    "tests/meta/test_phase105_governance_freeze_guards.py",
-    "tests/meta/test_phase107_rest_status_hotspot_guards.py",
-    "tests/meta/test_phase108_mqtt_transport_de_friendization_guards.py",
-    "tests/meta/test_phase109_anonymous_share_manager_inward_decomposition_guards.py",
-    "tests/meta/test_phase110_runtime_snapshot_closeout_guards.py",
-    "tests/meta/test_phase111_runtime_boundary_guards.py",
-    "tests/meta/test_phase112_formal_home_governance_guards.py",
-    "tests/meta/test_phase113_hotspot_assurance_guards.py",
-    "tests/meta/test_phase114_open_source_surface_honesty_guards.py",
-    "tests/meta/test_public_surface_guards.py",
+    "tests/meta/test_phase119_mqtt_boundary_guards.py",
+    "tests/meta/test_runtime_contract_truth.py",
+    "tests/meta/test_governance_release_contract.py",
+    "tests/meta/toolchain_truth_release_contract.py",
+    "tests/meta/test_governance_release_docs.py",
     "tests/meta/test_dependency_guards.py",
+    "tests/meta/test_phase68_hotspot_budget_guards.py",
 )
 
 
@@ -227,37 +237,9 @@ def _count_test_inventory() -> tuple[int, int, int]:
 TESTS_PYTHON_FILE_COUNT, TESTS_RUNNABLE_FILE_COUNT, TESTS_META_SUITE_COUNT = _count_test_inventory()
 
 CURRENT_ROUTE_PROSE_FORBIDDEN = (
-    "v1.20 active route / Phase 75 complete / latest archived baseline = v1.19",
-    "v1.21 active route / Phase 76 execution-ready / latest archived baseline = v1.20",
-    "v1.21 active route / Phase 78 complete / latest archived baseline = v1.20",
-    "v1.21 active route / Phase 79 complete / latest archived baseline = v1.20",
-    "v1.21 active route / Phase 80 complete / latest archived baseline = v1.20",
-    "v1.22 active route / Phase 83 complete / latest archived baseline = v1.21",
-    "v1.22 active route / Phase 84 complete / latest archived baseline = v1.21",
-    "v1.23 active route / Phase 85 complete / latest archived baseline = v1.22",
-    "v1.23 active route / Phase 85 planning-ready / latest archived baseline = v1.22",
-    "v1.23 active route / Phase 87 execution-ready / latest archived baseline = v1.22",
-    "v1.23 active route / Phase 87 in progress / latest archived baseline = v1.22",
-    "v1.23 active route / Phase 87 complete / latest archived baseline = v1.22",
-    "v1.23 active route / Phase 88 complete / latest archived baseline = v1.22",
-    "v1.25 active route / Phase 90 planning-ready / latest archived baseline = v1.24",
-    "v1.25 active route / Phase 92 complete / latest archived baseline = v1.24",
-    "v1.25 active route / Phase 93 complete / latest archived baseline = v1.24",
-    "v1.26 active route / Phase 94 planning-ready / latest archived baseline = v1.25",
-    "v1.26 active route / Phase 95 execution-ready / latest archived baseline = v1.25",
-    "v1.26 active route / Phase 95 planning-ready / latest archived baseline = v1.25",
-    "v1.26 active route / Phase 95 complete / latest archived baseline = v1.25",
-    "v1.26 active route / Phase 96 planning-ready / latest archived baseline = v1.25",
-    "v1.26 active route / Phase 97 complete / latest archived baseline = v1.25",
-    "v1.27 active route / Phase 98 complete / latest archived baseline = v1.26",
-    "v1.27 active route / Phase 99 complete / latest archived baseline = v1.26",
-    "v1.27 active route / Phase 100 complete / latest archived baseline = v1.26",
-    "v1.27 active route / Phase 101 complete / latest archived baseline = v1.26",
-    "v1.29 active route / Phase 104 complete / latest archived baseline = v1.28",
-    "v1.29 active route / Phase 105 complete / latest archived baseline = v1.28",
-    "v1.30 active route / Phase 107 complete / latest archived baseline = v1.29",
-    "v1.30 active route / Phase 109 complete / latest archived baseline = v1.29",
-    "v1.30 active route / Phase 110 complete / latest archived baseline = v1.29",
+    "active / roadmap drafted; phase 119 pending planning (2026-04-01)",
+    "$gsd-plan-phase 119",
+    "Phase 119 planning pending",
     "v1.31 active milestone route / starting from latest archived baseline = v1.30",
     "v1.32 active milestone route / starting from latest archived baseline = v1.31",
     "no active milestone route / latest archived baseline = v1.20",
@@ -304,8 +286,13 @@ __all__ = [
     "CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE",
     "CURRENT_MILESTONE_TOTAL_PLAN_COUNT",
     "CURRENT_PHASE",
+    "CURRENT_PHASE_DIR",
     "CURRENT_PHASE_HEADING",
+    "CURRENT_PHASE_PLAN_FILENAMES",
+    "CURRENT_PHASE_PLAN_SUMMARY_FILENAMES",
+    "CURRENT_PHASE_SUMMARY_FILENAMES",
     "CURRENT_PHASE_TITLE",
+    "CURRENT_PHASE_VERIFICATION_FILENAME",
     "CURRENT_ROUTE",
     "CURRENT_ROUTE_FOCUSED_GUARDS",
     "CURRENT_ROUTE_MODE",
@@ -337,7 +324,10 @@ __all__ = [
     "TESTS_META_SUITE_COUNT",
     "TESTS_PYTHON_FILE_COUNT",
     "TESTS_RUNNABLE_FILE_COUNT",
+    "_as_mapping",
+    "_as_optional_mapping",
     "assert_machine_readable_route_contracts",
+    "load_canonical_route_contract",
     "load_planning_route_contract",
     "load_planning_route_contracts",
 ]

@@ -2,49 +2,11 @@
 
 from __future__ import annotations
 
-from functools import lru_cache
-from importlib import import_module
-from typing import TYPE_CHECKING, Protocol, cast
-
 from ...const.api import MQTT_TOPIC_PREFIX
-
-if TYPE_CHECKING:
-    from custom_components.lipro.core.protocol.boundary import BoundaryDecodeResult
-
-
-class _BoundaryDecoderModule(Protocol):
-    """Typed view of the lazily imported boundary module."""
-
-    def decode_mqtt_topic_payload(
-        self,
-        payload: object,
-        *,
-        expected_biz_id: str | None = None,
-    ) -> BoundaryDecodeResult[dict[str, str]]: ...
-
-
-@lru_cache(maxsize=1)
-def _boundary_decoder_module() -> _BoundaryDecoderModule:
-    """Resolve the protocol-boundary module lazily to avoid import cycles."""
-    return cast(
-        _BoundaryDecoderModule,
-        import_module("custom_components.lipro.core.protocol.boundary"),
-    )
-
-
-def normalize_mqtt_biz_id(value: object) -> str | None:
-    """Normalize MQTT biz ID, tolerating whitespace and `lip_` prefix."""
-    if value is None:
-        return None
-
-    normalized = str(value).strip()
-    if not normalized:
-        return None
-    if normalized[:4].casefold() == "lip_":
-        normalized = normalized[4:]
-    if not normalized or not all(c.isalnum() or c in "-_" for c in normalized):
-        return None
-    return normalized
+from ..protocol.boundary.mqtt_decoder import (
+    decode_mqtt_topic_payload,
+    normalize_mqtt_biz_id,
+)
 
 
 def build_topic(biz_id: str, device_id: str) -> str:
@@ -65,7 +27,7 @@ def build_topic(biz_id: str, device_id: str) -> str:
 
 def parse_topic(topic: str, *, expected_biz_id: str | None = None) -> str | None:
     """Extract device ID from MQTT topic through the formal boundary authority."""
-    canonical = _boundary_decoder_module().decode_mqtt_topic_payload(
+    canonical = decode_mqtt_topic_payload(
         topic,
         expected_biz_id=expected_biz_id,
     ).canonical

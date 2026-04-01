@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from functools import lru_cache
-from importlib import import_module
 import json
 import logging
-from typing import TYPE_CHECKING, Any, Protocol, cast
+from typing import TYPE_CHECKING, Any
 
+from ..protocol.boundary.mqtt_decoder import decode_mqtt_topic_payload
 from ..telemetry.models import (
     OperationOutcome,
     build_operation_outcome,
@@ -24,34 +23,12 @@ from .payload import (
 if TYPE_CHECKING:
     import aiomqtt
 
-    from custom_components.lipro.core.protocol.boundary import BoundaryDecodeResult
-
 _LOGGER = logging.getLogger(__package__ or __name__)
 _MQTT_PROCESSOR_ORIGIN = "mqtt.message_processor"
 
 type MqttPayload = dict[str, Any]
 type ParsePayloadCallback = Callable[[object], MqttPayload]
 type MessageCallback = Callable[[str, MqttPayload], None]
-
-
-class _BoundaryDecoderModule(Protocol):
-    """Typed view of the lazily imported boundary module."""
-
-    def decode_mqtt_topic_payload(
-        self,
-        payload: object,
-        *,
-        expected_biz_id: str | None = None,
-    ) -> BoundaryDecodeResult[dict[str, str]]: ...
-
-
-@lru_cache(maxsize=1)
-def _boundary_decoder_module() -> _BoundaryDecoderModule:
-    """Resolve the protocol-boundary module lazily to avoid import cycles."""
-    return cast(
-        _BoundaryDecoderModule,
-        import_module("custom_components.lipro.core.protocol.boundary"),
-    )
 
 
 def decode_payload_text(raw_payload: object, device_id: str) -> str | None:
@@ -114,7 +91,7 @@ class MqttMessageProcessor:
         )
 
     def _resolve_device_id(self, topic: str) -> str | None:
-        result = _boundary_decoder_module().decode_mqtt_topic_payload(
+        result = decode_mqtt_topic_payload(
             topic,
             expected_biz_id=self._biz_id,
         )

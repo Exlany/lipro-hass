@@ -2,41 +2,16 @@
 
 from __future__ import annotations
 
-from functools import lru_cache
-from importlib import import_module
 import json
 import re
-from typing import TYPE_CHECKING, Any, Final, Protocol, cast
+from typing import Any, Final
 
-if TYPE_CHECKING:
-    from custom_components.lipro.core.protocol.boundary import BoundaryDecodeResult
+from ..protocol.boundary.mqtt_decoder import (
+    _MAX_MQTT_PAYLOAD_BYTES,
+    decode_mqtt_message_envelope_payload,
+    decode_mqtt_properties_payload,
+)
 
-
-class _BoundaryDecoderModule(Protocol):
-    """Typed view of the lazily imported boundary module."""
-
-    def decode_mqtt_message_envelope_payload(
-        self,
-        payload: Any,
-    ) -> BoundaryDecodeResult[dict[str, Any]]: ...
-
-    def decode_mqtt_properties_payload(
-        self,
-        payload: Any,
-    ) -> BoundaryDecodeResult[dict[str, Any]]: ...
-
-
-@lru_cache(maxsize=1)
-def _boundary_decoder_module() -> _BoundaryDecoderModule:
-    """Resolve the protocol-boundary module lazily to avoid import cycles."""
-    return cast(
-        _BoundaryDecoderModule,
-        import_module("custom_components.lipro.core.protocol.boundary"),
-    )
-
-
-# Hard limit for incoming MQTT payloads to avoid excessive memory/log churn.
-_MAX_MQTT_PAYLOAD_BYTES: Final[int] = 64 * 1024
 # Max payload preview length in debug logs.
 _MAX_MQTT_LOG_CHARS: Final[int] = 200
 
@@ -92,9 +67,8 @@ _MQTT_LOG_STRING_PATTERNS: Final[tuple[tuple[re.Pattern[str], str], ...]] = (
 
 def parse_mqtt_payload(payload: Any) -> dict[str, Any]:
     """Decode MQTT payloads via the formal protocol boundary family."""
-    module = _boundary_decoder_module()
-    envelope = module.decode_mqtt_message_envelope_payload(payload).canonical
-    return module.decode_mqtt_properties_payload(envelope).canonical
+    envelope = decode_mqtt_message_envelope_payload(payload).canonical
+    return decode_mqtt_properties_payload(envelope).canonical
 
 
 def _sanitize_mqtt_log_value(value: Any, key: str | None = None) -> Any:

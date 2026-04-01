@@ -23,6 +23,7 @@ if TYPE_CHECKING:
     from .core.coordinator.services.protocol_service import ScheduleMeshDeviceLike
     from .core.coordinator.types import RuntimeTelemetrySnapshot
     from .core.device import LiproDevice
+    from .services.contracts import CommandFailureSummary
 
 
 class RuntimeEntityLike(Protocol):
@@ -71,11 +72,15 @@ class MqttServiceLike(Protocol):
 class CommandServiceLike(Protocol):
     """Stable command-dispatch surface exposed by the coordinator."""
 
+    @property
+    def last_failure(self) -> CommandFailureSummary | None: ...
+
     async def async_send_command(
         self,
         device: LiproDevice,
         command: str,
         properties: list[dict[str, str]] | None = None,
+        fallback_device_id: str | None = None,
     ) -> bool: ...
 
 
