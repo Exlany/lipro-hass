@@ -1,5 +1,21 @@
 # Milestones
 
+## Current Milestone (v1.35)
+
+**Name:** `Master Audit Closure, Public Surface Finalization & Release Traceability`
+**Status:** `active / phase 122 complete; closeout-ready (2026-04-01)`
+**Current route:** `v1.35 active milestone route / starting from latest archived baseline = v1.34`
+**Phase range:** `122 -> 122`
+**Progress:** `1/1 phases, 3/3 plans`
+**Default next command:** `$gsd-complete-milestone v1.35`
+**Latest archived pointer:** `.planning/reviews/V1_34_EVIDENCE_INDEX.md`
+**Active audit ledger:** `.planning/reviews/V1_35_MASTER_AUDIT_LEDGER.md`
+**Closeout audit:** `.planning/v1.35-MILESTONE-AUDIT.md`
+
+**Active phase story:**
+
+- `Phase 122`: master audit ledger, public first-hop boundary finalization, metadata traceability, and focused guard sealing ✅ (`122-01` ledger/route truth + `122-02` first-hop boundary cleanup + `122-03` metadata/guards complete)
+
 ## v1.34 Terminal Audit Closure, Contract Hardening & Governance Truth Slimming (Shipped: 2026-04-01; Closeout: 2026-04-01)
 
 **Phases completed:** 2 phases, 6 plans, 0 tasks
@@ -21,11 +37,16 @@
 > Machine-readable bootstrap truth now lives in the shared `governance-route` contract block below; milestone chronology remains human-readable archive history instead of the parser-visible selector.
 
 <!-- governance-route-contract:start -->
-
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone: null
+active_milestone:
+  version: v1.35
+  name: Master Audit Closure, Public Surface Finalization & Release Traceability
+  status: active / phase 122 complete; closeout-ready (2026-04-01)
+  phase: '122'
+  phase_title: master audit ledger, public first-hop boundary finalization, metadata traceability, and focused guard sealing
+  phase_dir: 122-master-audit-ledger-public-first-hop-boundary-finalization-metadata-traceability-and-focused-guard-sealing
 latest_archived:
   version: v1.34
   name: Terminal Audit Closure, Contract Hardening & Governance Truth Slimming
@@ -41,11 +62,10 @@ previous_archived:
   name: MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance Hardening
   evidence_path: .planning/reviews/V1_33_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.34
-  default_next_command: $gsd-new-milestone
+  current_route: v1.35 active milestone route / starting from latest archived baseline = v1.34
+  default_next_command: $gsd-complete-milestone v1.35
   latest_archived_evidence_pointer: .planning/reviews/V1_34_EVIDENCE_INDEX.md
 ```
-
 <!-- governance-route-contract:end -->
 
 ## Latest Archived Milestone (v1.34)

@@ -8,9 +8,11 @@
 
 ## Current Route
 
-- **Current route story:** `no active milestone route / latest archived baseline = v1.34`
-- **Default next command:** `$gsd-new-milestone`
+- **Current route story:** `v1.35 active milestone route / starting from latest archived baseline = v1.34`
+- **Current milestone status:** `active / phase 122 complete; closeout-ready (2026-04-01)`
+- **Default next command:** `$gsd-complete-milestone v1.35`
 - **Latest archived pointer:** `.planning/reviews/V1_34_EVIDENCE_INDEX.md`
+- **Active audit ledger:** `.planning/reviews/V1_35_MASTER_AUDIT_LEDGER.md`
 - **Focused guards:** `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/governance_followup_route_current_milestones.py`, `tests/meta/test_runtime_contract_truth.py`, `tests/meta/test_governance_release_docs.py`, `tests/meta/toolchain_truth_checker_paths.py`, `tests/meta/test_phase89_tooling_decoupling_guards.py`
 
 - 本文件是 `Phase 1.5` 及其下游 phases 的正式 acceptance truth；phase docs / summaries 只能引用、实例化或扩展，不得平行定义 exit contract。

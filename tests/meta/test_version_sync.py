@@ -73,6 +73,11 @@ def _read_python_requires() -> str:
     return requires_python
 
 
+def _assert_uses_tagged_release_projection(url: str, version: str) -> None:
+    assert f"/blob/v{version}/" in url
+    assert "/blob/main/" not in url
+
+
 def _read_homeassistant_version() -> str:
     pyproject = tomllib.loads(_PYPROJECT.read_text(encoding="utf-8"))
     dev_deps: list[str] = pyproject["project"]["optional-dependencies"]["dev"]
@@ -100,6 +105,19 @@ def test_integration_version_is_consistent() -> None:
     assert (
         manifest["version"] == pyproject["project"]["version"] == _read_base_version()
     )
+
+
+def test_project_and_manifest_doc_urls_track_release_tag() -> None:
+    pyproject = tomllib.loads(_PYPROJECT.read_text(encoding="utf-8"))
+    manifest = json.loads(_MANIFEST.read_text(encoding="utf-8"))
+    version = pyproject["project"]["version"]
+    urls = pyproject["project"]["urls"]
+
+    for key in ("Documentation", "Access Mode", "Support", "Security", "Changelog"):
+        _assert_uses_tagged_release_projection(urls[key], version)
+
+    for url in (manifest["documentation"], manifest["issue_tracker"]):
+        _assert_uses_tagged_release_projection(url, version)
 
 
 def test_homeassistant_min_version_is_consistent() -> None:

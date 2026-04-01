@@ -52,11 +52,11 @@ dev = [
 [project.urls]
 Homepage = "https://github.com/Exlany/lipro-hass"
 Repository = "https://github.com/Exlany/lipro-hass"
-Documentation = "https://github.com/Exlany/lipro-hass/blob/main/docs/README.md"
-"Access Mode" = "https://github.com/Exlany/lipro-hass/blob/main/README.md"
-Support = "https://github.com/Exlany/lipro-hass/blob/main/SUPPORT.md"
-Security = "https://github.com/Exlany/lipro-hass/blob/main/SECURITY.md"
-Changelog = "https://github.com/Exlany/lipro-hass/blob/main/CHANGELOG.md"
+Documentation = "https://github.com/Exlany/lipro-hass/blob/v1.0.0/docs/README.md"
+"Access Mode" = "https://github.com/Exlany/lipro-hass/blob/v1.0.0/README.md"
+Support = "https://github.com/Exlany/lipro-hass/blob/v1.0.0/SUPPORT.md"
+Security = "https://github.com/Exlany/lipro-hass/blob/v1.0.0/SECURITY.md"
+Changelog = "https://github.com/Exlany/lipro-hass/blob/v1.0.0/CHANGELOG.md"
 
 [tool.setuptools]
 include-package-data = true

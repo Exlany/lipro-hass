@@ -161,6 +161,20 @@ def test_deep_docs_keep_single_maintainer_continuity_truth() -> None:
     assert "docs/MAINTAINER_RELEASE_RUNBOOK.md" in troubleshooting_text
 
 
+def test_public_support_and_security_routes_stay_ahead_of_maintainer_appendix() -> None:
+    support_text = _SUPPORT.read_text(encoding="utf-8")
+    security_text = _SECURITY.read_text(encoding="utf-8")
+
+    assert support_text.index("## Routing Guide") < support_text.index("## Maintainer Appendix")
+    assert support_text.index("## Response Expectations") < support_text.index("## Maintainer Appendix")
+    assert security_text.index("## Reporting a Vulnerability") < security_text.index(
+        "## Maintainer Appendix"
+    )
+    assert security_text.index("## Response Expectations") < security_text.index(
+        "## Maintainer Appendix"
+    )
+
+
 
 def test_governance_registry_keeps_continuity_truth_machine_readable() -> None:
     registry = _load_governance_registry()

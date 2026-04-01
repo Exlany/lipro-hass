@@ -36,40 +36,8 @@ If a tagged `CodeQL` analysis is missing, open alerts remain, or signature verif
 For private repositories or forks, CI skips HACS validation because HACS only supports public GitHub repositories.
 若仓库或 fork 为私有，CI 会跳过 HACS validation，因为 HACS 只支持公开 GitHub 仓库。
 
-This repository currently follows a single-maintainer security review model; acknowledgement and remediation timing are therefore best effort. No documented delegate or backup maintainer exists today in `.github/CODEOWNERS`.
-本仓库当前采用单维护者安全审查模式，因此确认与修复节奏均为 best effort；`.github/CODEOWNERS` 中当前没有已文档化的 delegate 或备用维护者。
-
 If your report is not security-sensitive, use `docs/TROUBLESHOOTING.md` and `SUPPORT.md` instead of the private disclosure path. For contributor routing and boundary-aware code changes, use `docs/README.md`, `CONTRIBUTING.md`, and `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md`.
 若问题并非安全敏感，请优先使用 `docs/TROUBLESHOOTING.md` 与 `SUPPORT.md`，不要占用私密披露通道。若你需要贡献路由或边界感知的代码改动说明，请结合 `docs/README.md`、`CONTRIBUTING.md` 与 `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md`。
-
-The disclosure fast path ends above. The continuity section below is a maintainer appendix for custody / delegate / freeze truth; the public documentation index lives in `docs/README.md`.
-上面的内容已经覆盖公开披露快路径；下面的连续性章节属于维护者附录，用于记录 custody / delegate / freeze 真相；公开文档总索引见 `docs/README.md`。
-
-## Maintainer Appendix / Triage & Continuity Truth / 维护者附录：分流与连续性真相
-
-### Maintainer-Unavailable Drill / 维护者不可用演练
-
-The maintainer-unavailable drill is the repeatable continuity contract for custody / freeze / restoration truth.
-维护者不可用演练是 custody / freeze / restoration 真相的可重复连续性合同。
-
-1. Freeze new tagged releases and new release promises if the maintainer is unavailable.
-2. Keep the private advisory path plus honest public intake visible; reports do not by themselves transfer release custody or establish an undocumented delegate.
-3. Record the continuity gap explicitly rather than implying a hidden delegate, unpublished emergency access, or a softer trust path.
-4. Restore custody only after `.github/CODEOWNERS` and `docs/MAINTAINER_RELEASE_RUNBOOK.md` record the real successor or delegate.
-
-- Security triage owner: the maintainer listed in `.github/CODEOWNERS`.
-- Documented delegate: none currently; do not imply hidden backup maintainers or unpublished emergency access.
-- Release custody remains centralized; if the maintainer is unavailable, freeze new tagged releases and new release promises, keep the private advisory path plus best-effort support intake active, and do not bypass CI / security gates.
-- Public bug reports, private advisories, issue/PR template text, one-click feedback, or diagnostics escalations do not by themselves transfer release custody or establish an undocumented delegate; only `.github/CODEOWNERS` + `docs/MAINTAINER_RELEASE_RUNBOOK.md` may record that change.
-- Custody restoration: update `.github/CODEOWNERS` and `docs/MAINTAINER_RELEASE_RUNBOOK.md` before resuming tagged releases under a new custodian or real delegate.
-- Best effort does **not** mean silent defer: unresolved high-risk issues must still be recorded explicitly.
-
-- 安全分流 owner：`.github/CODEOWNERS` 中列出的维护者。
-- 当前没有已记录的 delegate；不要暗示存在隐藏的备用维护者或未公开的紧急访问。
-- 发版 custody 仍集中在当前单维护者模型；若维护者不可用，应冻结新的 tagged release 与 release 承诺，保持私密 advisory 路径与 best-effort support intake 可用，并且不要绕过 CI / security gate。
-- 公开 bug、private advisory、issue/PR 模板文案、一键反馈或 diagnostics 升级本身都不会转移 release custody，也不能建立未文档化的 delegate；只有 `.github/CODEOWNERS` 与 `docs/MAINTAINER_RELEASE_RUNBOOK.md` 可以记录这种变更。
-- custody 恢复条件：只有在 `.github/CODEOWNERS` 与 `docs/MAINTAINER_RELEASE_RUNBOOK.md` 先记录新的 custodian 或真实 delegate 后，才可恢复 tagged release。
-- best effort **不等于** silent defer：未解决的高风险问题仍必须显式登记。
 
 ## Reporting a Vulnerability / 漏洞报告
 
@@ -104,3 +72,35 @@ Please do **not** open a public GitHub issue for security vulnerabilities.
 
 - Initial acknowledgement target: within 7 days / 初始确认目标：7 天内
 - Status updates target: every 14 days while remediation is active / 修复期间尽量每 14 天更新一次状态
+
+This repository currently follows a single-maintainer security review model; acknowledgement and remediation timing are therefore best effort. No documented delegate or backup maintainer exists today in `.github/CODEOWNERS`.
+本仓库当前采用单维护者安全审查模式，因此确认与修复节奏均为 best effort；`.github/CODEOWNERS` 中当前没有已文档化的 delegate 或备用维护者。
+
+The disclosure fast path ends above. The continuity section below is a maintainer appendix for custody / delegate / freeze truth; the public documentation index lives in `docs/README.md`.
+上面的内容已经覆盖公开披露快路径；下面的连续性章节属于维护者附录，用于记录 custody / delegate / freeze 真相；公开文档总索引见 `docs/README.md`。
+
+## Maintainer Appendix / Triage & Continuity Truth / 维护者附录：分流与连续性真相
+
+### Maintainer-Unavailable Drill / 维护者不可用演练
+
+The maintainer-unavailable drill is the repeatable continuity contract for custody / freeze / restoration truth.
+维护者不可用演练是 custody / freeze / restoration 真相的可重复连续性合同。
+
+1. Freeze new tagged releases and new release promises if the maintainer is unavailable.
+2. Keep the private advisory path plus honest public intake visible; reports do not by themselves transfer release custody or establish an undocumented delegate.
+3. Record the continuity gap explicitly rather than implying a hidden delegate, unpublished emergency access, or a softer trust path.
+4. Restore custody only after `.github/CODEOWNERS` and `docs/MAINTAINER_RELEASE_RUNBOOK.md` record the real successor or delegate.
+
+- Security triage owner: the maintainer listed in `.github/CODEOWNERS`.
+- Documented delegate: none currently; do not imply hidden backup maintainers or unpublished emergency access.
+- Release custody remains centralized; if the maintainer is unavailable, freeze new tagged releases and new release promises, keep the private advisory path plus best-effort support intake active, and do not bypass CI / security gates.
+- Public bug reports, private advisories, issue/PR template text, one-click feedback, or diagnostics escalations do not by themselves transfer release custody or establish an undocumented delegate; only `.github/CODEOWNERS` + `docs/MAINTAINER_RELEASE_RUNBOOK.md` may record that change.
+- Custody restoration: update `.github/CODEOWNERS` and `docs/MAINTAINER_RELEASE_RUNBOOK.md` before resuming tagged releases under a new custodian or real delegate.
+- Best effort does **not** mean silent defer: unresolved high-risk issues must still be recorded explicitly.
+
+- 安全分流 owner：`.github/CODEOWNERS` 中列出的维护者。
+- 当前没有已记录的 delegate；不要暗示存在隐藏的备用维护者或未公开的紧急访问。
+- 发版 custody 仍集中在当前单维护者模型；若维护者不可用，应冻结新的 tagged release 与 release 承诺，保持私密 advisory 路径与 best-effort support intake 可用，并且不要绕过 CI / security gate。
+- 公开 bug、private advisory、issue/PR 模板文案、一键反馈或 diagnostics 升级本身都不会转移 release custody，也不能建立未文档化的 delegate；只有 `.github/CODEOWNERS` 与 `docs/MAINTAINER_RELEASE_RUNBOOK.md` 可以记录这种变更。
+- custody 恢复条件：只有在 `.github/CODEOWNERS` 与 `docs/MAINTAINER_RELEASE_RUNBOOK.md` 先记录新的 custodian 或真实 delegate 后，才可恢复 tagged release。
+- best effort **不等于** silent defer：未解决的高风险问题仍必须显式登记。

@@ -75,8 +75,17 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
     assert CURRENT_MILESTONE_DEFAULT_NEXT in requirements_text
     assert "## Phases" in roadmap_text
     assert "## Archived Highlights" in roadmap_text
-    assert "- **Plan:** `6 of 6`" in state_text
-    assert "- **Progress:** `[██████████] 100%`" in state_text
+    expected_plan_line = (
+        f"- **Plan:** `{CURRENT_MILESTONE_COMPLETED_PLAN_COUNT} of {CURRENT_MILESTONE_TOTAL_PLAN_COUNT}`"
+    )
+    expected_percent = (
+        (CURRENT_MILESTONE_COMPLETED_PLAN_COUNT * 100) // CURRENT_MILESTONE_TOTAL_PLAN_COUNT
+        if CURRENT_MILESTONE_TOTAL_PLAN_COUNT
+        else 0
+    )
+    expected_bar = "█" * (expected_percent // 10) + "░" * (10 - (expected_percent // 10))
+    assert expected_plan_line in state_text
+    assert f"- **Progress:** `[{expected_bar}] {expected_percent}%`" in state_text
     for phase_number in CURRENT_MILESTONE_PHASES:
         assert f"`Phase {phase_number}`" in milestones_text
     milestone_progress = (

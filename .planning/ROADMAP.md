@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- 🚧 **v1.35 Master Audit Closure, Public Surface Finalization & Release Traceability** - `Phase 122` active on 2026-04-01; current route = `v1.35 active milestone route / starting from latest archived baseline = v1.34`; latest archived evidence index = `.planning/reviews/V1_34_EVIDENCE_INDEX.md`; default next = `$gsd-plan-phase 122`
 - ✅ **v1.34 Terminal Audit Closure, Contract Hardening & Governance Truth Slimming** - `Phase 120 -> 121` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.34`; evidence index = `.planning/reviews/V1_34_EVIDENCE_INDEX.md`
 - ✅ **v1.33 MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance Hardening** - `Phase 119` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.33`; evidence index = `.planning/reviews/V1_33_EVIDENCE_INDEX.md`
 - ✅ **v1.32 Residual Hotspot Eradication, Validation Completion & Continuity Hardening** - `Phase 115 -> 118` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.32`; evidence index = `.planning/reviews/V1_32_EVIDENCE_INDEX.md`
@@ -12,7 +13,13 @@
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone: null
+active_milestone:
+  version: v1.35
+  name: Master Audit Closure, Public Surface Finalization & Release Traceability
+  status: active / phase 122 complete; closeout-ready (2026-04-01)
+  phase: '122'
+  phase_title: master audit ledger, public first-hop boundary finalization, metadata traceability, and focused guard sealing
+  phase_dir: 122-master-audit-ledger-public-first-hop-boundary-finalization-metadata-traceability-and-focused-guard-sealing
 latest_archived:
   version: v1.34
   name: Terminal Audit Closure, Contract Hardening & Governance Truth Slimming
@@ -28,17 +35,55 @@ previous_archived:
   name: MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance Hardening
   evidence_path: .planning/reviews/V1_33_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.34
-  default_next_command: $gsd-new-milestone
+  current_route: v1.35 active milestone route / starting from latest archived baseline = v1.34
+  default_next_command: $gsd-complete-milestone v1.35
   latest_archived_evidence_pointer: .planning/reviews/V1_34_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 ## Overview
 
-`v1.34` 已从 active milestone route 提升为 latest archived baseline：`Phase 120` 与 `Phase 121` 的 repo-internal residual closeout、milestone audit、promoted closeout bundle 与 evidence index 现在共同组成 pull-only archived truth。下一条正式路线只能通过 `$gsd-new-milestone` 建立，而不是继续回写旧 closeout-ready 叙事。
+`v1.35` 以 archived baseline `v1.34` 为起点，把全仓 Python/docs/config/governance 的终极审阅残留压成单一 active route：repo-wide audit ledger 成为唯一落表真源，公开 first-hop 与 maintainer appendix 的边界更清晰，metadata URL 回到 tagged-release traceability，而 focused guards 用来冻结这些 outward truth。
 
-**Coverage:** `14/14` v1.34 requirements archived with full traceability.
-**Default next command:** `$gsd-new-milestone`
+**Coverage:** `5/5` v1.35 requirements mapped exactly once.
+**Default next command:** `$gsd-plan-phase 122`
+
+## Current Milestone
+
+## v1.35: Master Audit Closure, Public Surface Finalization & Release Traceability
+
+**Milestone status:** `active / phase 122 complete; closeout-ready (2026-04-01)`
+**Default next command:** `$gsd-complete-milestone v1.35`
+**Current route story:** `v1.35 active milestone route / starting from latest archived baseline = v1.34`
+**Latest archived pointer:** `.planning/reviews/V1_34_EVIDENCE_INDEX.md`
+**Latest archived audit artifact:** `.planning/v1.34-MILESTONE-AUDIT.md`
+**Active audit ledger:** `.planning/reviews/V1_35_MASTER_AUDIT_LEDGER.md`
+**Closeout audit:** `.planning/v1.35-MILESTONE-AUDIT.md`
+**Promoted phase evidence allowlist:** `.planning/reviews/PROMOTED_PHASE_ASSETS.md`
+
+## Phases
+
+- [x] **Phase 122: master audit ledger, public first-hop boundary finalization, metadata traceability, and focused guard sealing** - 已完成 repo-wide audit ledger 落表、public first-hop / maintainer appendix 边界收口、tagged-release metadata traceability 与 focused guards 加固。 (complete 2026-04-01)
+
+## Phase Details
+
+### Phase 122: master audit ledger, public first-hop boundary finalization, metadata traceability, and focused guard sealing
+**Goal**: 把全仓 Python/docs/config/governance 的终审残留压成单一 active route：repo-wide audit ledger 成为唯一落表真源，公开 first-hop 更清晰、maintainer appendix 不再抢 first-hop 叙事，metadata URL 能追溯到 tagged release，而 focused guards 会冻结这些 truth。
+**Depends on**: latest archived baseline `v1.34`
+**Requirements**: AUD-05, DOC-12, OSS-16, GOV-81, TST-44
+**Success Criteria** (what must be TRUE):
+  1. 审阅者可以在单一 audit ledger 中看到全仓 Python/docs/config/governance 剩余项、归类、处置状态与对应落点，而不必再拼接多份 phase folklore。
+  2. 公开文档的 first-hop 入口在首屏即清晰可见；maintainer appendix 只作为附录深链存在，不再与 contributor / user first-hop 并列竞争。
+  3. 对外 metadata URL 与 release-facing 文档可追溯到 semver/tagged release truth，不再出现无法说明 provenance 的 generic 或 milestone-labeled 指针。
+  4. Focused guards / meta tests 会在 audit ledger 缺项、first-hop 边界回流、appendix 抢占 first-hop 或 metadata traceability 漂移时直接失败。
+**Plans**: 3/3 complete — `122-01` audit ledger & route truth、`122-02` public first-hop / appendix boundary cleanup、`122-03` metadata traceability & focused guards
+**Execution summaries**: `122-01-SUMMARY.md`, `122-02-SUMMARY.md`, `122-03-SUMMARY.md`
+**Verification**: `122-VERIFICATION.md`
+
+## Progress
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 122. master audit ledger, public first-hop boundary finalization, metadata traceability, and focused guard sealing | 3/3 | Complete | 2026-04-01 |
 
 ## Latest Archived Milestone
 
@@ -290,4 +335,3 @@ bootstrap:
 ### Phase 110: Runtime snapshot surface reduction and milestone closeout
 **Status**: Complete (`2026-03-30`)
 **Plans**: 6/6 complete
-

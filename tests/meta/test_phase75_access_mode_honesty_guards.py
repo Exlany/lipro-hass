@@ -29,6 +29,7 @@ def test_private_access_metadata_avoids_public_interactive_routes() -> None:
     pyproject = tomllib.loads(_PYPROJECT.read_text(encoding="utf-8"))
     manifest = json.loads(_MANIFEST.read_text(encoding="utf-8"))
     urls = pyproject["project"]["urls"]
+    release_ref = f"/blob/v{pyproject['project']['version']}/"
 
     assert urls["Documentation"].endswith("/docs/README.md")
     assert urls["Support"].endswith("/SUPPORT.md")
@@ -37,6 +38,16 @@ def test_private_access_metadata_avoids_public_interactive_routes() -> None:
     assert "Issues" not in urls
     assert manifest["documentation"].endswith("/docs/README.md")
     assert manifest["issue_tracker"].endswith("/SUPPORT.md")
+    for url in (
+        urls["Documentation"],
+        urls["Access Mode"],
+        urls["Support"],
+        urls["Security"],
+        manifest["documentation"],
+        manifest["issue_tracker"],
+    ):
+        assert release_ref in url
+        assert "/blob/main/" not in url
 
     for url in (*urls.values(), manifest["issue_tracker"]):
         assert "/discussions" not in url

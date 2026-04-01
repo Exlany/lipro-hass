@@ -35,23 +35,6 @@ Current access-mode truth: this repository is private-access. If you only need u
 - Older tagged releases: best effort only unless the issue is a still-open security or data-loss regression
 - `main` / preview installer flows: best effort only, not a stable support target
 
-## Maintainer Appendix / Triage Ownership
-
-This repository currently follows a single-maintainer review model. No documented delegate or backup maintainer exists today in `.github/CODEOWNERS`, so triage and release timing may be asynchronous; high-risk issues must still be recorded explicitly rather than silently deferred.
-
-### Maintainer-Unavailable Drill / 维护者不可用演练
-
-1. When the maintainer is unavailable, freeze new tagged releases and new release promises.
-2. Keep the public bug intake and the private security path visibly honest; incoming evidence does not transfer release custody or create an undocumented delegate.
-3. Record the continuity gap explicitly in maintainer-facing truth instead of silently promising recovery dates.
-4. Restore custody only after `.github/CODEOWNERS` and `docs/MAINTAINER_RELEASE_RUNBOOK.md` record the real successor or delegate.
-
-- triage owner: the maintainer listed in `.github/CODEOWNERS`
-- release custody: centralized to the same single-maintainer model; no documented delegate exists today
-- issue/discussion traffic that is actually reachable in the current access mode, diagnostics escalations, developer reports, and PR summaries increase evidence depth but do not transfer release custody or create an undocumented delegate; the maintainer-unavailable drill stays in `docs/MAINTAINER_RELEASE_RUNBOOK.md`
-- maintainer unavailable posture: the maintainer-unavailable drill says to freeze new tagged releases and new release promises, keep the private security path active, and allow support triage only as best effort
-- custody restoration: only after `.github/CODEOWNERS` and `docs/MAINTAINER_RELEASE_RUNBOOK.md` record the real successor or delegate
-
 ## What Helps Most
 
 - Exact integration version, Home Assistant version, and installation method
@@ -85,3 +68,23 @@ This repository currently follows a single-maintainer review model. No documente
   Feature request 仍是 best effort；若与项目 architecture 或 maintenance budget 冲突，可能被延后或拒绝。
 - The single-maintainer / no-documented-delegate continuity truth above does not change the current support boundary or create a hidden backup path.
   上文 single-maintainer / no-documented-delegate 的 continuity truth 不会改变当前 support boundary，也不会凭空产生 hidden backup path。
+
+Public support routing ends above. The continuity section below is a maintainer appendix for triage ownership, custody, and freeze truth; it stays visible for honesty but is not part of the public first hop.
+上面的内容已经覆盖公开 support first hop；下面的连续性章节是维护者附录，用于记录 triage ownership、custody 与 freeze 真相。它会保留可见性以维持诚实，但不属于 public first hop。
+
+## Maintainer Appendix / Triage Ownership
+
+This repository currently follows a single-maintainer review model. No documented delegate or backup maintainer exists today in `.github/CODEOWNERS`, so triage and release timing may be asynchronous; high-risk issues must still be recorded explicitly rather than silently deferred.
+
+### Maintainer-Unavailable Drill / 维护者不可用演练
+
+1. When the maintainer is unavailable, freeze new tagged releases and new release promises.
+2. Keep the public bug intake and the private security path visibly honest; incoming evidence does not transfer release custody or create an undocumented delegate.
+3. Record the continuity gap explicitly in maintainer-facing truth instead of silently promising recovery dates.
+4. Restore custody only after `.github/CODEOWNERS` and `docs/MAINTAINER_RELEASE_RUNBOOK.md` record the real successor or delegate.
+
+- triage owner: the maintainer listed in `.github/CODEOWNERS`
+- release custody: centralized to the same single-maintainer model; no documented delegate exists today
+- issue/discussion traffic that is actually reachable in the current access mode, diagnostics escalations, developer reports, and PR summaries increase evidence depth but do not transfer release custody or create an undocumented delegate; the maintainer-unavailable drill stays in `docs/MAINTAINER_RELEASE_RUNBOOK.md`
+- maintainer unavailable posture: the maintainer-unavailable drill says to freeze new tagged releases and new release promises, keep the private security path active, and allow support triage only as best effort
+- custody restoration: only after `.github/CODEOWNERS` and `docs/MAINTAINER_RELEASE_RUNBOOK.md` record the real successor or delegate

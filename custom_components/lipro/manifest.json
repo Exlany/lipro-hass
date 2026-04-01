@@ -5,10 +5,10 @@
     "@Exlany"
   ],
   "config_flow": true,
-  "documentation": "https://github.com/Exlany/lipro-hass/blob/main/docs/README.md",
+  "documentation": "https://github.com/Exlany/lipro-hass/blob/v1.0.0/docs/README.md",
   "integration_type": "hub",
   "iot_class": "cloud_push",
-  "issue_tracker": "https://github.com/Exlany/lipro-hass/blob/main/SUPPORT.md",
+  "issue_tracker": "https://github.com/Exlany/lipro-hass/blob/v1.0.0/SUPPORT.md",
   "requirements": [
     "aiomqtt>=2.0.0,<3.0.0",
     "pycryptodome>=3.19.0,<4.0.0"
