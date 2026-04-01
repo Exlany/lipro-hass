@@ -214,3 +214,27 @@ def test_validate_reconfigure_submission_rejects_invalid_phone_id_type() -> None
 
     assert submission is None
     assert errors == {"base": "invalid_entry"}
+
+def test_validate_reconfigure_submission_respects_explicit_false_remember_flag() -> None:
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            CONF_PHONE: "13800000000",
+            CONF_PHONE_ID: "phone-id",
+            CONF_PASSWORD_HASH: "stored-hash",
+            CONF_REMEMBER_PASSWORD_HASH: False,
+        },
+    )
+
+    submission, errors = validate_reconfigure_submission(
+        entry,
+        {
+            CONF_PHONE: "13800000000",
+            "password": "testpassword",
+        },
+        logger=_LOGGER,
+    )
+
+    assert errors == {}
+    assert submission is not None
+    assert submission.remember_password_hash is False

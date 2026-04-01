@@ -1,8 +1,8 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** `Active milestone route`
+**Status:** `Active milestone closeout-ready route`
 **Current route:** `v1.35 active milestone route / starting from latest archived baseline = v1.34`；latest archived evidence index = `.planning/reviews/V1_34_EVIDENCE_INDEX.md`.
-**Goal:** `基于 repo-wide master audit 的第二轮收口，把 control-plane 过度分片、public architecture drift 与相关 guard/file-matrix 漂移压回同一条 active route：formal control callback home 更紧、公开架构叙事更诚实、governance truth 与 focused guards 继续单线闭环。`
+**Goal:** `基于 repo-wide master audit 的第二轮与第三轮 carry-forward，把 control-plane contract 残留最终压回单一 active route：config-entry auth seed 语义单点收口、config_flow 根层继续回归 thin adapter、schedule direct-call contract 与治理/guards 共享同一 formal truth。`
 **Default next step:** `$gsd-complete-milestone v1.35`
 **Active baseline:** latest archived baseline = `v1.34`；previous archived baseline = `v1.33`.
 
@@ -13,10 +13,10 @@ contract_name: governance-route
 active_milestone:
   version: v1.35
   name: Master Audit Closure, Public Surface Finalization & Release Traceability
-  status: active / phase 123 complete; closeout-ready (2026-04-01)
-  phase: '123'
-  phase_title: service-router family reconvergence, control-plane locality tightening, and public architecture hygiene
-  phase_dir: 123-service-router-family-reconvergence-control-plane-locality-and-public-architecture-hygiene
+  status: active / phase 124 complete; closeout-ready (2026-04-01)
+  phase: '124'
+  phase_title: config-entry auth seed normalization, config-flow adapter thinning, and schedule contract closure
+  phase_dir: 124-config-entry-auth-seed-normalization-config-flow-adapter-thinning-and-schedule-contract-closure
 latest_archived:
   version: v1.34
   name: Terminal Audit Closure, Contract Hardening & Governance Truth Slimming
@@ -41,21 +41,21 @@ bootstrap:
 
 **Name:** `Master Audit Closure, Public Surface Finalization & Release Traceability`
 
-**Why it matters:** `v1.35` 继续不扩张业务功能，而是把终审第二轮暴露的 control-plane 过度分片、service-router topology drift 与公开架构叙事漂移压回单一正式主线：repo-wide audit results、current topology docs、file-matrix truth 与 focused guards 只剩一条 current story。`
+**Why it matters:** `v1.35` 仍不扩张业务功能，而是继续把 control-plane 剩余的 contract 漏口压回单一正式主线：persisted auth seed 解释不再散落、config_flow 根层不再持有厚 orchestration、schedule direct-call path 也回到与 registry schema 一致的 formal contract。`
 
-**North-star fit:** `v1.35` 继续沿 single mainline / formal homes / honest public surface 推进：不让 `service_router` 家族在过薄 split 中重新合法化第二套叙事，也不让 code/docs/governance 对当前 control-plane topology 各说各话。`
+**North-star fit:** `v1.35` 继续沿 single mainline / formal homes / honest public surface 推进：`entry_auth` 继续作为 config-entry auth/bootstrap 正式 home，`flow/` 吸收 config-flow orchestration，`services/contracts.py` 成为 schedule direct-call contract 真源，不让 control-plane 因局部 convenience 再长出第二套故事线。`
 
-**Current status:** `active / phase 123 complete; closeout-ready (2026-04-01)`
-**Phase range:** `Phase 122 -> 123`
+**Current status:** `active / phase 124 complete; closeout-ready (2026-04-01)`
+**Phase range:** `Phase 122 -> 124`
 **Starting baseline:** `.planning/v1.34-MILESTONE-AUDIT.md`, `.planning/reviews/V1_34_EVIDENCE_INDEX.md`, `.planning/milestones/v1.34-ROADMAP.md`, `.planning/milestones/v1.34-REQUIREMENTS.md`
-**Requirements basket:** `AUD-05`, `DOC-12`, `OSS-16`, `GOV-81`, `TST-44`, `ARC-34`, `HOT-54`, `DOC-13`, `GOV-82`, `TST-45`
+**Requirements basket:** `AUD-05`, `DOC-12`, `OSS-16`, `GOV-81`, `TST-44`, `ARC-34`, `HOT-54`, `DOC-13`, `GOV-82`, `TST-45`, `ARC-35`, `HOT-55`, `ARC-36`, `GOV-83`, `TST-46`
 **Latest archived baseline:** `v1.34`
 **Latest archived pointer:** `.planning/reviews/V1_34_EVIDENCE_INDEX.md`
 **Latest archived audit artifact:** `.planning/v1.34-MILESTONE-AUDIT.md`
 **Default next command:** `$gsd-complete-milestone v1.35`
 **Active audit ledger:** `.planning/reviews/V1_35_MASTER_AUDIT_LEDGER.md`
 **Closeout audit:** `.planning/v1.35-MILESTONE-AUDIT.md`
-**Current phase handoff:** `Phase 123 已完成 3/3 计划与验证；v1.35 live route 现可诚实进入 milestone closeout / archive promotion。`
+**Current phase handoff:** `Phase 124 已完成五个计划并通过 closeout-ready 冻结；下一步应执行 `$gsd-complete-milestone v1.35`，而不是重新开启新的 carry-forward。`
 
 ## Latest Archived Milestone (v1.34)
 

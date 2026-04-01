@@ -60,6 +60,44 @@ class TestInitServiceHandlerScheduleValidation(_InitServiceHandlerBase):
             await async_handle_add_schedule(hass, call)
 
 
+    async def test_get_schedules_empty_device_id_fails_fast(self, hass) -> None:
+        """Direct get_schedules calls should reject empty device_id values."""
+        with pytest.raises(ServiceValidationError) as exc_info:
+            await async_handle_get_schedules(
+                hass,
+                service_call(hass, {ATTR_DEVICE_ID: ""}),
+            )
+
+        assert exc_info.value.translation_key == "invalid_schedule_request"
+
+    async def test_add_schedule_invalid_day_value_fails_fast(self, hass) -> None:
+        """Direct add_schedule calls should reject malformed schedule items."""
+        with pytest.raises(ServiceValidationError) as exc_info:
+            await async_handle_add_schedule(
+                hass,
+                service_call(
+                    hass,
+                    {
+                        ATTR_DAYS: ["bad"],
+                        ATTR_TIMES: [3600],
+                        ATTR_EVENTS: [1],
+                    },
+                ),
+            )
+
+        assert exc_info.value.translation_key == "invalid_schedule_request"
+
+    async def test_delete_schedules_invalid_ids_fail_fast(self, hass) -> None:
+        """Direct delete_schedules calls should reject malformed schedule_ids."""
+        with pytest.raises(ServiceValidationError) as exc_info:
+            await async_handle_delete_schedules(
+                hass,
+                service_call(hass, {ATTR_SCHEDULE_IDS: ["bad"]}),
+            )
+
+        assert exc_info.value.translation_key == "invalid_schedule_request"
+
+
 class TestInitServiceHandlerSchedules(_InitServiceHandlerBase):
     """Tests for schedule query/mutation handlers."""
 

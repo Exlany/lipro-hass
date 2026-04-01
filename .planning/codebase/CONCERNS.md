@@ -14,6 +14,12 @@
 - Medium priority: 大型测试热点、`Any`/动态 payload 类型债、PR 路径缺少性能与 preview 兼容性阻塞门禁、平台基线过新。
 - Low priority: 固件 advisory 远端新鲜度、`outlet_power` legacy side-car fallback。
 
+## Phase 124 Concern Update
+
+- `Phase 124` 没有新增 active residual family；本轮的主要成果是把 auth-flow-schedule carry-forward 收回正式 homes，而不是创造新的热点。
+- 当前剩余高优先级 concern 继续集中在 runtime/control 反射边界、runtime snapshot 双真源拼装与 orchestrator assembly knot；这些不属于 Phase 124 新引入的问题。
+- 若后续仍要继续重构，应优先处理 control → runtime contract-first port、root assembly provider injection 与 broader hotspot inward split，而不是再次回头修补 Phase 124 已冻结的 auth/flow/schedule formal homes。
+
 ## Tech Debt
 
 **Runtime / protocol hotspot concentration:**

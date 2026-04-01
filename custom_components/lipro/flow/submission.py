@@ -12,13 +12,13 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD
 
 from ..const.config import (
-    CONF_PASSWORD_HASH,
     CONF_PHONE,
     CONF_PHONE_ID,
     CONF_REMEMBER_PASSWORD_HASH,
     CONF_USER_ID,
     DEFAULT_REMEMBER_PASSWORD_HASH,
 )
+from ..entry_auth import resolve_entry_credential_seed_state
 from .credentials import mask_phone_for_title, normalize_phone, validate_password
 from .login import hash_password
 
@@ -94,12 +94,7 @@ def _resolve_entry_phone_id(
 
 def resolve_entry_remember_password_hash(entry_data: Mapping[str, object]) -> bool:
     """Resolve whether one entry should persist the password hash."""
-    return bool(
-        entry_data.get(
-            CONF_REMEMBER_PASSWORD_HASH,
-            CONF_PASSWORD_HASH in entry_data,
-        )
-    )
+    return resolve_entry_credential_seed_state(entry_data).remember_password_hash
 
 
 def resolve_reauth_expected_user_id(reauth_entry: ConfigEntry) -> int | None:

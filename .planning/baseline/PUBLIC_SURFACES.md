@@ -2,7 +2,7 @@
 
 **Purpose:** 定义各平面的 canonical public surfaces、过渡公开面与禁止作为正式入口的对象。
 **Status:** Formal baseline asset (`BASE-01` public-surface truth source)
-**Updated:** 2026-03-28 (v1.28 archived-only continuity aligned)
+**Updated:** 2026-04-01 (Phase 124 closeout aligned)
 
 ## Formal Role
 
@@ -11,6 +11,13 @@
 - transitional public surface 只是带退出条件的临时允许面，不构成第二套正式 root 语义。
 - `.planning/baseline/ARCHITECTURE_POLICY.md` 负责把这些 public-surface truth 映射成可执行 rule ids 与 targeted regression bans。
 - `.planning/codebase/*.md` 只允许作为 derived collaboration maps / 协作图谱；它们可以解释 locality，但不能升级成平行 authority chain。
+
+## Phase 124 Auth/Flow/Schedule Clarifications
+
+- `custom_components/lipro/config_flow.py` 只保留 HA config-entry adapter 责任；`custom_components/lipro/flow/step_handlers.py` 是 localized user / reauth / reconfigure orchestration home，但不升级为新的 public surface。
+- `custom_components/lipro/entry_auth.py` 是 persisted auth-seed single-source formal home；`flow/login.py` 与 `flow/submission.py` 只能消费它的 projection / readback helpers。
+- `custom_components/lipro/services/contracts.py` 是 schedule direct-call normalization / result typing 的唯一 outward truth；`custom_components/lipro/services/schedule.py` 与 router-facing service path 不得重新定义 handler-local ad-hoc dict surface。
+- `invalid_schedule_request` 只属于 translated service-validation error；它是 closeout hardening 结果，不构成新的 public API。
 
 ## Canonical Public Surfaces
 

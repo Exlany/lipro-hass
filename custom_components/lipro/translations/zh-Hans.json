@@ -483,6 +483,9 @@
     "schedule_delete_failed": {
       "message": "删除设备定时任务失败。"
     },
+    "invalid_schedule_request": {
+      "message": "定时任务请求无效，请检查 device_id、weekdays、times、events 与 schedule_ids。"
+    },
     "times_events_mismatch": {
       "message": "时间数量必须与事件数量匹配。"
     },

@@ -2,14 +2,14 @@
 
 **Purpose:** 建立 requirement → artifact → test → doc → phase acceptance / handoff 的统一验证闭环。
 **Status:** Formal baseline asset (`BASE-03` phase acceptance truth source)
-**Updated:** 2026-04-01 (v1.34 archived-only route aligned)
+**Updated:** 2026-04-01 (Phase 124 closeout-ready route aligned)
 
 ## Formal Role
 
 ## Current Route
 
 - **Current route story:** `v1.35 active milestone route / starting from latest archived baseline = v1.34`
-- **Current milestone status:** `active / phase 122 complete; closeout-ready (2026-04-01)`
+- **Current milestone status:** `active / phase 124 complete; closeout-ready (2026-04-01)`
 - **Default next command:** `$gsd-complete-milestone v1.35`
 - **Latest archived pointer:** `.planning/reviews/V1_34_EVIDENCE_INDEX.md`
 - **Active audit ledger:** `.planning/reviews/V1_35_MASTER_AUDIT_LEDGER.md`
@@ -23,6 +23,14 @@
 - 若 `.planning/reviews/FILE_MATRIX.md`、`.planning/reviews/RESIDUAL_LEDGER.md`、`.planning/reviews/KILL_LIST.md` 无变化，phase summary 也必须明确写出“为何无变化”。
 - `.planning/codebase/*.md` 若被保留，必须通过 `README.md`、统一 derived collaboration map disclaimer、snapshot/freshness/authority 头部与治理守卫声明其从属身份，不能越权成为第二条 authority chain。
 - `.planning/baseline/GOVERNANCE_REGISTRY.json` 若更新，必须同步 public docs / contributor templates / release-contract tests，并明确 `break-glass verify-only` 与 `non-publish rehearsal` 是否新增或变更。
+
+## Phase 124 Exit Contract
+
+- **Route truth:** `active / phase 124 complete; closeout-ready (2026-04-01)`
+- **Focused guards:** `tests/meta/test_phase124_flow_auth_schedule_contract_guards.py`, `tests/meta/test_runtime_contract_truth.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/test_governance_release_contract.py`, `tests/meta/test_public_surface_guards.py`, `tests/meta/test_service_translation_sync.py`, `tests/meta/test_translation_tree_sync.py`
+- **Proof chain:** auth-seed single-source + config-flow thin adapter + schedule direct-call contract closure + governance/codebase/testing freeze → `uv run pytest -q tests/flows/test_config_flow_user.py tests/flows/test_config_flow_reauth.py tests/flows/test_config_flow_reconfigure.py tests/flows/test_flow_submission.py tests/core/test_token_persistence.py tests/core/test_init_service_handlers_schedules.py tests/services/test_services_schedule.py tests/meta/test_phase124_flow_auth_schedule_contract_guards.py tests/meta/test_runtime_contract_truth.py tests/meta/test_governance_route_handoff_smoke.py tests/meta/test_governance_release_contract.py tests/meta/test_public_surface_guards.py tests/meta/test_service_translation_sync.py tests/meta/test_translation_tree_sync.py` → `uv run python scripts/check_file_matrix.py --check` → `uv run ruff check .` → `uv run pytest -q` → `node "$HOME/.codex/get-shit-done/bin/gsd-tools.cjs" state json` / `init execute-phase 124`
+- **Phase asset bundle:** `.planning/phases/124-config-entry-auth-seed-normalization-config-flow-adapter-thinning-and-schedule-contract-closure/{124-01-SUMMARY.md,124-02-SUMMARY.md,124-03-SUMMARY.md,124-04-SUMMARY.md,124-05-SUMMARY.md,124-SUMMARY.md,124-VERIFICATION.md}`
+- **Touched formal homes:** `custom_components/lipro/{config_flow.py,entry_auth.py}`, `custom_components/lipro/flow/{login.py,submission.py,step_handlers.py}`, `custom_components/lipro/services/{contracts.py,schedule.py}`, `custom_components/lipro/translations/{en.json,zh-Hans.json}`, `.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md,MILESTONES.md}`, `.planning/reviews/{FILE_MATRIX.md,RESIDUAL_LEDGER.md,KILL_LIST.md,V1_35_MASTER_AUDIT_LEDGER.md}`, `.planning/baseline/{PUBLIC_SURFACES.md,DEPENDENCY_MATRIX.md,VERIFICATION_MATRIX.md}`, `.planning/codebase/{ARCHITECTURE.md,CONCERNS.md,TESTING.md}`, `docs/developer_architecture.md`, `CHANGELOG.md`, `tests/meta/test_phase124_flow_auth_schedule_contract_guards.py`
 
 ## Phase 119 MQTT Boundary / Runtime Contract / Release Governance Hardening
 

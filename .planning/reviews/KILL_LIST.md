@@ -31,6 +31,12 @@ _None currently registered._
 
 > **Phase 88 freeze note:** routed delete gates 为空是显式 closeout verdict，不是遗漏登记。若未来出现新的 file-level delete campaign，必须重新登记 target、owner、exit condition 与 evidence。
 
+## Phase 124 Status Update
+
+- `Phase 124` 没有创造新的 active kill target；本轮是 formal-home 收敛与 guard freeze，而不是新的 delete campaign。
+- `config_flow.py`、`entry_auth.py`、`services/contracts.py` 与 `services/schedule.py` 的当前职责边界已收敛，不需要通过新增 kill gate 才能维持 current-route honesty。
+
+
 ## Deletion Gate
 
 删除前必须满足：

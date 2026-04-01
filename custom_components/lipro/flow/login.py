@@ -13,16 +13,15 @@ from homeassistant.data_entry_flow import AbortFlow
 from ..const.config import (
     CONF_ACCESS_TOKEN,
     CONF_BIZ_ID,
-    CONF_PASSWORD_HASH,
     CONF_PHONE,
     CONF_PHONE_ID,
     CONF_REFRESH_TOKEN,
-    CONF_REMEMBER_PASSWORD_HASH,
     CONF_USER_ID,
 )
 from ..core.api import LiproApiError, LiproAuthError, LiproConnectionError
 from ..core.auth import hash_password_for_auth
 from ..core.utils.log_safety import safe_error_placeholder
+from ..entry_auth import apply_entry_credential_seed_state
 
 if TYPE_CHECKING:
     import aiohttp
@@ -203,8 +202,9 @@ class ConfigEntryLoginProjection:
             CONF_REFRESH_TOKEN: self.refresh_token,
             CONF_USER_ID: self.user_id,
             CONF_BIZ_ID: self.biz_id,
-            CONF_REMEMBER_PASSWORD_HASH: remember_password_hash,
         }
-        if remember_password_hash:
-            entry_data[CONF_PASSWORD_HASH] = password_hash
-        return entry_data
+        return apply_entry_credential_seed_state(
+            entry_data,
+            password_hash=password_hash,
+            remember_password_hash=remember_password_hash,
+        )

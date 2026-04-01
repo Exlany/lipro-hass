@@ -8,6 +8,13 @@ _None currently registered._
 
 > **Phase 88 freeze note:** 这里的 zero-active posture 是显式 closeout verdict，而不是尚未清点完成的空白。若未来出现新 residual，必须以新的 family 重新登记 owner、exit condition 与 evidence。
 
+## Phase 124 Residual Delta
+
+- `Phase 124` 未新增 active residual family：auth-flow-schedule carry-forward 已被收口到正式 homes，而不是被登记为新的 lingering exception。
+- stale `biz_id` / `remember_password_hash` revival 已关闭；`entry_auth.py` 现在承担 persisted auth-seed single-source truth，不再由 flow projection 与 token callback 各自解释。
+- schedule direct-call normalization / result typing 已收敛到 `services/contracts.py`，因此没有新的 schedule residual family 需要继续登记。
+
+
 ## Phase 110 Residual Delta
 
 - `Phase 110` 未新增 active residual family：snapshot helper inward split、governance guards 与 evidence chain 收口均已落入 formal homes。

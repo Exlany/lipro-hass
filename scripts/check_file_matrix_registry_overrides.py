@@ -255,7 +255,15 @@ BASE_OVERRIDE_TRUTH_FAMILIES = (
         ("tests/meta/governance_phase_history_topology_closeouts.py", "closeout/promoted-asset phase-history topology topic home"),
     )),
 
-    OverrideTruthFamily(area="Cross-cutting", owner_phase="Phase 112", fate="保留", rows=(("custom_components/lipro/entry_auth.py", "config-entry auth/bootstrap formal home"), ("custom_components/lipro/runtime_infra.py", "shared runtime infra formal home"),)),
+    OverrideTruthFamily(area="Cross-cutting", owner_phase="Phase 112", fate="保留", rows=(("custom_components/lipro/runtime_infra.py", "shared runtime infra formal home"),)),
+
+    OverrideTruthFamily(area="Cross-cutting", owner_phase="Phase 112 / 124", fate="保留", rows=(("custom_components/lipro/entry_auth.py", "config-entry auth/bootstrap formal home + persisted auth-seed single-source + token persistence truth"),)),
+
+    OverrideTruthFamily(area="Control", owner_phase="Phase 3 / 124", fate="保留", rows=(("custom_components/lipro/config_flow.py", "HA config-flow thin adapter over localized flow step handlers"), ("custom_components/lipro/flow/login.py", "config-entry login projection consuming entry_auth seed truth"), ("custom_components/lipro/flow/submission.py", "flow submission normalization consuming entry_auth remembered-hash truth"), ("custom_components/lipro/services/contracts.py", "schedule direct-call normalization / result-typing truth home"), ("custom_components/lipro/services/schedule.py", "schedule service helper consuming shared contracts truth"),)),
+
+    OverrideTruthFamily(area="Control", owner_phase="Phase 124", fate="保留", rows=(("custom_components/lipro/flow/step_handlers.py", "localized user / reauth / reconfigure orchestration home behind config_flow thin adapter"), ("custom_components/lipro/services/schedule_support.py", "schedule payload validation / row normalization support home behind shared contracts truth"),)),
+
+    OverrideTruthFamily(area="Assurance", owner_phase="Phase 124", fate="保留", rows=(("tests/meta/test_phase124_flow_auth_schedule_contract_guards.py", "focused closeout guard home for Phase 124 auth/flow/schedule contract closure"),)),
 
     OverrideTruthFamily(area="Control", owner_phase="Phase 123", fate="保留", rows=(
         ("custom_components/lipro/control/service_router_handlers.py", "control-local callback family home for command/schedule/share/maintenance service-router handlers"),

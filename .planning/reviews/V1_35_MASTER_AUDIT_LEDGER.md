@@ -53,6 +53,13 @@ This ledger is the single active synthesis surface for the `v1.35` repo-wide aud
 | `GOV-81` | active route truth needed to align audit ledger, boundary cleanup, metadata traceability, and focused guards into one route story | resolved | `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES` now all tell the same closeout-ready `v1.35` story |
 | `TST-44` | focused guards did not yet freeze appendix ordering and tagged-release metadata projection | resolved | focused meta suites now reject appendix-first drift and `/blob/main/` regressions |
 
+## Phase 124 Final Carry-forward Closure
+
+- `ARC-35` / `HOT-55` 已通过 `entry_auth.py`、`flow/login.py`、`flow/submission.py` 与 `config_flow.py` / `flow/step_handlers.py` 的收敛完成：persisted auth-seed 解释/回写回到单一正式 helper，stale `biz_id` 与 remembered password-hash revival 被关闭。
+- `ARC-36` 已通过 `services/contracts.py -> services/schedule.py` 的 shared contract chain 收口：schedule direct-call payload normalization / result typing 不再由 handler-local ad-hoc dict 叙事承担。
+- `GOV-83` / `TST-46` 已通过 planning roots、baseline/review/codebase docs、focused meta guard 与 Phase 124 summary / verification 证据链同步冻结。
+- `v1.35` 当前已具备 milestone closeout-ready truth；后续动作应是 `$gsd-complete-milestone v1.35`，而不是重新开启新的 carry-forward story。
+
 ## Non-Blocking Carry-Forward Findings
 
 ### Code hotspots (carry-forward, not blockers for v1.35)

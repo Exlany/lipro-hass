@@ -1,13 +1,20 @@
 # Architecture
 
-**Analysis Date:** 2026-03-28
+**Analysis Date:** 2026-04-01
 
-> Snapshot: `2026-03-28`
+> Snapshot: `2026-04-01`
 > Freshness: 基于 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`docs/developer_architecture.md`、`.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md}`、`.planning/baseline/*.md`、`.planning/reviews/*.md` 与 `custom_components/lipro/**` 的当前截面。
 > Derived collaboration map: 本文件是受约束的协作图谱 / 派生视图，仅用于导航、审阅与后续实现对齐。
 > Authority: 若与 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md}`、`.planning/baseline/*.md`、`.planning/reviews/*.md` 或 `docs/developer_architecture.md` 冲突，以后者为准；本文件不得反向充当当前治理真源。
 
 ## Pattern Overview
+
+## Phase 124 Closure Notes
+
+- `custom_components/lipro/config_flow.py` 继续保留 thin HA adapter 身份；Phase 124 把 user / reauth / reconfigure orchestration inward 到 `custom_components/lipro/flow/step_handlers.py`。
+- `custom_components/lipro/entry_auth.py` 现在承担 persisted auth-seed read/write single-source truth，`flow/login.py` 与 `flow/submission.py` 只保留 projection / normalization 角色。
+- `custom_components/lipro/services/contracts.py -> custom_components/lipro/services/schedule.py` 现在构成 schedule direct-call formal contract chain；router-facing path 不再维持第二套 payload/result semantics。
+
 
 **Overall:** Five-plane, explicit-composition, single-main-chain Home Assistant integration
 

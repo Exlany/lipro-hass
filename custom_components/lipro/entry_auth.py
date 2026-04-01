@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from contextlib import suppress
+from dataclasses import dataclass
 from functools import partial
 import logging
 from typing import TYPE_CHECKING
@@ -47,6 +49,45 @@ if TYPE_CHECKING:
 ConfigEntryLike = ConfigEntry[object]
 
 
+@dataclass(frozen=True, slots=True)
+class EntryCredentialSeedState:
+    """Normalized persisted auth-seed state derived from one config entry."""
+
+    password_hash: str | None
+    remember_password_hash: bool
+
+
+def resolve_entry_credential_seed_state(
+    entry_data: Mapping[str, object],
+) -> EntryCredentialSeedState:
+    """Normalize persisted password-hash/remember state from config-entry data."""
+    raw_password_hash = entry_data.get(CONF_PASSWORD_HASH)
+    password_hash = raw_password_hash if isinstance(raw_password_hash, str) and raw_password_hash else None
+    remember_password_hash = entry_data.get(CONF_REMEMBER_PASSWORD_HASH)
+    if remember_password_hash is None:
+        remember_password_hash = bool(password_hash)
+    return EntryCredentialSeedState(
+        password_hash=password_hash,
+        remember_password_hash=bool(remember_password_hash),
+    )
+
+
+def apply_entry_credential_seed_state(
+    entry_data: Mapping[str, object],
+    *,
+    password_hash: str,
+    remember_password_hash: bool,
+) -> dict[str, object]:
+    """Project persisted password-hash policy into config-entry data."""
+    projected = dict(entry_data)
+    projected[CONF_REMEMBER_PASSWORD_HASH] = remember_password_hash
+    if remember_password_hash:
+        projected[CONF_PASSWORD_HASH] = password_hash
+    else:
+        projected.pop(CONF_PASSWORD_HASH, None)
+    return projected
+
+
 def _require_entry_string(
     entry: ConfigEntryLike,
     *,
@@ -68,13 +109,9 @@ def _optional_entry_string(entry: ConfigEntryLike, *, key: str) -> str | None:
 
 def _resolve_entry_password_seed(
     entry: ConfigEntryLike,
-) -> tuple[str | None, bool]:
-    """Return persisted password-hash state for auth bootstrap."""
-    password_hash = _optional_entry_string(entry, key=CONF_PASSWORD_HASH)
-    remember_password_hash = entry.data.get(CONF_REMEMBER_PASSWORD_HASH)
-    if remember_password_hash is None:
-        remember_password_hash = bool(password_hash)
-    return password_hash, bool(remember_password_hash)
+) -> EntryCredentialSeedState:
+    """Return normalized persisted auth-seed state for auth bootstrap."""
+    return resolve_entry_credential_seed_state(entry.data)
 
 
 def _build_entry_auth_seed(
@@ -98,7 +135,7 @@ def _build_entry_auth_seed(
             "Missing phone in config entry data; please remove and re-add the integration"
         ),
     )
-    password_hash, remember_password_hash = _resolve_entry_password_seed(entry)
+    credential_seed = _resolve_entry_password_seed(entry)
     request_timeout = get_entry_int_option(
         entry,
         option_name=CONF_REQUEST_TIMEOUT,
@@ -110,8 +147,8 @@ def _build_entry_auth_seed(
     return AuthBootstrapSeed(
         phone=phone,
         phone_id=phone_id,
-        password_hash=password_hash,
-        remember_password_hash=remember_password_hash,
+        password_hash=credential_seed.password_hash,
+        remember_password_hash=credential_seed.remember_password_hash,
         request_timeout=request_timeout,
         entry_id=entry.entry_id,
         access_token=_optional_entry_string(entry, key=CONF_ACCESS_TOKEN),
@@ -214,6 +251,8 @@ def persist_entry_tokens_if_changed(
     }
     if isinstance(biz_id, str) and biz_id:
         updated_data[CONF_BIZ_ID] = biz_id
+    else:
+        updated_data.pop(CONF_BIZ_ID, None)
 
     hass.config_entries.async_update_entry(
         entry,

@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 757
+**Python files total:** 760
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -11,7 +11,7 @@
 | `custom_components/lipro/__init__.py` | Control | Phase 90 | 保留 | protected thin HA root adapter / lazy wiring shell |
 | `custom_components/lipro/binary_sensor.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/climate.py` | Domain | Phase 4 | 保留 | - |
-| `custom_components/lipro/config_flow.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/config_flow.py` | Control | Phase 3 / 124 | 保留 | HA config-flow thin adapter over localized flow step handlers |
 | `custom_components/lipro/const/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/const/api.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/const/base.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -284,16 +284,17 @@
 | `custom_components/lipro/entities/descriptors.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/entities/firmware_update.py` | Domain | Phase 90 | 保留 | protected thin OTA projection shell after runtime-boundary tightening |
 | `custom_components/lipro/entities/firmware_update_support.py` | Domain | Phase 4 | 保留 | - |
-| `custom_components/lipro/entry_auth.py` | Cross-cutting | Phase 112 | 保留 | config-entry auth/bootstrap formal home |
+| `custom_components/lipro/entry_auth.py` | Cross-cutting | Phase 112 / 124 | 保留 | config-entry auth/bootstrap formal home + persisted auth-seed single-source + token persistence truth |
 | `custom_components/lipro/entry_options.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/fan.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/firmware_manifest.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/flow/__init__.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/flow/credentials.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/flow/login.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/flow/login.py` | Control | Phase 3 / 124 | 保留 | config-entry login projection consuming entry_auth seed truth |
 | `custom_components/lipro/flow/options_flow.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/flow/schemas.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/flow/submission.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/flow/step_handlers.py` | Control | Phase 124 | 保留 | localized user / reauth / reconfigure orchestration home behind config_flow thin adapter |
+| `custom_components/lipro/flow/submission.py` | Control | Phase 3 / 124 | 保留 | flow submission normalization consuming entry_auth remembered-hash truth |
 | `custom_components/lipro/headless/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/headless/boot.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/helpers/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -309,7 +310,7 @@
 | `custom_components/lipro/sensor.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/services/__init__.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/command.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/services/contracts.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/services/contracts.py` | Control | Phase 3 / 124 | 保留 | schedule direct-call normalization / result-typing truth home |
 | `custom_components/lipro/services/device_lookup.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/diagnostics/__init__.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/diagnostics/capability_handlers.py` | Control | Phase 3 | 保留 | - |
@@ -323,7 +324,8 @@
 | `custom_components/lipro/services/execution.py` | Control | Phase 3 / 5 / 7 | 保留 | formal service execution facade; private auth seam closed |
 | `custom_components/lipro/services/maintenance.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/registry.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/services/schedule.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/services/schedule.py` | Control | Phase 3 / 124 | 保留 | schedule service helper consuming shared contracts truth |
+| `custom_components/lipro/services/schedule_support.py` | Control | Phase 124 | 保留 | schedule payload validation / row normalization support home behind shared contracts truth |
 | `custom_components/lipro/services/share.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/switch.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/system_health.py` | Control | Phase 3 | 保留 | - |
@@ -669,6 +671,7 @@
 | `tests/meta/test_phase114_open_source_surface_honesty_guards.py` | Assurance | Phase 114 | 保留 | focused open-source surface honesty guard home for Phase 114 |
 | `tests/meta/test_phase119_mqtt_boundary_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase123_service_router_reconvergence_guards.py` | Assurance | Phase 123 | 保留 | focused closeout guard home for Phase 123 service-router reconvergence |
+| `tests/meta/test_phase124_flow_auth_schedule_contract_guards.py` | Assurance | Phase 124 | 保留 | focused closeout guard home for Phase 124 auth/flow/schedule contract closure |
 | `tests/meta/test_phase31_runtime_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase45_hotspot_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase50_rest_typed_budget_guards.py` | Assurance | Phase 6 | 保留 | - |

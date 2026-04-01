@@ -483,6 +483,9 @@
     "schedule_delete_failed": {
       "message": "Failed to delete device schedules."
     },
+    "invalid_schedule_request": {
+      "message": "Invalid schedule request. Check device_id, weekdays, times, events, and schedule IDs."
+    },
     "times_events_mismatch": {
       "message": "The number of times must match the number of events."
     },

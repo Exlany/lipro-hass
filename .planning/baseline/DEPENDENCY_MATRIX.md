@@ -2,10 +2,17 @@
 
 **Purpose:** 定义允许/禁止的跨平面依赖方向，并作为 architecture guards 的语义真源。
 **Status:** Baseline reference
-**Updated:** 2026-03-31 (Phase 111 runtime-boundary sealing aligned)
-**Alignment:** `v1.31 / Phase 111` dependency truth verified on `2026-03-31`
+**Updated:** 2026-04-01 (Phase 124 auth/flow/schedule closure aligned)
+**Alignment:** `v1.35 / Phase 124` dependency truth verified on `2026-04-01`
 
 ## Formal Role
+
+## Phase 124 Auth/Flow/Schedule Dependency Clarifications
+
+- `custom_components/lipro/config_flow.py` 只能依赖 `custom_components/lipro/flow/*` 的 localized step orchestration 与 `entry_auth` projection helper，不得重新持有厚 user / reauth / reconfigure branching。
+- `custom_components/lipro/entry_auth.py` 拥有 `password_hash` / `remember_password_hash` / `biz_id` 的 persisted-entry interpretation and writeback truth；`flow/login.py`、`flow/submission.py` 与 token persistence callback 只能复用它的 helpers。
+- `custom_components/lipro/services/schedule.py` 必须依赖 `custom_components/lipro/services/contracts.py` 提供的 schedule direct-call normalizer / result types；router-facing service handlers 不得重新手写第二套 schedule payload truth。
+- `custom_components/lipro/control/service_router_handlers.py` 可以调度 schedule helper，但不能反向成为 schedule contract authority source。
 
 ## Phase 95 Hotspot Decomposition Clarifications
 

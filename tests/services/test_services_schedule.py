@@ -8,6 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+import voluptuous as vol
 
 from custom_components.lipro.const.base import DOMAIN
 from custom_components.lipro.core import (
@@ -22,6 +23,11 @@ from custom_components.lipro.core.coordinator.services.protocol_service import (
     build_schedule_mesh_context,
 )
 from custom_components.lipro.core.device import LiproDevice
+from custom_components.lipro.services.contracts import (
+    normalize_add_schedule_payload,
+    normalize_delete_schedules_payload,
+    normalize_get_schedules_payload,
+)
 from custom_components.lipro.services.schedule import (
     async_execute_schedule_operation,
     normalize_schedule_row,
@@ -109,6 +115,34 @@ def test_normalize_schedule_row_drops_unpaired_or_invalid_time_events() -> None:
         "days": [1],
         "times": ["01:00"],
         "events": [1],
+    }
+
+
+def test_normalize_get_schedules_payload_rejects_empty_device_id() -> None:
+    """get_schedules normalizer should reject empty device_id values."""
+    with pytest.raises(vol.Invalid):
+        normalize_get_schedules_payload({"device_id": ""})
+
+
+def test_normalize_add_schedule_payload_coerces_stringified_values() -> None:
+    """add_schedule normalizer should reuse the service-schema coercion contract."""
+    assert normalize_add_schedule_payload(
+        {
+            "days": ["1", "2"],
+            "times": ["3600", "7200"],
+            "events": ["1", "0"],
+        }
+    ) == {
+        "days": [1, 2],
+        "times": [3600, 7200],
+        "events": [1, 0],
+    }
+
+
+def test_normalize_delete_schedules_payload_coerces_stringified_ids() -> None:
+    """delete_schedules normalizer should reuse the service-schema coercion contract."""
+    assert normalize_delete_schedules_payload({"schedule_ids": ["1", "2"]}) == {
+        "schedule_ids": [1, 2],
     }
 
 

@@ -261,6 +261,64 @@ SERVICE_REFRESH_DEVICES_SCHEMA = vol.Schema(
 )
 
 
+class GetSchedulesServiceData(TypedDict, total=False):
+    """Normalized payload accepted by the get_schedules service handler."""
+
+    device_id: str
+
+
+class AddScheduleServiceData(TypedDict, total=False):
+    """Normalized payload accepted by the add_schedule service handler."""
+
+    device_id: str
+    days: list[int]
+    times: list[int]
+    events: list[int]
+
+
+class DeleteSchedulesServiceData(TypedDict, total=False):
+    """Normalized payload accepted by the delete_schedules service handler."""
+
+    device_id: str
+    schedule_ids: list[int]
+
+
+class NormalizedScheduleRow(TypedDict):
+    """Normalized schedule row exposed by the schedule service surface."""
+
+    id: object
+    active: object
+    days: list[int]
+    times: list[str]
+    events: list[int]
+
+
+type NormalizedScheduleRows = list[NormalizedScheduleRow]
+
+
+class GetSchedulesResult(TypedDict):
+    """Structured response payload returned by get_schedules."""
+
+    serial: str
+    schedules: NormalizedScheduleRows
+
+
+class AddScheduleResult(TypedDict):
+    """Structured response payload returned by add_schedule."""
+
+    success: bool
+    serial: str
+    schedule_count: int
+
+
+class DeleteSchedulesResult(TypedDict):
+    """Structured response payload returned by delete_schedules."""
+
+    success: bool
+    serial: str
+    remaining_count: int
+
+
 class ServiceProperty(TypedDict):
     """One key/value property item accepted by send_command."""
 
@@ -311,6 +369,29 @@ class RefreshDevicesResult(TypedDict):
     refreshed_entries: int
     requested_entry_id: NotRequired[str]
 
+
+def normalize_get_schedules_payload(
+    payload: Mapping[str, object],
+) -> GetSchedulesServiceData:
+    """Validate and normalize one direct get_schedules payload."""
+    return cast(GetSchedulesServiceData, SERVICE_GET_SCHEDULES_SCHEMA(dict(payload)))
+
+
+def normalize_add_schedule_payload(
+    payload: Mapping[str, object],
+) -> AddScheduleServiceData:
+    """Validate and normalize one direct add_schedule payload."""
+    return cast(AddScheduleServiceData, SERVICE_ADD_SCHEDULE_SCHEMA(dict(payload)))
+
+
+def normalize_delete_schedules_payload(
+    payload: Mapping[str, object],
+) -> DeleteSchedulesServiceData:
+    """Validate and normalize one direct delete_schedules payload."""
+    return cast(
+        DeleteSchedulesServiceData,
+        SERVICE_DELETE_SCHEDULES_SCHEMA(dict(payload)),
+    )
 
 
 def normalize_send_command_payload(

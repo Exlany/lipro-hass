@@ -30,14 +30,15 @@ from .flow.schemas import (
     STEP_USER_DATA_SCHEMA,
     build_reconfigure_data_schema as _build_reconfigure_data_schema,
 )
+from .flow.step_handlers import (
+    async_handle_reauth_confirm_step as _async_handle_reauth_confirm_step,
+    async_handle_reconfigure_step as _async_handle_reconfigure_step,
+    async_handle_user_step as _async_handle_user_step,
+)
 from .flow.submission import (
     UserFlowSubmission,
     build_reauth_description_placeholders as _build_reauth_description_placeholders,
     resolve_entry_remember_password_hash as _resolve_entry_remember_password_hash,
-    resolve_reauth_expected_user_id as _resolve_reauth_expected_user_id,
-    validate_reauth_submission as _validate_reauth_submission,
-    validate_reconfigure_submission as _validate_reconfigure_submission,
-    validate_user_submission as _validate_user_submission,
 )
 from .headless.boot import (
     build_headless_boot_context,
@@ -207,46 +208,111 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
             logger=_LOGGER,
         )
 
+    def show_user_form(self, errors: dict[str, str]) -> ConfigFlowResult:
+        """Expose the user-form adapter to localized step handlers."""
+        return self._show_user_form(errors)
+
+    def ensure_user_flow_phone_id(self) -> str:
+        """Expose the sticky phone-id helper to localized step handlers."""
+        return self._ensure_user_flow_phone_id()
+
+    @staticmethod
+    def entry_data_from_auth_session(
+        auth_session: AuthSessionSnapshot,
+        *,
+        phone: str,
+        password_hash: str,
+        phone_id: str,
+        remember_password_hash: bool,
+    ) -> tuple[ConfigEntryLoginProjection, dict[str, object]]:
+        """Expose config-entry projection to localized step handlers."""
+        return LiproConfigFlow._entry_data_from_auth_session(
+            auth_session,
+            phone=phone,
+            password_hash=password_hash,
+            phone_id=phone_id,
+            remember_password_hash=remember_password_hash,
+        )
+
+    @staticmethod
+    def set_invalid_auth_session_error(
+        errors: dict[str, str],
+        *,
+        context_name: str,
+        err: ValueError,
+    ) -> None:
+        """Expose malformed auth-session mapping to localized step handlers."""
+        LiproConfigFlow._set_invalid_auth_session_error(
+            errors,
+            context_name=context_name,
+            err=err,
+        )
+
+    async def async_create_user_entry(
+        self,
+        submission: UserFlowSubmission,
+        *,
+        phone_id: str,
+        auth_session: AuthSessionSnapshot,
+    ) -> ConfigFlowResult:
+        """Expose user-entry creation to localized step handlers."""
+        return await self._async_create_user_entry(
+            submission,
+            phone_id=phone_id,
+            auth_session=auth_session,
+        )
+
+    def show_reauth_form(
+        self,
+        reauth_entry: ConfigEntry,
+        errors: dict[str, str],
+    ) -> ConfigFlowResult:
+        """Expose the reauth form renderer to localized step handlers."""
+        return self._show_reauth_form(reauth_entry, errors)
+
+    def show_reconfigure_form(
+        self,
+        reconfigure_entry: ConfigEntry,
+        errors: dict[str, str],
+    ) -> ConfigFlowResult:
+        """Expose the reconfigure form renderer to localized step handlers."""
+        return self._show_reconfigure_form(reconfigure_entry, errors)
+
+    async def async_try_login(
+        self,
+        phone: str,
+        password_hash: str,
+        phone_id: str,
+        errors: dict[str, str],
+        context_name: str,
+    ) -> AuthSessionSnapshot | None:
+        """Expose login attempts to localized step handlers."""
+        return await self._async_try_login(
+            phone,
+            password_hash,
+            phone_id,
+            errors,
+            context_name,
+        )
+
+    def get_reauth_entry(self) -> ConfigEntry:
+        """Expose the active reauth entry to localized step handlers."""
+        return self._get_reauth_entry()
+
+    def get_reconfigure_entry(self) -> ConfigEntry:
+        """Expose the active reconfigure entry to localized step handlers."""
+        return self._get_reconfigure_entry()
+
+    def abort_if_unique_id_mismatch(self) -> None:
+        """Expose unique-id mismatch protection to localized step handlers."""
+        self._abort_if_unique_id_mismatch()
+
     async def async_step_user(
         self,
         user_input: dict[str, object] | None = None,
     ) -> ConfigFlowResult:
         """Handle the initial step."""
-        errors: dict[str, str] = {}
-        if user_input is None:
-            return self._show_user_form(errors)
-
-        submission, errors = _validate_user_submission(
-            user_input,
-            logger=_LOGGER,
-        )
-        if submission is None:
-            return self._show_user_form(errors)
-
-        phone_id = self._ensure_user_flow_phone_id()
-        auth_session = await self._async_try_login(
-            submission.phone,
-            submission.password_hash,
-            phone_id,
-            errors,
-            "login",
-        )
-        if auth_session is None:
-            return self._show_user_form(errors)
-
-        try:
-            return await self._async_create_user_entry(
-                submission,
-                phone_id=phone_id,
-                auth_session=auth_session,
-            )
-        except ValueError as err:
-            self._set_invalid_auth_session_error(
-                errors,
-                context_name="user entry projection",
-                err=err,
-            )
-            return self._show_user_form(errors)
+        return await _async_handle_user_step(self, user_input, logger=_LOGGER)
 
     async def async_step_reauth(self, entry_data: dict[str, object]) -> ConfigFlowResult:
         """Handle reauthorization."""
@@ -258,52 +324,10 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
         user_input: dict[str, object] | None = None,
     ) -> ConfigFlowResult:
         """Handle reauthorization confirmation."""
-        errors: dict[str, str] = {}
-        reauth_entry = self._get_reauth_entry()
-        if user_input is None:
-            return self._show_reauth_form(reauth_entry, errors)
-
-        submission, errors = _validate_reauth_submission(
-            reauth_entry,
+        return await _async_handle_reauth_confirm_step(
+            self,
             user_input,
             logger=_LOGGER,
-        )
-        if submission is None:
-            return self._show_reauth_form(reauth_entry, errors)
-
-        auth_session = await self._async_try_login(
-            submission.phone,
-            submission.password_hash,
-            submission.phone_id,
-            errors,
-            "reauth",
-        )
-        if auth_session is None:
-            return self._show_reauth_form(reauth_entry, errors)
-
-        try:
-            entry_login, entry_data = self._entry_data_from_auth_session(
-                auth_session,
-                phone=submission.phone,
-                password_hash=submission.password_hash,
-                phone_id=submission.phone_id,
-                remember_password_hash=submission.remember_password_hash,
-            )
-        except ValueError as err:
-            self._set_invalid_auth_session_error(
-                errors,
-                context_name="reauth entry projection",
-                err=err,
-            )
-            return self._show_reauth_form(reauth_entry, errors)
-        expected_user_id = _resolve_reauth_expected_user_id(reauth_entry)
-        if expected_user_id is not None and expected_user_id != entry_login.user_id:
-            errors["base"] = "reauth_user_mismatch"
-            return self._show_reauth_form(reauth_entry, errors)
-
-        return self.async_update_reload_and_abort(
-            reauth_entry,
-            data=entry_data,
         )
 
     async def async_step_reconfigure(
@@ -311,47 +335,8 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
         user_input: dict[str, object] | None = None,
     ) -> ConfigFlowResult:
         """Handle reconfiguration."""
-        errors: dict[str, str] = {}
-        reconfigure_entry = self._get_reconfigure_entry()
-        if user_input is None:
-            return self._show_reconfigure_form(reconfigure_entry, errors)
-
-        submission, errors = _validate_reconfigure_submission(
-            reconfigure_entry,
+        return await _async_handle_reconfigure_step(
+            self,
             user_input,
             logger=_LOGGER,
-        )
-        if submission is None:
-            return self._show_reconfigure_form(reconfigure_entry, errors)
-
-        auth_session = await self._async_try_login(
-            submission.phone,
-            submission.password_hash,
-            submission.phone_id,
-            errors,
-            "reconfigure",
-        )
-        if auth_session is None:
-            return self._show_reconfigure_form(reconfigure_entry, errors)
-
-        try:
-            entry_login, entry_data = self._entry_data_from_auth_session(
-                auth_session,
-                phone=submission.phone,
-                password_hash=submission.password_hash,
-                phone_id=submission.phone_id,
-                remember_password_hash=submission.remember_password_hash,
-            )
-        except ValueError as err:
-            self._set_invalid_auth_session_error(
-                errors,
-                context_name="reconfigure entry projection",
-                err=err,
-            )
-            return self._show_reconfigure_form(reconfigure_entry, errors)
-        await self.async_set_unique_id(f"lipro_{entry_login.user_id}")
-        self._abort_if_unique_id_mismatch()
-        return self.async_update_reload_and_abort(
-            reconfigure_entry,
-            data=entry_data,
         )

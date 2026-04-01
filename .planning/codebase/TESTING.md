@@ -30,7 +30,7 @@ uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro 
 **Location:**
 - Tests live in a dedicated `tests/` tree, not beside production files.
 - Current topology is broad and intentional: `tests/core`, `tests/services`, `tests/flows`, `tests/platforms`, `tests/entities`, `tests/meta`, `tests/integration`, `tests/snapshots`, `tests/benchmarks`, `tests/harness`, and `tests/fixtures`.
-- Repository counts from current scanning: `416` Python files under `tests`, `333` runnable `test_*.py` files, `75` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
+- Repository counts from current scanning: `417` Python files under `tests`, `334` runnable `test_*.py` files, `76` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
 
 **Naming:**
 - Use `test_*.py` everywhere.
@@ -53,9 +53,15 @@ tests/
 └── harness/
 ```
 
+## Phase 124 Testing Freeze
+
+- Focused proof 现在覆盖三条主链：flow/auth (`tests/flows/test_config_flow_user.py`, `tests/flows/test_config_flow_reauth.py`, `tests/flows/test_config_flow_reconfigure.py`, `tests/flows/test_flow_submission.py`, `tests/core/test_token_persistence.py`)、schedule direct-call contract (`tests/core/test_init_service_handlers_schedules.py`, `tests/services/test_services_schedule.py`) 与 closeout meta freeze (`tests/meta/test_phase124_flow_auth_schedule_contract_guards.py`, `tests/meta/test_runtime_contract_truth.py`, `tests/meta/test_governance_route_handoff_smoke.py`).
+- `invalid_schedule_request` translation、Phase 124 summary / verification chain 与 testing inventory snapshot 已纳入 closeout-ready proof，而不是留给口头解释。
+- 当前 route 进入 milestone closeout 前，最小充分验证集必须包括 `check_file_matrix`、focused meta suites、`ruff` 与 full `pytest`。
+
 ## Historical Phase Notes
 
-- Phase 55: 当前仓库共有 `332` 个 `test_*.py` 文件，topicized thin shells 继续覆盖 command-surface、transport-runtime 与 light/fan/select/switch suites。
+- Phase 55: 当前仓库共有 `334` 个 `test_*.py` 文件，topicized thin shells 继续覆盖 command-surface、transport-runtime 与 light/fan/select/switch suites。
 - Phase 59: `tests/core/test_device_refresh_{parsing,filter,snapshot,runtime}.py` 继续作为 localized device-refresh verification note；topicized meta note carriers 与 verification anchors 保持分离。
 - Phase 88: `tests/meta/test_phase88_governance_quality_freeze_guards.py` 继续作为 focused guard home for phase-88 governance/evidence freeze。
 - Phase 90: `tests/meta/test_phase90_hotspot_map_guards.py` 继续作为 focused guard home for five formal homes / four protected thin shells / delete-gate freeze truth。
