@@ -128,20 +128,25 @@ def _resolve_phase_directory(phase: str) -> str:
     return matches[0].name
 
 
-def _load_current_milestone_phase_statuses(current_phase: str) -> tuple[tuple[str, str], ...]:
-    if not HAS_ACTIVE_MILESTONE:
-        return ((current_phase, "complete"),)
 
+
+
+
+def _load_current_milestone_phase_statuses(current_phase: str) -> tuple[tuple[str, str], ...]:
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     section_match = re.search(
-        r"## Phases\n(?P<body>.*?)\n## Phase Details",
+        r"## Phases\n(?P<body>.*?)(?:\n## Phase Details|\n## Archived Highlights|\n## Progress|\Z)",
         roadmap_text,
         flags=re.DOTALL,
     )
-    assert section_match is not None, "Missing roadmap phases section"
+    if section_match is None:
+        return ((current_phase, "complete"),)
 
     phase_statuses: list[tuple[str, str]] = []
-    for mark, phase in re.findall(r"- \[(?P<mark>[ xX])\] \*\*Phase (?P<phase>\d+):", section_match.group("body")):
+    for mark, phase in re.findall(
+        r"- \[(?P<mark>[ xX])\] \*\*Phase (?P<phase>\d+):",
+        section_match.group("body"),
+    ):
         status = "complete" if mark.lower() == "x" else ("in_progress" if phase == current_phase else "pending")
         phase_statuses.append((phase, status))
 

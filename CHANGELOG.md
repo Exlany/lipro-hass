@@ -9,21 +9,19 @@
 
 ### 新增（Added）
 
-- `Phase 119` closeout 资产：`119-01/02/03-SUMMARY.md`、`119-SUMMARY.md` 与 `119-VERIFICATION.md`，为 MQTT boundary 解环、runtime contract 真源统一与 release/governance 收口提供 machine-checkable handoff。
-- `119-RESEARCH.md`，把当前 residual bundle 的根因、正式裁决与执行分层沉淀为 phase-local research artifact。
+- `v1.34` 归档证据资产：`.planning/v1.34-MILESTONE-AUDIT.md`、`.planning/reviews/V1_34_EVIDENCE_INDEX.md`、`.planning/milestones/v1.34-ROADMAP.md` 与 `.planning/milestones/v1.34-REQUIREMENTS.md`，把 latest archived baseline 固化为 pull-only closeout bundle。
+- `Phase 120` / `Phase 121` promoted evidence：terminal audit contract hardening、residual contract closure、flow invariant tightening 与 surface hygiene cleanup 的 summary / verification 资产已纳入长期治理引用链。
 
 ### 变更（Changed）
 
-- MQTT topic/payload decode authority 已统一回 `custom_components/lipro/core/protocol/boundary/mqtt_decoder.py`，`core/mqtt` helpers 仅单向消费 boundary truth，不再保留 reverse import / lazy-import folklore。
-- `runtime_types.py` 现为 runtime/service 合同的唯一正式真源；`services/execution.py`、`services/command.py` 与 `control/entry_lifecycle_support.py` 已去除平行 Protocol / concrete typing 漂移。
-- release / governance current story 现只承认 semver public release namespace 与 canonical route contract；`release.yml` / `codeql.yml`、`docs/developer_architecture.md`、`docs/MAINTAINER_RELEASE_RUNBOOK.md` 与 live planning docs 已对齐 `v1.33` closeout-ready truth。
-- release notes 继续保留 `CI reuse`、`CodeQL`、`SBOM`、`cosign`、`release identity` 与 `compatibility preview` 的单一 release-security 叙事，但已移除过时的内部 milestone / stale archive-pointer folklore。
+- governance current story 现统一收敛为 `no active milestone route / latest archived baseline = v1.34`；默认下一步改为 `$gsd-new-milestone`，不再把 `v1.34` 误讲成 active milestone 或 closeout-ready continuation。
+- `docs/MAINTAINER_RELEASE_RUNBOOK.md`、`.planning/baseline/VERIFICATION_MATRIX.md`、selector-family planning docs 与最新 evidence pointer 已全部对齐 `V1_34_EVIDENCE_INDEX.md` / `v1.34-MILESTONE-AUDIT.md` 的 archived-only truth。
+- release notes 继续保留 `CI reuse`、`CodeQL`、`SBOM`、`cosign`、`release identity` 与 `compatibility preview` 的单一 release-security 叙事，不再混入过期的 `v1.33` closeout-ready 口径。
 
 ### 修复（Fixed）
 
-- 修复 governance current-truth helper 的硬编码 archived-route 漂移：current route 现直接读取 `.planning/PROJECT.md` machine-readable contract，而不再维护第二份 Python dict。
-- 修复 route-handoff / follow-up milestone guards 对旧 `v1.32 archived` 叙事、旧 phase counters 与旧默认命令的耦合，当前只承认 `Phase 119 complete; closeout-ready` 的 live selector truth。
-- 修复 maintainer-facing route note 与 changelog freshness 漂移：不再引用 `.planning/reviews/V1_29_EVIDENCE_INDEX.md`、`.planning/v1.29-MILESTONE-AUDIT.md` 或 `Phase 10 completed` 口径。
+- 修复 baseline / runbook / changelog 之间的 latest archived pointer 漂移：不再引用 `.planning/reviews/V1_33_EVIDENCE_INDEX.md`、`.planning/v1.33-MILESTONE-AUDIT.md` 或 `$gsd-complete-milestone v1.34`。
+- 修复 archived-only route 下的 bootstrap / closeout / release-contract 守卫断言，使 machine-readable route contract、maintainer appendix 与 release story 只承认 `v1.34` 作为 latest archived baseline。
 
 ## [1.0.0] - 2026-02-08
 

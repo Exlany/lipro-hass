@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.34
 milestone_name: Terminal Audit Closure, Contract Hardening & Governance Truth Slimming
-status: active / phase 121 complete; closeout-ready (2026-04-01)
-stopped_at: Phase 121 complete; closeout-ready for milestone closeout
-last_updated: "2026-04-01T06:49:45Z"
+status: archived / evidence-ready (2026-04-01)
+stopped_at: Milestone closeout complete
+last_updated: "2026-04-01T08:05:00Z"
 last_activity: 2026-04-01
 progress:
   total_phases: 2
@@ -24,45 +24,39 @@ See: `.planning/PROJECT.md`
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.34
   name: Terminal Audit Closure, Contract Hardening & Governance Truth Slimming
-  status: active / phase 121 complete; closeout-ready (2026-04-01)
+  status: archived / evidence-ready (2026-04-01)
   phase: '121'
   phase_title: residual contract closure, flow invariant tightening, and surface hygiene cleanup
   phase_dir: 121-residual-contract-closure-flow-invariant-tightening-surface-hygiene-cleanup
-latest_archived:
-  version: v1.33
-  name: MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance Hardening
-  status: archived / evidence-ready (2026-04-01)
-  phase: '119'
-  phase_title: MQTT boundary, runtime contract, and release governance hardening
-  phase_dir: 119-mqtt-boundary-runtime-contract-and-release-governance-hardening
-  audit_path: .planning/v1.33-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_33_EVIDENCE_INDEX.md
+  audit_path: .planning/v1.34-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_34_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.32
-  name: Residual Hotspot Eradication, Validation Completion & Continuity Hardening
-  evidence_path: .planning/reviews/V1_32_EVIDENCE_INDEX.md
+  version: v1.33
+  name: MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance Hardening
+  evidence_path: .planning/reviews/V1_33_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.34 active milestone route / starting from latest archived baseline = v1.33
-  default_next_command: $gsd-complete-milestone v1.34
-  latest_archived_evidence_pointer: .planning/reviews/V1_33_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.34
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_34_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
-**Current milestone:** `v1.34 Terminal Audit Closure, Contract Hardening & Governance Truth Slimming`
-**Active milestone:** `v1.34`
-**Core value:** `把终审确认的 repo-internal residual 压回单一正式主线：runtime/service contract 更硬、control/runtime seam 更清晰、flow auth projection 更诚实、toolchain/docs/governance truth 更稳定，同时保持 continuity honesty。`
-**Current focus:** `Phase 121` 的 `121-01 .. 121-03` 已全部完成并通过聚焦验证；当前只剩 milestone closeout 与 archived evidence promotion。
-**Current mode:** `v1.34 active milestone route / starting from latest archived baseline = v1.33`
+**Current milestone:** `No active milestone route`
+**Active milestone:** `none`
+**Core value:** `v1.34 已成为 pull-only latest archived baseline；下一条正式路线必须从它出发，而不是回写旧 active story。`
+**Current focus:** `Start next milestone from the v1.34 archived baseline`
+**Current mode:** `no active milestone route / latest archived baseline = v1.34`
 
 ## Current Position
 
 - **Phase:** `121 of 121`
-- **Plan:** `3 of 3`
-- **Status:** `active / phase 121 complete; closeout-ready (2026-04-01)`
-- **Last activity:** `2026-04-01` — `Phase 121` execution、focused validation 与 live route sync 已完成，当前重新进入 closeout-ready
+- **Plan:** `6 of 6`
+- **Status:** `archived / evidence-ready (2026-04-01)`
+- **Last activity:** `2026-04-01` — `v1.34` closeout promoted; archived-only route is now active
 - **Progress:** `[██████████] 100%`
 
 ## Performance Metrics
@@ -82,10 +76,11 @@ bootstrap:
 - Route execution map: `.planning/ROADMAP.md`
 - Requirement coverage truth: `.planning/REQUIREMENTS.md`
 - Milestone chronology / parser contract: `.planning/MILESTONES.md`
-- Latest archived evidence pointer: `.planning/reviews/V1_33_EVIDENCE_INDEX.md`
+- Latest archived evidence pointer: `.planning/reviews/V1_34_EVIDENCE_INDEX.md`
+- Latest archived audit verdict: `.planning/v1.34-MILESTONE-AUDIT.md`
+- Latest archived snapshots: `.planning/milestones/v1.34-ROADMAP.md`, `.planning/milestones/v1.34-REQUIREMENTS.md`
 - Promoted phase evidence allowlist: `.planning/reviews/PROMOTED_PHASE_ASSETS.md`
-- Latest archived audit verdict: `.planning/v1.33-MILESTONE-AUDIT.md`
-- Active phase workspace: `.planning/phases/121-residual-contract-closure-flow-invariant-tightening-surface-hygiene-cleanup/`
+- Latest archived phase workspaces: `.planning/phases/120-terminal-audit-contract-hardening-and-governance-truth-slimming/`, `.planning/phases/121-residual-contract-closure-flow-invariant-tightening-surface-hygiene-cleanup/`
 - North-star authority: `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`
 
 ## Historical Continuity Anchors
@@ -101,30 +96,30 @@ bootstrap:
 
 ### Decisions
 
-- `v1.34` 只承认一条 active route：`v1.34 active milestone route / starting from latest archived baseline = v1.33`；`v1.33` 继续作为 latest archived baseline。
-- `Phase 120` 完成 runtime/service contract、flow taxonomy 与 docs/tooling truth slimming；`Phase 121` 继续把 raw-coordinator seam、silent auth projection、duplicated existing-entry validator 与 phase-labeled changed-surface guard owner 收净。
+- `v1.34` 只承认 archived-only selector：`no active milestone route / latest archived baseline = v1.34`；`v1.33` 退为 previous archived baseline。
+- `Phase 120` 冻结 runtime/service contract、flow taxonomy 与 docs/tooling truth slimming；`Phase 121` 继续关闭 raw-coordinator seam、silent auth projection 与 phase-labeled changed-surface owner。
+- `v1.34-MILESTONE-AUDIT.md`、`.planning/reviews/V1_34_EVIDENCE_INDEX.md`、`.planning/milestones/v1.34-{ROADMAP,REQUIREMENTS}.md` 与 `.planning/reviews/PROMOTED_PHASE_ASSETS.md` 共同形成 v1.34 closeout 的最小充分 archived proof。
 - repo-external continuity 限制继续保持 blocker honesty；本轮不伪造 hidden delegate、private mirror guarantee 或 non-GitHub fallback already solved。
-- `Coordinator` public runtime home 继续保留在 `custom_components/lipro/coordinator_entry.py`；本轮只收敛 contract / tooling / docs truth。
 
 ### Pending Todos
 
-- 运行 `$gsd-complete-milestone v1.34` 把 `Phase 120 + 121` 的 closeout-ready truth 正式提升为 archived milestone baseline。
-- 保留 `120-01 .. 120-03` 与 `121-01 .. 121-03` summaries，以及 `120-VERIFICATION.md` / `121-VERIFICATION.md` 作为当前 milestone closeout 的最小充分证据链。
-- 如需再次自动判断下一步，可运行 `$gsd-next`；按当前状态它应收敛到 milestone closeout。
+- 通过 `$gsd-new-milestone` 启动下一条正式路线；新的 active requirements / roadmap / state 不得复用旧 closeout-ready 叙事。
+- 如需补齐 Nyquist 形式化证据，可后续单独执行 `$gsd-validate-phase 120` 与 `$gsd-validate-phase 121`；这不是当前 archived verdict 的 blocker。
+- 保留 `120-01 .. 120-03` 与 `121-01 .. 121-03` summaries，以及 `120-VERIFICATION.md` / `121-VERIFICATION.md` 作为 v1.34 archived evidence chain 的 phase-local closeout proof。
 
 ### Blockers/Concerns
 
 - guaranteed non-GitHub private fallback、repo-visible public mirror continuity 与 documented delegate identity 仍是 maintainer 外部治理 blocker。
-- 本轮不得为了“彻底”而误改 `Coordinator` public home truth、误删 archived milestone assets，或把 archived evidence/index 重新写成 current-route truth。
+- 本轮不得为了“彻底”而误改 `Coordinator` public home truth、误删 archived milestone snapshots，或把 archived evidence/index 重新写成 current-route truth。
 
 ## Recommended Next Command
 
-- **Primary:** `$gsd-complete-milestone v1.34` — `Phase 121` 已 complete/closeout-ready，下一步应执行里程碑归档与 evidence promotion。
-- **Status check:** `$gsd-progress` — 若要复核 active route / archived baseline / phase inventory，可先查看。
+- **Primary:** `$gsd-new-milestone` — `v1.34` 已完成 archive promotion，下一条正式路线应从 latest archived baseline 重新立项。
+- **Status check:** `$gsd-progress` — 若要复核 archived baseline / evidence chain / milestone chronology，可先查看。
 
 ## Session Continuity
 
-- **Last session:** 2026-04-01T06:49:45Z
-- **Stopped at:** Phase 121 complete / closeout-ready for milestone closeout
-- **Resume file:** `.planning/phases/121-residual-contract-closure-flow-invariant-tightening-surface-hygiene-cleanup/121-CONTEXT.md`
-- **Read next:** `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` → `.planning/PROJECT.md` → `.planning/ROADMAP.md` → `.planning/REQUIREMENTS.md` → `.planning/STATE.md` → `.planning/phases/121-residual-contract-closure-flow-invariant-tightening-surface-hygiene-cleanup/121-CONTEXT.md`
+- **Last session:** 2026-04-01T08:05:00Z
+- **Stopped at:** Milestone closeout complete
+- **Resume file:** `.planning/PROJECT.md`
+- **Read next:** `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` → `.planning/PROJECT.md` → `.planning/ROADMAP.md` → `.planning/MILESTONES.md` → `.planning/v1.34-MILESTONE-AUDIT.md` → `.planning/reviews/V1_34_EVIDENCE_INDEX.md`

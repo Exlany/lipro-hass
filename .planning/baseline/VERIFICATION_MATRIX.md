@@ -2,15 +2,15 @@
 
 **Purpose:** 建立 requirement → artifact → test → doc → phase acceptance / handoff 的统一验证闭环。
 **Status:** Formal baseline asset (`BASE-03` phase acceptance truth source)
-**Updated:** 2026-04-01 (v1.34 phase 120 complete; closeout-ready aligned)
+**Updated:** 2026-04-01 (v1.34 archived-only route aligned)
 
 ## Formal Role
 
 ## Current Route
 
-- **Current route story:** `v1.34 active milestone route / starting from latest archived baseline = v1.33`
-- **Default next command:** `$gsd-complete-milestone v1.34`
-- **Latest archived pointer:** `.planning/reviews/V1_33_EVIDENCE_INDEX.md`
+- **Current route story:** `no active milestone route / latest archived baseline = v1.34`
+- **Default next command:** `$gsd-new-milestone`
+- **Latest archived pointer:** `.planning/reviews/V1_34_EVIDENCE_INDEX.md`
 - **Focused guards:** `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/governance_followup_route_current_milestones.py`, `tests/meta/test_runtime_contract_truth.py`, `tests/meta/test_governance_release_docs.py`, `tests/meta/toolchain_truth_checker_paths.py`, `tests/meta/test_phase89_tooling_decoupling_guards.py`
 
 - 本文件是 `Phase 1.5` 及其下游 phases 的正式 acceptance truth；phase docs / summaries 只能引用、实例化或扩展，不得平行定义 exit contract。

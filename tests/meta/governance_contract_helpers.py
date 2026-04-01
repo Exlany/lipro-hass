@@ -139,7 +139,10 @@ def _assert_current_route_truth(
     assert CURRENT_MILESTONE_ROADMAP_HEADER in roadmap_text
     assert f"**Milestone status:** `{CURRENT_MILESTONE_STATUS}`" in roadmap_text
     assert f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`" in roadmap_text
-    assert CURRENT_PHASE_HEADING in roadmap_text
+    if HAS_ACTIVE_MILESTONE:
+        assert CURRENT_PHASE_HEADING in roadmap_text
+    else:
+        assert "## Phases" in roadmap_text
     assert f"**Current milestone:** `{CURRENT_MILESTONE_STATE_LABEL}`" in state_text
     assert f"**Current mode:** `{CURRENT_ROUTE_MODE}`" in state_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text

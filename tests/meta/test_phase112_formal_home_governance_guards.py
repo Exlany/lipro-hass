@@ -6,6 +6,11 @@ from pathlib import Path
 
 from scripts.check_file_matrix import repo_root
 
+from .governance_current_truth import (
+    LATEST_ARCHIVED_AUDIT_PATH,
+    LATEST_ARCHIVED_EVIDENCE_PATH,
+)
+
 _ROOT = repo_root(Path(__file__))
 _DEVELOPER = _ROOT / "docs" / "developer_architecture.md"
 _RUNBOOK = _ROOT / "docs" / "MAINTAINER_RELEASE_RUNBOOK.md"
@@ -21,7 +26,7 @@ _TARGETED_HELPERS = (
 def test_phase112_developer_architecture_uses_current_route_and_sanctioned_root_homes() -> None:
     text = _DEVELOPER.read_text(encoding="utf-8")
 
-    assert "v1.34 active milestone route / starting from latest archived baseline = v1.33" in text
+    assert "no active milestone route / latest archived baseline = v1.34" in text
     assert "docs/architecture_archive.md" in text
     for token in (
         "custom_components/lipro/runtime_infra.py",
@@ -32,11 +37,11 @@ def test_phase112_developer_architecture_uses_current_route_and_sanctioned_root_
         assert token in text
 
 
-def test_phase112_runbook_points_at_v130_archived_assets() -> None:
+def test_phase112_runbook_points_at_latest_archived_assets() -> None:
     text = _RUNBOOK.read_text(encoding="utf-8")
 
-    assert ".planning/reviews/V1_33_EVIDENCE_INDEX.md" in text
-    assert ".planning/v1.33-MILESTONE-AUDIT.md" in text
+    assert LATEST_ARCHIVED_EVIDENCE_PATH in text
+    assert LATEST_ARCHIVED_AUDIT_PATH in text
     assert "V1_28" not in text
     assert "v1.28-MILESTONE-AUDIT.md" not in text
 
@@ -46,7 +51,7 @@ def test_phase112_authority_matrix_separates_live_selectors_from_archive_chronol
 
     assert "`.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md`" in text
     assert "`.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`" not in text
-    assert ".planning/reviews/V1_33_EVIDENCE_INDEX.md" in text
+    assert ".planning/reviews/V1_34_EVIDENCE_INDEX.md" in text
 
 
 def test_phase112_file_matrix_registers_sanctioned_root_home_wording() -> None:

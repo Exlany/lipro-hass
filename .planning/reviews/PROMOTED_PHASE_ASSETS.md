@@ -547,6 +547,17 @@ phases:
   - 119-SUMMARY.md
   - 119-VERIFICATION.md
   - 119-VALIDATION.md
+
+120-terminal-audit-contract-hardening-and-governance-truth-slimming:
+- 120-01-SUMMARY.md
+- 120-02-SUMMARY.md
+- 120-03-SUMMARY.md
+- 120-VERIFICATION.md
+121-residual-contract-closure-flow-invariant-tightening-surface-hygiene-cleanup:
+- 121-01-SUMMARY.md
+- 121-02-SUMMARY.md
+- 121-03-SUMMARY.md
+- 121-VERIFICATION.md
 policy:
   default_identity: execution-trace
   promotion_contract: Only assets listed under `phases` count as long-term governance/CI
