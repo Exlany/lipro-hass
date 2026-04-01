@@ -67,7 +67,7 @@ bootstrap:
 
 ## Performance Metrics
 
-- **Total plans completed:** `6`
+- **Total plans completed:** `11`
 - **Average duration:** `-`
 - **Total execution time:** `-`
 
@@ -107,26 +107,26 @@ bootstrap:
 
 ### Decisions
 
-- `v1.35` live route 已诚实 reopen 到 `active / phase 124 execution-ready (2026-04-01)`；默认下一步固定为 `$gsd-execute-phase 124`。
+- `v1.35` live route 已完全收口到 `active / phase 124 complete; closeout-ready (2026-04-01)`；默认下一步固定为 `$gsd-complete-milestone v1.35`。
 - `Phase 122` 完成 repo-wide audit ledger、public first-hop boundary、metadata tagged-release traceability 与 focused guard sealing。
 - `Phase 123` 完成 `service_router` non-diagnostics callback family reconvergence、developer/public architecture drift cleanup、file-matrix / route truth / focused guard refresh。
-- `Phase 124` 已完成 planning/research/plan 编排，待执行 persisted auth seed truth closure、config-flow adapter thinning、schedule direct-call contract closure 与治理冻结。
+- `Phase 124` 已完成 persisted auth seed truth closure、config-flow adapter thinning、schedule direct-call contract closure、governance/codebase freeze 与 closeout evidence 链。
 - `v1.34` 的 archived audit / evidence / milestone snapshots 继续作为 pull-only baseline；剩余问题只保留显式 carry-forward，不伪装为未收敛主线缺口。
 
 ### Pending Todos
 
-- 执行 `$gsd-execute-phase 124`，完成 auth/flow/schedule carry-forward 收口后，再通过 `$gsd-complete-milestone v1.35` 归档 route。
-- 若后续需要补齐 Nyquist 形式化验证，可单独执行 `$gsd-validate-phase 123`；这不是当前 closeout blocker。
+- 执行 `$gsd-complete-milestone v1.35`，把当前 closeout-ready route 归档到 milestone snapshots / audit trail。
+- 若后续需要补齐 Nyquist 形式化验证，可单独执行 `$gsd-validate-phase 122`、`$gsd-validate-phase 123` 与 `$gsd-validate-phase 124`；这不是当前 closeout blocker。
 
 ### Blockers/Concerns
 
-- 当前 blocker 仅剩 `Phase 124` 待执行：persisted auth seed 语义、config-flow 根层厚度与 schedule direct-call contract 仍需正式冻结。
-- carry-forward 仍包括：`config_flow.py` 的状态机厚度、`runtime_types.py` 的跨平面 contract 密度、以及 `password_hash` 凭证语义的进一步收口。
+- 当前已无 repo-internal blocker；milestone 处于 closeout-ready 状态。
+- carry-forward 仍包括：`runtime_types.py` 的跨平面 contract 密度、`config_flow.py` / `entry_auth.py` 的进一步 inward contraction、`tests/meta` 的 machine-readable hard-contract 抽取，以及 repo-external 的 disclosure continuity debt。
 
 ## Recommended Next Command
 
-- **Primary:** `$gsd-execute-phase 124` — 当前 live route 已完成 3 份执行计划编排，下一步应关闭 auth/flow/schedule carry-forward。
-- **Status check:** `$gsd-progress` — 若要在执行前再复核一次 execution-ready state，可先查看。
+- **Primary:** `$gsd-complete-milestone v1.35` — 当前 live route 已满足 closeout 条件，下一步应归档 milestone。
+- **Status check:** `$gsd-progress` — 若要在归档前再复核一次 closeout-ready state，可先查看。
 
 ## Session Continuity
 

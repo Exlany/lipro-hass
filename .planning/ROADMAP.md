@@ -52,7 +52,7 @@ bootstrap:
 ## v1.35: Master Audit Closure, Public Surface Finalization & Release Traceability
 
 **Milestone status:** `active / phase 124 complete; closeout-ready (2026-04-01)`
-**Default next command:** `$gsd-execute-phase 124`
+**Default next command:** `$gsd-complete-milestone v1.35`
 **Current route story:** `v1.35 active milestone route / starting from latest archived baseline = v1.34`
 **Latest archived pointer:** `.planning/reviews/V1_34_EVIDENCE_INDEX.md`
 **Latest archived audit artifact:** `.planning/v1.34-MILESTONE-AUDIT.md`
