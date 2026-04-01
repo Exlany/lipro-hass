@@ -24,6 +24,8 @@ from .login import hash_password
 
 type FlowErrors = dict[str, str]
 
+INVALID_ENTRY_ERROR = "invalid_entry"
+
 
 @dataclass(frozen=True, slots=True)
 class UserFlowSubmission:
@@ -193,7 +195,7 @@ def validate_reauth_submission(
             "Missing phone or phone_id in reauth entry, "
             "please remove and re-add the integration"
         )
-        errors["base"] = "unknown"
+        errors["base"] = INVALID_ENTRY_ERROR
         return None, errors
 
     phone, phone_error = _validate_phone_input(
@@ -202,7 +204,7 @@ def validate_reauth_submission(
         context_name="reauth",
     )
     if phone_error is not None or phone is None:
-        errors["base"] = "unknown"
+        errors["base"] = INVALID_ENTRY_ERROR
         return None, errors
 
     password, password_error = _validate_password_input(
@@ -261,7 +263,7 @@ def validate_reconfigure_submission(
         context_name="reconfigure",
     )
     if phone_id is None:
-        errors["base"] = "unknown"
+        errors["base"] = INVALID_ENTRY_ERROR
         return None, errors
 
     remember_password_hash = bool(
