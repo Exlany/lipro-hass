@@ -9,19 +9,19 @@
 
 ### 新增（Added）
 
-- `v1.34` 归档证据资产：`.planning/v1.34-MILESTONE-AUDIT.md`、`.planning/reviews/V1_34_EVIDENCE_INDEX.md`、`.planning/milestones/v1.34-ROADMAP.md` 与 `.planning/milestones/v1.34-REQUIREMENTS.md`，把 latest archived baseline 固化为 pull-only closeout bundle。
-- `Phase 120` / `Phase 121` promoted evidence：terminal audit contract hardening、residual contract closure、flow invariant tightening 与 surface hygiene cleanup 的 summary / verification 资产已纳入长期治理引用链。
+- 为最新一轮架构与治理收口补齐了维护者侧的归档证据链，方便在不污染公开 first hop 的前提下追溯 closeout 结论。
+- 补强了与当前 release / governance story 对应的 focused 守卫与文档一致性检查。
 
 ### 变更（Changed）
 
-- governance current story 现统一收敛为 `no active milestone route / latest archived baseline = v1.34`；默认下一步改为 `$gsd-new-milestone`，不再把 `v1.34` 误讲成 active milestone 或 closeout-ready continuation。
-- `docs/MAINTAINER_RELEASE_RUNBOOK.md`、`.planning/baseline/VERIFICATION_MATRIX.md`、selector-family planning docs 与最新 evidence pointer 已全部对齐 `V1_34_EVIDENCE_INDEX.md` / `v1.34-MILESTONE-AUDIT.md` 的 archived-only truth。
-- release notes 继续保留 `CI reuse`、`CodeQL`、`SBOM`、`cosign`、`release identity` 与 `compatibility preview` 的单一 release-security 叙事，不再混入过期的 `v1.33` closeout-ready 口径。
+- 公开 release notes 现在只保留对外可读的发布故事；维护者侧的 archived baseline、审计证据与内部路线说明继续留在 maintainer-only 文档中。
+- `CI reuse`、`CodeQL`、`SBOM`、`cosign`、`release identity` 与 `compatibility preview` 仍是一条统一的 release-security 叙事，不再混入过期 closeout 口径。
+- 当前仓库的治理现状已统一收敛到最新 archived baseline，公开文档与维护者附录不再讲两套冲突故事。
 
 ### 修复（Fixed）
 
-- 修复 baseline / runbook / changelog 之间的 latest archived pointer 漂移：不再引用 `.planning/reviews/V1_33_EVIDENCE_INDEX.md`、`.planning/v1.33-MILESTONE-AUDIT.md` 或 `$gsd-complete-milestone v1.34`。
-- 修复 archived-only route 下的 bootstrap / closeout / release-contract 守卫断言，使 machine-readable route contract、maintainer appendix 与 release story 只承认 `v1.34` 作为 latest archived baseline。
+- 修复了 release notes、maintainer runbook 与治理基线之间的 latest archived pointer 漂移，移除了过期的 closeout-ready 叙事。
+- 修复了 archived-only route 下的 bootstrap / closeout / release-contract 文案不一致问题，使公开发布说明与维护者侧证据引用各归其位。
 
 ## [1.0.0] - 2026-02-08
 

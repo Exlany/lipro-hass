@@ -68,6 +68,8 @@ Current access-mode truth: this repository is private-access. GitHub-hosted Issu
 
 - **GitHub-facing release tree / GitHub 发布可见树**：根目录公开入口以 `README.md` / `README_zh.md`、`CONTRIBUTING.md`、`SUPPORT.md`、`SECURITY.md`、`CHANGELOG.md`、`LICENSE` 与 `docs/` 当前文档为准；内部 governance / evidence 记录继续保持 maintainer-facing 身份，不作为 public first hop。
   Public GitHub release surfaces stay on the root public docs plus current `docs/` pages; internal governance/evidence records remain maintainer-facing rather than a public first hop.
+- **Public release notes / 公开发布说明**：`CHANGELOG.md` 只承担对外 release notes summary；维护者侧 archived evidence、milestone audit 与 route-selector 细节继续留在 `docs/MAINTAINER_RELEASE_RUNBOOK.md` 与 `.planning/` maintainer truth 中。
+  `CHANGELOG.md` is the public release-notes summary only; maintainer-only archived evidence, milestone audits, and route-selector details stay in `docs/MAINTAINER_RELEASE_RUNBOOK.md` plus `.planning/` governance truth.
 - **Must not ride along / 不应随发版混入**：本地生成的 `coverage.*`、`.benchmarks/`、`.mypy_cache/`、`.pytest_cache/`、`.ruff_cache/`、`.venv/`、`__pycache__/`、`*.egg-info/`、scratch files 与一次性 research 输出必须在合并主线 / 发版前清走。
   Local generated artifacts, caches, scratch files, and one-off research output must be removed before merge/release.
 - **Execution traces / 执行痕迹**：未被 promoted / referenced 的 `PLAN / CONTEXT / RESEARCH` 仍只是执行痕迹；公开文档不应把它们当作对外发布文档集的一部分。
