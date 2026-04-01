@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from types import SimpleNamespace
 from typing import cast
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -205,3 +205,37 @@ def test_build_runtime_diagnostics_projection_rejects_empty_entry_id() -> None:
     )
 
     assert build_runtime_diagnostics_projection(entry) is None
+
+def test_build_runtime_diagnostics_projection_uses_formal_mapping_helpers() -> None:
+    coordinator = SimpleNamespace(
+        update_interval=None,
+        last_update_success=True,
+        mqtt_service=SimpleNamespace(connected=True),
+        protocol=None,
+        telemetry_service=SimpleNamespace(build_snapshot=dict),
+        devices=None,
+    )
+    entry = SimpleNamespace(
+        entry_id="entry-1",
+        options={},
+        runtime_data=cast(LiproCoordinator, coordinator),
+    )
+
+    with (
+        patch(
+            "custom_components.lipro.control.runtime_access.get_runtime_device_mapping",
+            return_value={"device-1": object()},
+        ) as mock_mapping,
+        patch(
+            "custom_components.lipro.control.runtime_access.is_runtime_device_mapping_degraded",
+            return_value=True,
+        ) as mock_degraded,
+    ):
+        projection = build_runtime_diagnostics_projection(entry)
+
+    assert projection is not None
+    assert projection.snapshot.device_count == 1
+    assert projection.degraded_fields == ("devices",)
+    mock_mapping.assert_called_once_with(coordinator)
+    mock_degraded.assert_called_once_with(coordinator)
+

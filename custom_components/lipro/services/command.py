@@ -17,17 +17,15 @@ from ..core import LiproApiError
 from ..core.device import LiproDevice
 from ..core.utils.log_safety import safe_error_placeholder as _safe_error_placeholder
 from ..core.utils.redaction import redact_identifier as _redact_identifier
-from ..runtime_types import CommandServiceLike, LiproCoordinator
+from ..runtime_types import CommandProperties, CommandServiceLike, LiproCoordinator
 from .contracts import (
-    SERVICE_SEND_COMMAND_SCHEMA,
     CommandFailureSummary,
     SendCommandResult,
-    ServiceProperty,
+    SendCommandServiceData,
     ServicePropertySummary,
+    normalize_send_command_payload,
 )
 from .execution import ServiceErrorRaiser
-
-type CommandProperties = list[ServiceProperty]
 
 
 @dataclass(slots=True, frozen=True)
@@ -96,52 +94,6 @@ class CommandFailureTranslationResolver(Protocol):
         """Return one translated command failure key."""
 
 
-def _raise_invalid_send_command_request(
-    *, logger: logging.Logger, field_name: str
-) -> NoReturn:
-    """Raise one translated service validation error for invalid direct payloads."""
-    logger.warning("Rejecting invalid send_command field type: %s", field_name)
-    raise ServiceValidationError(
-        translation_domain=DOMAIN,
-        translation_key="invalid_command_request",
-    )
-
-
-def _validate_send_command_payload_types(
-    payload: Mapping[str, object],
-    *,
-    logger: logging.Logger,
-    attr_command: str,
-    attr_properties: str,
-    attr_device_id: str,
-) -> None:
-    """Reject direct handler payloads that rely on voluptuous type coercion."""
-    if not isinstance(payload.get(attr_command), str):
-        _raise_invalid_send_command_request(logger=logger, field_name=attr_command)
-
-    if attr_device_id in payload and not isinstance(payload.get(attr_device_id), str):
-        _raise_invalid_send_command_request(logger=logger, field_name=attr_device_id)
-
-    if attr_properties not in payload:
-        return
-
-    properties = payload.get(attr_properties)
-    if not isinstance(properties, list):
-        _raise_invalid_send_command_request(logger=logger, field_name=attr_properties)
-
-    for item in properties:
-        if not isinstance(item, dict):
-            _raise_invalid_send_command_request(
-                logger=logger, field_name=attr_properties
-            )
-        key = item.get("key")
-        value = item.get("value")
-        if not isinstance(key, str) or not isinstance(value, str):
-            _raise_invalid_send_command_request(
-                logger=logger, field_name=attr_properties
-            )
-
-
 def _validate_send_command_payload(
     call: ServiceCall,
     *,
@@ -149,22 +101,15 @@ def _validate_send_command_payload(
     attr_command: str,
     attr_properties: str,
     attr_device_id: str,
-) -> dict[str, object]:
+) -> SendCommandServiceData:
     """Validate one direct handler payload against the formal service schema."""
     payload: dict[str, object] = {attr_command: call.data[attr_command]}
     for attr_name in (attr_properties, attr_device_id):
         if attr_name in call.data:
             payload[attr_name] = call.data[attr_name]
 
-    _validate_send_command_payload_types(
-        payload,
-        logger=logger,
-        attr_command=attr_command,
-        attr_properties=attr_properties,
-        attr_device_id=attr_device_id,
-    )
     try:
-        return cast(dict[str, object], SERVICE_SEND_COMMAND_SCHEMA(payload))
+        return normalize_send_command_payload(payload)
     except vol.Invalid as err:
         logger.warning("Rejecting invalid send_command service payload: %s", err)
         raise ServiceValidationError(

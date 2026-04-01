@@ -21,8 +21,8 @@ _TARGETED_HELPERS = (
 def test_phase112_developer_architecture_uses_current_route_and_sanctioned_root_homes() -> None:
     text = _DEVELOPER.read_text(encoding="utf-8")
 
-    assert "no active milestone route / latest archived baseline = v1.33" in text
-    assert "默认下一步现为 `$gsd-new-milestone`" in text
+    assert "v1.34 active milestone route / starting from latest archived baseline = v1.33" in text
+    assert "docs/architecture_archive.md" in text
     for token in (
         "custom_components/lipro/runtime_infra.py",
         "custom_components/lipro/runtime_types.py",

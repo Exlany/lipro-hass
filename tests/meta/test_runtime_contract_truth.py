@@ -16,7 +16,10 @@ def test_runtime_types_is_single_source_for_service_facing_runtime_contracts() -
     lifecycle_text = (_ROOT / "custom_components" / "lipro" / "control" / "entry_lifecycle_support.py").read_text(encoding="utf-8")
 
     assert "class CommandServiceLike(Protocol):" in runtime_types_text
+    assert "type CommandProperties = ServicePropertyList" in runtime_types_text
+    assert "type ProtocolDiagnosticsSnapshot = JsonObject" in runtime_types_text
     assert "def last_failure(self) -> CommandFailureSummary | None:" in runtime_types_text
+    assert "properties: CommandProperties | None = None" in runtime_types_text
     assert "fallback_device_id: str | None = None" in runtime_types_text
 
     assert "type CoordinatorAuthSurface = RuntimeAuthServiceLike" in execution_text
@@ -26,6 +29,8 @@ def test_runtime_types_is_single_source_for_service_facing_runtime_contracts() -
 
     assert "type CommandService = CommandServiceLike" in command_text
     assert "type CommandCoordinator = LiproCoordinator" in command_text
+    assert "normalize_send_command_payload(payload)" in command_text
+    assert "_validate_send_command_payload_types" not in command_text
     assert "class CommandService(Protocol):" not in command_text
     assert "class CommandCoordinator(Protocol):" not in command_text
 

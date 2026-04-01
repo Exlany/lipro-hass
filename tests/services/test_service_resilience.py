@@ -70,6 +70,21 @@ def _add_runtime_entry(hass, coordinator: MagicMock, *, phone: str) -> MockConfi
         ),
         pytest.param(
             SERVICE_SEND_COMMAND_SCHEMA,
+            {ATTR_COMMAND: 123},
+            id="send_command_command_not_string",
+        ),
+        pytest.param(
+            SERVICE_SEND_COMMAND_SCHEMA,
+            {ATTR_COMMAND: "powerOn", ATTR_DEVICE_ID: 123},
+            id="send_command_device_id_not_string",
+        ),
+        pytest.param(
+            SERVICE_SEND_COMMAND_SCHEMA,
+            {ATTR_COMMAND: "powerOn", ATTR_PROPERTIES: [{"key": "powerState", "value": 1}]},
+            id="send_command_property_value_not_string",
+        ),
+        pytest.param(
+            SERVICE_SEND_COMMAND_SCHEMA,
             {ATTR_COMMAND: "powerOn", ATTR_DEVICE_ID: ""},
             id="send_command_device_id_empty",
         ),

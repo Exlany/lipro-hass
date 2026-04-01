@@ -224,6 +224,31 @@ def test_contributor_architecture_change_map_is_linked_and_scope_honest() -> Non
     assert "protocol / runtime / control / external-boundary / governance" in pr_template_text
 
 
+
+def test_current_developer_architecture_points_to_archive_appendix() -> None:
+    developer_text = (_ROOT / 'docs' / 'developer_architecture.md').read_text(encoding='utf-8')
+    archive_path = _ROOT / 'docs' / 'architecture_archive.md'
+    assert archive_path.exists()
+
+    archive_text = archive_path.read_text(encoding='utf-8')
+    assert 'docs/architecture_archive.md' in developer_text
+    assert '## Historical Phase Notes Appendix' not in developer_text
+    assert '## Historical Phase Notes Appendix' in archive_text
+    assert 'pull-only architecture appendix' in archive_text
+
+
+def test_runbook_and_pr_template_use_stable_pointer_family() -> None:
+    runbook_text = _RUNBOOK.read_text(encoding='utf-8')
+    pr_text = _PR_TEMPLATE.read_text(encoding='utf-8')
+    stable_selector = '.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md'
+
+    assert stable_selector in runbook_text
+    assert stable_selector in pr_text
+    for token in ('latest archived evidence index', 'latest archived milestone audit'):
+        assert token in runbook_text
+    assert 'pull-only pointer' in pr_text
+    assert 'hidden delegate' in pr_text or 'undocumented delegate' in pr_text
+    assert '不暗示 hidden maintainer / undocumented delegate / repo-external continuity 已解决' in pr_text
 def test_change_type_validation_guidance_is_consistent() -> None:
     contributing_text = _CONTRIBUTING.read_text(encoding="utf-8")
     support_text = _SUPPORT.read_text(encoding="utf-8")

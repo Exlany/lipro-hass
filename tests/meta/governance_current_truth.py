@@ -1,4 +1,4 @@
-"""Shared machine-readable current-route and archived-baseline truth for governance tests."""
+"""Shared machine-readable active-route and archived-baseline truth for governance tests."""
 
 from __future__ import annotations
 
@@ -216,13 +216,11 @@ CURRENT_MILESTONE_COMPLETED_PLAN_COUNT = _CURRENT_PHASE_ASSETS.plan_summary_coun
 CURRENT_ROUTE_FOCUSED_GUARDS = (
     "tests/meta/test_governance_bootstrap_smoke.py",
     "tests/meta/test_governance_route_handoff_smoke.py",
-    "tests/meta/test_phase119_mqtt_boundary_guards.py",
+    "tests/meta/governance_followup_route_current_milestones.py",
     "tests/meta/test_runtime_contract_truth.py",
-    "tests/meta/test_governance_release_contract.py",
-    "tests/meta/toolchain_truth_release_contract.py",
     "tests/meta/test_governance_release_docs.py",
-    "tests/meta/test_dependency_guards.py",
-    "tests/meta/test_phase68_hotspot_budget_guards.py",
+    "tests/meta/toolchain_truth_checker_paths.py",
+    "tests/meta/test_phase89_tooling_decoupling_guards.py",
 )
 
 

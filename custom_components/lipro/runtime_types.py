@@ -9,21 +9,22 @@ from typing import TYPE_CHECKING, Protocol
 
 from homeassistant.core import CALLBACK_TYPE, callback
 
+from .core.api.types import JsonObject
+from .services.contracts import CommandFailureSummary, ServicePropertyList
+
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
 
-    from .core.api.types import (
-        DiagnosticsApiResponse,
-        JsonObject,
-        OtaInfoRow,
-        ScheduleTimingRow,
-    )
+    from .core.api.types import DiagnosticsApiResponse, OtaInfoRow, ScheduleTimingRow
     from .core.command.result import CommandResultPayload
     from .core.coordinator.entity_protocol import LiproEntityProtocol
     from .core.coordinator.services.protocol_service import ScheduleMeshDeviceLike
     from .core.coordinator.types import RuntimeTelemetrySnapshot
     from .core.device import LiproDevice
-    from .services.contracts import CommandFailureSummary
+
+
+type CommandProperties = ServicePropertyList
+type ProtocolDiagnosticsSnapshot = JsonObject
 
 
 class RuntimeEntityLike(Protocol):
@@ -79,7 +80,7 @@ class CommandServiceLike(Protocol):
         self,
         device: LiproDevice,
         command: str,
-        properties: list[dict[str, str]] | None = None,
+        properties: CommandProperties | None = None,
         fallback_device_id: str | None = None,
     ) -> bool: ...
 
@@ -211,13 +212,13 @@ class RuntimeAuthServiceLike(Protocol):
 class ProtocolDiagnosticsContextLike(Protocol):
     """Minimal diagnostics-context surface consumed by telemetry bridges."""
 
-    def snapshot(self, **kwargs: object) -> Mapping[str, object]: ...
+    def snapshot(self, **kwargs: object) -> ProtocolDiagnosticsSnapshot: ...
 
 
 class ProtocolTelemetryFacadeLike(Protocol):
     """Formal protocol telemetry surface exposed to control-plane bridges."""
 
-    def protocol_diagnostics_snapshot(self) -> Mapping[str, object]: ...
+    def protocol_diagnostics_snapshot(self) -> ProtocolDiagnosticsSnapshot: ...
 
     @property
     def diagnostics_context(self) -> ProtocolDiagnosticsContextLike: ...
@@ -246,13 +247,13 @@ class LiproRuntimeCoordinator(Protocol):
         self,
         device: LiproDevice,
         command: str,
-        properties: list[dict[str, str]] | None = None,
+        properties: CommandProperties | None = None,
     ) -> bool: ...
 
     async def async_apply_optimistic_state(
         self,
         device: LiproDevice,
-        properties: Mapping[str, object],
+        properties: JsonObject,
     ) -> None: ...
 
     async def async_query_device_ota_info(

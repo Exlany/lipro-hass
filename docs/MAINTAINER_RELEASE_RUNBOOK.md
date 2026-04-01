@@ -5,7 +5,7 @@
 This repository currently follows a single-maintainer release model. Every tagged release must reuse `.github/workflows/ci.yml`; `.github/workflows/release.yml` is only the tagged security / packaging / publishing tail of that same gate.
 
 > Continuity note / 连续性说明：this runbook defines the maintainer-unavailable drill. Do not imply hidden backup maintainers. No documented delegate exists today; if the maintainer is unavailable, freeze new tagged releases and freeze new release promises, keep `SUPPORT.md` / `SECURITY.md` / issue / PR template routing honest, and restore custody only after CODEOWNERS + runbook record the real successor or delegate.
-> Current route note / 当前路线说明：maintainer continuity currently follows `no active milestone route / latest archived baseline = v1.33`; current handoff = `archived / evidence-ready (2026-04-01)`, default next command = `$gsd-new-milestone`; live selector truth stays in `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md`, while `.planning/MILESTONES.md` remains archive chronology only.
+> Current route note / 当前路线说明：maintainer continuity now follows the stable selector family `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`; today it resolves to `v1.34 active milestone route / starting from latest archived baseline = v1.33`, default next command = `$gsd-complete-milestone v1.34`. Latest archived evidence remains pull-only: `.planning/reviews/V1_33_EVIDENCE_INDEX.md` + `.planning/v1.33-MILESTONE-AUDIT.md`.
 
 ## Truth Sources
 
@@ -15,9 +15,9 @@ This repository currently follows a single-maintainer release model. Every tagge
 - Canonical public support/security paths: `README.md`, `README_zh.md`, `CONTRIBUTING.md`, `SUPPORT.md`, `SECURITY.md`
 - Canonical troubleshooting path: `docs/TROUBLESHOOTING.md`
 - Canonical release-notes summary: `CHANGELOG.md` (maintainer-facing release posture summary, not a second runbook)
-- Canonical route-selector family: `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md` (`no active milestone route / latest archived baseline = v1.33`; current handoff = `archived / evidence-ready (2026-04-01)`; default next = `$gsd-new-milestone`)
+- Canonical route-selector family: `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md` (stable current selector family; current resolution = `v1.34 active milestone route / starting from latest archived baseline = v1.33`; default next = `$gsd-complete-milestone v1.34`)
 - Canonical latest archived evidence index: `.planning/reviews/V1_33_EVIDENCE_INDEX.md`
-- Canonical archived verdict home: `.planning/v1.33-MILESTONE-AUDIT.md` (pull-only evidence verdict, not current route truth)
+- Canonical latest archived milestone audit: `.planning/v1.33-MILESTONE-AUDIT.md` (pull-only evidence verdict, not current route truth)
 - Canonical firmware certification trust-root asset: `custom_components/lipro/firmware_support_manifest.json` (historical filename retained)
 
 Private repositories and forks skip CI HACS validation because HACS only supports public GitHub repositories; do not treat a skipped HACS job as a release blocker in that case.
@@ -55,7 +55,7 @@ Before creating or publishing a tag:
 1. Working tree is clean and all intended docs/code changes are committed.
 2. Version truth is synchronized across `pyproject.toml`, `manifest.json`, and `const/base.py`.
 3. Public navigation is synchronized across `README.md` / `README_zh.md` / `CONTRIBUTING.md` / `SUPPORT.md` / `SECURITY.md` / troubleshooting docs.
-4. Residual/governance closeout tables, `CHANGELOG.md`, `.planning/reviews/V1_33_EVIDENCE_INDEX.md`, and `.planning/v1.33-MILESTONE-AUDIT.md` are updated when the release carries architectural cleanup or release-route wording changes.
+4. Residual/governance closeout tables, `CHANGELOG.md`, the latest archived evidence pointer, and the latest archived milestone audit are updated when the release carries architectural cleanup or release-route wording changes.
 5. Release custody, custody-restoration rules, freeze conditions, and rollback posture are reviewed before the tag is pushed; do not assume a delegate exists unless `.github/CODEOWNERS` and this runbook explicitly document one.
 6. The following commands pass locally whenever the change scope justifies a release:
 
@@ -108,7 +108,7 @@ uv run pytest -q tests/meta/test_governance*.py tests/meta/test_toolchain_truth.
 - Spot-check one asset with `cosign verify-blob --bundle ...` and confirm the certificate identity matches `.github/workflows/release.yml` for the tagged release path only, even when the workflow was manually re-run for that same tag.
 - Spot-check README / README_zh / CONTRIBUTING / SUPPORT / SECURITY links on the rendered release page.
 - Review the workflow summary and confirm the release artifact install smoke passed against the temporary Home Assistant-style target tree before trusting the published zip/install pair.
-- If the release contains troubleshooting, public-entry, or runbook changes, ensure those docs still point at each other, at `.planning/reviews/V1_33_EVIDENCE_INDEX.md`, at `.planning/v1.33-MILESTONE-AUDIT.md`, and at the canonical public entry points.
+- If the release contains troubleshooting, public-entry, or runbook changes, ensure those docs still point at each other, at the stable current-selector family, at the latest archived evidence pointer, at the latest archived milestone audit, and at the canonical public entry points.
 
 ## Maintainer-Unavailable Drill / Continuity Drill Checklist
 

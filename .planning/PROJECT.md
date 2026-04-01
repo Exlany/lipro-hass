@@ -1,18 +1,22 @@
 # Project: Lipro-HASS North Star Evolution
 
-
-**Status:** `No active milestone route`
-**Current route:** `no active milestone route / latest archived baseline = v1.33`；latest archived evidence index = `.planning/reviews/V1_33_EVIDENCE_INDEX.md`.
-**Goal:** `把 v1.33 固定为 latest archived baseline，并让后续所有新工作只能经由 `$gsd-new-milestone` 显式启动；继续坚持 single mainline / formal homes / honesty，不回写第二条 live 故事线，也不伪造仓外 continuity 已解决。`
-**Default next step:** `$gsd-new-milestone`
+**Status:** `Active milestone`
+**Current route:** `v1.34 active milestone route / starting from latest archived baseline = v1.33`；latest archived evidence index = `.planning/reviews/V1_33_EVIDENCE_INDEX.md`.
+**Goal:** `以 Phase 120 把终审暴露的 repo-internal contract / tooling / docs truth residual 一次性收口：runtime/service typing 更硬、flow error taxonomy 更明确、toolchain guards 去脆化、docs/runbook 只保留稳定入口或 latest pointer；repo-external continuity 仍保持 honest freeze posture。`
+**Default next step:** `$gsd-complete-milestone v1.34`
 **Active baseline:** latest archived baseline = `v1.33`；previous archived baseline = `v1.32`.
-
 
 <!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone: null
+active_milestone:
+  version: v1.34
+  name: Terminal Audit Closure, Contract Hardening & Governance Truth Slimming
+  status: active / phase 120 complete; closeout-ready (2026-04-01)
+  phase: '120'
+  phase_title: terminal audit closure, contract hardening, and governance truth slimming
+  phase_dir: 120-terminal-audit-contract-hardening-and-governance-truth-slimming
 latest_archived:
   version: v1.33
   name: MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance Hardening
@@ -28,12 +32,33 @@ previous_archived:
   name: Residual Hotspot Eradication, Validation Completion & Continuity Hardening
   evidence_path: .planning/reviews/V1_32_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.33
-  default_next_command: $gsd-new-milestone
+  current_route: v1.34 active milestone route / starting from latest archived baseline = v1.33
+  default_next_command: $gsd-complete-milestone v1.34
   latest_archived_evidence_pointer: .planning/reviews/V1_33_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
+## Current Milestone (v1.34)
 
+**Name:** `Terminal Audit Closure, Contract Hardening & Governance Truth Slimming`
+
+**Why it matters:** `本轮不新增业务功能，而是把终审确认的仓内剩余问题压回单一正式主线：runtime/service contract 改成更硬的 typed truth；config-flow 错误语义不再把 stored-entry / malformed-response / unexpected-error 都压成 unknown；tooling/meta 守卫改成结构化 single source；开发者/维护者文档只保留当前入口与稳定指针；continuity 仍诚实声明 freeze posture，不伪造 delegate。`
+
+**North-star fit:** `v1.34` 继续沿 single mainline / formal homes / honesty over invented continuity 推进：不新增第二 root、不把 compat 或 phase folklore 洗成正式接口，也不把 repo-external continuity 伪装成仓内已闭环。`
+
+**Current status:** `active / phase 120 complete; closeout-ready (2026-04-01)`
+**Phase range:** `Phase 120 -> 120`
+**Starting baseline:** `.planning/v1.33-MILESTONE-AUDIT.md`, `.planning/reviews/V1_33_EVIDENCE_INDEX.md`, `.planning/milestones/v1.33-ROADMAP.md`, `.planning/milestones/v1.33-REQUIREMENTS.md`
+**Requirements basket:** `ARC-32`, `HOT-52`, `QLT-47`, `GOV-78`, `GOV-79`, `DOC-10`, `OSS-15`, `TST-42`
+**Latest archived baseline:** `v1.33`
+**Latest archived pointer:** `.planning/reviews/V1_33_EVIDENCE_INDEX.md`
+**Default next command:** `$gsd-complete-milestone v1.34`
+
+**Current focus:**
+- `120-01` 已完成 runtime/service contract tightening 与 runtime-access normalization；`runtime_types.py` / `runtime_access.py` / `services/command.py` 现以单一 typed truth 与 focused guards 收口。
+- `120-02` 已完成 flow error taxonomy hardening 与 single-source send-command validation；stored-entry / invalid-response / unexpected-error 不再回退到 `unknown`。
+- `120-03` 已完成 toolchain guard de-brittling、docs appendix slimming 与 stable pointer family / governance pointers；live selector family 已切到 closeout-ready current story。
+- 当前 active route 已进入 milestone closeout-ready；默认下一步为 `$gsd-complete-milestone v1.34`。
+- maintainer continuity 继续保持 honest freeze posture / custody restoration 契约；未伪造 hidden delegate 或 repo-external continuity closure。
 
 ## Latest Archived Milestone (v1.33)
 
@@ -53,14 +78,8 @@ bootstrap:
 **Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.33`
 **Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.32`
 **Historical next command before next milestone kickoff:** `$gsd-new-milestone`
-**Default next command:** `$gsd-new-milestone`
-**Current follow-up target:** serve as the latest archived baseline until the next milestone is explicitly opened; do not invent extra phases, second roots, or repo-external continuity resolution.
+**Historical next command before v1.34 kickoff:** `$gsd-execute-phase 120`
 
-**Completed focus:**
-- `protocol.boundary -> mqtt` 已恢复为单向 authority，`payload.py` / `topics.py` / `message_processor.py` 不再靠 reverse import 或 lazy-import folklore 维持 decode truth。
-- `runtime_types.py` 已成为 runtime/service 正式 contract 真源；service handlers 与 lifecycle typing 不再平行重定义 coordinator/auth/command contracts。
-- release workflow 现只接受 semver tag namespace；`CHANGELOG.md`、route-contract guards 与 current-route docs 已对齐 freshness，不再继续暴露内部归档术语或过期 pointer。
-- focused guards、phase-local closeout assets、milestone audit 与 archived evidence index 已共同冻结上述 contract；`v1.33` 现已固定为 latest archived baseline。
 ## Previous Archived Milestone (v1.32)
 
 **Name:** `Residual Hotspot Eradication, Validation Completion & Continuity Hardening`

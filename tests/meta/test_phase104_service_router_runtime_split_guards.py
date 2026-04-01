@@ -24,7 +24,7 @@ _FILE_MATRIX = _ROOT / '.planning' / 'reviews' / 'FILE_MATRIX.md'
 _RESIDUAL = _ROOT / '.planning' / 'reviews' / 'RESIDUAL_LEDGER.md'
 _KILL = _ROOT / '.planning' / 'reviews' / 'KILL_LIST.md'
 _TESTING = _ROOT / '.planning' / 'codebase' / 'TESTING.md'
-_DEV_ARCH = _ROOT / 'docs' / 'developer_architecture.md'
+_DEV_ARCH = _ROOT / 'docs' / 'architecture_archive.md'
 _PHASE_DIR = _ROOT / '.planning' / 'phases' / '104-service-router-family-split-and-command-runtime-second-pass-decomposition'
 
 

@@ -1,36 +1,38 @@
 # Milestones
 
-## Latest Archived Milestone (v1.33)
+## Current Milestone (v1.34)
 
-**Phase range:** `119 -> 119`
+**Phase range:** `120 -> 120`
 **Phases completed:** `1/1 phases, 3/3 plans, 0 tasks`
-**Status:** `archived / evidence-ready (2026-04-01)`
-**Route truth:** `no active milestone route / latest archived baseline = v1.33`
+**Status:** `active / phase 120 complete; closeout-ready (2026-04-01)`
+**Route truth:** `v1.34 active milestone route / starting from latest archived baseline = v1.33`
 **Latest archived baseline:** `v1.33`
-**Default next command:** `$gsd-new-milestone`
+**Default next command:** `$gsd-complete-milestone v1.34`
 **Route truth:** latest archived evidence index = `.planning/reviews/V1_33_EVIDENCE_INDEX.md`
-**Current audit artifact:** `.planning/v1.33-MILESTONE-AUDIT.md`
-**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.33`
-**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.32`
+**Current baseline audit artifact:** `.planning/v1.33-MILESTONE-AUDIT.md`
 
-**Archived phase story:**
+**Active phase story:**
 
-- `Phase 119`: MQTT boundary, runtime contract, and release governance hardening ✅ (`119-01` MQTT boundary authority + `119-02` runtime contract unification + `119-03` semver release/governance hardening complete)
+- `Phase 120`: terminal audit closure, contract hardening, and governance truth slimming ✅ (`120-01` runtime/service contract tightening + `120-02` flow/send-command semantics hardening + `120-03` tooling/docs/governance truth slimming complete; closeout-ready)
 
-**Archived accomplishments:**
+**Current milestone intent:**
 
-- `protocol.boundary -> mqtt` 单向 authority、runtime/service contract 真源统一、release namespace hardening、governance/changelog freshness 已在同一 phase 内完成收口。
-- `Coordinator` public home 继续固定为 `custom_components/lipro/coordinator_entry.py`；本轮只收敛 typing / contract truth，没有改写 public home。
-- repo-external continuity 限制继续保持 honest blocker state，没有被伪造为仓内已闭环。
+- 继续把 repo-internal residual 压回单一正式主线，不新增 public root、不回流 compat shell，也不发明 repo-external continuity closure。
+- 本轮只允许把 maintainer continuity 收敛成 honest freeze posture / custody restoration 契约；不暗示 hidden delegate。
 
-
-> Machine-readable bootstrap truth now lives in the shared `governance-route` contract block below; milestone chronology remains human-readable history instead of the parser-visible selector.
+> Machine-readable route selector lives in the shared `governance-route` contract block below; chronology remains human-readable history.
 
 <!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone: null
+active_milestone:
+  version: v1.34
+  name: Terminal Audit Closure, Contract Hardening & Governance Truth Slimming
+  status: active / phase 120 complete; closeout-ready (2026-04-01)
+  phase: '120'
+  phase_title: terminal audit closure, contract hardening, and governance truth slimming
+  phase_dir: 120-terminal-audit-contract-hardening-and-governance-truth-slimming
 latest_archived:
   version: v1.33
   name: MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance Hardening
@@ -46,11 +48,32 @@ previous_archived:
   name: Residual Hotspot Eradication, Validation Completion & Continuity Hardening
   evidence_path: .planning/reviews/V1_32_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.33
-  default_next_command: $gsd-new-milestone
+  current_route: v1.34 active milestone route / starting from latest archived baseline = v1.33
+  default_next_command: $gsd-complete-milestone v1.34
   latest_archived_evidence_pointer: .planning/reviews/V1_33_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
+## Latest Archived Milestone (v1.33)
+
+**Phase range:** `119 -> 119`
+**Phases completed:** `1/1 phases, 3/3 plans, 0 tasks`
+**Status:** `archived / evidence-ready (2026-04-01)`
+**Route truth:** `no active milestone route / latest archived baseline = v1.33`
+**Latest archived baseline:** `v1.33`
+**Route truth:** latest archived evidence index = `.planning/reviews/V1_33_EVIDENCE_INDEX.md`
+**Current audit artifact:** `.planning/v1.33-MILESTONE-AUDIT.md`
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.33`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.32`
+
+**Archived phase story:**
+
+- `Phase 119`: MQTT boundary, runtime contract, and release governance hardening ✅ (`119-01` MQTT boundary authority + `119-02` runtime contract unification + `119-03` semver release/governance hardening complete)
+
+**Archived accomplishments:**
+
+- `protocol.boundary -> mqtt` 单向 authority、runtime/service contract 真源统一、release namespace hardening、governance/changelog freshness 已在同一 phase 内完成收口。
+- `Coordinator` public home 继续固定为 `custom_components/lipro/coordinator_entry.py`；本轮只收敛 typing / contract truth，没有改写 public home。
+- repo-external continuity 限制继续保持 honest blocker state，没有被伪造为仓内已闭环。
 
 ## Previous Archived Milestone (v1.32)
 

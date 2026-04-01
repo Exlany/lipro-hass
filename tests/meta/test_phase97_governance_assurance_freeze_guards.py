@@ -18,7 +18,7 @@ _MILESTONES = _ROOT / ".planning" / "MILESTONES.md"
 _VERIFICATION_MATRIX = _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
 _FILE_MATRIX = _ROOT / ".planning" / "reviews" / "FILE_MATRIX.md"
 _TESTING = _ROOT / ".planning" / "codebase" / "TESTING.md"
-_DEV_ARCH = _ROOT / "docs" / "developer_architecture.md"
+_DEV_ARCH = _ROOT / "docs" / "architecture_archive.md"
 _PHASE96_DIR = _ROOT / ".planning" / "phases" / "96-redaction-telemetry-and-anonymous-share-sanitizer-burndown"
 _PHASE97_DIR = _ROOT / ".planning" / "phases" / "97-governance-open-source-contract-sync-and-assurance-freeze"
 

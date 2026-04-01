@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 import re
-from typing import Final, NotRequired, TypedDict
+from typing import Final, NotRequired, TypedDict, cast
 
 import voluptuous as vol
 
@@ -62,36 +63,55 @@ _MAX_QUERY_COMMAND_RESULT_TIME_BUDGET_SECONDS: Final = 15.0
 _MAX_SENSOR_DEVICE_ID_LEN: Final = 64
 _MAX_MESH_TYPE_LEN: Final = 16
 
+def _strict_string(value: object) -> str:
+    """Accept only already-string values without coercion."""
+    if not isinstance(value, str):
+        raise vol.Invalid("expected string")
+    return value
+
+
+def _strict_list(value: object) -> list[object]:
+    """Accept only list payloads without coercion."""
+    if not isinstance(value, list):
+        raise vol.Invalid("expected list")
+    return value
+
+
+_DEVICE_ID_VALIDATOR = vol.All(
+    _strict_string,
+    vol.Length(min=1, max=_MAX_DEVICE_ID_LEN),
+    vol.Match(_IDENTIFIER_PATTERN),
+)
+_COMMAND_VALIDATOR = vol.All(
+    _strict_string,
+    vol.Length(min=1, max=_MAX_COMMAND_LEN),
+    vol.Match(_COMMAND_PATTERN),
+)
+_PROPERTY_KEY_VALIDATOR = vol.All(
+    _strict_string,
+    vol.Length(min=1, max=_MAX_PROPERTY_KEY_LEN),
+    vol.Match(_IDENTIFIER_PATTERN),
+)
+_PROPERTY_VALUE_VALIDATOR = vol.All(
+    _strict_string,
+    vol.Length(max=_MAX_PROPERTY_VALUE_LEN),
+)
+_PROPERTY_ITEM_SCHEMA = vol.Schema(
+    {
+        vol.Required("key"): _PROPERTY_KEY_VALIDATOR,
+        vol.Required("value"): _PROPERTY_VALUE_VALIDATOR,
+    }
+)
+
+
 SERVICE_SEND_COMMAND_SCHEMA = vol.Schema(
     {
-        vol.Optional(ATTR_DEVICE_ID): vol.All(
-            cv.string,
-            vol.Length(min=1, max=_MAX_DEVICE_ID_LEN),
-            vol.Match(_IDENTIFIER_PATTERN),
-        ),
-        vol.Required(ATTR_COMMAND): vol.All(
-            cv.string,
-            vol.Length(min=1, max=_MAX_COMMAND_LEN),
-            vol.Match(_COMMAND_PATTERN),
-        ),
+        vol.Optional(ATTR_DEVICE_ID): _DEVICE_ID_VALIDATOR,
+        vol.Required(ATTR_COMMAND): _COMMAND_VALIDATOR,
         vol.Optional(ATTR_PROPERTIES): vol.All(
-            cv.ensure_list,
+            _strict_list,
             vol.Length(max=_MAX_SERVICE_LIST_ITEMS),
-            [
-                vol.Schema(
-                    {
-                        vol.Required("key"): vol.All(
-                            cv.string,
-                            vol.Length(min=1, max=_MAX_PROPERTY_KEY_LEN),
-                            vol.Match(_IDENTIFIER_PATTERN),
-                        ),
-                        vol.Required("value"): vol.All(
-                            cv.string,
-                            vol.Length(max=_MAX_PROPERTY_VALUE_LEN),
-                        ),
-                    },
-                ),
-            ],
+            [_PROPERTY_ITEM_SCHEMA],
         ),
     },
 )
@@ -248,6 +268,17 @@ class ServiceProperty(TypedDict):
     value: str
 
 
+type ServicePropertyList = list[ServiceProperty]
+
+
+class SendCommandServiceData(TypedDict, total=False):
+    """Normalized payload accepted by the send_command service handler."""
+
+    device_id: str
+    command: str
+    properties: ServicePropertyList
+
+
 class ServicePropertySummary(TypedDict):
     """Log-safe summary of the requested command properties."""
 
@@ -279,3 +310,11 @@ class RefreshDevicesResult(TypedDict):
     success: bool
     refreshed_entries: int
     requested_entry_id: NotRequired[str]
+
+
+
+def normalize_send_command_payload(
+    payload: Mapping[str, object],
+) -> SendCommandServiceData:
+    """Validate and normalize one direct send_command payload."""
+    return cast(SendCommandServiceData, SERVICE_SEND_COMMAND_SCHEMA(dict(payload)))

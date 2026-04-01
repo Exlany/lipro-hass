@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `v1.33 archived / evidence-ready` (`2026-04-01`)
-> **Current route alignment**: `no active milestone route / latest archived baseline = v1.33` (`2026-04-01`)
+> **Last aligned through**: `v1.34 / Phase 120 complete; closeout-ready` (`2026-04-01`)
+> **Current route alignment**: `v1.34 active milestone route / starting from latest archived baseline = v1.33` (`2026-04-01`)
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
@@ -12,7 +12,7 @@
 ## 阅读顺序
 
 - 先看下方的“快速导航”“五大平面”“当前正式主链”，这是 current-topology first hop。
-- historical freeze / typed-boundary / sanitizer / assurance notes 已后移到文末 `Historical Phase Notes Appendix`，用于回溯当前路线如何冻结，不再占据开发入口主线。
+- historical freeze / typed-boundary / sanitizer / assurance notes 已下沉到 `docs/architecture_archive.md`，作为 pull-only appendix 供回溯，不再占据当前开发入口主线。
 
 ## 快速导航
 
@@ -211,138 +211,8 @@ custom_components/lipro/
 - `.planning/reviews/RESIDUAL_LEDGER.md`
 - `.planning/reviews/KILL_LIST.md`
 
+## Historical Architecture Archive
 
-## Historical Phase Notes Appendix
+- 历史 phase notes / appendix 已移至 `docs/architecture_archive.md`。
+- `docs/developer_architecture.md` 只保留 current developer guidance；archive appendix 不再承担 current-route selector 身份。
 
-## Phase 88 Historical Freeze Note
-
-- `v1.23` archived baseline promotion remains the historical freeze anchor for governance-quality closeout semantics; `Phase 89` builds on that archived baseline instead of replacing its evidence-chain meaning.
-
-## Phase 89 Freeze Note
-
-- Phase 89 closeout treats `V1_23_TERMINAL_AUDIT.md` as historical input evidence only; archived-only route truth now lives in `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`, `.planning/v1.33-MILESTONE-AUDIT.md`, `.planning/reviews/V1_33_EVIDENCE_INDEX.md`, and focused governance guards.
-- `RESIDUAL_LEDGER.md` active residual families 为空、`KILL_LIST.md` 的 `Phase 85 Routed Delete Gates` 为空，都是显式 closeout verdict，而不是待补登记的空白。
-- `.planning/reviews/PROMOTED_PHASE_ASSETS.md` 是 phase evidence allowlist 的唯一 home；developer-facing guidance 只索引它，不私自提升 execution traces。
-
-## Phase 96 Sanitizer Burn-Down Note
-
-- `Phase 96` 已把 diagnostics/control redaction、runtime telemetry exporter 与 anonymous-share manager/sanitize 的 remaining sanitizer hotspots inward split 成 named helpers，shared redaction truth 继续固定在 `custom_components/lipro/core/utils/redaction.py`。
-- `custom_components/lipro/control/redaction.py`、`custom_components/lipro/core/telemetry/exporter.py` 与 `custom_components/lipro/core/anonymous_share/manager.py` 仍分别停留在既有 formal homes；helper split 只是 inward decomposition，不构成新的 public root。
-
-## Phase 97 Governance / Assurance Freeze Note
-
-- `Phase 97` 现在承担 `v1.26` latest archived closeout proof：developer guidance、planning route contract、focused assurance guards 与 archive pointer 共同证明 `v1.26` 已稳定退回 pull-only archived baseline。
-- `tests/meta/test_phase97_governance_assurance_freeze_guards.py` 不再冻结 live current route，而是冻结 `Phase 97` closeout bundle、developer-architecture historical note 与 latest archived pointer truth。
-
-## Phase 98 Route Reactivation / Carry-Forward Closure Note
-
-- `Phase 98` 现在是 `v1.28` latest archived baseline 下拉取的 completed predecessor：它继续冻结 `outlet_power` carry-forward closure、route reactivation bundle 与 developer-facing topology note，但不再充当 current-route selector。
-- `tests/meta/test_phase98_route_reactivation_guards.py` 现在承担 predecessor truth 守卫角色：保留 `Phase 98` assets / note / no-regrowth truth，并在 archive promotion 后退回 predecessor truth note。
-
-## Phase 99 Runtime Hotspot Support Extraction / Predecessor Freeze Note
-
-- `Phase 99` 现在作为 `v1.28` latest archived baseline 下拉取的 completed predecessor 保留：它继续冻结 `status_fallback.py` / `command_runtime.py` 的 support extraction 结果，但不再承担 current-route selector。
-- `tests/meta/test_phase99_runtime_hotspot_support_guards.py` 现在承担 predecessor truth 守卫角色：保留 `Phase 99` assets / note / support seam locality，并在 archive promotion 后退回 predecessor truth note。
-
-## Phase 100 MQTT Runtime / Schedule Service Support Extraction / Predecessor Freeze Note
-
-- `Phase 100` 现在作为 `v1.28` latest archived baseline 下拉取的 completed predecessor 保留：它继续冻结 `mqtt_runtime.py` / `schedule_service.py` 的 support extraction 结果，但不再承担 current-route selector。
-- `mqtt_runtime.py` 继续保留 `MqttRuntime` orchestration home，而 transport/notification/background-task support inward split 到 `mqtt_runtime_support.py`；`schedule_service.py` 继续保留 outward helper/public contract，而 candidate batching / timeout / request helpers inward split 到 `schedule_service_support.py`。
-- `tests/meta/test_phase100_runtime_schedule_support_guards.py` 现在承担 predecessor truth 守卫角色；latest-archived closeout proof 已由 `Phase 102` note 接手。
-
-## Phase 103 Root Adapter Thinning / Test Topology Second Pass / Terminology Contract Note
-
-- `Phase 103` 重新确认根层 `__init__.py` 只是 thin HA adapter：lazy runtime loading、entry-auth wrappers 与 service-registry assembly 现在回到 `control/entry_root_support.py`，而不是继续堆在根入口里。
-- `tests/conftest.py` 继续只保留 fixture 入口；topicized collection hooks 与 `_CoordinatorDouble` 已分别进入 `tests/topicized_collection.py` 与 `tests/coordinator_double.py`。
-- ADR-0005 现在正式裁决：`facade` 只用于 formal outward composition root，`handlers` 只用于 service callback family，`support` 只用于 inward local collaborator，`surface` 只用于 stable exposed surface，`wiring` 只用于显式装配。
-- `Phase 104` 才进入 `service_router_handlers.py` / `command_runtime.py` 的 deeper hotspot split；`Phase 103` 不把未做的工作伪装成“已彻底完成”。
-
-## Phase 102 Governance Portability / Verification Stratification / Open-Source Continuity Hardening Note
-
-- 当前 developer guidance 与 `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md` 已共同承认 `no active milestone route / latest archived baseline = v1.33`；`Phase 119` closeout 已完成并把当前路线推进到 `archived / evidence-ready (2026-04-01)`，默认下一步现为 `$gsd-new-milestone`。
-- `Phase 102` 不重开 production formal homes；它只把 governance/meta smoke 的 fast-path 耦合收口为 capability-aware proof，并把 verification matrix 当前真相、historical closeout note、docs-first / maintainer appendix continuity wording 一次性分层。
-- `tests/meta/test_governance_bootstrap_smoke.py`、`tests/meta/test_governance_route_handoff_smoke.py`、`tests/meta/governance_followup_route_current_milestones.py` 与 `tests/meta/test_phase102_governance_portability_guards.py` 现在共同冻结 archived-only latest truth、portable fast-path、promoted closeout bundle、runbook latest pointer 与 developer-facing topology note。
-
-## Phase 101 Anonymous-share Manager / REST Decoder Hotspot Decomposition Freeze Note
-
-- 当前 developer guidance 已把 `Phase 101` 降格为 previous archived baseline `v1.27` 的 completed predecessor；它继续保留 hotspot decomposition closeout proof，但不再承担 latest-archived selector。
-- `manager.py` 继续保留 aggregate/scoped anonymous-share public home，而 `manager_submission.py` / `manager_support.py` 只承接 submit-flow 与 scope-state / cache / pending helpers；registry accessor truth 已回到 `registry.py` / package home，不再由 `manager.py` re-export。
-- `rest_facade.py` 继续是 canonical REST child-façade composition home，`client.py` 继续只是 stable import shell；`rest_decoder.py` / `rest_decoder_support.py` 则继续承担 boundary decode authority，并把 MQTT-config decode truth 下沉为 `mqtt_api_service.py` 的延迟导入复用路径。
-- `tests/meta/test_governance_route_handoff_smoke.py`、`tests/meta/governance_followup_route_current_milestones.py`、`tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py` 与 `tests/meta/test_phase102_governance_portability_guards.py` 现在共同冻结 predecessor truth、previous-archived hotspot closeout、maps/ledgers projection 与 developer-facing topology note。
-
-## Phase 90 Freeze Notes
-
-- `custom_components/lipro/core/coordinator/runtime/command_runtime.py`、`custom_components/lipro/core/api/rest_facade.py`、`custom_components/lipro/core/api/request_policy.py`、`custom_components/lipro/core/coordinator/runtime/mqtt_runtime.py` 与 `custom_components/lipro/core/anonymous_share/manager.py` 在当前路线中被再次冻结为 formal homes；后续实现只允许 inward split，不得把它们叙述成 thin shell 或 delete target。
-- `custom_components/lipro/core/api/client.py` 继续只保留 `LiproRestFacade` stable import home；REST child-façade composition truth 仍固定在 `rest_facade.py`。
-- `custom_components/lipro/__init__.py`、`custom_components/lipro/control/runtime_access.py`、`custom_components/lipro/entities/base.py` 与 `custom_components/lipro/entities/firmware_update.py` 继续作为 protected thin shells / projections；任何新的 orchestration 或 runtime/protocol internals 都不得回流到这些 outward adapters。
-- `Phase 90` 只是 formal-home map freeze；`Phase 91` 才开始 protocol/runtime + typing implementation，`Phase 92` / `93` 再分别处理 redaction convergence 与 assurance/quality freeze。
-
-
-## Phase 91 Typed Boundary Notes
-
-- `LiproProtocolFacade` 的 live REST verbs 现在直接在 protocol root canonicalize payload，避免 runtime 再次 normalize 同一份 rows。
-- `rest_port.py` 继续只表达 raw REST child-facing truth；它不是 public root，也不是 protocol surface 的替代入口。
-- `runtime_types.py`、`core/coordinator/types.py`、`core/command/trace.py` 与 telemetry service 现在共享更窄的 typed telemetry / trace contracts。
-- `custom_components/lipro/__init__.py`、`custom_components/lipro/control/runtime_access.py`、`custom_components/lipro/entities/base.py` 与 `custom_components/lipro/entities/firmware_update.py` 继续作为 protected thin shells / projections；Phase 91 没有把 orchestration 长回 outward adapters。
-
-
-## Phase 92 Redaction Convergence Notes
-
-- `custom_components/lipro/core/utils/redaction.py` 现为 diagnostics / anonymous-share / telemetry 共享的单一 redaction contract / registry home；unknown secret-like keys 默认 fail-closed。
-- `custom_components/lipro/control/redaction.py` 继续只做 diagnostics-facing adapter；`custom_components/lipro/core/anonymous_share/sanitize.py` 继续只做结构保留 sanitizer；`custom_components/lipro/core/telemetry/{json_payloads.py,exporter.py}` 继续只做 telemetry profile / projection，不再各自维护第二套 sanitizer folklore。
-- `tests/core/api/test_api_status_service.py`、`tests/core/api/test_api_command_surface_responses.py`、`tests/platforms/test_light_entity_behavior.py` 与 `tests/services/test_services_diagnostics.py` 继续保留 root thin-shell 身份，真正断言落到 concern-local sibling suites。
-
-
-## Phase 93 Assurance Freeze Notes
-
-- `FILE_MATRIX.md`、`TESTING.md`、`VERIFICATION_MATRIX.md` 与 route-contract docs 现在共享同一份 quality-freeze truth；Phase 93 不再容忍“实现已完成、派生治理未刷新”的尾差。
-- diagnostics topicization 带来的 incidental `Any` drift 已被 burn down；typing budget guard 继续以 `tests/meta/test_phase31_runtime_budget_guards.py` 为 no-growth freeze home，而不是通过放宽常量掩盖漂移。
-- Phase 93 只做 assurance / quality freeze / milestone closeout-ready proof；它不新增 public root、不回流 orchestration，也不为 helper 再制造第二条故事线。
-
-
-## Phase 94 Typed Boundary Notes
-
-- `custom_components/lipro/domain_data.py` 现在明确暴露 `dict[str, object]`，`entities/base.py` 继续作为 `CoordinatorEntity[LiproRuntimeCoordinator]` 的 protected thin shell。
-- `control/diagnostics_surface.py` / `diagnostics.py` 与 `core/api/{command_api_service,status_fallback,transport_core}.py` 已把 broad payload seam 收回 JSON-like / mapping-safe contract，`transport_core` 在协议边界处强制验证 mapping 响应。
-- `tests/meta/test_phase94_typed_boundary_guards.py` 负责冻结这批 seam 的 no-regrowth truth；当前 active route 已前推到 `Phase 95 execution-ready`，后续只允许继续 inward split 热点。
-
-
-## Phase 104 Service-router Family Split / Command-runtime Second-pass Note
-
-- `Phase 104` 把 `control/service_router_handlers.py` 收窄为 thin family index，真正的 callback family 已拆到 `service_router_{command,schedule,share,diagnostics,maintenance}_handlers.py`。
-- `service_router.py` 继续是 formal control callback home；本 phase 没有把 family split 反向讲成第二条 control-plane root。
-- `command_runtime.py` 继续是 formal command-runtime orchestration home，而 `command_runtime_outcome_support.py` 只承接 outcome bookkeeping、command-result failure normalization 与 reauth error handling。
-- `Phase 104` 现在作为 completed predecessor bundle 保持可见性；active-route freeze 已上移到 `Phase 107`，因此不得再把 Phase 104 叙述成 current selector。
-
-## Phase 105 Governance Rule Datafication / Milestone Freeze Note
-
-- `tests/meta/governance_followup_route_specs.py` 现在承载 current-milestone / closeout / continuation follow-up route 的共享 case/spec truth，避免三套 governance suites 继续复制粘贴同一组期望与台账路径。
-- `scripts/check_file_matrix_registry_shared.py`、`scripts/check_file_matrix_registry_classifiers.py` 与 override lineage sync 共同把 file-matrix registry family 改成 data-driven builder；ownership / guard-home / predecessor-vs-active wording 不再散落在 tuple folklore 中。
-- `tests/meta/test_phase104_service_router_runtime_split_guards.py` 退为 predecessor visibility guard，`tests/meta/test_phase105_governance_freeze_guards.py` 现冻结 latest-archived closeout truth；这保证 `v1.29` archived selector、predecessor bundle 与 promoted closeout bundle 分工清晰。
-- `v1.29` 已完成 milestone closeout 并退回 previous archived baseline；它继续作为 `v1.30` 的 pull-only predecessor source，而不是新的 active selector。
-
-## Phase 107 REST/Auth/Status Hotspot Convergence Note
-
-- `custom_components/lipro/core/api/rest_facade.py` 现在通过 `_build_endpoint_surface()` / `_build_request_gateway()` 收口 child-façade collaborator assembly；`LiproRestFacade` 继续是 canonical REST child-façade composition home，而不是 second root。
-- `custom_components/lipro/core/api/status_fallback_support.py` 已把 binary-split fallback orchestration 收口到 `_BinarySplitQueryContext`、`_BinarySplitAccumulator` 与 focused helper 函数，fallback semantics 继续保留在 support-only home 内部。
-- `custom_components/lipro/core/api/request_policy_support.py` 现以 `_CommandPacingCaches` 吸收 pacing caches / locks / trim cooperation，request-policy pacing state 不再以 parameter soup 方式扩散。
-- `tests/meta/test_phase107_rest_status_hotspot_guards.py` 现冻结 predecessor visibility truth；`Phase 107` 继续作为 completed predecessor bundle 可见，但不再承担 current-route selector 身份。
-
-## Phase 110 Runtime Snapshot Surface Reduction and Milestone Closeout Note
-
-- `custom_components/lipro/core/coordinator/runtime/device/snapshot.py` 继续保持 `SnapshotBuilder` 作为唯一 outward runtime snapshot orchestration home。
-- `custom_components/lipro/core/coordinator/runtime/device/snapshot_support.py` 承接 pagination/row/assembly mechanical helpers，仅承担 inward-only collaborator 身份。
-- `tests/meta/test_phase110_runtime_snapshot_closeout_guards.py` 现冻结 current-route owner truth 与 closeout evidence pointers，确保 `Phase 110` 成为 `v1.30` 唯一收口 owner。
-- `Phase 110` closeout bundle、`.planning/reviews/V1_30_EVIDENCE_INDEX.md` 与 `.planning/v1.30-MILESTONE-AUDIT.md` 已形成可审计证据链，当前 follow-up 固定为 `$gsd-new-milestone`。
-
-## Phase 109 Anonymous-share Manager Inward Decomposition Note
-
-- `custom_components/lipro/core/anonymous_share/manager.py` 继续保持唯一 outward manager home，而 `manager_scope.py` / `manager_support.py` 现在承接 scoped/aggregate orchestration、pending-report projection 与 finalize-submit 机械逻辑。
-- `tests/core/anonymous_share/test_manager_scope_views.py` 与既有 anonymous-share focused suites 已冻结 scoped cache、primary selection、aggregate pending 与 service-surface behavior；本轮没有引入第二 root 或 outward export drift。
-- `tests/meta/test_phase109_anonymous_share_manager_inward_decomposition_guards.py` 现冻结 predecessor visibility truth；current-route owner 已上移到 `Phase 110`。
-
-## Phase 108 MQTT Transport-runtime De-friendization Note
-
-- `custom_components/lipro/core/mqtt/transport_runtime.py` 现在通过 `MqttTransportCallbacks`、`MqttTransportOwnerState` 与 `MqttTransportRuntimeOwner` 显式消费 owner/state contract，而不是接收 whole transport owner 并穿透私有字段。
-- `custom_components/lipro/core/mqtt/transport.py` 继续保持唯一 concrete transport root，并通过 localized `_runtime_state` / `_runtime_owner` 投影连接 runtime；这没有引入第二 root、第二 façade 或 export drift。
-- `tests/meta/test_phase108_mqtt_transport_de_friendization_guards.py` 现冻结 predecessor visibility truth；当前路线已归档为 `v1.30` latest archived baseline。

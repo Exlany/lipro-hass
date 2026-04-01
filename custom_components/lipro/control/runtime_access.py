@@ -206,7 +206,7 @@ def _coerce_device_count(
     device_count = telemetry_view.get("device_count")
     if isinstance(device_count, int):
         return device_count
-    return len(coordinator.devices or {})
+    return len(get_runtime_device_mapping(coordinator.runtime_coordinator))
 
 
 def _coerce_update_interval(coordinator: RuntimeCoordinatorView) -> str:
@@ -286,7 +286,7 @@ def build_runtime_diagnostics_projection(
         return None
 
     degraded_fields: list[str] = []
-    if runtime_entry.coordinator.devices is None:
+    if is_runtime_device_mapping_degraded(runtime_entry.coordinator.runtime_coordinator):
         degraded_fields.append("devices")
 
     return RuntimeDiagnosticsProjection(

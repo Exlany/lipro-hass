@@ -24,7 +24,7 @@ _FILE_MATRIX = _ROOT / '.planning' / 'reviews' / 'FILE_MATRIX.md'
 _RESIDUAL = _ROOT / '.planning' / 'reviews' / 'RESIDUAL_LEDGER.md'
 _KILL = _ROOT / '.planning' / 'reviews' / 'KILL_LIST.md'
 _TESTING = _ROOT / '.planning' / 'codebase' / 'TESTING.md'
-_DEV_ARCH = _ROOT / 'docs' / 'developer_architecture.md'
+_DEV_ARCH = _ROOT / 'docs' / 'architecture_archive.md'
 _ADR = _ROOT / 'docs' / 'adr' / '0005-entry-surface-terminology-contract.md'
 _PHASE_DIR = _ROOT / '.planning' / 'phases' / '103-root-adapter-thinning-test-topology-second-pass-and-terminology-contract-normalization'
 

@@ -4,7 +4,7 @@ This module provides pytest fixtures for testing the Lipro integration.
 Requires pytest-homeassistant-custom-component to be installed.
 
 To install:
-    pip install pytest-homeassistant-custom-component
+    uv add --dev pytest-homeassistant-custom-component
 
 Note: On Windows, this may require Microsoft C++ Build Tools.
 """

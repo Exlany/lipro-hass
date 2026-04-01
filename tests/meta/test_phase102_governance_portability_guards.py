@@ -31,7 +31,7 @@ _TESTING = _ROOT / '.planning' / 'codebase' / 'TESTING.md'
 _PROMOTED = _ROOT / '.planning' / 'reviews' / 'PROMOTED_PHASE_ASSETS.md'
 _RESIDUAL = _ROOT / '.planning' / 'reviews' / 'RESIDUAL_LEDGER.md'
 _KILL = _ROOT / '.planning' / 'reviews' / 'KILL_LIST.md'
-_DEV_ARCH = _ROOT / 'docs' / 'developer_architecture.md'
+_DEV_ARCH = _ROOT / 'docs' / 'architecture_archive.md'
 _RUNBOOK = _ROOT / 'docs' / 'MAINTAINER_RELEASE_RUNBOOK.md'
 _PHASE102_DIR = (
     _ROOT

@@ -20,7 +20,7 @@ _PUBLIC_SURFACES = _ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md"
 _FILE_MATRIX = _ROOT / ".planning" / "reviews" / "FILE_MATRIX.md"
 _RESIDUAL_LEDGER = _ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md"
 _TESTING = _ROOT / ".planning" / "codebase" / "TESTING.md"
-_DEV_ARCH = _ROOT / "docs" / "developer_architecture.md"
+_DEV_ARCH = _ROOT / "docs" / "architecture_archive.md"
 _DEVICE = _ROOT / "custom_components" / "lipro" / "core" / "device" / "device.py"
 _PHASE98_DIR = (
     _ROOT

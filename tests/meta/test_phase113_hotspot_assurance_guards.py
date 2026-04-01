@@ -166,6 +166,6 @@ def test_phase113_scripts_lint_default_mode_has_focused_assurance_routes() -> No
         "tests/meta/test_phase113_hotspot_assurance_guards.py",
         "tests/meta/toolchain_truth_ci_contract.py tests/meta/test_governance_release_docs.py tests/meta/toolchain_truth_docs_fast_path.py",
         "tests/meta/test_governance_route_handoff_smoke.py tests/meta/governance_followup_route_current_milestones.py",
-        "Running scripts/lint in default mode with Phase 113 focused assurance when matching changed surfaces are touched",
+        "Running scripts/lint in default mode with focused changed-surface assurance when matching touched surfaces are detected...",
     ):
         assert token in lint_text

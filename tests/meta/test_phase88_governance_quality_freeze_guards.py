@@ -80,7 +80,7 @@ def test_phase88_public_surface_docs_and_verification_truth_freeze_the_same_stor
     public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(
         encoding="utf-8"
     )
-    dev_text = (_ROOT / "docs" / "developer_architecture.md").read_text(
+    dev_text = (_ROOT / "docs" / "architecture_archive.md").read_text(
         encoding="utf-8"
     )
     verification_text = (
