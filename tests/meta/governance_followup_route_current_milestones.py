@@ -1,4 +1,4 @@
-"""Current-route and continuity truth guards for the active v1.36 closeout-ready route."""
+"""Current-route and continuity truth guards for the latest v1.36 selector state."""
 
 from __future__ import annotations
 
@@ -38,7 +38,7 @@ _PROJECT_TEXT = _SNAPSHOT.project
 _STATE_TEXT = _SNAPSHOT.state
 
 
-def test_machine_readable_route_contracts_point_to_active_v1_36_closeout_route() -> None:
+def test_machine_readable_route_contracts_point_to_latest_v1_36_selector_state() -> None:
     contracts = assert_machine_readable_route_contracts()
     for doc_name in ("PROJECT", "ROADMAP", "REQUIREMENTS", "STATE", "MILESTONES"):
         contract = _as_mapping(contracts[doc_name])
@@ -47,25 +47,28 @@ def test_machine_readable_route_contracts_point_to_active_v1_36_closeout_route()
         previous_archived = _as_mapping(contract["previous_archived"])
         bootstrap = _as_mapping(contract["bootstrap"])
 
-        assert active is not None, doc_name
-        assert active["version"] == "v1.36"
-        assert active["phase"] == CURRENT_PHASE
-        assert active["status"] == CURRENT_MILESTONE_STATUS
-        assert latest_archived["version"] == "v1.35"
-        assert previous_archived["version"] == "v1.34"
+        if HAS_ACTIVE_MILESTONE:
+            assert active is not None, doc_name
+            assert active["version"] == "v1.36"
+            assert active["phase"] == CURRENT_PHASE
+            assert active["status"] == CURRENT_MILESTONE_STATUS
+        else:
+            assert active is None, doc_name
+            assert latest_archived["version"] == "v1.36"
+            assert latest_archived["phase"] == CURRENT_PHASE
+            assert latest_archived["status"] == CURRENT_MILESTONE_STATUS
+        assert previous_archived["version"] == "v1.35"
         assert bootstrap["current_route"] == CURRENT_ROUTE_MODE
         assert bootstrap["default_next_command"] == CURRENT_MILESTONE_DEFAULT_NEXT
         assert bootstrap["latest_archived_evidence_pointer"] == LATEST_ARCHIVED_EVIDENCE_PATH
 
 
-def test_active_v1_36_truth_is_reflected_in_live_docs() -> None:
+def test_v1_36_truth_is_reflected_in_live_docs() -> None:
     _assert_current_route_truth(_PROJECT_TEXT, _ROADMAP_TEXT, _STATE_TEXT)
 
-    assert HAS_ACTIVE_MILESTONE is True
     assert_contains_all(
         _PROJECT_TEXT,
         CURRENT_MILESTONE_HEADER,
-        LATEST_ARCHIVED_PROJECT_HEADER,
         PREVIOUS_ARCHIVED_PROJECT_HEADER,
         f"**Current status:** `{CURRENT_MILESTONE_STATUS}`",
         f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`",
@@ -73,30 +76,58 @@ def test_active_v1_36_truth_is_reflected_in_live_docs() -> None:
         "open-source readiness",
         "honest governance",
     )
-    assert_contains_all(
-        _ROADMAP_TEXT,
-        CURRENT_MILESTONE_ROADMAP_HEADER,
-        f"**Milestone status:** `{CURRENT_MILESTONE_STATUS}`",
-        f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`",
-        CURRENT_PHASE_HEADING,
-        "## Phases",
-        "Phase 126",
-        "Phase 127",
-        "Phase 128",
-        "## Progress",
-    )
-    assert_contains_all(
-        _STATE_TEXT,
-        f"**Current milestone:** `{CURRENT_MILESTONE_STATE_LABEL}`",
-        f"**Current mode:** `{CURRENT_ROUTE_MODE}`",
-        f"- **Phase:** `{CURRENT_PHASE} of {CURRENT_PHASE}`",
-        f"- **Plan:** `{CURRENT_MILESTONE_COMPLETED_PLAN_COUNT} of {CURRENT_MILESTONE_TOTAL_PLAN_COUNT}`",
-        "- **Status:** `complete; closeout-ready`",
-        "## Recommended Next Command",
-        CURRENT_MILESTONE_DEFAULT_NEXT,
-        "active milestone route",
-        "closeout-ready",
-    )
+    if HAS_ACTIVE_MILESTONE:
+        assert LATEST_ARCHIVED_PROJECT_HEADER in _PROJECT_TEXT
+        assert_contains_all(
+            _ROADMAP_TEXT,
+            CURRENT_MILESTONE_ROADMAP_HEADER,
+            f"**Milestone status:** `{CURRENT_MILESTONE_STATUS}`",
+            f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`",
+            CURRENT_PHASE_HEADING,
+            "## Phases",
+            "Phase 126",
+            "Phase 127",
+            "Phase 128",
+            "## Progress",
+        )
+        assert_contains_all(
+            _STATE_TEXT,
+            f"**Current milestone:** `{CURRENT_MILESTONE_STATE_LABEL}`",
+            f"**Current mode:** `{CURRENT_ROUTE_MODE}`",
+            f"- **Phase:** `{CURRENT_PHASE} of {CURRENT_PHASE}`",
+            f"- **Plan:** `{CURRENT_MILESTONE_COMPLETED_PLAN_COUNT} of {CURRENT_MILESTONE_TOTAL_PLAN_COUNT}`",
+            "- **Status:** `complete; closeout-ready`",
+            "## Recommended Next Command",
+            CURRENT_MILESTONE_DEFAULT_NEXT,
+            "active milestone route",
+            "closeout-ready",
+        )
+    else:
+        assert CURRENT_MILESTONE_HEADER == LATEST_ARCHIVED_PROJECT_HEADER
+        assert_contains_all(
+            _ROADMAP_TEXT,
+            CURRENT_MILESTONE_ROADMAP_HEADER,
+            f"**Milestone status:** `{CURRENT_MILESTONE_STATUS}`",
+            f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`",
+            "## Phases",
+            "Phase 126",
+            "Phase 127",
+            "Phase 128",
+            "## Progress",
+            "Latest Archived Milestone",
+        )
+        assert_contains_all(
+            _STATE_TEXT,
+            f"**Current milestone:** `{CURRENT_MILESTONE_STATE_LABEL}`",
+            f"**Current mode:** `{CURRENT_ROUTE_MODE}`",
+            f"- **Phase:** `{CURRENT_PHASE} of {CURRENT_PHASE}`",
+            f"- **Plan:** `{CURRENT_MILESTONE_COMPLETED_PLAN_COUNT} of {CURRENT_MILESTONE_TOTAL_PLAN_COUNT}`",
+            "- **Status:** `archived / evidence-ready`",
+            "## Recommended Next Command",
+            CURRENT_MILESTONE_DEFAULT_NEXT,
+            "No active milestone route",
+            "archived evidence frozen",
+        )
 
 
 def test_v1_36_requirements_traceability_and_coverage_include_phase_128() -> None:
@@ -125,20 +156,20 @@ def test_v1_36_requirements_traceability_and_coverage_include_phase_128() -> Non
         f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`",
         f"**Latest archived baseline:** `{LATEST_ARCHIVED_MILESTONE}`",
         f"**Archive pointer:** `{LATEST_ARCHIVED_EVIDENCE_PATH}`",
-        f"**Latest archived audit artifact:** `{LATEST_ARCHIVED_AUDIT_PATH}`",
+        f"**Current audit artifact:** `{LATEST_ARCHIVED_AUDIT_PATH}`",
     )
 
 
 def test_historical_route_truth_stays_archived_while_live_docs_stop_claiming_old_handoffs() -> None:
     assert_contains_all(
         _MILESTONES_TEXT,
-        "## Previous Archived Milestone (v1.34)",
-        "historical closeout route truth = `no active milestone route / latest archived baseline = v1.34`",
-        "historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.33`",
+        "## Previous Archived Milestone (v1.35)",
+        "historical closeout route truth = `no active milestone route / latest archived baseline = v1.35`",
+        "historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.34`",
     )
     assert_contains_all(
         _PROJECT_TEXT,
-        "## Previous Archived Milestone (v1.34)",
+        "## Previous Archived Milestone (v1.35)",
         "Latest archived pointer",
     )
     assert_not_contains_any(

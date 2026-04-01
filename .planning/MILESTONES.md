@@ -1,23 +1,24 @@
 # Milestones
 
-## Current Milestone (v1.36)
+## Latest Archived Milestone (v1.36)
 
 **Name:** `Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening`
-**Status:** `active / phase 128 complete; closeout-ready (2026-04-01)`
-**Current route:** `v1.36 active milestone route / starting from latest archived baseline = v1.35`
+**Status:** `archived / evidence-ready (2026-04-01)`
+**Current route:** `no active milestone route / latest archived baseline = v1.36`
 **Phase range:** `126 -> 128`
 **Progress:** `3/3 phases, 7/7 plans`
-**Default next command:** `$gsd-complete-milestone v1.36`
-**Latest archived pointer:** `.planning/reviews/V1_35_EVIDENCE_INDEX.md`
-**Starting baseline snapshots:** `.planning/milestones/v1.35-ROADMAP.md`, `.planning/milestones/v1.35-REQUIREMENTS.md`
+**Default next command:** `$gsd-new-milestone`
+**Latest archived pointer:** `.planning/reviews/V1_36_EVIDENCE_INDEX.md`
+**Archived audit:** `.planning/v1.36-MILESTONE-AUDIT.md`
+**Archived snapshots:** `.planning/milestones/v1.36-ROADMAP.md`, `.planning/milestones/v1.36-REQUIREMENTS.md`
 
-**Active phase story:**
+**Archived phase story:**
 
 - `Phase 126`: service-router developer callback-home convergence and diagnostics helper residual slimming ✅ (`126-01` diagnostics helper shell thinning + route bootstrap + focused/full verification complete)
 - `Phase 127`: runtime-access de-reflection, typed runtime entry contracts, and hotspot continuation ✅ (`127-01` typed telemetry seam + `127-02` support-view de-reflection + `127-03` focused/full verification and governance sync complete)
 - `Phase 128`: open-source readiness, benchmark-coverage gates, and maintainer continuity hardening ✅ (`128-01` readiness honesty / version-source / selector projection sync + `128-02` coverage baseline diff / artifacts + `128-03` benchmark smoke / strict markers / evidence freeze complete)
 
-## Latest Archived Milestone (v1.35)
+## Previous Archived Milestone (v1.35)
 
 **Name:** `Master Audit Closure, Public Surface Finalization & Release Traceability`
 **Status:** `archived / evidence-ready (2026-04-01)`
@@ -67,34 +68,55 @@ projection_targets:
 - .planning/REQUIREMENTS.md
 - .planning/STATE.md
 - .planning/MILESTONES.md
-active_milestone:
-  version: v1.36
-  name: Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening
-  status: active / phase 128 complete; closeout-ready (2026-04-01)
-  phase: '128'
-  phase_title: open-source readiness, benchmark-coverage gates, and maintainer continuity hardening
-  phase_dir: 128-open-source-readiness-benchmark-coverage-gates-and-maintainer-continuity-hardening
+active_milestone: null
 latest_archived:
-  version: v1.35
-  name: Master Audit Closure, Public Surface Finalization & Release Traceability
+  version: v1.36
+  name: Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source
+    Readiness Hardening
   status: archived / evidence-ready (2026-04-01)
-  phase: '125'
-  phase_title: terminal residual eradication, runtime-types decomposition, adapter final thinning, and machine-readable governance extraction
-  phase_dir: 125-terminal-residual-eradication-runtime-types-decomposition-adapter-final-thinning-and-machine-readable-governance-extraction
-  audit_path: .planning/v1.35-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_35_EVIDENCE_INDEX.md
+  phase: '128'
+  phase_title: open-source readiness, benchmark-coverage gates, and maintainer continuity
+    hardening
+  phase_dir: 128-open-source-readiness-benchmark-coverage-gates-and-maintainer-continuity-hardening
+  audit_path: .planning/v1.36-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_36_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.34
-  name: Terminal Audit Closure, Contract Hardening & Governance Truth Slimming
-  evidence_path: .planning/reviews/V1_34_EVIDENCE_INDEX.md
+  version: v1.35
+  name: Master Audit Closure, Public Surface Finalization & Release Traceability
+  evidence_path: .planning/reviews/V1_35_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.36 active milestone route / starting from latest archived baseline = v1.35
-  default_next_command: $gsd-complete-milestone v1.36
-  latest_archived_evidence_pointer: .planning/reviews/V1_35_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.36
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_36_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
-## Latest Archived Milestone (v1.35)
+## Latest Archived Milestone (v1.36)
+
+**Phase range:** `126 -> 128`
+**Phases completed:** `3/3 phases, 7/7 plans, 0 tasks`
+**Status:** `archived / evidence-ready (2026-04-01)`
+**Route truth:** `no active milestone route / latest archived baseline = v1.36`
+**Latest archived baseline:** `v1.36`
+**Default next command:** `$gsd-new-milestone`
+**Route truth:** latest archived evidence index = `.planning/reviews/V1_36_EVIDENCE_INDEX.md`
+**Current audit artifact:** `.planning/v1.36-MILESTONE-AUDIT.md`
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.36`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.35`
+
+**Archived phase story:**
+
+- `Phase 126`: service-router developer callback-home convergence and diagnostics helper residual slimming ✅ (`126-01` diagnostics helper shell thinning + route bootstrap + focused/full verification complete)
+- `Phase 127`: runtime-access de-reflection, typed runtime entry contracts, and hotspot continuation ✅ (`127-01` typed telemetry seam + `127-02` support-view de-reflection + `127-03` focused/full verification and governance sync complete)
+- `Phase 128`: open-source readiness, benchmark-coverage gates, and maintainer continuity hardening ✅ (`128-01` readiness honesty / version-source / selector projection sync + `128-02` coverage baseline diff / artifacts + `128-03` benchmark smoke / strict markers / evidence freeze complete)
+
+**Archived accomplishments:**
+
+- 完成 `Phase 126 -> 128` 全部计划与 closeout bundle，形成 `v1.36` latest archived baseline 的可审计证据链。
+- diagnostics helper residual slimming、`runtime_access` typed/de-reflection seam、open-source readiness / benchmark-coverage / maintainer continuity hardening 已统一冻结为 archived evidence frozen 主线。
+- live selector docs、registry、evidence index 与 promoted phase bundles 现共同承认 no active milestone route；后续只能经 `$gsd-new-milestone` 重新开线。
+
+## Previous Archived Milestone (v1.35)
 
 **Phase range:** `122 -> 125`
 **Phases completed:** `4/4 phases, 16/16 plans, 0 tasks`

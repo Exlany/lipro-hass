@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `v1.36 active route / Phase 127 complete` (`2026-04-01`)
-> **Current route alignment**: `v1.36 active milestone route / starting from latest archived baseline = v1.35` (`2026-04-01`)
+> **Last aligned through**: `v1.36 archived closeout / Phase 128 complete` (`2026-04-01`)
+> **Current route alignment**: `no active milestone route / latest archived baseline = v1.36` (`2026-04-01`)
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
@@ -46,7 +46,7 @@
 
 - `custom_components/lipro/control/runtime_access.py` 已直接消费 typed `SystemHealthTelemetryView`；control-plane runtime snapshot 不再先 materialize stringly dict surrogate。
 - `custom_components/lipro/control/runtime_access_support_views.py` 已切回显式 member/helper narrowing；slot-backed ports 继续支持，但 `type(...).__getattribute__` 不再是正式主链。
-- `v1.36` 当前 live route 现为 `Phase 128 complete; closeout-ready`：runtime-access hotspot 已收口，readiness honesty / benchmark-coverage / continuity governance contract 也已冻结为里程碑 closeout evidence。
+- `v1.36` 已完成 milestone closeout 并前推为 latest archived baseline：runtime-access hotspot、readiness honesty、benchmark/coverage gates 与 continuity governance contract 现只作为 pull-only archived evidence 提供后续路线引用。
 
 ## Phase 126 Execution Notes
 

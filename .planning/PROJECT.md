@@ -1,10 +1,10 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** `Active milestone route`
-**Current route:** `v1.36 active milestone route / starting from latest archived baseline = v1.35`；latest archived evidence index = `.planning/reviews/V1_35_EVIDENCE_INDEX.md`.
-**Goal:** `在 v1.36 把终审 carry-forward residual 从 archived folklore 重新登记为显式 current story：Phase 126 已清掉 diagnostics helper family 的 duplicate mechanics 与 callback-home shadow，Phase 127 已完成 runtime_access de-reflection / typed telemetry seam，Phase 128 已把开源 readiness、benchmark/coverage gates 与 maintainer continuity gap 收束为诚实治理 contract，并把里程碑推进到 closeout-ready。`
-**Default next step:** `$gsd-complete-milestone v1.36`
-**Active baseline:** latest archived baseline = `v1.35`；previous archived baseline = `v1.34`.
+**Status:** `No active milestone route`
+**Current route:** `no active milestone route / latest archived baseline = v1.36`；latest archived evidence index = `.planning/reviews/V1_36_EVIDENCE_INDEX.md`.
+**Goal:** `v1.36 已完成完整归档：Phase 126 收口 diagnostics helper residual，Phase 127 冻结 runtime_access de-reflection / typed telemetry seam，Phase 128 把 open-source readiness、benchmark/coverage gates 与 maintainer continuity hardening 固化为 latest archived baseline 的 honest governance evidence chain。`
+**Default next step:** `$gsd-new-milestone`
+**Archived baseline chain:** latest archived baseline = `v1.36`；previous archived baseline = `v1.35`.
 
 <!-- governance-route-contract:start -->
 ```yaml
@@ -16,52 +16,48 @@ projection_targets:
 - .planning/REQUIREMENTS.md
 - .planning/STATE.md
 - .planning/MILESTONES.md
-active_milestone:
-  version: v1.36
-  name: Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening
-  status: active / phase 128 complete; closeout-ready (2026-04-01)
-  phase: '128'
-  phase_title: open-source readiness, benchmark-coverage gates, and maintainer continuity hardening
-  phase_dir: 128-open-source-readiness-benchmark-coverage-gates-and-maintainer-continuity-hardening
+active_milestone: null
 latest_archived:
-  version: v1.35
-  name: Master Audit Closure, Public Surface Finalization & Release Traceability
+  version: v1.36
+  name: Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source
+    Readiness Hardening
   status: archived / evidence-ready (2026-04-01)
-  phase: '125'
-  phase_title: terminal residual eradication, runtime-types decomposition, adapter final thinning, and machine-readable governance extraction
-  phase_dir: 125-terminal-residual-eradication-runtime-types-decomposition-adapter-final-thinning-and-machine-readable-governance-extraction
-  audit_path: .planning/v1.35-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_35_EVIDENCE_INDEX.md
+  phase: '128'
+  phase_title: open-source readiness, benchmark-coverage gates, and maintainer continuity
+    hardening
+  phase_dir: 128-open-source-readiness-benchmark-coverage-gates-and-maintainer-continuity-hardening
+  audit_path: .planning/v1.36-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_36_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.34
-  name: Terminal Audit Closure, Contract Hardening & Governance Truth Slimming
-  evidence_path: .planning/reviews/V1_34_EVIDENCE_INDEX.md
+  version: v1.35
+  name: Master Audit Closure, Public Surface Finalization & Release Traceability
+  evidence_path: .planning/reviews/V1_35_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.36 active milestone route / starting from latest archived baseline = v1.35
-  default_next_command: $gsd-complete-milestone v1.36
-  latest_archived_evidence_pointer: .planning/reviews/V1_35_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.36
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_36_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
-## Current Milestone (v1.36)
+## Latest Archived Milestone (v1.36)
 
 **Name:** `Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening`
 
-**Why it matters:** `v1.35` 虽已 archive promotion，但终审仍识别到三类 remaining concern：diagnostics helper shell 仍保留 duplicate mechanics / callback-home shadow、runtime_access 仍有 de-reflection 与 typed telemetry seam 未完全显式化、以及开源协作 readiness / benchmark / coverage / continuity 仍停留在审阅结论而非 live route contract。若继续停在 archived-only 叙事，这些问题会再次变成“非阻塞但没人负责”的灰区。`
+**Why it matters:** `v1.35` archive promotion 后识别出的三类 remaining concern 已在 `v1.36` 逐项完成 closeout：diagnostics helper shell 的 duplicate mechanics / callback-home shadow 已收口、runtime_access 的 de-reflection / typed telemetry seam 已冻结、开源协作 readiness / benchmark / coverage / continuity 也已从 review note 落成 archived proof。`
 
-**North-star fit:** `v1.36` 继续沿 single mainline / formal homes / honesty over folklore 推进：不把 archived v1.35 伪装成“全部问题已闭环”，而是把 remaining concern 分解成显式 phases，并保持 public surface 不变、helper mechanics inward 收口、runtime/control seam typed 化，以及治理 gap 诚实登记。`
+**North-star fit:** `v1.36` 沿 single mainline / formal homes / honesty over folklore 完成最终归档：不把 archived `v1.35` 伪装成“全部问题已闭环”，而是把 remaining concern 分解成显式 phases、完成 inward 收口与 typed seam 固化，最终落成 archived closeout truth。`
 
-**Current status:** `active / phase 128 complete; closeout-ready (2026-04-01)`
+**Current status:** `archived / evidence-ready (2026-04-01)`
 **Phase range:** `Phase 126 -> 128`
 **Starting baseline:** `.planning/v1.35-MILESTONE-AUDIT.md`, `.planning/reviews/V1_35_EVIDENCE_INDEX.md`, `.planning/milestones/v1.35-ROADMAP.md`, `.planning/milestones/v1.35-REQUIREMENTS.md`
 **Requirements basket:** `ARC-38, HOT-57, GOV-85, TST-48, QLT-50, DOC-15, ARC-39, HOT-58, TST-49, OSS-17, GOV-86, QLT-51`
-**Latest archived baseline:** `v1.35`
-**Latest archived pointer:** `.planning/reviews/V1_35_EVIDENCE_INDEX.md`
-**Latest archived audit artifact:** `.planning/v1.35-MILESTONE-AUDIT.md`
-**Default next command:** `$gsd-complete-milestone v1.36`
-**Current phase handoff:** `Phase 128 已完成 open-source readiness honesty contract、baseline-aware coverage diff gate、benchmark smoke / strict-marker governance 与 final evidence freeze；下一步应执行 milestone closeout。`
+**Latest archived baseline:** `v1.36`
+**Latest archived pointer:** `.planning/reviews/V1_36_EVIDENCE_INDEX.md`
+**Latest archived audit artifact:** `.planning/v1.36-MILESTONE-AUDIT.md`
+**Default next command:** `$gsd-new-milestone`
+**Current phase handoff:** `Milestone closeout complete；Phase 126 -> 128 的 summary / verification / audit / evidence index 已冻结为 archived evidence frozen，后续新路线应从 `$gsd-new-milestone` 开始。`
 
-## Latest Archived Milestone (v1.35)
+## Previous Archived Milestone (v1.35)
 
 **Name:** `Master Audit Closure, Public Surface Finalization & Release Traceability`
 

@@ -246,7 +246,7 @@ def test_runbook_and_pr_template_use_stable_pointer_family() -> None:
     assert stable_selector in pr_text
     for token in ('latest archived evidence index', 'latest archived milestone audit'):
         assert token in runbook_text
-    assert '.planning/v1.35-MILESTONE-AUDIT.md' in runbook_text
+    assert LATEST_ARCHIVED_AUDIT_PATH in runbook_text
     assert 'pull-only pointer' in pr_text
     assert 'hidden delegate' in pr_text or 'undocumented delegate' in pr_text
     assert '不暗示 hidden maintainer / undocumented delegate / repo-external continuity 已解决' in pr_text

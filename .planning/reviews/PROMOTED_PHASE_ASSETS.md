@@ -584,6 +584,25 @@ phases:
 - 125-05-SUMMARY.md
 - 125-SUMMARY.md
 - 125-VERIFICATION.md
+
+126-service-router-developer-callback-home-convergence-and-diagnostics-helper-residual-slimming:
+- 126-01-SUMMARY.md
+- 126-SUMMARY.md
+- 126-VERIFICATION.md
+127-runtime-access-de-reflection-typed-runtime-entry-contracts-and-hotspot-continuation:
+- 127-01-SUMMARY.md
+- 127-02-SUMMARY.md
+- 127-03-SUMMARY.md
+- 127-SUMMARY.md
+- 127-VERIFICATION.md
+- 127-VALIDATION.md
+128-open-source-readiness-benchmark-coverage-gates-and-maintainer-continuity-hardening:
+- 128-01-SUMMARY.md
+- 128-02-SUMMARY.md
+- 128-03-SUMMARY.md
+- 128-SUMMARY.md
+- 128-VERIFICATION.md
+- 128-VALIDATION.md
 policy:
   default_identity: execution-trace
   promotion_contract: Only assets listed under `phases` count as long-term governance/CI
