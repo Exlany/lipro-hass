@@ -20,33 +20,20 @@ from homeassistant.util import dt as dt_util
 from .. import firmware_manifest
 from ..const.base import DOMAIN
 from ..core import LiproApiError
-from ..core.ota.candidate import (
-    _OtaCandidate,
-    build_candidate,
-    consume_confirmation,
-    evaluate_install,
-    has_pending_confirmation,
-    project_candidate,
-)
-from ..core.ota.row_selector import (
-    OtaDeviceFingerprint,
-    OtaRow,
-    build_device_fingerprint,
-)
-from ..core.ota.rows_cache import (
-    OtaRowsCacheKey,
-    async_select_row_with_shared_cache,
-    build_ota_rows_cache_key,
-    normalize_ota_rows,
-)
+from ..core.ota.rows_cache import async_select_row_with_shared_cache, normalize_ota_rows
 from ..core.utils.log_safety import safe_error_placeholder
 from ..entities.base import LiproEntity
 from ..entities.firmware_update_support import (
+    FirmwareOtaCandidate,
+    FirmwareRefreshProjection,
     FirmwareStateAttributes,
     build_firmware_state_attributes,
-    clear_refresh_task,
+    build_ota_query_context,
+    build_refresh_projection,
     consume_wait_result,
     notify_ota_error_callback,
+    resolve_install_request,
+    resolve_refresh_task_outcome,
     should_refresh_ota,
 )
 
@@ -83,7 +70,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
     ) -> None:
         """Initialize firmware update entity."""
         super().__init__(coordinator, device, self._entity_suffix)
-        self._ota_candidate: _OtaCandidate | None = None
+        self._ota_candidate: FirmwareOtaCandidate = None
         self._last_ota_refresh = _TIME_MIN_UTC
         self._ota_refresh_task: asyncio.Task[None] | None = None
         self._on_error = on_error
@@ -122,7 +109,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         if task is not None and not task.done():
             task.cancel()
             result = await asyncio.gather(task, return_exceptions=True)
-            err = self._consume_wait_result(result[0])
+            err = consume_wait_result(result[0])
             if err is not None:
                 _LOGGER.debug(
                     "OTA refresh task failed during removal (%s)",
@@ -162,24 +149,24 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         """Refresh OTA state and return one validated install command payload."""
         await self._async_refresh_ota(force=True)
 
-        install_eval = evaluate_install(
-            self._ota_candidate,
+        install_decision = resolve_install_request(
+            ota_candidate=self._ota_candidate,
             requested_version=requested_version,
             confirm_until=self._unverified_confirm_until,
             now_monotonic=asyncio.get_running_loop().time(),
             confirmation_window_seconds=_UNVERIFIED_CONFIRM_WINDOW_SECONDS,
         )
-        self._unverified_confirm_until = install_eval.confirm_until
-        if install_eval.error_key is not None:
+        self._unverified_confirm_until = install_decision.confirm_until
+        if install_decision.error_key is not None:
             self._raise_install_error(
-                install_eval.error_key,
-                placeholders=install_eval.error_placeholders,
-            )
+                install_decision.error_key,
+                placeholders=install_decision.error_placeholders,
+        )
 
-        install_command = install_eval.install_command
-        if install_command is None:
-            raise self._build_translated_error("firmware_install_unsupported")
-        return install_command.command, install_command.properties
+        install_request = install_decision.request
+        if install_request is None:
+            self._raise_install_error("firmware_install_unsupported")
+        return install_request.command, install_request.properties
 
     def _raise_install_error(
         self,
@@ -229,29 +216,21 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
 
         task = self.hass.async_create_task(self._async_refresh_ota(force=force))
         self._ota_refresh_task = task
-        task.add_done_callback(self._async_finalize_refresh_task)
+        task.add_done_callback(self._handle_refresh_task_done)
 
-    def _async_finalize_refresh_task(self, task: asyncio.Task[None]) -> None:
+    def _handle_refresh_task_done(self, task: asyncio.Task[None]) -> None:
         """Finalize background OTA refresh task with observable error state."""
-        if self._ota_refresh_task is task:
-            self._ota_refresh_task = None
-
-        err = self._async_clear_refresh_task(task)
-        if err is None:
+        task_outcome = resolve_refresh_task_outcome(
+            active_task=self._ota_refresh_task,
+            completed_task=task,
+            logger=_LOGGER,
+        )
+        self._ota_refresh_task = task_outcome.active_task
+        if task_outcome.error is None:
             return
 
-        self._set_last_error(err)
+        self._set_last_error(task_outcome.error)
         self.async_write_ha_state()
-
-    @staticmethod
-    def _consume_wait_result(result: object) -> Exception | None:
-        """Normalize gather(return_exceptions=True) output into an exception."""
-        return consume_wait_result(result)
-
-    @staticmethod
-    def _async_clear_refresh_task(task: asyncio.Task[None]) -> Exception | None:
-        """Consume task exception to avoid warning logs."""
-        return clear_refresh_task(task, logger=_LOGGER)
 
     def _set_last_error(self, err: Exception) -> None:
         """Persist last async exception and notify optional observer."""
@@ -274,26 +253,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
             now=dt_util.utcnow,
         )
 
-    def _ota_rows_cache_key(self) -> OtaRowsCacheKey:
-        """Build a shared OTA rows cache key scoped by model-like identifiers."""
-        return build_ota_rows_cache_key(
-            self.runtime_coordinator,
-            device_type=self.device.device_type_hex,
-            iot_name=self.device.iot_name,
-            product_id=self.device.product_id,
-        )
-
-    def _ota_device_fingerprint(self) -> OtaDeviceFingerprint:
-        """Return the normalized fingerprint used for OTA row selection."""
-        return build_device_fingerprint(
-            serial=self.device.serial,
-            device_type=self.device.device_type_hex,
-            iot_name=self.device.iot_name,
-            product_id=self.device.product_id,
-            physical_model=self.device.physical_model,
-        )
-
-    async def _query_ota_rows_from_cloud(self) -> list[OtaRow]:
+    async def _query_ota_rows_from_cloud(self) -> list[dict[str, object]]:
         """Query OTA rows once and normalize unknown payload variants."""
         rows = await self.runtime_coordinator.async_query_device_ota_info(
             self.device,
@@ -306,13 +266,14 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         if not force and not self._should_refresh_ota():
             return
 
+        query_context = build_ota_query_context(self.runtime_coordinator, self.device)
         async with _OTA_REFRESH_SEMAPHORE:
             try:
                 selected_row = await async_select_row_with_shared_cache(
-                    self._ota_rows_cache_key(),
+                    query_context.cache_key,
                     fetcher=self._query_ota_rows_from_cloud,
                     now=dt_util.utcnow,
-                    fingerprint=self._ota_device_fingerprint(),
+                    fingerprint=query_context.fingerprint,
                 )
             except LiproApiError as err:
                 _LOGGER.debug(
@@ -324,28 +285,29 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
                 self.async_write_ha_state()
                 return
 
-            self._ota_candidate = build_candidate(
+            refresh_projection = build_refresh_projection(
                 selected_row,
                 device_firmware_version=self.device.network_info.firmware_version,
                 device_iot_name=self.device.iot_name,
                 local_manifest=firmware_manifest.load_verified_firmware_manifest(),
+                current_installed_version=self.device.network_info.firmware_version,
                 is_version_newer=self._is_version_newer,
             )
-            self._apply_ota_candidate()
+            self._apply_refresh_projection(refresh_projection)
             self._clear_last_error()
             self._last_ota_refresh = dt_util.utcnow()
             self.async_write_ha_state()
 
-    def _apply_ota_candidate(self) -> None:
-        """Apply candidate values to update-entity attributes."""
-        projection = project_candidate(
-            self._ota_candidate,
-            current_installed_version=self.device.network_info.firmware_version,
-        )
-        self._attr_release_summary = projection.release_summary
-        self._attr_release_url = projection.release_url
-        self._attr_installed_version = projection.installed_version
-        self._attr_latest_version = projection.latest_version
+    def _apply_refresh_projection(
+        self,
+        refresh_projection: FirmwareRefreshProjection,
+    ) -> None:
+        """Apply one normalized OTA refresh projection to entity fields."""
+        self._ota_candidate = refresh_projection.ota_candidate
+        self._attr_release_summary = refresh_projection.release_summary
+        self._attr_release_url = refresh_projection.release_url
+        self._attr_installed_version = refresh_projection.installed_version
+        self._attr_latest_version = refresh_projection.latest_version
 
     def _is_version_newer(self, candidate: str, current: str) -> bool:
         """Compare versions with HA helper, fallback to conservative False."""
@@ -359,22 +321,6 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
                 err,
             )
             return False
-
-    def _has_pending_unverified_confirmation(self) -> bool:
-        """Return True if unverified install confirmation is active."""
-        return has_pending_confirmation(
-            self._unverified_confirm_until,
-            now_monotonic=monotonic(),
-        )
-
-    def _consume_unverified_confirmation(self) -> bool:
-        """Consume current unverified confirmation window if still active."""
-        consumed, confirm_until = consume_confirmation(
-            self._unverified_confirm_until,
-            now_monotonic=monotonic(),
-        )
-        self._unverified_confirm_until = confirm_until
-        return consumed
 
     @staticmethod
     def _build_translated_error(

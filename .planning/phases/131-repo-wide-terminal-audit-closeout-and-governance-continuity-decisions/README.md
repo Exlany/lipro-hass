@@ -1,6 +1,6 @@
-# Phase 131 queued placeholder
+# Phase 131 planning-ready
 
-此目录作为当前 milestone route 的已登记 queued phase 占位符。
+此目录已从 queued placeholder 升级为 planning-ready phase workspace。
 
-- 当前状态：尚未执行 `$gsd-plan-phase`，因此没有 `CONTEXT` / `RESEARCH` / `PLAN` 资产。
-- 目的：让 governance / gsd fast-path / phase inventory 对已声明的后续 phase 保持单一可解析 truth。
+- 当前状态：`131-CONTEXT.md` 与 `131-RESEARCH.md` 已生成，下一步是 `$gsd-plan-phase 131`。
+- 目的：统一 repo-wide terminal audit closeout、最终审查报告、validation evidence 与 governance continuity decision boundary。

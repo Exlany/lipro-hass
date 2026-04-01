@@ -132,7 +132,7 @@ def test_gsd_fast_path_matches_current_archived_route_story() -> None:
 
     for phase_number in CURRENT_MILESTONE_PENDING_PHASES:
         phase_progress = _as_mapping(phase_by_number[phase_number])
-        assert _as_str(phase_progress["status"]) in {"pending", "not_started"}
+        assert _as_str(phase_progress["status"]) in {"pending", "not_started", "researched"}
         assert phase_progress["plan_count"] == CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE[phase_number]
         assert phase_progress["summary_count"] == CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE[phase_number]
 

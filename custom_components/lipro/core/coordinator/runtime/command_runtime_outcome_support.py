@@ -17,10 +17,16 @@ from ..types import (
     CommandTrace,
     ReauthCallback,
 )
-from .command_runtime_support import _CommandRequest
+from .command_runtime_support import _command_result_failure_details, _CommandRequest
 
 if TYPE_CHECKING:
-    from .command import CommandBuilder, ConfirmationManager
+    from ...device import LiproDevice
+    from .command import (
+        CommandBuilder,
+        CommandSender,
+        ConfirmationManager,
+        RetryStrategy,
+    )
 
 
 class RecordFailureCallback(Protocol):
@@ -71,6 +77,59 @@ def _record_command_result_failure(
             'device_id': device_serial,
         },
         error_type=error_type,
+    )
+
+
+def _handle_verify_delivery_result(
+    *,
+    verified: bool,
+    command_result_state: str | None,
+    trace: CommandTrace,
+    route: str,
+    device_serial: str,
+    record_failure: RecordFailureCallback,
+) -> bool:
+    """Finalize one verification result and record canonical failures when needed."""
+    if verified:
+        return True
+
+    reason, error_type = _command_result_failure_details(command_result_state)
+    _record_command_result_failure(
+        trace=trace,
+        route=route,
+        device_serial=device_serial,
+        reason=reason,
+        error_type=error_type,
+        record_failure=record_failure,
+    )
+    return False
+
+
+async def _verify_delivery(
+    *,
+    trace: CommandTrace,
+    route: str,
+    msg_sn: str,
+    device: LiproDevice,
+    sender: CommandSender,
+    retry: RetryStrategy,
+    record_failure: RecordFailureCallback,
+) -> bool:
+    """Verify delivery and normalize non-success outcomes through one helper."""
+    retry_delays = retry.build_retry_delays()
+    verified, command_result_state = await sender.verify_command_delivery(
+        msg_sn=msg_sn,
+        retry_delays=retry_delays,
+        trace=trace,
+        device=device,
+    )
+    return _handle_verify_delivery_result(
+        verified=verified,
+        command_result_state=command_result_state,
+        trace=trace,
+        route=route,
+        device_serial=device.serial,
+        record_failure=record_failure,
     )
 
 
@@ -151,6 +210,8 @@ async def _handle_api_error(
 __all__ = [
     '_finalize_success',
     '_handle_api_error',
+    '_handle_verify_delivery_result',
     '_record_command_result_failure',
     '_resolve_reauth_reason',
+    '_verify_delivery',
 ]

@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🚧 **v1.37 Repo-Wide Terminal Audit, Hotspot Decomposition & Governance Continuity Decisions** - `Phase 129 -> 131` active on 2026-04-01; current route truth = `v1.37 active milestone route / starting from latest archived baseline = v1.36`; phase handoff = `active / phase 129 complete; phase 130 planning-ready (2026-04-01)`; next step = `$gsd-plan-phase 130`
+- 🚧 **v1.37 Repo-Wide Terminal Audit, Hotspot Decomposition & Governance Continuity Decisions** - `Phase 129 -> 131` active on 2026-04-01; current route truth = `v1.37 active milestone route / starting from latest archived baseline = v1.36`; phase handoff = `active / phase 130 complete; phase 131 planning-ready (2026-04-01)`; next step = `$gsd-plan-phase 131`
 - ✅ **v1.36 Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening** - `Phase 126 -> 128` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.36`; evidence index = `.planning/reviews/V1_36_EVIDENCE_INDEX.md`
 - ✅ **v1.35 Master Audit Closure, Public Surface Finalization & Release Traceability** - `Phase 122 -> 125` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.35`; evidence index = `.planning/reviews/V1_35_EVIDENCE_INDEX.md`
 - ✅ **v1.34 Terminal Audit Closure, Contract Hardening & Governance Truth Slimming** - `Phase 120 -> 121` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.34`; evidence index = `.planning/reviews/V1_34_EVIDENCE_INDEX.md`
@@ -24,10 +24,10 @@ projection_targets:
 active_milestone:
   version: v1.37
   name: Repo-Wide Terminal Audit, Hotspot Decomposition & Governance Continuity Decisions
-  status: active / phase 129 complete; phase 130 planning-ready (2026-04-01)
-  phase: '129'
-  phase_title: rest fallback explicit-surface convergence and api hotspot slimming
-  phase_dir: 129-rest-fallback-explicit-surface-convergence-and-api-hotspot-slimming
+  status: active / phase 130 complete; phase 131 planning-ready (2026-04-01)
+  phase: '130'
+  phase_title: runtime command and firmware-update hotspot decomposition
+  phase_dir: 130-runtime-command-and-firmware-update-hotspot-decomposition
 latest_archived:
   version: v1.36
   name: Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source
@@ -47,7 +47,7 @@ previous_archived:
 bootstrap:
   current_route: v1.37 active milestone route / starting from latest archived baseline
     = v1.36
-  default_next_command: $gsd-plan-phase 130
+  default_next_command: $gsd-plan-phase 131
   latest_archived_evidence_pointer: .planning/reviews/V1_36_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -56,14 +56,14 @@ bootstrap:
 `v1.37` 以 archived baseline `v1.36` 为起点，先用 `Phase 129` 收口 `rest_facade.py` / `status_fallback_support.py` 的显式组合与 fallback hotspot，再用 `Phase 130` 继续 inward split `command_runtime.py` / `firmware_update.py` 的 multi-topic formal homes，最后由 `Phase 131` 固化 repo-wide terminal audit 报告、governance continuity decision boundary 与 final validation evidence。
 
 **Coverage:** `12/12` `v1.37` requirements mapped exactly once.
-**Default next command:** `$gsd-plan-phase 130`
+**Default next command:** `$gsd-plan-phase 131`
 
 ## Current Milestone
 
 ## v1.37: Repo-Wide Terminal Audit, Hotspot Decomposition & Governance Continuity Decisions
 
-**Milestone status:** `active / phase 129 complete; phase 130 planning-ready (2026-04-01)`
-**Default next command:** `$gsd-plan-phase 130`
+**Milestone status:** `active / phase 130 complete; phase 131 planning-ready (2026-04-01)`
+**Default next command:** `$gsd-plan-phase 131`
 **Current route story:** `v1.37 active milestone route / starting from latest archived baseline = v1.36`
 **Latest archived pointer:** `.planning/reviews/V1_36_EVIDENCE_INDEX.md`
 **Latest archived audit artifact:** `.planning/v1.36-MILESTONE-AUDIT.md`
@@ -73,7 +73,7 @@ bootstrap:
 ## Phases
 
 - [x] **Phase 129: rest fallback explicit-surface convergence and api hotspot slimming** - 已完成 `rest_facade.py` / `status_fallback_support.py` 的显式组合化瘦身、focused regression 冻结与 active-route sync。 (complete 2026-04-01)
-- [ ] **Phase 130: runtime command and firmware-update hotspot decomposition** - 继续 inward split `command_runtime.py` / `entities/firmware_update.py`，把 runtime/entity hotspot 压回更窄 policy/helper seams。
+- [x] **Phase 130: runtime command and firmware-update hotspot decomposition** - 已完成 `command_runtime.py` / `entities/firmware_update.py` 的 inward split、focused proof freeze 与 active-route/governance sync。 (complete 2026-04-01)
 - [ ] **Phase 131: repo-wide terminal audit closeout and governance continuity decisions** - 产出终极审阅报告、统一 current docs/governance truth，并把 external continuity/private-fallback debt 诚实 codify 为 decision boundary。
 
 ## Phase Details
@@ -100,7 +100,10 @@ bootstrap:
   1. `custom_components/lipro/core/coordinator/runtime/command_runtime.py` 的命令执行、失败摘要、trace/metrics 与确认协作边界更清晰，不再把多主题逻辑堆在同一 formal home 中。
   2. `custom_components/lipro/entities/firmware_update.py` 的 OTA/version/fallback 逻辑继续 inward decomposition，entity 保持 thin projection 而非隐性 second logic hub。
   3. Focused/full suites 会在 runtime/entity outward behavior 或 typed contract 漂移时直接失败。
-**Plans:** 0 plans
+**Plans:** 2/2 complete — `130-01` command runtime inward split / proof hardening、`130-02` firmware-update thin-shell / task-outcome tightening
+**Execution summaries**: `130-01-SUMMARY.md`, `130-02-SUMMARY.md`, `130-SUMMARY.md`
+**Verification**: `130-VERIFICATION.md`
+**Validation**: `130-VALIDATION.md`
 
 ### Phase 131: repo-wide terminal audit closeout and governance continuity decisions
 **Goal:** 以 v1.37 的 code/debt truth 为基础，产出 repo-wide terminal audit closeout：把全仓发现、热点排序、governance continuity 决策边界、开源不足与 validation evidence 统一为一条诚实 current story。

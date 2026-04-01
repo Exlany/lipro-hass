@@ -176,10 +176,10 @@
     "active_milestone": {
       "version": "v1.37",
       "name": "Repo-Wide Terminal Audit, Hotspot Decomposition & Governance Continuity Decisions",
-      "status": "active / phase 129 complete; phase 130 planning-ready (2026-04-01)",
-      "phase": "129",
-      "phase_title": "rest fallback explicit-surface convergence and api hotspot slimming",
-      "phase_dir": "129-rest-fallback-explicit-surface-convergence-and-api-hotspot-slimming"
+      "status": "active / phase 130 complete; phase 131 planning-ready (2026-04-01)",
+      "phase": "130",
+      "phase_title": "runtime command and firmware-update hotspot decomposition",
+      "phase_dir": "130-runtime-command-and-firmware-update-hotspot-decomposition"
     },
     "latest_archived": {
       "version": "v1.36",
@@ -199,7 +199,7 @@
     },
     "bootstrap": {
       "current_route": "v1.37 active milestone route / starting from latest archived baseline = v1.36",
-      "default_next_command": "$gsd-plan-phase 130",
+      "default_next_command": "$gsd-plan-phase 131",
       "latest_archived_evidence_pointer": ".planning/reviews/V1_36_EVIDENCE_INDEX.md"
     }
   }

@@ -1,10 +1,11 @@
-"""Internal request and failure helpers for the command runtime."""
+"""Internal request and dispatch/failure helpers for the command runtime."""
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 import logging
-from typing import TYPE_CHECKING, Literal, cast
+from typing import TYPE_CHECKING, Literal, Protocol, cast
 
 from ....runtime_types import CommandProperties
 from ...command.result import (
@@ -13,11 +14,37 @@ from ...command.result import (
     CommandFailurePayload,
     apply_missing_msg_sn_failure,
     apply_push_failure,
+    extract_msg_sn,
+    is_command_push_failed,
 )
-from ..types import CommandFailureSummary, CommandReauthReason, CommandTrace
+from ...command.trace import build_command_trace
+from ..types import (
+    CommandFailureSummary,
+    CommandReauthReason,
+    CommandTrace,
+    RuntimeMetrics,
+)
 
 if TYPE_CHECKING:
     from ...device import LiproDevice
+
+
+type IdentifierRedactor = Callable[[str | None], str | None]
+
+
+class RecordFailureCallback(Protocol):
+    """Persist one normalized failure summary through the owning runtime."""
+
+    def __call__(
+        self,
+        *,
+        trace: CommandTrace,
+        failure: CommandFailurePayload,
+        error_type: str | None,
+        reauth_reason: CommandReauthReason | None = None,
+    ) -> CommandFailureSummary:
+        """Store one normalized failure summary."""
+
 
 @dataclass(frozen=True, slots=True)
 class _CommandRequest:
@@ -27,6 +54,21 @@ class _CommandRequest:
     command: str
     properties: CommandProperties
     fallback_device_id: str | None
+
+
+def _build_request_trace(
+    *,
+    request: _CommandRequest,
+    redact_identifier: IdentifierRedactor,
+) -> CommandTrace:
+    """Build the canonical command trace for one request."""
+    return build_command_trace(
+        device=request.device,
+        command=request.command,
+        properties=request.properties,
+        fallback_device_id=request.fallback_device_id,
+        redact_identifier=redact_identifier,
+    )
 
 
 def _coerce_error_type(trace: CommandTrace) -> str | None:
@@ -87,6 +129,23 @@ def _build_failure_summary(
     return summary
 
 
+def _build_runtime_metrics(
+    *,
+    debug_enabled: bool,
+    trace_count: int,
+    last_failure: CommandFailureSummary | None,
+    confirmation_metrics: object,
+) -> RuntimeMetrics:
+    """Shape lightweight runtime telemetry for the owning runtime wrapper."""
+    confirmation = dict(confirmation_metrics) if isinstance(confirmation_metrics, dict) else {}
+    return {
+        'debug_enabled': debug_enabled,
+        'trace_count': trace_count,
+        'last_failure': _copy_summary(last_failure),
+        'confirmation': confirmation,
+    }
+
+
 def _build_push_delivery_failure(
     *,
     request: _CommandRequest,
@@ -123,13 +182,60 @@ def _build_missing_msg_sn_failure(
     )
 
 
+def _handle_command_dispatch_result(
+    *,
+    request: _CommandRequest,
+    result: object,
+    trace: CommandTrace,
+    route: str,
+    logger: logging.Logger,
+    record_failure: RecordFailureCallback,
+) -> str | None:
+    """Validate dispatch result and return one message serial number when present."""
+    if is_command_push_failed(result):
+        failure = _build_push_delivery_failure(
+            request=request,
+            trace=trace,
+            route=route,
+            logger=logger,
+        )
+        record_failure(
+            trace=trace,
+            failure=failure,
+            error_type=_coerce_error_type(trace),
+        )
+        return None
+
+    msg_sn = extract_msg_sn(result)
+    if msg_sn:
+        return msg_sn
+
+    failure = _build_missing_msg_sn_failure(
+        request=request,
+        trace=trace,
+        route=route,
+        logger=logger,
+    )
+    record_failure(
+        trace=trace,
+        failure=failure,
+        error_type=_coerce_error_type(trace),
+    )
+    return None
+
+
 __all__ = [
     'CommandProperties',
+    'IdentifierRedactor',
+    'RecordFailureCallback',
     '_CommandRequest',
     '_build_failure_summary',
     '_build_missing_msg_sn_failure',
     '_build_push_delivery_failure',
+    '_build_request_trace',
+    '_build_runtime_metrics',
     '_coerce_error_type',
     '_command_result_failure_details',
     '_copy_summary',
+    '_handle_command_dispatch_result',
 ]

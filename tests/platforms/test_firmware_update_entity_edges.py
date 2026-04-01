@@ -5,6 +5,9 @@ from __future__ import annotations
 from unittest.mock import patch
 
 from custom_components.lipro.entities.firmware_update import LiproFirmwareUpdateEntity
+from custom_components.lipro.entities.firmware_update_support import (
+    FirmwareRefreshProjection,
+)
 
 
 def test_handle_coordinator_update_refreshes_installed_version_and_schedules(
@@ -31,15 +34,23 @@ def test_handle_coordinator_update_refreshes_installed_version_and_schedules(
     super_update.assert_called_once()
 
 
-def test_apply_ota_candidate_clears_release_attributes_when_candidate_missing(
+def test_apply_refresh_projection_clears_release_attributes_when_candidate_missing(
     mock_coordinator, make_device
 ) -> None:
     entity = LiproFirmwareUpdateEntity(mock_coordinator, make_device("light"))
-    entity._ota_candidate = None
     entity._attr_release_summary = "old summary"
     entity._attr_release_url = "https://example.com/release"
 
-    entity._apply_ota_candidate()
+    entity._apply_refresh_projection(
+        FirmwareRefreshProjection(
+            ota_candidate=None,
+            installed_version=entity.installed_version,
+            latest_version=entity.latest_version,
+            release_summary=None,
+            release_url=None,
+        )
+    )
 
+    assert entity._ota_candidate is None
     assert entity.release_summary is None
     assert entity.release_url is None

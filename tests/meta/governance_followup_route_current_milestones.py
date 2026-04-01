@@ -139,14 +139,20 @@ def test_current_requirements_traceability_and_coverage_stay_in_sync() -> None:
             "- [x] **HOT-59**",
             "- [x] **TST-50**",
             "- [x] **QLT-52**",
+            "- [x] **ARC-41**",
+            "- [x] **HOT-60**",
+            "- [x] **TST-51**",
             "| ARC-40 | Phase 129 | Complete |",
             "| HOT-59 | Phase 129 | Complete |",
             "| TST-50 | Phase 129 | Complete |",
             "| QLT-52 | Phase 129 | Complete |",
+            "| ARC-41 | Phase 130 | Complete |",
+            "| HOT-60 | Phase 130 | Complete |",
+            "| TST-51 | Phase 130 | Complete |",
             "- v1.37 requirements: 12 total",
             "- Mapped to phases: 12",
-            "- Complete: 4",
-            "- Pending: 8",
+            "- Complete: 7",
+            "- Pending: 5",
         )
         return
 

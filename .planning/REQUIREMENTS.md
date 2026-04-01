@@ -13,10 +13,10 @@ projection_targets:
 active_milestone:
   version: v1.37
   name: Repo-Wide Terminal Audit, Hotspot Decomposition & Governance Continuity Decisions
-  status: active / phase 129 complete; phase 130 planning-ready (2026-04-01)
-  phase: '129'
-  phase_title: rest fallback explicit-surface convergence and api hotspot slimming
-  phase_dir: 129-rest-fallback-explicit-surface-convergence-and-api-hotspot-slimming
+  status: active / phase 130 complete; phase 131 planning-ready (2026-04-01)
+  phase: '130'
+  phase_title: runtime command and firmware-update hotspot decomposition
+  phase_dir: 130-runtime-command-and-firmware-update-hotspot-decomposition
 latest_archived:
   version: v1.36
   name: Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source
@@ -36,22 +36,22 @@ previous_archived:
 bootstrap:
   current_route: v1.37 active milestone route / starting from latest archived baseline
     = v1.36
-  default_next_command: $gsd-plan-phase 130
+  default_next_command: $gsd-plan-phase 131
   latest_archived_evidence_pointer: .planning/reviews/V1_36_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 ## Current Milestone (v1.37)
 
 **Milestone Goal:** 基于 `v1.36` latest archived baseline，先完成一次不遗漏 Python/docs/config/governance 切面的 repo-wide terminal audit，再把首批 repo-internal hotspots（REST fallback / runtime-command / firmware-update）继续 inward decomposition，最后把 open-source continuity / private fallback reality 诚实固化为治理决策边界与最终审阅报告。
-**Milestone status:** `active / phase 129 complete; phase 130 planning-ready (2026-04-01)`
+**Milestone status:** `active / phase 130 complete; phase 131 planning-ready (2026-04-01)`
 **Current route mode:** `v1.37 active milestone route / starting from latest archived baseline = v1.36`
 **Starting baseline:** `.planning/v1.36-MILESTONE-AUDIT.md, .planning/reviews/V1_36_EVIDENCE_INDEX.md, .planning/milestones/v1.36-ROADMAP.md, .planning/milestones/v1.36-REQUIREMENTS.md`
 **Requirements basket:** `AUD-06, ARC-40, HOT-59, TST-50, QLT-52, ARC-41, HOT-60, TST-51, GOV-87, DOC-16, OSS-18, QLT-53`
 **Latest archived baseline:** `v1.36`
 **Archive pointer:** `.planning/reviews/V1_36_EVIDENCE_INDEX.md`
 **Latest archived audit artifact:** `.planning/v1.36-MILESTONE-AUDIT.md`
-**Default next command:** `$gsd-plan-phase 130`
-**Current phase handoff:** `Phase 129 已完成 REST fallback / rest_facade hotspot 第一波 inward convergence；下一步进入 Phase 130 planning，继续推进 runtime/entity hotspot 与最终审阅 closeout。`
+**Default next command:** `$gsd-plan-phase 131`
+**Current phase handoff:** `Phase 130 已完成 runtime/entity hotspot inward split；下一步进入 Phase 131 planning，统一 repo-wide audit closeout、governance continuity decisions 与最终审查报告。`
 
 ### Audit & Governance
 - [ ] **AUD-06**: 必须完成一次 repo-wide terminal audit，覆盖全部 Python/docs/config/governance 切面，并把问题、优先级、证据与 phase mapping 落到单一当前真源，避免再依赖零散 phase folklore。
@@ -62,13 +62,13 @@ bootstrap:
 ### Architecture & Hotspots
 - [x] **ARC-40**: `custom_components/lipro/core/api/rest_facade.py` 已压低 metaprogramming / generic delegation 负担，显式组合与 façade surface 更易审阅，动态 helper 魔法不再承担正式读写路径。
 - [x] **HOT-59**: `custom_components/lipro/core/api/status_fallback_support.py` 已进一步 slimming：binary-split fallback setup、context 与 primary-query path 更清晰，且未长出第二条 API/query 故事线。
-- [ ] **ARC-41**: `custom_components/lipro/core/coordinator/runtime/command_runtime.py` 与 `custom_components/lipro/entities/firmware_update.py` 必须继续 inward split，把多主题逻辑压回更窄 helper/policy seams，同时保持单一正式主链与 typed contract。
-- [ ] **HOT-60**: 新一轮 hotspot burn-down 必须优先处理 currently sanctioned formal homes 中仍然过重的 multi-topic files，至少冻结 `command_runtime.py` / `firmware_update.py` 的 no-regrowth 方向与下一波拆分边界。
+- [x] **ARC-41**: `custom_components/lipro/core/coordinator/runtime/command_runtime.py` 与 `custom_components/lipro/entities/firmware_update.py` 必须继续 inward split，把多主题逻辑压回更窄 helper/policy seams，同时保持单一正式主链与 typed contract。
+- [x] **HOT-60**: 新一轮 hotspot burn-down 必须优先处理 currently sanctioned formal homes 中仍然过重的 multi-topic files，至少冻结 `command_runtime.py` / `firmware_update.py` 的 no-regrowth 方向与下一波拆分边界。
 
 ### Testing & Quality
 - [x] **TST-50**: `rest_facade.py` / `status_fallback_support.py` touched scope 已补齐 focused regressions，显式 surface 收口与 fallback 行为未回退。
 - [x] **QLT-52**: touched hotspot 已移除 generic delegation helper 对正式 surface 的遮蔽；虽然 formal home 仍保留体量，但职责边界、测试锚点与命名已更直接稳定。
-- [ ] **TST-51**: `command_runtime.py` / `firmware_update.py` 的后续 decomposition 必须由 focused/full suites 保驾护航，防止 runtime/entity 行为在 inward split 后漂移。
+- [x] **TST-51**: `command_runtime.py` / `firmware_update.py` 的后续 decomposition 必须由 focused/full suites 保驾护航，防止 runtime/entity 行为在 inward split 后漂移。
 - [ ] **QLT-53**: 本轮 closeout 前必须形成可验证的终审证据链：repo-wide audit summary、hotspot ranking、phase completion 与 validation 结果在 planning docs / tests / final report 中讲同一条 current story。
 
 ## Traceability for active v1.37 route
@@ -83,16 +83,16 @@ bootstrap:
 | HOT-59 | Phase 129 | Complete |
 | TST-50 | Phase 129 | Complete |
 | QLT-52 | Phase 129 | Complete |
-| ARC-41 | Phase 130 | Planned |
-| HOT-60 | Phase 130 | Planned |
-| TST-51 | Phase 130 | Planned |
+| ARC-41 | Phase 130 | Complete |
+| HOT-60 | Phase 130 | Complete |
+| TST-51 | Phase 130 | Complete |
 | QLT-53 | Phase 131 | Planned |
 
 **Coverage:**
 - v1.37 requirements: 12 total
 - Mapped to phases: 12
-- Complete: 4
-- Pending: 8
+- Complete: 7
+- Pending: 5
 - Unmapped: 0 ✓
 
 ## Latest Archived Milestone (v1.36)

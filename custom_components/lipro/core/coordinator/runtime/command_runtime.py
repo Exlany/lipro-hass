@@ -3,16 +3,10 @@
 from __future__ import annotations
 
 from collections import deque
-from collections.abc import Callable
 import logging
 from typing import TYPE_CHECKING, cast
 
-from ...command.result import (
-    CommandFailurePayload,
-    extract_msg_sn,
-    is_command_push_failed,
-)
-from ...command.trace import build_command_trace
+from ...command.result import CommandFailurePayload
 from ...utils.redaction import redact_identifier as _redact_identifier
 from ..types import (
     CommandFailureSummary,
@@ -26,17 +20,17 @@ from .command.sender import CommandDispatchApiError
 from .command_runtime_outcome_support import (
     _finalize_success as _finalize_success_support,
     _handle_api_error as _handle_api_error_support,
-    _record_command_result_failure as _record_command_result_failure_support,
+    _verify_delivery as _verify_delivery_support,
 )
 from .command_runtime_support import (
     CommandProperties,
+    IdentifierRedactor,
     _build_failure_summary,
-    _build_missing_msg_sn_failure,
-    _build_push_delivery_failure,
-    _coerce_error_type,
-    _command_result_failure_details,
+    _build_request_trace,
+    _build_runtime_metrics,
     _CommandRequest,
     _copy_summary,
+    _handle_command_dispatch_result as _handle_command_dispatch_result_support,
 )
 
 if TYPE_CHECKING:
@@ -50,8 +44,6 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 _MAX_TRACES = 100
-
-type IdentifierRedactor = Callable[[str | None], str | None]
 
 
 class CommandRuntime:
@@ -99,15 +91,12 @@ class CommandRuntime:
 
     def get_runtime_metrics(self) -> RuntimeMetrics:
         """Return lightweight command-runtime telemetry."""
-        confirmation_metrics: object = self._confirmation.get_runtime_metrics()
-        if not isinstance(confirmation_metrics, dict):
-            confirmation_metrics = {}
-        return {
-            'debug_enabled': self._debug_mode,
-            'trace_count': len(self._traces),
-            'last_failure': self.last_command_failure_summary,
-            'confirmation': confirmation_metrics,
-        }
+        return _build_runtime_metrics(
+            debug_enabled=self._debug_mode,
+            trace_count=len(self._traces),
+            last_failure=self._last_failure_summary,
+            confirmation_metrics=self._confirmation.get_runtime_metrics(),
+        )
 
     def _record_trace(self, trace: CommandTrace) -> None:
         """Record trace if debug enabled."""
@@ -178,11 +167,8 @@ class CommandRuntime:
 
     def _build_trace_for_request(self, request: _CommandRequest) -> CommandTrace:
         """Build the canonical command trace for one request."""
-        return build_command_trace(
-            device=request.device,
-            command=request.command,
-            properties=request.properties,
-            fallback_device_id=request.fallback_device_id,
+        return _build_request_trace(
+            request=request,
             redact_identifier=self._redact_identifier,
         )
 
@@ -195,18 +181,13 @@ class CommandRuntime:
         route: str,
     ) -> str | None:
         """Validate the dispatch-stage result and return its message serial number."""
-        if is_command_push_failed(result):
-            self._record_push_delivery_failure(
-                request=request,
-                trace=trace,
-                route=route,
-            )
-            return None
-        return self._extract_msg_sn_or_record_failure(
+        return _handle_command_dispatch_result_support(
             request=request,
             result=result,
             trace=trace,
             route=route,
+            logger=_LOGGER,
+            record_failure=self._record_failure,
         )
 
     async def _verify_delivery_and_finalize(
@@ -263,52 +244,6 @@ class CommandRuntime:
             )
             return None, err.route
 
-    def _record_push_delivery_failure(
-        self,
-        *,
-        request: _CommandRequest,
-        trace: CommandTrace,
-        route: str,
-    ) -> None:
-        """Record one push-stage command failure."""
-        failure = _build_push_delivery_failure(
-            request=request,
-            trace=trace,
-            route=route,
-            logger=_LOGGER,
-        )
-        self._record_failure(
-            trace=trace,
-            failure=failure,
-            error_type=_coerce_error_type(trace),
-        )
-
-    def _extract_msg_sn_or_record_failure(
-        self,
-        *,
-        request: _CommandRequest,
-        result: object,
-        trace: CommandTrace,
-        route: str,
-    ) -> str | None:
-        """Return one message serial number or record the canonical missing-msg failure."""
-        msg_sn = extract_msg_sn(result)
-        if msg_sn:
-            return msg_sn
-
-        failure = _build_missing_msg_sn_failure(
-            request=request,
-            trace=trace,
-            route=route,
-            logger=_LOGGER,
-        )
-        self._record_failure(
-            trace=trace,
-            failure=failure,
-            error_type=_coerce_error_type(trace),
-        )
-        return None
-
     async def _execute_device_command(
         self,
         *,
@@ -349,25 +284,15 @@ class CommandRuntime:
         device: LiproDevice,
     ) -> bool:
         """Verify command delivery via polling and normalize non-success outcomes."""
-        retry_delays = self._retry.build_retry_delays()
-        verified, command_result_state = await self._sender.verify_command_delivery(
-            msg_sn=msg_sn,
-            retry_delays=retry_delays,
-            trace=trace,
-            device=device,
-        )
-        if verified:
-            return True
-        reason, error_type = _command_result_failure_details(command_result_state)
-        _record_command_result_failure_support(
+        return await _verify_delivery_support(
             trace=trace,
             route=route,
-            device_serial=device.serial,
-            reason=reason,
-            error_type=error_type,
+            msg_sn=msg_sn,
+            device=device,
+            sender=self._sender,
+            retry=self._retry,
             record_failure=self._record_failure,
         )
-        return False
 
     def _clear_failure_state(self) -> None:
         """Clear the latest failure snapshot after a successful command."""

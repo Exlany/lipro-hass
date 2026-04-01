@@ -13,6 +13,9 @@ from custom_components.lipro.core import LiproApiError
 from custom_components.lipro.core.ota import rows_cache
 from custom_components.lipro.entities import firmware_update as firmware_update_module
 from custom_components.lipro.entities.firmware_update import LiproFirmwareUpdateEntity
+from custom_components.lipro.entities.firmware_update_support import (
+    resolve_refresh_task_outcome,
+)
 from homeassistant.util import dt as dt_util
 
 
@@ -133,13 +136,13 @@ def test_schedule_ota_refresh_creates_task_and_registers_done_callback(
     assert asyncio.iscoroutine(scheduled_coro)
     scheduled_coro.close()
     created_task.add_done_callback.assert_called_once_with(
-        entity._async_finalize_refresh_task
+        entity._handle_refresh_task_done
     )
     assert entity._ota_refresh_task is created_task
 
 
 @pytest.mark.asyncio
-async def test_async_finalize_refresh_task_returns_early_when_no_error(
+async def test_handle_refresh_task_done_returns_early_when_no_error(
     mock_coordinator, make_device
 ) -> None:
     entity = LiproFirmwareUpdateEntity(mock_coordinator, make_device("light"))
@@ -153,20 +156,26 @@ async def test_async_finalize_refresh_task_returns_early_when_no_error(
         await task
         entity._ota_refresh_task = task
 
-        entity._async_finalize_refresh_task(task)
+        entity._handle_refresh_task_done(task)
 
     assert _read_ota_refresh_task(entity) is None
     write_state.assert_not_called()
 
 
 @pytest.mark.asyncio
-async def test_async_clear_refresh_task_returns_none_for_success() -> None:
+async def test_resolve_refresh_task_outcome_returns_none_for_success() -> None:
     async def _ok() -> None:
         return None
 
     task = asyncio.create_task(_ok())
     await task
-    assert LiproFirmwareUpdateEntity._async_clear_refresh_task(task) is None
+    outcome = resolve_refresh_task_outcome(
+        active_task=task,
+        completed_task=task,
+        logger=MagicMock(),
+    )
+    assert outcome.active_task is None
+    assert outcome.error is None
 
 
 def test_set_last_error_without_callback_only_stores_error(

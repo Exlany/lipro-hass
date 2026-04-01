@@ -7,8 +7,10 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
+from . import test_command_runtime_support as _support_fixtures
 from .test_command_runtime_support import (
     COMMAND_RESULT_STATE_FAILED,
+    COMMAND_RESULT_STATE_PENDING,
     CommandDispatchApiError,
     CommandRuntime,
     CommandSender,
@@ -16,7 +18,30 @@ from .test_command_runtime_support import (
     LiproAuthError,
 )
 
-pytest_plugins = ("tests.core.coordinator.runtime.test_command_runtime_support",)
+
+@pytest.fixture(name="mock_client")
+def _mock_client_fixture():
+    return _support_fixtures.mock_client.__wrapped__()
+
+
+@pytest.fixture(name="mock_device")
+def _mock_device_fixture():
+    return _support_fixtures.mock_device.__wrapped__()
+
+
+@pytest.fixture(name="confirmation_tracker")
+def _confirmation_tracker_fixture():
+    return _support_fixtures.confirmation_tracker.__wrapped__()
+
+
+@pytest.fixture(name="runtime_deps")
+def _runtime_deps_fixture(mock_client, confirmation_tracker):
+    return _support_fixtures.runtime_deps.__wrapped__(mock_client, confirmation_tracker)
+
+
+@pytest.fixture(name="command_runtime")
+def _command_runtime_fixture(runtime_deps):
+    return _support_fixtures.command_runtime.__wrapped__(runtime_deps)
 
 class TestCommandRuntime:
     """Test CommandRuntime orchestrator."""
@@ -102,6 +127,14 @@ class TestCommandRuntime:
             assert success is False
             assert _route == "iot"
             assert command_runtime._last_failure is not None
+            assert command_runtime.last_command_failure_summary == {
+                "reason": "command_result_unconfirmed",
+                "code": "command_result_missing_msgsn",
+                "route": "iot",
+                "device_id": mock_device.serial,
+                "error_type": "CommandResultMissingMsgSn",
+                "failure_category": "protocol",
+            }
 
     @pytest.mark.asyncio
     async def test_send_device_command_api_error(
@@ -219,6 +252,39 @@ class TestCommandRuntime:
             }
 
     @pytest.mark.asyncio
+    async def test_send_device_command_command_result_unconfirmed_sets_summary(
+        self, command_runtime, mock_device
+    ):
+        """Unconfirmed verification should publish the canonical timeout-ish summary."""
+        with (
+            patch.object(command_runtime._sender, "send_command") as mock_send,
+            patch.object(
+                command_runtime._sender,
+                "verify_command_delivery",
+                new=AsyncMock(return_value=(False, COMMAND_RESULT_STATE_PENDING)),
+            ),
+        ):
+            mock_send.return_value = ({"pushSuccess": True, "msgSn": "12345"}, "iot")
+
+            success, route = await command_runtime.send_device_command(
+                device=mock_device,
+                command="POWER_ON",
+                properties=None,
+                fallback_device_id=None,
+            )
+
+            assert success is False
+            assert route == "iot"
+            assert command_runtime.last_command_failure_summary == {
+                "reason": "command_result_unconfirmed",
+                "code": "command_result_unconfirmed",
+                "route": "iot",
+                "device_id": mock_device.serial,
+                "error_type": "CommandResultUnconfirmed",
+                "failure_category": "protocol",
+            }
+
+    @pytest.mark.asyncio
     async def test_send_device_command_success_flow(
         self, command_runtime, mock_device, runtime_deps
     ):
@@ -227,7 +293,7 @@ class TestCommandRuntime:
             mock_send.return_value = ({"pushSuccess": True, "msgSn": "12345"}, "iot")
 
             with patch.object(command_runtime, "_verify_delivery") as mock_verify:
-                mock_verify.return_value = (True, None)
+                mock_verify.return_value = True
 
                 success, route = await command_runtime.send_device_command(
                     device=mock_device,
@@ -295,7 +361,7 @@ class TestCommandRuntime:
             mock_send.return_value = ({"pushSuccess": True, "msgSn": "12345"}, "iot")
 
             with patch.object(runtime, "_verify_delivery") as mock_verify:
-                mock_verify.return_value = (True, None)
+                mock_verify.return_value = True
 
                 success, route = await runtime.send_device_command(
                     device=mock_device,

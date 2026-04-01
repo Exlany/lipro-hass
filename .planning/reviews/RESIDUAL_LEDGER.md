@@ -8,6 +8,12 @@ _None currently registered._
 
 > **Phase 88 freeze note:** 这里的 zero-active posture 是显式 closeout verdict，而不是尚未清点完成的空白。若未来出现新 residual，必须以新的 family 重新登记 owner、exit condition 与 evidence。
 
+## Phase 130 Residual Delta
+
+- `Phase 130` 未新增 active residual family；`command_runtime.py` 与 `entities/firmware_update.py` 的 sanctioned hotspot 已继续 inward slimming，并通过 focused runtime/firmware/OTA/meta proofs 冻结住当前收口结果。
+- `command_runtime.py` 继续保持 formal runtime orchestration home，`firmware_update.py` 继续保持 protected thin OTA projection shell；新增 support helpers 只是 inward seam，不是新的 residual backdoor。
+- 当前 remaining live concern 已收束到 `Phase 131`：repo-wide terminal audit closeout、final report synthesis 与 governance continuity decision boundary 仍待最终 codify；`131-CONTEXT.md` / `131-RESEARCH.md` 已就位，route truth 不再停在 Phase 130 placeholder。
+
 ## Phase 129 Residual Delta
 
 - `Phase 129` 未新增 active residual family；`rest_facade.py` 与 `status_fallback_support.py` 的 sanctioned hotspot 已继续 inward slimming，并通过 focused regressions / meta guards 冻结住当前收口结果。

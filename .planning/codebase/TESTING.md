@@ -30,7 +30,7 @@ uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro 
 **Location:**
 - Tests live in a dedicated `tests/` tree, not beside production files.
 - Current topology is broad and intentional: `tests/core`, `tests/services`, `tests/flows`, `tests/platforms`, `tests/entities`, `tests/meta`, `tests/integration`, `tests/snapshots`, `tests/benchmarks`, `tests/harness`, and `tests/fixtures`.
-- Repository counts from current scanning: `417` Python files under `tests`, `334` runnable `test_*.py` files, `76` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
+- Repository counts from current scanning: `418` Python files under `tests`, `335` runnable `test_*.py` files, `76` meta suites, `5` integration suites, `5` snapshot suites, `5` benchmark suites, and `5` fixture family READMEs.
 
 **Naming:**
 - Use `test_*.py` everywhere.
@@ -52,6 +52,13 @@ tests/
 ├── fixtures/
 └── harness/
 ```
+
+## Phase 130 Execution Freeze
+
+- `tests/core/coordinator/runtime/test_command_runtime_support_helpers.py`、`tests/core/coordinator/runtime/test_command_runtime_orchestration.py`、`tests/core/coordinator/runtime/test_command_runtime_outcome_support.py` 与 `tests/core/coordinator/runtime/test_runtime_telemetry_methods.py` 共同冻结 `command_runtime.py` 的 request-trace、dispatch normalization、verify/finalize 与 telemetry slimmed seams。
+- `tests/platforms/test_update_install_flow.py`、`tests/platforms/test_update_background_tasks.py`、`tests/platforms/test_update_task_callback.py`、`tests/platforms/test_update_entity_refresh.py` 与 `tests/platforms/test_firmware_update_entity_edges.py` 共同冻结 `firmware_update.py` 的 install/task/query/projection inward split。
+- `tests/core/ota/test_ota_candidate.py`、`tests/core/ota/test_ota_rows_cache.py`、`tests/core/ota/test_ota_row_selector.py` 与 `tests/core/ota/test_firmware_manifest.py` 继续守住 OTA candidate / cache / selector / local-manifest authority，不让 entity-side refactor 反向改写真源。
+- `tests/meta/test_phase95_hotspot_decomposition_guards.py`、`tests/meta/test_phase99_runtime_hotspot_support_guards.py`、`tests/meta/test_phase111_runtime_boundary_guards.py`、`tests/meta/test_phase113_hotspot_assurance_guards.py` 与 `tests/meta/test_phase71_hotspot_route_guards.py` 共同冻结 predecessor visibility、runtime/entity boundary、hotspot budget 与 route continuity；`uv run ruff check .`、`uv run python scripts/check_file_matrix.py --check` 与 isolated `gsd-tools` fast-path 共同构成 Phase 130 exit proof。
 
 ## Phase 129 Execution Freeze
 

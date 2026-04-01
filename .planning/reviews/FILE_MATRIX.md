@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 760
+**Python files total:** 761
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -147,9 +147,9 @@
 | `custom_components/lipro/core/coordinator/runtime/command/confirmation.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/command/retry.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/command/sender.py` | Runtime | Phase 5 | 重构 | - |
-| `custom_components/lipro/core/coordinator/runtime/command_runtime.py` | Runtime | Phase 90 | 重构 | formal command-runtime orchestration home with inward trace / failure helpers and support-backed request / failure helpers |
-| `custom_components/lipro/core/coordinator/runtime/command_runtime_outcome_support.py` | Runtime | Phase 104 | 保留 | command-runtime localized outcome support collaborator |
-| `custom_components/lipro/core/coordinator/runtime/command_runtime_support.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 | 保留 | command-runtime local request/summary support collaborator |
+| `custom_components/lipro/core/coordinator/runtime/command_runtime.py` | Runtime | Phase 90 / 130 | 重构 | formal command-runtime orchestration home with thin-root trace / dispatch / verify wrappers over localized support helpers |
+| `custom_components/lipro/core/coordinator/runtime/command_runtime_outcome_support.py` | Runtime | Phase 104 / 130 | 保留 | command-runtime localized outcome / verification support collaborator |
+| `custom_components/lipro/core/coordinator/runtime/command_runtime_support.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 / 130 | 保留 | command-runtime local request / dispatch-normalization / summary support collaborator |
 | `custom_components/lipro/core/coordinator/runtime/device/__init__.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/device/batch_optimizer.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/device/filter.py` | Runtime | Phase 5 | 重构 | - |
@@ -282,8 +282,8 @@
 | `custom_components/lipro/entities/base.py` | Domain | Phase 90 | 保留 | protected thin entity command / state projection shell |
 | `custom_components/lipro/entities/commands.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/entities/descriptors.py` | Domain | Phase 4 | 保留 | - |
-| `custom_components/lipro/entities/firmware_update.py` | Domain | Phase 90 | 保留 | protected thin OTA projection shell after runtime-boundary tightening |
-| `custom_components/lipro/entities/firmware_update_support.py` | Domain | Phase 4 | 保留 | - |
+| `custom_components/lipro/entities/firmware_update.py` | Domain | Phase 90 / 130 | 保留 | protected thin OTA projection shell over support-backed install / query / refresh seams |
+| `custom_components/lipro/entities/firmware_update_support.py` | Domain | Phase 4 / 130 | 保留 | firmware-update install / query-context / refresh-projection / task-outcome support collaborator |
 | `custom_components/lipro/entry_auth.py` | Cross-cutting | Phase 112 / 124 / 125 | 保留 | config-entry auth/bootstrap formal home + persisted auth-seed single-source + token persistence truth |
 | `custom_components/lipro/entry_options.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/fan.py` | Domain | Phase 4 | 保留 | - |
@@ -433,7 +433,8 @@
 | `tests/core/coordinator/runtime/test_command_runtime_orchestration.py` | Runtime | Phase 5 / 6 / 74 | 保留 | CommandRuntime orchestration topic home |
 | `tests/core/coordinator/runtime/test_command_runtime_outcome_support.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/runtime/test_command_runtime_sender.py` | Runtime | Phase 5 / 6 / 74 | 保留 | CommandRuntime sender topic home |
-| `tests/core/coordinator/runtime/test_command_runtime_support.py` | Runtime | Phase 5 / 6 / 74 | 保留 | shared helper root for CommandRuntime topicized suites |
+| `tests/core/coordinator/runtime/test_command_runtime_support.py` | Runtime | Phase 5 / 6 / 74 | 保留 | shared fixture root for CommandRuntime topicized suites |
+| `tests/core/coordinator/runtime/test_command_runtime_support_helpers.py` | Runtime | Phase 130 | 保留 | direct support-helper topic suite for CommandRuntime seams |
 | `tests/core/coordinator/runtime/test_device_runtime.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/runtime/test_mqtt_runtime.py` | Runtime | Phase 5 / 6 / 85 / 87 | 保留 | thin shell after MQTT runtime hotspot topicization |
 | `tests/core/coordinator/runtime/test_mqtt_runtime_connection.py` | Runtime | Phase 5 / 6 | 保留 | - |
@@ -727,7 +728,7 @@
 | `tests/platforms/test_fan.py` | Domain | Phase 4 | 保留 | thin shell after fan topic extraction |
 | `tests/platforms/test_fan_entity_behavior.py` | Domain | Phase 4 | 保留 | - |
 | `tests/platforms/test_fan_model_and_commands.py` | Domain | Phase 4 | 保留 | - |
-| `tests/platforms/test_firmware_update_entity_edges.py` | Domain | Phase 4 / 49 | 保留 | edge-branch shell after topic extraction |
+| `tests/platforms/test_firmware_update_entity_edges.py` | Domain | Phase 4 / 49 / 130 | 保留 | edge / projection shell suite after firmware-update inward split |
 | `tests/platforms/test_light.py` | Domain | Phase 4 | 保留 | thin shell after light topic extraction |
 | `tests/platforms/test_light_entity_additional_coverage.py` | Domain | Phase 4 | 保留 | - |
 | `tests/platforms/test_light_entity_behavior.py` | Domain | Phase 4 | 保留 | - |
@@ -743,11 +744,11 @@
 | `tests/platforms/test_switch_behavior.py` | Domain | Phase 4 | 保留 | - |
 | `tests/platforms/test_switch_models.py` | Domain | Phase 4 | 保留 | - |
 | `tests/platforms/test_update.py` | Domain | Phase 4 / 49 | 保留 | thin setup / happy-path smoke shell |
-| `tests/platforms/test_update_background_tasks.py` | Domain | Phase 49 | 保留 | update background-task topic suite |
+| `tests/platforms/test_update_background_tasks.py` | Domain | Phase 49 / 130 | 保留 | update background-task / refresh-outcome topic suite |
 | `tests/platforms/test_update_certification_policy.py` | Domain | Phase 49 | 保留 | update certification-policy topic suite |
-| `tests/platforms/test_update_entity_refresh.py` | Domain | Phase 49 | 保留 | update refresh / row-selection topic suite |
-| `tests/platforms/test_update_install_flow.py` | Domain | Phase 49 | 保留 | update install-flow topic suite |
-| `tests/platforms/test_update_task_callback.py` | Domain | Phase 4 | 保留 | - |
+| `tests/platforms/test_update_entity_refresh.py` | Domain | Phase 49 / 130 | 保留 | update refresh / row-selection / projection topic suite |
+| `tests/platforms/test_update_install_flow.py` | Domain | Phase 49 / 130 | 保留 | update install-flow / request-resolution topic suite |
+| `tests/platforms/test_update_task_callback.py` | Domain | Phase 4 / 130 | 保留 | update task-callback / error-observability topic suite |
 | `tests/services/__init__.py` | Control | Phase 3 / 7 | 保留 | - |
 | `tests/services/test_device_lookup.py` | Control | Phase 3 / 7 | 保留 | - |
 | `tests/services/test_execution.py` | Control | Phase 3 / 7 | 保留 | - |

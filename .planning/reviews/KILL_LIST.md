@@ -1,5 +1,11 @@
 # Kill List
 
+## Phase 130 Status Update
+
+- `Phase 130` 没有创造新的 active kill target；本轮是 `command_runtime.py` / `firmware_update.py` sanctioned hotspot 的 inward slimming，而不是新的 file-level delete campaign。
+- `custom_components/lipro/core/coordinator/runtime/command_runtime.py` 继续保留为 formal runtime orchestration home，`custom_components/lipro/entities/firmware_update.py` 继续保留为 protected thin shell；新增 support helpers、focused tests 与 phase assets 都是 proof carrier，不是 future delete target。
+- `Phase 131` 现已成为 planning-ready 下一跳；此前 Phase 130 queued placeholder 口径已退出 current story。
+
 ## Phase 129 Status Update
 
 - `Phase 129` 没有创造新的 active kill target；本轮是 REST child-façade explicit-surface convergence 与 fallback seam tightening，不是新的 file-level delete campaign。
