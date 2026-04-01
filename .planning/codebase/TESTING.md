@@ -30,7 +30,7 @@ uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro 
 **Location:**
 - Tests live in a dedicated `tests/` tree, not beside production files.
 - Current topology is broad and intentional: `tests/core`, `tests/services`, `tests/flows`, `tests/platforms`, `tests/entities`, `tests/meta`, `tests/integration`, `tests/snapshots`, `tests/benchmarks`, `tests/harness`, and `tests/fixtures`.
-- Repository counts from current scanning: `414` Python files under `tests`, `331` runnable `test_*.py` files, `73` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
+- Repository counts from current scanning: `415` Python files under `tests`, `332` runnable `test_*.py` files, `74` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
 
 **Naming:**
 - Use `test_*.py` everywhere.
@@ -55,7 +55,7 @@ tests/
 
 ## Historical Phase Notes
 
-- Phase 55: 当前仓库共有 `325` 个 `test_*.py` 文件，topicized thin shells 继续覆盖 command-surface、transport-runtime 与 light/fan/select/switch suites。
+- Phase 55: 当前仓库共有 `332` 个 `test_*.py` 文件，topicized thin shells 继续覆盖 command-surface、transport-runtime 与 light/fan/select/switch suites。
 - Phase 59: `tests/core/test_device_refresh_{parsing,filter,snapshot,runtime}.py` 继续作为 localized device-refresh verification note；topicized meta note carriers 与 verification anchors 保持分离。
 - Phase 88: `tests/meta/test_phase88_governance_quality_freeze_guards.py` 继续作为 focused guard home for phase-88 governance/evidence freeze。
 - Phase 90: `tests/meta/test_phase90_hotspot_map_guards.py` 继续作为 focused guard home for five formal homes / four protected thin shells / delete-gate freeze truth。
@@ -296,7 +296,8 @@ with pytest.raises(ServiceValidationError):
 
 ## Phase 113 Testing Freeze
 
-- `tests/meta/test_phase113_hotspot_assurance_guards.py` now freezes the Phase 113 hotspot line-budget registry, helper-import locality, and default `scripts/lint` changed-surface assurance contract.
+- `tests/meta/test_phase113_hotspot_assurance_guards.py` now freezes the Phase 113 hotspot line-budget registry and helper-import locality as historical evidence.
+- `tests/meta/test_changed_surface_assurance_guards.py` now freezes the live `scripts/lint` changed-surface assurance contract without routing through a phase-labeled guard home.
 - `tests/core/test_share_client_submit.py` and `tests/core/test_command_result.py` remain the focused regression chain for the two low-blast-radius hotspot decompositions completed in this phase; `tests/meta/toolchain_truth_ci_contract.py`, `tests/meta/test_governance_release_docs.py`, and `tests/meta/toolchain_truth_docs_fast_path.py` keep the default-lint tooling/docs story honest when those surfaces move.
 - Phase 113 verification requires focused submit/command/meta suites, docs/toolchain fast-path guards when docs change, `scripts/check_file_matrix.py --check`, `ruff`, and governance handoff smoke before the current route advances to `Phase 114`.
 

@@ -1,4 +1,4 @@
-"""Phase 113 hotspot assurance, helper-locality, and default-lint guard rails."""
+"""Phase 113 hotspot assurance and helper-locality historical guards."""
 
 from __future__ import annotations
 
@@ -12,7 +12,6 @@ from .governance_contract_helpers import assert_testing_inventory_snapshot
 _ROOT = repo_root(Path(__file__))
 _FILE_MATRIX = _ROOT / ".planning" / "reviews" / "FILE_MATRIX.md"
 _KILL_LIST = _ROOT / ".planning" / "reviews" / "KILL_LIST.md"
-_LINT = _ROOT / "scripts" / "lint"
 _RESIDUAL_LEDGER = _ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md"
 _TESTING = _ROOT / ".planning" / "codebase" / "TESTING.md"
 _VERIFICATION_MATRIX = _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
@@ -156,16 +155,3 @@ def test_phase113_ledgers_record_hotspot_freeze_and_guard_chain() -> None:
         assert token in residual_text
         assert token in kill_text
 
-
-def test_phase113_scripts_lint_default_mode_has_focused_assurance_routes() -> None:
-    lint_text = _read(_LINT)
-
-    for token in (
-        "tests/core/test_share_client_submit.py tests/meta/test_phase113_hotspot_assurance_guards.py",
-        "tests/core/test_command_result.py tests/meta/test_phase113_hotspot_assurance_guards.py",
-        "tests/meta/test_phase113_hotspot_assurance_guards.py",
-        "tests/meta/toolchain_truth_ci_contract.py tests/meta/test_governance_release_docs.py tests/meta/toolchain_truth_docs_fast_path.py",
-        "tests/meta/test_governance_route_handoff_smoke.py tests/meta/governance_followup_route_current_milestones.py",
-        "Running scripts/lint in default mode with focused changed-surface assurance when matching touched surfaces are detected...",
-    ):
-        assert token in lint_text

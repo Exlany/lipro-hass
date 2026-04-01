@@ -25,6 +25,7 @@ from custom_components.lipro.const.config import (
 )
 from custom_components.lipro.core.api import LiproApiError, LiproAuthError
 from custom_components.lipro.core.auth import AuthSessionSnapshot
+from custom_components.lipro.flow.login import ConfigEntryLoginProjection
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD
 from homeassistant.core import HomeAssistant
@@ -295,6 +296,55 @@ async def test_form_malformed_login_response(
 
         assert result["type"] is FlowResultType.FORM
         assert result["errors"] == {"base": "invalid_response"}
+
+def test_config_entry_login_projection_rejects_missing_required_fields() -> None:
+    """Projection should reject malformed auth-session snapshots."""
+    with pytest.raises(ValueError, match="missing access_token"):
+        ConfigEntryLoginProjection.from_auth_session(
+            AuthSessionSnapshot(
+                access_token=None,
+                refresh_token="refresh",
+                user_id=10001,
+                expires_at=123.0,
+                phone_id="phone-id",
+                biz_id="biz-id",
+            )
+        )
+
+
+async def test_form_invalid_auth_session_projection_maps_to_invalid_response(
+    hass: HomeAssistant,
+) -> None:
+    """Malformed auth-session projections should fail closed as invalid_response."""
+    with patch.object(
+        LiproConfigFlow,
+        "_async_do_login",
+        AsyncMock(
+            return_value=AuthSessionSnapshot(
+                access_token=None,
+                refresh_token="refresh",
+                user_id=10001,
+                expires_at=123.0,
+                phone_id="phone-id",
+                biz_id="biz-id",
+            )
+        ),
+    ):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": config_entries.SOURCE_USER}
+        )
+
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                CONF_PHONE: "13800000000",
+                CONF_PASSWORD: "testpassword",
+            },
+        )
+
+        assert result["type"] is FlowResultType.FORM
+        assert result["errors"] == {"base": "invalid_response"}
+
 
 async def test_form_unexpected_error_maps_to_unexpected_error(
     hass: HomeAssistant,

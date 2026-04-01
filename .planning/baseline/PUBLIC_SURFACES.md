@@ -267,7 +267,7 @@
 ## Phase 68 Review-Fed Hotspot / Docs Closeout Notes
 
 - `custom_components/lipro/core/telemetry/models.py` 继续是 outward telemetry contract home；`custom_components/lipro/core/telemetry/outcomes.py` 与 `custom_components/lipro/core/telemetry/json_payloads.py` 只是 inward helper homes，分别承接 outcome semantics 与 JSON-safe payload builders，不构成新的 assurance public root。
-- `custom_components/lipro/core/mqtt/{payload,topics,message_processor}.py` 只保留 boundary-backed localized helper 身份，并通过 direct import 单向消费 `custom_components/lipro/core/protocol/boundary/mqtt_decoder.py`；topic/payload decode authority 继续唯一归属于 protocol-boundary family。
+- `custom_components/lipro/core/mqtt/{payload,topics,message_processor}.py` 中的 `topics.py` 只保留 boundary-backed adapter 身份，`payload.py` / `message_processor.py` 继续作为 localized helpers，并通过 direct import 单向消费 `custom_components/lipro/core/protocol/boundary/mqtt_decoder.py`；`mqtt_decoder.py` 继续是唯一 canonical MQTT topic/payload decode authority。
 - `custom_components/lipro/control/runtime_access.py` 继续是 control-plane 唯一 runtime read home；`custom_components/lipro/control/runtime_access_support.py` 只是 support-only helper seam。
 - `README.md` / `README_zh.md` 继续只保留 public first hop；`docs/README.md` 是 canonical docs index，maintainer continuity / release custody 仍停留在 `docs/MAINTAINER_RELEASE_RUNBOOK.md`。
 

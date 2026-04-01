@@ -139,6 +139,26 @@ async def async_try_hashed_login(
     return None
 
 
+def _require_entry_token(value: object, field_name: str) -> str:
+    """Return one required config-entry token or raise on malformed auth sessions."""
+    if isinstance(value, str) and value:
+        return value
+    message = f"missing {field_name}"
+    raise ValueError(message)
+
+
+def _require_entry_user_id(value: object) -> int:
+    """Return one required positive user id or raise on malformed auth sessions."""
+    if isinstance(value, int) and not isinstance(value, bool) and value > 0:
+        return value
+    raise ValueError("missing user_id")
+
+
+def _normalize_biz_id(value: object) -> str | None:
+    """Normalize one optional biz_id for config-entry persistence."""
+    return value if isinstance(value, str) and value else None
+
+
 @dataclass(frozen=True, slots=True)
 class ConfigEntryLoginProjection:
     """HA config-entry projection derived from the formal auth session."""
@@ -155,10 +175,16 @@ class ConfigEntryLoginProjection:
     ) -> ConfigEntryLoginProjection:
         """Project one formal auth/session snapshot to config-entry payload fields."""
         return cls(
-            access_token=auth_session.access_token or "",
-            refresh_token=auth_session.refresh_token or "",
-            user_id=auth_session.user_id or 0,
-            biz_id=auth_session.biz_id,
+            access_token=_require_entry_token(
+                auth_session.access_token,
+                CONF_ACCESS_TOKEN,
+            ),
+            refresh_token=_require_entry_token(
+                auth_session.refresh_token,
+                CONF_REFRESH_TOKEN,
+            ),
+            user_id=_require_entry_user_id(auth_session.user_id),
+            biz_id=_normalize_biz_id(auth_session.biz_id),
         )
 
     def to_entry_data(

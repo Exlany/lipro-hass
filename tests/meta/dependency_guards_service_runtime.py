@@ -116,6 +116,14 @@ def test_phase_43_control_service_boundary_stays_one_way_and_explicit() -> None:
     assert "iter_runtime_entries" in system_health_surface_text
     assert "get_entry_runtime_coordinator" not in system_health_surface_text
     assert "build_entry_telemetry_exporter" not in control_init_text
+    for token in (
+        "build_runtime_snapshot",
+        "build_runtime_snapshots",
+        "get_entry_runtime_coordinator",
+        "build_entry_diagnostics_view",
+        "build_entry_system_health_view",
+    ):
+        assert token not in control_init_text
 
     assert "resolve_device_id_from_service_call" in service_router_support_text
     assert "find_runtime_device_and_coordinator" in service_router_support_text

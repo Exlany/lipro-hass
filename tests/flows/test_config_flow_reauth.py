@@ -8,7 +8,7 @@ Note: On Windows, this may require Microsoft C++ Build Tools.
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -18,6 +18,7 @@ from custom_components.lipro.const.config import (
     CONF_PHONE,
     CONF_PHONE_ID,
 )
+from custom_components.lipro.core.auth import AuthSessionSnapshot
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD
 from homeassistant.core import HomeAssistant
@@ -246,3 +247,54 @@ async def test_reauth_flow_missing_phone_id(
     assert result["step_id"] == "reauth_confirm"
     assert result["errors"] == {"base": "invalid_entry"}
     mock_lipro_client.login.assert_not_awaited()
+
+
+async def test_reauth_flow_invalid_auth_session_projection_maps_to_invalid_response(
+    hass: HomeAssistant,
+) -> None:
+    """Reauth should fail closed when auth-session projection is malformed."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="Lipro (138****0000)",
+        data={
+            CONF_PHONE: "13800000000",
+            CONF_PASSWORD_HASH: "e10adc3949ba59abbe56e057f20f883e",
+            CONF_PHONE_ID: "550e8400-e29b-41d4-a716-446655440000",
+            "access_token": "expired_token",
+            "refresh_token": "expired_refresh",
+            "user_id": 10001,
+        },
+        unique_id="lipro_10001",
+    )
+    entry.add_to_hass(hass)
+
+    with patch(
+        "custom_components.lipro.config_flow.LiproConfigFlow._async_do_login",
+        AsyncMock(
+            return_value=AuthSessionSnapshot(
+                access_token=None,
+                refresh_token="refresh",
+                user_id=10001,
+                expires_at=123.0,
+                phone_id="phone-id",
+                biz_id="biz-id",
+            )
+        ),
+    ):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={
+                "source": config_entries.SOURCE_REAUTH,
+                "entry_id": entry.entry_id,
+            },
+            data=entry.data,
+        )
+
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {CONF_PASSWORD: "newpassword"},
+        )
+
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "reauth_confirm"
+    assert result["errors"] == {"base": "invalid_response"}

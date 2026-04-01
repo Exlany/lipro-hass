@@ -2,7 +2,7 @@
 
 **Status:** `Active milestone`
 **Current route:** `v1.34 active milestone route / starting from latest archived baseline = v1.33`；latest archived evidence index = `.planning/reviews/V1_33_EVIDENCE_INDEX.md`.
-**Goal:** `以 Phase 120 把终审暴露的 repo-internal contract / tooling / docs truth residual 一次性收口：runtime/service typing 更硬、flow error taxonomy 更明确、toolchain guards 去脆化、docs/runbook 只保留稳定入口或 latest pointer；repo-external continuity 仍保持 honest freeze posture。`
+**Goal:** `以 Phase 120 + 121 把终审暴露的 repo-internal residual 全量收口：runtime/control raw-coordinator seam 关闭、auth-session projection fail-closed、existing-entry flow invariants 去重、changed-surface tooling 退相位化、current docs/guards/surfaces truth 同步；repo-external continuity 仍保持 honest freeze posture。`
 **Default next step:** `$gsd-complete-milestone v1.34`
 **Active baseline:** latest archived baseline = `v1.33`；previous archived baseline = `v1.32`.
 
@@ -13,10 +13,10 @@ contract_name: governance-route
 active_milestone:
   version: v1.34
   name: Terminal Audit Closure, Contract Hardening & Governance Truth Slimming
-  status: active / phase 120 complete; closeout-ready (2026-04-01)
-  phase: '120'
-  phase_title: terminal audit closure, contract hardening, and governance truth slimming
-  phase_dir: 120-terminal-audit-contract-hardening-and-governance-truth-slimming
+  status: active / phase 121 complete; closeout-ready (2026-04-01)
+  phase: '121'
+  phase_title: residual contract closure, flow invariant tightening, and surface hygiene cleanup
+  phase_dir: 121-residual-contract-closure-flow-invariant-tightening-surface-hygiene-cleanup
 latest_archived:
   version: v1.33
   name: MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance Hardening
@@ -41,26 +41,30 @@ bootstrap:
 
 **Name:** `Terminal Audit Closure, Contract Hardening & Governance Truth Slimming`
 
-**Why it matters:** `本轮不新增业务功能，而是把终审确认的仓内剩余问题压回单一正式主线：runtime/service contract 改成更硬的 typed truth；config-flow 错误语义不再把 stored-entry / malformed-response / unexpected-error 都压成 unknown；tooling/meta 守卫改成结构化 single source；开发者/维护者文档只保留当前入口与稳定指针；continuity 仍诚实声明 freeze posture，不伪造 delegate。`
+**Why it matters:** `本轮不新增业务功能，而是把终审确认的仓内剩余问题压回单一正式主线：Phase 120 先完成 runtime/service contract、flow taxonomy 与 docs/tooling slimming；Phase 121 再把 raw-coordinator seam、silent auth projection、duplicated existing-entry validator 与 phase-labeled changed-surface route 一次性收净。`
 
 **North-star fit:** `v1.34` 继续沿 single mainline / formal homes / honesty over invented continuity 推进：不新增第二 root、不把 compat 或 phase folklore 洗成正式接口，也不把 repo-external continuity 伪装成仓内已闭环。`
 
-**Current status:** `active / phase 120 complete; closeout-ready (2026-04-01)`
-**Phase range:** `Phase 120 -> 120`
+**Current status:** `active / phase 121 complete; closeout-ready (2026-04-01)`
+**Phase range:** `Phase 120 -> 121`
 **Starting baseline:** `.planning/v1.33-MILESTONE-AUDIT.md`, `.planning/reviews/V1_33_EVIDENCE_INDEX.md`, `.planning/milestones/v1.33-ROADMAP.md`, `.planning/milestones/v1.33-REQUIREMENTS.md`
-**Requirements basket:** `ARC-32`, `HOT-52`, `QLT-47`, `GOV-78`, `GOV-79`, `DOC-10`, `OSS-15`, `TST-42`
+**Requirements basket:** `ARC-32`, `HOT-52`, `QLT-47`, `GOV-78`, `GOV-79`, `DOC-10`, `OSS-15`, `TST-42`, `ARC-33`, `QLT-48`, `HOT-53`, `GOV-80`, `DOC-11`, `TST-43`
 **Latest archived baseline:** `v1.33`
 **Latest archived pointer:** `.planning/reviews/V1_33_EVIDENCE_INDEX.md`
 **Default next command:** `$gsd-complete-milestone v1.34`
 
 **Current focus:**
-- `120-01` 已完成 runtime/service contract tightening 与 runtime-access normalization；`runtime_types.py` / `runtime_access.py` / `services/command.py` 现以单一 typed truth 与 focused guards 收口。
+- `120-01` 已完成 runtime/service contract tightening 与 runtime-access normalization；`runtime_types.py` / `services/contracts.py` / `services/command.py` 现以单一 typed truth 收口。
 - `120-02` 已完成 flow error taxonomy hardening 与 single-source send-command validation；stored-entry / invalid-response / unexpected-error 不再回退到 `unknown`。
-- `120-03` 已完成 toolchain guard de-brittling、docs appendix slimming 与 stable pointer family / governance pointers；live selector family 已切到 closeout-ready current story。
-- 当前 active route 已进入 milestone closeout-ready；默认下一步为 `$gsd-complete-milestone v1.34`。
+- `120-03` 已完成 toolchain guard de-brittling、docs appendix slimming 与 stable pointer family / governance pointers。
+- `121-01` 已关闭 control runtime read-model 的 raw-coordinator seam，并同步收缩相关 control aggregate export / dependency guard truth。
+- `121-02` 已把 auth-session projection 改为 fail-closed，并把 existing-entry flow validation 收敛到单一内部 invariant 链。
+- `121-03` 已让 `scripts/lint` default changed-surface assurance 退出 `Phase 113` 命名耦合；live guard home、testing map 与 file matrix 已同步到当前路线。
+- 当前 active route 已重新回到 milestone closeout-ready；默认下一步为 `$gsd-complete-milestone v1.34`。
 - maintainer continuity 继续保持 honest freeze posture / custody restoration 契约；未伪造 hidden delegate 或 repo-external continuity closure。
 
 ## Latest Archived Milestone (v1.33)
+
 
 **Name:** `MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance Hardening`
 

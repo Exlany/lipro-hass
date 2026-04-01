@@ -7,10 +7,10 @@ contract_name: governance-route
 active_milestone:
   version: v1.34
   name: Terminal Audit Closure, Contract Hardening & Governance Truth Slimming
-  status: active / phase 120 complete; closeout-ready (2026-04-01)
-  phase: '120'
-  phase_title: terminal audit closure, contract hardening, and governance truth slimming
-  phase_dir: 120-terminal-audit-contract-hardening-and-governance-truth-slimming
+  status: active / phase 121 complete; closeout-ready (2026-04-01)
+  phase: '121'
+  phase_title: residual contract closure, flow invariant tightening, and surface hygiene cleanup
+  phase_dir: 121-residual-contract-closure-flow-invariant-tightening-surface-hygiene-cleanup
 latest_archived:
   version: v1.33
   name: MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance Hardening
@@ -33,32 +33,38 @@ bootstrap:
 <!-- governance-route-contract:end -->
 ## Current Milestone (v1.34)
 
-**Milestone Goal:** 以 `v1.33` latest archived baseline 为起点，彻底收口终审暴露的 repo-internal contract / tooling / docs truth residual：runtime/service typing 更硬、flow error taxonomy 更明确、toolchain guards 改成结构化 single source、current docs/runbook 只保留稳定入口，continuity 仍诚实维持 freeze posture。
-**Milestone status:** `active / phase 120 complete; closeout-ready (2026-04-01)`
+**Milestone Goal:** 以 `v1.33` latest archived baseline 为起点，用 `Phase 120 + 121` 彻底收口终审暴露的 repo-internal contract / tooling / docs truth residual：runtime/service typing 更硬、control read-model 不再泄露 raw coordinator、auth-session projection fail-closed、existing-entry validator 去重、changed-surface guards 改成 phase-agnostic single source、current docs/runbook 只保留稳定入口，continuity 仍诚实维持 freeze posture。
+**Milestone status:** `active / phase 121 complete; closeout-ready (2026-04-01)`
 **Current route mode:** `v1.34 active milestone route / starting from latest archived baseline = v1.33`
 **Starting baseline:** `.planning/v1.33-MILESTONE-AUDIT.md`, `.planning/reviews/V1_33_EVIDENCE_INDEX.md`, `.planning/milestones/v1.33-ROADMAP.md`, `.planning/milestones/v1.33-REQUIREMENTS.md`
-**Requirements basket:** `ARC-32`, `HOT-52`, `QLT-47`, `GOV-78`, `GOV-79`, `DOC-10`, `OSS-15`, `TST-42`
+**Requirements basket:** `ARC-32`, `HOT-52`, `QLT-47`, `GOV-78`, `GOV-79`, `DOC-10`, `OSS-15`, `TST-42`, `ARC-33`, `QLT-48`, `HOT-53`, `GOV-80`, `DOC-11`, `TST-43`
 **Latest archived baseline:** `v1.33`
 **Archive pointer:** `.planning/reviews/V1_33_EVIDENCE_INDEX.md`
 **Latest archived audit artifact:** `.planning/v1.33-MILESTONE-AUDIT.md`
 **Default next command:** `$gsd-complete-milestone v1.34`
-**Current phase handoff:** `Phase 120 complete; runtime/service contract tightening、flow taxonomy hardening、toolchain/docs/governance truth slimming 与 closeout validation 已完成同轮闭环，当前只剩 milestone closeout。`
+**Current phase handoff:** `Phase 121 complete; runtime-access raw-coordinator seam closure、auth-session projection fail-closed、existing-entry validator dedupe、changed-surface route de-phaseization 与 live guard/docs truth sync 已完成，当前只剩 milestone closeout。`
 
 ### Architecture
 - [x] **ARC-32**: `runtime_types.py` 与 `runtime_access.py` 必须继续作为正式 runtime/service contract truth；public Protocol 与 control-plane snapshot 不能再扩散裸 `list[dict[str, str]]` / `Mapping[str, object]` folklore，已有 typed alias / formal helper 必须复用。
 - [x] **HOT-52**: `services/command.py` 的 `send_command` 输入验证必须收敛到单一 schema / normalization truth，不得同时维持手写类型闸门与第二套 payload contract。
+- [x] **ARC-33**: control-plane runtime read-model 不得再通过 `RuntimeCoordinatorView`、aggregate export 或 helper reach-through 重新暴露 raw `LiproCoordinator`；raw coordinator access 只能停留在 dedicated `runtime_access` verbs。
 
 ### Quality & Flow Semantics
 - [x] **QLT-47**: `flow/login.py`、`flow/submission.py`、translations 与 flow tests 必须区分 `invalid_auth`、`cannot_connect`、`invalid_entry`、`invalid_response` 与 `unexpected_error` 等语义，避免把多类失败压成 `unknown`。
+- [x] **QLT-48**: config-flow auth-session projection 必须对缺失/畸形 `access_token`、`refresh_token` 与 `user_id` fail closed，并把 malformed projection 明确映射回 `invalid_response`。
+- [x] **HOT-53**: `validate_reauth_submission()` 与 `validate_reconfigure_submission()` 的 existing-entry invariant chain 必须收敛到单一内部 helper，仅保留 outward error placement 差异。
 
 ### Governance & Tooling
 - [x] **GOV-78**: `docs/MAINTAINER_RELEASE_RUNBOOK.md`、`.github/pull_request_template.md` 与 current docs family 必须改为稳定入口或 latest archived pointer，禁止继续硬连具体 `.planning/vX_*` 文件名作为 current-story truth。
 - [x] **GOV-79**: `scripts/check_file_matrix.py`、toolchain meta guards 与 `scripts/lint` changed-surface assurance 必须改成结构化 single source；不再保留 duplicated import branches、phase literal 或 brittle string-inclusion folklore。
+- [x] **GOV-80**: default `scripts/lint` changed-surface assurance 必须切换到 phase-agnostic guard home；历史 `Phase 113` suites 只保留为 archival evidence，不再承担 live route ownership。
 - [x] **DOC-10**: `docs/developer_architecture.md` 只保留 current developer guidance；历史 phase appendix 必须下沉到 archive-facing / pull-only home。
+- [x] **DOC-11**: `control/__init__.py` aggregate export、`TESTING.md` 与 `FILE_MATRIX.md` 的 live wording 必须与当前 runtime/toolchain truth 对齐，不得继续把 phase-labeled guard 讲成 live default route owner。
 - [x] **OSS-15**: maintainer continuity 只能 codify freeze posture、custody restoration 与 honest no-delegate truth；不得暗示 hidden maintainer、undocumented delegate 或 guaranteed private fallback 已存在。
 
 ### Testing & Docs
 - [x] **TST-42**: focused regressions / meta guards / docs checks 必须冻结 runtime contract tightening、flow error taxonomy、toolchain import truth、changed-surface assurance config 与 stable current-doc pointers。
+- [x] **TST-43**: focused tests/meta 必须共同冻结 runtime-access seam closure、auth-session projection fail-closed、existing-entry validator dedupe 与 phase-agnostic changed-surface guard home。
 
 ## Traceability
 
@@ -72,15 +78,22 @@ bootstrap:
 | DOC-10 | Phase 120 | Complete |
 | OSS-15 | Phase 120 | Complete |
 | TST-42 | Phase 120 | Complete |
+| ARC-33 | Phase 121 | Complete |
+| QLT-48 | Phase 121 | Complete |
+| HOT-53 | Phase 121 | Complete |
+| GOV-80 | Phase 121 | Complete |
+| DOC-11 | Phase 121 | Complete |
+| TST-43 | Phase 121 | Complete |
 
 **Coverage:**
-- v1.34 requirements: 8 total
-- Mapped to phases: 8
-- Complete: 8
+- v1.34 requirements: 14 total
+- Mapped to phases: 14
+- Complete: 14
 - Pending: 0
 - Unmapped: 0 ✓
 
 ## Latest Archived Milestone (v1.33)
+
 
 **Milestone Goal:** 已把 MQTT boundary authority、runtime/service contract 真源与 semver-only release/governance freshness 收口为 archived baseline；`Phase 119` 的 3/3 plans 已形成可审计证据链。
 **Milestone status:** `archived / evidence-ready (2026-04-01)`

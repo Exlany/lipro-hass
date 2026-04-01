@@ -91,7 +91,7 @@ governance_guard_tests=(
 
 changed_surface_submit_pattern='^(custom_components/lipro/core/anonymous_share/share_client_submit(_attempts|_outcomes)?\.py|tests/core/test_share_client_submit\.py)$'
 changed_surface_result_pattern='^(custom_components/lipro/core/command/result(_support)?\.py|tests/core/test_command_result\.py)$'
-changed_surface_guard_pattern='^(tests/meta/test_phase113_hotspot_assurance_guards\.py|\.planning/codebase/TESTING\.md|\.planning/baseline/VERIFICATION_MATRIX\.md|\.planning/reviews/FILE_MATRIX\.md|\.planning/reviews/RESIDUAL_LEDGER\.md|\.planning/reviews/KILL_LIST\.md)$'
+changed_surface_assurance_guard_pattern='^(tests/meta/test_changed_surface_assurance_guards\.py|\.planning/codebase/TESTING\.md|\.planning/baseline/VERIFICATION_MATRIX\.md|\.planning/reviews/FILE_MATRIX\.md|\.planning/reviews/RESIDUAL_LEDGER\.md|\.planning/reviews/KILL_LIST\.md)$'
 changed_surface_docs_contract_surface_pattern='^(scripts/lint|CONTRIBUTING\.md|\.planning/codebase/TESTING\.md|tests/meta/toolchain_truth_ci_contract\.py)$'
 changed_surface_governance_surface_pattern='^(\.planning/PROJECT\.md|\.planning/ROADMAP\.md|\.planning/REQUIREMENTS\.md|\.planning/STATE\.md|\.planning/MILESTONES\.md|tests/meta/governance_current_truth\.py|tests/meta/test_governance_route_handoff_smoke\.py|tests/meta/governance_followup_route_current_milestones\.py)$'
 
@@ -107,21 +107,21 @@ run_default_changed_surface_assurance() {
     if grep -Eq "$changed_surface_submit_pattern" "$surface_file"; then
         echo ""
         echo "Running submit changed-surface assurance..."
-        uv run pytest -q tests/core/test_share_client_submit.py tests/meta/test_phase113_hotspot_assurance_guards.py
+        uv run pytest -q tests/core/test_share_client_submit.py tests/meta/test_changed_surface_assurance_guards.py
         ran_any=1
     fi
 
     if grep -Eq "$changed_surface_result_pattern" "$surface_file"; then
         echo ""
         echo "Running command-result changed-surface assurance..."
-        uv run pytest -q tests/core/test_command_result.py tests/meta/test_phase113_hotspot_assurance_guards.py
+        uv run pytest -q tests/core/test_command_result.py tests/meta/test_changed_surface_assurance_guards.py
         ran_any=1
     fi
 
-    if grep -Eq "$changed_surface_guard_pattern" "$surface_file"; then
+    if grep -Eq "$changed_surface_assurance_guard_pattern" "$surface_file"; then
         echo ""
-        echo "Running hotspot guard changed-surface assurance..."
-        uv run pytest -q tests/meta/test_phase113_hotspot_assurance_guards.py
+        echo "Running changed-surface assurance guards..."
+        uv run pytest -q tests/meta/test_changed_surface_assurance_guards.py
         ran_any=1
     fi
 

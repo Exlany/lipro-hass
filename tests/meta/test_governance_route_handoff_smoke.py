@@ -1,4 +1,4 @@
-"""Focused active-route smoke guards for the current v1.33 handoff."""
+"""Focused active-route smoke guards for the current route handoff."""
 
 from __future__ import annotations
 
@@ -66,6 +66,7 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
+    milestones_text = (_ROOT / ".planning" / "MILESTONES.md").read_text(encoding="utf-8")
 
     _assert_current_route_truth(project_text, roadmap_text, state_text)
 
@@ -82,7 +83,13 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
         assert filename in roadmap_text
     assert "- **Plan:** `3 of 3`" in state_text
     assert "- **Progress:** `[██████████] 100%`" in state_text
-    assert "1/1 phases, 3/3 plans" in (_ROOT / ".planning" / "MILESTONES.md").read_text(encoding="utf-8")
+    for phase_number in CURRENT_MILESTONE_PHASES:
+        assert f"`Phase {phase_number}`" in milestones_text
+    milestone_progress = (
+        f"{len(CURRENT_MILESTONE_COMPLETED_PHASES)}/{len(CURRENT_MILESTONE_PHASES)} phases, "
+        f"{CURRENT_MILESTONE_COMPLETED_PLAN_COUNT}/{CURRENT_MILESTONE_TOTAL_PLAN_COUNT} plans"
+    )
+    assert milestone_progress in milestones_text
 
 
 def test_gsd_fast_path_matches_current_archived_route_story() -> None:

@@ -57,8 +57,13 @@ def test_phase112_file_matrix_registers_sanctioned_root_home_wording() -> None:
     assert "`custom_components/lipro/runtime_types.py`" in text
 
 
-def test_phase112_targeted_helpers_drop_double_coordinator_wording() -> None:
-    for path in _TARGETED_HELPERS:
-        text = path.read_text(encoding="utf-8")
+def test_phase112_targeted_helpers_route_raw_coordinator_access_through_helpers() -> None:
+    helper_texts = [path.read_text(encoding="utf-8") for path in _TARGETED_HELPERS]
+    for path, text in zip(_TARGETED_HELPERS, helper_texts, strict=True):
         assert ".coordinator.coordinator" not in text, path.as_posix()
-        assert ".coordinator.runtime_coordinator" in text, path.as_posix()
+        assert ".coordinator.runtime_coordinator" not in text, path.as_posix()
+
+    views_text, devices_text, developer_text = helper_texts
+    assert "_get_entry_runtime_coordinator_support(" in views_text
+    assert "_get_entry_runtime_coordinator_support(" in devices_text
+    assert "iter_developer_runtime_coordinators as _iter_developer_runtime_coordinators" in developer_text

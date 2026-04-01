@@ -7,7 +7,7 @@ from collections.abc import Mapping
 from ..core.telemetry.models import TelemetryJsonValue, TelemetrySourcePayload
 from ..core.telemetry.ports import ProtocolTelemetrySource, RuntimeTelemetrySource
 from ..runtime_types import LiproCoordinator, ProtocolTelemetryFacadeLike
-from .runtime_access_support_members import _get_explicit_member
+from .runtime_access_support_members import _has_explicit_runtime_member
 from .runtime_access_types import RuntimeCoordinatorView
 
 
@@ -47,13 +47,23 @@ class _ProtocolFacadeTelemetrySource(ProtocolTelemetrySource):
         self._protocol = protocol
 
     def get_protocol_telemetry_snapshot(self) -> TelemetrySourcePayload:
-        snapshot = _get_explicit_member(self._protocol, "protocol_diagnostics_snapshot")
+        try:
+            snapshot = self._protocol.protocol_diagnostics_snapshot
+        except AttributeError:
+            snapshot = None
         if callable(snapshot):
             result = snapshot()
             if isinstance(result, Mapping):
                 return _coerce_telemetry_source_payload(result)
-        diagnostics_context = _get_explicit_member(self._protocol, "diagnostics_context")
-        context_snapshot = _get_explicit_member(diagnostics_context, "snapshot")
+
+        try:
+            diagnostics_context = self._protocol.diagnostics_context
+        except AttributeError:
+            diagnostics_context = None
+        try:
+            context_snapshot = diagnostics_context.snapshot
+        except AttributeError:
+            context_snapshot = None
         if callable(context_snapshot):
             result = context_snapshot()
             if isinstance(result, Mapping):
@@ -79,8 +89,19 @@ class _CoordinatorTelemetrySource(RuntimeTelemetrySource):
 
 def _build_runtime_telemetry_snapshot(coordinator: LiproCoordinator) -> Mapping[str, object]:
     """Return a normalized runtime telemetry snapshot for one coordinator."""
-    telemetry_service = _get_explicit_member(coordinator, "telemetry_service")
-    build_snapshot = _get_explicit_member(telemetry_service, "build_snapshot")
+    if not _has_explicit_runtime_member(coordinator, "telemetry_service"):
+        return {}
+    try:
+        telemetry_service = coordinator.telemetry_service
+    except AttributeError:
+        return {}
+
+    if not _has_explicit_runtime_member(telemetry_service, "build_snapshot"):
+        return {}
+    try:
+        build_snapshot = telemetry_service.build_snapshot
+    except AttributeError:
+        return {}
     if callable(build_snapshot):
         snapshot = build_snapshot()
         if isinstance(snapshot, Mapping):

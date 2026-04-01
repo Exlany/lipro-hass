@@ -2,9 +2,9 @@
 
 ## Current Milestone (v1.34)
 
-**Phase range:** `120 -> 120`
-**Phases completed:** `1/1 phases, 3/3 plans, 0 tasks`
-**Status:** `active / phase 120 complete; closeout-ready (2026-04-01)`
+**Phase range:** `120 -> 121`
+**Phases completed:** `2/2 phases, 6/6 plans, 0 tasks`
+**Status:** `active / phase 121 complete; closeout-ready (2026-04-01)`
 **Route truth:** `v1.34 active milestone route / starting from latest archived baseline = v1.33`
 **Latest archived baseline:** `v1.33`
 **Default next command:** `$gsd-complete-milestone v1.34`
@@ -14,6 +14,7 @@
 **Active phase story:**
 
 - `Phase 120`: terminal audit closure, contract hardening, and governance truth slimming ✅ (`120-01` runtime/service contract tightening + `120-02` flow/send-command semantics hardening + `120-03` tooling/docs/governance truth slimming complete; closeout-ready)
+- `Phase 121`: residual contract closure, flow invariant tightening, and surface hygiene cleanup ✅ (`121-01` runtime-access seam closure + `121-02` auth-session projection/validator hardening + `121-03` changed-surface guard de-phaseization complete; closeout-ready)
 
 **Current milestone intent:**
 
@@ -29,10 +30,10 @@ contract_name: governance-route
 active_milestone:
   version: v1.34
   name: Terminal Audit Closure, Contract Hardening & Governance Truth Slimming
-  status: active / phase 120 complete; closeout-ready (2026-04-01)
-  phase: '120'
-  phase_title: terminal audit closure, contract hardening, and governance truth slimming
-  phase_dir: 120-terminal-audit-contract-hardening-and-governance-truth-slimming
+  status: active / phase 121 complete; closeout-ready (2026-04-01)
+  phase: '121'
+  phase_title: residual contract closure, flow invariant tightening, and surface hygiene cleanup
+  phase_dir: 121-residual-contract-closure-flow-invariant-tightening-surface-hygiene-cleanup
 latest_archived:
   version: v1.33
   name: MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance Hardening
@@ -54,6 +55,7 @@ bootstrap:
 ```
 <!-- governance-route-contract:end -->
 ## Latest Archived Milestone (v1.33)
+
 
 **Phase range:** `119 -> 119`
 **Phases completed:** `1/1 phases, 3/3 plans, 0 tasks`

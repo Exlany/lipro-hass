@@ -15,6 +15,7 @@ from custom_components.lipro.control.runtime_access import (
     build_runtime_entry_view,
     find_runtime_device,
     find_runtime_device_and_coordinator,
+    get_entry_runtime_coordinator,
     iter_runtime_entry_coordinators,
     iter_runtime_entry_views,
 )
@@ -46,7 +47,8 @@ def test_build_runtime_entry_view_materializes_typed_read_model() -> None:
     assert view.entry_id == "entry-1"
     assert view.options == {"debug_mode": True}
     assert view.coordinator is not None
-    assert view.coordinator.runtime_coordinator is coordinator
+    assert not hasattr(view.coordinator, "runtime_coordinator")
+    assert get_entry_runtime_coordinator(entry) is coordinator
     assert view.coordinator.last_update_success is True
     assert view.coordinator.mqtt_connected is False
     assert view.coordinator.runtime_telemetry_snapshot == {"runtime": "ok"}
@@ -206,7 +208,7 @@ def test_build_runtime_diagnostics_projection_rejects_empty_entry_id() -> None:
 
     assert build_runtime_diagnostics_projection(entry) is None
 
-def test_build_runtime_diagnostics_projection_uses_formal_mapping_helpers() -> None:
+def test_build_runtime_diagnostics_projection_uses_view_facts_without_runtime_backdoor() -> None:
     coordinator = SimpleNamespace(
         update_interval=None,
         last_update_success=True,
@@ -234,8 +236,8 @@ def test_build_runtime_diagnostics_projection_uses_formal_mapping_helpers() -> N
         projection = build_runtime_diagnostics_projection(entry)
 
     assert projection is not None
-    assert projection.snapshot.device_count == 1
+    assert projection.snapshot.device_count == 0
     assert projection.degraded_fields == ("devices",)
-    mock_mapping.assert_called_once_with(coordinator)
-    mock_degraded.assert_called_once_with(coordinator)
+    mock_mapping.assert_not_called()
+    mock_degraded.assert_not_called()
 

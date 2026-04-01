@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from typing import TYPE_CHECKING, cast
 
 from homeassistant.core import HomeAssistant
 
 from ..const.config import CONF_DEBUG_MODE, DEFAULT_DEBUG_MODE
 from ..runtime_types import LiproCoordinator
-from .runtime_access_support_members import _get_explicit_member
+from .runtime_access_support_members import _has_explicit_runtime_member
 from .runtime_access_support_views import (
     _build_runtime_coordinator_view,
     _build_runtime_entry_view_support,
@@ -25,18 +25,38 @@ if TYPE_CHECKING:
 
 
 def _call_runtime_device_getter(
-    coordinator: LiproCoordinator,
+    getter: Callable[[str], object] | None,
     *,
-    getter_name: str,
     device_id: str,
 ) -> LiproDevice | None:
     """Call one explicit runtime device getter without MagicMock ghost leakage."""
-    getter = _get_explicit_member(coordinator, getter_name)
-    if not callable(getter):
+    if getter is None:
         return None
 
     device = cast("LiproDevice | None", getter(device_id))
     return device if device is not None else None
+
+
+def _read_get_device(coordinator: LiproCoordinator) -> Callable[[str], object] | None:
+    if not _has_explicit_runtime_member(coordinator, "get_device"):
+        return None
+    try:
+        getter = coordinator.get_device
+    except AttributeError:
+        return None
+    return getter if callable(getter) else None
+
+
+def _read_get_device_by_id(
+    coordinator: LiproCoordinator,
+) -> Callable[[str], object] | None:
+    if not _has_explicit_runtime_member(coordinator, "get_device_by_id"):
+        return None
+    try:
+        getter = coordinator.get_device_by_id
+    except AttributeError:
+        return None
+    return getter if callable(getter) else None
 
 
 def _find_runtime_device_in_mapping(
@@ -52,12 +72,8 @@ def _find_runtime_device_via_explicit_getters(
     device_id: str,
 ) -> LiproDevice | None:
     """Return one runtime device via explicit coordinator lookup helpers."""
-    for getter_name in ("get_device", "get_device_by_id"):
-        device = _call_runtime_device_getter(
-            coordinator,
-            getter_name=getter_name,
-            device_id=device_id,
-        )
+    for getter in (_read_get_device(coordinator), _read_get_device_by_id(coordinator)):
+        device = _call_runtime_device_getter(getter, device_id=device_id)
         if device is not None:
             return device
     return None
@@ -100,10 +116,14 @@ def _find_runtime_entry_for_coordinator_support(
     coordinator: LiproCoordinator,
 ) -> RuntimeEntryPort | None:
     """Return the config entry that owns one active coordinator."""
-    config_entry = _get_explicit_member(coordinator, "config_entry")
+    try:
+        config_entry = coordinator.config_entry
+    except AttributeError:
+        config_entry = None
+
     runtime_entry = _build_runtime_entry_view_support(config_entry)
-    if runtime_entry is not None and runtime_entry.coordinator is not None:
-        if runtime_entry.coordinator.runtime_coordinator is coordinator:
+    if runtime_entry is not None:
+        if _get_entry_runtime_coordinator_support(runtime_entry.entry) is coordinator:
             return runtime_entry.entry
     for entry in _iter_runtime_entries_support(hass):
         if _get_entry_runtime_coordinator_support(entry) is coordinator:
@@ -139,11 +159,14 @@ def _is_developer_runtime_coordinator_support(
 
 def _iter_developer_runtime_coordinators_support(hass: HomeAssistant) -> list[LiproCoordinator]:
     """Return runtime coordinators that explicitly opted into debug mode."""
-    return [
-        view.coordinator.runtime_coordinator
-        for view in _iter_runtime_entry_views_support(hass)
-        if view.coordinator is not None and _is_debug_mode_enabled_for_entry_support(view.entry)
-    ]
+    coordinators: list[LiproCoordinator] = []
+    for view in _iter_runtime_entry_views_support(hass):
+        if not _is_debug_mode_enabled_for_entry_support(view.entry):
+            continue
+        coordinator = _get_entry_runtime_coordinator_support(view.entry)
+        if coordinator is not None:
+            coordinators.append(coordinator)
+    return coordinators
 
 
 def _iter_runtime_devices_for_entry_support(

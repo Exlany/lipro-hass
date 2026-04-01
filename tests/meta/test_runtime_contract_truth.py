@@ -14,6 +14,9 @@ def test_runtime_types_is_single_source_for_service_facing_runtime_contracts() -
     execution_text = (_ROOT / "custom_components" / "lipro" / "services" / "execution.py").read_text(encoding="utf-8")
     command_text = (_ROOT / "custom_components" / "lipro" / "services" / "command.py").read_text(encoding="utf-8")
     lifecycle_text = (_ROOT / "custom_components" / "lipro" / "control" / "entry_lifecycle_support.py").read_text(encoding="utf-8")
+    runtime_views_text = (_ROOT / "custom_components" / "lipro" / "control" / "runtime_access_support_views.py").read_text(encoding="utf-8")
+    runtime_devices_text = (_ROOT / "custom_components" / "lipro" / "control" / "runtime_access_support_devices.py").read_text(encoding="utf-8")
+    runtime_telemetry_text = (_ROOT / "custom_components" / "lipro" / "control" / "runtime_access_support_telemetry.py").read_text(encoding="utf-8")
 
     assert "class CommandServiceLike(Protocol):" in runtime_types_text
     assert "type CommandProperties = ServicePropertyList" in runtime_types_text
@@ -37,3 +40,12 @@ def test_runtime_types_is_single_source_for_service_facing_runtime_contracts() -
     assert "from ..coordinator_entry import Coordinator" not in lifecycle_text
     assert "class CoordinatorRuntimeLike(LiproCoordinator, Protocol):" in lifecycle_text
     assert "coordinator: CoordinatorRuntimeLike" in lifecycle_text
+
+    assert "_get_explicit_member(coordinator" not in runtime_views_text
+    assert "_get_explicit_bool_member(coordinator" not in runtime_views_text
+    assert "_get_explicit_mapping_member(coordinator" not in runtime_views_text
+    assert "_get_explicit_member(mqtt_service" not in runtime_views_text
+    assert "_get_explicit_member(coordinator, getter_name)" not in runtime_devices_text
+    assert '"config_entry")' not in runtime_devices_text
+    assert "_get_explicit_member(self._protocol" not in runtime_telemetry_text
+    assert "_get_explicit_member(telemetry_service" not in runtime_telemetry_text

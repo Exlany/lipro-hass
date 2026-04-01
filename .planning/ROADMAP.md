@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- ✅ **v1.34 Terminal Audit Closure, Contract Hardening & Governance Truth Slimming** - `Phase 120` completed on 2026-04-01; current route = `v1.34 active milestone route / starting from latest archived baseline = v1.33`; latest archived evidence index = `.planning/reviews/V1_33_EVIDENCE_INDEX.md`; default next = `$gsd-complete-milestone v1.34`
+- ✅ **v1.34 Terminal Audit Closure, Contract Hardening & Governance Truth Slimming** - `Phase 120 -> 121` completed on 2026-04-01; current route = `v1.34 active milestone route / starting from latest archived baseline = v1.33`; latest archived evidence index = `.planning/reviews/V1_33_EVIDENCE_INDEX.md`; default next = `$gsd-complete-milestone v1.34`
 - ✅ **v1.33 MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance Hardening** - `Phase 119` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.33`; evidence index = `.planning/reviews/V1_33_EVIDENCE_INDEX.md`
 - ✅ **v1.32 Residual Hotspot Eradication, Validation Completion & Continuity Hardening** - `Phase 115 -> 118` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.32`; evidence index = `.planning/reviews/V1_32_EVIDENCE_INDEX.md`
 - ✅ **v1.31 Boundary Sealing, Governance Truth & Quality Hardening** - `Phase 111 -> 114` archived on 2026-03-31; historical closeout route truth = `no active milestone route / latest archived baseline = v1.31`; evidence index = `.planning/reviews/V1_31_EVIDENCE_INDEX.md`
@@ -15,10 +15,10 @@ contract_name: governance-route
 active_milestone:
   version: v1.34
   name: Terminal Audit Closure, Contract Hardening & Governance Truth Slimming
-  status: active / phase 120 complete; closeout-ready (2026-04-01)
-  phase: '120'
-  phase_title: terminal audit closure, contract hardening, and governance truth slimming
-  phase_dir: 120-terminal-audit-contract-hardening-and-governance-truth-slimming
+  status: active / phase 121 complete; closeout-ready (2026-04-01)
+  phase: '121'
+  phase_title: residual contract closure, flow invariant tightening, and surface hygiene cleanup
+  phase_dir: 121-residual-contract-closure-flow-invariant-tightening-surface-hygiene-cleanup
 latest_archived:
   version: v1.33
   name: MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance Hardening
@@ -41,16 +41,16 @@ bootstrap:
 <!-- governance-route-contract:end -->
 ## Overview
 
-`v1.34` 以 archived baseline `v1.33` 为起点，准备通过单一 delivery phase 把全仓终审确认的 repo-internal residual 一次性收口：runtime/service contract truth 更硬、flow error taxonomy 更清晰、toolchain guards 去脆化、current docs/runbook 改成稳定入口，而 repo-external continuity 继续保持 honest freeze posture。
+`v1.34` 以 archived baseline `v1.33` 为起点，通过 `Phase 120` 与 `Phase 121` 把终审确认的 repo-internal residual 一次性收口：runtime/service contract truth 更硬、control read-model seam 更干净、flow auth/session projection 更诚实、changed-surface tooling 更去 folklore，而 repo-external continuity 继续保持 honest freeze posture。
 
-**Coverage:** `8/8` v1.34 requirements mapped exactly once.
+**Coverage:** `14/14` v1.34 requirements mapped exactly once.
 **Default next command:** `$gsd-complete-milestone v1.34`
 
 ## Current Milestone
 
 ## v1.34: Terminal Audit Closure, Contract Hardening & Governance Truth Slimming
 
-**Milestone status:** `active / phase 120 complete; closeout-ready (2026-04-01)`
+**Milestone status:** `active / phase 121 complete; closeout-ready (2026-04-01)`
 **Default next command:** `$gsd-complete-milestone v1.34`
 **Current route story:** `v1.34 active milestone route / starting from latest archived baseline = v1.33`
 **Latest archived pointer:** `.planning/reviews/V1_33_EVIDENCE_INDEX.md`
@@ -60,6 +60,7 @@ bootstrap:
 ## Phases
 
 - [x] **Phase 120: terminal audit closure, contract hardening, and governance truth slimming** - 已完成 runtime/service contract tightening、flow error taxonomy hardening、toolchain/docs/governance truth slimming，并把 live route 收敛到 closeout-ready。 (complete 2026-04-01)
+- [x] **Phase 121: residual contract closure, flow invariant tightening, and surface hygiene cleanup** - 已完成 runtime-access raw-coordinator seam closure、auth-session projection fail-closed、existing-entry validator dedupe、changed-surface route de-phaseization 与 live guard/docs truth sync。 (complete 2026-04-01)
 
 ## Phase Details
 
@@ -73,23 +74,29 @@ bootstrap:
   3. `scripts/check_file_matrix.py`、相关 meta guards 与 `scripts/lint` changed-surface assurance 去除 `phase113_*` / duplicated import branch 硬编码，改成结构化 truth。
   4. `docs/developer_architecture.md` 不再承载大段历史 appendix；runbook / PR template 改为稳定入口或 latest archived pointer；maintainer continuity 保持 honest freeze posture。
 **Status**: Complete (`2026-04-01`)
-**Plans**: 3/3 complete
-**Plan assets**: `120-01-PLAN.md`, `120-02-PLAN.md`, `120-03-PLAN.md`
-**Summary assets**: `120-01-SUMMARY.md`, `120-02-SUMMARY.md`, `120-03-SUMMARY.md`
-**Verification**: `120-VERIFICATION.md`
 **Closeout proof**: `120-01` 已完成 runtime/service contract tightening 与 runtime-access normalization；`120-02` 已完成 flow error taxonomy hardening 与 single-source send-command validation；`120-03` 已完成 toolchain/docs/governance truth slimming，并把 live route truth 收敛到 closeout-ready。
-**Executed plans**:
-- `120-01` runtime/service contract tightening and runtime-access normalization
-- `120-02` flow error taxonomy hardening and single-source send-command validation
-- `120-03` toolchain guard de-brittling, docs appendix slimming, and stable governance pointers
 
-## Progress
-
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 120. terminal audit closure, contract hardening, and governance truth slimming | 3/3 | Complete | 2026-04-01 |
+### Phase 121: residual contract closure, flow invariant tightening, and surface hygiene cleanup
+**Goal**: `runtime_access` read-model 不得再泄露 raw coordinator；config-flow auth-session projection 必须 fail closed；existing-entry validation 必须共享单一内部 invariant chain；default changed-surface assurance 必须切到 phase-agnostic guard home，并同步 live docs/ledgers truth。`
+**Depends on**: Phase 120
+**Requirements**: ARC-33, QLT-48, HOT-53, GOV-80, DOC-11, TST-43
+**Success Criteria** (what must be TRUE):
+  1. `RuntimeCoordinatorView` 与 control helpers 不再通过 view / aggregate export 暴露 raw coordinator；dedicated runtime-access verbs 继续是唯一合法 raw-coordinator 入口。
+  2. `ConfigEntryLoginProjection` 与 `config_flow.py` 对 malformed auth-session projection fail closed 为 `invalid_response`；不再 silent default `access_token` / `refresh_token` / `user_id`。
+  3. `validate_reauth_submission()` 与 `validate_reconfigure_submission()` 共享单一内部 existing-entry invariant chain，且 outward error placement 维持稳定。
+  4. `scripts/lint` default changed-surface assurance 已切到 `tests/meta/test_changed_surface_assurance_guards.py`；`Phase 113` guard 仅保留历史 hotspot evidence 身份。
+**Status**: Complete (`2026-04-01`)
+**Plans**: 3/3 complete
+**Plan assets**: `121-01-PLAN.md`, `121-02-PLAN.md`, `121-03-PLAN.md`
+**Summary assets**: `121-01-SUMMARY.md`, `121-02-SUMMARY.md`, `121-03-SUMMARY.md`
+**Verification**: `121-VERIFICATION.md`
+**Closeout proof**:
+- `121-01` 已完成 runtime-access fact-only read-model、developer-router raw-coordinator helper routing 与 control aggregate export 缩面。
+- `121-02` 已完成 auth-session projection fail-closed 与 existing-entry flow validator dedupe。
+- `121-03` 已完成 changed-surface assurance de-phaseization，并同步 `TESTING.md` / `FILE_MATRIX.md` / live route planning truth。
 
 ## Latest Archived Milestone (v1.33)
+
 
 
 ## v1.33: MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance Hardening
@@ -309,3 +316,4 @@ bootstrap:
 ### Phase 110: Runtime snapshot surface reduction and milestone closeout
 **Status**: Complete (`2026-03-30`)
 **Plans**: 6/6 complete
+

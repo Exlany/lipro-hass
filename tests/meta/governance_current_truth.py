@@ -122,6 +122,33 @@ def _load_phase_asset_snapshot(phase: str, phase_dir_name: str) -> PhaseAssetSna
     )
 
 
+def _resolve_phase_directory(phase: str) -> str:
+    matches = sorted((_ROOT / ".planning" / "phases").glob(f"{phase}-*"))
+    assert len(matches) == 1, f"Expected exactly one phase directory for {phase}, got {matches}"
+    return matches[0].name
+
+
+def _load_current_milestone_phase_statuses(current_phase: str) -> tuple[tuple[str, str], ...]:
+    if not HAS_ACTIVE_MILESTONE:
+        return ((current_phase, "complete"),)
+
+    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
+    section_match = re.search(
+        r"## Phases\n(?P<body>.*?)\n## Phase Details",
+        roadmap_text,
+        flags=re.DOTALL,
+    )
+    assert section_match is not None, "Missing roadmap phases section"
+
+    phase_statuses: list[tuple[str, str]] = []
+    for mark, phase in re.findall(r"- \[(?P<mark>[ xX])\] \*\*Phase (?P<phase>\d+):", section_match.group("body")):
+        status = "complete" if mark.lower() == "x" else ("in_progress" if phase == current_phase else "pending")
+        phase_statuses.append((phase, status))
+
+    assert phase_statuses, "Current milestone phases not found in roadmap"
+    return tuple(phase_statuses)
+
+
 PLANNING_ROUTE_CONTRACT: dict[str, object] = load_canonical_route_contract()
 
 _ACTIVE = _as_optional_mapping(PLANNING_ROUTE_CONTRACT["active_milestone"])
@@ -199,20 +226,37 @@ CURRENT_PHASE_PLAN_SUMMARY_FILENAMES = _CURRENT_PHASE_ASSETS.plan_summary_files
 CURRENT_PHASE_SUMMARY_FILENAMES = _CURRENT_PHASE_ASSETS.summary_files
 CURRENT_PHASE_VERIFICATION_FILENAME = f"{CURRENT_PHASE}-VERIFICATION.md"
 
-CURRENT_MILESTONE_PHASES = (CURRENT_PHASE,)
-if _CURRENT_PHASE_ASSETS.plan_summary_count >= _CURRENT_PHASE_ASSETS.plan_count:
-    CURRENT_MILESTONE_COMPLETED_PHASES = (CURRENT_PHASE,)
-    CURRENT_MILESTONE_IN_PROGRESS_PHASES: tuple[str, ...] = ()
-else:
-    CURRENT_MILESTONE_COMPLETED_PHASES = ()
-    CURRENT_MILESTONE_IN_PROGRESS_PHASES = (CURRENT_PHASE,)
-CURRENT_MILESTONE_PENDING_PHASES: tuple[str, ...] = ()
-CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE = {CURRENT_PHASE: _CURRENT_PHASE_ASSETS.plan_count}
+_CURRENT_MILESTONE_PHASE_STATUSES = _load_current_milestone_phase_statuses(CURRENT_PHASE)
+_CURRENT_MILESTONE_ASSETS = {
+    phase: _load_phase_asset_snapshot(
+        phase,
+        CURRENT_PHASE_DIR if phase == CURRENT_PHASE else _resolve_phase_directory(phase),
+    )
+    for phase, _status in _CURRENT_MILESTONE_PHASE_STATUSES
+}
+
+CURRENT_MILESTONE_PHASES = tuple(phase for phase, _status in _CURRENT_MILESTONE_PHASE_STATUSES)
+CURRENT_MILESTONE_COMPLETED_PHASES = tuple(
+    phase for phase, status in _CURRENT_MILESTONE_PHASE_STATUSES if status == "complete"
+)
+CURRENT_MILESTONE_IN_PROGRESS_PHASES = tuple(
+    phase for phase, status in _CURRENT_MILESTONE_PHASE_STATUSES if status == "in_progress"
+)
+CURRENT_MILESTONE_PENDING_PHASES = tuple(
+    phase for phase, status in _CURRENT_MILESTONE_PHASE_STATUSES if status == "pending"
+)
+CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE = {
+    phase: snapshot.plan_count for phase, snapshot in _CURRENT_MILESTONE_ASSETS.items()
+}
 CURRENT_MILESTONE_PLAN_COUNT = CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE[CURRENT_PHASE]
-CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE = {CURRENT_PHASE: _CURRENT_PHASE_ASSETS.summary_count}
+CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE = {
+    phase: snapshot.plan_summary_count for phase, snapshot in _CURRENT_MILESTONE_ASSETS.items()
+}
 CURRENT_MILESTONE_SUMMARY_COUNT = CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE[CURRENT_PHASE]
 CURRENT_MILESTONE_TOTAL_PLAN_COUNT = sum(CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE.values())
-CURRENT_MILESTONE_COMPLETED_PLAN_COUNT = _CURRENT_PHASE_ASSETS.plan_summary_count
+CURRENT_MILESTONE_COMPLETED_PLAN_COUNT = sum(
+    snapshot.plan_summary_count for snapshot in _CURRENT_MILESTONE_ASSETS.values()
+)
 CURRENT_ROUTE_FOCUSED_GUARDS = (
     "tests/meta/test_governance_bootstrap_smoke.py",
     "tests/meta/test_governance_route_handoff_smoke.py",

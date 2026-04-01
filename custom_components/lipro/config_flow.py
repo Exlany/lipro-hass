@@ -17,6 +17,7 @@ from .const.config import (
 )
 from .core import LiproAuthManager, LiproProtocolFacade
 from .core.auth import AuthSessionSnapshot
+from .core.utils.log_safety import safe_error_placeholder
 from .flow.credentials import mask_phone_for_title as _mask_phone_for_title
 from .flow.login import (
     ConfigEntryLoginProjection,
@@ -86,6 +87,22 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
                 remember_password_hash=remember_password_hash,
             ),
         )
+
+    @staticmethod
+    def _set_invalid_auth_session_error(
+        errors: dict[str, str],
+        *,
+        context_name: str,
+        err: ValueError,
+    ) -> None:
+        """Map malformed auth/session projections back to one flow error."""
+        _LOGGER.error(
+            "Malformed auth session during %s (%s)",
+            context_name,
+            safe_error_placeholder(err),
+            exc_info=_LOGGER.isEnabledFor(logging.DEBUG),
+        )
+        errors["base"] = "invalid_response"
 
     def _show_user_form(self, errors: dict[str, str]) -> ConfigFlowResult:
         """Show the initial user form."""
@@ -217,11 +234,19 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
         if auth_session is None:
             return self._show_user_form(errors)
 
-        return await self._async_create_user_entry(
-            submission,
-            phone_id=phone_id,
-            auth_session=auth_session,
-        )
+        try:
+            return await self._async_create_user_entry(
+                submission,
+                phone_id=phone_id,
+                auth_session=auth_session,
+            )
+        except ValueError as err:
+            self._set_invalid_auth_session_error(
+                errors,
+                context_name="user entry projection",
+                err=err,
+            )
+            return self._show_user_form(errors)
 
     async def async_step_reauth(self, entry_data: dict[str, object]) -> ConfigFlowResult:
         """Handle reauthorization."""
@@ -256,13 +281,21 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
         if auth_session is None:
             return self._show_reauth_form(reauth_entry, errors)
 
-        entry_login, entry_data = self._entry_data_from_auth_session(
-            auth_session,
-            phone=submission.phone,
-            password_hash=submission.password_hash,
-            phone_id=submission.phone_id,
-            remember_password_hash=submission.remember_password_hash,
-        )
+        try:
+            entry_login, entry_data = self._entry_data_from_auth_session(
+                auth_session,
+                phone=submission.phone,
+                password_hash=submission.password_hash,
+                phone_id=submission.phone_id,
+                remember_password_hash=submission.remember_password_hash,
+            )
+        except ValueError as err:
+            self._set_invalid_auth_session_error(
+                errors,
+                context_name="reauth entry projection",
+                err=err,
+            )
+            return self._show_reauth_form(reauth_entry, errors)
         expected_user_id = _resolve_reauth_expected_user_id(reauth_entry)
         if expected_user_id is not None and expected_user_id != entry_login.user_id:
             errors["base"] = "reauth_user_mismatch"
@@ -301,13 +334,21 @@ class LiproConfigFlow(ConfigFlow, domain=DOMAIN):
         if auth_session is None:
             return self._show_reconfigure_form(reconfigure_entry, errors)
 
-        entry_login, entry_data = self._entry_data_from_auth_session(
-            auth_session,
-            phone=submission.phone,
-            password_hash=submission.password_hash,
-            phone_id=submission.phone_id,
-            remember_password_hash=submission.remember_password_hash,
-        )
+        try:
+            entry_login, entry_data = self._entry_data_from_auth_session(
+                auth_session,
+                phone=submission.phone,
+                password_hash=submission.password_hash,
+                phone_id=submission.phone_id,
+                remember_password_hash=submission.remember_password_hash,
+            )
+        except ValueError as err:
+            self._set_invalid_auth_session_error(
+                errors,
+                context_name="reconfigure entry projection",
+                err=err,
+            )
+            return self._show_reconfigure_form(reconfigure_entry, errors)
         await self.async_set_unique_id(f"lipro_{entry_login.user_id}")
         self._abort_if_unique_id_mismatch()
         return self.async_update_reload_and_abort(

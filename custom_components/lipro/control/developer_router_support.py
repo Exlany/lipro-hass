@@ -29,8 +29,10 @@ from ..services.errors import raise_service_error as _raise_service_error
 from . import telemetry_surface as _telemetry_surface
 from .runtime_access import (
     find_runtime_entry_for_coordinator as _find_runtime_entry_for_coordinator,
+    get_entry_runtime_coordinator as _get_entry_runtime_coordinator,
     is_debug_mode_enabled_for_entry as _is_debug_mode_enabled_for_entry,
     is_developer_runtime_coordinator as _is_developer_runtime_coordinator,
+    iter_developer_runtime_coordinators as _iter_developer_runtime_coordinators,
     iter_runtime_entry_views as _iter_runtime_entry_views,
 )
 
@@ -63,11 +65,7 @@ def build_developer_runtime_coordinator_iterator(
     hass: HomeAssistant,
 ) -> RuntimeCoordinatorIterator:
     """Freeze the current debug-enabled coordinators into one iterator factory."""
-    coordinators = [
-        view.coordinator.runtime_coordinator
-        for view in _iter_runtime_entry_views(hass)
-        if view.coordinator is not None and _is_debug_mode_enabled_for_entry(view.entry)
-    ]
+    coordinators = list(_iter_developer_runtime_coordinators(hass))
 
     def _iter_runtime_coordinators(
         _hass: HomeAssistant,
@@ -112,8 +110,8 @@ def collect_developer_reports(
         for entry_view in _iter_runtime_entry_views(hass, entry_id=requested_entry_id):
             if entry_view.entry_id != requested_entry_id:
                 continue
-            coordinator_view = entry_view.coordinator
-            if coordinator_view is None:
+            coordinator = _get_entry_runtime_coordinator(entry_view.entry)
+            if coordinator is None:
                 raise ServiceValidationError(
                     translation_domain=DOMAIN,
                     translation_key="entry_not_found",
@@ -124,7 +122,7 @@ def collect_developer_reports(
             return _collect_developer_reports_service(
                 hass,
                 iter_runtime_coordinators=build_single_runtime_coordinator_iterator(
-                    coordinator_view.coordinator
+                    coordinator
                 ),
                 find_runtime_entry_for_coordinator=_find_runtime_entry_for_coordinator,
                 get_entry_telemetry_view=_telemetry_surface.get_entry_telemetry_view,
@@ -136,11 +134,7 @@ def collect_developer_reports(
             translation_placeholders={"entry_id": requested_entry_id},
         )
 
-    coordinators = [
-        view.coordinator.runtime_coordinator
-        for view in _iter_runtime_entry_views(hass)
-        if view.coordinator is not None and _is_debug_mode_enabled_for_entry(view.entry)
-    ]
+    coordinators = list(_iter_developer_runtime_coordinators(hass))
     return _collect_developer_reports_service(
         hass,
         iter_runtime_coordinators=lambda _hass: iter(coordinators),

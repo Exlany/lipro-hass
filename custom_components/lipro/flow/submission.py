@@ -132,6 +132,60 @@ def build_reauth_description_placeholders(
     return {"phone": masked_phone}
 
 
+def _validate_existing_entry_submission(
+    entry: ConfigEntry,
+    *,
+    raw_phone: object,
+    raw_password: object,
+    context_name: str,
+    logger: logging.Logger,
+    remember_password_hash: bool,
+    phone_error_target: str | None,
+) -> tuple[ExistingEntrySubmission | None, FlowErrors]:
+    """Validate one entry-bound submission against the stored entry identity."""
+    errors: FlowErrors = {}
+
+    phone_id = _resolve_entry_phone_id(
+        entry,
+        logger=logger,
+        context_name=context_name,
+    )
+    if phone_id is None:
+        errors["base"] = INVALID_ENTRY_ERROR
+        return None, errors
+
+    phone, phone_error = _validate_phone_input(
+        raw_phone,
+        logger=logger,
+        context_name=context_name,
+    )
+    if phone_error is not None or phone is None:
+        if phone_error_target is None:
+            errors["base"] = INVALID_ENTRY_ERROR
+        else:
+            errors[phone_error_target] = phone_error or "invalid_phone"
+        return None, errors
+
+    password, password_error = _validate_password_input(
+        raw_password,
+        logger=logger,
+        context_name=context_name,
+    )
+    if password_error is not None or password is None:
+        errors[CONF_PASSWORD] = "invalid_password"
+        return None, errors
+
+    return (
+        ExistingEntrySubmission(
+            phone=phone,
+            phone_id=phone_id,
+            password_hash=hash_password(password),
+            remember_password_hash=remember_password_hash,
+        ),
+        errors,
+    )
+
+
 def validate_user_submission(
     user_input: Mapping[str, object],
     *,
@@ -182,50 +236,24 @@ def validate_reauth_submission(
     logger: logging.Logger,
 ) -> tuple[ExistingEntrySubmission | None, FlowErrors]:
     """Validate reauth-step input and bind it to the stored entry identity."""
-    errors: FlowErrors = {}
-
     raw_phone = reauth_entry.data.get(CONF_PHONE, "")
-    phone_id = _resolve_entry_phone_id(
-        reauth_entry,
-        logger=logger,
-        context_name="reauth",
-    )
-    if not raw_phone or phone_id is None:
+    if not raw_phone:
         logger.error(
             "Missing phone or phone_id in reauth entry, "
             "please remove and re-add the integration"
         )
-        errors["base"] = INVALID_ENTRY_ERROR
-        return None, errors
+        return None, {"base": INVALID_ENTRY_ERROR}
 
-    phone, phone_error = _validate_phone_input(
-        raw_phone,
-        logger=logger,
+    return _validate_existing_entry_submission(
+        reauth_entry,
+        raw_phone=raw_phone,
+        raw_password=user_input.get(CONF_PASSWORD),
         context_name="reauth",
-    )
-    if phone_error is not None or phone is None:
-        errors["base"] = INVALID_ENTRY_ERROR
-        return None, errors
-
-    password, password_error = _validate_password_input(
-        user_input.get(CONF_PASSWORD),
         logger=logger,
-        context_name="reauth",
-    )
-    if password_error is not None or password is None:
-        errors[CONF_PASSWORD] = "invalid_password"
-        return None, errors
-
-    return (
-        ExistingEntrySubmission(
-            phone=phone,
-            phone_id=phone_id,
-            password_hash=hash_password(password),
-            remember_password_hash=resolve_entry_remember_password_hash(
-                reauth_entry.data
-            ),
+        remember_password_hash=resolve_entry_remember_password_hash(
+            reauth_entry.data,
         ),
-        errors,
+        phone_error_target=None,
     )
 
 
@@ -236,48 +264,18 @@ def validate_reconfigure_submission(
     logger: logging.Logger,
 ) -> tuple[ExistingEntrySubmission | None, FlowErrors]:
     """Validate reconfigure-step input and bind it to the target entry."""
-    errors: FlowErrors = {}
-
-    phone, phone_error = _validate_phone_input(
-        user_input.get(CONF_PHONE),
-        logger=logger,
-        context_name="reconfigure",
-    )
-    if phone_error is not None:
-        errors[CONF_PHONE] = phone_error
-
-    password, password_error = _validate_password_input(
-        user_input.get(CONF_PASSWORD),
-        logger=logger,
-        context_name="reconfigure",
-    )
-    if password_error is not None:
-        errors[CONF_PASSWORD] = password_error
-
-    if errors or phone is None or password is None:
-        return None, errors
-
-    phone_id = _resolve_entry_phone_id(
-        reconfigure_entry,
-        logger=logger,
-        context_name="reconfigure",
-    )
-    if phone_id is None:
-        errors["base"] = INVALID_ENTRY_ERROR
-        return None, errors
-
     remember_password_hash = bool(
         user_input.get(
             CONF_REMEMBER_PASSWORD_HASH,
             resolve_entry_remember_password_hash(reconfigure_entry.data),
         )
     )
-    return (
-        ExistingEntrySubmission(
-            phone=phone,
-            phone_id=phone_id,
-            password_hash=hash_password(password),
-            remember_password_hash=remember_password_hash,
-        ),
-        errors,
+    return _validate_existing_entry_submission(
+        reconfigure_entry,
+        raw_phone=user_input.get(CONF_PHONE),
+        raw_password=user_input.get(CONF_PASSWORD),
+        context_name="reconfigure",
+        logger=logger,
+        remember_password_hash=remember_password_hash,
+        phone_error_target=CONF_PHONE,
     )

@@ -182,6 +182,11 @@ custom_components/lipro/
 | massive test topicization only | run the touched topical suites + `uv run pytest -q tests/core tests/flows tests/meta` |
 | docs / governance only | `uv run pytest -q tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py` |
 
+## Phase 93 Assurance Freeze Notes
+
+- `FILE_MATRIX.md`、`TESTING.md`、`VERIFICATION_MATRIX.md` 与 route smoke tests 共同构成 assurance freeze proof；任何派生投影滞后都属于 current-route regression，而不是可忽略的文档噪音。
+- `tests/meta/test_phase31_runtime_budget_guards.py` 继续是 repo-wide typing-budget freeze home；quality-freeze closeout does not introduce a second public root。
+
 ## 常用命令
 
 - `uv run ruff check .`

@@ -6,11 +6,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Protocol
 
-from ..runtime_types import (
-    LiproCoordinator,
-    LiproRuntimeCoordinator,
-    ProtocolTelemetryFacadeLike,
-)
+from ..runtime_types import LiproRuntimeCoordinator, ProtocolTelemetryFacadeLike
 
 if TYPE_CHECKING:
     from ..core.device import LiproDevice
@@ -47,20 +43,14 @@ class RuntimeEntryFacts:
 
 @dataclass(frozen=True, slots=True)
 class RuntimeCoordinatorView:
-    """Typed read-model of the runtime-facing coordinator facts."""
+    """Typed read-model of narrowed runtime-facing coordinator facts."""
 
-    coordinator: LiproCoordinator
     update_interval: str | None
     last_update_success: bool
     mqtt_connected: bool | None
     protocol: ProtocolTelemetryFacadeLike | None
     runtime_telemetry_snapshot: Mapping[str, object]
     devices: Mapping[str, LiproDevice] | None
-
-    @property
-    def runtime_coordinator(self) -> LiproCoordinator:
-        """Return the runtime root carried by this view."""
-        return self.coordinator
 
 
 @dataclass(frozen=True, slots=True)
