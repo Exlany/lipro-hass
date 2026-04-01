@@ -29,7 +29,7 @@
 - **Route truth:** `active / phase 126 complete; phase 127 planning-ready (2026-04-01)`
 - **Focused guards:** `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/test_governance_release_contract.py`, `tests/services/test_services_diagnostics_capabilities.py`, `tests/services/test_services_diagnostics_payloads.py`
 - **Proof chain:** diagnostics helper shell thinning + canonical helper_support mechanics + developer iterator builder unification + v1.36 route bootstrap → `uv run pytest -q tests/services/test_services_diagnostics_capabilities.py tests/services/test_services_diagnostics_payloads.py` → `uv run ruff check .` → `uv run python scripts/check_file_matrix.py --check` → `uv run pytest -q` → isolated `gsd-tools state json` / `init progress`
-- **Phase asset bundle:** `.planning/phases/126-service-router-developer-callback-home-convergence-and-diagnostics-helper-residual-slimming/{126-01-SUMMARY.md,126-SUMMARY.md,126-VERIFICATION.md}`
+- **Phase asset bundle:** `.planning/phases/126-service-router-developer-callback-home-convergence-and-diagnostics-helper-residual-slimming/{126-01-SUMMARY.md,126-SUMMARY.md,126-VERIFICATION.md,126-VALIDATION.md}`
 - **Touched formal homes:** `custom_components/lipro/services/diagnostics/{handlers.py,helpers.py,helper_support.py}`, `custom_components/lipro/control/developer_router_support.py`, `.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md,MILESTONES.md}`, `.planning/baseline/{GOVERNANCE_REGISTRY.json,VERIFICATION_MATRIX.md}`, `docs/developer_architecture.md`, `.planning/codebase/{ARCHITECTURE.md,CONCERNS.md,TESTING.md}`
 
 ## Phase 127 Exit Contract

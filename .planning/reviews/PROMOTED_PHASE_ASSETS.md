@@ -589,6 +589,7 @@ phases:
 - 126-01-SUMMARY.md
 - 126-SUMMARY.md
 - 126-VERIFICATION.md
+- 126-VALIDATION.md
 127-runtime-access-de-reflection-typed-runtime-entry-contracts-and-hotspot-continuation:
 - 127-01-SUMMARY.md
 - 127-02-SUMMARY.md
