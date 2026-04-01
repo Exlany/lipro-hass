@@ -9,7 +9,7 @@ contract_name: governance-route
 active_milestone:
   version: v1.32
   name: Residual Hotspot Eradication, Validation Completion & Continuity Hardening
-  status: active / phase 118 execution-ready (2026-04-01)
+  status: active / phase 118 complete; closeout-ready (2026-04-01)
   phase: '118'
   phase_title: Final hotspot decomposition and validation closure
   phase_dir: 118-final-hotspot-decomposition-and-validation-closure
@@ -29,36 +29,36 @@ previous_archived:
   evidence_path: .planning/reviews/V1_30_EVIDENCE_INDEX.md
 bootstrap:
   current_route: v1.32 active milestone route / starting from latest archived baseline = v1.31
-  default_next_command: $gsd-execute-phase 118
+  default_next_command: $gsd-complete-milestone v1.32
   latest_archived_evidence_pointer: .planning/reviews/V1_31_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
 ## Current Milestone (v1.32)
 
-**Milestone Goal:** 把 `v1.31` 已诚实登记的 remaining hotspots、validation backfill 与 continuity hardening 继续收口为同一条 active route：在 `Phase 115 -> 117` 已完成 contract freeze / continuity repair 的基础上，再显式完成 `Phase 118` 的 route truth sync、remaining hotspot decomposition 与 phase-local validation closure。
-**Milestone status:** `active / phase 118 execution-ready (2026-04-01)`
+**Milestone Goal:** 已把 `v1.31` 已诚实登记的 remaining hotspots、validation backfill 与 continuity hardening 收口为同一条 active route：在 `Phase 115 -> 117` 已完成 contract freeze / continuity repair 的基础上，`Phase 118` 进一步完成了 route truth sync、remaining hotspot decomposition 与 phase-local validation closure。
+**Milestone status:** `active / phase 118 complete; closeout-ready (2026-04-01)`
 **Current route mode:** `v1.32 active milestone route / starting from latest archived baseline = v1.31`
 **Starting baseline:** `.planning/v1.31-MILESTONE-AUDIT.md`, `.planning/reviews/V1_31_EVIDENCE_INDEX.md`, `.planning/milestones/v1.31-ROADMAP.md`, `.planning/milestones/v1.31-REQUIREMENTS.md`
 **Requirements basket:** `HOT-48`, `HOT-49`, `HOT-50`, `HOT-51`, `TST-39`, `TST-40`, `GOV-73`, `GOV-75`
 **Latest archived baseline:** `v1.31`
 **Archive pointer:** `.planning/reviews/V1_31_EVIDENCE_INDEX.md`
-**Default next command:** `$gsd-execute-phase 118`
-**Current phase handoff:** `Phase 118 execution-ready; GOV-75 route truth sync is complete, while HOT-50 / HOT-51 / TST-40 remain the only formal next tasks before milestone closeout.`
+**Default next command:** `$gsd-complete-milestone v1.32`
+**Current phase handoff:** `Phase 118 complete; closeout-ready; HOT-50 / HOT-51 / TST-40 / GOV-75 are all closed in-place, and the only formal next step is milestone closeout.`
 
 ### Hotspots
 - [x] **HOT-48**: `status_fallback_support.py` 必须收敛到单一明确的 fallback-entry semantics；空输入 / no-I/O / fallback-depth contract 已被冻结为当前 formal behavior。
 - [x] **HOT-49**: `anonymous_share/manager.py` / `rest_facade.py` 已继续在 formal homes 内 inward split；state binding / scope-state proxy / aggregate outcome contract 已冻结，未新增 second root 或 compat shell。
-- [ ] **HOT-50**: `status_fallback_support.py` 与 `rest_decoder` family 必须继续 inward split，降低 giant-home 决策密度，但 public entry / registry truth 不得漂移。
-- [ ] **HOT-51**: `firmware_update.py` 与 `anonymous_share/manager.py` 的剩余 orchestration 密度必须进一步下降，且 outward entity / aggregate contract 保持不变。
+- [x] **HOT-50**: `status_fallback_support.py` 与 `rest_decoder` family 已继续 inward split，进一步降低 giant-home 决策密度，同时保持 public entry / registry truth 稳定。
+- [x] **HOT-51**: `firmware_update.py` 已 inward split 到 `firmware_update_support.py`；`anonymous_share/manager.py` 经终局审计后保留为 bounded façade/watchlist，并继续由 no-growth guard 约束，outward entity / aggregate contract 保持不变。
 
 ### Testing
 - [x] **TST-39**: `Phase 112 -> 114` 缺失的 validation / focused changed-surface proof 已回填，使 archived truth 不再停留在 verification-only。
-- [ ] **TST-40**: `Phase 115 -> 117` 需要补齐 phase-local `VALIDATION.md`，并以 focused + repo-wide gates 证明 `v1.32` 达到 verification + validation 双闭环。
+- [x] **TST-40**: `Phase 115 -> 117` 的 phase-local `VALIDATION.md` 已补齐，并以 focused + repo-wide gates 证明 `v1.32` 达到 verification + validation 双闭环。
 
 ### Governance
 - [x] **GOV-73**: archived baseline / milestone context / runbook continuity / evidence pointers 已在 `v1.32` active route 下继续保持 single-source、machine-checkable 和 docs-first 对齐。
-- [x] **GOV-75**: live selector family、developer guidance、runbook 与 focused governance guards 已把 current story 前推到 `Phase 118 execution-ready`；后续只允许在 `Phase 118` 完成后再诚实回到 milestone closeout-ready。
+- [x] **GOV-75**: live selector family、developer guidance、runbook 与 focused governance guards 已把 current story 诚实收口到 `active / phase 118 complete; closeout-ready (2026-04-01)`；默认下一步已重新回到 `$gsd-complete-milestone v1.32`。
 
 ## Traceability
 
@@ -68,16 +68,16 @@ bootstrap:
 | HOT-49 | Phase 116 | Complete |
 | TST-39 | Phase 117 | Complete |
 | GOV-73 | Phase 117 | Complete |
-| HOT-50 | Phase 118 | Pending |
-| HOT-51 | Phase 118 | Pending |
-| TST-40 | Phase 118 | Pending |
+| HOT-50 | Phase 118 | Complete |
+| HOT-51 | Phase 118 | Complete |
+| TST-40 | Phase 118 | Complete |
 | GOV-75 | Phase 118 | Complete |
 
 **Coverage:**
 - v1.32 requirements: 8 total
 - Mapped to phases: 8
-- Complete: 5
-- Pending: 3
+- Complete: 8
+- Pending: 0
 - Unmapped: 0 ✓
 
 
@@ -96,22 +96,6 @@ bootstrap:
 | Fabricating a public docs / security / support URL that does not exist | 违反勿造虚妄原则，且会制造虚假的开源可达性承诺 |
 | Inventing a delegate or backup maintainer identity | 需要 maintainer 的现实授权，不能由仓内代码或文档臆造 |
 | Reopening closed compat shells or adding second roots during hotspot cleanup | 违反北极星 formal-home / single-mainline 裁决 |
-
-## Traceability
-
-| Requirement | Phase | Status |
-|-------------|-------|--------|
-| HOT-48 | Phase 115 | Complete |
-| HOT-49 | Phase 116 | Complete |
-| TST-39 | Phase 117 | Complete |
-| GOV-73 | Phase 117 | Complete |
-
-**Coverage:**
-- v1.32 requirements: 4 total
-- Mapped to phases: 4
-- Complete: 4
-- Pending: 0
-- Unmapped: 0 ✓
 
 ## Latest Archived Milestone (v1.31)
 

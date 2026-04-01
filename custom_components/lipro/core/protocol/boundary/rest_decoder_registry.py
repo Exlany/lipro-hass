@@ -81,12 +81,12 @@ _REST_MESH_GROUP_STATUS_CONTEXT = RestDecodeContext(
 
 
 __all__ = [
-    "RestBoundaryDecoder",
-    "RestDecodeContext",
     "_REST_DEVICE_LIST_CONTEXT",
     "_REST_DEVICE_STATUS_CONTEXT",
     "_REST_LIST_ENVELOPE_CONTEXT",
     "_REST_MESH_GROUP_STATUS_CONTEXT",
     "_REST_MQTT_CONFIG_CONTEXT",
     "_REST_SCHEDULE_JSON_CONTEXT",
+    "RestBoundaryDecoder",
+    "RestDecodeContext",
 ]

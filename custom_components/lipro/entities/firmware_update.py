@@ -6,7 +6,7 @@ import asyncio
 from datetime import UTC, datetime, timedelta
 import logging
 from time import monotonic
-from typing import TYPE_CHECKING, TypedDict
+from typing import TYPE_CHECKING
 
 from homeassistant.components.update import (
     UpdateDeviceClass,
@@ -41,6 +41,14 @@ from ..core.ota.rows_cache import (
 )
 from ..core.utils.log_safety import safe_error_placeholder
 from ..entities.base import LiproEntity
+from ..entities.firmware_update_support import (
+    FirmwareStateAttributes,
+    build_firmware_state_attributes,
+    clear_refresh_task,
+    consume_wait_result,
+    notify_ota_error_callback,
+    should_refresh_ota,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -55,15 +63,6 @@ _UNVERIFIED_CONFIRM_WINDOW_SECONDS = 120
 _TIME_MIN_UTC = datetime.min.replace(tzinfo=UTC)
 _OTA_REFRESH_CONCURRENCY = 3
 _OTA_REFRESH_SEMAPHORE = asyncio.Semaphore(_OTA_REFRESH_CONCURRENCY)
-
-class FirmwareStateAttributes(TypedDict, total=False):
-    """Typed extra-state projection exposed by the firmware entity."""
-
-    certified: bool
-    confirmation_required: bool
-    ota_checked_at: str
-    last_error: str
-    last_error_type: str
 
 
 class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
@@ -102,17 +101,14 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
     @property
     def extra_state_attributes(self) -> FirmwareStateAttributes:
         """Expose OTA metadata for advanced users."""
-        attrs: FirmwareStateAttributes = {
-            "certified": self._ota_candidate.certified if self._ota_candidate else False,
-            "confirmation_required": self._has_pending_unverified_confirmation(),
-        }
-
-        if self._last_ota_refresh != _TIME_MIN_UTC:
-            attrs["ota_checked_at"] = self._last_ota_refresh.isoformat()
-        if self._last_error is not None:
-            attrs["last_error"] = safe_error_placeholder(self._last_error)
-            attrs["last_error_type"] = type(self._last_error).__name__
-        return attrs
+        return build_firmware_state_attributes(
+            ota_candidate=self._ota_candidate,
+            confirm_until=self._unverified_confirm_until,
+            last_ota_refresh=self._last_ota_refresh,
+            last_error=self._last_error,
+            time_min_utc=_TIME_MIN_UTC,
+            now_monotonic=monotonic,
+        )
 
     async def async_added_to_hass(self) -> None:
         """Schedule initial OTA metadata refresh."""
@@ -250,44 +246,21 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
     @staticmethod
     def _consume_wait_result(result: object) -> Exception | None:
         """Normalize gather(return_exceptions=True) output into an exception."""
-        if isinstance(result, asyncio.CancelledError):
-            return None
-        return result if isinstance(result, Exception) else None
+        return consume_wait_result(result)
 
     @staticmethod
     def _async_clear_refresh_task(task: asyncio.Task[None]) -> Exception | None:
         """Consume task exception to avoid warning logs."""
-        try:
-            err = task.exception()
-        except asyncio.CancelledError:
-            return None
-        if isinstance(err, Exception):
-            _LOGGER.debug(
-                "Background OTA refresh task failed (%s)",
-                safe_error_placeholder(err),
-            )
-            return err
-        return None
+        return clear_refresh_task(task, logger=_LOGGER)
 
     def _set_last_error(self, err: Exception) -> None:
         """Persist last async exception and notify optional observer."""
         self._last_error = err
-        if self._on_error is None:
-            return
-        try:
-            self._on_error(err)
-        except (
-            AttributeError,
-            LookupError,
-            RuntimeError,
-            TypeError,
-            ValueError,
-        ) as callback_err:
-            _LOGGER.error(
-                "OTA error callback failed (%s)",
-                safe_error_placeholder(callback_err),
-                exc_info=_LOGGER.isEnabledFor(logging.DEBUG),
-            )
+        notify_ota_error_callback(
+            self._on_error,
+            err,
+            logger=_LOGGER,
+        )
 
     def _clear_last_error(self) -> None:
         """Clear persisted async exception state."""
@@ -295,7 +268,11 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
 
     def _should_refresh_ota(self) -> bool:
         """Return True when OTA metadata is stale."""
-        return dt_util.utcnow() - self._last_ota_refresh >= _OTA_REFRESH_INTERVAL
+        return should_refresh_ota(
+            last_ota_refresh=self._last_ota_refresh,
+            refresh_interval=_OTA_REFRESH_INTERVAL,
+            now=dt_util.utcnow,
+        )
 
     def _ota_rows_cache_key(self) -> OtaRowsCacheKey:
         """Build a shared OTA rows cache key scoped by model-like identifiers."""

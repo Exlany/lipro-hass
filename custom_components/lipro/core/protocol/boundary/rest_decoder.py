@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping
+from collections.abc import Callable
 from typing import TYPE_CHECKING, cast
 
-from ...api.schedule_codec import parse_mesh_schedule_json
 from .rest_decoder_family import (
     DeviceListRestDecoder,
     DeviceStatusRestDecoder,
@@ -13,12 +12,16 @@ from .rest_decoder_family import (
     MeshGroupStatusRestDecoder,
 )
 from .rest_decoder_registry import (
-    RestBoundaryDecoder,
-    RestDecodeContext,
     _REST_MQTT_CONFIG_CONTEXT,
     _REST_SCHEDULE_JSON_CONTEXT,
+    RestBoundaryDecoder,
+    RestDecodeContext,
 )
-from .rest_decoder_utility import _build_payload_fingerprint
+from .rest_decoder_utility import (
+    _build_payload_fingerprint,
+    _build_schedule_json_fingerprint,
+    _decode_schedule_json_canonical,
+)
 from .result import BoundaryDecodeResult, BoundaryDecoderKey
 
 if TYPE_CHECKING:
@@ -52,56 +55,31 @@ def _extract_mqtt_config_mapping(
     return None
 
 
-def _extract_schedule_json_source(payload: object) -> object:
-    if not isinstance(payload, Mapping):
-        return payload
-    if "scheduleJson" in payload:
-        return payload.get("scheduleJson")
-    if "payload" in payload:
-        return payload.get("payload")
-    return payload
-
-
-def _decode_schedule_json_canonical(payload: object) -> CanonicalScheduleJson:
-    parsed = parse_mesh_schedule_json(
-        _extract_schedule_json_source(payload),
-        mask_sensitive_data=lambda value: value,
-    )
-    return {
-        "days": parsed["days"],
-        "time": parsed["time"],
-        "evt": parsed["evt"],
-    }
-
-
-def _build_schedule_json_fingerprint(canonical: CanonicalScheduleJson) -> str:
-    return (
-        f"days:{len(canonical['days'])}|"
-        f"time:{len(canonical['time'])}|"
-        f"evt:{len(canonical['evt'])}"
-    )
-
-
 class MqttConfigRestDecoder:
     """Decode the MQTT-config REST family into the canonical contract shape."""
 
     def __init__(self, *, is_success_code: Callable[[object], bool]) -> None:
+        """Initialize the MQTT-config decoder context and status checker."""
         self._is_success_code = is_success_code
         self._context = _REST_MQTT_CONFIG_CONTEXT
 
     @property
     def context(self) -> RestDecodeContext:
+        """Return endpoint-bound decoder metadata."""
         return self._context
 
     @property
     def key(self) -> BoundaryDecoderKey:
+        """Return the stable registry key for this decoder family."""
         return self._context.key
 
     @property
     def authority(self) -> str:
+        """Return the authoritative fixture source for this decoder family."""
         return self._context.authority
 
     def decode(self, payload: object) -> BoundaryDecodeResult[CanonicalMqttConfig]:
+        """Decode one MQTT-config payload into the canonical boundary contract."""
         canonical = _extract_mqtt_config_mapping(
             payload,
             is_success_code=self._is_success_code,
@@ -121,21 +99,26 @@ class ScheduleJsonRestDecoder:
     """Decode scheduleJson payloads into canonical schedule triples."""
 
     def __init__(self) -> None:
+        """Initialize the scheduleJson decoder context."""
         self._context = _REST_SCHEDULE_JSON_CONTEXT
 
     @property
     def context(self) -> RestDecodeContext:
+        """Return endpoint-bound decoder metadata."""
         return self._context
 
     @property
     def key(self) -> BoundaryDecoderKey:
+        """Return the stable registry key for this decoder family."""
         return self._context.key
 
     @property
     def authority(self) -> str:
+        """Return the authoritative fixture source for this decoder family."""
         return self._context.authority
 
     def decode(self, payload: object) -> BoundaryDecodeResult[CanonicalScheduleJson]:
+        """Decode one scheduleJson payload into the canonical boundary contract."""
         canonical = _decode_schedule_json_canonical(payload)
         return BoundaryDecodeResult(
             key=self.key,
@@ -191,3 +174,21 @@ def decode_mesh_group_status_payload(
 ) -> BoundaryDecodeResult[list[CanonicalMeshGroupStatusRow]]:
     """Decode one mesh-group-status REST payload into canonical topology rows."""
     return MeshGroupStatusRestDecoder().decode(payload)
+
+
+__all__ = [
+    "DeviceListRestDecoder",
+    "DeviceStatusRestDecoder",
+    "ListEnvelopeRestDecoder",
+    "MeshGroupStatusRestDecoder",
+    "MqttConfigRestDecoder",
+    "RestBoundaryDecoder",
+    "RestDecodeContext",
+    "ScheduleJsonRestDecoder",
+    "decode_device_list_payload",
+    "decode_device_status_payload",
+    "decode_list_envelope_payload",
+    "decode_mesh_group_status_payload",
+    "decode_mqtt_config_payload",
+    "decode_schedule_json_payload",
+]

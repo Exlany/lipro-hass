@@ -208,11 +208,21 @@ def test_rest_decoder_family_helpers_stay_near_decoder_homes() -> None:
         / "boundary"
         / "rest_decoder.py"
     ).read_text(encoding="utf-8")
+    utility_text = (
+        root
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "protocol"
+        / "boundary"
+        / "rest_decoder_utility.py"
+    ).read_text(encoding="utf-8")
 
     assert "_extract_mqtt_config_mapping" not in support_text
     assert "_build_schedule_json_fingerprint" not in support_text
     assert "parse_mesh_schedule_json" not in support_text
     assert "_decode_list_envelope_canonical" in support_text
     assert "_extract_mqtt_config_mapping" in decoder_text
-    assert "_build_schedule_json_fingerprint" in decoder_text
-    assert "parse_mesh_schedule_json" in decoder_text
+    assert "_decode_schedule_json_canonical" in decoder_text
+    assert "_build_schedule_json_fingerprint" in utility_text
+    assert "parse_mesh_schedule_json" in utility_text

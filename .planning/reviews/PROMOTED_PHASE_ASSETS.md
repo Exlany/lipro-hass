@@ -514,6 +514,32 @@ phases:
   - 114-VERIFICATION.md
   - 114-VALIDATION.md
   - 114-AUDIT.md
+  115-status-fallback-query-flow-normalization:
+  - 115-01-SUMMARY.md
+  - 115-SUMMARY.md
+  - 115-VERIFICATION.md
+  - 115-VALIDATION.md
+  116-anonymous-share-and-rest-fa-ade-hotspot-slimming:
+  - 116-01-SUMMARY.md
+  - 116-02-SUMMARY.md
+  - 116-03-SUMMARY.md
+  - 116-SUMMARY.md
+  - 116-VERIFICATION.md
+  - 116-VALIDATION.md
+  117-validation-backfill-and-continuity-hardening:
+  - 117-01-SUMMARY.md
+  - 117-02-SUMMARY.md
+  - 117-03-SUMMARY.md
+  - 117-SUMMARY.md
+  - 117-VERIFICATION.md
+  - 117-VALIDATION.md
+  118-final-hotspot-decomposition-and-validation-closure:
+  - 118-01-SUMMARY.md
+  - 118-02-SUMMARY.md
+  - 118-03-SUMMARY.md
+  - 118-SUMMARY.md
+  - 118-VERIFICATION.md
+  - 118-VALIDATION.md
 policy:
   default_identity: execution-trace
   promotion_contract: Only assets listed under `phases` count as long-term governance/CI

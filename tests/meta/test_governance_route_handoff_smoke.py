@@ -12,9 +12,7 @@ import pytest
 from tests.helpers.repo_root import repo_root
 
 from .conftest import _as_bool, _as_mapping, _as_mapping_list, _as_str
-from .governance_contract_helpers import (
-    _assert_current_route_truth,
-)
+from .governance_contract_helpers import _assert_current_route_truth
 from .governance_current_truth import (
     CURRENT_MILESTONE,
     CURRENT_MILESTONE_COMPLETED_PHASES,
@@ -30,7 +28,6 @@ from .governance_current_truth import (
     CURRENT_MILESTONE_TOTAL_PLAN_COUNT,
     CURRENT_PHASE,
     CURRENT_ROUTE,
-    LATEST_ARCHIVED_EVIDENCE_PATH,
 )
 from .governance_promoted_assets import _assert_promoted_phase_assets
 
@@ -76,12 +73,16 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in requirements_text
     assert "### Phase 118: Final hotspot decomposition and validation closure" in roadmap_text
-    assert "**Plans**: 2/3 complete" in roadmap_text
+    assert "**Plans**: 3/3 complete" in roadmap_text
     assert "118-02-SUMMARY.md" in roadmap_text
-    assert "remaining execution queue = `118-03` validation closure." in roadmap_text
-    assert "- **Plan:** `2 of 3`" in state_text
-    assert "- **Progress:** `[█████████░] 90%`" in state_text
-    assert "3/4 phases, 9/10 plans" in (_ROOT / ".planning" / "MILESTONES.md").read_text(encoding="utf-8")
+    assert "118-03-PLAN.md" in roadmap_text
+    assert "118-03-SUMMARY.md" in roadmap_text
+    assert "118-SUMMARY.md" in roadmap_text
+    assert "118-VERIFICATION.md" in roadmap_text
+    assert "当前 route 已自然回到 `$gsd-complete-milestone v1.32`。" in roadmap_text
+    assert "- **Plan:** `3 of 3`" in state_text
+    assert "- **Progress:** `[██████████] 100%`" in state_text
+    assert "4/4 phases, 10/10 plans" in (_ROOT / ".planning" / "MILESTONES.md").read_text(encoding="utf-8")
 
 
 def test_gsd_fast_path_matches_current_active_route_story() -> None:

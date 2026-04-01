@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.32
 milestone_name: Residual Hotspot Eradication, Validation Completion & Continuity Hardening
-status: active / phase 118 execution-ready (2026-04-01)
-stopped_at: Phase 118 / Plan 118-02 complete
-last_updated: "2026-04-01T00:35:00Z"
+status: active / phase 118 complete; closeout-ready (2026-04-01)
+stopped_at: Phase 118 / Plan 118-03 complete
+last_updated: "2026-04-01T01:39:27Z"
 last_activity: 2026-04-01
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 10
-  completed_plans: 9
-  percent: 90
+  completed_plans: 10
+  percent: 100
 ---
 
 # Project State
@@ -27,7 +27,7 @@ contract_name: governance-route
 active_milestone:
   version: v1.32
   name: Residual Hotspot Eradication, Validation Completion & Continuity Hardening
-  status: active / phase 118 execution-ready (2026-04-01)
+  status: active / phase 118 complete; closeout-ready (2026-04-01)
   phase: '118'
   phase_title: Final hotspot decomposition and validation closure
   phase_dir: 118-final-hotspot-decomposition-and-validation-closure
@@ -47,7 +47,7 @@ previous_archived:
   evidence_path: .planning/reviews/V1_30_EVIDENCE_INDEX.md
 bootstrap:
   current_route: v1.32 active milestone route / starting from latest archived baseline = v1.31
-  default_next_command: $gsd-execute-phase 118
+  default_next_command: $gsd-complete-milestone v1.32
   latest_archived_evidence_pointer: .planning/reviews/V1_31_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
@@ -61,10 +61,10 @@ bootstrap:
 ## Current Position
 
 - **Phase:** `118 of 118`
-- **Plan:** `2 of 3`
-- **Status:** `active / phase 118 execution-ready (2026-04-01)`
-- **Last activity:** `2026-04-01` — `118-01` 已完成 `GOV-75` route truth sync，`118-02` 已完成 hotspot decomposition；remaining validation closure 继续留在当前 phase queue
-- **Progress:** `[█████████░] 90%`
+- **Plan:** `3 of 3`
+- **Status:** `active / phase 118 complete; closeout-ready (2026-04-01)`
+- **Last activity:** `2026-04-01` — `118-01` 已完成 `GOV-75` route truth sync，`118-02` 已完成 hotspot decomposition，`118-03` 已完成 validation closure / audit refresh；milestone route 已回到 closeout-ready
+- **Progress:** `[██████████] 100%`
 
 ## Performance Metrics
 
@@ -77,7 +77,7 @@ bootstrap:
 | 115 | complete | 1/1 | 1.00 |
 | 116 | complete | 3/3 | 1.00 |
 | 117 | complete | 3/3 | 1.00 |
-| 118 | in_progress | 2/3 | 1.00 |
+| 118 | complete | 3/3 | 1.00 |
 
 ## Governance Truth Sources
 
@@ -106,7 +106,7 @@ bootstrap:
 - `v1.32` 固定为 active route，latest archived baseline pointer 保持 `v1.31`。
 - 覆盖映射当前锁定：`HOT-48 -> Phase 115`、`HOT-49 -> Phase 116`、`TST-39/GOV-73 -> Phase 117`、`HOT-50/HOT-51/TST-40/GOV-75 -> Phase 118`。
 - 北极星继续锁定 `single mainline / formal homes / no second root / no compat shell comeback`。
-- `Phase 118` 已成为当前唯一正式 follow-up：`118-01` 已修复 `117 -> closeout` 的 stale selector truth，`118-02` 已完成 hotspot decomposition；remaining work 收敛到 `118-03` validation closure。
+- `Phase 118` 已完成全部计划：`118-01` 修复了 `117 -> closeout` 的 stale selector truth，`118-02` 完成 hotspot decomposition，`118-03` 完成 validation closure / audit refresh；默认下一步重新回到 milestone closeout。
 
 ### Pending Todos
 
@@ -115,18 +115,18 @@ bootstrap:
 ### Blockers/Concerns
 
 - guaranteed non-GitHub private fallback、repo-visible public mirror continuity 与 documented delegate identity 仍是 maintainer 外部治理 blocker。
-- `Phase 118` 执行期间，selector family 不得回退成“117 已完全 closeout-ready”的 stale story，也不得伪造仓外 continuity 已解决。
+- `Phase 118` closeout 之后，selector family 仍不得回退成 stale phase-117 story，也不得伪造仓外 continuity 已解决。
 - 任何后续实现都不得复活 compat shell、创建 second root，或让 formal-home 叙事再次分叉。
 
 ## Recommended Next Command
 
-- **Primary:** `$gsd-execute-phase 118` — 执行 route truth sync、remaining hotspot cleanup 与 `115 -> 117` validation closure。
-- **Fast path:** `$gsd-progress` — 若要复核 `v1.32` 当前 execution-ready route 与 phase stats，可先查看。
-- **Status check:** `$gsd-next` — 在 `Phase 118` 完成前不应再解析到 milestone closeout。
+- **Primary:** `$gsd-complete-milestone v1.32` — 执行 milestone archive/promotion，正式结束 `v1.32` active route。
+- **Fast path:** `$gsd-progress` — 若要复核 `v1.32` 当前 closeout-ready route 与 phase stats，可先查看。
+- **Status check:** `$gsd-next` — 当前应自然解析到 `$gsd-complete-milestone v1.32`。
 
 ## Session Continuity
 
 - **Last session:** 2026-04-01T00:20:00Z
-- **Stopped at:** Phase 118 / Plan 118-02 complete
-- **Resume file:** .planning/phases/118-final-hotspot-decomposition-and-validation-closure/118-03-PLAN.md
-- **Read next:** `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` → `.planning/PROJECT.md` → `.planning/ROADMAP.md` → `.planning/REQUIREMENTS.md` → `.planning/STATE.md` → `.planning/phases/118-final-hotspot-decomposition-and-validation-closure/{118-CONTEXT.md,118-RESEARCH.md,118-03-PLAN.md}`
+- **Stopped at:** Phase 118 / Plan 118-03 complete
+- **Resume file:** .planning/phases/118-final-hotspot-decomposition-and-validation-closure/118-VERIFICATION.md
+- **Read next:** `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` → `.planning/PROJECT.md` → `.planning/ROADMAP.md` → `.planning/REQUIREMENTS.md` → `.planning/STATE.md` → `.planning/v1.32-MILESTONE-AUDIT.md`

@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 751
+**Python files total:** 757
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -110,7 +110,9 @@
 | `custom_components/lipro/core/api/schedule_service_support.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 | 保留 | schedule-service local candidate batching/timeout/request support collaborator |
 | `custom_components/lipro/core/api/session_state.py` | Protocol | Phase 2 / 15 / 17 | 重构 | RestSessionState formal REST session-state home |
 | `custom_components/lipro/core/api/status_fallback.py` | Protocol | Phase 14 | 保留 | status fallback outward home with support-backed binary-split implementation |
-| `custom_components/lipro/core/api/status_fallback_support.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 / 113 | 保留 | status fallback local recursion/logging support collaborator with Phase 113 no-growth hotspot budget freeze |
+| `custom_components/lipro/core/api/status_fallback_split_executor.py` | Assurance | Phase 118 | 保留 | status fallback binary-split execution collaborator home introduced during final hotspot decomposition |
+| `custom_components/lipro/core/api/status_fallback_summary_logging.py` | Assurance | Phase 118 | 保留 | status fallback summary/logging collaborator home introduced during final hotspot decomposition |
+| `custom_components/lipro/core/api/status_fallback_support.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 / 113 / 118 | 保留 | status fallback local recursion/logging support collaborator with Phase 113 no-growth hotspot budget freeze and Phase 118 collaborator split follow-up |
 | `custom_components/lipro/core/api/status_service.py` | Protocol | Phase 2 / 13 / 14 | 重构 | public status orchestration home |
 | `custom_components/lipro/core/api/transport_core.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/transport_executor.py` | Protocol | Phase 2 / 35 | 重构 | REST signed transport execution + response normalization home |
@@ -244,7 +246,10 @@
 | `custom_components/lipro/core/protocol/boundary/__init__.py` | Protocol | Phase 7.1 | 保留 | - |
 | `custom_components/lipro/core/protocol/boundary/mqtt_decoder.py` | Protocol | Phase 7.1 | 保留 | canonical MQTT topic/payload decode authority |
 | `custom_components/lipro/core/protocol/boundary/rest_decoder.py` | Protocol | Phase 101 / 113 | 保留 | REST boundary decoder family home with Phase 113 no-growth hotspot budget freeze |
-| `custom_components/lipro/core/protocol/boundary/rest_decoder_support.py` | Protocol | Phase 33 / 113 | 保留 | REST decoder canonicalization helper home with Phase 113 no-growth hotspot budget freeze |
+| `custom_components/lipro/core/protocol/boundary/rest_decoder_family.py` | Protocol | Phase 118 | 保留 | REST decoder family-selection collaborator home introduced during final hotspot decomposition |
+| `custom_components/lipro/core/protocol/boundary/rest_decoder_registry.py` | Protocol | Phase 118 | 保留 | REST decoder registry-dispatch collaborator home introduced during final hotspot decomposition |
+| `custom_components/lipro/core/protocol/boundary/rest_decoder_support.py` | Protocol | Phase 33 / 113 / 118 | 保留 | REST decoder canonicalization helper home with Phase 113 no-growth hotspot budget freeze and Phase 118 collaborator split follow-up |
+| `custom_components/lipro/core/protocol/boundary/rest_decoder_utility.py` | Protocol | Phase 118 | 保留 | REST decoder utility collaborator home for payload normalization / fallback helpers |
 | `custom_components/lipro/core/protocol/boundary/result.py` | Protocol | Phase 91 | 保留 | typed protocol-boundary decode result home |
 | `custom_components/lipro/core/protocol/boundary/schema_registry.py` | Protocol | Phase 91 | 保留 | typed boundary decoder registry home |
 | `custom_components/lipro/core/protocol/contracts.py` | Protocol | Phase 2.5 | 保留 | - |
@@ -281,7 +286,8 @@
 | `custom_components/lipro/entities/base.py` | Domain | Phase 90 | 保留 | protected thin entity command / state projection shell |
 | `custom_components/lipro/entities/commands.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/entities/descriptors.py` | Domain | Phase 4 | 保留 | - |
-| `custom_components/lipro/entities/firmware_update.py` | Domain | Phase 90 / 113 | 保留 | protected thin OTA projection shell after runtime-boundary tightening; Phase 113 freezes its no-growth hotspot budget |
+| `custom_components/lipro/entities/firmware_update.py` | Domain | Phase 90 / 113 / 118 | 保留 | protected thin OTA projection shell after runtime-boundary tightening; Phase 113 freezes its no-growth hotspot budget and Phase 118 keeps it bounded via helper split |
+| `custom_components/lipro/entities/firmware_update_support.py` | Domain | Phase 118 | 保留 | OTA entity local state/task helper home introduced during final hotspot decomposition |
 | `custom_components/lipro/entry_auth.py` | Cross-cutting | Phase 7 | 保留 | config-entry auth/bootstrap formal home for auth seed, token persistence, and setup-exception mapping |
 | `custom_components/lipro/entry_options.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/fan.py` | Domain | Phase 4 | 保留 | - |

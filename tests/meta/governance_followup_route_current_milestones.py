@@ -41,18 +41,21 @@ _V1_32_TRACES = (
     RequirementTrace("HOT-49", "116"),
     RequirementTrace("TST-39", "117"),
     RequirementTrace("GOV-73", "117"),
+    RequirementTrace("HOT-50", "118"),
+    RequirementTrace("HOT-51", "118"),
+    RequirementTrace("TST-40", "118"),
     RequirementTrace("GOV-75", "118"),
 )
 
 
-def test_machine_readable_route_contracts_point_to_active_v1_32_phase118_execution_ready() -> None:
+def test_machine_readable_route_contracts_point_to_active_v1_32_phase118_closeout_ready() -> None:
     contracts = assert_machine_readable_route_contracts()
     for doc_name in ("PROJECT", "ROADMAP", "REQUIREMENTS", "STATE", "MILESTONES"):
         active = _as_optional_mapping(_as_mapping(contracts[doc_name])["active_milestone"])
         assert active is not None, doc_name
         assert active["version"] == "v1.32"
         assert active["phase"] == "118"
-        assert active["status"] == "active / phase 118 execution-ready (2026-04-01)"
+        assert active["status"] == "active / phase 118 complete; closeout-ready (2026-04-01)"
 
     milestones_contract = _as_mapping(contracts["MILESTONES"])
     latest_archived = _as_mapping(milestones_contract["latest_archived"])
@@ -91,24 +94,28 @@ def test_active_v1_32_truth_is_reflected_in_live_docs() -> None:
         "### Phase 116: Anonymous-share and REST façade hotspot slimming",
         "### Phase 117: Validation backfill and continuity hardening",
         "### Phase 118: Final hotspot decomposition and validation closure",
-        "**Status**: Execution-ready (`2026-04-01`)",
-        "**Plans**: 2/3 complete",
+        "**Status**: Complete (`2026-04-01`)",
+        "**Plans**: 3/3 complete",
         "118-01-PLAN.md",
         "118-01-SUMMARY.md",
         "118-02-PLAN.md",
         "118-02-SUMMARY.md",
-        "**Current activation proof**: `118-01` 已交付 `GOV-75` route truth sync；`118-02` 已交付 hotspot decomposition；remaining execution queue = `118-03` validation closure.",
+        "118-03-PLAN.md",
+        "118-03-SUMMARY.md",
+        "118-SUMMARY.md",
+        "118-VERIFICATION.md",
+        "**Closeout proof**: `118-01` 已交付 `GOV-75` route truth sync；`118-02` 已交付 hotspot decomposition；`118-03` 已交付 validation closure / audit refresh；当前 route 已自然回到 `$gsd-complete-milestone v1.32`。",
     )
     assert_contains_all(
         _STATE_TEXT,
         f"**Current milestone:** `{CURRENT_MILESTONE_STATE_LABEL}`",
         f"**Current mode:** `{CURRENT_ROUTE_MODE}`",
         "- **Phase:** `118 of 118`",
-        "- **Plan:** `2 of 3`",
+        "- **Plan:** `3 of 3`",
         f"- **Status:** `{CURRENT_MILESTONE_STATUS}`",
-        "- **Progress:** `[█████████░] 90%`",
+        "- **Progress:** `[██████████] 100%`",
         "## Recommended Next Command",
-        "$gsd-execute-phase 118",
+        "$gsd-complete-milestone v1.32",
     )
 
 
@@ -117,16 +124,16 @@ def test_v1_32_requirements_traceability_and_coverage_are_complete() -> None:
         _REQUIREMENTS_TEXT,
         *requirement_checkbox_markers(*_V1_32_TRACES),
         *requirement_table_markers(*_V1_32_TRACES),
-        "- [ ] **HOT-50**",
-        "- [ ] **HOT-51**",
-        "- [ ] **TST-40**",
-        "| HOT-50 | Phase 118 | Pending |",
-        "| HOT-51 | Phase 118 | Pending |",
-        "| TST-40 | Phase 118 | Pending |",
+        "- [x] **HOT-50**",
+        "- [x] **HOT-51**",
+        "- [x] **TST-40**",
+        "| HOT-50 | Phase 118 | Complete |",
+        "| HOT-51 | Phase 118 | Complete |",
+        "| TST-40 | Phase 118 | Complete |",
         "- v1.32 requirements: 8 total",
         "- Mapped to phases: 8",
-        "- Complete: 5",
-        "- Pending: 3",
+        "- Complete: 8",
+        "- Pending: 0",
         f"**Milestone status:** `{CURRENT_MILESTONE_STATUS}`",
         f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`",
         "**Latest archived baseline:** `v1.31`",
@@ -163,5 +170,7 @@ def test_historical_route_truth_stays_archived_without_stale_phase117_handoff_wo
             "active / phase 116 complete; phase 117 discuss-ready (2026-03-31)",
             "$gsd-discuss-phase 117",
             "$gsd-execute-phase 117",
+            "$gsd-execute-phase 118",
             "Phase 117 execution-ready",
+            "Phase 118 execution-ready",
         )

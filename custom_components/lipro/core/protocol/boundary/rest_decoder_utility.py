@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping, Sequence
 from typing import TYPE_CHECKING, cast
 
+from ...api.schedule_codec import parse_mesh_schedule_json
 from ...api.types import DevicePropertyMap, JsonObject
 from ...utils.identifiers import normalize_iot_device_id, normalize_mesh_group_id
 from ...utils.property_normalization import normalize_properties
@@ -13,6 +14,7 @@ if TYPE_CHECKING:
     from ..contracts import (
         CanonicalDeviceListItem,
         CanonicalMeshGroupMember,
+        CanonicalScheduleJson,
     )
 
 _DEVICE_ROW_ID_KEYS = (
@@ -122,6 +124,36 @@ def _build_payload_fingerprint(payload: object) -> str:
                 return f"dict[{top_keys}]::{nested_key}[dict[{nested_keys}]]"
             return f"dict[{top_keys}]::{nested_key}[{type(first).__name__}]"
     return f"dict[{top_keys}]"
+
+
+def _extract_schedule_json_source(payload: object) -> object:
+    if not isinstance(payload, Mapping):
+        return payload
+    if "scheduleJson" in payload:
+        return payload.get("scheduleJson")
+    if "payload" in payload:
+        return payload.get("payload")
+    return payload
+
+
+def _decode_schedule_json_canonical(payload: object) -> CanonicalScheduleJson:
+    parsed = parse_mesh_schedule_json(
+        _extract_schedule_json_source(payload),
+        mask_sensitive_data=lambda value: value,
+    )
+    return {
+        "days": parsed["days"],
+        "time": parsed["time"],
+        "evt": parsed["evt"],
+    }
+
+
+def _build_schedule_json_fingerprint(canonical: CanonicalScheduleJson) -> str:
+    return (
+        f"days:{len(canonical['days'])}|"
+        f"time:{len(canonical['time'])}|"
+        f"evt:{len(canonical['evt'])}"
+    )
 
 
 def _normalize_string(value: object) -> str | None:

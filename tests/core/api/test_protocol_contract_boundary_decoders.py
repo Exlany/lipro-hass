@@ -151,7 +151,8 @@ def test_rest_decoder_public_home_reexports_family_registry_and_utility_collabor
 
     assert "from .rest_decoder_family import (" in decoder_text
     assert "from .rest_decoder_registry import (" in decoder_text
-    assert "from .rest_decoder_utility import _build_payload_fingerprint" in decoder_text
+    assert "from .rest_decoder_utility import (" in decoder_text
+    assert "_build_payload_fingerprint" in decoder_text
     assert "class DeviceListRestDecoder:" in family_text
     assert "class RestDecodeContext:" in registry_text
     assert "def _decode_list_envelope_canonical(" in support_text
