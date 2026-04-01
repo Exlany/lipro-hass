@@ -2,12 +2,12 @@
 
 ## Current Milestone (v1.32)
 
-**Phase range:** `115 -> 117`
-**Phases completed:** `3 phases, 7 plans, 0 tasks`
-**Status:** `active / phase 117 complete; closeout-ready (2026-03-31)`
+**Phase range:** `115 -> 118`
+**Phases completed:** `3/4 phases, 7/10 plans, 0 tasks`
+**Status:** `active / phase 118 execution-ready (2026-04-01)`
 **Route truth:** `v1.32 active milestone route / starting from latest archived baseline = v1.31`
 **Latest archived baseline:** `v1.31`
-**Default next command:** `$gsd-complete-milestone v1.32`
+**Default next command:** `$gsd-execute-phase 118`
 **Route truth:** latest archived evidence index = `.planning/reviews/V1_31_EVIDENCE_INDEX.md`
 **Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.31`
 **Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.30`
@@ -17,14 +17,15 @@
 - `Phase 115`: status-fallback query-flow normalization ✅
 - `Phase 116`: anonymous-share and REST façade hotspot slimming ✅
 - `Phase 117`: validation backfill and continuity hardening ✅
+- `Phase 118`: final hotspot decomposition and validation closure 🛠️ (`118-01` route truth sync complete)
 
 **Current accomplishments:**
 
 - 已冻结 `status_fallback` 空输入 / fallback-depth / no-I/O contract，并把 focused regression 写入正式 test suite。
 - 已完成 `rest_facade.py` 与 `anonymous_share/manager.py` 的当前轮 hotspot slimming，冻结 stable import / scope-state / aggregate outcome contract。
-- 已完成 `Phase 112 -> 114` validation backfill、active-route continuity drift repair 与 `117` closeout bundle；下一步直接进入 milestone closeout，而不是回写 archived truth。
+- 已完成 `Phase 112 -> 114` validation backfill、active-route continuity drift repair 与 `117` closeout bundle。
+- `Phase 118` 现已成为唯一正式 follow-up：`118-01` 已完成 live route truth sync；remaining work 继续切薄 formal-home hotspots，并为 `115 -> 117` 回补 phase-local validation，然后才允许 milestone closeout。
 
----
 
 > Machine-readable bootstrap truth now lives in the shared `governance-route` contract block below; milestone chronology remains human-readable archive history instead of the parser-visible selector.
 
@@ -36,10 +37,10 @@ contract_name: governance-route
 active_milestone:
   version: v1.32
   name: Residual Hotspot Eradication, Validation Completion & Continuity Hardening
-  status: active / phase 117 complete; closeout-ready (2026-03-31)
-  phase: '117'
-  phase_title: Validation backfill and continuity hardening
-  phase_dir: 117-validation-backfill-and-continuity-hardening
+  status: active / phase 118 execution-ready (2026-04-01)
+  phase: '118'
+  phase_title: Final hotspot decomposition and validation closure
+  phase_dir: 118-final-hotspot-decomposition-and-validation-closure
 latest_archived:
   version: v1.31
   name: Boundary Sealing, Governance Truth & Quality Hardening
@@ -56,7 +57,7 @@ previous_archived:
   evidence_path: .planning/reviews/V1_30_EVIDENCE_INDEX.md
 bootstrap:
   current_route: v1.32 active milestone route / starting from latest archived baseline = v1.31
-  default_next_command: $gsd-complete-milestone v1.32
+  default_next_command: $gsd-execute-phase 118
   latest_archived_evidence_pointer: .planning/reviews/V1_31_EVIDENCE_INDEX.md
 ```
 

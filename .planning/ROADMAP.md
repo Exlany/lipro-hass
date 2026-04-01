@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.31 Boundary Sealing, Governance Truth & Quality Hardening** - `Phase 111 -> 114` archived on 2026-03-31; latest archived baseline pointer = `.planning/reviews/V1_31_EVIDENCE_INDEX.md`
-- 🚧 **v1.32 Residual Hotspot Eradication, Validation Completion & Continuity Hardening** - `Phase 115 -> 117` is the current active route; starting from latest archived baseline = `v1.31`
+- 🚧 **v1.32 Residual Hotspot Eradication, Validation Completion & Continuity Hardening** - `Phase 115 -> 118` is the current active route; starting from latest archived baseline = `v1.31`
 
 <!-- governance-route-contract:start -->
 ```yaml
@@ -12,10 +12,10 @@ contract_name: governance-route
 active_milestone:
   version: v1.32
   name: Residual Hotspot Eradication, Validation Completion & Continuity Hardening
-  status: active / phase 117 complete; closeout-ready (2026-03-31)
-  phase: '117'
-  phase_title: Validation backfill and continuity hardening
-  phase_dir: 117-validation-backfill-and-continuity-hardening
+  status: active / phase 118 execution-ready (2026-04-01)
+  phase: '118'
+  phase_title: Final hotspot decomposition and validation closure
+  phase_dir: 118-final-hotspot-decomposition-and-validation-closure
 latest_archived:
   version: v1.31
   name: Boundary Sealing, Governance Truth & Quality Hardening
@@ -32,22 +32,22 @@ previous_archived:
   evidence_path: .planning/reviews/V1_30_EVIDENCE_INDEX.md
 bootstrap:
   current_route: v1.32 active milestone route / starting from latest archived baseline = v1.31
-  default_next_command: $gsd-complete-milestone v1.32
+  default_next_command: $gsd-execute-phase 118
   latest_archived_evidence_pointer: .planning/reviews/V1_31_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
 ## Overview
 
-`v1.32` 继续只沿单一 north-star 主线推进：基于 `v1.31` latest archived baseline，先冻结 `status_fallback` 入口 contract，再继续收窄 `rest_facade.py`、`anonymous_share/manager.py` 与 validation / continuity debt。所有工作都必须在 formal homes 内完成，不引入 second root，不复活 compat shell。
+`v1.32` 继续只沿单一 north-star 主线推进：基于 `v1.31` latest archived baseline，`Phase 115 -> 117` 已冻结 `status_fallback` contract、anonymous-share/REST formal-home slimming 与 validation/continuity truth；`Phase 118` 现在继续收敛 remaining internal hotspots、phase-local validation debt 与 route-handoff honesty。所有工作都必须在 formal homes 内完成，不引入 second root，不复活 compat shell。
 
-**Coverage:** `4/4` v1.32 requirements mapped exactly once.
-**Default next command:** `$gsd-complete-milestone v1.32`
+**Coverage:** `5/8 complete; 3 pending in Phase 118`.
+**Default next command:** `$gsd-execute-phase 118`
 
 ## v1.32: Residual Hotspot Eradication, Validation Completion & Continuity Hardening
 
-**Milestone status:** `active / phase 117 complete; closeout-ready (2026-03-31)`
-**Default next command:** `$gsd-complete-milestone v1.32`
+**Milestone status:** `active / phase 118 execution-ready (2026-04-01)`
+**Default next command:** `$gsd-execute-phase 118`
 **Current route story:** `v1.32 active milestone route / starting from latest archived baseline = v1.31`
 **Latest archived pointer:** `.planning/reviews/V1_31_EVIDENCE_INDEX.md`
 **Promoted phase evidence allowlist:** `.planning/reviews/PROMOTED_PHASE_ASSETS.md`
@@ -57,6 +57,7 @@ bootstrap:
 - [x] **Phase 115: Status-fallback query-flow normalization** - 已冻结空输入 / fallback-depth / no-I/O contract，并补入 focused regression。 (completed 2026-03-31)
 - [x] **Phase 116: Anonymous-share and REST façade hotspot slimming** - 已收敛 `rest_facade.py` 的 state binding 样板与 `anonymous_share/manager.py` 的 scope-state / aggregate outcome 语义，并补齐 focused regressions。 (completed 2026-03-31)
 - [x] **Phase 117: Validation backfill and continuity hardening** - 已回补 `Phase 112 -> 114` validation / changed-surface / continuity 资产，修复 active-route drift，并冻结 closeout-ready selector truth。 (completed 2026-03-31)
+- [ ] **Phase 118: Final hotspot decomposition and validation closure** - `118-01` 已完成 live route truth sync；remaining work 继续拆薄 remaining formal-home hotspots，并回补 `115 -> 117` 的 phase-local validation contracts。 (execution-ready 2026-04-01)
 
 ## Phase Details
 
@@ -96,6 +97,19 @@ bootstrap:
 **Plans**: 3/3 complete
 **Evidence**: `.planning/phases/117-validation-backfill-and-continuity-hardening/{117-01-SUMMARY.md,117-02-SUMMARY.md,117-03-SUMMARY.md,117-SUMMARY.md,117-VERIFICATION.md}`
 
+### Phase 118: Final hotspot decomposition and validation closure
+**Goal**: 把 `v1.32` 当前仍显著可由仓内直接修复的技术债一次性收口：修正 `Phase 118` live route truth、继续切薄 remaining formal-home hotspots，并回补 `115 -> 117` 的 phase-local validation contracts，让 `$gsd-next` 最终再次诚实返回 milestone closeout。
+**Depends on**: Phase 117
+**Requirements**: HOT-50, HOT-51, TST-40, GOV-75
+**Success Criteria** (what must be TRUE):
+  1. `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / docs / meta guards` 会共同承认 `Phase 118 execution-ready`，而不是继续声称下一步只剩 milestone closeout。
+  2. `status_fallback_support.py`、`rest_decoder` family，且在预算允许时 `firmware_update.py` / `anonymous_share/manager.py`，继续在既有 formal homes 内 inward split，而不引入 compat shell 或 second root。
+  3. `115/116/117-VALIDATION.md` 被补齐，`118` 自身 summary/verification 落地后，live route 再诚实回到 `closeout-ready`。
+**Status**: Execution-ready (`2026-04-01`)
+**Plans**: 0/3 complete
+**Planning Assets**: `.planning/phases/118-final-hotspot-decomposition-and-validation-closure/{118-CONTEXT.md,118-RESEARCH.md,118-01-PLAN.md,118-02-PLAN.md,118-03-PLAN.md}`
+**Current activation proof**: `118-01` 已交付 `GOV-75` route truth sync；remaining execution queue = `118-02` hotspot decomposition + `118-03` validation closure.
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
@@ -103,6 +117,8 @@ bootstrap:
 | 115. Status-fallback query-flow normalization | 1/1 | Complete | 2026-03-31 |
 | 116. Anonymous-share and REST façade hotspot slimming | 3/3 | Complete | 2026-03-31 |
 | 117. Validation backfill and continuity hardening | 3/3 | Complete | 2026-03-31 |
+| 118. Final hotspot decomposition and validation closure | 0/3 | Execution-ready | - |
+
 
 ## Latest Archived Milestone (v1.31)
 
@@ -233,14 +249,3 @@ bootstrap:
 ### Phase 110: Runtime snapshot surface reduction and milestone closeout
 **Status**: Complete (`2026-03-30`)
 **Plans**: 6/6 complete
-
-
-### Phase 118: Final hotspot decomposition and validation closure
-
-**Goal:** [To be planned]
-**Requirements**: TBD
-**Depends on:** Phase 117
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (run /gsd:plan-phase 118 to break down)
