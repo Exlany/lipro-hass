@@ -540,6 +540,13 @@ phases:
   - 118-SUMMARY.md
   - 118-VERIFICATION.md
   - 118-VALIDATION.md
+  119-mqtt-boundary-runtime-contract-and-release-governance-hardening:
+  - 119-01-SUMMARY.md
+  - 119-02-SUMMARY.md
+  - 119-03-SUMMARY.md
+  - 119-SUMMARY.md
+  - 119-VERIFICATION.md
+  - 119-VALIDATION.md
 policy:
   default_identity: execution-trace
   promotion_contract: Only assets listed under `phases` count as long-term governance/CI

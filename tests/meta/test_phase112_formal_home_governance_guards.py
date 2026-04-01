@@ -21,8 +21,8 @@ _TARGETED_HELPERS = (
 def test_phase112_developer_architecture_uses_current_route_and_sanctioned_root_homes() -> None:
     text = _DEVELOPER.read_text(encoding="utf-8")
 
-    assert "v1.33 active milestone route / starting from latest archived baseline = v1.32" in text
-    assert "默认下一步现为 `$gsd-complete-milestone v1.33`" in text
+    assert "no active milestone route / latest archived baseline = v1.33" in text
+    assert "默认下一步现为 `$gsd-new-milestone`" in text
     for token in (
         "custom_components/lipro/runtime_infra.py",
         "custom_components/lipro/runtime_types.py",
@@ -35,8 +35,8 @@ def test_phase112_developer_architecture_uses_current_route_and_sanctioned_root_
 def test_phase112_runbook_points_at_v130_archived_assets() -> None:
     text = _RUNBOOK.read_text(encoding="utf-8")
 
-    assert ".planning/reviews/V1_32_EVIDENCE_INDEX.md" in text
-    assert ".planning/v1.32-MILESTONE-AUDIT.md" in text
+    assert ".planning/reviews/V1_33_EVIDENCE_INDEX.md" in text
+    assert ".planning/v1.33-MILESTONE-AUDIT.md" in text
     assert "V1_28" not in text
     assert "v1.28-MILESTONE-AUDIT.md" not in text
 
@@ -46,7 +46,7 @@ def test_phase112_authority_matrix_separates_live_selectors_from_archive_chronol
 
     assert "`.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md`" in text
     assert "`.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`" not in text
-    assert ".planning/reviews/V1_32_EVIDENCE_INDEX.md" in text
+    assert ".planning/reviews/V1_33_EVIDENCE_INDEX.md" in text
 
 
 def test_phase112_file_matrix_registers_sanctioned_root_home_wording() -> None:

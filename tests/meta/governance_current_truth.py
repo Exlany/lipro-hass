@@ -240,6 +240,8 @@ CURRENT_ROUTE_PROSE_FORBIDDEN = (
     "active / roadmap drafted; phase 119 pending planning (2026-04-01)",
     "$gsd-plan-phase 119",
     "Phase 119 planning pending",
+    "v1.33 active milestone route / starting from latest archived baseline = v1.32",
+    "$gsd-complete-milestone v1.33",
     "v1.31 active milestone route / starting from latest archived baseline = v1.30",
     "v1.32 active milestone route / starting from latest archived baseline = v1.31",
     "no active milestone route / latest archived baseline = v1.20",
@@ -258,11 +260,11 @@ CURRENT_RUNTIME_ROOT_TEST = "tests/core/coordinator/test_runtime_root.py"
 
 HISTORICAL_CLOSEOUT_ROUTE_TRUTH = (
     "historical closeout route truth = "
-    "`no active milestone route / latest archived baseline = v1.32`"
+    "`no active milestone route / latest archived baseline = v1.33`"
 )
 HISTORICAL_ARCHIVE_TRANSITION_ROUTE_TRUTH = (
     "historical archive-transition route truth = "
-    "`no active milestone route / latest archived baseline = v1.31`"
+    "`no active milestone route / latest archived baseline = v1.32`"
 )
 
 

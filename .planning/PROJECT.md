@@ -1,47 +1,41 @@
 # Project: Lipro-HASS North Star Evolution
 
 
-**Status:** `Active milestone route`
-**Current route:** `v1.33 active milestone route / starting from latest archived baseline = v1.32`；latest archived evidence index = `.planning/reviews/V1_32_EVIDENCE_INDEX.md`.
-**Goal:** `以 v1.32 latest archived baseline 作为唯一起点启动 v1.33：拆掉 protocol.boundary ↔ mqtt 的循环 lazy-import folklore，统一 runtime/service contract 真源到 runtime_types，并把 release namespace / governance route truth / changelog freshness 收束回单一正式治理主线；继续坚持 single mainline / formal homes / honesty，不回写第二条 live 故事线，也不伪造仓外 continuity 已解决。`
-**Default next step:** `$gsd-complete-milestone v1.33`
-**Active baseline:** latest archived baseline = `v1.32`；previous archived baseline = `v1.31`.
+**Status:** `No active milestone route`
+**Current route:** `no active milestone route / latest archived baseline = v1.33`；latest archived evidence index = `.planning/reviews/V1_33_EVIDENCE_INDEX.md`.
+**Goal:** `把 v1.33 固定为 latest archived baseline，并让后续所有新工作只能经由 `$gsd-new-milestone` 显式启动；继续坚持 single mainline / formal homes / honesty，不回写第二条 live 故事线，也不伪造仓外 continuity 已解决。`
+**Default next step:** `$gsd-new-milestone`
+**Active baseline:** latest archived baseline = `v1.33`；previous archived baseline = `v1.32`.
 
 
 <!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.33
   name: MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance Hardening
-  status: active / phase 119 complete; closeout-ready (2026-04-01)
+  status: archived / evidence-ready (2026-04-01)
   phase: '119'
   phase_title: MQTT boundary, runtime contract, and release governance hardening
   phase_dir: 119-mqtt-boundary-runtime-contract-and-release-governance-hardening
-latest_archived:
-  version: v1.32
-  name: Residual Hotspot Eradication, Validation Completion & Continuity Hardening
-  status: archived / evidence-ready (2026-04-01)
-  phase: '118'
-  phase_title: Final hotspot decomposition and validation closure
-  phase_dir: 118-final-hotspot-decomposition-and-validation-closure
-  audit_path: .planning/v1.32-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_32_EVIDENCE_INDEX.md
+  audit_path: .planning/v1.33-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_33_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.31
-  name: Boundary Sealing, Governance Truth & Quality Hardening
-  evidence_path: .planning/reviews/V1_31_EVIDENCE_INDEX.md
+  version: v1.32
+  name: Residual Hotspot Eradication, Validation Completion & Continuity Hardening
+  evidence_path: .planning/reviews/V1_32_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.33 active milestone route / starting from latest archived baseline = v1.32
-  default_next_command: $gsd-complete-milestone v1.33
-  latest_archived_evidence_pointer: .planning/reviews/V1_32_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.33
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_33_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
 
-## Current Milestone (v1.33)
+## Latest Archived Milestone (v1.33)
 
 **Name:** `MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance Hardening`
 
@@ -49,23 +43,25 @@ bootstrap:
 
 **North-star fit:** `v1.33` 继续沿 single mainline / formal homes / truth dedupe 推进，不引入第二 root、不把 support seam 洗成 public home，也不把治理台账或 changelog 变成脱离正式真源的平行故事线。`
 
-**Current status:** `active / phase 119 complete; closeout-ready (2026-04-01)`
+**Current status:** `archived / evidence-ready (2026-04-01)`
 **Phase range:** `Phase 119 -> 119`
 **Starting baseline:** `.planning/v1.32-MILESTONE-AUDIT.md`, `.planning/reviews/V1_32_EVIDENCE_INDEX.md`, `.planning/milestones/v1.32-ROADMAP.md`, `.planning/milestones/v1.32-REQUIREMENTS.md`
 **Requirements basket:** `ARC-30`, `ARC-31`, `GOV-76`, `GOV-77`, `TST-41`
-**Latest archived baseline:** `v1.32`
-**Latest archived pointer:** `.planning/reviews/V1_32_EVIDENCE_INDEX.md`
-**Starting audit artifact:** `.planning/v1.32-MILESTONE-AUDIT.md`
+**Latest archived baseline:** `v1.33`
+**Latest archived pointer:** `.planning/reviews/V1_33_EVIDENCE_INDEX.md`
+**Current audit artifact:** `.planning/v1.33-MILESTONE-AUDIT.md`
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.33`
 **Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.32`
-**Default next command:** `$gsd-complete-milestone v1.33`
-**Current follow-up target:** promote `v1.33` to the next latest archived baseline without inventing extra phases, second roots, or repo-external continuity resolution.
+**Historical next command before next milestone kickoff:** `$gsd-new-milestone`
+**Default next command:** `$gsd-new-milestone`
+**Current follow-up target:** serve as the latest archived baseline until the next milestone is explicitly opened; do not invent extra phases, second roots, or repo-external continuity resolution.
 
 **Completed focus:**
 - `protocol.boundary -> mqtt` 已恢复为单向 authority，`payload.py` / `topics.py` / `message_processor.py` 不再靠 reverse import 或 lazy-import folklore 维持 decode truth。
 - `runtime_types.py` 已成为 runtime/service 正式 contract 真源；service handlers 与 lifecycle typing 不再平行重定义 coordinator/auth/command contracts。
 - release workflow 现只接受 semver tag namespace；`CHANGELOG.md`、route-contract guards 与 current-route docs 已对齐 freshness，不再继续暴露内部归档术语或过期 pointer。
-- focused guards 与 phase-local closeout assets 已冻结上述 contract，`Phase 119` 已具备 milestone closeout-ready 手off。
-## Latest Archived Milestone (v1.32)
+- focused guards、phase-local closeout assets、milestone audit 与 archived evidence index 已共同冻结上述 contract；`v1.33` 现已固定为 latest archived baseline。
+## Previous Archived Milestone (v1.32)
 
 **Name:** `Residual Hotspot Eradication, Validation Completion & Continuity Hardening`
 
@@ -91,7 +87,7 @@ bootstrap:
 - `Phase 118` 已完成 route truth sync、formal-home hotspot closeout、`115/116/117-VALIDATION.md` 回补与 `v1.32` audit refresh；milestone closeout 现已完成，`v1.32` 正式成为 latest archived baseline。
 - archived baseline / runbook / evidence / selector family 继续保持单一、可机读、可追溯叙事。
 
-## Previous Archived Milestone (v1.31)
+## Historical Archived Milestone (v1.31)
 
 **Name:** `Boundary Sealing, Governance Truth & Quality Hardening`
 

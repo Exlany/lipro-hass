@@ -421,6 +421,32 @@ def test_v1_28_closeout_assets_exist_and_are_pull_only() -> None:
 
 
 
+def test_v1_33_closeout_assets_exist_and_are_pull_only() -> None:
+    evidence_index = _ROOT / ".planning" / "reviews" / "V1_33_EVIDENCE_INDEX.md"
+    milestone_audit = _ROOT / ".planning" / "v1.33-MILESTONE-AUDIT.md"
+
+    assert evidence_index.exists()
+    assert milestone_audit.exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.33-ROADMAP.md").exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.33-REQUIREMENTS.md").exists()
+    _assert_promoted_phase_assets(
+        "119-mqtt-boundary-runtime-contract-and-release-governance-hardening",
+        "119-01-SUMMARY.md",
+        "119-02-SUMMARY.md",
+        "119-03-SUMMARY.md",
+        "119-SUMMARY.md",
+        "119-VERIFICATION.md",
+        "119-VALIDATION.md",
+    )
+
+    assert_pull_only_evidence_index(
+        evidence_index,
+        "119-VALIDATION.md",
+        "archived / evidence-ready",
+        "V1_33_EVIDENCE_INDEX.md",
+    )
+
+
 def test_v1_32_closeout_assets_exist_and_are_pull_only() -> None:
     evidence_index = _ROOT / ".planning" / "reviews" / "V1_32_EVIDENCE_INDEX.md"
     milestone_audit = _ROOT / ".planning" / "v1.32-MILESTONE-AUDIT.md"
