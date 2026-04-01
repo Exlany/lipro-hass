@@ -6,6 +6,7 @@ from dataclasses import dataclass
 import logging
 from typing import TYPE_CHECKING, Literal, cast
 
+from ....runtime_types import CommandProperties
 from ...command.result import (
     COMMAND_FAILURE_REASON_COMMAND_RESULT_FAILED,
     COMMAND_FAILURE_REASON_COMMAND_RESULT_UNCONFIRMED,
@@ -17,9 +18,6 @@ from ..types import CommandFailureSummary, CommandReauthReason, CommandTrace
 
 if TYPE_CHECKING:
     from ...device import LiproDevice
-
-type CommandProperties = list[dict[str, str]] | None
-
 
 @dataclass(frozen=True, slots=True)
 class _CommandRequest:

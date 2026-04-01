@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+import json
 
 from .conftest import (
     _AGENTS,
@@ -21,6 +22,10 @@ from .conftest import (
     _load_yaml,
 )
 from .governance_current_truth import (
+    CURRENT_MILESTONE_DEFAULT_NEXT,
+    CURRENT_MILESTONE_STATUS,
+    CURRENT_PHASE,
+    CURRENT_ROUTE,
     LATEST_ARCHIVED_AUDIT_PATH,
     LATEST_ARCHIVED_EVIDENCE_PATH,
 )
@@ -125,6 +130,28 @@ def test_ci_benchmark_lane_enforces_baseline_and_artifact_contract() -> None:
     _assert_run_contains(compare_run, "scripts/check_benchmark_baseline.py", "tests/benchmarks/benchmark_baselines.json")
     benchmark_summary = _step_run(benchmark_steps, "Record benchmark governed posture")
     assert "no-regression gate" in benchmark_summary
+
+
+def test_governance_registry_publishes_canonical_planning_route_truth() -> None:
+    registry = json.loads(_GOVERNANCE_REGISTRY.read_text(encoding="utf-8"))
+    assert isinstance(registry, dict)
+    planning_route = _as_mapping(registry["planning_route"])
+    active = _as_mapping(planning_route["active_milestone"])
+    bootstrap = _as_mapping(planning_route["bootstrap"])
+    projection_targets = _as_str_list(planning_route["projection_targets"])
+
+    assert _as_str(planning_route["contract_name"]) == "governance-route"
+    assert _as_str(active["phase"]) == CURRENT_PHASE
+    assert _as_str(active["status"]) == CURRENT_MILESTONE_STATUS
+    assert _as_str(bootstrap["current_route"]) == CURRENT_ROUTE
+    assert _as_str(bootstrap["default_next_command"]) == CURRENT_MILESTONE_DEFAULT_NEXT
+    assert projection_targets == [
+        ".planning/PROJECT.md",
+        ".planning/ROADMAP.md",
+        ".planning/REQUIREMENTS.md",
+        ".planning/STATE.md",
+        ".planning/MILESTONES.md",
+    ]
 
 
 def test_release_validate_and_security_gates_reuse_tagged_ref_contract() -> None:

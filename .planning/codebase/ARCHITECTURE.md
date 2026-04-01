@@ -9,11 +9,12 @@
 
 ## Pattern Overview
 
-## Phase 124 Closure Notes
+## Phase 125 Execution Notes
 
-- `custom_components/lipro/config_flow.py` 继续保留 thin HA adapter 身份；Phase 124 把 user / reauth / reconfigure orchestration inward 到 `custom_components/lipro/flow/step_handlers.py`。
-- `custom_components/lipro/entry_auth.py` 现在承担 persisted auth-seed read/write single-source truth，`flow/login.py` 与 `flow/submission.py` 只保留 projection / normalization 角色。
-- `custom_components/lipro/services/contracts.py -> custom_components/lipro/services/schedule.py` 现在构成 schedule direct-call formal contract chain；router-facing path 不再维持第二套 payload/result semantics。
+- `custom_components/lipro/runtime_types.py` 继续是 sanctioned outward contract home；`ScheduleMeshDeviceLike`、`CommandProperties` 与 `DeviceRefreshServiceLike` 现回到同一 formal truth，不再由下游 runtime/service helper 各自 shadow。
+- `custom_components/lipro/config_flow.py` 仍是 thin HA adapter；Phase 125 把 `flow/step_handlers.py` 的 step protocol 直接绑到 private helper seam，删除了 public pass-through wrapper 壳层。
+- `custom_components/lipro/entry_auth.py` 继续承担 persisted auth-seed read/write single-source truth；单次中转 helper 已被压平，formal home 没有漂移。
+- governance current-route truth 已沉淀到 `.planning/baseline/GOVERNANCE_REGISTRY.json::planning_route`，五份 selector docs 现在只是 projection / consistency target。
 
 
 **Overall:** Five-plane, explicit-composition, single-main-chain Home Assistant integration

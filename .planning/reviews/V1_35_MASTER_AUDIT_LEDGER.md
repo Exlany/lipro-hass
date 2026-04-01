@@ -2,12 +2,12 @@
 
 **Milestone:** `v1.35 Master Audit Closure, Public Surface Finalization & Release Traceability`
 **Baseline:** latest archived baseline = `v1.34`
-**Status:** closeout-ready remediation ledger
+**Status:** closeout-ready audit ledger
 **Updated:** 2026-04-01
 
 ## Purpose
 
-This ledger is the single active synthesis surface for the `v1.35` repo-wide audit. It does **not** replace `.planning/v1.34-MILESTONE-AUDIT.md` or `.planning/reviews/V1_34_EVIDENCE_INDEX.md`; those remain the archived baseline. This file records the current audit verdict, remediation status, and carry-forward routing for the closeout-ready milestone.
+This ledger is the single active synthesis surface for the `v1.35` repo-wide audit. It does **not** replace `.planning/v1.34-MILESTONE-AUDIT.md` or `.planning/reviews/V1_34_EVIDENCE_INDEX.md`; those remain the archived baseline. This file records the current audit verdict, remediation status, and carry-forward routing for the completed Phase 125 closeout-ready route.
 
 ## Coverage
 
@@ -50,20 +50,22 @@ This ledger is the single active synthesis surface for the `v1.35` repo-wide aud
 | `AUD-05` | Repo-wide audit conclusions were spread across archived audits, phase-local artifacts, and conversational review notes | resolved | `V1_35_MASTER_AUDIT_LEDGER.md` now serves as the single active synthesis surface |
 | `DOC-12` | `SUPPORT.md` / `SECURITY.md` allowed maintainer appendix continuity truth to compete with first-hop user routing | resolved | public routing now stays ahead of the appendix while continuity truth remains available as deep follow-up |
 | `OSS-16` | release-facing metadata projections in `pyproject.toml` / `manifest.json` floated on `blob/main` instead of the current tag | resolved | all release-facing projections now target `/blob/v1.0.0/...` and are frozen by focused tests |
-| `GOV-81` | active route truth needed to align audit ledger, boundary cleanup, metadata traceability, and focused guards into one route story | resolved | `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES` now all tell the same closeout-ready `v1.35` story |
+| `GOV-81` | active route truth needed to align audit ledger, boundary cleanup, metadata traceability, and focused guards into one route story | resolved | `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES` now all tell the same registry-backed closeout-ready Phase 125 `v1.35` story |
 | `TST-44` | focused guards did not yet freeze appendix ordering and tagged-release metadata projection | resolved | focused meta suites now reject appendix-first drift and `/blob/main/` regressions |
 
-## Phase 124 Final Carry-forward Closure
+## Phase 124-125 Carry-forward Closure
 
 - `ARC-35` / `HOT-55` 已通过 `entry_auth.py`、`flow/login.py`、`flow/submission.py` 与 `config_flow.py` / `flow/step_handlers.py` 的收敛完成：persisted auth-seed 解释/回写回到单一正式 helper，stale `biz_id` 与 remembered password-hash revival 被关闭。
 - `ARC-36` 已通过 `services/contracts.py -> services/schedule.py` 的 shared contract chain 收口：schedule direct-call payload normalization / result typing 不再由 handler-local ad-hoc dict 叙事承担。
 - `GOV-83` / `TST-46` 已通过 planning roots、baseline/review/codebase docs、focused meta guard 与 Phase 124 summary / verification 证据链同步冻结。
-- `v1.35` 当前已具备 milestone closeout-ready truth；后续动作应是 `$gsd-complete-milestone v1.35`，而不是重新开启新的 carry-forward story。
+- `ARC-37` / `HOT-56` 已通过 `runtime_types.py`、`services/maintenance.py`、`core/coordinator/runtime/command_runtime_support.py` 与 `core/coordinator/services/{protocol_service.py,schedule_service.py}` 的收口完成：service-facing contract truth 继续停留在 sanctioned outward home，下游不再 shadow duplicate definitions。
+- `GOV-84` / `TST-47` / `QLT-49` 已通过 `.planning/baseline/GOVERNANCE_REGISTRY.json::planning_route`、focused meta guards、`config_flow.py` / `flow/step_handlers.py` 薄层减法与 docs/codebase map 同步获得 execution-backed truth。
+- `DOC-14` 的 closeout narrative 已开始回写到 developer/runbook/codebase/review ledgers；`v1.35` 只有在 Phase 125 full verification 全绿后才允许 milestone closeout。
 
 ## Non-Blocking Carry-Forward Findings
 
 ### Code hotspots (carry-forward, not blockers for v1.35)
-- `custom_components/lipro/runtime_types.py` remains a heavy cross-plane contract hub
+- `custom_components/lipro/runtime_types.py` 仍是较厚的 sanctioned contract hub，但 Phase 125 已清掉 downstream shadow contracts；当前 residual 更偏 breadth / discoverability，而不是 truth duplication
 - `custom_components/lipro/control/runtime_access*` remains a notable support-family hotspot, but `service_router` non-diagnostics callback fragmentation has now been closed by Phase 123
 - `custom_components/lipro/core/auth/manager.py`, `custom_components/lipro/core/command/result_policy.py`, `custom_components/lipro/core/protocol/boundary/mqtt_decoder.py`, and `scripts/check_architecture_policy.py` remain priority inward-split candidates
 - some compatibility handling still exists in localized runtime/device helpers, but it is currently controlled rather than regrown into a public seam

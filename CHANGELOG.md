@@ -11,7 +11,9 @@
 
 - `entry_auth.py`、`flow/step_handlers.py` 与 `config_flow.py` 现共同收敛为 Phase 124 的 auth-seed / config-flow thin-adapter 正式主链。
 - `services/contracts.py -> services/schedule.py` 现在承担 schedule direct-call normalization / result typing shared contract truth，并补齐 translated invalid-request fail-fast 行为。
-- `.planning` 基线、审计账本、codebase maps、`docs/developer_architecture.md` 与 Phase 124 evidence chain 已同步切到 closeout-ready 叙事。
+- `.planning/baseline/GOVERNANCE_REGISTRY.json::planning_route` 现已成为 current-route canonical truth，五份 selector docs 退回 projection / consistency target 身份。
+- `runtime_types.py`、`services/maintenance.py` 与 `core/coordinator/runtime/command_runtime_support.py` 已清掉 Phase 125 之前的 shared contract shadow duplicates。
+- `.planning` 基线、审计账本、codebase maps、`docs/developer_architecture.md`、`docs/MAINTAINER_RELEASE_RUNBOOK.md` 与 Phase 125 evidence chain 已同步切到 closeout-ready 叙事。
 - `control/service_router_handlers.py` 重新收拢 command / schedule / share / maintenance 回调，减少四个过薄 handler shell 带来的导航与维护成本。
 - `CI reuse`、`CodeQL`、`SBOM`、`cosign`、`release identity` 与 `compatibility preview` 仍保持同一条 release-security 叙事，只是不再夹带过期 archived-only 路线口径。
 - `docs/developer_architecture.md`、`.planning/codebase/ARCHITECTURE.md` 与相关治理账本已同步到当前 control-plane topology，不再保留过期的 split-family 现状描述。
@@ -22,7 +24,7 @@
 - 修复了 persisted auth-seed、config-flow orchestration 与 schedule direct-call contract 分别散落在多个 helper / handler 中的真源漂移。
 - 修复了 Phase 124 route truth、testing inventory、translation tree 与 closeout evidence 之间的治理不同步。
 - 修复了 service-router family 与 file-matrix / meta guards / architecture archive 之间的 topology 漂移。
-- 修复了 developer architecture 当前路线说明仍停留在 `v1.34 archived-only baseline` 的陈旧文案。
+- 修复了 developer architecture / maintainer runbook / verification matrix 仍停留在 Phase 124 closeout-ready 的陈旧 current-route 文案。
 
 ## [1.0.0] - 2026-02-08
 

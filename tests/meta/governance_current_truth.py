@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from functools import lru_cache
+import json
 from pathlib import Path
 import re
 
@@ -21,6 +22,9 @@ _ROUTE_CONTRACT_PATHS = {
     "STATE": _ROOT / ".planning" / "STATE.md",
     "MILESTONES": _ROOT / ".planning" / "MILESTONES.md",
 }
+
+_GOVERNANCE_REGISTRY_PATH = _ROOT / ".planning" / "baseline" / "GOVERNANCE_REGISTRY.json"
+_PLANNING_ROUTE_REGISTRY_KEY = "planning_route"
 
 
 @dataclass(frozen=True)
@@ -91,7 +95,11 @@ def load_planning_route_contract(path: Path) -> dict[str, object]:
 
 @lru_cache(maxsize=1)
 def load_canonical_route_contract() -> dict[str, object]:
-    return load_planning_route_contracts()["PROJECT"]
+    registry = json.loads(_GOVERNANCE_REGISTRY_PATH.read_text(encoding="utf-8"))
+    assert isinstance(registry, dict)
+    planning_route = registry.get(_PLANNING_ROUTE_REGISTRY_KEY)
+    assert isinstance(planning_route, dict), "Missing planning_route in GOVERNANCE_REGISTRY.json"
+    return planning_route
 
 
 def assert_machine_readable_route_contracts() -> dict[str, dict[str, object]]:

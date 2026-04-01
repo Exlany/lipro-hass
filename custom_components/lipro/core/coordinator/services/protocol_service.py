@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Protocol, cast
+from typing import TYPE_CHECKING, cast
 
 from ...api.types import DiagnosticsApiResponse
 from ...command.result import CommandResultPayload
@@ -13,26 +13,8 @@ from ...utils.identifiers import normalize_iot_device_id
 if TYPE_CHECKING:
     from ...api.types import OtaInfoRow, ScheduleTimingRow
     from ...protocol import LiproProtocolFacade
+from ....runtime_types import ScheduleMeshDeviceLike
 from ...protocol.contracts import OutletPowerInfoResult
-
-
-class ScheduleMeshDeviceLike(Protocol):
-    """Minimal device surface required by schedule protocol helpers."""
-
-    @property
-    def iot_device_id(self) -> str: ...
-
-    @property
-    def device_type_hex(self) -> str: ...
-
-    @property
-    def mesh_gateway_device_id(self) -> str | None: ...
-
-    @property
-    def mesh_group_member_ids(self) -> list[str]: ...
-
-    @property
-    def ir_remote_gateway_device_id(self) -> str | None: ...
 
 
 def build_schedule_mesh_context(

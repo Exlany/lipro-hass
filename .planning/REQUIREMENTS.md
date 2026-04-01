@@ -4,47 +4,57 @@
 ```yaml
 contract_version: 1
 contract_name: governance-route
+projection_targets:
+- .planning/PROJECT.md
+- .planning/ROADMAP.md
+- .planning/REQUIREMENTS.md
+- .planning/STATE.md
+- .planning/MILESTONES.md
 active_milestone:
   version: v1.35
   name: Master Audit Closure, Public Surface Finalization & Release Traceability
-  status: active / phase 124 complete; closeout-ready (2026-04-01)
-  phase: '124'
-  phase_title: config-entry auth seed normalization, config-flow adapter thinning, and schedule contract closure
-  phase_dir: 124-config-entry-auth-seed-normalization-config-flow-adapter-thinning-and-schedule-contract-closure
+  status: active / phase 125 complete; closeout-ready (2026-04-01)
+  phase: '125'
+  phase_title: terminal residual eradication, runtime-types decomposition, adapter
+    final thinning, and machine-readable governance extraction
+  phase_dir: 125-terminal-residual-eradication-runtime-types-decomposition-adapter-final-thinning-and-machine-readable-governance-extraction
 latest_archived:
   version: v1.34
   name: Terminal Audit Closure, Contract Hardening & Governance Truth Slimming
   status: archived / evidence-ready (2026-04-01)
   phase: '121'
-  phase_title: residual contract closure, flow invariant tightening, and surface hygiene cleanup
+  phase_title: residual contract closure, flow invariant tightening, and surface hygiene
+    cleanup
   phase_dir: 121-residual-contract-closure-flow-invariant-tightening-surface-hygiene-cleanup
   audit_path: .planning/v1.34-MILESTONE-AUDIT.md
   evidence_path: .planning/reviews/V1_34_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
   version: v1.33
-  name: MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance Hardening
+  name: MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance
+    Hardening
   evidence_path: .planning/reviews/V1_33_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.35 active milestone route / starting from latest archived baseline = v1.34
+  current_route: v1.35 active milestone route / starting from latest archived baseline
+    = v1.34
   default_next_command: $gsd-complete-milestone v1.35
   latest_archived_evidence_pointer: .planning/reviews/V1_34_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 ## Current Milestone (v1.35)
 
-**Milestone Goal:** 基于 `v1.34` latest archived baseline，把全仓 master audit 的第二轮与第三轮 carry-forward 收束成单一 active route：`service_router` 已 reconverge 之后，还要把 config-entry auth seed 语义、config-flow thin-adapter 约束与 schedule direct-call contract 一次性冻结到同一 formal control story。
-**Milestone status:** `active / phase 124 complete; closeout-ready (2026-04-01)`
+**Milestone Goal:** 基于 `v1.34` latest archived baseline，把全仓 master audit 的 terminal residual 在 closeout 前彻底压回单一 active route：除已完成的 `service_router` / auth-seed / schedule contract 收口外，还要继续拆解 `runtime_types.py` 的 cross-plane contract hub、进一步压薄 `config_flow.py` / `entry_auth.py` adapter seam，并把 current-route truth 变成 machine-readable governance contract。
+**Milestone status:** `active / phase 125 complete; closeout-ready (2026-04-01)`
 **Current route mode:** `v1.35 active milestone route / starting from latest archived baseline = v1.34`
 **Starting baseline:** `.planning/v1.34-MILESTONE-AUDIT.md`, `.planning/reviews/V1_34_EVIDENCE_INDEX.md`, `.planning/milestones/v1.34-ROADMAP.md`, `.planning/milestones/v1.34-REQUIREMENTS.md`
-**Requirements basket:** `AUD-05`, `DOC-12`, `OSS-16`, `GOV-81`, `TST-44`, `ARC-34`, `HOT-54`, `DOC-13`, `GOV-82`, `TST-45`, `ARC-35`, `HOT-55`, `ARC-36`, `GOV-83`, `TST-46`
+**Requirements basket:** `AUD-05`, `DOC-12`, `OSS-16`, `GOV-81`, `TST-44`, `ARC-34`, `HOT-54`, `DOC-13`, `GOV-82`, `TST-45`, `ARC-35`, `HOT-55`, `ARC-36`, `GOV-83`, `TST-46`, `ARC-37`, `HOT-56`, `GOV-84`, `TST-47`, `QLT-49`, `DOC-14`
 **Latest archived baseline:** `v1.34`
 **Archive pointer:** `.planning/reviews/V1_34_EVIDENCE_INDEX.md`
 **Latest archived audit artifact:** `.planning/v1.34-MILESTONE-AUDIT.md`
 **Default next command:** `$gsd-complete-milestone v1.35`
 **Active audit ledger:** `.planning/reviews/V1_35_MASTER_AUDIT_LEDGER.md`
 **Closeout audit:** `.planning/v1.35-MILESTONE-AUDIT.md`
-**Current phase handoff:** `Phase 124 已完成五个计划并冻结 closeout-ready 证据链；current route 下一步应执行 `$gsd-complete-milestone v1.35`。`
+**Current phase handoff:** `Phase 125 已完成 registry-backed governance truth、runtime contract dedupe、flow/auth adapter final thinning 与 docs/evidence freeze；下一步应执行 `$gsd-complete-milestone v1.35`。`
 
 ### Audit Closure
 - [x] **AUD-05**: 必须把全仓 Python/docs/config/governance 的终审结果落到单一 audit ledger / table truth，逐项标注问题来源、first-hop / appendix / metadata / guard 归宿与处置状态，避免剩余问题继续散落在 phase folklore 或口头结论里。
@@ -75,6 +85,14 @@ bootstrap:
 - [x] **GOV-83**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES`、baseline/review/codebase docs 必须共同承认 `Phase 124` 是 v1.35 的最终 carry-forward，禁止继续停留在 `Phase 123 closeout-ready` 叙事。
 - [x] **TST-46**: focused flow/schedule/meta suites 必须冻结 auth-seed normalization、malformed reconfigure parity、schedule direct-call validation/result shape 与 current-route truth。
 
+### Terminal Residual Eradication & Governance Extraction
+- [x] **ARC-37**: `custom_components/lipro/runtime_types.py` 不得继续充当跨平面 mega contract hub；runtime / protocol / service-facing protocol families 必须 inward 到更窄 formal homes，outward import truth 仍保持单一可发现。
+- [x] **HOT-56**: `custom_components/lipro/config_flow.py` 与 `custom_components/lipro/entry_auth.py` 必须继续瘦身为 HA-root adapter / bootstrap home；纯 pass-through step orchestration、result shaping 与 transient auth helpers 必须沉到 `flow/` 或更窄 helper。
+- [x] **GOV-84**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES` 的 current-route truth 必须共同消费同一 machine-readable governance contract，而不是五份并行手写 prose/yaml selector。
+- [x] **TST-47**: `tests/meta` 与相关 checker 必须优先读取 machine-readable governance contract / focused manifest，减少 giant prose-heavy wording guards；语义不变的文案调整不应再引发大面积 brittle failures。
+- [x] **QLT-49**: `runtime_types.py`、`config_flow.py`、`entry_auth.py`、`tests/meta` 与相关 governance tooling 必须建立新的 no-regrowth / changed-surface budget，避免 residual hotspot 在 closeout 后重新扩张。
+- [x] **DOC-14**: maintainer / developer docs 必须解释 final residual topology、machine-readable governance truth 的正式 home，以及为何 `Phase 125` 是 v1.35 closeout 前最后一轮 carry-forward。
+
 ## Traceability
 
 | Requirement | Phase | Status |
@@ -94,11 +112,17 @@ bootstrap:
 | ARC-36 | Phase 124 | Complete |
 | GOV-83 | Phase 124 | Complete |
 | TST-46 | Phase 124 | Complete |
+| ARC-37 | Phase 125 | Complete |
+| HOT-56 | Phase 125 | Complete |
+| GOV-84 | Phase 125 | Complete |
+| TST-47 | Phase 125 | Complete |
+| QLT-49 | Phase 125 | Complete |
+| DOC-14 | Phase 125 | Complete |
 
 **Coverage:**
-- v1.35 requirements: 15 total
-- Mapped to phases: 15
-- Complete: 15
+- v1.35 requirements: 21 total
+- Mapped to phases: 21
+- Complete: 21
 - Pending: 0
 - Unmapped: 0 ✓
 

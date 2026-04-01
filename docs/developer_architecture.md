@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `v1.35 / Phase 124 complete; closeout-ready route` (`2026-04-01`)
-> **Current route alignment**: `v1.35 active route / Phase 124 complete; closeout-ready / latest archived baseline = v1.34` (`2026-04-01`)
+> **Last aligned through**: `v1.35 / Phase 125 complete; closeout-ready route` (`2026-04-01`)
+> **Current route alignment**: `v1.35 active route / Phase 125 complete; closeout-ready / latest archived baseline = v1.34` (`2026-04-01`)
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
@@ -42,12 +42,12 @@
 - `custom_components/lipro/runtime_types.py`：typed runtime coordinator / telemetry contract 的 sanctioned root-level home；它是 formal contract entry，不是 accidental helper。
 - `custom_components/lipro/entry_auth.py`：config-entry auth/bootstrap seed、token persistence、setup-exception mapping 的 sanctioned root-level home。
 
-## Phase 124 Closeout Notes
+## Phase 125 Execution Notes
 
-- `custom_components/lipro/config_flow.py` 现在只保留 Home Assistant entry-point glue；user / reauth / reconfigure orchestration 已固定在 `custom_components/lipro/flow/step_handlers.py`。
-- `custom_components/lipro/entry_auth.py` 现在是 persisted auth-seed（`password_hash` / `remember_password_hash` / `biz_id`）解释与回写的正式 root helper。
-- `custom_components/lipro/services/contracts.py` 现在是 schedule direct-call normalization / result typing 的唯一 formal truth；`custom_components/lipro/services/schedule.py` 只消费这条 shared contract chain。
-- `custom_components/lipro/control/service_router_handlers.py` 继续保持 router-facing callback home；Phase 124 没有重新长回第二条 schedule handler / auth error story。
+- `custom_components/lipro/runtime_types.py` 继续保持 sanctioned root-level contract home；`ScheduleMeshDeviceLike`、`CommandProperties` 与 `DeviceRefreshServiceLike` 已回收到同一正式真源，不再在下游 runtime/service 文件里重复定义。
+- `custom_components/lipro/config_flow.py` 继续只保留 Home Assistant entry-point glue；`custom_components/lipro/flow/step_handlers.py` 现在直接消费 `_show_*` / `_get_*` / `_async_*` private helper seam，不再借由 public pass-through wrapper 中转。
+- `custom_components/lipro/entry_auth.py` 继续承担 persisted auth-seed / token persistence / setup-exception formal home；单次中转 helper 已被压平，没有重新长出第二套 bootstrap story。
+- 当前治理 current-route truth 已 canonicalize 到 `.planning/baseline/GOVERNANCE_REGISTRY.json` 的 `planning_route`；`PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES` 只保留 projection / consistency target 身份。
 
 ## 五大平面
 

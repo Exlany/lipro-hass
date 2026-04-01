@@ -6,8 +6,9 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from ....runtime_types import ScheduleMeshDeviceLike
     from ...api.types import ScheduleTimingRow
-    from .protocol_service import CoordinatorProtocolService, ScheduleMeshDeviceLike
+    from .protocol_service import CoordinatorProtocolService
 
 
 @dataclass(slots=True)

@@ -11,14 +11,6 @@ from homeassistant.exceptions import ServiceValidationError
 from ..runtime_types import LiproCoordinator
 from .contracts import RefreshDevicesResult
 
-
-class DeviceRefreshServiceLike(Protocol):
-    """Minimal refresh-service contract consumed by maintenance helpers."""
-
-    async def async_refresh_devices(self) -> None:
-        """Refresh the devices owned by one runtime coordinator."""
-
-
 type RuntimeEntryCoordinator = tuple[object, LiproCoordinator]
 
 

@@ -272,3 +272,6 @@ max-statements = 50
     "TID252",  # relative-imports (standard for HA integrations)
     "PTH",     # flake8-use-pathlib (HA patterns)
 ]
+"custom_components/lipro/flow/step_handlers.py" = [
+    "SLF001",  # intentional internal private-helper seam to config_flow root adapter
+]

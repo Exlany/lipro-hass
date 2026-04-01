@@ -2,7 +2,7 @@
 
 **Status:** `Active milestone closeout-ready route`
 **Current route:** `v1.35 active milestone route / starting from latest archived baseline = v1.34`；latest archived evidence index = `.planning/reviews/V1_34_EVIDENCE_INDEX.md`.
-**Goal:** `基于 repo-wide master audit 的第二轮与第三轮 carry-forward，把 control-plane contract 残留最终压回单一 active route：config-entry auth seed 语义单点收口、config_flow 根层继续回归 thin adapter、schedule direct-call contract 与治理/guards 共享同一 formal truth。`
+**Goal:** `在 v1.35 closeout 前诚实重开 terminal residual 收口：拆解 `runtime_types.py` 这类 cross-plane contract hub、继续压薄 `config_flow.py` / `entry_auth.py` adapter seam，并把 current-route/governance truth 提炼为 machine-readable contract，确保归档前不再带着非阻塞残留漂移。`
 **Default next step:** `$gsd-complete-milestone v1.35`
 **Active baseline:** latest archived baseline = `v1.34`；previous archived baseline = `v1.33`.
 
@@ -10,29 +10,39 @@
 ```yaml
 contract_version: 1
 contract_name: governance-route
+projection_targets:
+- .planning/PROJECT.md
+- .planning/ROADMAP.md
+- .planning/REQUIREMENTS.md
+- .planning/STATE.md
+- .planning/MILESTONES.md
 active_milestone:
   version: v1.35
   name: Master Audit Closure, Public Surface Finalization & Release Traceability
-  status: active / phase 124 complete; closeout-ready (2026-04-01)
-  phase: '124'
-  phase_title: config-entry auth seed normalization, config-flow adapter thinning, and schedule contract closure
-  phase_dir: 124-config-entry-auth-seed-normalization-config-flow-adapter-thinning-and-schedule-contract-closure
+  status: active / phase 125 complete; closeout-ready (2026-04-01)
+  phase: '125'
+  phase_title: terminal residual eradication, runtime-types decomposition, adapter
+    final thinning, and machine-readable governance extraction
+  phase_dir: 125-terminal-residual-eradication-runtime-types-decomposition-adapter-final-thinning-and-machine-readable-governance-extraction
 latest_archived:
   version: v1.34
   name: Terminal Audit Closure, Contract Hardening & Governance Truth Slimming
   status: archived / evidence-ready (2026-04-01)
   phase: '121'
-  phase_title: residual contract closure, flow invariant tightening, and surface hygiene cleanup
+  phase_title: residual contract closure, flow invariant tightening, and surface hygiene
+    cleanup
   phase_dir: 121-residual-contract-closure-flow-invariant-tightening-surface-hygiene-cleanup
   audit_path: .planning/v1.34-MILESTONE-AUDIT.md
   evidence_path: .planning/reviews/V1_34_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
   version: v1.33
-  name: MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance Hardening
+  name: MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance
+    Hardening
   evidence_path: .planning/reviews/V1_33_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.35 active milestone route / starting from latest archived baseline = v1.34
+  current_route: v1.35 active milestone route / starting from latest archived baseline
+    = v1.34
   default_next_command: $gsd-complete-milestone v1.35
   latest_archived_evidence_pointer: .planning/reviews/V1_34_EVIDENCE_INDEX.md
 ```
@@ -41,21 +51,21 @@ bootstrap:
 
 **Name:** `Master Audit Closure, Public Surface Finalization & Release Traceability`
 
-**Why it matters:** `v1.35` 仍不扩张业务功能，而是继续把 control-plane 剩余的 contract 漏口压回单一正式主线：persisted auth seed 解释不再散落、config_flow 根层不再持有厚 orchestration、schedule direct-call path 也回到与 registry schema 一致的 formal contract。`
+**Why it matters:** `v1.35` 仍不扩张业务功能，但 closeout 前仍存在 terminal residual：`runtime_types.py` 仍承载跨平面 contract hub、`config_flow.py` / `entry_auth.py` 仍留有 adapter pass-through 与 bootstrap 厚度、current-route truth 也仍重复维护在五份 selector 文档里；若直接归档，会把非阻塞残留合法化。`
 
-**North-star fit:** `v1.35` 继续沿 single mainline / formal homes / honest public surface 推进：`entry_auth` 继续作为 config-entry auth/bootstrap 正式 home，`flow/` 吸收 config-flow orchestration，`services/contracts.py` 成为 schedule direct-call contract 真源，不让 control-plane 因局部 convenience 再长出第二套故事线。`
+**North-star fit:** `v1.35` 的最终收口必须继续沿 single mainline / formal homes / machine-readable truth 推进：`runtime_types.py` 退出 cross-plane mega hub 角色、`flow/` 与更窄 auth helper 继续吸收 config-flow/bootstrap 细节，而 governance current-route truth 则沉淀为单一 machine-readable contract，再由各 selector 文档投影，不再手写五份近似副本。`
 
-**Current status:** `active / phase 124 complete; closeout-ready (2026-04-01)`
-**Phase range:** `Phase 122 -> 124`
+**Current status:** `active / phase 125 complete; closeout-ready (2026-04-01)`
+**Phase range:** `Phase 122 -> 125`
 **Starting baseline:** `.planning/v1.34-MILESTONE-AUDIT.md`, `.planning/reviews/V1_34_EVIDENCE_INDEX.md`, `.planning/milestones/v1.34-ROADMAP.md`, `.planning/milestones/v1.34-REQUIREMENTS.md`
-**Requirements basket:** `AUD-05`, `DOC-12`, `OSS-16`, `GOV-81`, `TST-44`, `ARC-34`, `HOT-54`, `DOC-13`, `GOV-82`, `TST-45`, `ARC-35`, `HOT-55`, `ARC-36`, `GOV-83`, `TST-46`
+**Requirements basket:** `AUD-05`, `DOC-12`, `OSS-16`, `GOV-81`, `TST-44`, `ARC-34`, `HOT-54`, `DOC-13`, `GOV-82`, `TST-45`, `ARC-35`, `HOT-55`, `ARC-36`, `GOV-83`, `TST-46`, `ARC-37`, `HOT-56`, `GOV-84`, `TST-47`, `QLT-49`, `DOC-14`
 **Latest archived baseline:** `v1.34`
 **Latest archived pointer:** `.planning/reviews/V1_34_EVIDENCE_INDEX.md`
 **Latest archived audit artifact:** `.planning/v1.34-MILESTONE-AUDIT.md`
 **Default next command:** `$gsd-complete-milestone v1.35`
 **Active audit ledger:** `.planning/reviews/V1_35_MASTER_AUDIT_LEDGER.md`
 **Closeout audit:** `.planning/v1.35-MILESTONE-AUDIT.md`
-**Current phase handoff:** `Phase 124 已完成五个计划并通过 closeout-ready 冻结；下一步应执行 `$gsd-complete-milestone v1.35`，而不是重新开启新的 carry-forward。`
+**Current phase handoff:** `Phase 125 已完成 terminal residual 收口、summary / verification 证据链与 full validation；下一步应执行 `$gsd-complete-milestone v1.35` 完成里程碑归档。`
 
 ## Latest Archived Milestone (v1.34)
 

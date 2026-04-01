@@ -107,12 +107,6 @@ def _optional_entry_string(entry: ConfigEntryLike, *, key: str) -> str | None:
     return value if isinstance(value, str) else None
 
 
-def _resolve_entry_password_seed(
-    entry: ConfigEntryLike,
-) -> EntryCredentialSeedState:
-    """Return normalized persisted auth-seed state for auth bootstrap."""
-    return resolve_entry_credential_seed_state(entry.data)
-
 
 def _build_entry_auth_seed(
     entry: ConfigEntryLike,
@@ -135,7 +129,7 @@ def _build_entry_auth_seed(
             "Missing phone in config entry data; please remove and re-add the integration"
         ),
     )
-    credential_seed = _resolve_entry_password_seed(entry)
+    credential_seed = resolve_entry_credential_seed_state(entry.data)
     request_timeout = get_entry_int_option(
         entry,
         option_name=CONF_REQUEST_TIMEOUT,

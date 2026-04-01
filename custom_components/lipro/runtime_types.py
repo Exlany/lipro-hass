@@ -18,7 +18,6 @@ if TYPE_CHECKING:
     from .core.api.types import DiagnosticsApiResponse, OtaInfoRow, ScheduleTimingRow
     from .core.command.result import CommandResultPayload
     from .core.coordinator.entity_protocol import LiproEntityProtocol
-    from .core.coordinator.services.protocol_service import ScheduleMeshDeviceLike
     from .core.coordinator.types import RuntimeTelemetrySnapshot
     from .core.device import LiproDevice
 
@@ -83,6 +82,25 @@ class CommandServiceLike(Protocol):
         properties: CommandProperties | None = None,
         fallback_device_id: str | None = None,
     ) -> bool: ...
+
+
+class ScheduleMeshDeviceLike(Protocol):
+    """Minimal device surface required by schedule-facing runtime services."""
+
+    @property
+    def iot_device_id(self) -> str: ...
+
+    @property
+    def device_type_hex(self) -> str: ...
+
+    @property
+    def mesh_gateway_device_id(self) -> str | None: ...
+
+    @property
+    def mesh_group_member_ids(self) -> list[str]: ...
+
+    @property
+    def ir_remote_gateway_device_id(self) -> str | None: ...
 
 
 class ProtocolServiceLike(Protocol):
@@ -323,4 +341,5 @@ __all__ = [
     "RuntimeAuthServiceLike",
     "RuntimeEntityLike",
     "RuntimeTelemetryServiceLike",
+    "ScheduleMeshDeviceLike",
 ]

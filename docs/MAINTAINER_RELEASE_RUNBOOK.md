@@ -5,7 +5,7 @@
 This repository currently follows a single-maintainer release model. Every tagged release must reuse `.github/workflows/ci.yml`; `.github/workflows/release.yml` is only the tagged security / packaging / publishing tail of that same gate.
 
 > Continuity note / 连续性说明：this runbook defines the maintainer-unavailable drill. Do not imply hidden backup maintainers. No documented delegate exists today; if the maintainer is unavailable, freeze new tagged releases and freeze new release promises, keep `SUPPORT.md` / `SECURITY.md` / issue / PR template routing honest, and restore custody only after CODEOWNERS + runbook record the real successor or delegate.
-> Current route note / 当前路线说明：maintainer continuity now follows the stable selector family `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`; today it resolves to `v1.35 active milestone route / starting from latest archived baseline = v1.34`, current status = `active / phase 124 complete; closeout-ready (2026-04-01)`, default next command = `$gsd-complete-milestone v1.35`. Latest archived evidence remains pull-only: `.planning/reviews/V1_34_EVIDENCE_INDEX.md` + `.planning/v1.34-MILESTONE-AUDIT.md`.
+> Current route note / 当前路线说明：maintainer continuity now follows the stable selector family `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`; today it resolves to `v1.35 active milestone route / starting from latest archived baseline = v1.34`, current status = `active / phase 125 complete; closeout-ready (2026-04-01)`, default next command = `$gsd-complete-milestone v1.35`. Latest archived evidence remains pull-only: `.planning/reviews/V1_34_EVIDENCE_INDEX.md` + `.planning/v1.34-MILESTONE-AUDIT.md`.
 
 ## Truth Sources
 
@@ -15,7 +15,7 @@ This repository currently follows a single-maintainer release model. Every tagge
 - Canonical public support/security paths: `README.md`, `README_zh.md`, `CONTRIBUTING.md`, `SUPPORT.md`, `SECURITY.md`
 - Canonical troubleshooting path: `docs/TROUBLESHOOTING.md`
 - Canonical release-notes summary: `CHANGELOG.md` (maintainer-facing release posture summary, not a second runbook)
-- Canonical route-selector family: `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md` (stable current selector family; current resolution = `v1.35 active milestone route / starting from latest archived baseline = v1.34`; default next = `$gsd-complete-milestone v1.35`)
+- Canonical route-selector family: `.planning/baseline/GOVERNANCE_REGISTRY.json::planning_route` → `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md` (registry-owned current selector family; current resolution = `v1.35 active milestone route / starting from latest archived baseline = v1.34`; default next = `$gsd-execute-phase 125`)
 - Canonical latest archived evidence index: `.planning/reviews/V1_34_EVIDENCE_INDEX.md`
 - Canonical latest archived milestone audit: `.planning/v1.34-MILESTONE-AUDIT.md` (pull-only evidence verdict, not current route truth)
 - Canonical firmware certification trust-root asset: `custom_components/lipro/firmware_support_manifest.json` (historical filename retained)

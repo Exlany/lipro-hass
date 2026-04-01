@@ -1,4 +1,4 @@
-"""Focused closeout guards for Phase 124 auth/flow/schedule contract closure."""
+"""Focused guards for Phase 124 closure plus Phase 125 carry-forward cleanup."""
 
 from __future__ import annotations
 
@@ -9,9 +9,7 @@ from tests.helpers.repo_root import repo_root
 from .governance_contract_helpers import assert_testing_inventory_snapshot
 from .governance_current_truth import (
     CURRENT_MILESTONE_DEFAULT_NEXT,
-    CURRENT_MILESTONE_PLAN_COUNT,
     CURRENT_MILESTONE_STATUS,
-    CURRENT_MILESTONE_SUMMARY_COUNT,
     CURRENT_PHASE_HEADING,
     CURRENT_ROUTE,
 )
@@ -55,8 +53,6 @@ def test_phase124_route_truth_and_closeout_assets_are_current() -> None:
         assert CURRENT_MILESTONE_DEFAULT_NEXT in text
         assert CURRENT_MILESTONE_STATUS in text
     assert CURRENT_PHASE_HEADING in roadmap_text
-    assert CURRENT_MILESTONE_PLAN_COUNT == 5
-    assert CURRENT_MILESTONE_SUMMARY_COUNT == 6
     for name in (
         "124-01-SUMMARY.md",
         "124-02-SUMMARY.md",
@@ -85,18 +81,23 @@ def test_phase124_governance_maps_and_ledgers_project_closeout_truth() -> None:
 
     assert "## Phase 124 Auth/Flow/Schedule Clarifications" in public_surfaces_text
     assert "## Phase 124 Auth/Flow/Schedule Dependency Clarifications" in dependency_text
+    assert "## Phase 125 Exit Contract" in verification_text
     assert "## Phase 124 Exit Contract" in verification_text
+    assert "## Phase 125 Residual Delta" in residual_text
     assert "## Phase 124 Residual Delta" in residual_text
-    assert "## Phase 124 Status Update" in kill_text
-    assert "## Phase 124 Final Carry-forward Closure" in audit_text
-    assert "## Phase 124 Closure Notes" in architecture_text
-    assert "## Phase 124 Concern Update" in concerns_text
-    assert "## Phase 124 Testing Freeze" in testing_text
-    assert "## Phase 124 Closeout Notes" in dev_arch_text
+    assert "## Phase 125 Status Update" in kill_text
+    assert "## Phase 124-125 Carry-forward Closure" in audit_text
+    assert "## Phase 125 Execution Notes" in architecture_text
+    assert "## Phase 125 Concern Update" in concerns_text
+    assert "## Phase 125 Execution Freeze" in testing_text
+    assert "## Phase 125 Execution Notes" in dev_arch_text
     assert "Phase 124" in changelog_text
+    assert "Phase 125" in changelog_text
     assert_testing_inventory_snapshot(testing_text)
     for token in (
         "custom_components/lipro/flow/step_handlers.py",
+        "custom_components/lipro/runtime_types.py",
+        "custom_components/lipro/entry_auth.py",
         "custom_components/lipro/services/contracts.py",
         "custom_components/lipro/services/schedule.py",
         "tests/meta/test_phase124_flow_auth_schedule_contract_guards.py",
@@ -118,6 +119,9 @@ def test_phase124_codeboundaries_keep_single_flow_auth_schedule_truth() -> None:
     assert "return await _async_handle_user_step(self, user_input, logger=_LOGGER)" in config_flow_text
     assert "return await _async_handle_reauth_confirm_step(" in config_flow_text
     assert "return await _async_handle_reconfigure_step(" in config_flow_text
+    assert "def show_user_form(" not in config_flow_text
+    assert "def ensure_user_flow_phone_id(" not in config_flow_text
+    assert "def entry_data_from_auth_session(" not in config_flow_text
 
     for token in (
         "EntryCredentialSeedState",
@@ -128,6 +132,7 @@ def test_phase124_codeboundaries_keep_single_flow_auth_schedule_truth() -> None:
         assert token in entry_auth_text
 
     assert "apply_entry_credential_seed_state" in login_text
+    assert "_resolve_entry_password_seed" not in entry_auth_text
     assert "resolve_entry_remember_password_hash(" in submission_text
 
     for token in (

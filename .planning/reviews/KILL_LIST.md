@@ -1,5 +1,12 @@
 # Kill List
 
+## Phase 125 Status Update
+
+- `Phase 125` 没有创造新的 active kill target；本轮是 machine-readable governance truth、runtime contract dedupe 与 flow/auth thin-adapter residual 的收口，而不是新的 delete campaign。
+- `config_flow.py` public pass-through wrapper 已删除，`flow/step_handlers.py` 现直接消费 private helper seam；这属于适配层减薄，不需要额外 file-level kill gate。
+- `runtime_types.py` 下游的 `CommandProperties` / `DeviceRefreshServiceLike` shadow carriers 已收回正式 home；删除的是重复 contract 定义，而不是新的 production file。
+
+
 ## Candidate Removals (Phase 02 Registered)
 
 | Target | Current carrier | Owner | Earliest delete phase | Delete when | `02-01` status |

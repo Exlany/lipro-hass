@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🚧 **v1.35 Master Audit Closure, Public Surface Finalization & Release Traceability** - `Phase 122 -> 124` active on 2026-04-01; current route = `v1.35 active milestone route / starting from latest archived baseline = v1.34`; latest archived evidence index = `.planning/reviews/V1_34_EVIDENCE_INDEX.md`; default next = `$gsd-complete-milestone v1.35`
+- 🚧 **v1.35 Master Audit Closure, Public Surface Finalization & Release Traceability** - `Phase 122 -> 125` active on 2026-04-01; current route = `v1.35 active milestone route / starting from latest archived baseline = v1.34`; latest archived evidence index = `.planning/reviews/V1_34_EVIDENCE_INDEX.md`; default next = `$gsd-complete-milestone v1.35`
 - ✅ **v1.34 Terminal Audit Closure, Contract Hardening & Governance Truth Slimming** - `Phase 120 -> 121` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.34`; evidence index = `.planning/reviews/V1_34_EVIDENCE_INDEX.md`
 - ✅ **v1.33 MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance Hardening** - `Phase 119` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.33`; evidence index = `.planning/reviews/V1_33_EVIDENCE_INDEX.md`
 - ✅ **v1.32 Residual Hotspot Eradication, Validation Completion & Continuity Hardening** - `Phase 115 -> 118` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.32`; evidence index = `.planning/reviews/V1_32_EVIDENCE_INDEX.md`
@@ -13,45 +13,55 @@
 ```yaml
 contract_version: 1
 contract_name: governance-route
+projection_targets:
+- .planning/PROJECT.md
+- .planning/ROADMAP.md
+- .planning/REQUIREMENTS.md
+- .planning/STATE.md
+- .planning/MILESTONES.md
 active_milestone:
   version: v1.35
   name: Master Audit Closure, Public Surface Finalization & Release Traceability
-  status: active / phase 124 complete; closeout-ready (2026-04-01)
-  phase: '124'
-  phase_title: config-entry auth seed normalization, config-flow adapter thinning, and schedule contract closure
-  phase_dir: 124-config-entry-auth-seed-normalization-config-flow-adapter-thinning-and-schedule-contract-closure
+  status: active / phase 125 complete; closeout-ready (2026-04-01)
+  phase: '125'
+  phase_title: terminal residual eradication, runtime-types decomposition, adapter
+    final thinning, and machine-readable governance extraction
+  phase_dir: 125-terminal-residual-eradication-runtime-types-decomposition-adapter-final-thinning-and-machine-readable-governance-extraction
 latest_archived:
   version: v1.34
   name: Terminal Audit Closure, Contract Hardening & Governance Truth Slimming
   status: archived / evidence-ready (2026-04-01)
   phase: '121'
-  phase_title: residual contract closure, flow invariant tightening, and surface hygiene cleanup
+  phase_title: residual contract closure, flow invariant tightening, and surface hygiene
+    cleanup
   phase_dir: 121-residual-contract-closure-flow-invariant-tightening-surface-hygiene-cleanup
   audit_path: .planning/v1.34-MILESTONE-AUDIT.md
   evidence_path: .planning/reviews/V1_34_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
   version: v1.33
-  name: MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance Hardening
+  name: MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance
+    Hardening
   evidence_path: .planning/reviews/V1_33_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.35 active milestone route / starting from latest archived baseline = v1.34
+  current_route: v1.35 active milestone route / starting from latest archived baseline
+    = v1.34
   default_next_command: $gsd-complete-milestone v1.35
   latest_archived_evidence_pointer: .planning/reviews/V1_34_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 ## Overview
 
-`v1.35` 以 archived baseline `v1.34` 为起点，先用 `Phase 122` 完成 repo-wide audit ledger / public first-hop / metadata traceability，再用 `Phase 123` 收口 `service_router` family 的过度分片与公开架构叙事漂移，最后由 `Phase 124` 把 config-entry auth seed、config-flow thin-adapter 约束与 schedule direct-call contract 一次冻结为同一条 active route。
+`v1.35` 以 archived baseline `v1.34` 为起点，先用 `Phase 122` 完成 repo-wide audit ledger / public first-hop / metadata traceability，再用 `Phase 123` 收口 `service_router` family 的过度分片与公开架构叙事漂移，再由 `Phase 124` 完成 auth-seed / config-flow / schedule contract closure；但 closeout 前仍需 `Phase 125` 继续清零 terminal residual：拆解 `runtime_types.py` cross-plane hub、继续压薄 `config_flow.py` / `entry_auth.py`、并把 governance current-route truth 提取为 machine-readable formal contract。
 
-**Coverage:** `15/15` v1.35 requirements mapped exactly once.
+**Coverage:** `21/21` v1.35 requirements mapped exactly once.
 **Default next command:** `$gsd-complete-milestone v1.35`
 
 ## Current Milestone
 
 ## v1.35: Master Audit Closure, Public Surface Finalization & Release Traceability
 
-**Milestone status:** `active / phase 124 complete; closeout-ready (2026-04-01)`
+**Milestone status:** `active / phase 125 complete; closeout-ready (2026-04-01)`
 **Default next command:** `$gsd-complete-milestone v1.35`
 **Current route story:** `v1.35 active milestone route / starting from latest archived baseline = v1.34`
 **Latest archived pointer:** `.planning/reviews/V1_34_EVIDENCE_INDEX.md`
@@ -65,6 +75,7 @@ bootstrap:
 - [x] **Phase 122: master audit ledger, public first-hop boundary finalization, metadata traceability, and focused guard sealing** - 已完成 repo-wide audit ledger 落表、public first-hop / maintainer appendix 边界收口、tagged-release metadata traceability 与 focused guards 加固。 (complete 2026-04-01)
 - [x] **Phase 123: service-router family reconvergence, control-plane locality tightening, and public architecture hygiene** - 已完成 `service_router` non-diagnostics callback family reconvergence、public architecture/changelog drift cleanup、governance/file-matrix/focused guards 同步冻结。 (complete 2026-04-01)
 - [x] **Phase 124: config-entry auth seed normalization, config-flow adapter thinning, and schedule contract closure** - 已完成 auth-seed truth 收口、config-flow adapter thinning、schedule direct-call contract closure、governance/codebase freeze 与 closeout evidence 链。 (complete 2026-04-01)
+- [x] **Phase 125: terminal residual eradication, runtime-types decomposition, adapter final thinning, and machine-readable governance extraction** - 已完成 registry-backed governance truth、runtime contract dedupe、flow/auth adapter final thinning 与 docs/evidence freeze。 (complete 2026-04-01)
 
 ## Phase Details
 
@@ -107,6 +118,18 @@ bootstrap:
 **Execution summaries**: `124-01-SUMMARY.md`, `124-02-SUMMARY.md`, `124-03-SUMMARY.md`, `124-04-SUMMARY.md`, `124-05-SUMMARY.md`, `124-SUMMARY.md`
 **Verification**: `124-VERIFICATION.md`
 
+### Phase 125: terminal residual eradication, runtime-types decomposition, adapter final thinning, and machine-readable governance extraction
+**Goal**: 在 v1.35 closeout 前继续清零 remaining residual：拆解 `runtime_types.py` 的 cross-plane contract hub、继续压薄 `config_flow.py` / `entry_auth.py` adapter seam，并把 current-route/governance selector truth 提取为单一 machine-readable contract，再由 tests/tooling/docs 共同消费。
+**Depends on**: Phase 124
+**Requirements**: ARC-37, HOT-56, GOV-84, TST-47, QLT-49, DOC-14
+**Success Criteria** (what must be TRUE):
+  1. `runtime_types.py` 不再承担跨 runtime / protocol / service-facing families 的 mega contract hub 角色；formal contract families inward 到更窄 homes，outward import truth 仍可发现且不漂移。
+  2. `config_flow.py` / `entry_auth.py` 进一步回到 thin adapter / bootstrap home，纯 pass-through orchestration、result shaping 与 transient auth helper 下沉到 `flow/` 或更窄 helper。
+  3. `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES` 共用同一 machine-readable governance current-route contract，而不再手写五份近似 selector。
+  4. `tests/meta` 与相关 checker 优先读取 machine-readable contract / focused manifest，减少 giant prose-heavy wording guards；route 语义不变时不再因文案微调大面积炸测。
+  5. `FILE_MATRIX`、codebase docs、maintainer docs 与 focused no-regrowth guards 共同冻结新的 residual topology，v1.35 只有在这些 guard 与 Phase 125 verification 通过后才允许 closeout。
+**Plans**: 5/5 complete — summaries + verification written
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
@@ -114,6 +137,7 @@ bootstrap:
 | 122. master audit ledger, public first-hop boundary finalization, metadata traceability, and focused guard sealing | 3/3 | Complete | 2026-04-01 |
 | 123. service-router family reconvergence, control-plane locality tightening, and public architecture hygiene | 3/3 | Complete | 2026-04-01 |
 | 124. config-entry auth seed normalization, config-flow adapter thinning, and schedule contract closure | 5/5 | Complete | 2026-04-01 |
+| 125. terminal residual eradication, runtime-types decomposition, adapter final thinning, and machine-readable governance extraction | 5/5 | Complete | 2026-04-01 |
 
 ## Latest Archived Milestone
 
@@ -365,3 +389,4 @@ bootstrap:
 ### Phase 110: Runtime snapshot surface reduction and milestone closeout
 **Status**: Complete (`2026-03-30`)
 **Plans**: 6/6 complete
+

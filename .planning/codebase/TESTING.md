@@ -53,11 +53,11 @@ tests/
 └── harness/
 ```
 
-## Phase 124 Testing Freeze
+## Phase 125 Execution Freeze
 
-- Focused proof 现在覆盖三条主链：flow/auth (`tests/flows/test_config_flow_user.py`, `tests/flows/test_config_flow_reauth.py`, `tests/flows/test_config_flow_reconfigure.py`, `tests/flows/test_flow_submission.py`, `tests/core/test_token_persistence.py`)、schedule direct-call contract (`tests/core/test_init_service_handlers_schedules.py`, `tests/services/test_services_schedule.py`) 与 closeout meta freeze (`tests/meta/test_phase124_flow_auth_schedule_contract_guards.py`, `tests/meta/test_runtime_contract_truth.py`, `tests/meta/test_governance_route_handoff_smoke.py`).
-- `invalid_schedule_request` translation、Phase 124 summary / verification chain 与 testing inventory snapshot 已纳入 closeout-ready proof，而不是留给口头解释。
-- 当前 route 进入 milestone closeout 前，最小充分验证集必须包括 `check_file_matrix`、focused meta suites、`ruff` 与 full `pytest`。
+- Focused proof 现在覆盖三条 Phase 125 主链：governance route contract (`tests/meta/governance_followup_route_current_milestones.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/test_governance_release_contract.py`)、runtime contract cleanup (`tests/meta/test_runtime_contract_truth.py`, `tests/meta/public_surface_architecture_policy.py`, `tests/services/test_service_resilience.py`) 与 flow/auth thinning (`tests/flows/test_config_flow_user.py`, `tests/flows/test_config_flow_reauth.py`, `tests/flows/test_config_flow_reconfigure.py`, `tests/core/test_token_persistence.py`)。
+- `scripts/check_file_matrix.py --check`、focused governance/docs suites 与 registry-driven route contract 现在一起守护 current-route truth，不再依赖五份手写 selector prose。
+- `Phase 125` closeout proof 必须同时通过 `uv run ruff check .`、`uv run python scripts/check_file_matrix.py --check` 与 `uv run pytest -q`；在这些命令全绿前不得宣称 `v1.35` 可以里程碑归档。
 
 ## Historical Phase Notes
 

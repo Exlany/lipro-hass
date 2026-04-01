@@ -8,6 +8,12 @@ _None currently registered._
 
 > **Phase 88 freeze note:** 这里的 zero-active posture 是显式 closeout verdict，而不是尚未清点完成的空白。若未来出现新 residual，必须以新的 family 重新登记 owner、exit condition 与 evidence。
 
+## Phase 125 Residual Delta
+
+- `Phase 125` 未新增 active residual family；machine-readable governance current-route truth 已收敛到 `.planning/baseline/GOVERNANCE_REGISTRY.json::planning_route`，selector docs 只保留 projection 身份。
+- `runtime_types.py` 继续保持 outward formal home，但 `ScheduleMeshDeviceLike`、`CommandProperties` 与 `DeviceRefreshServiceLike` 的 shadow duplicates 已被消解；当前剩余风险是 breadth，而不是 duplicated truth。
+- `config_flow.py` / `flow/step_handlers.py` / `entry_auth.py` 已进一步删掉 public pass-through wrapper 与单次中转 helper；本轮没有创造新的 auth/flow lingering exception。
+
 ## Phase 124 Residual Delta
 
 - `Phase 124` 未新增 active residual family：auth-flow-schedule carry-forward 已被收口到正式 homes，而不是被登记为新的 lingering exception。

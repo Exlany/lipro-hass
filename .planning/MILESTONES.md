@@ -3,10 +3,10 @@
 ## Current Milestone (v1.35)
 
 **Name:** `Master Audit Closure, Public Surface Finalization & Release Traceability`
-**Status:** `active / phase 124 complete; closeout-ready (2026-04-01)`
+**Status:** `active / phase 125 complete; closeout-ready (2026-04-01)`
 **Current route:** `v1.35 active milestone route / starting from latest archived baseline = v1.34`
-**Phase range:** `122 -> 124`
-**Progress:** `3/3 phases, 11/11 plans`
+**Phase range:** `122 -> 125`
+**Progress:** `4/4 phases, 16/16 plans`
 **Default next command:** `$gsd-complete-milestone v1.35`
 **Latest archived pointer:** `.planning/reviews/V1_34_EVIDENCE_INDEX.md`
 **Active audit ledger:** `.planning/reviews/V1_35_MASTER_AUDIT_LEDGER.md`
@@ -17,6 +17,7 @@
 - `Phase 122`: master audit ledger, public first-hop boundary finalization, metadata traceability, and focused guard sealing ✅ (`122-01` ledger/route truth + `122-02` first-hop boundary cleanup + `122-03` metadata/guards complete)
 - `Phase 123`: service-router family reconvergence, control-plane locality tightening, and public architecture hygiene ✅ (`123-01` route reopen/phase assets + `123-02` service-router reconvergence + `123-03` docs/governance freeze refresh complete)
 - `Phase 124`: config-entry auth seed normalization, config-flow adapter thinning, and schedule contract closure ✅ (`124-01` route truth/assets + `124-02` auth-seed truth/config-flow thinning + `124-03` schedule contract + `124-04` closeout route/governance freeze + `124-05` codebase/evidence freeze complete)
+- `Phase 125`: terminal residual eradication, runtime-types decomposition, adapter final thinning, and machine-readable governance extraction ✅ (`125-01` governance single-source + `125-02` runtime-types decomposition + `125-03` flow/auth thinning + `125-04` meta/tooling slimming + `125-05` docs/evidence freeze complete)
 
 ## v1.34 Terminal Audit Closure, Contract Hardening & Governance Truth Slimming (Shipped: 2026-04-01; Closeout: 2026-04-01)
 
@@ -42,29 +43,39 @@
 ```yaml
 contract_version: 1
 contract_name: governance-route
+projection_targets:
+- .planning/PROJECT.md
+- .planning/ROADMAP.md
+- .planning/REQUIREMENTS.md
+- .planning/STATE.md
+- .planning/MILESTONES.md
 active_milestone:
   version: v1.35
   name: Master Audit Closure, Public Surface Finalization & Release Traceability
-  status: active / phase 124 complete; closeout-ready (2026-04-01)
-  phase: '124'
-  phase_title: config-entry auth seed normalization, config-flow adapter thinning, and schedule contract closure
-  phase_dir: 124-config-entry-auth-seed-normalization-config-flow-adapter-thinning-and-schedule-contract-closure
+  status: active / phase 125 complete; closeout-ready (2026-04-01)
+  phase: '125'
+  phase_title: terminal residual eradication, runtime-types decomposition, adapter
+    final thinning, and machine-readable governance extraction
+  phase_dir: 125-terminal-residual-eradication-runtime-types-decomposition-adapter-final-thinning-and-machine-readable-governance-extraction
 latest_archived:
   version: v1.34
   name: Terminal Audit Closure, Contract Hardening & Governance Truth Slimming
   status: archived / evidence-ready (2026-04-01)
   phase: '121'
-  phase_title: residual contract closure, flow invariant tightening, and surface hygiene cleanup
+  phase_title: residual contract closure, flow invariant tightening, and surface hygiene
+    cleanup
   phase_dir: 121-residual-contract-closure-flow-invariant-tightening-surface-hygiene-cleanup
   audit_path: .planning/v1.34-MILESTONE-AUDIT.md
   evidence_path: .planning/reviews/V1_34_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
   version: v1.33
-  name: MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance Hardening
+  name: MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance
+    Hardening
   evidence_path: .planning/reviews/V1_33_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.35 active milestone route / starting from latest archived baseline = v1.34
+  current_route: v1.35 active milestone route / starting from latest archived baseline
+    = v1.34
   default_next_command: $gsd-complete-milestone v1.35
   latest_archived_evidence_pointer: .planning/reviews/V1_34_EVIDENCE_INDEX.md
 ```

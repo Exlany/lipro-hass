@@ -11,7 +11,7 @@
 | `custom_components/lipro/__init__.py` | Control | Phase 90 | 保留 | protected thin HA root adapter / lazy wiring shell |
 | `custom_components/lipro/binary_sensor.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/climate.py` | Domain | Phase 4 | 保留 | - |
-| `custom_components/lipro/config_flow.py` | Control | Phase 3 / 124 | 保留 | HA config-flow thin adapter over localized flow step handlers |
+| `custom_components/lipro/config_flow.py` | Control | Phase 3 / 124 / 125 | 保留 | HA config-flow thin adapter over localized flow step handlers and private-helper orchestration seams |
 | `custom_components/lipro/const/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/const/api.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/const/base.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -284,7 +284,7 @@
 | `custom_components/lipro/entities/descriptors.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/entities/firmware_update.py` | Domain | Phase 90 | 保留 | protected thin OTA projection shell after runtime-boundary tightening |
 | `custom_components/lipro/entities/firmware_update_support.py` | Domain | Phase 4 | 保留 | - |
-| `custom_components/lipro/entry_auth.py` | Cross-cutting | Phase 112 / 124 | 保留 | config-entry auth/bootstrap formal home + persisted auth-seed single-source + token persistence truth |
+| `custom_components/lipro/entry_auth.py` | Cross-cutting | Phase 112 / 124 / 125 | 保留 | config-entry auth/bootstrap formal home + persisted auth-seed single-source + token persistence truth |
 | `custom_components/lipro/entry_options.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/fan.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/firmware_manifest.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -293,7 +293,7 @@
 | `custom_components/lipro/flow/login.py` | Control | Phase 3 / 124 | 保留 | config-entry login projection consuming entry_auth seed truth |
 | `custom_components/lipro/flow/options_flow.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/flow/schemas.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/flow/step_handlers.py` | Control | Phase 124 | 保留 | localized user / reauth / reconfigure orchestration home behind config_flow thin adapter |
+| `custom_components/lipro/flow/step_handlers.py` | Control | Phase 124 / 125 | 保留 | localized user / reauth / reconfigure orchestration home directly bound to config_flow private helpers |
 | `custom_components/lipro/flow/submission.py` | Control | Phase 3 / 124 | 保留 | flow submission normalization consuming entry_auth remembered-hash truth |
 | `custom_components/lipro/headless/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/headless/boot.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -302,7 +302,7 @@
 | `custom_components/lipro/light.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/runtime_infra.py` | Cross-cutting | Phase 112 | 保留 | shared runtime infra formal home |
 | `custom_components/lipro/runtime_infra_device_registry.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `custom_components/lipro/runtime_types.py` | Cross-cutting | Phase 91 | 保留 | runtime/control public protocol surface and telemetry projection type home |
+| `custom_components/lipro/runtime_types.py` | Cross-cutting | Phase 91 / 125 | 保留 | sanctioned runtime/control public protocol surface and telemetry projection type home with shared service-facing contract truth |
 | `custom_components/lipro/select.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/select_internal/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/select_internal/gear.py` | Cross-cutting | Phase 7 | 保留 | - |

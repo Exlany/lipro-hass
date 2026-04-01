@@ -1,24 +1,24 @@
 # Codebase Concerns
 
-**Analysis Date:** 2026-03-28
+**Analysis Date:** 2026-04-01
 
-> Snapshot: `2026-03-28`
+> Snapshot: `2026-04-01`
 > Freshness: 基于 `.planning/{ROADMAP.md,REQUIREMENTS.md,STATE.md}`、`.planning/reviews/{FILE_MATRIX.md,RESIDUAL_LEDGER.md,KILL_LIST.md}`、`custom_components/lipro/**`、`tests/**` 与当前 public-doc / governance truth 的截面。
 > Derived collaboration map: 本文件是受约束的协作图谱 / 派生视图，仅用于导航、审阅与后续实现对齐。
 > Authority: 若与 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md}`、`.planning/baseline/*.md`、`.planning/reviews/*.md` 或 `docs/developer_architecture.md` 冲突，以后者为准；本文件不得反向充当当前治理真源。
 
 ## Risk Summary
 
-- Overall posture: `Medium`. `.planning/reviews/RESIDUAL_LEDGER.md` 与 `.planning/reviews/KILL_LIST.md` 明确记录当前是 zero-active closeout posture，因此主要风险不是“未登记的大故障”，而是热点集中、治理连续性与验证盲区。
-- Highest priority: `High` = 单维护者连续性 / private-access 治理约束、runtime/protocol 热点聚集、诊断与匿名分享脱敏漂移风险。
-- Medium priority: 大型测试热点、`Any`/动态 payload 类型债、PR 路径缺少性能与 preview 兼容性阻塞门禁、平台基线过新。
+- Overall posture: `Medium`. 当前已进入 `Phase 125 execution-ready` residual-eradication posture；主要风险不再是 selector truth 漂移，而是 terminal residual 收口 discipline、深层 hotspot 复杂度与单维护者连续性。
+- Highest priority: `High` = 单维护者连续性 / private-access 治理约束、runtime/protocol hotspots、typed boundary debt 与 benchmark/preview 非阻塞门禁。
+- Medium priority: 大型测试热点、性能回归非 PR 阻塞、平台基线过新、匿名分享/诊断长期复杂度。
 - Low priority: 固件 advisory 远端新鲜度、`outlet_power` legacy side-car fallback。
 
-## Phase 124 Concern Update
+## Phase 125 Concern Update
 
-- `Phase 124` 没有新增 active residual family；本轮的主要成果是把 auth-flow-schedule carry-forward 收回正式 homes，而不是创造新的热点。
-- 当前剩余高优先级 concern 继续集中在 runtime/control 反射边界、runtime snapshot 双真源拼装与 orchestrator assembly knot；这些不属于 Phase 124 新引入的问题。
-- 若后续仍要继续重构，应优先处理 control → runtime contract-first port、root assembly provider injection 与 broader hotspot inward split，而不是再次回头修补 Phase 124 已冻结的 auth/flow/schedule formal homes。
+- `Phase 125` 已关闭 machine-readable governance current-route drift：selector docs 现在围绕 registry projection 同步，而不是各自手写 current truth。
+- `runtime_types.py` 仍是 sanctioned outward home，但 Phase 125 已先清掉 shadow contracts：`ScheduleMeshDeviceLike`、`CommandProperties` 与 `DeviceRefreshServiceLike` 不再分散重复定义。
+- `config_flow.py` / `entry_auth.py` 的剩余风险已从 outward-behavior correctness 转为内部复杂度：public pass-through wrapper 已删除，后续若再 inward split，必须继续保持 thin-adapter / single-source truth。
 
 ## Tech Debt
 
