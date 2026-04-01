@@ -39,7 +39,11 @@
       "invalid_phone": "手机号格式无效（必须是 6-20 位数字，可选 + 前缀）",
       "invalid_password": "密码无效（必须是 6-128 个字符）",
       "reauth_user_mismatch": "该账号与当前集成条目不一致，请使用同一 Lipro 账号重新认证。",
-      "unknown": "发生未知错误"
+      "unknown": "发生未知错误",
+      "api_error": "Lipro API 请求失败",
+      "invalid_entry": "已保存的集成数据无效，请移除后重新添加该集成。",
+      "invalid_response": "Lipro 返回了无效响应",
+      "unexpected_error": "发生了意外的内部错误"
     },
     "abort": {
       "already_configured": "该账号已配置",

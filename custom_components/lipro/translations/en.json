@@ -39,7 +39,11 @@
       "invalid_phone": "Invalid phone number format (must be 6-20 digits, optionally starting with +)",
       "invalid_password": "Invalid password (must be 6-128 characters)",
       "reauth_user_mismatch": "This account does not match the integration entry. Please re-authenticate with the same Lipro account.",
-      "unknown": "An unknown error occurred"
+      "unknown": "An unknown error occurred",
+      "api_error": "Lipro API request failed",
+      "invalid_entry": "The saved integration data is invalid. Remove and re-add the integration.",
+      "invalid_response": "Lipro returned an invalid response",
+      "unexpected_error": "An unexpected internal error occurred"
     },
     "abort": {
       "already_configured": "This account is already configured",

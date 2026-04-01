@@ -49,7 +49,7 @@ def map_login_error(err: LiproApiError) -> str:
         _LOGGER.warning("Connection failed (%s)", safe_error_placeholder(err))
         return "cannot_connect"
     _LOGGER.warning("API error (%s)", safe_error_placeholder(err))
-    return "unknown"
+    return "api_error"
 
 
 class PasswordHashLoginBootContext(Protocol):
@@ -127,7 +127,7 @@ async def async_try_hashed_login(
             safe_error_placeholder(err),
             exc_info=logger.isEnabledFor(logging.DEBUG),
         )
-        errors["base"] = "unknown"
+        errors["base"] = "invalid_response"
     except (AttributeError, RuntimeError) as err:
         logger.error(
             "Unexpected login failure during %s (%s)",
@@ -135,7 +135,7 @@ async def async_try_hashed_login(
             safe_error_placeholder(err),
             exc_info=logger.isEnabledFor(logging.DEBUG),
         )
-        errors["base"] = "unknown"
+        errors["base"] = "unexpected_error"
     return None
 
 
