@@ -1,9 +1,9 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** `No active milestone route`
-**Current route:** `no active milestone route / latest archived baseline = v1.36`；latest archived evidence index = `.planning/reviews/V1_36_EVIDENCE_INDEX.md`.
-**Goal:** `v1.36 已完成完整归档：Phase 126 收口 diagnostics helper residual，Phase 127 冻结 runtime_access de-reflection / typed telemetry seam，Phase 128 把 open-source readiness、benchmark/coverage gates 与 maintainer continuity hardening 固化为 latest archived baseline 的 honest governance evidence chain。`
-**Default next step:** `$gsd-new-milestone`
+**Status:** `Active milestone v1.37`
+**Current route:** `v1.37 active milestone route / starting from latest archived baseline = v1.36`；latest archived evidence index = `.planning/reviews/V1_36_EVIDENCE_INDEX.md`.
+**Goal:** `以终极全仓审阅为起点，v1.37 聚焦 REST/runtime hotspot inward decomposition、repo-wide audit closeout，以及 external continuity decision boundary 的诚实治理。`
+**Default next step:** `$gsd-plan-phase 129`
 **Archived baseline chain:** latest archived baseline = `v1.36`；previous archived baseline = `v1.35`.
 
 <!-- governance-route-contract:start -->
@@ -16,7 +16,13 @@ projection_targets:
 - .planning/REQUIREMENTS.md
 - .planning/STATE.md
 - .planning/MILESTONES.md
-active_milestone: null
+active_milestone:
+  version: v1.37
+  name: Repo-Wide Terminal Audit, Hotspot Decomposition & Governance Continuity Decisions
+  status: active / phase 129 planning ready (2026-04-01)
+  phase: '129'
+  phase_title: rest fallback explicit-surface convergence and api hotspot slimming
+  phase_dir: 129-rest-fallback-explicit-surface-convergence-and-api-hotspot-slimming
 latest_archived:
   version: v1.36
   name: Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source
@@ -34,11 +40,29 @@ previous_archived:
   name: Master Audit Closure, Public Surface Finalization & Release Traceability
   evidence_path: .planning/reviews/V1_35_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.36
-  default_next_command: $gsd-new-milestone
+  current_route: v1.37 active milestone route / starting from latest archived baseline = v1.36
+  default_next_command: $gsd-plan-phase 129
   latest_archived_evidence_pointer: .planning/reviews/V1_36_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
+## Current Milestone (v1.37)
+
+**Name:** `Repo-Wide Terminal Audit, Hotspot Decomposition & Governance Continuity Decisions`
+
+**Why it matters:** `v1.36` 已完成 latest archived baseline 的 closeout，但 repo-internal hotspot 与 repo-external continuity debt 仍需诚实推进：本轮以全仓终极审阅为起点，把 REST/runtime hotspot 拆回更窄正式 home，同时把 external continuity / private fallback 限定为显式 decision boundary，不再让“后续再说”替代结构化治理。`
+
+**North-star fit:** `v1.37` 继续沿单一主链、显式组合、honesty over folklore 推进：仓内可修的 hotspot 直接 inward decomposition，仓外无法凭空创造的 continuity 现实明确记为治理边界，避免用虚假闭环污染正式现状。`
+
+**Current status:** `active / phase 129 planning ready (2026-04-01)`
+**Phase range:** `Phase 129 -> 131`
+**Starting baseline:** `.planning/v1.36-MILESTONE-AUDIT.md, .planning/reviews/V1_36_EVIDENCE_INDEX.md, .planning/milestones/v1.36-ROADMAP.md, .planning/milestones/v1.36-REQUIREMENTS.md`
+**Requirements basket:** `AUD-06, ARC-40, HOT-59, TST-50, QLT-52, ARC-41, HOT-60, TST-51, GOV-87, DOC-16, OSS-18, QLT-53`
+**Latest archived baseline:** `v1.36`
+**Latest archived pointer:** `.planning/reviews/V1_36_EVIDENCE_INDEX.md`
+**Latest archived audit artifact:** `.planning/v1.36-MILESTONE-AUDIT.md`
+**Default next command:** `$gsd-plan-phase 129`
+**Current phase handoff:** `Phase 129 将先收口 rest_facade / status_fallback_support hotspot，并为 repo-wide terminal audit 的最终证据链建立 v1.37 活路线。`
+
 ## Latest Archived Milestone (v1.36)
 
 **Name:** `Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening`
