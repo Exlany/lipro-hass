@@ -234,3 +234,13 @@ bootstrap:
 **Status**: Complete (`2026-03-30`)
 **Plans**: 6/6 complete
 
+
+### Phase 118: Final hotspot decomposition and validation closure
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 117
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 118 to break down)
