@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.32
 milestone_name: Residual Hotspot Eradication, Validation Completion & Continuity Hardening
-status: active / phase 118 complete; closeout-ready (2026-04-01)
-stopped_at: Phase 118 / Plan 118-03 complete
+status: archived / evidence-ready (2026-04-01)
+stopped_at: Milestone v1.32 closeout complete
 last_updated: "2026-04-01T01:39:27Z"
 last_activity: 2026-04-01
 progress:
@@ -24,51 +24,46 @@ See: `.planning/PROJECT.md`
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.32
   name: Residual Hotspot Eradication, Validation Completion & Continuity Hardening
-  status: active / phase 118 complete; closeout-ready (2026-04-01)
+  status: archived / evidence-ready (2026-04-01)
   phase: '118'
   phase_title: Final hotspot decomposition and validation closure
   phase_dir: 118-final-hotspot-decomposition-and-validation-closure
-latest_archived:
-  version: v1.31
-  name: Boundary Sealing, Governance Truth & Quality Hardening
-  status: archived / evidence-ready (2026-03-31)
-  phase: '114'
-  phase_title: Open-source reachability honesty and security-surface normalization
-  phase_dir: 114-open-source-reachability-honesty-and-security-surface-normalization
-  audit_path: .planning/v1.31-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_31_EVIDENCE_INDEX.md
+  audit_path: .planning/v1.32-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_32_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.30
-  name: Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming
-  evidence_path: .planning/reviews/V1_30_EVIDENCE_INDEX.md
+  version: v1.31
+  name: Boundary Sealing, Governance Truth & Quality Hardening
+  evidence_path: .planning/reviews/V1_31_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.32 active milestone route / starting from latest archived baseline = v1.31
-  default_next_command: $gsd-complete-milestone v1.32
-  latest_archived_evidence_pointer: .planning/reviews/V1_31_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.32
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_32_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
-**Current milestone:** `v1.32 Residual Hotspot Eradication, Validation Completion & Continuity Hardening`
-**Active milestone:** `v1.32`
-**Core value:** `沿 v1.31 latest archived baseline，把 remaining hotspots、phase-local validation closure 与 governance continuity hardening 收口到单一 active route，同时对仓外 continuity blocker 保持 honest-by-default。`
-**Current focus:** `Phase 118: Final hotspot decomposition and validation closure`
-**Current mode:** `v1.32 active milestone route / starting from latest archived baseline = v1.31`
+
+**Current milestone:** `No active milestone route`
+**Active milestone:** `none`
+**Core value:** `把 v1.32 作为 latest archived baseline 固化下来，保持 single mainline / formal homes / no second root / no compat shell comeback，并为下一轮 milestone 留出清晰起点。`
+**Current focus:** `Milestone v1.32 archived; next route not started`
+**Current mode:** `no active milestone route / latest archived baseline = v1.32`
 
 ## Current Position
 
 - **Phase:** `118 of 118`
 - **Plan:** `3 of 3`
-- **Status:** `active / phase 118 complete; closeout-ready (2026-04-01)`
-- **Last activity:** `2026-04-01` — `118-01` 已完成 `GOV-75` route truth sync，`118-02` 已完成 hotspot decomposition，`118-03` 已完成 validation closure / audit refresh；milestone route 已回到 closeout-ready
+- **Status:** `archived / evidence-ready (2026-04-01)`
+- **Last activity:** `2026-04-01` — milestone closeout complete；`v1.32` 已完成 archive promotion，并成为 latest archived baseline
 - **Progress:** `[██████████] 100%`
 
 ## Performance Metrics
 
-- **Total plans completed:** `9`
+- **Total plans completed:** `10`
 - **Average duration:** `-`
 - **Total execution time:** `0h`
 
@@ -84,9 +79,9 @@ bootstrap:
 - Primary route contract: `.planning/PROJECT.md`
 - Route execution map: `.planning/ROADMAP.md`
 - Requirement coverage truth: `.planning/REQUIREMENTS.md`
-- Latest archived evidence pointer: `.planning/reviews/V1_31_EVIDENCE_INDEX.md`
+- Latest archived evidence pointer: `.planning/reviews/V1_32_EVIDENCE_INDEX.md`
 - Promoted phase evidence allowlist: `.planning/reviews/PROMOTED_PHASE_ASSETS.md`
-- Latest archived audit verdict: `.planning/v1.31-MILESTONE-AUDIT.md`
+- Latest archived audit verdict: `.planning/v1.32-MILESTONE-AUDIT.md`
 - North-star authority: `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`
 - Historical terminal audit pointer: `.planning/reviews/V1_23_TERMINAL_AUDIT.md`
 
@@ -103,10 +98,10 @@ bootstrap:
 
 ### Decisions
 
-- `v1.32` 固定为 active route，latest archived baseline pointer 保持 `v1.31`。
-- 覆盖映射当前锁定：`HOT-48 -> Phase 115`、`HOT-49 -> Phase 116`、`TST-39/GOV-73 -> Phase 117`、`HOT-50/HOT-51/TST-40/GOV-75 -> Phase 118`。
+- `v1.32` 现已固定为 latest archived baseline；previous archived baseline pointer 前移到 `v1.31`。
+- 覆盖映射继续锁定：`HOT-48 -> Phase 115`、`HOT-49 -> Phase 116`、`TST-39/GOV-73 -> Phase 117`、`HOT-50/HOT-51/TST-40/GOV-75 -> Phase 118`。
 - 北极星继续锁定 `single mainline / formal homes / no second root / no compat shell comeback`。
-- `Phase 118` 已完成全部计划：`118-01` 修复了 `117 -> closeout` 的 stale selector truth，`118-02` 完成 hotspot decomposition，`118-03` 完成 validation closure / audit refresh；默认下一步重新回到 milestone closeout。
+- 当前正式下一步已切换为 `$gsd-new-milestone`。
 
 ### Pending Todos
 
@@ -115,18 +110,16 @@ bootstrap:
 ### Blockers/Concerns
 
 - guaranteed non-GitHub private fallback、repo-visible public mirror continuity 与 documented delegate identity 仍是 maintainer 外部治理 blocker。
-- `Phase 118` closeout 之后，selector family 仍不得回退成 stale phase-117 story，也不得伪造仓外 continuity 已解决。
-- 任何后续实现都不得复活 compat shell、创建 second root，或让 formal-home 叙事再次分叉。
+- 后续 route 不得伪造仓外 continuity 已解决，也不得借新 milestone 复活 compat shell、second root 或 stale selector truth。
 
 ## Recommended Next Command
 
-- **Primary:** `$gsd-complete-milestone v1.32` — 执行 milestone archive/promotion，正式结束 `v1.32` active route。
-- **Fast path:** `$gsd-progress` — 若要复核 `v1.32` 当前 closeout-ready route 与 phase stats，可先查看。
-- **Status check:** `$gsd-next` — 当前应自然解析到 `$gsd-complete-milestone v1.32`。
+- **Primary:** `$gsd-new-milestone` — 以 `v1.32` latest archived baseline 为起点定义下一轮 milestone。
+- **Status check:** `$gsd-progress` — 若要复核 archived baseline 与 closeout stats，可先查看。
 
 ## Session Continuity
 
 - **Last session:** 2026-04-01T00:20:00Z
-- **Stopped at:** Phase 118 / Plan 118-03 complete
-- **Resume file:** .planning/phases/118-final-hotspot-decomposition-and-validation-closure/118-VERIFICATION.md
-- **Read next:** `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` → `.planning/PROJECT.md` → `.planning/ROADMAP.md` → `.planning/REQUIREMENTS.md` → `.planning/STATE.md` → `.planning/v1.32-MILESTONE-AUDIT.md`
+- **Stopped at:** Milestone v1.32 closeout complete
+- **Resume file:** .planning/reviews/V1_32_EVIDENCE_INDEX.md
+- **Read next:** `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` → `.planning/PROJECT.md` → `.planning/ROADMAP.md` → `.planning/REQUIREMENTS.md` → `.planning/STATE.md` → `.planning/reviews/V1_32_EVIDENCE_INDEX.md`

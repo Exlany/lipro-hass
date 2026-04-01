@@ -1,69 +1,61 @@
 # Milestones
 
-## Current Milestone (v1.32)
+## Latest Archived Milestone (v1.32)
 
 **Phase range:** `115 -> 118`
 **Phases completed:** `4/4 phases, 10/10 plans, 0 tasks`
-**Status:** `active / phase 118 complete; closeout-ready (2026-04-01)`
-**Route truth:** `v1.32 active milestone route / starting from latest archived baseline = v1.31`
-**Latest archived baseline:** `v1.31`
-**Default next command:** `$gsd-complete-milestone v1.32`
-**Route truth:** latest archived evidence index = `.planning/reviews/V1_31_EVIDENCE_INDEX.md`
-**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.31`
-**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.30`
+**Status:** `archived / evidence-ready (2026-04-01)`
+**Route truth:** `no active milestone route / latest archived baseline = v1.32`
+**Latest archived baseline:** `v1.32`
+**Default next command:** `$gsd-new-milestone`
+**Route truth:** latest archived evidence index = `.planning/reviews/V1_32_EVIDENCE_INDEX.md`
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.32`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.31`
 
-**Current phase story:**
+**Archived phase story:**
 
 - `Phase 115`: status-fallback query-flow normalization ✅
 - `Phase 116`: anonymous-share and REST façade hotspot slimming ✅
 - `Phase 117`: validation backfill and continuity hardening ✅
 - `Phase 118`: final hotspot decomposition and validation closure ✅ (`118-01` route truth sync + `118-02` hotspot decomposition + `118-03` validation closure complete)
 
-**Current accomplishments:**
+**Key accomplishments:**
 
 - 已冻结 `status_fallback` 空输入 / fallback-depth / no-I/O contract，并把 focused regression 写入正式 test suite。
 - 已完成 `rest_facade.py` 与 `anonymous_share/manager.py` 的当前轮 hotspot slimming，冻结 stable import / scope-state / aggregate outcome contract。
 - 已完成 `Phase 112 -> 114` validation backfill、active-route continuity drift repair 与 `117` closeout bundle。
-- `Phase 118` 已完成 live route truth sync、hotspot decomposition 与 validation closure / audit refresh；当前 route 已自然回到 milestone closeout-ready。
+- `Phase 118` 已完成 live route truth sync、hotspot decomposition 与 validation closure / audit refresh；`v1.32` 现已固定为 latest archived baseline。
 
 
 > Machine-readable bootstrap truth now lives in the shared `governance-route` contract block below; milestone chronology remains human-readable archive history instead of the parser-visible selector.
 
 <!-- governance-route-contract:start -->
-
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.32
   name: Residual Hotspot Eradication, Validation Completion & Continuity Hardening
-  status: active / phase 118 complete; closeout-ready (2026-04-01)
+  status: archived / evidence-ready (2026-04-01)
   phase: '118'
   phase_title: Final hotspot decomposition and validation closure
   phase_dir: 118-final-hotspot-decomposition-and-validation-closure
-latest_archived:
-  version: v1.31
-  name: Boundary Sealing, Governance Truth & Quality Hardening
-  status: archived / evidence-ready (2026-03-31)
-  phase: '114'
-  phase_title: Open-source reachability honesty and security-surface normalization
-  phase_dir: 114-open-source-reachability-honesty-and-security-surface-normalization
-  audit_path: .planning/v1.31-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_31_EVIDENCE_INDEX.md
+  audit_path: .planning/v1.32-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_32_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.30
-  name: Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming
-  evidence_path: .planning/reviews/V1_30_EVIDENCE_INDEX.md
+  version: v1.31
+  name: Boundary Sealing, Governance Truth & Quality Hardening
+  evidence_path: .planning/reviews/V1_31_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.32 active milestone route / starting from latest archived baseline = v1.31
-  default_next_command: $gsd-complete-milestone v1.32
-  latest_archived_evidence_pointer: .planning/reviews/V1_31_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.32
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_32_EVIDENCE_INDEX.md
 ```
-
 <!-- governance-route-contract:end -->
 
-## Latest Archived Milestone (v1.31)
+## v1.31 Boundary Sealing, Governance Truth & Quality Hardening (Shipped: 2026-03-31; Closeout: 2026-03-31)
 
 **Phase range:** `111 -> 114`
 **Phases completed:** 4 phases, 13 plans, 0 tasks

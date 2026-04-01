@@ -1,72 +1,67 @@
 # Project: Lipro-HASS North Star Evolution
 
 
-**Status:** `Active milestone route`
-**Current route:** `v1.32 active milestone route / starting from latest archived baseline = v1.31`；latest archived evidence index = `.planning/reviews/V1_31_EVIDENCE_INDEX.md`.
-**Goal:** `沿 v1.31 latest archived baseline，把 remaining hotspot debt、phase-local validation closure 与 governance continuity hardening 收口为单一 active route；先冻结 status-fallback contract，再继续 inward split formal homes，并最终清掉仍留在仓内的剩余热点，而不复活 compat shell 或第二 root。`
-**Default next step:** `$gsd-complete-milestone v1.32`
-**Active baseline:** latest archived baseline = `v1.31`；previous archived baseline = `v1.30`.
+**Status:** `Archived baseline route`
+**Current route:** `no active milestone route / latest archived baseline = v1.32`；latest archived evidence index = `.planning/reviews/V1_32_EVIDENCE_INDEX.md`.
+**Goal:** `以 v1.32 latest archived baseline 作为下一轮路线的唯一起点；继续坚持 single mainline / formal homes / archived truth，不回写第二条 live 故事线，也不伪造仓外 continuity 已解决。`
+**Default next step:** `$gsd-new-milestone`
+**Active baseline:** latest archived baseline = `v1.32`；previous archived baseline = `v1.31`.
 
 
 <!-- governance-route-contract:start -->
 ```yaml
 contract_version: 1
 contract_name: governance-route
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.32
   name: Residual Hotspot Eradication, Validation Completion & Continuity Hardening
-  status: active / phase 118 complete; closeout-ready (2026-04-01)
+  status: archived / evidence-ready (2026-04-01)
   phase: '118'
   phase_title: Final hotspot decomposition and validation closure
   phase_dir: 118-final-hotspot-decomposition-and-validation-closure
-latest_archived:
-  version: v1.31
-  name: Boundary Sealing, Governance Truth & Quality Hardening
-  status: archived / evidence-ready (2026-03-31)
-  phase: '114'
-  phase_title: Open-source reachability honesty and security-surface normalization
-  phase_dir: 114-open-source-reachability-honesty-and-security-surface-normalization
-  audit_path: .planning/v1.31-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_31_EVIDENCE_INDEX.md
+  audit_path: .planning/v1.32-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_32_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.30
-  name: Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming
-  evidence_path: .planning/reviews/V1_30_EVIDENCE_INDEX.md
+  version: v1.31
+  name: Boundary Sealing, Governance Truth & Quality Hardening
+  evidence_path: .planning/reviews/V1_31_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.32 active milestone route / starting from latest archived baseline = v1.31
-  default_next_command: $gsd-complete-milestone v1.32
-  latest_archived_evidence_pointer: .planning/reviews/V1_31_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.32
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_32_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
-## Current Milestone (v1.32)
+## Latest Archived Milestone (v1.32)
 
 **Name:** `Residual Hotspot Eradication, Validation Completion & Continuity Hardening`
 
-**Why now:** `v1.31` 已把 boundary sealing、formal-home discoverability 与 open-source honesty 收口为 archived baseline，但终极审阅仍确认少数 formal homes 与 validation 工件卡在维护预算上沿：`status_fallback_support.py`、`rest_decoder.py` / `rest_decoder_support.py`、`firmware_update.py`、`anonymous_share/manager.py` 与 `115 -> 117` 的 phase-local validation 仍需要继续 inward split / contract closure，而不能靠“非阻塞残留”长期悬挂。`
+**Why it mattered:** `v1.32` 把 `v1.31` 已诚实登记的 remaining hotspots、validation backfill 与 continuity hardening 全部收口为 latest archived baseline：`status_fallback` contract 已冻结、`rest_decoder` / `firmware_update` 已继续 inward split、`115 -> 117` phase-local validation 已补齐，而 repo-external continuity 限制仍保持 honest-by-default。`
 
-**North-star fit:** `v1.32` 继续遵守 single mainline / formal homes / inward split，只处理仓内仍可由代码、测试与治理文档直接修复的问题；外部 maintainer continuity blocker 继续保持 honest-by-default，不伪造仓外能力。`
+**North-star fit:** `v1.32` 全程沿 single mainline / formal homes / inward split 推进，不以 compat shell、第二 root 或“非阻塞残留默认合法化”的方式换取短期收口。`
 
-**Current status:** `active / phase 118 complete; closeout-ready (2026-04-01)`
+**Current status:** `archived / evidence-ready (2026-04-01)`
 **Phase range:** `Phase 115 -> 118`
 **Starting baseline:** `.planning/v1.31-MILESTONE-AUDIT.md`, `.planning/reviews/V1_31_EVIDENCE_INDEX.md`, `.planning/milestones/v1.31-ROADMAP.md`, `.planning/milestones/v1.31-REQUIREMENTS.md`
 **Requirements basket:** `HOT-48`, `HOT-49`, `HOT-50`, `HOT-51`, `TST-39`, `TST-40`, `GOV-73`, `GOV-75`
-**Latest archived baseline:** `v1.31`
-**Latest archived pointer:** `.planning/reviews/V1_31_EVIDENCE_INDEX.md`
-**Current route mode:** `v1.32 active milestone route / starting from latest archived baseline = v1.31`
-**Default next command:** `$gsd-complete-milestone v1.32`
-**Route checkpoint:** `Phase 115` 已冻结 `status_fallback` contract；`Phase 116` 已完成 `rest_facade.py` / `anonymous_share/manager.py` 当前轮 hotspot slimming；`Phase 117` 已完成 validation backfill / continuity hardening；`Phase 118` 的 `118-01` 已完成 `GOV-75` route truth sync，`118-02` 已完成 hotspot decomposition，`118-03` 已完成 validation closure / audit refresh。
-**Current follow-up target:** milestone closeout is now the only formal next step: archive/promotion work should proceed via `$gsd-complete-milestone v1.32`.
+**Latest archived baseline:** `v1.32`
+**Latest archived pointer:** `.planning/reviews/V1_32_EVIDENCE_INDEX.md`
+**Current audit artifact:** `.planning/v1.32-MILESTONE-AUDIT.md`
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.32`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.31`
+**Default next command:** `$gsd-new-milestone`
+**Current follow-up target:** start the next route with `$gsd-new-milestone`.
 
-**Target features:**
+**Archived accomplishments:**
 - `Phase 115` 已把 `status_fallback` family 的空输入与 fallback-entry contract 冻结成单一正式语义。
 - `Phase 116` 已继续瘦身 `custom_components/lipro/core/anonymous_share/manager.py` 与 `custom_components/lipro/core/api/rest_facade.py` 的 orchestration / pass-through 密度。
 - `Phase 117` 已锁定 `Phase 112 -> 114` 的 validation / changed-surface / continuity contract，并消除了上一轮 active-route drift。
-- `Phase 118` 已完成 route truth sync、formal-home hotspot closeout、`115/116/117-VALIDATION.md` 回补与 v1.32 audit refresh；current route 已诚实回到 `$gsd-complete-milestone v1.32`。
+- `Phase 118` 已完成 route truth sync、formal-home hotspot closeout、`115/116/117-VALIDATION.md` 回补与 `v1.32` audit refresh；milestone closeout 现已完成，`v1.32` 正式成为 latest archived baseline。
 - archived baseline / runbook / evidence / selector family 继续保持单一、可机读、可追溯叙事。
 
-## Latest Archived Milestone (v1.31)
+## Previous Archived Milestone (v1.31)
 
 **Name:** `Boundary Sealing, Governance Truth & Quality Hardening`
 
@@ -82,9 +77,9 @@ bootstrap:
 **Latest archived pointer:** `.planning/reviews/V1_31_EVIDENCE_INDEX.md`
 **Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.31`
 **Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.30`
-**Current follow-up target:** serve as latest archived baseline for `v1.32`.
+**Current follow-up target:** serve as previous archived baseline for future milestones.
 
-## Previous Archived Milestone (v1.30)
+## Historical Archived Milestone (v1.30)
 
 **Name:** `Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming`
 **Current status:** `archived / evidence-ready (2026-03-30)`

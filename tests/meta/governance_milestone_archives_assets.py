@@ -420,6 +420,60 @@ def test_v1_28_closeout_assets_exist_and_are_pull_only() -> None:
     )
 
 
+
+def test_v1_32_closeout_assets_exist_and_are_pull_only() -> None:
+    evidence_index = _ROOT / ".planning" / "reviews" / "V1_32_EVIDENCE_INDEX.md"
+    milestone_audit = _ROOT / ".planning" / "v1.32-MILESTONE-AUDIT.md"
+
+    assert evidence_index.exists()
+    assert milestone_audit.exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.32-ROADMAP.md").exists()
+    assert (_ROOT / ".planning" / "milestones" / "v1.32-REQUIREMENTS.md").exists()
+    _assert_promoted_phase_assets(
+        "115-status-fallback-query-flow-normalization",
+        "115-01-SUMMARY.md",
+        "115-SUMMARY.md",
+        "115-VERIFICATION.md",
+        "115-VALIDATION.md",
+    )
+    _assert_promoted_phase_assets(
+        "116-anonymous-share-and-rest-fa-ade-hotspot-slimming",
+        "116-01-SUMMARY.md",
+        "116-02-SUMMARY.md",
+        "116-03-SUMMARY.md",
+        "116-SUMMARY.md",
+        "116-VERIFICATION.md",
+        "116-VALIDATION.md",
+    )
+    _assert_promoted_phase_assets(
+        "117-validation-backfill-and-continuity-hardening",
+        "117-01-SUMMARY.md",
+        "117-02-SUMMARY.md",
+        "117-03-SUMMARY.md",
+        "117-SUMMARY.md",
+        "117-VERIFICATION.md",
+        "117-VALIDATION.md",
+    )
+    _assert_promoted_phase_assets(
+        "118-final-hotspot-decomposition-and-validation-closure",
+        "118-01-SUMMARY.md",
+        "118-02-SUMMARY.md",
+        "118-03-SUMMARY.md",
+        "118-SUMMARY.md",
+        "118-VERIFICATION.md",
+        "118-VALIDATION.md",
+    )
+
+    assert_pull_only_evidence_index(
+        evidence_index,
+        "115-VALIDATION.md",
+        "116-VALIDATION.md",
+        "117-VALIDATION.md",
+        "118-VALIDATION.md",
+        "archived / evidence-ready",
+        "V1_32_EVIDENCE_INDEX.md",
+    )
+
 def test_v1_31_closeout_assets_exist_and_are_pull_only() -> None:
     evidence_index = _ROOT / ".planning" / "reviews" / "V1_31_EVIDENCE_INDEX.md"
     milestone_audit = _ROOT / ".planning" / "v1.31-MILESTONE-AUDIT.md"

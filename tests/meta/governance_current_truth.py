@@ -25,34 +25,27 @@ _ROUTE_CONTRACT_PATHS = {
 PLANNING_ROUTE_CONTRACT: dict[str, object] = {
     "contract_version": 1,
     "contract_name": "governance-route",
-    "active_milestone": {
+    "active_milestone": None,
+    "latest_archived": {
         "version": "v1.32",
         "name": "Residual Hotspot Eradication, Validation Completion & Continuity Hardening",
-        "status": "active / phase 118 complete; closeout-ready (2026-04-01)",
+        "status": "archived / evidence-ready (2026-04-01)",
         "phase": "118",
         "phase_title": "Final hotspot decomposition and validation closure",
         "phase_dir": "118-final-hotspot-decomposition-and-validation-closure",
-    },
-    "latest_archived": {
-        "version": "v1.31",
-        "name": "Boundary Sealing, Governance Truth & Quality Hardening",
-        "status": "archived / evidence-ready (2026-03-31)",
-        "phase": "114",
-        "phase_title": "Open-source reachability honesty and security-surface normalization",
-        "phase_dir": "114-open-source-reachability-honesty-and-security-surface-normalization",
-        "audit_path": ".planning/v1.31-MILESTONE-AUDIT.md",
-        "evidence_path": ".planning/reviews/V1_31_EVIDENCE_INDEX.md",
+        "audit_path": ".planning/v1.32-MILESTONE-AUDIT.md",
+        "evidence_path": ".planning/reviews/V1_32_EVIDENCE_INDEX.md",
         "evidence_label": "latest archived evidence index",
     },
     "previous_archived": {
-        "version": "v1.30",
-        "name": "Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming",
-        "evidence_path": ".planning/reviews/V1_30_EVIDENCE_INDEX.md",
+        "version": "v1.31",
+        "name": "Boundary Sealing, Governance Truth & Quality Hardening",
+        "evidence_path": ".planning/reviews/V1_31_EVIDENCE_INDEX.md",
     },
     "bootstrap": {
-        "current_route": "v1.32 active milestone route / starting from latest archived baseline = v1.31",
-        "default_next_command": "$gsd-complete-milestone v1.32",
-        "latest_archived_evidence_pointer": ".planning/reviews/V1_31_EVIDENCE_INDEX.md",
+        "current_route": "no active milestone route / latest archived baseline = v1.32",
+        "default_next_command": "$gsd-new-milestone",
+        "latest_archived_evidence_pointer": ".planning/reviews/V1_32_EVIDENCE_INDEX.md",
     },
 }
 
@@ -266,7 +259,7 @@ CURRENT_ROUTE_PROSE_FORBIDDEN = (
     "v1.30 active route / Phase 109 complete / latest archived baseline = v1.29",
     "v1.30 active route / Phase 110 complete / latest archived baseline = v1.29",
     "v1.31 active milestone route / starting from latest archived baseline = v1.30",
-    "no active milestone route / latest archived baseline = v1.31",
+    "v1.32 active milestone route / starting from latest archived baseline = v1.31",
     "no active milestone route / latest archived baseline = v1.20",
     "no active milestone route / latest archived baseline = v1.21",
     "no active milestone route / latest archived baseline = v1.22",
@@ -283,11 +276,11 @@ CURRENT_RUNTIME_ROOT_TEST = "tests/core/coordinator/test_runtime_root.py"
 
 HISTORICAL_CLOSEOUT_ROUTE_TRUTH = (
     "historical closeout route truth = "
-    "`no active milestone route / latest archived baseline = v1.31`"
+    "`no active milestone route / latest archived baseline = v1.32`"
 )
 HISTORICAL_ARCHIVE_TRANSITION_ROUTE_TRUTH = (
     "historical archive-transition route truth = "
-    "`no active milestone route / latest archived baseline = v1.30`"
+    "`no active milestone route / latest archived baseline = v1.31`"
 )
 
 

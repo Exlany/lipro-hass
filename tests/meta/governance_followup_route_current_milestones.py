@@ -1,4 +1,4 @@
-"""Active-route and continuity truth guards for the current v1.32 milestone."""
+"""Archived-route and continuity truth guards for the latest archived v1.32 milestone."""
 
 from __future__ import annotations
 
@@ -48,35 +48,31 @@ _V1_32_TRACES = (
 )
 
 
-def test_machine_readable_route_contracts_point_to_active_v1_32_phase118_closeout_ready() -> None:
+def test_machine_readable_route_contracts_point_to_archived_v1_32_latest_baseline() -> None:
     contracts = assert_machine_readable_route_contracts()
     for doc_name in ("PROJECT", "ROADMAP", "REQUIREMENTS", "STATE", "MILESTONES"):
-        active = _as_optional_mapping(_as_mapping(contracts[doc_name])["active_milestone"])
-        assert active is not None, doc_name
-        assert active["version"] == "v1.32"
-        assert active["phase"] == "118"
-        assert active["status"] == "active / phase 118 complete; closeout-ready (2026-04-01)"
+        contract = _as_mapping(contracts[doc_name])
+        active = _as_optional_mapping(contract["active_milestone"])
+        latest_archived = _as_mapping(contract["latest_archived"])
+        previous_archived = _as_mapping(contract["previous_archived"])
+        bootstrap = _as_mapping(contract["bootstrap"])
 
-    milestones_contract = _as_mapping(contracts["MILESTONES"])
-    latest_archived = _as_mapping(milestones_contract["latest_archived"])
-    previous_archived = _as_mapping(milestones_contract["previous_archived"])
-    state_bootstrap = _as_mapping(_as_mapping(contracts["STATE"])["bootstrap"])
-
-    assert latest_archived["version"] == "v1.31"
-    assert latest_archived["phase"] == "114"
-    assert previous_archived["version"] == "v1.30"
-    assert state_bootstrap["current_route"] == CURRENT_ROUTE_MODE
-    assert state_bootstrap["default_next_command"] == CURRENT_MILESTONE_DEFAULT_NEXT
-    assert state_bootstrap["latest_archived_evidence_pointer"] == LATEST_ARCHIVED_EVIDENCE_PATH
+        assert active is None, doc_name
+        assert latest_archived["version"] == "v1.32"
+        assert latest_archived["phase"] == "118"
+        assert latest_archived["status"] == "archived / evidence-ready (2026-04-01)"
+        assert previous_archived["version"] == "v1.31"
+        assert bootstrap["current_route"] == CURRENT_ROUTE_MODE
+        assert bootstrap["default_next_command"] == CURRENT_MILESTONE_DEFAULT_NEXT
+        assert bootstrap["latest_archived_evidence_pointer"] == LATEST_ARCHIVED_EVIDENCE_PATH
 
 
-def test_active_v1_32_truth_is_reflected_in_live_docs() -> None:
+def test_archived_v1_32_truth_is_reflected_in_live_docs() -> None:
     _assert_current_route_truth(_PROJECT_TEXT, _ROADMAP_TEXT, _STATE_TEXT)
 
     assert_contains_all(
         _PROJECT_TEXT,
         CURRENT_MILESTONE_HEADER,
-        LATEST_ARCHIVED_PROJECT_HEADER,
         PREVIOUS_ARCHIVED_PROJECT_HEADER,
         f"**Current status:** `{CURRENT_MILESTONE_STATUS}`",
         f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`",
@@ -104,7 +100,7 @@ def test_active_v1_32_truth_is_reflected_in_live_docs() -> None:
         "118-03-SUMMARY.md",
         "118-SUMMARY.md",
         "118-VERIFICATION.md",
-        "**Closeout proof**: `118-01` 已交付 `GOV-75` route truth sync；`118-02` 已交付 hotspot decomposition；`118-03` 已交付 validation closure / audit refresh；当前 route 已自然回到 `$gsd-complete-milestone v1.32`。",
+        "**Archive promotion proof**: `118-01` 已交付 `GOV-75` route truth sync；`118-02` 已交付 hotspot decomposition；`118-03` 已交付 validation closure / audit refresh；`v1.32` 现已归档为 `no active milestone route / latest archived baseline = v1.32`。",
     )
     assert_contains_all(
         _STATE_TEXT,
@@ -115,13 +111,14 @@ def test_active_v1_32_truth_is_reflected_in_live_docs() -> None:
         f"- **Status:** `{CURRENT_MILESTONE_STATUS}`",
         "- **Progress:** `[██████████] 100%`",
         "## Recommended Next Command",
-        "$gsd-complete-milestone v1.32",
+        "$gsd-new-milestone",
     )
 
 
-def test_v1_32_requirements_traceability_and_coverage_are_complete() -> None:
+def test_v1_32_requirements_traceability_and_coverage_are_complete_after_archive() -> None:
     assert_contains_all(
         _REQUIREMENTS_TEXT,
+        LATEST_ARCHIVED_PROJECT_HEADER,
         *requirement_checkbox_markers(*_V1_32_TRACES),
         *requirement_table_markers(*_V1_32_TRACES),
         "- [x] **HOT-50**",
@@ -136,11 +133,13 @@ def test_v1_32_requirements_traceability_and_coverage_are_complete() -> None:
         "- Pending: 0",
         f"**Milestone status:** `{CURRENT_MILESTONE_STATUS}`",
         f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`",
-        "**Latest archived baseline:** `v1.31`",
+        "**Latest archived baseline:** `v1.32`",
+        "**Archive pointer:** `.planning/reviews/V1_32_EVIDENCE_INDEX.md`",
+        "**Current audit artifact:** `.planning/v1.32-MILESTONE-AUDIT.md`",
     )
 
 
-def test_historical_route_truth_stays_archived_without_stale_phase117_handoff_wording() -> None:
+def test_historical_route_truth_stays_archived_without_stale_active_v1_32_wording() -> None:
     assert_contains_all(
         _MILESTONES_TEXT,
         HISTORICAL_CLOSEOUT_ROUTE_TRUTH,
@@ -171,6 +170,9 @@ def test_historical_route_truth_stays_archived_without_stale_phase117_handoff_wo
             "$gsd-discuss-phase 117",
             "$gsd-execute-phase 117",
             "$gsd-execute-phase 118",
+            "$gsd-complete-milestone v1.32",
             "Phase 117 execution-ready",
             "Phase 118 execution-ready",
+            "active / phase 118 complete; closeout-ready (2026-04-01)",
+            "v1.32 active milestone route / starting from latest archived baseline = v1.31",
         )

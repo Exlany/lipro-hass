@@ -1,4 +1,4 @@
-"""Focused route-handoff smoke guards for active-route handoff and latest-archive truth."""
+"""Focused archived-route smoke guards for latest-archive truth and continuity."""
 
 from __future__ import annotations
 
@@ -79,13 +79,13 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
     assert "118-03-SUMMARY.md" in roadmap_text
     assert "118-SUMMARY.md" in roadmap_text
     assert "118-VERIFICATION.md" in roadmap_text
-    assert "当前 route 已自然回到 `$gsd-complete-milestone v1.32`。" in roadmap_text
+    assert "`v1.32` 已完成 closeout 并固定为 latest archived baseline" in roadmap_text
     assert "- **Plan:** `3 of 3`" in state_text
     assert "- **Progress:** `[██████████] 100%`" in state_text
     assert "4/4 phases, 10/10 plans" in (_ROOT / ".planning" / "MILESTONES.md").read_text(encoding="utf-8")
 
 
-def test_gsd_fast_path_matches_current_active_route_story() -> None:
+def test_gsd_fast_path_matches_current_archived_route_story() -> None:
     progress = _run_gsd_tools("init", "progress")
     phases = _as_mapping_list(progress["phases"])
     phase_by_number = {_as_str(phase["number"]): phase for phase in phases}
