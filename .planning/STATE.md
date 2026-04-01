@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.32
 milestone_name: Residual Hotspot Eradication, Validation Completion & Continuity Hardening
 status: active / phase 118 execution-ready (2026-04-01)
-stopped_at: Phase 118 / Plan 118-01 complete
+stopped_at: Phase 118 / Plan 118-02 complete
 last_updated: "2026-04-01T00:35:00Z"
 last_activity: 2026-04-01
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 10
-  completed_plans: 8
-  percent: 80
+  completed_plans: 9
+  percent: 90
 ---
 
 # Project State
@@ -61,14 +61,14 @@ bootstrap:
 ## Current Position
 
 - **Phase:** `118 of 118`
-- **Plan:** `1 of 3`
+- **Plan:** `2 of 3`
 - **Status:** `active / phase 118 execution-ready (2026-04-01)`
-- **Last activity:** `2026-04-01` — `118-01` 已完成 `GOV-75` route truth sync；remaining hotspot cleanup 与 validation closure 继续留在当前 phase queue
-- **Progress:** `[████████░░] 80%`
+- **Last activity:** `2026-04-01` — `118-01` 已完成 `GOV-75` route truth sync，`118-02` 已完成 hotspot decomposition；remaining validation closure 继续留在当前 phase queue
+- **Progress:** `[█████████░] 90%`
 
 ## Performance Metrics
 
-- **Total plans completed:** `8`
+- **Total plans completed:** `9`
 - **Average duration:** `-`
 - **Total execution time:** `0h`
 
@@ -77,7 +77,7 @@ bootstrap:
 | 115 | complete | 1/1 | 1.00 |
 | 116 | complete | 3/3 | 1.00 |
 | 117 | complete | 3/3 | 1.00 |
-| 118 | in_progress | 1/3 | 1.00 |
+| 118 | in_progress | 2/3 | 1.00 |
 
 ## Governance Truth Sources
 
@@ -106,7 +106,7 @@ bootstrap:
 - `v1.32` 固定为 active route，latest archived baseline pointer 保持 `v1.31`。
 - 覆盖映射当前锁定：`HOT-48 -> Phase 115`、`HOT-49 -> Phase 116`、`TST-39/GOV-73 -> Phase 117`、`HOT-50/HOT-51/TST-40/GOV-75 -> Phase 118`。
 - 北极星继续锁定 `single mainline / formal homes / no second root / no compat shell comeback`。
-- `Phase 118` 已成为当前唯一正式 follow-up：`118-01` 已修复 `117 -> closeout` 的 stale selector truth；remaining work 继续切薄 remaining hotspots，并为 `115 -> 117` 补齐 phase-local validation。
+- `Phase 118` 已成为当前唯一正式 follow-up：`118-01` 已修复 `117 -> closeout` 的 stale selector truth，`118-02` 已完成 hotspot decomposition；remaining work 收敛到 `118-03` validation closure。
 
 ### Pending Todos
 
@@ -127,6 +127,6 @@ bootstrap:
 ## Session Continuity
 
 - **Last session:** 2026-04-01T00:20:00Z
-- **Stopped at:** Phase 118 / Plan 118-01 complete
-- **Resume file:** .planning/phases/118-final-hotspot-decomposition-and-validation-closure/118-01-PLAN.md
-- **Read next:** `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` → `.planning/PROJECT.md` → `.planning/ROADMAP.md` → `.planning/REQUIREMENTS.md` → `.planning/STATE.md` → `.planning/phases/118-final-hotspot-decomposition-and-validation-closure/{118-CONTEXT.md,118-RESEARCH.md,118-01-PLAN.md,118-02-PLAN.md,118-03-PLAN.md}`
+- **Stopped at:** Phase 118 / Plan 118-02 complete
+- **Resume file:** .planning/phases/118-final-hotspot-decomposition-and-validation-closure/118-03-PLAN.md
+- **Read next:** `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` → `.planning/PROJECT.md` → `.planning/ROADMAP.md` → `.planning/REQUIREMENTS.md` → `.planning/STATE.md` → `.planning/phases/118-final-hotspot-decomposition-and-validation-closure/{118-CONTEXT.md,118-RESEARCH.md,118-03-PLAN.md}`

@@ -57,7 +57,7 @@ bootstrap:
 - [x] **Phase 115: Status-fallback query-flow normalization** - 已冻结空输入 / fallback-depth / no-I/O contract，并补入 focused regression。 (completed 2026-03-31)
 - [x] **Phase 116: Anonymous-share and REST façade hotspot slimming** - 已收敛 `rest_facade.py` 的 state binding 样板与 `anonymous_share/manager.py` 的 scope-state / aggregate outcome 语义，并补齐 focused regressions。 (completed 2026-03-31)
 - [x] **Phase 117: Validation backfill and continuity hardening** - 已回补 `Phase 112 -> 114` validation / changed-surface / continuity 资产，修复 active-route drift，并冻结 closeout-ready selector truth。 (completed 2026-03-31)
-- [ ] **Phase 118: Final hotspot decomposition and validation closure** - `118-01` 已完成 live route truth sync；remaining work 继续拆薄 remaining formal-home hotspots，并回补 `115 -> 117` 的 phase-local validation contracts。 (execution-ready 2026-04-01)
+- [ ] **Phase 118: Final hotspot decomposition and validation closure** - `118-01` 已完成 live route truth sync，`118-02` 已完成 hotspot decomposition；remaining work 收敛到 `118-03` validation closure。 (execution-ready 2026-04-01)
 
 ## Phase Details
 
@@ -106,9 +106,9 @@ bootstrap:
   2. `status_fallback_support.py`、`rest_decoder` family，且在预算允许时 `firmware_update.py` / `anonymous_share/manager.py`，继续在既有 formal homes 内 inward split，而不引入 compat shell 或 second root。
   3. `115/116/117-VALIDATION.md` 被补齐，`118` 自身 summary/verification 落地后，live route 再诚实回到 `closeout-ready`。
 **Status**: Execution-ready (`2026-04-01`)
-**Plans**: 1/3 complete
-**Planning Assets**: `.planning/phases/118-final-hotspot-decomposition-and-validation-closure/{118-CONTEXT.md,118-RESEARCH.md,118-01-PLAN.md,118-01-SUMMARY.md,118-02-PLAN.md,118-03-PLAN.md}`
-**Current activation proof**: `118-01` 已交付 `GOV-75` route truth sync；remaining execution queue = `118-02` hotspot decomposition + `118-03` validation closure.
+**Plans**: 2/3 complete
+**Planning Assets**: `.planning/phases/118-final-hotspot-decomposition-and-validation-closure/{118-CONTEXT.md,118-RESEARCH.md,118-01-PLAN.md,118-01-SUMMARY.md,118-02-PLAN.md,118-02-SUMMARY.md,118-03-PLAN.md}`
+**Current activation proof**: `118-01` 已交付 `GOV-75` route truth sync；`118-02` 已交付 hotspot decomposition；remaining execution queue = `118-03` validation closure.
 
 ## Progress
 
@@ -117,7 +117,7 @@ bootstrap:
 | 115. Status-fallback query-flow normalization | 1/1 | Complete | 2026-03-31 |
 | 116. Anonymous-share and REST façade hotspot slimming | 3/3 | Complete | 2026-03-31 |
 | 117. Validation backfill and continuity hardening | 3/3 | Complete | 2026-03-31 |
-| 118. Final hotspot decomposition and validation closure | 1/3 | Execution-ready | 2026-04-01 |
+| 118. Final hotspot decomposition and validation closure | 2/3 | Execution-ready | 2026-04-01 |
 
 
 ## Latest Archived Milestone (v1.31)

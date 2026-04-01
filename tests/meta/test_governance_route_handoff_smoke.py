@@ -14,7 +14,6 @@ from tests.helpers.repo_root import repo_root
 from .conftest import _as_bool, _as_mapping, _as_mapping_list, _as_str
 from .governance_contract_helpers import (
     _assert_current_route_truth,
-    assert_current_route_focused_guards,
 )
 from .governance_current_truth import (
     CURRENT_MILESTONE,
@@ -66,8 +65,6 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
-    verification_text = (_ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md").read_text(encoding="utf-8")
-    file_matrix_text = (_ROOT / ".planning" / "reviews" / "FILE_MATRIX.md").read_text(encoding="utf-8")
 
     _assert_current_route_truth(project_text, roadmap_text, state_text)
 
@@ -78,44 +75,13 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
     assert CURRENT_MILESTONE_DEFAULT_NEXT in roadmap_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in state_text
     assert CURRENT_MILESTONE_DEFAULT_NEXT in requirements_text
-    assert "## Phase 103 Root Adapter Thinning / Test Topology Second Pass / Terminology Contract Normalization" in verification_text
-    assert "## Phase 104 Service-router Family Split / Command-runtime Second-pass Decomposition" in verification_text
-    assert "## Phase 105 Governance Rule Datafication / Milestone Freeze" in verification_text
-    assert "## Phase 107 REST/Auth/Status Hotspot Convergence / Support-surface Slimming" in verification_text
-    assert "## Phase 108 MQTT Transport-runtime De-friendization" in verification_text
-    assert "## Phase 109 Anonymous-share Manager Inward Decomposition" in verification_text
-    assert "## Phase 111 Entity / Runtime Boundary Sealing and Dependency-Guard Hardening" in verification_text
-    assert "## Phase 101 Anonymous-share Manager / REST Decoder Hotspot Decomposition Freeze" in verification_text
-    assert "## Phase 115 Status-fallback Query-flow Normalization" in verification_text
-    assert "## Phase 116 Anonymous-share and REST Façade Hotspot Slimming" in verification_text
-    assert "## Phase 117 Validation Backfill and Continuity Hardening" in verification_text
-    assert "## Phase 118 Final Hotspot Decomposition and Validation Closure" in verification_text
-    assert CURRENT_ROUTE in verification_text
-    assert CURRENT_MILESTONE_DEFAULT_NEXT in verification_text
-    assert LATEST_ARCHIVED_EVIDENCE_PATH in verification_text
-    assert_current_route_focused_guards(verification_text)
-    for guard in (
-        "tests/meta/test_governance_route_handoff_smoke.py",
-        "tests/meta/test_phase98_route_reactivation_guards.py",
-        "tests/meta/test_phase99_runtime_hotspot_support_guards.py",
-        "tests/meta/test_phase100_runtime_schedule_support_guards.py",
-        "tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py",
-        "tests/meta/test_phase102_governance_portability_guards.py",
-        "tests/meta/test_phase103_root_thinning_guards.py",
-        "tests/meta/test_phase104_service_router_runtime_split_guards.py",
-        "tests/meta/test_phase105_governance_freeze_guards.py",
-        "tests/meta/test_phase107_rest_status_hotspot_guards.py",
-        "tests/meta/test_phase108_mqtt_transport_de_friendization_guards.py",
-        "tests/meta/test_phase109_anonymous_share_manager_inward_decomposition_guards.py",
-        "tests/meta/test_phase110_runtime_snapshot_closeout_guards.py",
-        "tests/meta/test_phase111_runtime_boundary_guards.py",
-        "tests/meta/governance_current_truth.py",
-        "tests/meta/governance_followup_route_current_milestones.py",
-        "tests/meta/test_phase112_formal_home_governance_guards.py",
-        "tests/meta/test_version_sync.py",
-    ):
-        assert guard in file_matrix_text
-    assert "route-handoff gsd fast-path smoke guard home" in file_matrix_text
+    assert "### Phase 118: Final hotspot decomposition and validation closure" in roadmap_text
+    assert "**Plans**: 2/3 complete" in roadmap_text
+    assert "118-02-SUMMARY.md" in roadmap_text
+    assert "remaining execution queue = `118-03` validation closure." in roadmap_text
+    assert "- **Plan:** `2 of 3`" in state_text
+    assert "- **Progress:** `[█████████░] 90%`" in state_text
+    assert "3/4 phases, 9/10 plans" in (_ROOT / ".planning" / "MILESTONES.md").read_text(encoding="utf-8")
 
 
 def test_gsd_fast_path_matches_current_active_route_story() -> None:

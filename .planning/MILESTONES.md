@@ -3,7 +3,7 @@
 ## Current Milestone (v1.32)
 
 **Phase range:** `115 -> 118`
-**Phases completed:** `3/4 phases, 8/10 plans, 0 tasks`
+**Phases completed:** `3/4 phases, 9/10 plans, 0 tasks`
 **Status:** `active / phase 118 execution-ready (2026-04-01)`
 **Route truth:** `v1.32 active milestone route / starting from latest archived baseline = v1.31`
 **Latest archived baseline:** `v1.31`
@@ -17,14 +17,14 @@
 - `Phase 115`: status-fallback query-flow normalization ✅
 - `Phase 116`: anonymous-share and REST façade hotspot slimming ✅
 - `Phase 117`: validation backfill and continuity hardening ✅
-- `Phase 118`: final hotspot decomposition and validation closure 🛠️ (`118-01` route truth sync complete)
+- `Phase 118`: final hotspot decomposition and validation closure 🛠️ (`118-01` route truth sync + `118-02` hotspot decomposition complete)
 
 **Current accomplishments:**
 
 - 已冻结 `status_fallback` 空输入 / fallback-depth / no-I/O contract，并把 focused regression 写入正式 test suite。
 - 已完成 `rest_facade.py` 与 `anonymous_share/manager.py` 的当前轮 hotspot slimming，冻结 stable import / scope-state / aggregate outcome contract。
 - 已完成 `Phase 112 -> 114` validation backfill、active-route continuity drift repair 与 `117` closeout bundle。
-- `Phase 118` 现已成为唯一正式 follow-up：`118-01` 已完成 live route truth sync；remaining work 继续切薄 formal-home hotspots，并为 `115 -> 117` 回补 phase-local validation，然后才允许 milestone closeout。
+- `Phase 118` 现已成为唯一正式 follow-up：`118-01` 已完成 live route truth sync，`118-02` 已完成 hotspot decomposition；remaining work 收敛到 `118-03` validation closure，然后才允许 milestone closeout。
 
 
 > Machine-readable bootstrap truth now lives in the shared `governance-route` contract block below; milestone chronology remains human-readable archive history instead of the parser-visible selector.

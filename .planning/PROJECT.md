@@ -56,7 +56,7 @@ bootstrap:
 **Latest archived pointer:** `.planning/reviews/V1_31_EVIDENCE_INDEX.md`
 **Current route mode:** `v1.32 active milestone route / starting from latest archived baseline = v1.31`
 **Default next command:** `$gsd-execute-phase 118`
-**Route checkpoint:** `Phase 115` 已冻结 `status_fallback` contract；`Phase 116` 已完成 `rest_facade.py` / `anonymous_share/manager.py` 当前轮 hotspot slimming；`Phase 117` 已完成 validation backfill / continuity hardening；`Phase 118` 的 `118-01` 已完成 `GOV-75` route truth sync，remaining hotspot decomposition 与 v1.32 自身 validation closure 继续留在当前执行队列。
+**Route checkpoint:** `Phase 115` 已冻结 `status_fallback` contract；`Phase 116` 已完成 `rest_facade.py` / `anonymous_share/manager.py` 当前轮 hotspot slimming；`Phase 117` 已完成 validation backfill / continuity hardening；`Phase 118` 的 `118-01` 已完成 `GOV-75` route truth sync，`118-02` 已完成 hotspot decomposition，remaining validation closure 继续留在当前执行队列。
 **Current follow-up target:** execute the remaining `Phase 118` plan bundle via `$gsd-execute-phase 118`, and only then return the route to honest milestone closeout.
 
 **Target features:**
