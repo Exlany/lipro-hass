@@ -43,16 +43,10 @@ class _BinarySplitQueryContext:
         return self.build_query_payload(self.body_key, ids)
 
     async def query_rows(
-        self,
-        ids: list[str],
-        *,
-        semaphore: asyncio.Semaphore,
+        self, ids: list[str], *, semaphore: asyncio.Semaphore
     ) -> MappingRows:
         async with semaphore:
-            result = await self.iot_request(
-                self.path,
-                self.build_payload(ids),
-            )
+            result = await self.iot_request(self.path, self.build_payload(ids))
         return self.extract_data_list(result)
 
     def normalized_error_code(self, err: Exception) -> str:
@@ -75,11 +69,7 @@ class _BinarySplitAccumulator:
         self.max_fallback_depth = max(self.max_fallback_depth, depth)
 
     def record_single_failure(
-        self,
-        *,
-        context: _BinarySplitQueryContext,
-        err: Exception,
-        item_id: str,
+        self, *, context: _BinarySplitQueryContext, err: Exception, item_id: str
     ) -> None:
         single_code = context.normalized_error_code(err)
         context.logger.debug(
@@ -109,9 +99,7 @@ class _BinarySplitSetup:
 
 
 def _build_query_options(
-    *,
-    small_subset_batch_query_threshold: int,
-    small_subset_batch_size: int,
+    *, small_subset_batch_query_threshold: int, small_subset_batch_size: int
 ) -> _BinarySplitQueryOptions:
     if small_subset_batch_query_threshold < 0:
         raise ValueError(
@@ -153,11 +141,34 @@ def _build_query_context(
 
 
 def _record_fallback_depth_if_needed(
-    record_fallback_depth: RecordFallbackDepth | None,
-    depth: int,
+    record_fallback_depth: RecordFallbackDepth | None, depth: int
 ) -> None:
     if record_fallback_depth is not None:
         record_fallback_depth(depth)
+
+
+async def _query_primary_rows(ids: list[str], *, setup: _BinarySplitSetup) -> MappingRows:
+    return await setup.context.query_rows(ids, semaphore=asyncio.Semaphore(1))
+
+
+async def _execute_retriable_batch_fallback(
+    *,
+    ids: list[str],
+    setup: _BinarySplitSetup,
+    err: Exception,
+    expected_offline_codes: tuple[int | str, ...],
+    record_fallback_depth: RecordFallbackDepth | None,
+) -> MappingRows:
+    all_results, max_fallback_depth = await execute_batch_fallback_query(
+        context=setup.context,
+        err=err,
+        expected_offline_codes=expected_offline_codes,
+        ids=ids,
+        options=setup.options,
+        accumulator_factory=_BinarySplitAccumulator,
+    )
+    _record_fallback_depth_if_needed(record_fallback_depth, max_fallback_depth)
+    return all_results
 
 
 def _build_binary_split_setup(
@@ -203,10 +214,7 @@ async def _query_items_individually(
     accumulator: _BinarySplitAccumulator,
 ) -> None:
     await query_items_individually_impl(
-        item_ids,
-        context=context,
-        semaphore=semaphore,
-        accumulator=accumulator,
+        item_ids, context=context, semaphore=semaphore, accumulator=accumulator
     )
 
 
@@ -308,26 +316,20 @@ async def query_with_fallback_impl(
         small_subset_batch_size=small_subset_batch_size,
     )
     try:
-        result_rows = await setup.context.query_rows(ids, semaphore=asyncio.Semaphore(1))
+        result_rows = await _query_primary_rows(ids, setup=setup)
     except setup.context.lipro_api_error as err:
         if not setup.context.is_retriable_device_error(err):
             raise
-        all_results, max_fallback_depth = await execute_batch_fallback_query(
-            context=setup.context,
+        return await _execute_retriable_batch_fallback(
+            ids=ids,
+            setup=setup,
             err=err,
             expected_offline_codes=expected_offline_codes,
-            ids=ids,
-            options=setup.options,
-            accumulator_factory=_BinarySplitAccumulator,
+            record_fallback_depth=record_fallback_depth,
         )
-        _record_fallback_depth_if_needed(record_fallback_depth, max_fallback_depth)
-        return all_results
 
     _record_fallback_depth_if_needed(record_fallback_depth, 0)
     return result_rows
 
 
-__all__ = [
-    "query_items_by_binary_split_impl",
-    "query_with_fallback_impl",
-]
+__all__ = ["query_items_by_binary_split_impl", "query_with_fallback_impl"]

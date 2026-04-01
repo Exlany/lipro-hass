@@ -140,6 +140,29 @@ async def test_query_with_fallback_retriable_returns_partial_results() -> None:
     assert result == [{"deviceId": "03ab5ccd7cbbbbbb"}]
 
 @pytest.mark.asyncio
+async def test_query_with_fallback_direct_success_records_zero_depth() -> None:
+    recorded_depth: list[int] = []
+
+    result = await query_with_fallback(
+        path="/v2/status/device",
+        body_key="deviceIdList",
+        ids=["a", "b"],
+        item_name="device",
+        iot_request=AsyncMock(return_value={"data": [{"deviceId": "a"}, {"deviceId": "b"}]}),
+        extract_data_list=_extract_rows,
+        is_retriable_device_error=lambda _: True,
+        lipro_api_error=_DummyApiError,
+        normalize_response_code=_normalize_response_code,
+        expected_offline_codes=(140003, "140003"),
+        logger=MagicMock(),
+        record_fallback_depth=recorded_depth.append,
+    )
+
+    assert result == [{"deviceId": "a"}, {"deviceId": "b"}]
+    assert recorded_depth == [0]
+
+
+@pytest.mark.asyncio
 async def test_query_with_fallback_small_subset_uses_batch_then_single_fallback() -> (
     None
 ):

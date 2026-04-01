@@ -173,7 +173,14 @@
       ".planning/STATE.md",
       ".planning/MILESTONES.md"
     ],
-    "active_milestone": null,
+    "active_milestone": {
+      "version": "v1.37",
+      "name": "Repo-Wide Terminal Audit, Hotspot Decomposition & Governance Continuity Decisions",
+      "status": "active / phase 129 complete; phase 130 planning-ready (2026-04-01)",
+      "phase": "129",
+      "phase_title": "rest fallback explicit-surface convergence and api hotspot slimming",
+      "phase_dir": "129-rest-fallback-explicit-surface-convergence-and-api-hotspot-slimming"
+    },
     "latest_archived": {
       "version": "v1.36",
       "name": "Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening",
@@ -191,8 +198,8 @@
       "evidence_path": ".planning/reviews/V1_35_EVIDENCE_INDEX.md"
     },
     "bootstrap": {
-      "current_route": "no active milestone route / latest archived baseline = v1.36",
-      "default_next_command": "$gsd-new-milestone",
+      "current_route": "v1.37 active milestone route / starting from latest archived baseline = v1.36",
+      "default_next_command": "$gsd-plan-phase 130",
       "latest_archived_evidence_pointer": ".planning/reviews/V1_36_EVIDENCE_INDEX.md"
     }
   }

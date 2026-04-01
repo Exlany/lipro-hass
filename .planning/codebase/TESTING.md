@@ -53,6 +53,12 @@ tests/
 └── harness/
 ```
 
+## Phase 129 Execution Freeze
+
+- `tests/core/api/test_protocol_contract_facade_runtime.py`、`tests/core/api/test_api_command_surface_misc.py`、`tests/core/api/test_api_transport_and_schedule_transport_boundary.py` 与 targeted `tests/core/api/test_api.py::*LiproRestFacade*` 共同冻结 `rest_facade.py` 的 explicit-surface / wrapper-ownership truth。
+- `tests/core/api/test_api_status_service_wrappers.py`、`tests/core/api/test_api_status_service_fallback.py`、`tests/core/api/test_api_status_service_regressions.py` 共同冻结 fallback public route、primary-query path、depth metrics、await-count 与 summary logging 语义。
+- `tests/meta/test_phase99_runtime_hotspot_support_guards.py`、`tests/meta/test_phase107_rest_status_hotspot_guards.py`、`tests/meta/test_phase113_hotspot_assurance_guards.py`、`tests/meta/test_governance_bootstrap_smoke.py`、`tests/meta/test_governance_route_handoff_smoke.py` 与 `tests/meta/test_governance_release_contract.py` 共同冻结 hotspot no-regrowth 与 route-truth projection；`uv run ruff check .`、`uv run python scripts/check_file_matrix.py --check` 与 isolated `gsd-tools` fast-path 共同构成 Phase 129 exit proof。
+
 ## Phase 128 Execution Freeze
 
 - `tests/meta/test_governance_release_continuity.py`、`tests/meta/toolchain_truth_docs_fast_path.py`、`tests/meta/test_version_sync.py`、`tests/meta/toolchain_truth_ci_contract.py`、`tests/meta/test_governance_release_contract.py`、`tests/meta/toolchain_truth_testing_governance.py` 与 `tests/meta/test_governance_route_handoff_smoke.py` 共同冻结 readiness honesty、route selector、CI lane contract 与 closeout-ready governance truth。

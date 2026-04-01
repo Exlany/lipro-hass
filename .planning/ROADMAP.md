@@ -2,7 +2,8 @@
 
 ## Milestones
 
-- ✅ **v1.36 Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening** - `Phase 126 -> 128` archived on 2026-04-01; current route truth = `no active milestone route / latest archived baseline = v1.36`; evidence index = `.planning/reviews/V1_36_EVIDENCE_INDEX.md`
+- 🚧 **v1.37 Repo-Wide Terminal Audit, Hotspot Decomposition & Governance Continuity Decisions** - `Phase 129 -> 131` active on 2026-04-01; current route truth = `v1.37 active milestone route / starting from latest archived baseline = v1.36`; phase handoff = `active / phase 129 complete; phase 130 planning-ready (2026-04-01)`; next step = `$gsd-plan-phase 130`
+- ✅ **v1.36 Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening** - `Phase 126 -> 128` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.36`; evidence index = `.planning/reviews/V1_36_EVIDENCE_INDEX.md`
 - ✅ **v1.35 Master Audit Closure, Public Surface Finalization & Release Traceability** - `Phase 122 -> 125` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.35`; evidence index = `.planning/reviews/V1_35_EVIDENCE_INDEX.md`
 - ✅ **v1.34 Terminal Audit Closure, Contract Hardening & Governance Truth Slimming** - `Phase 120 -> 121` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.34`; evidence index = `.planning/reviews/V1_34_EVIDENCE_INDEX.md`
 - ✅ **v1.33 MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance Hardening** - `Phase 119` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.33`; evidence index = `.planning/reviews/V1_33_EVIDENCE_INDEX.md`
@@ -20,7 +21,13 @@ projection_targets:
 - .planning/REQUIREMENTS.md
 - .planning/STATE.md
 - .planning/MILESTONES.md
-active_milestone: null
+active_milestone:
+  version: v1.37
+  name: Repo-Wide Terminal Audit, Hotspot Decomposition & Governance Continuity Decisions
+  status: active / phase 129 complete; phase 130 planning-ready (2026-04-01)
+  phase: '129'
+  phase_title: rest fallback explicit-surface convergence and api hotspot slimming
+  phase_dir: 129-rest-fallback-explicit-surface-convergence-and-api-hotspot-slimming
 latest_archived:
   version: v1.36
   name: Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source
@@ -38,17 +45,73 @@ previous_archived:
   name: Master Audit Closure, Public Surface Finalization & Release Traceability
   evidence_path: .planning/reviews/V1_35_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.36
-  default_next_command: $gsd-new-milestone
+  current_route: v1.37 active milestone route / starting from latest archived baseline
+    = v1.36
+  default_next_command: $gsd-plan-phase 130
   latest_archived_evidence_pointer: .planning/reviews/V1_36_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 ## Overview
 
-`v1.36` 已固定为 latest archived baseline：`Phase 126` 消掉 diagnostics helper family 的 duplicate mechanics / callback-home shadow，`Phase 127` 完成 `runtime_access` de-reflection 与 typed telemetry seam，`Phase 128` 把 open-source readiness、benchmark/coverage gates 与 maintainer continuity hardening 冻结为 archived evidence frozen 的 honest governance closeout chain。
+`v1.37` 以 archived baseline `v1.36` 为起点，先用 `Phase 129` 收口 `rest_facade.py` / `status_fallback_support.py` 的显式组合与 fallback hotspot，再用 `Phase 130` 继续 inward split `command_runtime.py` / `firmware_update.py` 的 multi-topic formal homes，最后由 `Phase 131` 固化 repo-wide terminal audit 报告、governance continuity decision boundary 与 final validation evidence。
 
-**Coverage:** `12/12` `v1.36` requirements mapped exactly once.
-**Default next command:** `$gsd-new-milestone`
+**Coverage:** `12/12` `v1.37` requirements mapped exactly once.
+**Default next command:** `$gsd-plan-phase 130`
+
+## Current Milestone
+
+## v1.37: Repo-Wide Terminal Audit, Hotspot Decomposition & Governance Continuity Decisions
+
+**Milestone status:** `active / phase 129 complete; phase 130 planning-ready (2026-04-01)`
+**Default next command:** `$gsd-plan-phase 130`
+**Current route story:** `v1.37 active milestone route / starting from latest archived baseline = v1.36`
+**Latest archived pointer:** `.planning/reviews/V1_36_EVIDENCE_INDEX.md`
+**Latest archived audit artifact:** `.planning/v1.36-MILESTONE-AUDIT.md`
+**Starting baseline snapshots:** `.planning/milestones/v1.36-ROADMAP.md`, `.planning/milestones/v1.36-REQUIREMENTS.md`
+**Promoted phase evidence allowlist:** `.planning/reviews/PROMOTED_PHASE_ASSETS.md`
+
+## Phases
+
+- [x] **Phase 129: rest fallback explicit-surface convergence and api hotspot slimming** - 已完成 `rest_facade.py` / `status_fallback_support.py` 的显式组合化瘦身、focused regression 冻结与 active-route sync。 (complete 2026-04-01)
+- [ ] **Phase 130: runtime command and firmware-update hotspot decomposition** - 继续 inward split `command_runtime.py` / `entities/firmware_update.py`，把 runtime/entity hotspot 压回更窄 policy/helper seams。
+- [ ] **Phase 131: repo-wide terminal audit closeout and governance continuity decisions** - 产出终极审阅报告、统一 current docs/governance truth，并把 external continuity/private-fallback debt 诚实 codify 为 decision boundary。
+
+## Phase Details
+
+### Phase 129: rest fallback explicit-surface convergence and api hotspot slimming
+**Goal:** 把 REST fallback query 支撑与 REST façade 的显式 surface 继续压回更清晰的 formal seams：减少 generic delegation / helper 魔法，保持 `LiproRestFacade` 的组合边界更可读，同时让 binary-split fallback setup/behavior 更易验证。
+**Depends on:** latest archived baseline `v1.36`
+**Requirements**: ARC-40, HOT-59, TST-50, QLT-52
+**Success Criteria** (what must be TRUE):
+  1. `custom_components/lipro/core/api/rest_facade.py` 的 façade surface 更显式，减少 generic property/method factory 对正式 surface 的遮蔽，审阅者可以直接看到 collaborator wiring 与 outward wrapper 对应关系。
+  2. `custom_components/lipro/core/api/status_fallback_support.py` 的 primary-query path、fallback setup、context / accumulator 职责更清晰，且不会长出第二条 API/query story。
+  3. `tests/core/api/test_protocol_contract_facade_runtime.py`、`tests/core/api/test_api_status_service_fallback.py` 与相关 focused regressions 会在 façade surface 回到 helper magic、或 fallback 语义回退时直接失败。
+  4. v1.37 active route docs / phase assets 能诚实记录 touched hotspot、验证范围与 remaining debt，不与 archived v1.36 selector truth 冲突。
+**Plans:** 2/2 complete — `129-01` rest façade explicit surface、`129-02` fallback seam tightening
+**Execution summaries**: `129-01-SUMMARY.md`, `129-02-SUMMARY.md`
+**Verification**: `129-VERIFICATION.md`
+**Validation**: `129-VALIDATION.md`
+
+### Phase 130: runtime command and firmware-update hotspot decomposition
+**Goal:** 沿既有 single-mainline runtime/entity architecture 继续 inward split `command_runtime.py` 与 `firmware_update.py` 的 multi-topic logic，把 policy、translation、result-shaping 与 fallback gating 压到更窄 formal helpers。
+**Depends on:** Phase 129
+**Requirements**: ARC-41, HOT-60, TST-51
+**Success Criteria** (what must be TRUE):
+  1. `custom_components/lipro/core/coordinator/runtime/command_runtime.py` 的命令执行、失败摘要、trace/metrics 与确认协作边界更清晰，不再把多主题逻辑堆在同一 formal home 中。
+  2. `custom_components/lipro/entities/firmware_update.py` 的 OTA/version/fallback 逻辑继续 inward decomposition，entity 保持 thin projection 而非隐性 second logic hub。
+  3. Focused/full suites 会在 runtime/entity outward behavior 或 typed contract 漂移时直接失败。
+**Plans:** 0 plans
+
+### Phase 131: repo-wide terminal audit closeout and governance continuity decisions
+**Goal:** 以 v1.37 的 code/debt truth 为基础，产出 repo-wide terminal audit closeout：把全仓发现、热点排序、governance continuity 决策边界、开源不足与 validation evidence 统一为一条诚实 current story。
+**Depends on:** Phase 130
+**Requirements**: AUD-06, GOV-87, DOC-16, OSS-18, QLT-53
+**Success Criteria** (what must be TRUE):
+  1. 终极审阅报告覆盖 Python/docs/config/governance 主要切面，并把问题、优先级、修复状态与 remaining debt 明确落表。
+  2. `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES`、关键 docs 与 final report 对 active route / latest archived baseline / external decision boundary 讲同一条 current story。
+  3. repo-internal 可修项与 repo-external 现实 debt 明确分流：前者有代码/文档/测试证据，后者明确保留为 honest unresolved governance boundary。
+  4. validation evidence 会冻结本轮 touched hotspots、repo-wide audit truth 与 docs/governance selector 一致性。
+**Plans:** 0 plans
 
 ## Latest Archived Milestone
 
@@ -67,62 +130,6 @@ bootstrap:
 - [x] **Phase 126: service-router developer callback-home convergence and diagnostics helper residual slimming** - 已完成 diagnostics helper inward thinning：`handlers.py` 直连 mechanics home、`helpers.py` 删除未使用 duplicate helper、`developer_router_support.py` 复用统一 iterator builder，并同步 v1.36 route / plan / verification truth。 (complete 2026-04-01)
 - [x] **Phase 127: runtime-access de-reflection, typed runtime entry contracts, and hotspot continuation** - 已完成 `runtime_access` typed telemetry seam 收口、support-view de-reflection 与 focused/full verification 证据冻结，control/runtime seam 不再依赖 stringly dict fallback 或 `type(...).__getattribute__` 反射。 (complete 2026-04-01)
 - [x] **Phase 128: open-source readiness, benchmark-coverage gates, and maintainer continuity hardening** - 已把 private-access / single-maintainer continuity / security fallback 限制诚实 codify，并把 coverage baseline diff、benchmark smoke、strict markers 与 final evidence freeze 固化为 archived evidence chain。 (complete 2026-04-01)
-
-## Phase Details
-
-### Phase 126: service-router developer callback-home convergence and diagnostics helper residual slimming
-**Goal**: 在不改变 public diagnostics surface 的前提下，继续压薄 `services/diagnostics/helpers.py`：把 handler-facing mechanics 指回 `helper_support.py`，删除未使用 duplicate helper，统一 developer diagnostics runtime iterator story，并同步 `v1.36` current-route truth / phase assets / verification evidence。
-**Depends on**: latest archived baseline `v1.35`
-**Requirements**: ARC-38, HOT-57, GOV-85, TST-48, QLT-50, DOC-15
-**Success Criteria** (what must be TRUE):
-  1. `services/diagnostics/handlers.py` 不再经 `helpers.py` 转发获取纯 mechanics helper，而是直连 `helper_support.py` 的 canonical helper truth。
-  2. `services/diagnostics/helpers.py` 删除未使用 duplicate mechanics，保留 outward stable helper home 身份但不再承担第二套实现真源。
-  3. `developer_router_support.py` 复用统一 runtime iterator builder，不再保留同语义 lambda / list freeze 分支。
-  4. `v1.36` 的 `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / GOVERNANCE_REGISTRY` 与 `Phase 126` 资产一致；focused/full validation 通过。
-**Status**: Complete (`2026-04-01`)
-**Plans**: 1/1 complete
-**Plan assets**: `126-01-PLAN.md`
-**Summary assets**: `126-01-SUMMARY.md`, `126-SUMMARY.md`
-**Verification**: `126-VERIFICATION.md`
-**Closeout proof**: `126-01` 已完成 diagnostics helper shell thinning、route bootstrap、focused guard refresh 与 full validation 证据落盘。
-
-### Phase 127: runtime-access de-reflection, typed runtime entry contracts, and hotspot continuation
-**Goal**: 让 `runtime_access` 直接消费 typed telemetry contract，并把 entry/coordinator narrowing 从反射式 `object` probe 收紧到显式 port / adapter story。
-**Depends on**: Phase 126
-**Requirements**: ARC-39, HOT-58, TST-49
-**Success Criteria** (what must be TRUE):
-  1. `runtime_access.build_entry_system_health_view()` 与 `build_runtime_snapshot()` 不再把 typed telemetry 先降成 stringly dict 再回捞 key。
-  2. `runtime_access_support_views.py` 的 runtime entry / protocol 读取不再依赖 `type(...).__getattribute__` 作为主要窄化手段。
-  3. Focused tests 保住 slot-backed / MagicMock / degraded fallback 语义，同时让 new typed contract 成为唯一 formal truth。
-**Status**: Complete (`2026-04-01`)
-**Plans**: 3/3 complete
-**Plan assets**: `127-01-PLAN.md`, `127-02-PLAN.md`, `127-03-PLAN.md`
-**Summary assets**: `127-01-SUMMARY.md`, `127-02-SUMMARY.md`, `127-03-SUMMARY.md`, `127-SUMMARY.md`
-**Verification**: `127-VERIFICATION.md`
-**Closeout proof**: `127-01` 已完成 typed system-health telemetry seam 收口，`127-02` 已完成 runtime_access_support_views de-reflection，`127-03` 已冻结 focused guards / governance projections / full validation 证据。
-
-### Phase 128: open-source readiness, benchmark-coverage gates, and maintainer continuity hardening
-**Goal**: 把终审中无法单靠代码伪造闭环的 open-source readiness gap 诚实写进治理 contract，并补齐可自动化的 benchmark/coverage diff gates。
-**Depends on**: Phase 127
-**Requirements**: OSS-17, GOV-86, QLT-51
-**Success Criteria** (what must be TRUE):
-  1. benchmark / coverage diff baseline 的 PR gate story 被显式 codify，并有 focused verification。
-  2. private-access / single-maintainer continuity / security fallback 等不可伪造项被诚实登记为 maintainer decision boundary，而不是继续留在口头审阅里。
-  3. docs / roadmap / requirements / state 与 final review report 对 remaining governance gap 的描述完全一致。
-**Status**: Complete (`2026-04-01`)
-**Plans**: 3/3 complete
-**Plan assets**: `128-01-PLAN.md`, `128-02-PLAN.md`, `128-03-PLAN.md`
-**Summary assets**: `128-01-SUMMARY.md`, `128-02-SUMMARY.md`, `128-03-SUMMARY.md`, `128-SUMMARY.md`
-**Verification**: `128-VERIFICATION.md`
-**Closeout proof**: `128-01` 已统一 readiness honesty / continuity / minimum-version 真源，`128-02` 已固化 baseline-aware coverage diff 与 coverage artifact 契约，`128-03` 已把 benchmark smoke / strict markers / review ledgers / validation evidence 冻结到同一条 archived closeout evidence chain。
-
-## Progress
-
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 126. service-router developer callback-home convergence and diagnostics helper residual slimming | 1/1 | Complete | 2026-04-01 |
-| 127. runtime-access de-reflection, typed runtime entry contracts, and hotspot continuation | 3/3 | Complete | 2026-04-01 |
-| 128. open-source readiness, benchmark-coverage gates, and maintainer continuity hardening | 3/3 | Complete | 2026-04-01 |
 
 ## Previous Archived Milestone
 

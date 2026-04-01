@@ -1,5 +1,11 @@
 # Kill List
 
+## Phase 129 Status Update
+
+- `Phase 129` 没有创造新的 active kill target；本轮是 REST child-façade explicit-surface convergence 与 fallback seam tightening，不是新的 file-level delete campaign。
+- `custom_components/lipro/core/api/rest_facade.py` 与 `custom_components/lipro/core/api/status_fallback_support.py` 继续保留为 sanctioned formal homes / support carriers；Phase 129 的职责是继续 inward slimming，而不是把它们重述成 future delete target。
+- queued `Phase 130` / `Phase 131` 目录已登记，用于维持 current milestone inventory / fast-path truth；它们不是 delete gate，只是 route honesty 占位符。
+
 ## Phase 128 Status Update
 
 - `Phase 128` 没有创造新的 active kill target；本轮是治理 contract、CI gate 与 evidence freeze 的 formalization，不是新的 file-level delete campaign。

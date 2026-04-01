@@ -97,7 +97,7 @@
 | `custom_components/lipro/core/api/request_policy.py` | Protocol | Phase 2 | 重构 | formal 429 / busy / pacing policy home |
 | `custom_components/lipro/core/api/request_policy_support.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/response_safety.py` | Protocol | Phase 2 | 重构 | - |
-| `custom_components/lipro/core/api/rest_facade.py` | Protocol | Phase 90 | 重构 | canonical REST child-façade composition home |
+| `custom_components/lipro/core/api/rest_facade.py` | Protocol | Phase 90 / 129 | 重构 | canonical REST child-façade composition home with explicit local surface over wrapper modules |
 | `custom_components/lipro/core/api/rest_facade_endpoint_methods.py` | Protocol | Phase 101 | 保留 | REST child-facing typed endpoint wording helper |
 | `custom_components/lipro/core/api/rest_facade_request_methods.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/schedule_codec.py` | Protocol | Phase 2 | 重构 | - |
@@ -108,7 +108,7 @@
 | `custom_components/lipro/core/api/status_fallback.py` | Protocol | Phase 14 | 保留 | status fallback outward home with support-backed binary-split implementation |
 | `custom_components/lipro/core/api/status_fallback_split_executor.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/status_fallback_summary_logging.py` | Protocol | Phase 2 | 重构 | - |
-| `custom_components/lipro/core/api/status_fallback_support.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 | 保留 | status fallback local recursion/logging support collaborator |
+| `custom_components/lipro/core/api/status_fallback_support.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 / 129 | 保留 | status fallback local primary-query / retriable-fallback support collaborator |
 | `custom_components/lipro/core/api/status_service.py` | Protocol | Phase 2 / 13 / 14 | 重构 | public status orchestration home |
 | `custom_components/lipro/core/api/transport_core.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/transport_executor.py` | Protocol | Phase 2 / 35 | 重构 | REST signed transport execution + response normalization home |

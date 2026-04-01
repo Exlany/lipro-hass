@@ -1,5 +1,23 @@
 # Milestones
 
+## Current Milestone (v1.37)
+
+**Name:** `Repo-Wide Terminal Audit, Hotspot Decomposition & Governance Continuity Decisions`
+**Status:** `active / phase 129 complete; phase 130 planning-ready (2026-04-01)`
+**Current route:** `v1.37 active milestone route / starting from latest archived baseline = v1.36`
+**Phase range:** `129 -> 131`
+**Progress:** `1/3 phases, 2/2 plans`
+**Default next command:** `$gsd-plan-phase 130`
+**Latest archived pointer:** `.planning/reviews/V1_36_EVIDENCE_INDEX.md`
+**Latest archived audit:** `.planning/v1.36-MILESTONE-AUDIT.md`
+**Starting baseline snapshots:** `.planning/milestones/v1.36-ROADMAP.md`, `.planning/milestones/v1.36-REQUIREMENTS.md`
+
+**Planned phase story:**
+
+- `Phase 129`: rest fallback explicit-surface convergence and api hotspot slimming ✅ (`129-01` façade explicit-surface convergence + `129-02` fallback seam tightening complete)
+- `Phase 130`: runtime command and firmware-update hotspot decomposition ⏳
+- `Phase 131`: repo-wide terminal audit closeout and governance continuity decisions ⏳
+
 ## Latest Archived Milestone (v1.36)
 
 **Name:** `Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening`
@@ -18,42 +36,6 @@
 - `Phase 127`: runtime-access de-reflection, typed runtime entry contracts, and hotspot continuation ✅ (`127-01` typed telemetry seam + `127-02` support-view de-reflection + `127-03` focused/full verification and governance sync complete)
 - `Phase 128`: open-source readiness, benchmark-coverage gates, and maintainer continuity hardening ✅ (`128-01` readiness honesty / version-source / selector projection sync + `128-02` coverage baseline diff / artifacts + `128-03` benchmark smoke / strict markers / evidence freeze complete)
 
-## Previous Archived Milestone (v1.35)
-
-**Name:** `Master Audit Closure, Public Surface Finalization & Release Traceability`
-**Status:** `archived / evidence-ready (2026-04-01)`
-**Current route:** `no active milestone route / latest archived baseline = v1.35`
-**Phase range:** `122 -> 125`
-**Progress:** `4/4 phases, 16/16 plans`
-**Default next command:** `$gsd-new-milestone`
-**Latest archived pointer:** `.planning/reviews/V1_35_EVIDENCE_INDEX.md`
-**Archived audit:** `.planning/v1.35-MILESTONE-AUDIT.md`
-**Archived snapshots:** `.planning/milestones/v1.35-ROADMAP.md`, `.planning/milestones/v1.35-REQUIREMENTS.md`
-
-**Archived phase story:**
-
-- `Phase 122`: master audit ledger, public first-hop boundary finalization, metadata traceability, and focused guard sealing ✅ (`122-01` ledger/route truth + `122-02` first-hop boundary cleanup + `122-03` metadata/guards complete)
-- `Phase 123`: service-router family reconvergence, control-plane locality tightening, and public architecture hygiene ✅ (`123-01` route reopen/phase assets + `123-02` service-router reconvergence + `123-03` docs/governance freeze refresh complete)
-- `Phase 124`: config-entry auth seed normalization, config-flow adapter thinning, and schedule contract closure ✅ (`124-01` route truth/assets + `124-02` auth-seed truth/config-flow thinning + `124-03` schedule contract + `124-04` closeout route/governance freeze + `124-05` codebase/evidence freeze complete)
-- `Phase 125`: terminal residual eradication, runtime-types decomposition, adapter final thinning, and machine-readable governance extraction ✅ (`125-01` governance single-source + `125-02` runtime-types decomposition + `125-03` flow/auth thinning + `125-04` meta/tooling slimming + `125-05` docs/evidence freeze complete)
-
-## Previous Archived Milestone (v1.34)
-
-**Name:** `Terminal Audit Closure, Contract Hardening & Governance Truth Slimming`
-**Status:** `archived / evidence-ready (2026-04-01)`
-**Current route:** `no active milestone route / latest archived baseline = v1.34`
-**Phase range:** `120 -> 121`
-**Progress:** `2/2 phases, 6/6 plans`
-**Default next command:** `$gsd-new-milestone`
-**Latest archived pointer:** `.planning/reviews/V1_34_EVIDENCE_INDEX.md`
-**Archived audit:** `.planning/v1.34-MILESTONE-AUDIT.md`
-**Archived snapshots:** `.planning/milestones/v1.34-ROADMAP.md`, `.planning/milestones/v1.34-REQUIREMENTS.md`
-
-**Archived phase story:**
-
-- `Phase 120`: terminal audit closure, contract hardening, and governance truth slimming ✅
-- `Phase 121`: residual contract closure, flow invariant tightening, and surface hygiene cleanup ✅
-
 ---
 
 > Machine-readable bootstrap truth now lives in the shared `governance-route` contract block below; milestone chronology remains human-readable archive history instead of the parser-visible selector.
@@ -68,7 +50,13 @@ projection_targets:
 - .planning/REQUIREMENTS.md
 - .planning/STATE.md
 - .planning/MILESTONES.md
-active_milestone: null
+active_milestone:
+  version: v1.37
+  name: Repo-Wide Terminal Audit, Hotspot Decomposition & Governance Continuity Decisions
+  status: active / phase 129 complete; phase 130 planning-ready (2026-04-01)
+  phase: '129'
+  phase_title: rest fallback explicit-surface convergence and api hotspot slimming
+  phase_dir: 129-rest-fallback-explicit-surface-convergence-and-api-hotspot-slimming
 latest_archived:
   version: v1.36
   name: Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source
@@ -86,11 +74,36 @@ previous_archived:
   name: Master Audit Closure, Public Surface Finalization & Release Traceability
   evidence_path: .planning/reviews/V1_35_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.36
-  default_next_command: $gsd-new-milestone
+  current_route: v1.37 active milestone route / starting from latest archived baseline
+    = v1.36
+  default_next_command: $gsd-plan-phase 130
   latest_archived_evidence_pointer: .planning/reviews/V1_36_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
+## Current Milestone (v1.37)
+
+**Phase range:** `129 -> 131`
+**Phases completed:** `1/3 phases, 2/2 plans, 0 tasks`
+**Status:** `active / phase 129 complete; phase 130 planning-ready (2026-04-01)`
+**Route truth:** `v1.37 active milestone route / starting from latest archived baseline = v1.36`
+**Latest archived baseline:** `v1.36`
+**Default next command:** `$gsd-plan-phase 130`
+**Route truth:** latest archived evidence index = `.planning/reviews/V1_36_EVIDENCE_INDEX.md`
+**Latest archived audit artifact:** `.planning/v1.36-MILESTONE-AUDIT.md`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.36`
+
+**Planned phase story:**
+
+- `Phase 129`: rest fallback explicit-surface convergence and api hotspot slimming ✅ (`129-01` façade explicit-surface convergence + `129-02` fallback seam tightening complete)
+- `Phase 130`: runtime command and firmware-update hotspot decomposition ⏳
+- `Phase 131`: repo-wide terminal audit closeout and governance continuity decisions ⏳
+
+**Current milestone intent:**
+
+- 以 repo-wide terminal audit 为入口，把问题、优先级、证据与治理边界落到单一 current truth。
+- 继续 inward decomposition 当前 sanctioned hotspots，而不是让 giant-file / helper-magic 叙事永久合法化。
+- 对 repo-external continuity / private fallback 只做诚实 codify，不伪装成已在仓内解决。
+
 ## Latest Archived Milestone (v1.36)
 
 **Phase range:** `126 -> 128`

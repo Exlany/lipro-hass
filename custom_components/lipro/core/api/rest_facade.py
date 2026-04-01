@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Awaitable, Callable
 import logging
 from typing import TypeVar
@@ -34,50 +35,6 @@ from .types import JsonObject, JsonValue
 _LOGGER = logging.getLogger(__name__)
 TokenRefreshCallback = Callable[[], Awaitable[None]]
 _MappingPayloadT = TypeVar("_MappingPayloadT")
-
-
-def _session_state_property(
-    attr: str,
-    *,
-    doc: str | None = None,
-    sync_setter: str | None = None,
-    readonly: bool = False,
-) -> property:
-    """Build one `LiproRestFacade` property bound to `_session_state`."""
-
-    def _getter(owner: object) -> object:
-        return getattr(owner._session_state, attr)  # noqa: SLF001
-
-    if readonly:
-        return property(_getter, doc=doc)
-
-    def _setter(owner: object, value: object) -> None:
-        if sync_setter is None:
-            setattr(owner._session_state, attr, value)  # noqa: SLF001
-            return
-        getattr(owner._transport_executor, sync_setter)(value)  # noqa: SLF001
-
-    return property(_getter, _setter, doc=doc)
-
-
-def _component_method(component_name: str, method_name: str):
-    """Create one explicit façade method backed by a composed collaborator."""
-
-    def _method(owner: object, *args: object, **kwargs: object) -> object:
-        return getattr(getattr(owner, component_name), method_name)(*args, **kwargs)
-
-    _method.__name__ = method_name
-    return _method
-
-
-def _component_async_method(component_name: str, method_name: str):
-    """Create one explicit async façade method backed by a composed collaborator."""
-
-    async def _method(owner: object, *args: object, **kwargs: object) -> object:
-        return await getattr(getattr(owner, component_name), method_name)(*args, **kwargs)
-
-    _method.__name__ = method_name
-    return _method
 
 
 class LiproRestFacade:
@@ -135,42 +92,73 @@ class LiproRestFacade:
         """Create the formal retry-aware request gateway."""
         return RestRequestGateway(self)
 
-    phone_id = _session_state_property(
-        "phone_id",
-        doc="Return the phone identifier bound to this REST facade.",
-        readonly=True,
-    )
+    @property
+    def phone_id(self) -> str:
+        """Return the phone identifier bound to this REST facade."""
+        return self._session_state.phone_id
 
-    session = _session_state_property(
-        "session",
-        doc="Return the injected aiohttp session reference.",
-        sync_setter="sync_session",
-    )
+    @property
+    def session(self) -> aiohttp.ClientSession | None:
+        """Return the injected aiohttp session reference."""
+        return self._session_state.session
 
-    request_timeout = _session_state_property(
-        "request_timeout",
-        doc="Return the configured request timeout in seconds.",
-    )
-    entry_id = _session_state_property(
-        "entry_id",
-        doc="Return the owning config-entry identifier when available.",
-    )
-    access_token = _session_state_property(
-        "access_token",
-        doc="Return the current access token stored in session state.",
-    )
-    refresh_token = _session_state_property(
-        "refresh_token",
-        doc="Return the current refresh token stored in session state.",
-    )
-    user_id = _session_state_property(
-        "user_id",
-        doc="Return the authenticated user identifier stored in session state.",
-    )
-    biz_id = _session_state_property(
-        "biz_id",
-        doc="Return the authenticated biz identifier stored in session state.",
-    )
+    @session.setter
+    def session(self, session: aiohttp.ClientSession | None) -> None:
+        self._transport_executor.sync_session(session)
+
+    @property
+    def request_timeout(self) -> int:
+        """Return the configured request timeout in seconds."""
+        return self._session_state.request_timeout
+
+    @request_timeout.setter
+    def request_timeout(self, request_timeout: int) -> None:
+        self._session_state.request_timeout = request_timeout
+
+    @property
+    def entry_id(self) -> str | None:
+        """Return the owning config-entry identifier when available."""
+        return self._session_state.entry_id
+
+    @entry_id.setter
+    def entry_id(self, entry_id: str | None) -> None:
+        self._session_state.entry_id = entry_id
+
+    @property
+    def access_token(self) -> str | None:
+        """Return the current access token stored in session state."""
+        return self._session_state.access_token
+
+    @access_token.setter
+    def access_token(self, access_token: str | None) -> None:
+        self._session_state.access_token = access_token
+
+    @property
+    def refresh_token(self) -> str | None:
+        """Return the current refresh token stored in session state."""
+        return self._session_state.refresh_token
+
+    @refresh_token.setter
+    def refresh_token(self, refresh_token: str | None) -> None:
+        self._session_state.refresh_token = refresh_token
+
+    @property
+    def user_id(self) -> int | None:
+        """Return the authenticated user identifier stored in session state."""
+        return self._session_state.user_id
+
+    @user_id.setter
+    def user_id(self, user_id: int | None) -> None:
+        self._session_state.user_id = user_id
+
+    @property
+    def biz_id(self) -> str | None:
+        """Return the authenticated biz identifier stored in session state."""
+        return self._session_state.biz_id
+
+    @biz_id.setter
+    def biz_id(self, biz_id: str | None) -> None:
+        self._session_state.biz_id = biz_id
 
     @property
     def auth_api(self) -> AuthApiService:
@@ -182,15 +170,19 @@ class LiproRestFacade:
         """Return the canonical retry/rate-limit policy for REST calls."""
         return self._request_policy
 
-    refresh_lock = _session_state_property(
-        "refresh_lock",
-        doc="Return the shared refresh lock guarding token refresh.",
-        readonly=True,
-    )
-    on_token_refresh = _session_state_property(
-        "on_token_refresh",
-        doc="Return the registered token-refresh callback.",
-    )
+    @property
+    def refresh_lock(self) -> asyncio.Lock:
+        """Return the shared refresh lock guarding token refresh."""
+        return self._session_state.refresh_lock
+
+    @property
+    def on_token_refresh(self) -> TokenRefreshCallback | None:
+        """Return the registered token-refresh callback."""
+        return self._session_state.on_token_refresh
+
+    @on_token_refresh.setter
+    def on_token_refresh(self, callback: TokenRefreshCallback | None) -> None:
+        self._session_state.on_token_refresh = callback
 
     def set_tokens(
         self,
@@ -256,16 +248,40 @@ class LiproRestFacade:
     add_device_schedule = _endpoint_methods.add_device_schedule
     delete_device_schedules = _endpoint_methods.delete_device_schedules
 
-    _get_session = _component_async_method("_transport_executor", "get_session")
-    _smart_home_sign = _component_method("_transport_executor", "smart_home_sign")
-    _iot_sign = _component_method("_transport_executor", "iot_sign")
-    _get_timestamp_ms = _component_method("_transport_executor", "get_timestamp_ms")
-    _execute_request = _component_async_method("_transport_executor", "execute_request")
-    _execute_mapping_request_with_rate_limit = _component_async_method(
-        "_transport_executor",
-        "execute_mapping_request_with_rate_limit",
-    )
-    _build_iot_headers = _component_method("_transport_executor", "build_iot_headers")
+    async def _get_session(self) -> aiohttp.ClientSession:
+        return await self._transport_executor.get_session()
+
+    def _smart_home_sign(self) -> str:
+        return self._transport_executor.smart_home_sign()
+
+    def _iot_sign(self, nonce: int, body: str) -> str:
+        return self._transport_executor.iot_sign(nonce, body)
+
+    def _get_timestamp_ms(self) -> int:
+        return self._transport_executor.get_timestamp_ms()
+
+    async def _execute_request(
+        self,
+        request_ctx: object,
+        path: str,
+    ) -> tuple[int, JsonObject, dict[str, str]]:
+        return await self._transport_executor.execute_request(request_ctx, path)
+
+    async def _execute_mapping_request_with_rate_limit(
+        self,
+        *,
+        path: str,
+        retry_count: int,
+        send_request: Callable[[], Awaitable[tuple[int, object, dict[str, str], str | None]]],
+    ) -> tuple[int, JsonObject, str | None]:
+        return await self._transport_executor.execute_mapping_request_with_rate_limit(
+            path=path,
+            retry_count=retry_count,
+            send_request=send_request,
+        )
+
+    def _build_iot_headers(self, body: str) -> dict[str, str]:
+        return self._transport_executor.build_iot_headers(body)
 
     async def _handle_auth_error_and_retry(
         self,
@@ -298,10 +314,8 @@ class LiproRestFacade:
             success_payload=success_payload,
         )
 
-    _handle_401_with_refresh = _component_async_method(
-        "_auth_recovery",
-        "handle_401_with_refresh",
-    )
+    async def _handle_401_with_refresh(self, request_token: str | None) -> bool:
+        return await self._auth_recovery.handle_401_with_refresh(request_token)
 
     @staticmethod
     def _resolve_error_code(code: object, error_code: object) -> int | str | None:
@@ -327,27 +341,85 @@ class LiproRestFacade:
         """Close transport-owned session resources for this facade."""
         self._transport_executor.close()
 
-    _request_smart_home_mapping = _component_async_method(
-        "_request_gateway",
-        "request_smart_home_mapping",
-    )
-    _smart_home_request = _component_async_method(
-        "_request_gateway",
-        "smart_home_request",
-    )
-    _request_iot_mapping_raw = _component_async_method(
-        "_request_gateway",
-        "request_iot_mapping_raw",
-    )
-    _request_iot_mapping = _component_async_method(
-        "_request_gateway",
-        "request_iot_mapping",
-    )
-    _iot_request = _component_async_method("_request_gateway", "iot_request")
-    _to_device_type_hex = _component_method(
-        "_transport_executor",
-        "to_device_type_hex",
-    )
+    async def _request_smart_home_mapping(
+        self,
+        path: str,
+        data: JsonObject,
+        require_auth: bool = True,
+        *,
+        is_retry: bool = False,
+        retry_count: int = 0,
+    ) -> tuple[JsonObject, str | None]:
+        return await self._request_gateway.request_smart_home_mapping(
+            path,
+            data,
+            require_auth=require_auth,
+            is_retry=is_retry,
+            retry_count=retry_count,
+        )
+
+    async def _smart_home_request(
+        self,
+        path: str,
+        data: JsonObject,
+        require_auth: bool = True,
+        is_retry: bool = False,
+        retry_count: int = 0,
+    ) -> JsonValue:
+        return await self._request_gateway.smart_home_request(
+            path,
+            data,
+            require_auth=require_auth,
+            is_retry=is_retry,
+            retry_count=retry_count,
+        )
+
+    async def _request_iot_mapping_raw(
+        self,
+        path: str,
+        body: str,
+        *,
+        is_retry: bool = False,
+        retry_count: int = 0,
+    ) -> tuple[JsonObject, str | None]:
+        return await self._request_gateway.request_iot_mapping_raw(
+            path,
+            body,
+            is_retry=is_retry,
+            retry_count=retry_count,
+        )
+
+    async def _request_iot_mapping(
+        self,
+        path: str,
+        body_data: JsonObject,
+        *,
+        is_retry: bool = False,
+        retry_count: int = 0,
+    ) -> tuple[JsonObject, str | None]:
+        return await self._request_gateway.request_iot_mapping(
+            path,
+            body_data,
+            is_retry=is_retry,
+            retry_count=retry_count,
+        )
+
+    async def _iot_request(
+        self,
+        path: str,
+        body_data: JsonObject,
+        is_retry: bool = False,
+        retry_count: int = 0,
+    ) -> JsonValue:
+        return await self._request_gateway.iot_request(
+            path,
+            body_data,
+            is_retry=is_retry,
+            retry_count=retry_count,
+        )
+
+    def _to_device_type_hex(self, device_type: int | str) -> str:
+        return self._transport_executor.to_device_type_hex(device_type)
 
     @staticmethod
     def _require_mapping_response(path: str, result: object) -> JsonObject:

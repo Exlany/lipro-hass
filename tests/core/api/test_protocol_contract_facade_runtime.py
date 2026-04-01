@@ -191,6 +191,20 @@ def test_lipro_rest_facade_uses_explicit_surface_instead_of_dynamic_delegation()
         assert "__dir__" not in base.__dict__
 
 
+def test_lipro_rest_facade_module_no_longer_uses_generic_surface_builder_helpers() -> None:
+    module_text = (
+        Path(__file__).resolve().parents[3]
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "api"
+        / "rest_facade.py"
+    ).read_text(encoding="utf-8")
+    assert "def _session_state_property(" not in module_text
+    assert "def _component_method(" not in module_text
+    assert "def _component_async_method(" not in module_text
+
+
 def test_lipro_rest_facade_no_longer_exports_aggregate_endpoint_mixin() -> None:
     module_text = (
         Path(__file__).resolve().parents[3]

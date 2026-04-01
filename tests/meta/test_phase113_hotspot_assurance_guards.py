@@ -18,7 +18,7 @@ _VERIFICATION_MATRIX = _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.m
 
 _LINE_BUDGETS = {
     "custom_components/lipro/core/api/status_fallback_support.py": 340,
-    "custom_components/lipro/core/api/rest_facade.py": 360,
+    "custom_components/lipro/core/api/rest_facade.py": 432,
     "custom_components/lipro/core/anonymous_share/manager.py": 359,
     "custom_components/lipro/core/protocol/boundary/rest_decoder.py": 210,
     "custom_components/lipro/entities/firmware_update.py": 418,

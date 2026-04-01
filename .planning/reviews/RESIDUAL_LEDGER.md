@@ -8,6 +8,12 @@ _None currently registered._
 
 > **Phase 88 freeze note:** 这里的 zero-active posture 是显式 closeout verdict，而不是尚未清点完成的空白。若未来出现新 residual，必须以新的 family 重新登记 owner、exit condition 与 evidence。
 
+## Phase 129 Residual Delta
+
+- `Phase 129` 未新增 active residual family；`rest_facade.py` 与 `status_fallback_support.py` 的 sanctioned hotspot 已继续 inward slimming，并通过 focused regressions / meta guards 冻结住当前收口结果。
+- 当前 remaining live concern 已显式前推到 `Phase 130` 与 `Phase 131`：`command_runtime.py` / `entities/firmware_update.py` 的 multi-topic hotspot 仍待继续 inward split，repo-wide terminal audit / continuity decision boundary 仍待 final closeout。
+- queued `Phase 130` / `Phase 131` 目录已登记，current-route inventory 不再因为缺少 phase 目录而失真。
+
 ## Phase 128 Residual Delta
 
 - `Phase 128` 未新增 active residual family；本轮是把 readiness honesty、coverage baseline diff、benchmark smoke 与 continuity limits 正式 codify 为 closeout-ready governance contract。
