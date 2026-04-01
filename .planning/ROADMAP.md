@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🚧 **v1.35 Master Audit Closure, Public Surface Finalization & Release Traceability** - `Phase 122` active on 2026-04-01; current route = `v1.35 active milestone route / starting from latest archived baseline = v1.34`; latest archived evidence index = `.planning/reviews/V1_34_EVIDENCE_INDEX.md`; default next = `$gsd-plan-phase 122`
+- 🚧 **v1.35 Master Audit Closure, Public Surface Finalization & Release Traceability** - `Phase 122 -> 123` active on 2026-04-01; current route = `v1.35 active milestone route / starting from latest archived baseline = v1.34`; latest archived evidence index = `.planning/reviews/V1_34_EVIDENCE_INDEX.md`; default next = `$gsd-complete-milestone v1.35`
 - ✅ **v1.34 Terminal Audit Closure, Contract Hardening & Governance Truth Slimming** - `Phase 120 -> 121` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.34`; evidence index = `.planning/reviews/V1_34_EVIDENCE_INDEX.md`
 - ✅ **v1.33 MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance Hardening** - `Phase 119` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.33`; evidence index = `.planning/reviews/V1_33_EVIDENCE_INDEX.md`
 - ✅ **v1.32 Residual Hotspot Eradication, Validation Completion & Continuity Hardening** - `Phase 115 -> 118` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.32`; evidence index = `.planning/reviews/V1_32_EVIDENCE_INDEX.md`
@@ -16,10 +16,10 @@ contract_name: governance-route
 active_milestone:
   version: v1.35
   name: Master Audit Closure, Public Surface Finalization & Release Traceability
-  status: active / phase 122 complete; closeout-ready (2026-04-01)
-  phase: '122'
-  phase_title: master audit ledger, public first-hop boundary finalization, metadata traceability, and focused guard sealing
-  phase_dir: 122-master-audit-ledger-public-first-hop-boundary-finalization-metadata-traceability-and-focused-guard-sealing
+  status: active / phase 123 complete; closeout-ready (2026-04-01)
+  phase: '123'
+  phase_title: service-router family reconvergence, control-plane locality tightening, and public architecture hygiene
+  phase_dir: 123-service-router-family-reconvergence-control-plane-locality-and-public-architecture-hygiene
 latest_archived:
   version: v1.34
   name: Terminal Audit Closure, Contract Hardening & Governance Truth Slimming
@@ -42,16 +42,16 @@ bootstrap:
 <!-- governance-route-contract:end -->
 ## Overview
 
-`v1.35` 以 archived baseline `v1.34` 为起点，把全仓 Python/docs/config/governance 的终极审阅残留压成单一 active route：repo-wide audit ledger 成为唯一落表真源，公开 first-hop 与 maintainer appendix 的边界更清晰，metadata URL 回到 tagged-release traceability，而 focused guards 用来冻结这些 outward truth。
+`v1.35` 以 archived baseline `v1.34` 为起点，先用 `Phase 122` 完成 repo-wide audit ledger / public first-hop / metadata traceability，再用 `Phase 123` 收口 `service_router` family 的过度分片与公开架构叙事漂移，使 code、docs、file-matrix、focused guards 与 audit ledger 回到同一条 active route。
 
-**Coverage:** `5/5` v1.35 requirements mapped exactly once.
-**Default next command:** `$gsd-plan-phase 122`
+**Coverage:** `10/10` v1.35 requirements mapped exactly once.
+**Default next command:** `$gsd-complete-milestone v1.35`
 
 ## Current Milestone
 
 ## v1.35: Master Audit Closure, Public Surface Finalization & Release Traceability
 
-**Milestone status:** `active / phase 122 complete; closeout-ready (2026-04-01)`
+**Milestone status:** `active / phase 123 complete; closeout-ready (2026-04-01)`
 **Default next command:** `$gsd-complete-milestone v1.35`
 **Current route story:** `v1.35 active milestone route / starting from latest archived baseline = v1.34`
 **Latest archived pointer:** `.planning/reviews/V1_34_EVIDENCE_INDEX.md`
@@ -63,6 +63,7 @@ bootstrap:
 ## Phases
 
 - [x] **Phase 122: master audit ledger, public first-hop boundary finalization, metadata traceability, and focused guard sealing** - 已完成 repo-wide audit ledger 落表、public first-hop / maintainer appendix 边界收口、tagged-release metadata traceability 与 focused guards 加固。 (complete 2026-04-01)
+- [x] **Phase 123: service-router family reconvergence, control-plane locality tightening, and public architecture hygiene** - 已完成 `service_router` non-diagnostics callback family reconvergence、public architecture/changelog drift cleanup、governance/file-matrix/focused guards 同步冻结。 (complete 2026-04-01)
 
 ## Phase Details
 
@@ -79,11 +80,25 @@ bootstrap:
 **Execution summaries**: `122-01-SUMMARY.md`, `122-02-SUMMARY.md`, `122-03-SUMMARY.md`
 **Verification**: `122-VERIFICATION.md`
 
+### Phase 123: service-router family reconvergence, control-plane locality tightening, and public architecture hygiene
+**Goal**: 把 `service_router` family 的过薄 non-diagnostics split 正式回收为单一 control-local callback home，同时刷新 developer/public architecture 叙事、governance/file-matrix 投影与 focused guards，消除 control-plane topology 的代码/文档/守卫漂移。
+**Depends on**: Phase 122
+**Requirements**: ARC-34, HOT-54, DOC-13, GOV-82, TST-45
+**Success Criteria** (what must be TRUE):
+  1. `custom_components/lipro/control/service_router_handlers.py` 重新成为 command / schedule / share / maintenance callback family 的单一 control-local home，而 `service_router_diagnostics_handlers.py` 继续作为 developer/diagnostics 独立 collaborator。
+  2. 四个过薄的 split shells（command / schedule / share / maintenance）已删除，且 file-matrix、tests、docs 不再把它们当作 current topology。
+  3. `docs/developer_architecture.md`、`CHANGELOG.md`、`.planning/codebase/ARCHITECTURE.md` 与 `docs/architecture_archive.md` 对当前/历史 topology 的叙事一致，不再保留过期 archived-only route 或 stale split-family 现状。
+  4. Focused guards / file-matrix / planning route truth 会在 reconvergence 回退、stale path 回流或 current-topology 文案漂移时直接失败。
+**Plans**: 3/3 complete — `123-01` route reopen & phase assets、`123-02` service-router reconvergence、`123-03` docs/governance freeze refresh
+**Execution summaries**: `123-01-SUMMARY.md`, `123-02-SUMMARY.md`, `123-03-SUMMARY.md`
+**Verification**: `123-VERIFICATION.md`
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 122. master audit ledger, public first-hop boundary finalization, metadata traceability, and focused guard sealing | 3/3 | Complete | 2026-04-01 |
+| 123. service-router family reconvergence, control-plane locality tightening, and public architecture hygiene | 3/3 | Complete | 2026-04-01 |
 
 ## Latest Archived Milestone
 

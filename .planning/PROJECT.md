@@ -2,7 +2,7 @@
 
 **Status:** `Active milestone route`
 **Current route:** `v1.35 active milestone route / starting from latest archived baseline = v1.34`；latest archived evidence index = `.planning/reviews/V1_34_EVIDENCE_INDEX.md`.
-**Goal:** `基于对全仓 Python/docs/config/governance 的终极审阅，把剩余问题收敛为单一 active route：公开 first-hop 边界更清晰、maintainer appendix 不再干扰 first-hop、metadata URL 具备 tagged-release traceability、focused guards 固化这些 truth。`
+**Goal:** `基于 repo-wide master audit 的第二轮收口，把 control-plane 过度分片、public architecture drift 与相关 guard/file-matrix 漂移压回同一条 active route：formal control callback home 更紧、公开架构叙事更诚实、governance truth 与 focused guards 继续单线闭环。`
 **Default next step:** `$gsd-complete-milestone v1.35`
 **Active baseline:** latest archived baseline = `v1.34`；previous archived baseline = `v1.33`.
 
@@ -13,10 +13,10 @@ contract_name: governance-route
 active_milestone:
   version: v1.35
   name: Master Audit Closure, Public Surface Finalization & Release Traceability
-  status: active / phase 122 complete; closeout-ready (2026-04-01)
-  phase: '122'
-  phase_title: master audit ledger, public first-hop boundary finalization, metadata traceability, and focused guard sealing
-  phase_dir: 122-master-audit-ledger-public-first-hop-boundary-finalization-metadata-traceability-and-focused-guard-sealing
+  status: active / phase 123 complete; closeout-ready (2026-04-01)
+  phase: '123'
+  phase_title: service-router family reconvergence, control-plane locality tightening, and public architecture hygiene
+  phase_dir: 123-service-router-family-reconvergence-control-plane-locality-and-public-architecture-hygiene
 latest_archived:
   version: v1.34
   name: Terminal Audit Closure, Contract Hardening & Governance Truth Slimming
@@ -41,21 +41,21 @@ bootstrap:
 
 **Name:** `Master Audit Closure, Public Surface Finalization & Release Traceability`
 
-**Why it matters:** `v1.35` 不扩张业务功能，而是把全仓 Python/docs/config/governance 的终审残留压回同一条正式主线：repo-wide audit results 有单一 ledger truth、公开 first-hop 与 maintainer appendix 分层更清楚、metadata URL 回到 tagged-release traceability、focused guards 继续冻结这些 outward contract。`
+**Why it matters:** `v1.35` 继续不扩张业务功能，而是把终审第二轮暴露的 control-plane 过度分片、service-router topology drift 与公开架构叙事漂移压回单一正式主线：repo-wide audit results、current topology docs、file-matrix truth 与 focused guards 只剩一条 current story。`
 
-**North-star fit:** `v1.35` 继续沿 single mainline / formal homes / honest public surface 推进：不把 maintainer appendix 伪装成 first-hop，不把 metadata provenance 藏在 milestone folklore，也不让 scattered audit notes 重新长成第二套治理故事。`
+**North-star fit:** `v1.35` 继续沿 single mainline / formal homes / honest public surface 推进：不让 `service_router` 家族在过薄 split 中重新合法化第二套叙事，也不让 code/docs/governance 对当前 control-plane topology 各说各话。`
 
-**Current status:** `active / phase 122 complete; closeout-ready (2026-04-01)`
-**Phase range:** `Phase 122 -> 122`
+**Current status:** `active / phase 123 complete; closeout-ready (2026-04-01)`
+**Phase range:** `Phase 122 -> 123`
 **Starting baseline:** `.planning/v1.34-MILESTONE-AUDIT.md`, `.planning/reviews/V1_34_EVIDENCE_INDEX.md`, `.planning/milestones/v1.34-ROADMAP.md`, `.planning/milestones/v1.34-REQUIREMENTS.md`
-**Requirements basket:** `AUD-05`, `DOC-12`, `OSS-16`, `GOV-81`, `TST-44`
+**Requirements basket:** `AUD-05`, `DOC-12`, `OSS-16`, `GOV-81`, `TST-44`, `ARC-34`, `HOT-54`, `DOC-13`, `GOV-82`, `TST-45`
 **Latest archived baseline:** `v1.34`
 **Latest archived pointer:** `.planning/reviews/V1_34_EVIDENCE_INDEX.md`
 **Latest archived audit artifact:** `.planning/v1.34-MILESTONE-AUDIT.md`
 **Default next command:** `$gsd-complete-milestone v1.35`
 **Active audit ledger:** `.planning/reviews/V1_35_MASTER_AUDIT_LEDGER.md`
 **Closeout audit:** `.planning/v1.35-MILESTONE-AUDIT.md`
-**Current phase handoff:** `Phase 122 已完成 3/3 计划与验证；当前 live route 只剩 milestone closeout / archive promotion。`
+**Current phase handoff:** `Phase 123 已完成 3/3 计划与验证；v1.35 live route 现可诚实进入 milestone closeout / archive promotion。`
 
 ## Latest Archived Milestone (v1.34)
 

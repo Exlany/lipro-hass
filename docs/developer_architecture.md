@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `v1.34 / Phase 121 archived-only baseline` (`2026-04-01`)
-> **Current route alignment**: `no active milestone route / latest archived baseline = v1.34` (`2026-04-01`)
+> **Last aligned through**: `v1.35 / Phase 123 closeout-ready route` (`2026-04-01`)
+> **Current route alignment**: `v1.35 active route / Phase 123 complete / latest archived baseline = v1.34` (`2026-04-01`)
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
@@ -13,6 +13,7 @@
 
 - 先看下方的“快速导航”“五大平面”“当前正式主链”，这是 current-topology first hop。
 - historical freeze / typed-boundary / sanitizer / assurance notes 已下沉到 `docs/architecture_archive.md`，作为 pull-only appendix 供回溯，不再占据当前开发入口主线。
+- predecessor archive selector note 仍可在本文回溯到：`no active milestone route / latest archived baseline = v1.34`；这只是历史锚点，不再代表当前 live route。
 
 ## 快速导航
 
@@ -155,7 +156,7 @@ custom_components/lipro/
 
 1. HA service declaration 由 `custom_components/lipro/control/service_registry.py` 作为唯一正式 owner 注册；HA 根适配器只能通过该模块装配服务注册，已不存在额外的 `services/registrations.py` compat import shell
 2. `control/service_router.py` 接管 public callback
-3. `control/service_router_handlers.py` / support helpers 组合 request shaping、runtime lookup、error translation
+3. `control/service_router_handlers.py` 作为非 diagnostics callback family home 组合 request shaping、runtime lookup、error translation；developer / diagnostics callbacks 继续留在 `control/service_router_diagnostics_handlers.py`
 4. runtime formal surface 完成实际行为
 
 ## 为什么 `control/` 与 `services/` 同时存在

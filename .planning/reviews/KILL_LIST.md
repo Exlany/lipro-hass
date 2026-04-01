@@ -476,3 +476,9 @@ _None currently registered._
 
 - 本 phase **无新增 active kill target**；`share_client_submit_attempts.py`、`share_client_submit_outcomes.py` 与 `result_support.py` 代表的是 inward collaborator extraction，不是新的 file-level delete campaign。
 - `status_fallback_support.py`、`rest_facade.py`、`anonymous_share/manager.py`、`rest_decoder.py`、`firmware_update.py`、`rest_decoder_support.py`、`result_policy.py`、`dispatch.py` 与 `auth/manager.py` 都继续保留为 formal homes / sanctioned carriers；Phase 113 的贡献是把它们的增长空间改成显式 budget guard，而不是把它们重述成 future kill target。
+
+## Phase 123 Status Update
+
+- `custom_components/lipro/control/service_router_command_handlers.py`、`custom_components/lipro/control/service_router_schedule_handlers.py`、`custom_components/lipro/control/service_router_share_handlers.py` 与 `custom_components/lipro/control/service_router_maintenance_handlers.py` 已删除。
+- `custom_components/lipro/control/service_router_handlers.py` 不再作为 thin family index 存在；它现在是 command / schedule / share / maintenance callbacks 的 current control-local family home。
+- `Phase 104` split 仍保留 predecessor visibility，但已退回 archive-only history，不再投影 current topology。

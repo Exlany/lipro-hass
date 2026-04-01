@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 760
+**Python files total:** 757
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -39,13 +39,9 @@
 | `custom_components/lipro/control/runtime_access_types.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/service_registry.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/service_router.py` | Control | Phase 3 / 14 / 15 / 37 | 保留 | public router shell over focused handler/support collaborators |
-| `custom_components/lipro/control/service_router_command_handlers.py` | Control | Phase 104 | 保留 | focused command handler family home for service-router callbacks |
 | `custom_components/lipro/control/service_router_diagnostics_handlers.py` | Control | Phase 104 | 保留 | focused diagnostics/developer handler family home for service-router callbacks |
-| `custom_components/lipro/control/service_router_handlers.py` | Control | Phase 37 | 保留 | thin family index over focused service-router handler homes |
-| `custom_components/lipro/control/service_router_maintenance_handlers.py` | Control | Phase 104 | 保留 | focused maintenance handler family home for service-router callbacks |
-| `custom_components/lipro/control/service_router_schedule_handlers.py` | Control | Phase 104 | 保留 | focused schedule handler family home for service-router callbacks |
-| `custom_components/lipro/control/service_router_share_handlers.py` | Control | Phase 104 | 保留 | focused anonymous-share handler family home for service-router callbacks |
-| `custom_components/lipro/control/service_router_support.py` | Control | Phase 37 | 保留 | router lookup/logging/runtime-iterator helper home |
+| `custom_components/lipro/control/service_router_handlers.py` | Control | Phase 123 | 保留 | control-local callback family home for command/schedule/share/maintenance service-router handlers |
+| `custom_components/lipro/control/service_router_support.py` | Control | Phase 123 | 保留 | router lookup/logging/runtime-iterator helper home |
 | `custom_components/lipro/control/system_health_surface.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/telemetry_surface.py` | Control | Phase 7.3 | 保留 | - |
 | `custom_components/lipro/coordinator_entry.py` | Control | Phase 3 | 保留 | - |
@@ -303,7 +299,7 @@
 | `custom_components/lipro/helpers/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/helpers/platform.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/light.py` | Domain | Phase 4 | 保留 | - |
-| `custom_components/lipro/runtime_infra.py` | Control | Phase 112 | 保留 | shared runtime infra formal home |
+| `custom_components/lipro/runtime_infra.py` | Cross-cutting | Phase 112 | 保留 | shared runtime infra formal home |
 | `custom_components/lipro/runtime_infra_device_registry.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/runtime_types.py` | Cross-cutting | Phase 91 | 保留 | runtime/control public protocol surface and telemetry projection type home |
 | `custom_components/lipro/select.py` | Domain | Phase 4 | 保留 | - |
@@ -539,19 +535,19 @@
 | `tests/core/test_init.py` | Control | Phase 33 | 保留 | topic root for init contract regressions |
 | `tests/core/test_init_edge_cases.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_init_runtime_behavior.py` | Control | Phase 33 / 37 | 保留 | shared helper root for topicized init runtime regressions |
-| `tests/core/test_init_runtime_bootstrap.py` | Control | Phase 37 | 保留 | bootstrap/infrastructure topic home |
-| `tests/core/test_init_runtime_registry_refresh.py` | Control | Phase 37 | 保留 | registry-refresh topic home |
-| `tests/core/test_init_runtime_setup_entry.py` | Control | Phase 37 | 保留 | setup-entry topic home |
-| `tests/core/test_init_runtime_setup_entry_failures.py` | Control | Phase 37 | 保留 | setup-entry failure topic home |
-| `tests/core/test_init_runtime_unload_reload.py` | Control | Phase 37 | 保留 | unload/reload topic home |
+| `tests/core/test_init_runtime_bootstrap.py` | Control | Phase 123 | 保留 | bootstrap/infrastructure topic home |
+| `tests/core/test_init_runtime_registry_refresh.py` | Control | Phase 123 | 保留 | registry-refresh topic home |
+| `tests/core/test_init_runtime_setup_entry.py` | Control | Phase 123 | 保留 | setup-entry topic home |
+| `tests/core/test_init_runtime_setup_entry_failures.py` | Control | Phase 123 | 保留 | setup-entry failure topic home |
+| `tests/core/test_init_runtime_unload_reload.py` | Control | Phase 123 | 保留 | unload/reload topic home |
 | `tests/core/test_init_schema_validation.py` | Control | Phase 33 | 保留 | schema-focused init regression home |
 | `tests/core/test_init_service_handlers.py` | Control | Phase 27 / 37 | 保留 | shared helper root for topicized init service-handler regressions |
-| `tests/core/test_init_service_handlers_commands.py` | Control | Phase 37 | 保留 | command-dispatch topic home |
-| `tests/core/test_init_service_handlers_debug_queries.py` | Control | Phase 37 | 保留 | debug-query topic home |
-| `tests/core/test_init_service_handlers_device_resolution.py` | Control | Phase 37 | 保留 | device-resolution topic home |
-| `tests/core/test_init_service_handlers_schedules.py` | Control | Phase 37 | 保留 | schedule-validation topic home |
+| `tests/core/test_init_service_handlers_commands.py` | Control | Phase 123 | 保留 | command-dispatch topic home |
+| `tests/core/test_init_service_handlers_debug_queries.py` | Control | Phase 123 | 保留 | debug-query topic home |
+| `tests/core/test_init_service_handlers_device_resolution.py` | Control | Phase 123 | 保留 | device-resolution topic home |
+| `tests/core/test_init_service_handlers_schedules.py` | Control | Phase 123 | 保留 | schedule-validation topic home |
 | `tests/core/test_init_service_handlers_sensor_feedback.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `tests/core/test_init_service_handlers_share_reports.py` | Control | Phase 37 | 保留 | share-report topic home |
+| `tests/core/test_init_service_handlers_share_reports.py` | Control | Phase 123 | 保留 | share-report topic home |
 | `tests/core/test_log_safety.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_outlet_power.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_outlet_power_runtime.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -636,7 +632,7 @@
 | `tests/meta/public_surface_phase_notes.py` | Assurance | Phase 59 | 保留 | public-surface phase-note topic home |
 | `tests/meta/public_surface_runtime_contracts.py` | Assurance | Phase 59 | 保留 | public-surface runtime-contract topic home |
 | `tests/meta/test_blueprints.py` | Assurance | Phase 6 | 保留 | - |
-| `tests/meta/test_changed_surface_assurance_guards.py` | Assurance | Phase 121 | 保留 | live changed-surface assurance guard home for default `scripts/lint` routing |
+| `tests/meta/test_changed_surface_assurance_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_dependency_guards.py` | Assurance | Phase 6 | 保留 | thin shell after dependency-guard topicization |
 | `tests/meta/test_evidence_pack_authority.py` | Assurance | Phase 8 | 保留 | - |
 | `tests/meta/test_external_boundary_authority.py` | Assurance | Phase 6 | 保留 | - |
@@ -668,10 +664,11 @@
 | `tests/meta/test_phase109_anonymous_share_manager_inward_decomposition_guards.py` | Assurance | Phase 109 | 保留 | focused predecessor guard home for Phase 109 anonymous-share manager inward decomposition |
 | `tests/meta/test_phase110_runtime_snapshot_closeout_guards.py` | Assurance | Phase 110 | 保留 | focused active-route guard home for Phase 110 runtime snapshot surface reduction and milestone closeout |
 | `tests/meta/test_phase111_runtime_boundary_guards.py` | Assurance | Phase 6 | 保留 | - |
-| `tests/meta/test_phase112_formal_home_governance_guards.py` | Assurance | Phase 112 | 保留 | focused sanctioned-root / archive-pointer governance guard home for Phase 112 |
-| `tests/meta/test_phase113_hotspot_assurance_guards.py` | Assurance | Phase 113 | 保留 | focused hotspot budget / helper-locality historical guard home for Phase 113 |
+| `tests/meta/test_phase112_formal_home_governance_guards.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_phase113_hotspot_assurance_guards.py` | Assurance | Phase 113 | 保留 | focused hotspot budget and changed-surface assurance guard home for Phase 113 |
 | `tests/meta/test_phase114_open_source_surface_honesty_guards.py` | Assurance | Phase 114 | 保留 | focused open-source surface honesty guard home for Phase 114 |
-| `tests/meta/test_phase119_mqtt_boundary_guards.py` | Assurance | Phase 119 | 保留 | focused MQTT boundary one-way dependency guard home |
+| `tests/meta/test_phase119_mqtt_boundary_guards.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_phase123_service_router_reconvergence_guards.py` | Assurance | Phase 123 | 保留 | focused closeout guard home for Phase 123 service-router reconvergence |
 | `tests/meta/test_phase31_runtime_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase45_hotspot_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase50_rest_typed_budget_guards.py` | Assurance | Phase 6 | 保留 | - |

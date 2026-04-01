@@ -7,21 +7,17 @@
 
 ## [Unreleased]（未发布）
 
-### 新增（Added）
-
-- 为最新一轮架构与治理收口补齐了维护者侧的归档证据链，方便在不污染公开 first hop 的前提下追溯 closeout 结论。
-- 补强了与当前 release / governance story 对应的 focused 守卫与文档一致性检查。
-
 ### 变更（Changed）
 
-- 公开 release notes 现在只保留对外可读的发布故事；维护者侧的 archived baseline、审计证据与内部路线说明继续留在 maintainer-only 文档中。
-- `CI reuse`、`CodeQL`、`SBOM`、`cosign`、`release identity` 与 `compatibility preview` 仍是一条统一的 release-security 叙事，不再混入过期 closeout 口径。
-- 当前仓库的治理现状已统一收敛到最新 archived baseline，公开文档与维护者附录不再讲两套冲突故事。
+- `control/service_router_handlers.py` 重新收拢 command / schedule / share / maintenance 回调，减少四个过薄 handler shell 带来的导航与维护成本。
+- `CI reuse`、`CodeQL`、`SBOM`、`cosign`、`release identity` 与 `compatibility preview` 仍保持同一条 release-security 叙事，只是不再夹带过期 archived-only 路线口径。
+- `docs/developer_architecture.md`、`.planning/codebase/ARCHITECTURE.md` 与相关治理账本已同步到当前 control-plane topology，不再保留过期的 split-family 现状描述。
+- 公开 release notes 继续只保留对外可理解的变更故事，不再夹带过期的 archived-only route 叙述。
 
 ### 修复（Fixed）
 
-- 修复了 release notes、maintainer runbook 与治理基线之间的 latest archived pointer 漂移，移除了过期的 closeout-ready 叙事。
-- 修复了 archived-only route 下的 bootstrap / closeout / release-contract 文案不一致问题，使公开发布说明与维护者侧证据引用各归其位。
+- 修复了 service-router family 与 file-matrix / meta guards / architecture archive 之间的 topology 漂移。
+- 修复了 developer architecture 当前路线说明仍停留在 `v1.34 archived-only baseline` 的陈旧文案。
 
 ## [1.0.0] - 2026-02-08
 

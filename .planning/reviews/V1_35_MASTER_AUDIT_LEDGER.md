@@ -18,8 +18,8 @@ This ledger is the single active synthesis surface for the `v1.35` repo-wide aud
 
 ### Assurance review
 - Covered: `tests/**`
-- Approximate Python files reviewed in this slice: `415`
-- Collected pytest items snapshot: `2679`
+- Approximate Python files reviewed in this slice: `416`
+- Collected pytest items snapshot: `2683`
 
 ### Open-source / governance review
 - Covered: `README.md`, `README_zh.md`, `docs/README.md`, `SUPPORT.md`, `SECURITY.md`, `CHANGELOG.md`, `pyproject.toml`, `custom_components/lipro/manifest.json`, `.planning/baseline/**`, `.planning/reviews/**`, release/security workflows, issue templates
@@ -57,7 +57,7 @@ This ledger is the single active synthesis surface for the `v1.35` repo-wide aud
 
 ### Code hotspots (carry-forward, not blockers for v1.35)
 - `custom_components/lipro/runtime_types.py` remains a heavy cross-plane contract hub
-- `custom_components/lipro/control/runtime_access*` and `service_router*` still show support-family fragmentation that hurts readability more than correctness
+- `custom_components/lipro/control/runtime_access*` remains a notable support-family hotspot, but `service_router` non-diagnostics callback fragmentation has now been closed by Phase 123
 - `custom_components/lipro/core/auth/manager.py`, `custom_components/lipro/core/command/result_policy.py`, `custom_components/lipro/core/protocol/boundary/mqtt_decoder.py`, and `scripts/check_architecture_policy.py` remain priority inward-split candidates
 - some compatibility handling still exists in localized runtime/device helpers, but it is currently controlled rather than regrown into a public seam
 
@@ -78,6 +78,9 @@ This ledger is the single active synthesis surface for the `v1.35` repo-wide aud
 | `122-01` | master audit ledger / route truth | complete | ledger truth, route contract alignment, and closeout audit handoff are all in place |
 | `122-02` | public first-hop boundary cleanup | complete | docs/support/security now keep public routing ahead of maintainer appendix continuity truth |
 | `122-03` | metadata traceability + focused guards | complete | tag-aware metadata projections and focused tests are now sealed |
+| `123-01` | route reopen + phase assets | complete | planning selector truth, phase assets, and current route handoff are now aligned |
+| `123-02` | service-router reconvergence | complete | non-diagnostics callbacks reconverged and four thin shells removed |
+| `123-03` | docs/governance freeze refresh | complete | developer/public architecture docs and governance ledgers now match the reconverged topology |
 
 ## Explicit Non-Goals
 
@@ -92,3 +95,10 @@ This ledger is complete for `v1.35` when:
 2. metadata projections track the current package tag and focused tests fail on regression
 3. planning docs and phase summaries can point here as the single active audit synthesis surface
 4. unresolved code/test hotspot items remain explicitly marked as carry-forward rather than silently forgotten
+
+## Phase 123 Carry-forward Closure
+
+### Resolved in this phase
+- `ARC-34` / `HOT-54`: `service_router` non-diagnostics callback family reconverged into `service_router_handlers.py`; four over-thin split shells were removed.
+- `DOC-13`: developer/public architecture docs now distinguish current reconverged topology from the archived Phase 104 predecessor split.
+- `GOV-82` / `TST-45`: planning route truth, file-matrix projection, and focused guards now acknowledge `Phase 123` as the honest final closeout carry-forward for `v1.35`.

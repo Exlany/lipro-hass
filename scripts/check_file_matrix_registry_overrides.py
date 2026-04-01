@@ -255,8 +255,10 @@ BASE_OVERRIDE_TRUTH_FAMILIES = (
         ("tests/meta/governance_phase_history_topology_closeouts.py", "closeout/promoted-asset phase-history topology topic home"),
     )),
 
-    OverrideTruthFamily(area="Control", owner_phase="Phase 37", fate="保留", rows=(
-        ("custom_components/lipro/control/service_router_handlers.py", "thin family index over focused service-router handler homes"),
+    OverrideTruthFamily(area="Cross-cutting", owner_phase="Phase 112", fate="保留", rows=(("custom_components/lipro/entry_auth.py", "config-entry auth/bootstrap formal home"), ("custom_components/lipro/runtime_infra.py", "shared runtime infra formal home"),)),
+
+    OverrideTruthFamily(area="Control", owner_phase="Phase 123", fate="保留", rows=(
+        ("custom_components/lipro/control/service_router_handlers.py", "control-local callback family home for command/schedule/share/maintenance service-router handlers"),
         ("custom_components/lipro/control/service_router_support.py", "router lookup/logging/runtime-iterator helper home"),
         ("tests/core/test_init_runtime_bootstrap.py", "bootstrap/infrastructure topic home"),
         ("tests/core/test_init_runtime_registry_refresh.py", "registry-refresh topic home"),

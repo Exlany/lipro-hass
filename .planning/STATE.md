@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.35
 milestone_name: Master Audit Closure, Public Surface Finalization & Release Traceability
-status: active / phase 122 complete; closeout-ready (2026-04-01)
-stopped_at: Phase 122 complete; milestone closeout-ready
-last_updated: "2026-04-01T09:22:06Z"
+status: active / phase 123 complete; closeout-ready (2026-04-01)
+stopped_at: Phase 123 complete; milestone closeout-ready
+last_updated: "2026-04-01T12:34:00Z"
 last_activity: 2026-04-01
 progress:
-  total_phases: 1
-  completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_phases: 2
+  completed_phases: 2
+  total_plans: 6
+  completed_plans: 6
   percent: 100
 ---
 
@@ -27,10 +27,10 @@ contract_name: governance-route
 active_milestone:
   version: v1.35
   name: Master Audit Closure, Public Surface Finalization & Release Traceability
-  status: active / phase 122 complete; closeout-ready (2026-04-01)
-  phase: '122'
-  phase_title: master audit ledger, public first-hop boundary finalization, metadata traceability, and focused guard sealing
-  phase_dir: 122-master-audit-ledger-public-first-hop-boundary-finalization-metadata-traceability-and-focused-guard-sealing
+  status: active / phase 123 complete; closeout-ready (2026-04-01)
+  phase: '123'
+  phase_title: service-router family reconvergence, control-plane locality tightening, and public architecture hygiene
+  phase_dir: 123-service-router-family-reconvergence-control-plane-locality-and-public-architecture-hygiene
 latest_archived:
   version: v1.34
   name: Terminal Audit Closure, Contract Hardening & Governance Truth Slimming
@@ -53,27 +53,28 @@ bootstrap:
 <!-- governance-route-contract:end -->
 **Current milestone:** `v1.35 Master Audit Closure, Public Surface Finalization & Release Traceability`
 **Active milestone:** `Master Audit Closure, Public Surface Finalization & Release Traceability`
-**Core value:** `把 repo-wide audit 结论、公开 first-hop 边界、tagged-release metadata traceability 与 focused guards 收敛到单一 active route。`
-**Current focus:** `Phase 122 complete — milestone closeout / archive promotion`
+**Core value:** `把 repo-wide audit 结论、service-router topology、公开架构叙事与 focused guards 收敛到单一 active route。`
+**Current focus:** `Phase 123 complete — milestone closeout / archive promotion`
 **Current mode:** `v1.35 active milestone route / starting from latest archived baseline = v1.34`
 
 ## Current Position
 
-- **Phase:** `122 of 122`
-- **Plan:** `3 of 3`
+- **Phase:** `123 of 123`
+- **Plan:** `6 of 6`
 - **Status:** `complete`
-- **Last activity:** `2026-04-01` — `Phase 122` 的 3/3 计划、route truth、public first-hop boundary、metadata traceability 与 focused guards 已完成；默认下一步为 `$gsd-complete-milestone v1.35`
+- **Last activity:** `2026-04-01` — `Phase 123` 的 3/3 计划、service-router reconvergence、developer/public architecture drift cleanup 与 governance freeze refresh 已完成；默认下一步为 `$gsd-complete-milestone v1.35`
 - **Progress:** `[██████████] 100%`
 
 ## Performance Metrics
 
-- **Total plans completed:** `3`
+- **Total plans completed:** `6`
 - **Average duration:** `-`
 - **Total execution time:** `-`
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 122 | complete | 3/3 | - |
+| 123 | complete | 3/3 | - |
 
 ## Governance Truth Sources
 
@@ -86,7 +87,7 @@ bootstrap:
 - Closeout audit: `.planning/v1.35-MILESTONE-AUDIT.md`
 - Latest archived snapshots: `.planning/milestones/v1.34-ROADMAP.md`, `.planning/milestones/v1.34-REQUIREMENTS.md`
 - Promoted phase evidence allowlist: `.planning/reviews/PROMOTED_PHASE_ASSETS.md`
-- Current phase workspace: `.planning/phases/122-master-audit-ledger-public-first-hop-boundary-finalization-metadata-traceability-and-focused-guard-sealing/`
+- Current phase workspace: `.planning/phases/123-service-router-family-reconvergence-control-plane-locality-and-public-architecture-hygiene/`
 - North-star authority: `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`
 
 ## Historical Continuity Anchors
@@ -105,28 +106,29 @@ bootstrap:
 
 ### Decisions
 
-- `v1.35` live route 已收口为 `active / phase 122 complete; closeout-ready (2026-04-01)`；默认下一步固定为 `$gsd-complete-milestone v1.35`。
-- `Phase 122` 已完成 repo-wide audit ledger 落表、public first-hop / maintainer appendix boundary cleanup、metadata tagged-release traceability 与 focused guard sealing。
+- `v1.35` live route 已收口为 `active / phase 123 complete; closeout-ready (2026-04-01)`；默认下一步固定为 `$gsd-complete-milestone v1.35`。
+- `Phase 122` 完成 repo-wide audit ledger、public first-hop boundary、metadata tagged-release traceability 与 focused guard sealing。
+- `Phase 123` 完成 `service_router` non-diagnostics callback family reconvergence、developer/public architecture drift cleanup、file-matrix / route truth / focused guard refresh。
 - `v1.34` 的 archived audit / evidence / milestone snapshots 继续作为 pull-only baseline；剩余问题只保留显式 carry-forward，不伪装为未收敛主线缺口。
 
 ### Pending Todos
 
 - 通过 `$gsd-complete-milestone v1.35` 归档当前 closeout-ready route，并提升 v1.35 milestone snapshots / evidence index。
-- 若后续需要补齐 Nyquist 形式化验证，可单独执行 `$gsd-validate-phase 122`；这不是当前 closeout blocker。
+- 若后续需要补齐 Nyquist 形式化验证，可单独执行 `$gsd-validate-phase 123`；这不是当前 closeout blocker。
 
 ### Blockers/Concerns
 
 - 当前无 repo-internal blocker；full-suite / lint / file-matrix / focused guards 已足以支持 closeout-ready verdict。
-- carry-forward 仅剩：`runtime_types.py` 等热点的继续 inward split、`tests/meta` 的 prose-heavy debt、以及 repo-external continuity / disclosure fallback 问题。
+- carry-forward 仍包括：`config_flow.py` 的状态机厚度、`runtime_types.py` 的跨平面 contract 密度、以及 `password_hash` 凭证语义的进一步收口。
 
 ## Recommended Next Command
 
-- **Primary:** `$gsd-complete-milestone v1.35` — 当前 live route 已是 `1/1 phases`, `3/3 plans`, `100%`，应进入归档与 snapshot promotion。
+- **Primary:** `$gsd-complete-milestone v1.35` — 当前 live route 已是 `2/2 phases`, `6/6 plans`, `100%`，应进入归档与 snapshot promotion。
 - **Status check:** `$gsd-progress` — 若要在归档前再复核一次 closeout-ready state，可先查看。
 
 ## Session Continuity
 
-- **Last session:** 2026-04-01T09:22:06Z
-- **Stopped at:** Phase 122 complete; milestone closeout-ready
+- **Last session:** 2026-04-01T12:34:00Z
+- **Stopped at:** Phase 123 complete; milestone closeout-ready
 - **Resume file:** `.planning/v1.35-MILESTONE-AUDIT.md`
 - **Read next:** `.planning/v1.35-MILESTONE-AUDIT.md` → `.planning/reviews/V1_35_MASTER_AUDIT_LEDGER.md` → `.planning/ROADMAP.md` → `.planning/REQUIREMENTS.md` → `.planning/reviews/V1_34_EVIDENCE_INDEX.md`

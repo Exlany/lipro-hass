@@ -7,10 +7,10 @@ contract_name: governance-route
 active_milestone:
   version: v1.35
   name: Master Audit Closure, Public Surface Finalization & Release Traceability
-  status: active / phase 122 complete; closeout-ready (2026-04-01)
-  phase: '122'
-  phase_title: master audit ledger, public first-hop boundary finalization, metadata traceability, and focused guard sealing
-  phase_dir: 122-master-audit-ledger-public-first-hop-boundary-finalization-metadata-traceability-and-focused-guard-sealing
+  status: active / phase 123 complete; closeout-ready (2026-04-01)
+  phase: '123'
+  phase_title: service-router family reconvergence, control-plane locality tightening, and public architecture hygiene
+  phase_dir: 123-service-router-family-reconvergence-control-plane-locality-and-public-architecture-hygiene
 latest_archived:
   version: v1.34
   name: Terminal Audit Closure, Contract Hardening & Governance Truth Slimming
@@ -33,33 +33,40 @@ bootstrap:
 <!-- governance-route-contract:end -->
 ## Current Milestone (v1.35)
 
-**Milestone Goal:** 基于 `v1.34` latest archived baseline，把全仓 Python/docs/config/governance 的终极审阅残留收束成单一 active route：repo-wide audit 结果落表、公开 first-hop 边界更清晰、maintainer appendix 不再干扰 first-hop、metadata URL 获得 tagged-release traceability，并由 focused guards 冻结这些 truth。
-**Milestone status:** `active / phase 122 complete; closeout-ready (2026-04-01)`
+**Milestone Goal:** 基于 `v1.34` latest archived baseline，把全仓 master audit 的第二轮 carry-forward 收束成单一 active route：`service_router` family 回到更紧的 control-local topology，公开架构说明与 changelog truth 回到当前实现，而 governance/file-matrix/focused guards 持续冻结这些 truth。
+**Milestone status:** `active / phase 123 complete; closeout-ready (2026-04-01)`
 **Current route mode:** `v1.35 active milestone route / starting from latest archived baseline = v1.34`
 **Starting baseline:** `.planning/v1.34-MILESTONE-AUDIT.md`, `.planning/reviews/V1_34_EVIDENCE_INDEX.md`, `.planning/milestones/v1.34-ROADMAP.md`, `.planning/milestones/v1.34-REQUIREMENTS.md`
-**Requirements basket:** `AUD-05`, `DOC-12`, `OSS-16`, `GOV-81`, `TST-44`
+**Requirements basket:** `AUD-05`, `DOC-12`, `OSS-16`, `GOV-81`, `TST-44`, `ARC-34`, `HOT-54`, `DOC-13`, `GOV-82`, `TST-45`
 **Latest archived baseline:** `v1.34`
 **Archive pointer:** `.planning/reviews/V1_34_EVIDENCE_INDEX.md`
 **Latest archived audit artifact:** `.planning/v1.34-MILESTONE-AUDIT.md`
 **Default next command:** `$gsd-complete-milestone v1.35`
 **Active audit ledger:** `.planning/reviews/V1_35_MASTER_AUDIT_LEDGER.md`
 **Closeout audit:** `.planning/v1.35-MILESTONE-AUDIT.md`
-**Current phase handoff:** `Phase 122 已完成 3/3 计划，requirements basket 已全部落到 summary / verification / guard proof；下一步归档 v1.35。`
+**Current phase handoff:** `Phase 123 已完成 3/3 计划；current route 现处于诚实的 closeout-ready 状态。`
 
 ### Audit Closure
 - [x] **AUD-05**: 必须把全仓 Python/docs/config/governance 的终审结果落到单一 audit ledger / table truth，逐项标注问题来源、first-hop / appendix / metadata / guard 归宿与处置状态，避免剩余问题继续散落在 phase folklore 或口头结论里。
 
 ### Documentation & Public Surface
 - [x] **DOC-12**: `README.md`、`README_zh.md`、`docs/README.md`、`CONTRIBUTING.md` 与 maintainer appendix family 必须明确分层：公开 first-hop 入口在首屏清晰可见，maintainer appendix 只能作为不抢 first-hop 叙事的附录深链存在。
+- [x] **DOC-13**: `docs/developer_architecture.md`、`CHANGELOG.md`、`.planning/codebase/ARCHITECTURE.md` 与 `docs/architecture_archive.md` 必须共同承认当前 `service_router` topology：current docs 讲 reconverged handler home，archive docs 仅保留 predecessor split 的历史说明。
 
 ### Open Source & Metadata
 - [x] **OSS-16**: `manifest.json`、`hacs.json`、release-facing docs 与相关 metadata URL 必须可追溯到 semver/tagged release truth，不得继续指向无法解释 provenance 的 generic、stale 或 milestone-labeled target。
 
+### Architecture & Hotspots
+- [x] **ARC-34**: `custom_components/lipro/control/service_router_handlers.py` 必须成为 command / schedule / share / maintenance callback family 的正式 control-local home；`service_router_diagnostics_handlers.py` 可以独立存在，但不得再把四个过薄 shells 讲成 current formal topology。
+- [x] **HOT-54**: `service_router_command_handlers.py`、`service_router_schedule_handlers.py`、`service_router_share_handlers.py` 与 `service_router_maintenance_handlers.py` 必须删除，避免 control-plane 继续被过薄 predecessor split 合法化。
+
 ### Governance Route Truth
 - [x] **GOV-81**: `PROJECT / ROADMAP / REQUIREMENTS / STATE` 必须共同承认 `v1.35 active milestone route / starting from latest archived baseline = v1.34`，并把 repo-wide audit ledger、public first-hop boundary、metadata traceability 与 guard scope 讲成同一条 maintainer route。
+- [x] **GOV-82**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES` 必须在同一轮 route reopen 中诚实记录 `Phase 123` 的 planning/execution/completion truth，不得继续伪装 `Phase 122` 已是最终 closeout 状态。
 
 ### Testing & Guards
 - [x] **TST-44**: focused guards / meta tests / docs checks 必须冻结 audit ledger completeness、public first-hop vs maintainer appendix boundary、metadata tagged-release traceability 与 active route truth；任一 drift 都应自动失败。
+- [x] **TST-45**: focused guards / file-matrix / locality tests 必须同时冻结 `service_router` family reconvergence、deleted split shells 不回流、以及 archive-vs-current topology 叙事分层。
 
 ## Traceability
 
@@ -70,11 +77,16 @@ bootstrap:
 | OSS-16 | Phase 122 | Complete |
 | GOV-81 | Phase 122 | Complete |
 | TST-44 | Phase 122 | Complete |
+| ARC-34 | Phase 123 | Complete |
+| HOT-54 | Phase 123 | Complete |
+| DOC-13 | Phase 123 | Complete |
+| GOV-82 | Phase 123 | Complete |
+| TST-45 | Phase 123 | Complete |
 
 **Coverage:**
-- v1.35 requirements: 5 total
-- Mapped to phases: 5
-- Complete: 5
+- v1.35 requirements: 10 total
+- Mapped to phases: 10
+- Complete: 10
 - Pending: 0
 - Unmapped: 0 ✓
 

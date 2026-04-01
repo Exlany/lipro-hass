@@ -84,7 +84,7 @@
 
 **HA root wiring / lazy factory adapter:**
 - Risk Level: `High`
-- Files: `custom_components/lipro/__init__.py`, `custom_components/lipro/control/entry_lifecycle_controller.py`, `custom_components/lipro/control/service_registry.py`, `custom_components/lipro/control/service_router_handlers.py`
+- Files: `custom_components/lipro/__init__.py`, `custom_components/lipro/control/entry_lifecycle_controller.py`, `custom_components/lipro/control/service_registry.py`, `custom_components/lipro/control/service_router_handlers.py`（已在 Phase 123 收敛 non-diagnostics family，但仍是 control-plane 关键热点）
 - Why fragile: entry setup、auth、runtime bootstrap、service registration 与 lazy loader contract 在此收口；小改动就可能破坏启动路径或重新长出 second root。
 - Safe modification: 让 `custom_components/lipro/__init__.py` 继续只做 thin adapter；新增逻辑优先下沉到 control/runtime formal home；触碰后至少重跑 `tests/core/test_init*.py`、`tests/core/test_control_plane.py`、`tests/services/test_services_registry.py`。
 - Test coverage: 有力但仍偏广，尤其 init/control 改动常跨多套 suite 才能完全兜住。

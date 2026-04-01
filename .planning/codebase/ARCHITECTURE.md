@@ -74,7 +74,7 @@
 
 **Command & Service Path:**
 1. A user action enters through a platform entity in `custom_components/lipro/{light,fan,switch,cover,climate,select,update}.py` or a service callback in `custom_components/lipro/control/service_router.py`.
-2. Entities dispatch through `custom_components/lipro/entities/base.py`; services dispatch through `custom_components/lipro/control/service_router_handlers.py` with helpers from `custom_components/lipro/services/`.
+2. Entities dispatch through `custom_components/lipro/entities/base.py`; services dispatch through `custom_components/lipro/control/service_router_handlers.py`, which now owns command/schedule/share/maintenance callbacks directly while `custom_components/lipro/control/service_router_diagnostics_handlers.py` remains the developer/diagnostics collaborator home.
 3. Shared coordinator-auth handling runs through `custom_components/lipro/services/execution.py`.
 4. Runtime command or schedule services in `custom_components/lipro/core/coordinator/services/` call the protocol root.
 5. `custom_components/lipro/core/api/rest_facade.py` applies request policy, auth recovery, transport execution, and mapping validation before runtime confirmation/refresh closes the loop.

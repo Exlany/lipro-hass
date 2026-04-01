@@ -30,7 +30,7 @@ uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro 
 **Location:**
 - Tests live in a dedicated `tests/` tree, not beside production files.
 - Current topology is broad and intentional: `tests/core`, `tests/services`, `tests/flows`, `tests/platforms`, `tests/entities`, `tests/meta`, `tests/integration`, `tests/snapshots`, `tests/benchmarks`, `tests/harness`, and `tests/fixtures`.
-- Repository counts from current scanning: `415` Python files under `tests`, `332` runnable `test_*.py` files, `74` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
+- Repository counts from current scanning: `416` Python files under `tests`, `333` runnable `test_*.py` files, `75` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
 
 **Naming:**
 - Use `test_*.py` everywhere.
@@ -257,6 +257,11 @@ with pytest.raises(ServiceValidationError):
 
 - `tests/meta/test_phase104_service_router_runtime_split_guards.py` now freezes predecessor visibility for the `service_router_handlers.py` family split, `command_runtime_outcome_support.py` extraction, and governance projection under the current `v1.30 active route / Phase 110 complete / latest archived baseline = v1.29`.
 - Phase 104 verification remains required as a completed predecessor bundle; active-route freeze has moved to `tests/meta/test_phase107_rest_status_hotspot_guards.py`.
+
+## Phase 123 Testing Freeze
+
+- `tests/meta/test_phase123_service_router_reconvergence_guards.py` now freezes the current closeout truth for service-router family reconvergence, file-matrix projection, and control-plane locality tightening under the active `v1.35 / Phase 123 complete` route.
+- Reconvergence does not erase predecessor history: `tests/meta/test_phase104_service_router_runtime_split_guards.py` continues to freeze historical visibility for the Phase 104 split, while Phase 123 owns the live no-regrowth contract.
 
 ## Phase 110 Testing Freeze
 

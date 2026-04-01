@@ -603,3 +603,9 @@ _None currently registered._
 - 无新增 active residual family；Phase 113 关闭的是 `share_client_submit.py` 与 `result.py` 的 helper ballast，并把 remaining >400-line production hotspots 改写为显式 no-growth budget truth，而不是继续口头 carry-forward。
 - `status_fallback_support.py`、`rest_facade.py`、`anonymous_share/manager.py`、`rest_decoder.py`、`firmware_update.py`、`rest_decoder_support.py`、`result_policy.py`、`dispatch.py` 与 `auth/manager.py` 继续保留 formal homes / sanctioned carriers 身份；后续若仍要精修，只允许沿既有 home/support seams inward split 或 narrowing，不得长出第二 authority chain。
 - repo-level follow-up 仍诚实保留：私有 `gsd-tools` 进入测试/closeout guards、promoted assets 第二真源、planning route truth 多处硬编码、`.planning/codebase` freshness 漂移、planning link audit 未覆盖、contributor onramp / release continuity 单点；这些已进入最终审计，但不在本 phase 伪装成已关闭。
+
+## Phase 123 Residual Delta
+
+- `service_router` non-diagnostics callback family 已正式 reconverge 到 `custom_components/lipro/control/service_router_handlers.py`；四个过薄 split shells 已删除，不再计作 current residual topology。
+- `service_router_diagnostics_handlers.py` 继续保留为 developer/diagnostics collaborator home；这不是 residual，而是刻意保留的语义隔离。
+- 本 phase 没有继续进入 `config_flow.py` / `runtime_types.py` / `entry_auth.py` 的更高风险 slimming；这些保持为后续 carry-forward 观察点。

@@ -3,10 +3,10 @@
 ## Current Milestone (v1.35)
 
 **Name:** `Master Audit Closure, Public Surface Finalization & Release Traceability`
-**Status:** `active / phase 122 complete; closeout-ready (2026-04-01)`
+**Status:** `active / phase 123 complete; closeout-ready (2026-04-01)`
 **Current route:** `v1.35 active milestone route / starting from latest archived baseline = v1.34`
-**Phase range:** `122 -> 122`
-**Progress:** `1/1 phases, 3/3 plans`
+**Phase range:** `122 -> 123`
+**Progress:** `2/2 phases, 6/6 plans`
 **Default next command:** `$gsd-complete-milestone v1.35`
 **Latest archived pointer:** `.planning/reviews/V1_34_EVIDENCE_INDEX.md`
 **Active audit ledger:** `.planning/reviews/V1_35_MASTER_AUDIT_LEDGER.md`
@@ -15,6 +15,7 @@
 **Active phase story:**
 
 - `Phase 122`: master audit ledger, public first-hop boundary finalization, metadata traceability, and focused guard sealing ✅ (`122-01` ledger/route truth + `122-02` first-hop boundary cleanup + `122-03` metadata/guards complete)
+- `Phase 123`: service-router family reconvergence, control-plane locality tightening, and public architecture hygiene ✅ (`123-01` route reopen/phase assets + `123-02` service-router reconvergence + `123-03` docs/governance freeze refresh complete)
 
 ## v1.34 Terminal Audit Closure, Contract Hardening & Governance Truth Slimming (Shipped: 2026-04-01; Closeout: 2026-04-01)
 
@@ -43,10 +44,10 @@ contract_name: governance-route
 active_milestone:
   version: v1.35
   name: Master Audit Closure, Public Surface Finalization & Release Traceability
-  status: active / phase 122 complete; closeout-ready (2026-04-01)
-  phase: '122'
-  phase_title: master audit ledger, public first-hop boundary finalization, metadata traceability, and focused guard sealing
-  phase_dir: 122-master-audit-ledger-public-first-hop-boundary-finalization-metadata-traceability-and-focused-guard-sealing
+  status: active / phase 123 complete; closeout-ready (2026-04-01)
+  phase: '123'
+  phase_title: service-router family reconvergence, control-plane locality tightening, and public architecture hygiene
+  phase_dir: 123-service-router-family-reconvergence-control-plane-locality-and-public-architecture-hygiene
 latest_archived:
   version: v1.34
   name: Terminal Audit Closure, Contract Hardening & Governance Truth Slimming

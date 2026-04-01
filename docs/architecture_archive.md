@@ -106,6 +106,12 @@
 - `command_runtime.py` 继续是 formal command-runtime orchestration home，而 `command_runtime_outcome_support.py` 只承接 outcome bookkeeping、command-result failure normalization 与 reauth error handling。
 - `Phase 104` 现在作为 completed predecessor bundle 保持可见性；active-route freeze 已上移到 `Phase 107`，因此不得再把 Phase 104 叙述成 current selector。
 
+## Phase 123 Service-router Reconvergence / Control-plane Locality Tightening Note
+
+- `Phase 123` 将 `control/service_router_handlers.py` 从 thin family index 重收敛为 command / schedule / share / maintenance 的 control-local callback family home。
+- `service_router_diagnostics_handlers.py` 继续独立保留，用来隔离 developer / diagnostics 语义较重的回调。
+- `Phase 104` 的 split 不被否认：它作为 predecessor decomposition 仍保留在本归档说明中，但四个过薄的 non-diagnostics handler shells 已被正式删除，防止 control-plane 过度分片继续合法化。
+
 ## Phase 105 Governance Rule Datafication / Milestone Freeze Note
 
 - `tests/meta/governance_followup_route_specs.py` 现在承载 current-milestone / closeout / continuation follow-up route 的共享 case/spec truth，避免三套 governance suites 继续复制粘贴同一组期望与台账路径。

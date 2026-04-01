@@ -105,13 +105,7 @@ _COMPONENT_EXACT_RULES: tuple[ClassifierRule, ...] = build_exact_rules(
     ExactRuleFamily(
         area="Control",
         owner_phase="Phase 104",
-        residual_rows=(
-            ("custom_components/lipro/control/service_router_command_handlers.py", "focused command handler family home for service-router callbacks"),
-            ("custom_components/lipro/control/service_router_schedule_handlers.py", "focused schedule handler family home for service-router callbacks"),
-            ("custom_components/lipro/control/service_router_share_handlers.py", "focused anonymous-share handler family home for service-router callbacks"),
-            ("custom_components/lipro/control/service_router_diagnostics_handlers.py", "focused diagnostics/developer handler family home for service-router callbacks"),
-            ("custom_components/lipro/control/service_router_maintenance_handlers.py", "focused maintenance handler family home for service-router callbacks"),
-        ),
+        residual_rows=(("custom_components/lipro/control/service_router_diagnostics_handlers.py", "focused diagnostics/developer handler family home for service-router callbacks"),),
     ),
     ExactRuleFamily(
         area="Runtime",
@@ -195,6 +189,11 @@ _TEST_EXACT_RULES: tuple[ClassifierRule, ...] = build_exact_rules(
     ),
     ExactRuleFamily(
         area="Assurance",
+        owner_phase="Phase 123",
+        residual_rows=(("tests/meta/test_phase123_service_router_reconvergence_guards.py", "focused closeout guard home for Phase 123 service-router reconvergence"),),
+    ),
+    ExactRuleFamily(
+        area="Assurance",
         owner_phase="Phase 105",
         residual_rows=(
             ("tests/meta/governance_followup_route_specs.py", "shared follow-up route spec + planning-doc snapshot helper home"),
@@ -205,6 +204,16 @@ _TEST_EXACT_RULES: tuple[ClassifierRule, ...] = build_exact_rules(
         area="Assurance",
         owner_phase="Phase 107",
         residual_rows=(("tests/meta/test_phase107_rest_status_hotspot_guards.py", "focused predecessor guard home for Phase 107 REST/auth/status hotspot convergence"),),
+    ),
+    ExactRuleFamily(
+        area="Assurance",
+        owner_phase="Phase 113",
+        residual_rows=(("tests/meta/test_phase113_hotspot_assurance_guards.py", "focused hotspot budget and changed-surface assurance guard home for Phase 113"),),
+    ),
+    ExactRuleFamily(
+        area="Assurance",
+        owner_phase="Phase 114",
+        residual_rows=(("tests/meta/test_phase114_open_source_surface_honesty_guards.py", "focused open-source surface honesty guard home for Phase 114"),),
     ),
     ExactRuleFamily(
         area="Assurance",
