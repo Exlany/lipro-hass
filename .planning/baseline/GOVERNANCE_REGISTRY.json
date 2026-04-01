@@ -173,34 +173,27 @@
       ".planning/STATE.md",
       ".planning/MILESTONES.md"
     ],
-    "active_milestone": {
+    "active_milestone": null,
+    "latest_archived": {
       "version": "v1.35",
       "name": "Master Audit Closure, Public Surface Finalization & Release Traceability",
-      "status": "active / phase 125 complete; closeout-ready (2026-04-01)",
+      "status": "archived / evidence-ready (2026-04-01)",
       "phase": "125",
       "phase_title": "terminal residual eradication, runtime-types decomposition, adapter final thinning, and machine-readable governance extraction",
-      "phase_dir": "125-terminal-residual-eradication-runtime-types-decomposition-adapter-final-thinning-and-machine-readable-governance-extraction"
-    },
-    "latest_archived": {
-      "version": "v1.34",
-      "name": "Terminal Audit Closure, Contract Hardening & Governance Truth Slimming",
-      "status": "archived / evidence-ready (2026-04-01)",
-      "phase": "121",
-      "phase_title": "residual contract closure, flow invariant tightening, and surface hygiene cleanup",
-      "phase_dir": "121-residual-contract-closure-flow-invariant-tightening-surface-hygiene-cleanup",
-      "audit_path": ".planning/v1.34-MILESTONE-AUDIT.md",
-      "evidence_path": ".planning/reviews/V1_34_EVIDENCE_INDEX.md",
+      "phase_dir": "125-terminal-residual-eradication-runtime-types-decomposition-adapter-final-thinning-and-machine-readable-governance-extraction",
+      "audit_path": ".planning/v1.35-MILESTONE-AUDIT.md",
+      "evidence_path": ".planning/reviews/V1_35_EVIDENCE_INDEX.md",
       "evidence_label": "latest archived evidence index"
     },
     "previous_archived": {
-      "version": "v1.33",
-      "name": "MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance Hardening",
-      "evidence_path": ".planning/reviews/V1_33_EVIDENCE_INDEX.md"
+      "version": "v1.34",
+      "name": "Terminal Audit Closure, Contract Hardening & Governance Truth Slimming",
+      "evidence_path": ".planning/reviews/V1_34_EVIDENCE_INDEX.md"
     },
     "bootstrap": {
-      "current_route": "v1.35 active milestone route / starting from latest archived baseline = v1.34",
-      "default_next_command": "$gsd-complete-milestone v1.35",
-      "latest_archived_evidence_pointer": ".planning/reviews/V1_34_EVIDENCE_INDEX.md"
+      "current_route": "no active milestone route / latest archived baseline = v1.35",
+      "default_next_command": "$gsd-new-milestone",
+      "latest_archived_evidence_pointer": ".planning/reviews/V1_35_EVIDENCE_INDEX.md"
     }
   }
 }

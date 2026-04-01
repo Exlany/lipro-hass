@@ -136,13 +136,15 @@ def test_governance_registry_publishes_canonical_planning_route_truth() -> None:
     registry = json.loads(_GOVERNANCE_REGISTRY.read_text(encoding="utf-8"))
     assert isinstance(registry, dict)
     planning_route = _as_mapping(registry["planning_route"])
-    active = _as_mapping(planning_route["active_milestone"])
+    active = planning_route["active_milestone"]
+    latest_archived = _as_mapping(planning_route["latest_archived"])
     bootstrap = _as_mapping(planning_route["bootstrap"])
     projection_targets = _as_str_list(planning_route["projection_targets"])
 
     assert _as_str(planning_route["contract_name"]) == "governance-route"
-    assert _as_str(active["phase"]) == CURRENT_PHASE
-    assert _as_str(active["status"]) == CURRENT_MILESTONE_STATUS
+    assert active is None
+    assert _as_str(latest_archived["phase"]) == CURRENT_PHASE
+    assert _as_str(latest_archived["status"]) == CURRENT_MILESTONE_STATUS
     assert _as_str(bootstrap["current_route"]) == CURRENT_ROUTE
     assert _as_str(bootstrap["default_next_command"]) == CURRENT_MILESTONE_DEFAULT_NEXT
     assert projection_targets == [

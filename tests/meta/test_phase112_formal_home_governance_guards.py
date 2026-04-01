@@ -51,7 +51,7 @@ def test_phase112_authority_matrix_separates_live_selectors_from_archive_chronol
 
     assert "`.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE}.md`" in text
     assert "`.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`" not in text
-    assert ".planning/reviews/V1_34_EVIDENCE_INDEX.md" in text
+    assert LATEST_ARCHIVED_EVIDENCE_PATH in text
 
 
 def test_phase112_file_matrix_registers_sanctioned_root_home_wording() -> None:

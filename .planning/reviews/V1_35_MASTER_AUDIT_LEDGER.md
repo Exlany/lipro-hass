@@ -2,12 +2,12 @@
 
 **Milestone:** `v1.35 Master Audit Closure, Public Surface Finalization & Release Traceability`
 **Baseline:** latest archived baseline = `v1.34`
-**Status:** closeout-ready audit ledger
+**Status:** archived milestone audit ledger
 **Updated:** 2026-04-01
 
 ## Purpose
 
-This ledger is the single active synthesis surface for the `v1.35` repo-wide audit. It does **not** replace `.planning/v1.34-MILESTONE-AUDIT.md` or `.planning/reviews/V1_34_EVIDENCE_INDEX.md`; those remain the archived baseline. This file records the current audit verdict, remediation status, and carry-forward routing for the completed Phase 125 closeout-ready route.
+This ledger is the archived synthesis surface for the `v1.35` repo-wide audit. It builds on `.planning/v1.34-MILESTONE-AUDIT.md` / `.planning/reviews/V1_34_EVIDENCE_INDEX.md`, but its latest pull-only closeout home is `.planning/reviews/V1_35_EVIDENCE_INDEX.md`. This file now records the final audit verdict, remediation status, and archived closeout routing for `v1.35`.
 
 ## Coverage
 

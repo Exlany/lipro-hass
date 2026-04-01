@@ -558,6 +558,32 @@ phases:
 - 121-02-SUMMARY.md
 - 121-03-SUMMARY.md
 - 121-VERIFICATION.md
+122-master-audit-ledger-public-first-hop-boundary-finalization-metadata-traceability-and-focused-guard-sealing:
+- 122-01-SUMMARY.md
+- 122-02-SUMMARY.md
+- 122-03-SUMMARY.md
+- 122-VERIFICATION.md
+123-service-router-family-reconvergence-control-plane-locality-tightening-and-public-architecture-hygiene:
+- 123-01-SUMMARY.md
+- 123-02-SUMMARY.md
+- 123-03-SUMMARY.md
+- 123-VERIFICATION.md
+124-config-entry-auth-seed-normalization-config-flow-adapter-thinning-and-schedule-contract-closure:
+- 124-01-SUMMARY.md
+- 124-02-SUMMARY.md
+- 124-03-SUMMARY.md
+- 124-04-SUMMARY.md
+- 124-05-SUMMARY.md
+- 124-SUMMARY.md
+- 124-VERIFICATION.md
+125-terminal-residual-eradication-runtime-types-decomposition-adapter-final-thinning-and-machine-readable-governance-extraction:
+- 125-01-SUMMARY.md
+- 125-02-SUMMARY.md
+- 125-03-SUMMARY.md
+- 125-04-SUMMARY.md
+- 125-05-SUMMARY.md
+- 125-SUMMARY.md
+- 125-VERIFICATION.md
 policy:
   default_identity: execution-trace
   promotion_contract: Only assets listed under `phases` count as long-term governance/CI

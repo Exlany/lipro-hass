@@ -1,39 +1,40 @@
 # Milestones
 
-## Current Milestone (v1.35)
+## Latest Archived Milestone (v1.35)
 
 **Name:** `Master Audit Closure, Public Surface Finalization & Release Traceability`
-**Status:** `active / phase 125 complete; closeout-ready (2026-04-01)`
-**Current route:** `v1.35 active milestone route / starting from latest archived baseline = v1.34`
+**Status:** `archived / evidence-ready (2026-04-01)`
+**Current route:** `no active milestone route / latest archived baseline = v1.35`
 **Phase range:** `122 -> 125`
 **Progress:** `4/4 phases, 16/16 plans`
-**Default next command:** `$gsd-complete-milestone v1.35`
-**Latest archived pointer:** `.planning/reviews/V1_34_EVIDENCE_INDEX.md`
-**Active audit ledger:** `.planning/reviews/V1_35_MASTER_AUDIT_LEDGER.md`
-**Closeout audit:** `.planning/v1.35-MILESTONE-AUDIT.md`
+**Default next command:** `$gsd-new-milestone`
+**Latest archived pointer:** `.planning/reviews/V1_35_EVIDENCE_INDEX.md`
+**Archived audit:** `.planning/v1.35-MILESTONE-AUDIT.md`
+**Archived snapshots:** `.planning/milestones/v1.35-ROADMAP.md`, `.planning/milestones/v1.35-REQUIREMENTS.md`
 
-**Active phase story:**
+**Archived phase story:**
 
 - `Phase 122`: master audit ledger, public first-hop boundary finalization, metadata traceability, and focused guard sealing ✅ (`122-01` ledger/route truth + `122-02` first-hop boundary cleanup + `122-03` metadata/guards complete)
 - `Phase 123`: service-router family reconvergence, control-plane locality tightening, and public architecture hygiene ✅ (`123-01` route reopen/phase assets + `123-02` service-router reconvergence + `123-03` docs/governance freeze refresh complete)
 - `Phase 124`: config-entry auth seed normalization, config-flow adapter thinning, and schedule contract closure ✅ (`124-01` route truth/assets + `124-02` auth-seed truth/config-flow thinning + `124-03` schedule contract + `124-04` closeout route/governance freeze + `124-05` codebase/evidence freeze complete)
 - `Phase 125`: terminal residual eradication, runtime-types decomposition, adapter final thinning, and machine-readable governance extraction ✅ (`125-01` governance single-source + `125-02` runtime-types decomposition + `125-03` flow/auth thinning + `125-04` meta/tooling slimming + `125-05` docs/evidence freeze complete)
 
-## v1.34 Terminal Audit Closure, Contract Hardening & Governance Truth Slimming (Shipped: 2026-04-01; Closeout: 2026-04-01)
+## Previous Archived Milestone (v1.34)
 
-**Phases completed:** 2 phases, 6 plans, 0 tasks
-
-**Status:** archived / evidence-ready
-**Route truth:** latest archived evidence index = `.planning/reviews/V1_34_EVIDENCE_INDEX.md`
-**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.34`
-**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.33`
+**Name:** `Terminal Audit Closure, Contract Hardening & Governance Truth Slimming`
+**Status:** `archived / evidence-ready (2026-04-01)`
+**Current route:** `no active milestone route / latest archived baseline = v1.34`
+**Phase range:** `120 -> 121`
+**Progress:** `2/2 phases, 6/6 plans`
 **Default next command:** `$gsd-new-milestone`
+**Latest archived pointer:** `.planning/reviews/V1_34_EVIDENCE_INDEX.md`
+**Archived audit:** `.planning/v1.34-MILESTONE-AUDIT.md`
+**Archived snapshots:** `.planning/milestones/v1.34-ROADMAP.md`, `.planning/milestones/v1.34-REQUIREMENTS.md`
 
-**Key accomplishments:**
+**Archived phase story:**
 
-- 完成 `Phase 120 -> 121` 全部计划与 closeout bundle，形成 `v1.34` latest archived baseline 的可审计证据链。
-- 冻结 runtime/service typed contract truth、runtime-access seam closure、flow fail-closed semantics 与 changed-surface assurance de-phaseization。
-- 统一 `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / FILE_MATRIX / TESTING` 的 archived-only selector truth，不再保留第二条 current story。
+- `Phase 120`: terminal audit closure, contract hardening, and governance truth slimming ✅
+- `Phase 121`: residual contract closure, flow invariant tightening, and surface hygiene cleanup ✅
 
 ---
 
@@ -49,40 +50,56 @@ projection_targets:
 - .planning/REQUIREMENTS.md
 - .planning/STATE.md
 - .planning/MILESTONES.md
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.35
   name: Master Audit Closure, Public Surface Finalization & Release Traceability
-  status: active / phase 125 complete; closeout-ready (2026-04-01)
+  status: archived / evidence-ready (2026-04-01)
   phase: '125'
   phase_title: terminal residual eradication, runtime-types decomposition, adapter
     final thinning, and machine-readable governance extraction
   phase_dir: 125-terminal-residual-eradication-runtime-types-decomposition-adapter-final-thinning-and-machine-readable-governance-extraction
-latest_archived:
-  version: v1.34
-  name: Terminal Audit Closure, Contract Hardening & Governance Truth Slimming
-  status: archived / evidence-ready (2026-04-01)
-  phase: '121'
-  phase_title: residual contract closure, flow invariant tightening, and surface hygiene
-    cleanup
-  phase_dir: 121-residual-contract-closure-flow-invariant-tightening-surface-hygiene-cleanup
-  audit_path: .planning/v1.34-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_34_EVIDENCE_INDEX.md
+  audit_path: .planning/v1.35-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_35_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.33
-  name: MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance
-    Hardening
-  evidence_path: .planning/reviews/V1_33_EVIDENCE_INDEX.md
+  version: v1.34
+  name: Terminal Audit Closure, Contract Hardening & Governance Truth Slimming
+  evidence_path: .planning/reviews/V1_34_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.35 active milestone route / starting from latest archived baseline
-    = v1.34
-  default_next_command: $gsd-complete-milestone v1.35
-  latest_archived_evidence_pointer: .planning/reviews/V1_34_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.35
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_35_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 
-## Latest Archived Milestone (v1.34)
+## Latest Archived Milestone (v1.35)
 
+**Phase range:** `122 -> 125`
+**Phases completed:** `4/4 phases, 16/16 plans, 0 tasks`
+**Status:** `archived / evidence-ready (2026-04-01)`
+**Route truth:** `no active milestone route / latest archived baseline = v1.35`
+**Latest archived baseline:** `v1.35`
+**Default next command:** `$gsd-new-milestone`
+**Route truth:** latest archived evidence index = `.planning/reviews/V1_35_EVIDENCE_INDEX.md`
+**Current audit artifact:** `.planning/v1.35-MILESTONE-AUDIT.md`
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.35`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.34`
+
+**Archived phase story:**
+
+- `Phase 122`: master audit ledger, public first-hop boundary finalization, metadata traceability, and focused guard sealing ✅ (`122-01` ledger/route truth + `122-02` first-hop boundary cleanup + `122-03` metadata/guards complete)
+- `Phase 123`: service-router family reconvergence, control-plane locality tightening, and public architecture hygiene ✅ (`123-01` route reopen/phase assets + `123-02` service-router reconvergence + `123-03` docs/governance freeze refresh complete)
+- `Phase 124`: config-entry auth seed normalization, config-flow adapter thinning, and schedule contract closure ✅ (`124-01` route truth/assets + `124-02` auth-seed truth/config-flow thinning + `124-03` schedule contract + `124-04` closeout route/governance freeze + `124-05` codebase/evidence freeze complete)
+- `Phase 125`: terminal residual eradication, runtime-types decomposition, adapter final thinning, and machine-readable governance extraction ✅ (`125-01` governance single-source + `125-02` runtime-types decomposition + `125-03` flow/auth thinning + `125-04` meta/tooling slimming + `125-05` docs/evidence freeze complete)
+
+**Archived accomplishments:**
+
+- 完成 `Phase 122 -> 125` 全部计划与 closeout bundle，形成 `v1.35` latest archived baseline 的可审计证据链。
+- 冻结 repo-wide audit ledger、service-router reconvergence、auth-seed/config-flow/schedule contract closure 与 machine-readable governance truth。
+- 统一 `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES / docs / codebase maps / review ledgers` 的 archived-only selector truth，不再保留第二条 active story。
+
+## Previous Archived Milestone (v1.34)
 **Phase range:** `120 -> 121`
 **Phases completed:** `2/2 phases, 6/6 plans, 0 tasks`
 **Status:** `archived / evidence-ready (2026-04-01)`

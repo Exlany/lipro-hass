@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+from functools import lru_cache
 import json
 from pathlib import Path
 import shutil
 import subprocess
+import tempfile
 
 import pytest
 
@@ -35,14 +37,27 @@ _ROOT = repo_root(Path(__file__))
 _GSD_TOOLS = Path.home() / ".codex" / "get-shit-done" / "bin" / "gsd-tools.cjs"
 
 
+@lru_cache(maxsize=1)
+def _isolated_gsd_root_bundle() -> tuple[tempfile.TemporaryDirectory[str], Path]:
+    temp_root = tempfile.TemporaryDirectory(prefix="lipro-hass-gsd-")
+    isolated_root = Path(temp_root.name) / "repo"
+    isolated_root.symlink_to(_ROOT, target_is_directory=True)
+    return temp_root, isolated_root
+
+
+def _isolated_gsd_cwd() -> Path:
+    return _isolated_gsd_root_bundle()[1]
+
+
 def _run_gsd_tools(*args: str) -> dict[str, object]:
     node_executable = shutil.which("node")
     if node_executable is None:
         pytest.skip("node unavailable; skipping gsd fast-path smoke")
     if not _GSD_TOOLS.exists():
         pytest.skip("gsd-tools unavailable; skipping gsd fast-path smoke")
+    isolated_cwd = _isolated_gsd_cwd()
     result = subprocess.run(  # noqa: S603
-        [node_executable, str(_GSD_TOOLS), *args],
+        [node_executable, str(_GSD_TOOLS), f"--cwd={isolated_cwd}", *args],
         cwd=_ROOT,
         check=False,
         capture_output=True,

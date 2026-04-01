@@ -2,16 +2,16 @@
 
 **Purpose:** 建立 requirement → artifact → test → doc → phase acceptance / handoff 的统一验证闭环。
 **Status:** Formal baseline asset (`BASE-03` phase acceptance truth source)
-**Updated:** 2026-04-01 (Phase 125 closeout-ready route aligned)
+**Updated:** 2026-04-01 (v1.35 archived baseline aligned)
 
 ## Formal Role
 
 ## Current Route
 
-- **Current route story:** `v1.35 active milestone route / starting from latest archived baseline = v1.34`
-- **Current milestone status:** `active / phase 125 complete; closeout-ready (2026-04-01)`
-- **Default next command:** `$gsd-complete-milestone v1.35`
-- **Latest archived pointer:** `.planning/reviews/V1_34_EVIDENCE_INDEX.md`
+- **Current route story:** `no active milestone route / latest archived baseline = v1.35`
+- **Current milestone status:** `archived / evidence-ready (2026-04-01)`
+- **Default next command:** `$gsd-new-milestone`
+- **Latest archived pointer:** `.planning/reviews/V1_35_EVIDENCE_INDEX.md`
 - **Active audit ledger:** `.planning/reviews/V1_35_MASTER_AUDIT_LEDGER.md`
 - **Focused guards:** `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/governance_followup_route_current_milestones.py`, `tests/meta/test_runtime_contract_truth.py`, `tests/meta/test_governance_release_docs.py`, `tests/meta/toolchain_truth_checker_paths.py`, `tests/meta/test_phase89_tooling_decoupling_guards.py`
 
