@@ -1,4 +1,4 @@
-# Requirements: Lipro-HASS v1.39
+# Requirements: Lipro-HASS v1.40
 
 <!-- governance-route-contract:start -->
 ```yaml
@@ -10,7 +10,14 @@ projection_targets:
 - .planning/REQUIREMENTS.md
 - .planning/STATE.md
 - .planning/MILESTONES.md
-active_milestone: null
+active_milestone:
+  version: v1.40
+  name: Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening
+  status: active / phase 134 complete; closeout-ready (2026-04-02)
+  phase: '134'
+  phase_title: request-policy ownership, entity de-reflection, and fan truth hardening
+  phase_dir: 134-request-policy-ownership-entity-de-reflection-and-fan-truth-hardening
+  route_mode: v1.40 active milestone route / starting from latest archived baseline = v1.39
 latest_archived:
   version: v1.39
   name: Governance Recovery, Runtime Consistency & Public Contract Correction
@@ -26,11 +33,65 @@ previous_archived:
   name: Governance Story Compression, Archive Segregation & Public Entry Simplification
   evidence_path: .planning/reviews/V1_38_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.39
-  default_next_command: $gsd-new-milestone
+  current_route: v1.40 active milestone route / starting from latest archived baseline = v1.39
+  default_next_command: $gsd-complete-milestone v1.40
   latest_archived_evidence_pointer: .planning/reviews/V1_39_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
+## Current Milestone (v1.40)
+
+**Milestone Goal:** 基于 `v1.39` latest archived baseline，把 RequestPolicy pacing ownership、entity projection de-reflection 与 fan preset truth 收束到同一条 active milestone 主链，并把 docs/guards/tests 同步推进到 closeout-ready。
+**Milestone status:** `active / phase 134 complete; closeout-ready (2026-04-02)`
+**Current route mode:** `v1.40 active milestone route / starting from latest archived baseline = v1.39`
+**Starting baseline:** `.planning/v1.39-MILESTONE-AUDIT.md, .planning/reviews/V1_39_EVIDENCE_INDEX.md, .planning/milestones/v1.39-ROADMAP.md, .planning/milestones/v1.39-REQUIREMENTS.md`
+**Requirements basket:** `GOV-90, ARC-43, HOT-62, HOT-63, QLT-56, TST-54`
+**Latest archived baseline:** `v1.39`
+**Archive pointer:** `.planning/reviews/V1_39_EVIDENCE_INDEX.md`
+**Latest archived audit artifact:** `.planning/v1.39-MILESTONE-AUDIT.md`
+**Default next command:** `$gsd-complete-milestone v1.40`
+**Current phase handoff:** `Phase 134 已完成 3/3 plans 与 focused verification/validation；默认下一步是 milestone closeout。`
+
+### Governance Ownership
+- [x] **GOV-90**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES` 与 `GOVERNANCE_REGISTRY.json` 必须共同承认 `v1.40 active milestone route / starting from latest archived baseline = v1.39`，并把 `Phase 134` 作为唯一 active phase、`$gsd-complete-milestone v1.40` 作为默认下一步。
+
+### RequestPolicy / Entity Architecture
+- [x] **ARC-43**: `custom_components/lipro/core/api/request_policy.py` 必须把 pacing caches / busy counters / target locks 收回单一实例 owner；`request_policy_support.py` 只保留 support helpers，不再让 mutable pacing state 以 parallel dict 参数形式四处流动。
+- [x] **HOT-62**: `custom_components/lipro/entities/descriptors.py`、`custom_components/lipro/light.py` 与 `custom_components/lipro/binary_sensor.py` 必须移除 dotted-path/getattr 反射，改为显式 resolver / state-reader projection。
+- [x] **HOT-63**: `custom_components/lipro/fan.py` 的 unknown `fanMode` 不能再 fallback 成 `cycle`；preset / supported_features / behavior tests 必须维持 truthful 一致投影。
+
+### Quality / Verification
+- [x] **QLT-56**: developer architecture、maintainer runbook、public-surface meta guards 与 phase assets 必须同步描述新的 owner/projection truth，避免 route/docs/guards 各讲一套。
+- [x] **TST-54**: focused `pytest`/meta/ruff lane 必须覆盖 RequestPolicy ownership、entity de-reflection、fan truth 与 `v1.40` 当前治理路由。
+
+## Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| GOV-90 | Phase 134 | Complete |
+| ARC-43 | Phase 134 | Complete |
+| HOT-62 | Phase 134 | Complete |
+| HOT-63 | Phase 134 | Complete |
+| QLT-56 | Phase 134 | Complete |
+| TST-54 | Phase 134 | Complete |
+
+## Coverage
+
+- v1.40 requirements: 6 total
+- Current mapped: 6
+- Current complete: 6
+- Current pending: 0
+
+
+## Historical Traceability Appendix
+
+为保持 archived continuity guards 与历史 requirement mapping 的单一叙事，保留以下已归档 traceability 锚点：
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| HOT-14 | Phase 60 | Complete |
+| TST-12 | Phase 60 | Complete |
+| GOV-44 | Phase 60 | Complete |
+
 ## Latest Archived Milestone (v1.39)
 
 **Milestone Goal:** 基于 `v1.38` latest archived baseline，先恢复 current governance lane 的 route/source-path/projection 一致性，再为 runtime consistency 与 public contract correction 建立单一执行入口，不再把 sanctioned hotspot 混写进 docs-only closeout。
@@ -44,48 +105,8 @@ bootstrap:
 **Default next command:** `$gsd-new-milestone`
 **Current phase handoff:** `Milestone closeout complete；Phase 133 的 requirement coverage、summary / verification / validation / audit / evidence index 已冻结为 latest archived baseline truth。`
 
-### Governance Recovery
-- [x] **GOV-89**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES`、`GOVERNANCE_REGISTRY.json`、`FILE_MATRIX.md` 与 `PROMOTED_PHASE_ASSETS.md` 必须共同承认 `v1.39 active milestone route / starting from latest archived baseline = v1.38`，并把 `Phase 133` 作为唯一 active phase。
-
-### Runtime Consistency
-- [x] **ARC-42**: `runtime_types.py`、coordinator service contracts 与 runtime-facing typed contract families 必须明确收口到单一下一轮 formal-home 修正路线，不再让 runtime consistency debt 以 vague carry-forward 形式漂浮在 milestone audit 中。
-- [x] **HOT-61**: `core/auth/manager.py`、`request_policy.py`、`dispatch.py` 与 `entities/firmware_update.py` 的 sanctioned hotspot 需要在同一条 phase story 中被列为 runtime consistency lane，而不是散落为未编排 debt。 
-
-### Public Contract & Quality
-- [x] **DOC-18**: developer/public/runbook/support/manifest first-hop 必须回到 current formal home truth，避免 archived-only wording、stale route token 或 public contract drift 继续污染 active milestone。
-- [x] **QLT-55**: route source-path hygiene、Session Continuity 真实路径、FILE_MATRIX inventory 与 promoted-phase allowlist slug 必须在同一轮治理修复内通过 focused checks。
-- [x] **TST-53**: 当前 governance red-test 所依赖的 planning docs、phase asset inventory 与 promoted/file-matrix 文档面必须先收敛，再进入后续 execute-phase。 
-
-## Traceability
-
-| Requirement | Phase | Status |
-|-------------|-------|--------|
-| GOV-89 | Phase 133 | Complete |
-| ARC-42 | Phase 133 | Complete |
-| HOT-61 | Phase 133 | Complete |
-| DOC-18 | Phase 133 | Complete |
-| QLT-55 | Phase 133 | Complete |
-| TST-53 | Phase 133 | Complete |
-
-## Coverage
-
-- v1.39 requirements: 6 total
-- Current mapped: 6
-- Current complete: 6
-- Current pending: 0
-
-## Historical Traceability Appendix
-
-为保持 archived continuity guards 与历史 requirement mapping 的单一叙事，保留以下已归档 traceability 锚点：
-
-| Requirement | Phase | Status |
-|-------------|-------|--------|
-| HOT-14 | Phase 60 | Complete |
-| TST-12 | Phase 60 | Complete |
-| GOV-44 | Phase 60 | Complete |
-
-
 ## Previous Archived Milestone (v1.38)
+
 
 **Milestone Goal:** 基于 `v1.37` latest archived baseline，压缩 current selector / archive boundary / docs-first governance story，把 route-marker / promoted-asset / handoff smoke 的重复断言压回 shared helper 与单一 canonical source。
 **Milestone status:** `archived / evidence-ready (2026-04-02)`

@@ -1,5 +1,21 @@
 # Milestones
 
+## Current Milestone (v1.40)
+
+**Name:** `Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening`
+**Status:** `active / phase 134 complete; closeout-ready (2026-04-02)`
+**Current route:** `v1.40 active milestone route / starting from latest archived baseline = v1.39`
+**Phase range:** `134 -> 134`
+**Progress:** `1/1 phases, 3/3 plans`
+**Default next command:** `$gsd-complete-milestone v1.40`
+**Latest archived pointer:** `.planning/reviews/V1_39_EVIDENCE_INDEX.md`
+**Archived audit reference:** `.planning/v1.39-MILESTONE-AUDIT.md`
+**Starting baseline snapshots:** `.planning/milestones/v1.39-ROADMAP.md`, `.planning/milestones/v1.39-REQUIREMENTS.md`
+
+**Active phase story:**
+
+- `Phase 134`: request-policy ownership, entity de-reflection, and fan truth hardening ✅ (`134-01` RequestPolicy owner convergence + `134-02` entity projection de-reflection / fan truth correction + `134-03` docs/guards/tests/verification sync complete；当前 next = `$gsd-complete-milestone v1.40`)
+
 ## Latest Archived Milestone (v1.39)
 
 **Name:** `Governance Recovery, Runtime Consistency & Public Contract Correction`
@@ -12,9 +28,9 @@
 **Archived audit:** `.planning/v1.39-MILESTONE-AUDIT.md`
 **Archived snapshots:** `.planning/milestones/v1.39-ROADMAP.md`, `.planning/milestones/v1.39-REQUIREMENTS.md`
 
-**Active phase story:**
+**Archived phase story:**
 
-- `Phase 133`: governance recovery, runtime consistency, and public contract correction ✅ (`133-01` governance bootstrap + `133-02` runtime consistency + `133-03` public contract correction + `133-04` governance closeout/resync complete；closeout 已冻结，latest archived evidence pointer = `.planning/reviews/V1_39_EVIDENCE_INDEX.md``)
+- `Phase 133`: governance recovery, runtime consistency, and public contract correction ✅ (`133-01` governance bootstrap + `133-02` runtime consistency + `133-03` public contract correction + `133-04` governance closeout/resync complete；closeout 已冻结，latest archived evidence pointer = `.planning/reviews/V1_39_EVIDENCE_INDEX.md`)
 
 ## Previous Archived Milestone (v1.38)
 
@@ -27,6 +43,8 @@
 **Latest archived pointer:** `.planning/reviews/V1_38_EVIDENCE_INDEX.md`
 **Archived audit:** `.planning/v1.38-MILESTONE-AUDIT.md`
 **Archived snapshots:** `.planning/milestones/v1.38-ROADMAP.md`, `.planning/milestones/v1.38-REQUIREMENTS.md`
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.38`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.37`
 
 **Archived phase story:**
 
@@ -44,12 +62,6 @@
 **Archived audit:** `.planning/v1.37-MILESTONE-AUDIT.md`
 **Archived snapshots:** `.planning/milestones/v1.37-ROADMAP.md`, `.planning/milestones/v1.37-REQUIREMENTS.md`
 
-**Archived phase story:**
-
-- `Phase 129`: rest fallback explicit-surface convergence and api hotspot slimming ✅ (`129-01` façade explicit-surface convergence + `129-02` fallback seam tightening complete)
-- `Phase 130`: runtime command and firmware-update hotspot decomposition ✅ (`130-01` runtime command inward split + `130-02` firmware-update thin-shell/task-outcome tightening complete)
-- `Phase 131`: repo-wide terminal audit closeout and governance continuity decisions ✅ (`131-01` terminal audit + topology closeout, `131-02` docs-first / toolchain / registry honesty sync, `131-03` selector closeout / promoted evidence / validation freeze complete)
-
 ## Historical Archived Milestone (v1.36)
 
 **Name:** `Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening`
@@ -61,12 +73,6 @@
 **Latest archived pointer:** `.planning/reviews/V1_36_EVIDENCE_INDEX.md`
 **Archived audit:** `.planning/v1.36-MILESTONE-AUDIT.md`
 **Archived snapshots:** `.planning/milestones/v1.36-ROADMAP.md`, `.planning/milestones/v1.36-REQUIREMENTS.md`
-
-**Archived phase story:**
-
-- `Phase 126`: service-router developer callback-home convergence and diagnostics helper residual slimming ✅ (`126-01` diagnostics helper shell thinning + route bootstrap + focused/full verification complete)
-- `Phase 127`: runtime-access de-reflection, typed runtime entry contracts, and hotspot continuation ✅ (`127-01` typed telemetry seam + `127-02` support-view de-reflection + `127-03` focused/full verification and governance sync complete)
-- `Phase 128`: open-source readiness, benchmark-coverage gates, and maintainer continuity hardening ✅ (`128-01` readiness honesty / version-source / selector projection sync + `128-02` coverage baseline diff / artifacts + `128-03` benchmark smoke / strict markers / evidence freeze complete)
 
 ---
 
@@ -82,7 +88,14 @@ projection_targets:
 - .planning/REQUIREMENTS.md
 - .planning/STATE.md
 - .planning/MILESTONES.md
-active_milestone: null
+active_milestone:
+  version: v1.40
+  name: Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening
+  status: active / phase 134 complete; closeout-ready (2026-04-02)
+  phase: '134'
+  phase_title: request-policy ownership, entity de-reflection, and fan truth hardening
+  phase_dir: 134-request-policy-ownership-entity-de-reflection-and-fan-truth-hardening
+  route_mode: v1.40 active milestone route / starting from latest archived baseline = v1.39
 latest_archived:
   version: v1.39
   name: Governance Recovery, Runtime Consistency & Public Contract Correction
@@ -98,86 +111,13 @@ previous_archived:
   name: Governance Story Compression, Archive Segregation & Public Entry Simplification
   evidence_path: .planning/reviews/V1_38_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.39
-  default_next_command: $gsd-new-milestone
+  current_route: v1.40 active milestone route / starting from latest archived baseline = v1.39
+  default_next_command: $gsd-complete-milestone v1.40
   latest_archived_evidence_pointer: .planning/reviews/V1_39_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
-## Latest Archived Milestone (v1.39)
-
-**Phase range:** `133 -> 133`
-**Phases completed:** `1/1 phases, 4/4 plans, 0 tasks`
-**Status:** `archived / evidence-ready (2026-04-02)`
-**Route truth:** `no active milestone route / latest archived baseline = v1.39`
-**Latest archived baseline:** `v1.39`
-**Default next command:** `$gsd-new-milestone`
-**Route truth:** latest archived evidence index = `.planning/reviews/V1_39_EVIDENCE_INDEX.md`
-**Latest archived audit artifact:** `.planning/v1.39-MILESTONE-AUDIT.md`
-
-**Active milestone intent:**
-
-- 已完成 governance lane recovery、runtime consistency 修补与 public contract correction，并把它们压回单一 `Phase 133` 主线。
-- `v1.39` 已完成 closeout，并正式前推为 latest archived baseline。
-- `$gsd-next` 的等价结论现已回到 `$gsd-new-milestone`，而不是重复归档或重放 execute-phase。
-
-## Previous Archived Milestone (v1.38)
-
-**Phase range:** `132 -> 132`
-**Phases completed:** `1/1 phases, 3/3 plans, 0 tasks`
-**Status:** `archived / evidence-ready (2026-04-02)`
-**Route truth:** `no active milestone route / latest archived baseline = v1.38`
-**Latest archived baseline:** `v1.38`
-**Default next command:** `$gsd-new-milestone`
-**Route truth:** latest archived evidence index = `.planning/reviews/V1_38_EVIDENCE_INDEX.md`
-**Latest archived audit artifact:** `.planning/v1.38-MILESTONE-AUDIT.md`
-**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.38`
-**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.37`
-
-**Archived phase story:**
-
-- `Phase 132`: current-story compression and archive-boundary cleanup ✅ (`132-01` active-route docs compression + `132-02` current-truth/helper dedupe + `132-03` promoted asset / handoff smoke cleanup complete)
-
-**Archived milestone intent:**
-
-- 把 live selector、latest archived pointer 与 historical archive story 压回更清晰的 single-source hierarchy。
-- 让 governance/docs/test helpers 更偏向 canonical registry + shared helper，而不是继续扩散 prose-heavy second truth。
-- 为后续 production hotspot reopen 留出更诚实的 phase boundary，而不是把它们混写进 docs-only story。
-
-## Historical Archived Milestone (v1.37)
-
-**Phase range:** `129 -> 131`
-**Phases completed:** `3/3 phases, 7/7 plans, 0 tasks`
-**Status:** `archived / evidence-ready (2026-04-01)`
-**Route truth:** `no active milestone route / latest archived baseline = v1.37`
-**Latest archived baseline:** `v1.37`
-**Default next command:** `$gsd-new-milestone`
-**Route truth:** latest archived evidence index = `.planning/reviews/V1_37_EVIDENCE_INDEX.md`
-**Current audit artifact:** `.planning/v1.37-MILESTONE-AUDIT.md`
-**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.37`
-**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.36`
-
-**Archived phase story:**
-
-- `Phase 129`: rest fallback explicit-surface convergence and api hotspot slimming ✅ (`129-01` façade explicit-surface convergence + `129-02` fallback seam tightening complete)
-- `Phase 130`: runtime command and firmware-update hotspot decomposition ✅ (`130-01` runtime command inward split + `130-02` firmware-update thin-shell/task-outcome tightening complete)
-- `Phase 131`: repo-wide terminal audit closeout and governance continuity decisions ✅ (`131-01` terminal audit + topology closeout, `131-02` docs-first / toolchain / registry honesty sync, `131-03` selector closeout / promoted evidence / validation freeze complete)
-
-## Historical Archived Milestone (v1.36)
-
-**Phase range:** `126 -> 128`
-**Phases completed:** `3/3 phases, 7/7 plans, 0 tasks`
-**Status:** `archived / evidence-ready (2026-04-01)`
-**Route truth:** `no active milestone route / latest archived baseline = v1.36`
-**Latest archived baseline:** `v1.36`
-**Default next command:** `$gsd-new-milestone`
-**Route truth:** latest archived evidence index = `.planning/reviews/V1_36_EVIDENCE_INDEX.md`
-**Current audit artifact:** `.planning/v1.36-MILESTONE-AUDIT.md`
-**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.36`
-**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.35`
-
-## Historical Archived Milestone (v1.35)
-
 ## Archived Chronology Appendix
+
 
 ## v1.2 Host-Neutral Core & Replay Completion
 - historical continuity anchor retained.

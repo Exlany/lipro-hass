@@ -44,6 +44,26 @@ PARALLEL_UPDATES = 1
 _HA_BRIGHTNESS_SCALE: Final = 255
 
 
+def _light_is_on(entity: LiproEntity) -> object:
+    """Read light power state from the formal device view."""
+    return entity.device.state.is_on
+
+
+def _light_brightness(entity: LiproEntity) -> object:
+    """Read raw light brightness from the formal device view."""
+    return entity.device.state.brightness
+
+
+def _light_color_temp(entity: LiproEntity) -> object:
+    """Read raw color temperature from the formal device view."""
+    return entity.device.state.color_temp
+
+
+def _supports_color_temp(entity: LiproEntity) -> object:
+    """Return whether the current device supports color temperature."""
+    return entity.capabilities.supports_color_temp
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: LiproConfigEntry,
@@ -64,12 +84,11 @@ async def async_setup_entry(
 class LiproLight(LiproEntity, LightEntity):
     """Representation of a Lipro light."""
 
-    # Declarative properties using descriptors (eliminates 3 manual @property methods)
-    is_on = DeviceAttr[bool]("state.is_on")
-    brightness = ScaledBrightness()  # Auto-converts 0-100 → 0-255
+    is_on = DeviceAttr[bool](_light_is_on)
+    brightness = ScaledBrightness(_light_brightness)
     color_temp_kelvin = ConditionalAttr[int](
-        "state.color_temp",
-        capability="capabilities.supports_color_temp",
+        _light_color_temp,
+        capability=_supports_color_temp,
     )
 
     _power = PowerCommand()
@@ -80,49 +99,36 @@ class LiproLight(LiproEntity, LightEntity):
         device: LiproDevice,
     ) -> None:
         """Initialize the light."""
-        # Use suffix for fan lights to distinguish from fan entity
         suffix = "light" if device.capabilities.is_fan_light else ""
         super().__init__(coordinator, device, suffix)
 
         if device.capabilities.is_fan_light:
             self._attr_translation_key = "light"
         else:
-            self._attr_name = None  # Use device name
+            self._attr_name = None
 
     @property
     def supported_color_modes(self) -> set[ColorMode]:
-        """Return supported color modes based on device capability.
-
-        Dynamic property so it reflects product config changes after init.
-        """
+        """Return supported color modes based on device capability."""
         if self.capabilities.supports_color_temp:
             return {ColorMode.COLOR_TEMP}
         return {ColorMode.BRIGHTNESS}
 
     @property
     def color_mode(self) -> ColorMode:
-        """Return the current color mode.
-
-        Dynamic property matching supported_color_modes.
-        """
+        """Return the current color mode."""
         if self.capabilities.supports_color_temp:
             return ColorMode.COLOR_TEMP
         return ColorMode.BRIGHTNESS
 
     @property
     def min_color_temp_kelvin(self) -> int:
-        """Return the minimum color temperature in Kelvin.
-
-        Uses device-specific range from product config.
-        """
+        """Return the minimum color temperature in Kelvin."""
         return self.capabilities.min_color_temp_kelvin
 
     @property
     def max_color_temp_kelvin(self) -> int:
-        """Return the maximum color temperature in Kelvin.
-
-        Uses device-specific range from product config.
-        """
+        """Return the maximum color temperature in Kelvin."""
         return self.capabilities.max_color_temp_kelvin
 
     def _ha_brightness_to_device(self, brightness: int) -> int:
@@ -139,11 +145,7 @@ class LiproLight(LiproEntity, LightEntity):
         return self.device.state.kelvin_to_percent_for_device(clamped_kelvin)
 
     def _merge_slider_state(self, state_changes: dict[str, int]) -> dict[str, int]:
-        """Merge brightness/temperature into one payload when both are known.
-
-        Keeps brightness + color temperature paired for debounced light updates,
-        so rapid cross-slider operations do not drop the previous value.
-        """
+        """Merge brightness/temperature into one payload when both are known."""
         merged = dict(state_changes)
         has_brightness = PROP_BRIGHTNESS in merged
         has_temperature = PROP_TEMPERATURE in merged
@@ -182,32 +184,31 @@ class LiproLight(LiproEntity, LightEntity):
         )
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        """Turn on the light."""
-        state_changes: dict[str, int] = {}
-
-        # Handle brightness
-        if ATTR_BRIGHTNESS in kwargs:
-            brightness = self._ha_brightness_to_device(kwargs[ATTR_BRIGHTNESS])
-            state_changes[PROP_BRIGHTNESS] = brightness
-
-        # Handle color temperature (only if device supports it)
-        if ATTR_COLOR_TEMP_KELVIN in kwargs and self.capabilities.supports_color_temp:
-            temp_percent = self._kelvin_to_device_temp_percent(
-                int(kwargs[ATTR_COLOR_TEMP_KELVIN])
-            )
-            state_changes[PROP_TEMPERATURE] = temp_percent
-
-        # Use debounce for slider controls (brightness, color_temp)
-        # to avoid flooding API when user drags the slider.
-        if state_changes:
-            state_changes = self._merge_slider_state(state_changes)
-            if not self.is_on and self._turn_on_when_adjusting_while_off():
-                state_changes[PROP_POWER_STATE] = 1
-            await self.async_change_state(state_changes, debounced=True)
-        else:
-            # Just turn on (no debounce needed for simple on/off)
-            await self._power.turn_on(self)
+        """Turn the light on."""
+        state_changes: dict[str, int] = {PROP_POWER_STATE: 1}
+        if (brightness := kwargs.get(ATTR_BRIGHTNESS)) is not None:
+            state_changes[PROP_BRIGHTNESS] = self._ha_brightness_to_device(brightness)
+        if (kelvin := kwargs.get(ATTR_COLOR_TEMP_KELVIN)) is not None:
+            state_changes[PROP_TEMPERATURE] = self._kelvin_to_device_temp_percent(kelvin)
+        await self.async_change_state(state_changes)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn off the light."""
-        await self._power.turn_off(self)
+        """Turn the light off."""
+        del kwargs
+        await self.async_change_state({PROP_POWER_STATE: 0})
+
+    async def async_set_brightness(self, brightness: int) -> None:
+        """Set the light brightness."""
+        state_changes = {PROP_BRIGHTNESS: self._ha_brightness_to_device(brightness)}
+        if not self.is_on and self._turn_on_when_adjusting_while_off():
+            state_changes[PROP_POWER_STATE] = 1
+        await self.async_change_state(self._merge_slider_state(state_changes), debounced=True)
+
+    async def async_set_color_temp_kelvin(self, color_temp_kelvin: int) -> None:
+        """Set the light color temperature."""
+        state_changes = {
+            PROP_TEMPERATURE: self._kelvin_to_device_temp_percent(color_temp_kelvin)
+        }
+        if not self.is_on and self._turn_on_when_adjusting_while_off():
+            state_changes[PROP_POWER_STATE] = 1
+        await self.async_change_state(self._merge_slider_state(state_changes), debounced=True)

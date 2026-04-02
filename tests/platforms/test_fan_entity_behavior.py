@@ -276,14 +276,14 @@ class TestLiproFanEntityBehavior:
         assert any(p["key"] == "fanOnoff" and p["value"] == "1" for p in properties)
         assert any(p["key"] == "fanMode" for p in properties)
 
-    def test_preset_mode_fallbacks_to_cycle(self, mock_coordinator, make_device):
-        """Unknown fan mode should fallback to cycle preset."""
+    def test_preset_mode_unknown_mode_returns_none(self, mock_coordinator, make_device):
+        """Unknown fan mode should stay truthful instead of pretending to be cycle."""
         from custom_components.lipro.fan import LiproFan
 
         device = make_device("fanLight", properties={"fanMode": "99"})
         mock_coordinator.get_device = MagicMock(return_value=device)
         fan = LiproFan(mock_coordinator, device)
-        assert fan.preset_mode == "cycle"
+        assert fan.preset_mode is None
 
     def test_preset_mode_gentle_wind(self, mock_coordinator, make_device):
         """fanMode=3 should map to gentle_wind preset."""
@@ -326,6 +326,20 @@ class TestLiproFanEntityBehavior:
 
         assert fan.supported_features & FanEntityFeature.PRESET_MODE
         assert not (fan.supported_features & FanEntityFeature.SET_SPEED)
+
+    def test_unknown_mode_keeps_speed_feature_without_fake_cycle_projection(
+        self, mock_coordinator, make_device
+    ) -> None:
+        """Unknown vendor modes should keep truthful feature/preset projection."""
+        from custom_components.lipro.fan import LiproFan
+        from homeassistant.components.fan import FanEntityFeature
+
+        device = make_device("fanLight", properties={"fanMode": "99"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+        fan = LiproFan(mock_coordinator, device)
+
+        assert fan.preset_mode is None
+        assert fan.supported_features & FanEntityFeature.SET_SPEED
 
     @pytest.mark.asyncio
     async def test_set_percentage_cycle_mode_is_ignored(

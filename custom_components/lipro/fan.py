@@ -169,9 +169,10 @@ class LiproFan(LiproEntity, FanEntity):
 
     @property
     def supported_features(self) -> FanEntityFeature:
-        """Return supported features for current fan mode.
+        """Return supported features for the current fan mode.
 
-        Runtime validation shows cycle mode does not support gear/speed adjustment.
+        Only the explicit cycle mode disables speed adjustment. Unknown vendor modes
+        stay truthful by avoiding a fake cycle projection.
         """
         if self.device.state.fan_mode == FAN_MODE_CYCLE:
             return FAN_FEATURES_BASE
@@ -196,7 +197,7 @@ class LiproFan(LiproEntity, FanEntity):
     def preset_mode(self) -> str | None:
         """Return the current preset mode."""
         mode = self.device.state.fan_mode
-        return MODE_TO_PRESET.get(mode, PRESET_MODE_CYCLE)
+        return MODE_TO_PRESET.get(mode)
 
     async def async_turn_on(
         self,

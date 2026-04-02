@@ -17,6 +17,22 @@ from custom_components.lipro.entities.descriptors import (
 )
 
 
+def _state_level(entity: Any) -> object:
+    return entity.device.state.level
+
+
+def _state_brightness(entity: Any) -> object:
+    return entity.device.state.brightness
+
+
+def _state_color_temp(entity: Any) -> object:
+    return entity.device.state.color_temp
+
+
+def _supports_color_temp(entity: Any) -> object:
+    return entity.capabilities.supports_color_temp
+
+
 class _StateProbe:
     def __init__(self, *, brightness: object, color_temp: int, level: int) -> None:
         self.brightness = brightness
@@ -28,17 +44,17 @@ class _StateProbe:
 
 
 class _DescriptorProbe:
-    raw_level = DeviceAttr[int]("state.level")
+    raw_level = DeviceAttr[int](_state_level)
     doubled_level = DeviceAttr[int](
-        "state.level",
+        _state_level,
         transform=lambda value: cast(int, value) * 2,
     )
-    brightness = ScaledBrightness()
+    brightness = ScaledBrightness(_state_brightness)
     color_temp = ConditionalAttr[int](
-        "state.color_temp",
-        capability="capabilities.supports_color_temp",
+        _state_color_temp,
+        capability=_supports_color_temp,
     )
-    color_temp_percent = KelvinToPercent("state.color_temp")
+    color_temp_percent = KelvinToPercent(_state_color_temp)
 
     def __init__(
         self,

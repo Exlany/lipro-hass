@@ -174,3 +174,30 @@ class TestLiproBatteryLowSensor:
         from custom_components.lipro.binary_sensor import LiproBatteryLowSensor
 
         assert LiproBatteryLowSensor.__dict__["__attr_translation_key"] == "battery"
+
+
+    def test_connectivity_sensor_reads_explicit_state_reader(self, mock_coordinator, make_device):
+        """Connectivity entity should read state through the explicit reader."""
+        from custom_components.lipro.binary_sensor import LiproConnectivitySensor
+
+        device = make_device("light", properties={"connectState": "0"})
+        mock_coordinator.set_device(device)
+        sensor = LiproConnectivitySensor(mock_coordinator, device)
+
+        assert sensor.is_on is False
+
+
+class TestLiproBinarySensorEntityProjection:
+    """Focused entity-level projection tests for explicit sensor readers."""
+
+    def test_light_level_sensor_inverts_dark_state(self, mock_coordinator, make_device):
+        """The light-level entity should invert the explicit dark-state reader."""
+        from custom_components.lipro.binary_sensor import LiproLightLevelSensor
+
+        dark_device = make_device("bodySensor", properties={"dark": "1"})
+        bright_device = make_device("bodySensor", properties={"dark": "0"})
+        dark_sensor = LiproLightLevelSensor(mock_coordinator, dark_device)
+        bright_sensor = LiproLightLevelSensor(mock_coordinator, bright_device)
+
+        assert dark_sensor.is_on is False
+        assert bright_sensor.is_on is True

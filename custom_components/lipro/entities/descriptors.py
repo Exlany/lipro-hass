@@ -1,14 +1,14 @@
 """Generic descriptors for declarative entity property definitions.
 
 This module provides type-safe descriptors that eliminate boilerplate property
-getters in entity classes. Descriptors automatically read from device state
-and support optional transformations.
+getters in entity classes. Descriptors use explicit resolver callables instead
+of dotted string paths, keeping entity reads honest and easy to audit.
 
 Key features:
 - Full mypy type safety via Generic[T] + @overload
 - Automatic unit conversions (0-100 → 0-255 for brightness)
 - Conditional attributes (only when capability snapshot declares support)
-- Zero runtime overhead compared to manual properties
+- Explicit resolver callables instead of runtime reflection
 """
 
 from __future__ import annotations
@@ -22,47 +22,50 @@ if TYPE_CHECKING:
     from .base import LiproEntity
 
 T = TypeVar("T")
+EntityResolver = Callable[[object], object]
+CapabilityResolver = Callable[[object], object]
 
 
-def _resolve_attr_path(source: object, path: str) -> object:
-    """Resolve one dotted attribute path from the given source object."""
-    value = source
-    for part in path.split("."):
-        value = getattr(value, part)
-    return value
+def _default_brightness_resolver(entity: LiproEntity) -> object:
+    """Read raw brightness from device state."""
+    return entity.device.state.brightness
+
+
+def _default_color_temp_resolver(entity: LiproEntity) -> object:
+    """Read raw color temperature from device state."""
+    return entity.device.state.color_temp
 
 
 class DeviceAttr(Generic[T]):
-    """Generic descriptor for reading device attributes with optional transformation.
+    """Generic descriptor for reading entity values with optional transformation.
 
-    Type-safe descriptor that reads from device state and optionally transforms
-    the value. Uses @overload to ensure mypy correctly infers the return type.
+    Type-safe descriptor that reads from an explicit resolver and optionally
+    transforms the resolved value. Uses @overload to ensure mypy correctly
+    infers the return type.
 
     Examples:
         class LiproLight(LiproEntity, LightEntity):
-            is_on = DeviceAttr[bool]("state.is_on")
-            brightness = DeviceAttr[int]("state.brightness", transform=lambda x: int(x * 2.55))
+            is_on = DeviceAttr[bool](lambda entity: entity.device.state.is_on)
+            brightness = DeviceAttr[int](
+                lambda entity: entity.device.state.brightness,
+                transform=lambda value: int(cast(int, value) * 2.55),
+            )
 
     Args:
-        attr: Device attribute path (e.g., "state.is_on", "state.brightness")
+        resolver: Explicit callable that reads the source value from one entity
         transform: Optional transformation function applied to the value
     """
 
     def __init__(
         self,
-        attr: str,
+        resolver: EntityResolver,
         *,
         transform: Callable[[object], T] | None = None,
     ) -> None:
-        """Initialize device attribute descriptor.
-
-        Args:
-            attr: Attribute path on device (supports dot notation)
-            transform: Optional transformation function
-        """
-        self.attr = attr
+        """Initialize device attribute descriptor."""
+        self.resolver = resolver
         self.transform = transform
-        self.name: str = ""  # Set by __set_name__
+        self.name: str = ""
 
     def __set_name__(self, owner: type, name: str) -> None:
         """Store the attribute name when descriptor is assigned to class."""
@@ -75,41 +78,21 @@ class DeviceAttr(Generic[T]):
     def __get__(self, obj: LiproEntity, objtype: type | None = None) -> T: ...
 
     def __get__(self, obj: LiproEntity | None, objtype: type | None = None) -> T | Self:
-        """Get attribute value from device with optional transformation.
-
-        Args:
-            obj: Entity instance (None for class access)
-            objtype: Owner class type
-
-        Returns:
-            Descriptor itself for class access, transformed value for instance access
-        """
+        """Get attribute value from entity with optional transformation."""
         if obj is None:
             return self
 
-        value = _resolve_attr_path(obj.device, self.attr)
+        value = self.resolver(obj)
         if self.transform is not None:
             return self.transform(value)
         return cast(T, value)
 
 
 class ScaledBrightness(DeviceAttr[int | None]):
-    """Brightness descriptor with automatic 0-100 → 0-255 scaling.
+    """Brightness descriptor with automatic 0-100 → 0-255 scaling."""
 
-    Converts device brightness (0-100 percent) to Home Assistant brightness
-    (0-255 scale) with proper clamping.
-
-    Example:
-        class LiproLight(LiproEntity, LightEntity):
-            brightness = ScaledBrightness()  # Reads from device.state.brightness
-    """
-
-    def __init__(self, attr: str = "state.brightness") -> None:
-        """Initialize scaled brightness descriptor.
-
-        Args:
-            attr: Device attribute path (default: "state.brightness")
-        """
+    def __init__(self, resolver: EntityResolver = _default_brightness_resolver) -> None:
+        """Initialize scaled brightness descriptor."""
 
         def scale_brightness(value: object) -> int:
             """Scale 0-100 to 0-255 with clamping."""
@@ -118,39 +101,21 @@ class ScaledBrightness(DeviceAttr[int | None]):
             clamped = max(0, min(100, value))
             return round(clamped * 255 / 100)
 
-        super().__init__(attr, transform=scale_brightness)
+        super().__init__(resolver, transform=scale_brightness)
 
 
 class ConditionalAttr(DeviceAttr[T | None]):
-    """Conditional descriptor that returns None when device lacks capability.
-
-    Only returns the attribute value when the specified capability snapshot path
-    evaluates to truthy. Otherwise returns None, allowing HA to hide unsupported
-    features.
-
-    Example:
-        class LiproLight(LiproEntity, LightEntity):
-            color_temp_kelvin = ConditionalAttr[int](
-                "color_temp",
-                capability="capabilities.supports_color_temp"
-            )
-    """
+    """Conditional descriptor that returns None when entity lacks capability."""
 
     def __init__(
         self,
-        attr: str,
+        resolver: EntityResolver,
         *,
-        capability: str,
+        capability: CapabilityResolver,
         transform: Callable[[object], T] | None = None,
     ) -> None:
-        """Initialize conditional attribute descriptor.
-
-        Args:
-            attr: Device attribute path
-            capability: Capability snapshot path to check
-            transform: Optional transformation function
-        """
-        super().__init__(attr, transform=transform)
+        """Initialize conditional attribute descriptor."""
+        super().__init__(resolver, transform=transform)
         self.capability = capability
 
     @overload
@@ -162,42 +127,24 @@ class ConditionalAttr(DeviceAttr[T | None]):
     def __get__(
         self, obj: LiproEntity | None, objtype: type | None = None
     ) -> T | None | Self:
-        """Get attribute value only if device has capability.
-
-        Args:
-            obj: Entity instance (None for class access)
-            objtype: Owner class type
-
-        Returns:
-            Descriptor for class access, value if capability exists, None otherwise
-        """
+        """Get attribute value only if entity capability exists."""
         if obj is None:
             return self
 
-        if not _resolve_attr_path(obj, self.capability):
+        if not self.capability(obj):
             return None
 
         return super().__get__(obj, objtype)
 
 
 class KelvinToPercent(DeviceAttr[int]):
-    """Color temperature descriptor with automatic kelvin → percent conversion.
+    """Color temperature descriptor with automatic kelvin → percent conversion."""
 
-    Converts device color temperature (kelvin) to Home Assistant percentage
-    using device-specific min/max kelvin range.
-
-    Example:
-        class LiproLight(LiproEntity, LightEntity):
-            color_temp = KelvinToPercent("color_temp_kelvin")
-    """
-
-    def __init__(self, attr: str = "color_temp") -> None:
-        """Initialize kelvin-to-percent descriptor.
-
-        Args:
-            attr: Device attribute path (default: "color_temp")
-        """
-        super().__init__(attr, transform=None)  # Transform applied in __get__
+    def __init__(
+        self, resolver: EntityResolver = _default_color_temp_resolver
+    ) -> None:
+        """Initialize kelvin-to-percent descriptor."""
+        super().__init__(resolver, transform=None)
 
     @overload
     def __get__(self, obj: None, objtype: type) -> Self: ...
@@ -208,20 +155,12 @@ class KelvinToPercent(DeviceAttr[int]):
     def __get__(
         self, obj: LiproEntity | None, objtype: type | None = None
     ) -> int | Self:
-        """Get color temperature as percentage using device kelvin range.
-
-        Args:
-            obj: Entity instance (None for class access)
-            objtype: Owner class type
-
-        Returns:
-            Descriptor for class access, percentage value for instance access
-        """
+        """Get color temperature as percentage using device kelvin range."""
         if obj is None:
             return self
 
         kelvin = super().__get__(obj, objtype)
-        return obj.device.state.kelvin_to_percent_for_device(kelvin)
+        return obj.device.state.kelvin_to_percent_for_device(cast(int, kelvin))
 
 
 __all__ = [

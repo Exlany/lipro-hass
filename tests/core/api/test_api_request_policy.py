@@ -171,6 +171,20 @@ def test_request_policy_change_state_command_and_normalize_target_helpers() -> N
     assert RequestPolicy.normalize_pacing_target("  TaRgEt  ") == "target"
 
 
+def test_request_policy_uses_single_command_pacing_cache_owner() -> None:
+    policy = RequestPolicy()
+
+    assert policy._pacing_state.caches.last_change_state_at is policy.last_change_state_at
+    assert (
+        policy._pacing_state.caches.change_state_min_interval
+        is policy.change_state_min_interval
+    )
+    assert (
+        policy._pacing_state.caches.command_pacing_target_locks
+        is policy.command_pacing_target_locks
+    )
+
+
 def test_enforce_command_pacing_cache_limit_handles_empty_last_change_state_at_and_drops_idle_lock(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

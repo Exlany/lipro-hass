@@ -2,16 +2,11 @@
 
 ## Milestones
 
+- 🚧 **v1.40 Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening** - `Phase 134 -> 134` active on 2026-04-02; current route truth = `v1.40 active milestone route / starting from latest archived baseline = v1.39`; default next = `$gsd-complete-milestone v1.40`; latest archived baseline = `v1.39`
 - ✅ **v1.39 Governance Recovery, Runtime Consistency & Public Contract Correction** - `Phase 133 -> 133` archived on 2026-04-02; historical closeout route truth = `no active milestone route / latest archived baseline = v1.39`; evidence index = `.planning/reviews/V1_39_EVIDENCE_INDEX.md`
 - ✅ **v1.38 Governance Story Compression, Archive Segregation & Public Entry Simplification** - `Phase 132 -> 132` archived on 2026-04-02; historical closeout route truth = `no active milestone route / latest archived baseline = v1.38`; evidence index = `.planning/reviews/V1_38_EVIDENCE_INDEX.md`
 - ✅ **v1.37 Repo-Wide Terminal Audit, Hotspot Decomposition & Governance Continuity Decisions** - `Phase 129 -> 131` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.37`; evidence index = `.planning/reviews/V1_37_EVIDENCE_INDEX.md`
 - ✅ **v1.36 Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening** - `Phase 126 -> 128` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.36`; evidence index = `.planning/reviews/V1_36_EVIDENCE_INDEX.md`
-- ✅ **v1.35 Master Audit Closure, Public Surface Finalization & Release Traceability** - `Phase 122 -> 125` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.35`; evidence index = `.planning/reviews/V1_35_EVIDENCE_INDEX.md`
-- ✅ **v1.34 Terminal Audit Closure, Contract Hardening & Governance Truth Slimming** - `Phase 120 -> 121` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.34`; evidence index = `.planning/reviews/V1_34_EVIDENCE_INDEX.md`
-- ✅ **v1.33 MQTT Boundary Decoupling, Runtime Contract Unification & Release Governance Hardening** - `Phase 119` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.33`; evidence index = `.planning/reviews/V1_33_EVIDENCE_INDEX.md`
-- ✅ **v1.32 Residual Hotspot Eradication, Validation Completion & Continuity Hardening** - `Phase 115 -> 118` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.32`; evidence index = `.planning/reviews/V1_32_EVIDENCE_INDEX.md`
-- ✅ **v1.31 Boundary Sealing, Governance Truth & Quality Hardening** - `Phase 111 -> 114` archived on 2026-03-31; historical closeout route truth = `no active milestone route / latest archived baseline = v1.31`; evidence index = `.planning/reviews/V1_31_EVIDENCE_INDEX.md`
-- ✅ **v1.30 Protocol Hotspot Convergence, Transport De-friendization & Snapshot Surface Slimming** - `Phase 107 -> 110` archived on 2026-03-30; milestone audit: `.planning/v1.30-MILESTONE-AUDIT.md`; evidence index: `.planning/reviews/V1_30_EVIDENCE_INDEX.md`; snapshots archived at `.planning/milestones/v1.30-ROADMAP.md` / `.planning/milestones/v1.30-REQUIREMENTS.md`; historical closeout route truth = `no active milestone route / latest archived baseline = v1.30`
 
 <!-- governance-route-contract:start -->
 ```yaml
@@ -23,7 +18,14 @@ projection_targets:
 - .planning/REQUIREMENTS.md
 - .planning/STATE.md
 - .planning/MILESTONES.md
-active_milestone: null
+active_milestone:
+  version: v1.40
+  name: Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening
+  status: active / phase 134 complete; closeout-ready (2026-04-02)
+  phase: '134'
+  phase_title: request-policy ownership, entity de-reflection, and fan truth hardening
+  phase_dir: 134-request-policy-ownership-entity-de-reflection-and-fan-truth-hardening
+  route_mode: v1.40 active milestone route / starting from latest archived baseline = v1.39
 latest_archived:
   version: v1.39
   name: Governance Recovery, Runtime Consistency & Public Contract Correction
@@ -39,51 +41,53 @@ previous_archived:
   name: Governance Story Compression, Archive Segregation & Public Entry Simplification
   evidence_path: .planning/reviews/V1_38_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.39
-  default_next_command: $gsd-new-milestone
+  current_route: v1.40 active milestone route / starting from latest archived baseline = v1.39
+  default_next_command: $gsd-complete-milestone v1.40
   latest_archived_evidence_pointer: .planning/reviews/V1_39_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 ## Overview
 
-`v1.39` 以 archived baseline `v1.38` 为起点，先恢复 current governance lane 的 route/source-path/projection 一致性，再把 `runtime_types.py`、coordinator service contracts、auth/request-policy/dispatch 与 public entry/release contract 的后续修正收束成 `Phase 133` 的单相位三计划入口。
+`v1.40` 以 archived baseline `v1.39` 为唯一起点，先把 `RequestPolicy` 的 pacing/busy-retry state 收回单一 owner，再把 `descriptors.py` / `binary_sensor.py` / `light.py` 的反射/stringly projection 收口为显式 reader，最后修复 `fan.py` 的 unknown-mode truth、同步 docs/guards/tests，并把路线推进到 closeout-ready。
 
-**Coverage:** `6/6` `v1.39` requirements complete in `Phase 133`.
-**Default next command:** `$gsd-new-milestone`
+**Coverage:** `6/6` `v1.40` requirements complete in `Phase 134`.
+**Default next command:** `$gsd-complete-milestone v1.40`
 
-## Previous Archived Milestone
+## v1.40: Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening
 
-## v1.39: Governance Recovery, Runtime Consistency & Public Contract Correction
-
-**Milestone status:** `archived / evidence-ready (2026-04-02)`
-**Default next command:** `$gsd-new-milestone`
-**Current route story:** `no active milestone route / latest archived baseline = v1.39`
+**Milestone status:** `active / phase 134 complete; closeout-ready (2026-04-02)`
+**Default next command:** `$gsd-complete-milestone v1.40`
+**Current route story:** `v1.40 active milestone route / starting from latest archived baseline = v1.39`
+**Starting baseline:** `.planning/v1.39-MILESTONE-AUDIT.md, .planning/reviews/V1_39_EVIDENCE_INDEX.md, .planning/milestones/v1.39-ROADMAP.md, .planning/milestones/v1.39-REQUIREMENTS.md`
+**Latest archived baseline:** `v1.39`
 **Latest archived pointer:** `.planning/reviews/V1_39_EVIDENCE_INDEX.md`
 **Latest archived audit artifact:** `.planning/v1.39-MILESTONE-AUDIT.md`
-**Archived snapshots:** `.planning/milestones/v1.39-ROADMAP.md`, `.planning/milestones/v1.39-REQUIREMENTS.md`
 **Promoted phase evidence allowlist:** `.planning/reviews/PROMOTED_PHASE_ASSETS.md`
+**Current phase handoff:** `Phase 134 已完成 request-policy owner convergence、entity de-reflection、fan truth correction 与 docs/guard/test resync；下一步是 milestone closeout，而不是重跑 plan/execute。`
 
 ## Phases
 
-- [x] **Phase 133: governance recovery, runtime consistency, and public contract correction** - 已完成 `133-01` governance bootstrap / route recovery、`133-02` runtime consistency 修补、`133-03` strict preset + public contract correction、`133-04` governance closeout resync；closeout 已冻结为 archived evidence bundle，下一步为 `$gsd-new-milestone`。 (complete 2026-04-02)
+- [x] **Phase 134: request-policy ownership, entity de-reflection, and fan truth hardening** - 已完成 `134-01` request-policy ownership convergence、`134-02` entity de-reflection + fan truth correction、`134-03` docs/guards/tests/verification sync；当前 milestone 已进入 closeout-ready。 (complete 2026-04-02)
 
 ## Phase Details
 
-### Phase 133: governance recovery, runtime consistency, and public contract correction
-**Goal:** 把 v1.38 closeout 后遗留的 sanctioned carry-forward 明确拆成三条 lane：先修复 governance route/source-path/projection truth，再对 runtime formal homes 与 public-facing contract 的下一轮收口建立单一执行入口，避免继续把 production hotspot 混写进 docs-only 故事。
-**Depends on:** Phase 132
-**Requirements**: GOV-89, ARC-42, HOT-61, DOC-18, QLT-55, TST-53
+### Phase 134: request-policy ownership, entity de-reflection, and fan truth hardening
+
+**Requirements**: `GOV-90`, `ARC-43`, `HOT-62`, `HOT-63`, `QLT-56`, `TST-54`
 **Success Criteria** (what must be TRUE):
-  1. `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES`、`GOVERNANCE_REGISTRY.json`、`FILE_MATRIX.md` 与 `PROMOTED_PHASE_ASSETS.md` 共同承认 `v1.39 active milestone route / starting from latest archived baseline = v1.38`。
-  2. governance current story 明确区分 Primary Sources 与 Current Execution Workspace Inputs，`STATE` 的 Session Continuity 只引用真实路径。
-  3. runtime consistency lane 只允许围绕 `runtime_types.py`、coordinator service contracts、`core/auth/manager.py`、`request_policy.py`、`dispatch.py` 与 `firmware_update.py` 等 sanctioned formal homes inward 收口。
-  4. public contract correction lane 必须同步 developer/public/runbook/support/manifest first-hop truth，不得再把 archived-only wording 伪装成 current route。
-  5. `Phase 133` 的四条执行轨已全部完成：四份计划、四份计划摘要、phase summary 与 verification 已齐备，并把 next-step truth 切到 milestone closeout。
-**Plans**: 3 planned — `133-01` governance lane recovery、`133-02` runtime consistency、`133-03` public contract correction
-**Planning summaries**: `133-01-SUMMARY.md`, `133-02-SUMMARY.md`, `133-03-SUMMARY.md`, `133-SUMMARY.md`
-**Verification**: `133-VERIFICATION.md`
+  1. `RequestPolicy` 必须把 pacing caches / busy counters / target locks 收回单一实例 owner，module-level mutating pacing entry 不再作为第二条正式主链。
+  2. `request_policy_support.py` 的 pacing helpers 必须围绕 `_CommandPacingCaches` bundle 协作，不再在 support surface 里搬运多组并行 dict state。
+  3. `entities/descriptors.py`、`light.py` 与 `binary_sensor.py` 不再依赖 dotted-path/getattr 反射；entity projection 改为显式 resolver / state reader。
+  4. `fan.py` 的 unknown `fanMode` 不再伪装成 `cycle`；preset 与 supported-features 投影必须保持 truthful 一致。
+  5. current governance docs、developer/runbook route note、follow-up guards 与 new phase assets 必须共同承认 `v1.40 active milestone route / starting from latest archived baseline = v1.39` 与 `$gsd-complete-milestone v1.40`。
+  6. focused tests / meta guards / ruff 必须通过，且 phase assets 足以支撑 `$gsd-next` 等价收敛到 `$gsd-complete-milestone v1.40`。
+**Plans**: 3 planned — `134-01` request-policy ownership convergence、`134-02` entity de-reflection + fan truth correction、`134-03` docs/guards/tests/verification sync
+**Planning summaries**: `134-01-SUMMARY.md`, `134-02-SUMMARY.md`, `134-03-SUMMARY.md`, `134-SUMMARY.md`
+**Verification**: `134-VERIFICATION.md`
+**Validation**: `134-VALIDATION.md`
 
 ## Latest Archived Milestone
+
 
 ## v1.38: Governance Story Compression, Archive Segregation & Public Entry Simplification
 

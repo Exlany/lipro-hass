@@ -1,9 +1,9 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** `archived / evidence-ready (2026-04-02)`
-**Current route:** `no active milestone route / latest archived baseline = v1.39`；latest archived evidence index = `.planning/reviews/V1_39_EVIDENCE_INDEX.md`.
-**Goal:** `保持 v1.39 closeout 后的单一治理真源，并把下一轮 residual milestone 的入口诚实压回 $gsd-new-milestone。`
-**Default next step:** `$gsd-new-milestone`
+**Status:** `active / phase 134 complete; closeout-ready (2026-04-02)`
+**Current route:** `v1.40 active milestone route / starting from latest archived baseline = v1.39`；latest archived evidence index = `.planning/reviews/V1_39_EVIDENCE_INDEX.md`.
+**Goal:** `以 v1.39 latest archived baseline 为唯一起点，把 RequestPolicy pacing ownership、entity projection de-reflection 与 fan preset truth 在一个 active milestone 内彻底收口，并把默认下一步诚实推进到 milestone closeout。`
+**Default next step:** `$gsd-complete-milestone v1.40`
 **Archived baseline chain:** latest archived baseline = `v1.39`；previous archived baseline = `v1.38`.
 
 <!-- governance-route-contract:start -->
@@ -16,7 +16,14 @@ projection_targets:
 - .planning/REQUIREMENTS.md
 - .planning/STATE.md
 - .planning/MILESTONES.md
-active_milestone: null
+active_milestone:
+  version: v1.40
+  name: Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening
+  status: active / phase 134 complete; closeout-ready (2026-04-02)
+  phase: '134'
+  phase_title: request-policy ownership, entity de-reflection, and fan truth hardening
+  phase_dir: 134-request-policy-ownership-entity-de-reflection-and-fan-truth-hardening
+  route_mode: v1.40 active milestone route / starting from latest archived baseline = v1.39
 latest_archived:
   version: v1.39
   name: Governance Recovery, Runtime Consistency & Public Contract Correction
@@ -32,28 +39,28 @@ previous_archived:
   name: Governance Story Compression, Archive Segregation & Public Entry Simplification
   evidence_path: .planning/reviews/V1_38_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.39
-  default_next_command: $gsd-new-milestone
+  current_route: v1.40 active milestone route / starting from latest archived baseline = v1.39
+  default_next_command: $gsd-complete-milestone v1.40
   latest_archived_evidence_pointer: .planning/reviews/V1_39_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
-## Latest Archived Milestone (v1.39)
+## Current Milestone (v1.40)
 
-**Name:** `Governance Recovery, Runtime Consistency & Public Contract Correction`
+**Name:** `Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening`
 
-**Why it matters:** `v1.38` 已把 current selector、archive/history boundary 与 docs-first governance story 压回单一路径，但 milestone audit 仍明确保留 runtime/service/auth/request-policy/dispatch/firmware 等 sanctioned hotspot 作为后续显式路线；与此同时，当前治理红测继续要求补齐 source-path hygiene、FILE_MATRIX inventory 与 promoted-asset slug 一致性。`
+**Why it matters:** `v1.39 closeout 后，repo-wide 深审仍明确暴露三类残留：RequestPolicy 仍保留多入口 / 高参数密度 pacing story，entity descriptors 与 binary sensors 仍有反射/stringly projection，fan unknown mode 仍伪装成 cycle，导致平台 truth 与能力 truth 自相矛盾。`
 
-**North-star fit:** `v1.39` 继续沿 single authority chain、formal homes、honesty over folklore 推进：当前路线重新回到 active milestone，治理恢复只修 current truth 与执行入口，runtime/public contract 只允许在既有正式 home 内 inward convergence，不新增第二故事线。`
+**North-star fit:** `v1.40` 继续沿 single owner、formal home、explicit projection 与 honesty-over-folklore 推进：RequestPolicy 把 pacing state 收回实例 owner；entity/platform projection 不再依赖 dotted-path/getattr 反射；fan preset 投影不再捏造 cycle fallback。`
 
-**Current status:** `archived / evidence-ready (2026-04-02)`
-**Phase range:** `Phase 133 -> 133`
-**Starting baseline:** `.planning/v1.38-MILESTONE-AUDIT.md`, `.planning/reviews/V1_38_EVIDENCE_INDEX.md`, `.planning/milestones/v1.38-ROADMAP.md`, `.planning/milestones/v1.38-REQUIREMENTS.md`
-**Requirements basket:** `GOV-89, ARC-42, HOT-61, DOC-18, QLT-55, TST-53`
+**Current status:** `active / phase 134 complete; closeout-ready (2026-04-02)`
+**Phase range:** `Phase 134 -> 134`
+**Starting baseline:** `.planning/v1.39-MILESTONE-AUDIT.md, .planning/reviews/V1_39_EVIDENCE_INDEX.md, .planning/milestones/v1.39-ROADMAP.md, .planning/milestones/v1.39-REQUIREMENTS.md`
+**Requirements basket:** `GOV-90, ARC-43, HOT-62, HOT-63, QLT-56, TST-54`
 **Latest archived baseline:** `v1.39`
 **Latest archived pointer:** `.planning/reviews/V1_39_EVIDENCE_INDEX.md`
 **Latest archived audit artifact:** `.planning/v1.39-MILESTONE-AUDIT.md`
-**Default next command:** `$gsd-new-milestone`
-**Current phase handoff:** `Milestone closeout complete；Phase 133 的 summary / verification / validation / audit / evidence index 已冻结为 latest archived evidence，后续新路线应从 `$gsd-new-milestone` 开始。`
+**Default next command:** `$gsd-complete-milestone v1.40`
+**Current phase handoff:** `Phase 134 的 3 份 PLAN、3 份 plan summary、phase summary、verification 与 validation 已齐备；当前 route 已推进到 phase complete / closeout-ready。`
 
 ## Primary Sources
 
@@ -67,28 +74,38 @@ bootstrap:
 - `.planning/baseline/AUTHORITY_MATRIX.md`
 - `.planning/baseline/VERIFICATION_MATRIX.md`
 - `.planning/reviews/FILE_MATRIX.md`
-- `.planning/reviews/PROMOTED_PHASE_ASSETS.md`
+- `.planning/reviews/RESIDUAL_LEDGER.md`
+- `.planning/reviews/KILL_LIST.md`
 
 ## Current Execution Workspace Inputs
 
-- `.planning/phases/133-governance-recovery-runtime-consistency-and-public-contract-correction/133-01-PLAN.md`
-- `.planning/phases/133-governance-recovery-runtime-consistency-and-public-contract-correction/133-02-PLAN.md`
-- `.planning/phases/133-governance-recovery-runtime-consistency-and-public-contract-correction/133-03-PLAN.md`
-- `.planning/phases/133-governance-recovery-runtime-consistency-and-public-contract-correction/133-04-PLAN.md`
-- `.planning/phases/133-governance-recovery-runtime-consistency-and-public-contract-correction/133-01-SUMMARY.md`
-- `.planning/phases/133-governance-recovery-runtime-consistency-and-public-contract-correction/133-02-SUMMARY.md`
-- `.planning/phases/133-governance-recovery-runtime-consistency-and-public-contract-correction/133-03-SUMMARY.md`
-- `.planning/phases/133-governance-recovery-runtime-consistency-and-public-contract-correction/133-04-SUMMARY.md`
-- `.planning/phases/133-governance-recovery-runtime-consistency-and-public-contract-correction/133-SUMMARY.md`
-- `.planning/phases/133-governance-recovery-runtime-consistency-and-public-contract-correction/133-VERIFICATION.md
-- `.planning/phases/133-governance-recovery-runtime-consistency-and-public-contract-correction/133-VALIDATION.md`
+- `.planning/phases/134-request-policy-ownership-entity-de-reflection-and-fan-truth-hardening/134-CONTEXT.md`
+- `.planning/phases/134-request-policy-ownership-entity-de-reflection-and-fan-truth-hardening/134-RESEARCH.md`
+- `.planning/phases/134-request-policy-ownership-entity-de-reflection-and-fan-truth-hardening/134-01-PLAN.md`
+- `.planning/phases/134-request-policy-ownership-entity-de-reflection-and-fan-truth-hardening/134-02-PLAN.md`
+- `.planning/phases/134-request-policy-ownership-entity-de-reflection-and-fan-truth-hardening/134-03-PLAN.md`
+- `.planning/phases/134-request-policy-ownership-entity-de-reflection-and-fan-truth-hardening/134-01-SUMMARY.md`
+- `.planning/phases/134-request-policy-ownership-entity-de-reflection-and-fan-truth-hardening/134-02-SUMMARY.md`
+- `.planning/phases/134-request-policy-ownership-entity-de-reflection-and-fan-truth-hardening/134-03-SUMMARY.md`
+- `.planning/phases/134-request-policy-ownership-entity-de-reflection-and-fan-truth-hardening/134-SUMMARY.md`
+- `.planning/phases/134-request-policy-ownership-entity-de-reflection-and-fan-truth-hardening/134-VERIFICATION.md`
+- `.planning/phases/134-request-policy-ownership-entity-de-reflection-and-fan-truth-hardening/134-VALIDATION.md`
 - `.planning/milestones/v1.39-ROADMAP.md`
-- `.planning/milestones/v1.39-REQUIREMENTS.md``
-- `.planning/v1.38-MILESTONE-AUDIT.md`
-- `.planning/codebase/CONCERNS.md`
-- `.planning/codebase/ARCHITECTURE.md`
+- `.planning/milestones/v1.39-REQUIREMENTS.md`
+- `.planning/v1.39-MILESTONE-AUDIT.md`
+- `docs/developer_architecture.md`
+- `docs/MAINTAINER_RELEASE_RUNBOOK.md`
+
+## Latest Archived Milestone (v1.39)
+
+**Name:** `Governance Recovery, Runtime Consistency & Public Contract Correction`
+**Current status:** `archived / evidence-ready (2026-04-02)`
+**Latest archived pointer:** `.planning/reviews/V1_39_EVIDENCE_INDEX.md`
+**Archived audit artifact:** `.planning/v1.39-MILESTONE-AUDIT.md`
+**Role now:** `作为 v1.40 的 starting baseline / latest archived selector anchor / pull-only evidence home 持续被消费，不再承担 current active milestone 职责。`
 
 ## Previous Archived Milestone (v1.38)
+
 
 **Name:** `Governance Story Compression, Archive Segregation & Public Entry Simplification`
 

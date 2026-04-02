@@ -213,3 +213,66 @@ def test_phase_19_headless_proof_bans_keep_boot_local_and_non_public() -> None:
         assert signal in boot_text
     for signal in boot_rule.forbidden_signals:
         assert signal not in boot_text
+
+
+def test_request_policy_keeps_pacing_mutations_instance_owned() -> None:
+    request_policy_bindings = set(
+        extract_top_level_bindings(
+            _ROOT / "custom_components" / "lipro" / "core" / "api" / "request_policy.py",
+            root=_ROOT,
+        )
+    )
+
+    assert request_policy_bindings.isdisjoint(
+        {
+            "enforce_command_pacing_cache_limit",
+            "record_change_state_busy",
+            "record_change_state_success",
+            "throttle_change_state",
+        }
+    )
+
+
+def test_request_policy_uses_single_explicit_pacing_state_owner() -> None:
+    request_policy_text = (
+        _ROOT / "custom_components" / "lipro" / "core" / "api" / "request_policy.py"
+    ).read_text(encoding="utf-8")
+
+    assert "class _RequestPolicyPacingState:" in request_policy_text
+    assert "self._pacing_state = _RequestPolicyPacingState()" in request_policy_text
+    assert "self._command_pacing_caches" not in request_policy_text
+
+
+def test_light_descriptors_and_binary_sensors_keep_explicit_projection_readers() -> None:
+    light_tree = ast.parse(
+        (_ROOT / "custom_components" / "lipro" / "light.py").read_text(encoding="utf-8"),
+        filename="custom_components/lipro/light.py",
+    )
+    binary_sensor_text = (
+        _ROOT / "custom_components" / "lipro" / "binary_sensor.py"
+    ).read_text(encoding="utf-8")
+    descriptors_text = (
+        _ROOT / "custom_components" / "lipro" / "entities" / "descriptors.py"
+    ).read_text(encoding="utf-8")
+    fan_text = (_ROOT / "custom_components" / "lipro" / "fan.py").read_text(
+        encoding="utf-8"
+    )
+
+    descriptor_calls: list[ast.Call] = []
+    for node in ast.walk(light_tree):
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+            if node.func.id in {"DeviceAttr", "ScaledBrightness", "ConditionalAttr", "KelvinToPercent"}:
+                descriptor_calls.append(node)
+
+    assert descriptor_calls
+    for call in descriptor_calls:
+        if not call.args:
+            continue
+        assert not isinstance(call.args[0], ast.Constant) or not isinstance(call.args[0].value, str)
+
+    assert "_device_property" not in binary_sensor_text
+    assert "state_reader" in binary_sensor_text
+    assert "_resolve_attr_path" not in descriptors_text
+    assert "resolver:" in descriptors_text
+    assert "return MODE_TO_PRESET.get(mode)" in fan_text
+    assert "return MODE_TO_PRESET.get(mode, PRESET_MODE_CYCLE)" not in fan_text

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 from homeassistant.components.binary_sensor import (
@@ -25,8 +26,35 @@ if TYPE_CHECKING:
     from .core.device import LiproDevice
     from .runtime_types import LiproRuntimeCoordinator
 
+StateReader = Callable[[object], object]
+
 # No parallel update limit needed for read-only sensors using coordinator
 PARALLEL_UPDATES = 0
+
+
+def _read_is_connected(device: LiproDevice) -> object:
+    """Read connectivity truth from the formal device state."""
+    return device.state.is_connected
+
+
+def _read_is_activated(device: LiproDevice) -> object:
+    """Read motion-activation truth from the formal device state."""
+    return device.state.is_activated
+
+
+def _read_door_is_open(device: LiproDevice) -> object:
+    """Read door-open truth from the formal device state."""
+    return device.state.door_is_open
+
+
+def _read_is_dark(device: LiproDevice) -> object:
+    """Read darkness truth from the formal device state."""
+    return device.state.is_dark
+
+
+def _read_low_battery(device: LiproDevice) -> object:
+    """Read low-battery truth from the formal device state."""
+    return device.state.low_battery
 
 
 async def async_setup_entry(
@@ -50,23 +78,15 @@ class LiproBinarySensor(LiproEntity, BinarySensorEntity):
 
 
 class LiproPropertyBinarySensor(LiproBinarySensor):
-    """Declarative base class for property-based binary sensors.
+    """Declarative base class for property-based binary sensors."""
 
-    Subclasses only need to define class attributes:
-    - _entity_suffix: Unique ID suffix for the entity
-    - _device_property: The device property name to read state from
-    - _invert: If True, invert the property value (default False)
-
-    Icons are managed declaratively via icons.json (HA best practice).
-    """
-
-    _device_property: str
+    state_reader: StateReader
     _invert: bool = False
 
     @property
     def is_on(self) -> bool:
         """Return true if the sensor is on."""
-        value = getattr(self.device.state, self._device_property, False)
+        value = type(self).state_reader(self.device)
         return not value if self._invert else bool(value)
 
 
@@ -75,19 +95,14 @@ class LiproConnectivitySensor(LiproPropertyBinarySensor):
 
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
     _attr_entity_category = EntityCategory.DIAGNOSTIC
-    _attr_entity_registry_enabled_default = False  # Disabled by default
+    _attr_entity_registry_enabled_default = False
     _attr_translation_key = "connectivity"
     _entity_suffix = "connectivity"
-    _device_property = "is_connected"
+    state_reader = _read_is_connected
 
     @property
     def available(self) -> bool:
-        """Return if entity is available.
-
-        Unlike other entities, the connectivity sensor should remain available
-        even when the device is offline, so it can correctly report the
-        disconnected (off) state instead of becoming unavailable.
-        """
+        """Return if entity is available."""
         return self.coordinator.last_update_success
 
 
@@ -97,7 +112,7 @@ class LiproMotionSensor(LiproPropertyBinarySensor):
     _attr_device_class = BinarySensorDeviceClass.MOTION
     _attr_translation_key = "motion"
     _entity_suffix = "motion"
-    _device_property = "is_activated"
+    state_reader = _read_is_activated
 
 
 class LiproDoorSensor(LiproPropertyBinarySensor):
@@ -106,7 +121,7 @@ class LiproDoorSensor(LiproPropertyBinarySensor):
     _attr_device_class = BinarySensorDeviceClass.DOOR
     _attr_translation_key = "door"
     _entity_suffix = "door"
-    _device_property = "door_is_open"
+    state_reader = _read_door_is_open
 
 
 class LiproLightLevelSensor(LiproPropertyBinarySensor):
@@ -114,10 +129,9 @@ class LiproLightLevelSensor(LiproPropertyBinarySensor):
 
     _attr_device_class = BinarySensorDeviceClass.LIGHT
     _attr_translation_key = "light"
-    # Disable by default as light level changes frequently and may be noisy
     _attr_entity_registry_enabled_default = False
     _entity_suffix = "light"
-    _device_property = "is_dark"
+    state_reader = _read_is_dark
     _invert = True
 
 
@@ -128,7 +142,7 @@ class LiproBatteryLowSensor(LiproPropertyBinarySensor):
     _attr_translation_key = "battery"
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _entity_suffix = "battery_low"
-    _device_property = "low_battery"
+    state_reader = _read_low_battery
 
 
 def _build_device_binary_sensors(

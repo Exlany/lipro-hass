@@ -91,24 +91,9 @@ def _build_command_pacing_caches(
     )
 
 
-def enforce_command_pacing_cache_limit(
-    *,
-    command_pacing_cache_max_size: int,
-    last_change_state_at: dict[str, float],
-    change_state_min_interval: dict[str, float],
-    change_state_busy_count: dict[str, int],
-    command_pacing_target_users: dict[str, int],
-    command_pacing_target_locks: dict[str, asyncio.Lock],
-) -> None:
+def enforce_command_pacing_cache_limit(*, caches: _CommandPacingCaches) -> None:
     """Keep per-target pacing caches bounded."""
-    _build_command_pacing_caches(
-        last_change_state_at=last_change_state_at,
-        change_state_min_interval=change_state_min_interval,
-        change_state_busy_count=change_state_busy_count,
-        command_pacing_target_users=command_pacing_target_users,
-        command_pacing_target_locks=command_pacing_target_locks,
-        command_pacing_cache_max_size=command_pacing_cache_max_size,
-    ).enforce_limit()
+    caches.enforce_limit()
 
 
 async def record_change_state_busy(
@@ -116,15 +101,10 @@ async def record_change_state_busy(
     target_id: str,
     command: str,
     command_pacing_lock: asyncio.Lock,
-    change_state_min_interval: dict[str, float],
-    change_state_busy_count: dict[str, int],
-    last_change_state_at: dict[str, float],
-    command_pacing_target_users: dict[str, int],
-    command_pacing_target_locks: dict[str, asyncio.Lock],
+    caches: _CommandPacingCaches,
     change_state_min_interval_seconds: float,
     change_state_max_interval_seconds: float,
     change_state_busy_multiplier: float,
-    command_pacing_cache_max_size: int,
 ) -> tuple[float, int]:
     """Increase adaptive pacing interval when CHANGE_STATE hits busy error."""
     if not is_change_state_command(command):
@@ -133,15 +113,6 @@ async def record_change_state_busy(
     normalized_target = normalize_pacing_target(target_id)
     if not normalized_target:
         return change_state_min_interval_seconds, 0
-
-    caches = _build_command_pacing_caches(
-        last_change_state_at=last_change_state_at,
-        change_state_min_interval=change_state_min_interval,
-        change_state_busy_count=change_state_busy_count,
-        command_pacing_target_users=command_pacing_target_users,
-        command_pacing_target_locks=command_pacing_target_locks,
-        command_pacing_cache_max_size=command_pacing_cache_max_size,
-    )
 
     async with command_pacing_lock:
         current_interval = max(
@@ -168,14 +139,9 @@ async def record_change_state_success(
     target_id: str,
     command: str,
     command_pacing_lock: asyncio.Lock,
-    change_state_min_interval: dict[str, float],
-    change_state_busy_count: dict[str, int],
-    last_change_state_at: dict[str, float],
-    command_pacing_target_users: dict[str, int],
-    command_pacing_target_locks: dict[str, asyncio.Lock],
+    caches: _CommandPacingCaches,
     change_state_min_interval_seconds: float,
     change_state_recovery_multiplier: float,
-    command_pacing_cache_max_size: int,
 ) -> None:
     """Recover adaptive pacing interval after successful CHANGE_STATE command."""
     if not is_change_state_command(command):
@@ -184,15 +150,6 @@ async def record_change_state_success(
     normalized_target = normalize_pacing_target(target_id)
     if not normalized_target:
         return
-
-    caches = _build_command_pacing_caches(
-        last_change_state_at=last_change_state_at,
-        change_state_min_interval=change_state_min_interval,
-        change_state_busy_count=change_state_busy_count,
-        command_pacing_target_users=command_pacing_target_users,
-        command_pacing_target_locks=command_pacing_target_locks,
-        command_pacing_cache_max_size=command_pacing_cache_max_size,
-    )
 
     async with command_pacing_lock:
         current_interval = max(
@@ -326,25 +283,12 @@ async def throttle_change_state(
     target_id: str,
     command: str,
     command_pacing_lock: asyncio.Lock,
-    command_pacing_target_locks: dict[str, asyncio.Lock],
-    last_change_state_at: dict[str, float],
-    change_state_min_interval: dict[str, float],
-    change_state_busy_count: dict[str, int],
-    command_pacing_target_users: dict[str, int],
+    caches: _CommandPacingCaches,
     monotonic: Callable[[], float],
     sleep: SleepFn,
     change_state_min_interval_seconds: float,
-    command_pacing_cache_max_size: int,
 ) -> None:
     """Pace high-frequency CHANGE_STATE sends for the same target."""
-    caches = _build_command_pacing_caches(
-        last_change_state_at=last_change_state_at,
-        change_state_min_interval=change_state_min_interval,
-        change_state_busy_count=change_state_busy_count,
-        command_pacing_target_users=command_pacing_target_users,
-        command_pacing_target_locks=command_pacing_target_locks,
-        command_pacing_cache_max_size=command_pacing_cache_max_size,
-    )
     registered_target = await _register_pacing_target(
         target_id=target_id,
         command=command,
