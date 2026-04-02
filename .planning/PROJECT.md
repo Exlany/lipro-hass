@@ -1,9 +1,9 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** `No active milestone route`
-**Current route:** `no active milestone route / latest archived baseline = v1.38`；latest archived evidence index = `.planning/reviews/V1_38_EVIDENCE_INDEX.md`.
-**Goal:** `保持 archived-only selector truth 稳定、冻结 v1.38 closeout 证据链，并为下一轮 `$gsd-new-milestone` 留出干净入口。`
-**Default next step:** `$gsd-new-milestone`
+**Status:** `active / phase 133 complete; closeout-ready (2026-04-02)`
+**Current route:** `v1.39 active milestone route / starting from latest archived baseline = v1.38`；latest archived evidence index = `.planning/reviews/V1_38_EVIDENCE_INDEX.md`.
+**Goal:** `完成 v1.39 / Phase 133 的治理恢复、runtime consistency 修补与 public contract correction，并把当前路线推进到 milestone closeout-ready。`
+**Default next step:** `$gsd-complete-milestone v1.39`
 **Archived baseline chain:** latest archived baseline = `v1.38`；previous archived baseline = `v1.37`.
 
 <!-- governance-route-contract:start -->
@@ -16,7 +16,13 @@ projection_targets:
 - .planning/REQUIREMENTS.md
 - .planning/STATE.md
 - .planning/MILESTONES.md
-active_milestone: null
+active_milestone:
+  version: v1.39
+  name: Governance Recovery, Runtime Consistency & Public Contract Correction
+  status: active / phase 133 complete; closeout-ready (2026-04-02)
+  phase: '133'
+  phase_title: governance recovery, runtime consistency, and public contract correction
+  phase_dir: 133-governance-recovery-runtime-consistency-and-public-contract-correction
 latest_archived:
   version: v1.38
   name: Governance Story Compression, Archive Segregation & Public Entry Simplification
@@ -32,11 +38,59 @@ previous_archived:
   name: Repo-Wide Terminal Audit, Hotspot Decomposition & Governance Continuity Decisions
   evidence_path: .planning/reviews/V1_37_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.38
-  default_next_command: $gsd-new-milestone
+  current_route: v1.39 active milestone route / starting from latest archived baseline = v1.38
+  default_next_command: $gsd-complete-milestone v1.39
   latest_archived_evidence_pointer: .planning/reviews/V1_38_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
+## Current Milestone (v1.39)
+
+**Name:** `Governance Recovery, Runtime Consistency & Public Contract Correction`
+
+**Why it matters:** `v1.38` 已把 current selector、archive/history boundary 与 docs-first governance story 压回单一路径，但 milestone audit 仍明确保留 runtime/service/auth/request-policy/dispatch/firmware 等 sanctioned hotspot 作为后续显式路线；与此同时，当前治理红测继续要求补齐 source-path hygiene、FILE_MATRIX inventory 与 promoted-asset slug 一致性。`
+
+**North-star fit:** `v1.39` 继续沿 single authority chain、formal homes、honesty over folklore 推进：当前路线重新回到 active milestone，治理恢复只修 current truth 与执行入口，runtime/public contract 只允许在既有正式 home 内 inward convergence，不新增第二故事线。`
+
+**Current status:** `active / phase 133 complete; closeout-ready (2026-04-02)`
+**Phase range:** `Phase 133 -> 133`
+**Starting baseline:** `.planning/v1.38-MILESTONE-AUDIT.md`, `.planning/reviews/V1_38_EVIDENCE_INDEX.md`, `.planning/milestones/v1.38-ROADMAP.md`, `.planning/milestones/v1.38-REQUIREMENTS.md`
+**Requirements basket:** `GOV-89, ARC-42, HOT-61, DOC-18, QLT-55, TST-53`
+**Latest archived baseline:** `v1.38`
+**Latest archived pointer:** `.planning/reviews/V1_38_EVIDENCE_INDEX.md`
+**Latest archived audit artifact:** `.planning/v1.38-MILESTONE-AUDIT.md`
+**Default next command:** `$gsd-complete-milestone v1.39`
+**Current phase handoff:** `Phase 133 的 4/4 计划、4/4 计划摘要、phase summary 与 verification 已完成；当前路线已进入 closeout-ready，下一步应执行 $gsd-complete-milestone v1.39。`
+
+## Primary Sources
+
+- `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`
+- `.planning/PROJECT.md`
+- `.planning/ROADMAP.md`
+- `.planning/REQUIREMENTS.md`
+- `.planning/STATE.md`
+- `.planning/MILESTONES.md`
+- `.planning/baseline/GOVERNANCE_REGISTRY.json`
+- `.planning/baseline/AUTHORITY_MATRIX.md`
+- `.planning/baseline/VERIFICATION_MATRIX.md`
+- `.planning/reviews/FILE_MATRIX.md`
+- `.planning/reviews/PROMOTED_PHASE_ASSETS.md`
+
+## Current Execution Workspace Inputs
+
+- `.planning/phases/133-governance-recovery-runtime-consistency-and-public-contract-correction/133-01-PLAN.md`
+- `.planning/phases/133-governance-recovery-runtime-consistency-and-public-contract-correction/133-02-PLAN.md`
+- `.planning/phases/133-governance-recovery-runtime-consistency-and-public-contract-correction/133-03-PLAN.md`
+- `.planning/phases/133-governance-recovery-runtime-consistency-and-public-contract-correction/133-04-PLAN.md`
+- `.planning/phases/133-governance-recovery-runtime-consistency-and-public-contract-correction/133-01-SUMMARY.md`
+- `.planning/phases/133-governance-recovery-runtime-consistency-and-public-contract-correction/133-02-SUMMARY.md`
+- `.planning/phases/133-governance-recovery-runtime-consistency-and-public-contract-correction/133-03-SUMMARY.md`
+- `.planning/phases/133-governance-recovery-runtime-consistency-and-public-contract-correction/133-04-SUMMARY.md`
+- `.planning/phases/133-governance-recovery-runtime-consistency-and-public-contract-correction/133-SUMMARY.md`
+- `.planning/phases/133-governance-recovery-runtime-consistency-and-public-contract-correction/133-VERIFICATION.md`
+- `.planning/v1.38-MILESTONE-AUDIT.md`
+- `.planning/codebase/CONCERNS.md`
+- `.planning/codebase/ARCHITECTURE.md`
+
 ## Latest Archived Milestone (v1.38)
 
 **Name:** `Governance Story Compression, Archive Segregation & Public Entry Simplification`
@@ -92,3 +146,26 @@ bootstrap:
 **Current phase handoff:** `Milestone closeout complete；Phase 126 -> 128 的 summary / verification / audit / evidence index 已冻结为 archived evidence frozen，后续新路线应从 `$gsd-new-milestone` 开始。`
 
 ## Historical Archived Milestone (v1.35)
+
+## Historical Archived Reference Appendix
+
+以下锚点保留为 continuity / archive truth 的快速索引，避免新 milestone 激活后丢失旧版本的公开可见性。
+
+## v1.20 Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
+**Current status:** `archived / evidence-ready (2026-03-20)`
+
+## v1.23 Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
+**Current status:** `archived / evidence-ready (2026-03-21)`
+
+## v1.24 Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
+**Current status:** `archived / evidence-ready (2026-03-21)`
+
+## v1.25 Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
+**Current status:** `archived / evidence-ready (2026-03-21)`
+
+## v1.28 Governance Portability, Verification Stratification & Open-Source Continuity Hardening
+**Current status:** `archived / evidence-ready (2026-03-22)`
+
+## v1.29 Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization
+**Current status:** `archived / evidence-ready (2026-03-22)`
+**Evidence pointer:** `.planning/reviews/V1_29_EVIDENCE_INDEX.md`

@@ -563,7 +563,7 @@ phases:
   - 122-02-SUMMARY.md
   - 122-03-SUMMARY.md
   - 122-VERIFICATION.md
-  123-service-router-family-reconvergence-control-plane-locality-tightening-and-public-architecture-hygiene:
+  123-service-router-family-reconvergence-control-plane-locality-and-public-architecture-hygiene:
   - 123-01-SUMMARY.md
   - 123-02-SUMMARY.md
   - 123-03-SUMMARY.md

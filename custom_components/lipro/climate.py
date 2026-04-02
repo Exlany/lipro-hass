@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING, Final
 
 from homeassistant.components.climate import ClimateEntity
@@ -32,6 +33,7 @@ if TYPE_CHECKING:
 
 # Limit parallel updates to avoid overwhelming the API
 PARALLEL_UPDATES = 1
+_LOGGER = logging.getLogger(__name__)
 
 # Preset modes
 PRESET_DEFAULT: Final = "default"
@@ -95,7 +97,7 @@ class LiproHeater(LiproEntity, ClimateEntity):
     def preset_mode(self) -> str | None:
         """Return current preset mode."""
         mode = self.device.state.heater_mode
-        return MODE_TO_PRESET.get(mode, PRESET_DEFAULT)
+        return MODE_TO_PRESET.get(mode)
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set HVAC mode."""
@@ -106,7 +108,14 @@ class LiproHeater(LiproEntity, ClimateEntity):
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set preset mode."""
-        mode = PRESET_TO_MODE.get(preset_mode, HEATER_MODE_DEFAULT)
+        mode = PRESET_TO_MODE.get(preset_mode)
+        if mode is None:
+            _LOGGER.debug(
+                "Ignoring unsupported preset mode '%s' for %s",
+                preset_mode,
+                self.device.name,
+            )
+            return
         await self.async_change_state({PROP_HEATER_MODE: mode})
 
     async def async_turn_on(self) -> None:

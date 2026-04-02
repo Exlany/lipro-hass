@@ -390,10 +390,10 @@ class TestLiproFanEntityBehavior:
 class TestLiproHeaterVentFanBehavior:
     """Behavior tests for heater ventilation fan entity."""
 
-    def test_vent_entity_properties_cover_is_on_and_preset_fallback(
+    def test_vent_entity_properties_cover_is_on_and_unknown_preset(
         self, mock_coordinator, make_device
     ) -> None:
-        """Vent entity should expose on-state and fallback preset mapping."""
+        """Vent entity should surface on-state without masking unknown gear."""
         from custom_components.lipro.fan import LiproHeaterVentFan
 
         device = make_device("heater", properties={"aerationGear": "99"})
@@ -401,7 +401,7 @@ class TestLiproHeaterVentFanBehavior:
         fan = LiproHeaterVentFan(mock_coordinator, device)
 
         assert fan.is_on is True
-        assert fan.preset_mode == "off"
+        assert fan.preset_mode is None
 
     @pytest.mark.asyncio
     async def test_turn_on_default_uses_strong(self, mock_coordinator, make_device):
@@ -420,22 +420,34 @@ class TestLiproHeaterVentFanBehavior:
         assert any(p["key"] == "aerationGear" and p["value"] == "1" for p in properties)
 
     @pytest.mark.asyncio
-    async def test_set_invalid_preset_fallbacks_to_strong(
+    async def test_turn_on_invalid_preset_is_ignored(
         self, mock_coordinator, make_device
-    ):
-        """Invalid vent preset should fallback to strong."""
+    ) -> None:
+        """Explicit invalid preset should not fallback to strong on turn_on."""
         from custom_components.lipro.fan import LiproHeaterVentFan
 
         device = make_device("heater", properties={"aerationGear": "0"})
         mock_coordinator.get_device = MagicMock(return_value=device)
         fan = LiproHeaterVentFan(mock_coordinator, device)
 
-        with patch.object(fan, "async_write_ha_state"):
-            await fan.async_set_preset_mode("invalid")
+        await fan.async_turn_on(preset_mode="invalid")
 
-        call_args = mock_coordinator.async_send_command.call_args
-        properties = call_args[0][2]
-        assert any(p["key"] == "aerationGear" and p["value"] == "1" for p in properties)
+        mock_coordinator.async_send_command.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_set_invalid_preset_is_ignored(
+        self, mock_coordinator, make_device
+    ):
+        """Invalid vent preset should not fallback to strong."""
+        from custom_components.lipro.fan import LiproHeaterVentFan
+
+        device = make_device("heater", properties={"aerationGear": "0"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+        fan = LiproHeaterVentFan(mock_coordinator, device)
+
+        await fan.async_set_preset_mode("invalid")
+
+        mock_coordinator.async_send_command.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_turn_off_sets_aeration_to_off(self, mock_coordinator, make_device):

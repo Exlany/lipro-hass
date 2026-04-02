@@ -211,6 +211,23 @@ class TestLiproHeaterEntityCommands:
         )
 
     @pytest.mark.asyncio
+    async def test_set_invalid_preset_mode_is_ignored(
+        self, mock_coordinator, make_device
+    ) -> None:
+        """Unsupported preset should not dispatch a default heater mode."""
+        from unittest.mock import MagicMock
+
+        from custom_components.lipro.climate import LiproHeater
+
+        device = make_device("heater", properties={"heaterSwitch": "1"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+        heater = LiproHeater(mock_coordinator, device)
+
+        await heater.async_set_preset_mode("invalid")
+
+        mock_coordinator.async_send_command.assert_not_called()
+
+    @pytest.mark.asyncio
     async def test_turn_on_delegates_to_set_hvac_mode(
         self, mock_coordinator, make_device
     ):
@@ -262,8 +279,8 @@ class TestLiproHeaterEntityCommands:
 
         assert heater.preset_mode == "dry"
 
-    def test_preset_mode_default_fallback(self, mock_coordinator, make_device):
-        """Test preset_mode falls back to 'default' for unknown mode."""
+    def test_preset_mode_unknown_mode_returns_none(self, mock_coordinator, make_device):
+        """Unknown heater mode should not masquerade as a supported preset."""
         from unittest.mock import MagicMock
 
         from custom_components.lipro.climate import LiproHeater
@@ -272,4 +289,4 @@ class TestLiproHeaterEntityCommands:
         mock_coordinator.get_device = MagicMock(return_value=device)
         heater = LiproHeater(mock_coordinator, device)
 
-        assert heater.preset_mode == "default"
+        assert heater.preset_mode is None

@@ -300,14 +300,21 @@ class LiproHeaterVentFan(LiproEntity, FanEntity):
     @property
     def preset_mode(self) -> str | None:
         """Return the current preset mode."""
-        return AERATION_TO_PRESET.get(self.device.state.aeration_gear, PRESET_VENT_OFF)
+        return AERATION_TO_PRESET.get(self.device.state.aeration_gear)
 
     async def _async_set_aeration_from_preset(
         self,
         preset_mode: str,
     ) -> None:
-        """Apply preset by mapping to aeration gear, with strong as fallback."""
-        aeration = PRESET_TO_AERATION.get(preset_mode, AERATION_STRONG)
+        """Apply preset by mapping to aeration gear when supported."""
+        aeration = PRESET_TO_AERATION.get(preset_mode)
+        if aeration is None:
+            _LOGGER.debug(
+                "Ignoring unsupported preset mode '%s' for %s",
+                preset_mode,
+                self.device.name,
+            )
+            return
         await self.async_change_state({PROP_AERATION_GEAR: aeration})
 
     async def async_turn_on(

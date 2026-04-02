@@ -94,15 +94,14 @@ async def async_load_remote_firmware_manifest(
                     if response.status != 200:
                         continue
                     payload = await response.json(content_type=None)
-            except (aiohttp.ClientError, TimeoutError, ValueError) as err:
+                versions, versions_by_type = parse_verified_firmware_manifest_payload(
+                    payload
+                )
+            except (aiohttp.ClientError, TimeoutError, TypeError, ValueError) as err:
                 _LOGGER.debug(
                     "Remote firmware manifest fetch failed from %s: %s", url, err
                 )
                 continue
-
-            versions, versions_by_type = parse_verified_firmware_manifest_payload(
-                payload
-            )
             if versions or versions_by_type:
                 _REMOTE_MANIFEST_STATE.data = (versions, versions_by_type)
                 _REMOTE_MANIFEST_STATE.time = now

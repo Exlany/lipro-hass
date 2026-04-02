@@ -28,14 +28,13 @@ from .runtime_access_support_views import (
     _iter_runtime_entry_coordinators_support,
     _iter_runtime_entry_views_support,
 )
-from .runtime_access_types import RuntimeEntryPort
+from .runtime_access_types import RuntimeEntryPort, RuntimeEntryView
 
 
-def build_entry_telemetry_exporter_support(
-    entry: RuntimeEntryPort | object,
+def build_entry_telemetry_exporter_from_view_support(
+    runtime_entry: RuntimeEntryView | None,
 ) -> RuntimeTelemetryExporter | None:
-    """Build one explicit telemetry exporter for a runtime entry when available."""
-    runtime_entry = _build_runtime_entry_view_support(entry)
+    """Build one explicit telemetry exporter from a materialized runtime-entry view."""
     if runtime_entry is None or runtime_entry.coordinator is None:
         return None
 
@@ -50,6 +49,14 @@ def build_entry_telemetry_exporter_support(
             entry_id=runtime_entry.entry_id or None,
         ),
     )
+
+
+def build_entry_telemetry_exporter_support(
+    entry: RuntimeEntryPort | object,
+) -> RuntimeTelemetryExporter | None:
+    """Build one explicit telemetry exporter for a runtime entry when available."""
+    runtime_entry = _build_runtime_entry_view_support(entry)
+    return build_entry_telemetry_exporter_from_view_support(runtime_entry)
 
 
 __all__ = [
@@ -70,5 +77,6 @@ __all__ = [
     "_iter_runtime_entries_support",
     "_iter_runtime_entry_coordinators_support",
     "_iter_runtime_entry_views_support",
+    "build_entry_telemetry_exporter_from_view_support",
     "build_entry_telemetry_exporter_support",
 ]

@@ -20,7 +20,11 @@ from custom_components.lipro.control.runtime_access import (
     iter_runtime_entry_coordinators,
     iter_runtime_entry_views,
 )
-from custom_components.lipro.control.runtime_access_types import RuntimeEntryPort
+from custom_components.lipro.control.runtime_access_types import (
+    RuntimeCoordinatorView,
+    RuntimeEntryPort,
+    RuntimeEntryView,
+)
 from custom_components.lipro.runtime_types import LiproCoordinator
 
 
@@ -308,3 +312,29 @@ def test_build_runtime_diagnostics_projection_uses_view_facts_without_runtime_ba
     mock_mapping.assert_not_called()
     mock_degraded.assert_not_called()
 
+
+def test_build_runtime_diagnostics_projection_builds_runtime_view_once() -> None:
+    entry = SimpleNamespace(name="entry-input")
+    runtime_entry = RuntimeEntryView(
+        entry=SimpleNamespace(entry_id="entry-1", options={}, runtime_data=None),
+        entry_id="entry-1",
+        options={},
+        coordinator=RuntimeCoordinatorView(
+            update_interval=None,
+            last_update_success=True,
+            mqtt_connected=True,
+            protocol=None,
+            runtime_telemetry_snapshot={},
+            devices={},
+        ),
+    )
+
+    with patch(
+        "custom_components.lipro.control.runtime_access.build_runtime_entry_view",
+        return_value=runtime_entry,
+    ) as build_view:
+        projection = build_runtime_diagnostics_projection(entry)
+
+    assert projection is not None
+    assert projection.snapshot.entry_id == "entry-1"
+    build_view.assert_called_once_with(entry)

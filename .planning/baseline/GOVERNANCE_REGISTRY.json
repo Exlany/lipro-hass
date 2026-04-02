@@ -176,7 +176,14 @@
       ".planning/STATE.md",
       ".planning/MILESTONES.md"
     ],
-    "active_milestone": null,
+    "active_milestone": {
+      "version": "v1.39",
+      "name": "Governance Recovery, Runtime Consistency & Public Contract Correction",
+      "status": "active / phase 133 complete; closeout-ready (2026-04-02)",
+      "phase": "133",
+      "phase_title": "governance recovery, runtime consistency, and public contract correction",
+      "phase_dir": "133-governance-recovery-runtime-consistency-and-public-contract-correction"
+    },
     "latest_archived": {
       "version": "v1.38",
       "name": "Governance Story Compression, Archive Segregation & Public Entry Simplification",
@@ -194,8 +201,8 @@
       "evidence_path": ".planning/reviews/V1_37_EVIDENCE_INDEX.md"
     },
     "bootstrap": {
-      "current_route": "no active milestone route / latest archived baseline = v1.38",
-      "default_next_command": "$gsd-new-milestone",
+      "current_route": "v1.39 active milestone route / starting from latest archived baseline = v1.38",
+      "default_next_command": "$gsd-complete-milestone v1.39",
       "latest_archived_evidence_pointer": ".planning/reviews/V1_38_EVIDENCE_INDEX.md"
     }
   }

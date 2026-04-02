@@ -209,11 +209,12 @@ get_anonymous_share_report:
 get_developer_report:
   name: Get Developer Report
   description: >-
-    Debug-mode-only capability. Export a partially redacted runtime diagnostics report
-    for local real-device debugging. This local view still keeps vendor diagnosis identifiers
-    such as iotName and local labels so you can identify the device under test. Includes
-    mesh topology snapshot, panel capability snapshot, IR remote inventory snapshot, recent
-    command traces, and runtime options.
+    Debug-mode-only escalation path after standard diagnostics. Export a partially
+    redacted runtime diagnostics report for local real-device debugging. This local
+    view still keeps vendor diagnosis identifiers such as iotName and local labels so
+    you can identify the device under test. Includes mesh topology snapshot, panel
+    capability snapshot, IR remote inventory snapshot, recent command traces, and
+    runtime options.
   fields:
     entry_id:
       name: Entry ID (Optional)
@@ -228,10 +229,11 @@ get_developer_report:
 submit_developer_feedback:
   name: Submit Developer Feedback
   description: >-
-    Debug-mode-only capability. One-click submit developer diagnostics to the share
-    worker. Upload keeps vendor diagnosis identifiers such as iotName, but sanitizes
-    user-defined labels such as device/room/panel/IR names. Optionally limit the upload
-    to one config entry and include a note for easier triage.
+    Debug-mode-only escalation path after standard diagnostics. One-click submit
+    developer diagnostics to the share worker. Upload keeps vendor diagnosis
+    identifiers such as iotName, but sanitizes user-defined labels such as
+    device/room/panel/IR names. Optionally limit the upload to one config entry
+    and include a note for easier triage.
   fields:
     entry_id:
       name: Entry ID (Optional)
@@ -254,10 +256,11 @@ submit_developer_feedback:
 query_command_result:
   name: Query Command Result (Developer)
   description: >-
-    Debug-mode-only optional capability. Query cloud-reported command result status by msgSn
-    with bounded polling inside the default retry budget. Actual attempts may
-    be lower than max_attempts because exponential backoff is clipped by the
-    time budget. This does not alter normal control flow.
+    Debug-mode-only escalation path after standard diagnostics. Narrow protocol
+    probe that queries cloud-reported command result status by msgSn with bounded
+    polling inside the default retry budget. Actual attempts may be lower than
+    max_attempts because exponential backoff is clipped by the time budget. This
+    does not alter normal control flow.
   target:
     entity:
       integration: lipro
@@ -304,20 +307,23 @@ query_command_result:
 get_city:
   name: Get City (Developer)
   description: >-
-    Debug-mode-only optional capability. Query cloud city metadata using the
-    verified empty-object ({}) payload contract.
+    Debug-mode-only escalation path after standard diagnostics. Narrow protocol
+    probe that queries cloud city metadata using the verified empty-object ({})
+    payload contract.
 
 query_user_cloud:
   name: Query User Cloud (Developer)
   description: >-
-    Debug-mode-only optional capability. Query user cloud metadata using the
-    verified raw empty-body contract (`-d ''`). Tested responses may contain
-    only a top-level `data` field without a `code` wrapper.
+    Debug-mode-only escalation path after standard diagnostics. Narrow protocol
+    probe that queries user cloud metadata using the verified raw empty-body
+    contract (`-d ''`). Tested responses may contain only a top-level `data`
+    field without a `code` wrapper.
 
 fetch_body_sensor_history:
   name: Fetch Body Sensor History (Developer)
   description: >-
-    Debug-mode-only optional capability. Fetch body sensor history payload for debugging.
+    Debug-mode-only escalation path after standard diagnostics. Narrow protocol
+    probe that fetches body sensor history payload for deeper debugging.
   target:
     entity:
       integration: lipro
@@ -352,7 +358,8 @@ fetch_body_sensor_history:
 fetch_door_sensor_history:
   name: Fetch Door Sensor History (Developer)
   description: >-
-    Debug-mode-only optional capability. Fetch door sensor history payload for debugging.
+    Debug-mode-only escalation path after standard diagnostics. Narrow protocol
+    probe that fetches door sensor history payload for deeper debugging.
   target:
     entity:
       integration: lipro

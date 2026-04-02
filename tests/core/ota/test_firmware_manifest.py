@@ -246,6 +246,50 @@ async def test_async_load_remote_manifest_updates_cache_on_remote_success() -> N
 
 
 @pytest.mark.asyncio
+async def test_async_load_remote_manifest_falls_back_after_malformed_payload() -> None:
+    now = datetime(2026, 1, 1, 0, 0, tzinfo=UTC)
+    cached_data = (frozenset({"6.0.0"}), {"curtain": frozenset({"6.0.0"})})
+    parsed_data = (frozenset({"8.0.0"}), {"21p3": frozenset({"8.0.0"})})
+    firmware_manifest._REMOTE_MANIFEST_STATE.time = now - timedelta(hours=2)
+    firmware_manifest._REMOTE_MANIFEST_STATE.data = cached_data
+
+    session = MagicMock()
+    session.get = MagicMock(
+        side_effect=[
+            _response_context(
+                _response(status=200, payload={"verified_versions": ["broken"]})
+            ),
+            _response_context(
+                _response(status=200, payload={"verified_versions": ["8.0.0"]})
+            ),
+        ]
+    )
+
+    with (
+        patch(
+            "custom_components.lipro.firmware_manifest.dt_util.utcnow", return_value=now
+        ),
+        patch(
+            "custom_components.lipro.firmware_manifest.async_get_clientsession",
+            return_value=session,
+        ),
+        patch(
+            "custom_components.lipro.firmware_manifest.parse_verified_firmware_manifest_payload",
+            side_effect=[ValueError("malformed"), parsed_data],
+        ) as parse_payload,
+    ):
+        result = await firmware_manifest.async_load_remote_firmware_manifest(
+            MagicMock()
+        )
+
+    assert result == parsed_data
+    assert firmware_manifest._REMOTE_MANIFEST_STATE.data == parsed_data
+    assert firmware_manifest._REMOTE_MANIFEST_STATE.time == now
+    assert session.get.call_count == 2
+    assert parse_payload.call_count == 2
+
+
+@pytest.mark.asyncio
 async def test_async_load_remote_manifest_returns_cached_data_on_remote_errors() -> (
     None
 ):
@@ -274,6 +318,49 @@ async def test_async_load_remote_manifest_returns_cached_data_on_remote_errors()
     assert firmware_manifest._REMOTE_MANIFEST_STATE.data == cached_data
     assert firmware_manifest._REMOTE_MANIFEST_STATE.time == now
     assert session.get.call_count == 2
+
+
+@pytest.mark.asyncio
+async def test_async_load_remote_manifest_returns_cached_data_on_malformed_payload() -> (
+    None
+):
+    now = datetime(2026, 1, 1, 0, 0, tzinfo=UTC)
+    cached_data = (frozenset({"6.1.0"}), {"fan": frozenset({"6.1.0"})})
+    firmware_manifest._REMOTE_MANIFEST_STATE.time = now - timedelta(hours=2)
+    firmware_manifest._REMOTE_MANIFEST_STATE.data = cached_data
+
+    session = MagicMock()
+    session.get = MagicMock(
+        side_effect=[
+            _response_context(
+                _response(status=200, payload={"verified_versions": ["broken"]})
+            ),
+            _response_context(_response(status=503)),
+        ]
+    )
+
+    with (
+        patch(
+            "custom_components.lipro.firmware_manifest.dt_util.utcnow", return_value=now
+        ),
+        patch(
+            "custom_components.lipro.firmware_manifest.async_get_clientsession",
+            return_value=session,
+        ),
+        patch(
+            "custom_components.lipro.firmware_manifest.parse_verified_firmware_manifest_payload",
+            side_effect=ValueError("malformed"),
+        ) as parse_payload,
+    ):
+        result = await firmware_manifest.async_load_remote_firmware_manifest(
+            MagicMock()
+        )
+
+    assert result == cached_data
+    assert firmware_manifest._REMOTE_MANIFEST_STATE.data == cached_data
+    assert firmware_manifest._REMOTE_MANIFEST_STATE.time == now
+    assert session.get.call_count == 2
+    parse_payload.assert_called_once_with({"verified_versions": ["broken"]})
 
 
 @pytest.mark.asyncio

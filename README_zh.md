@@ -53,20 +53,26 @@ Home Assistant 集成，用于控制 Lipro 智能家居设备。
 
 ## 服务
 
+常用公开服务：
+
 - `lipro.send_command` - 发送原始命令到设备
 - `lipro.get_schedules` - 获取按周重复的定时任务；星期使用 `1=周一` 到 `7=周日`。mesh group 的读取以 BLE/gateway-member 候选为准。对已测 mesh BLE schedule，标准 `schedule/get.do` 可能返回空成功，不能假定为可靠读回退
 - `lipro.add_schedule` - 添加按周重复的定时任务；当前不暴露绝对日期定时模式。mesh group 仅通过 BLE/gateway-member 候选写入，因为实测标准 `schedule/addOrUpdate.do` 不是可靠回退链路
 - `lipro.delete_schedules` - 按 ID 删除定时任务；mesh group 仅通过 BLE/gateway-member 候选删除，因为实测标准 `schedule/delete.do` 可能回成功但并未删除目标任务
 - `lipro.submit_anonymous_share` - 手动提交已脱敏/伪匿名的分享报告
 - `lipro.get_anonymous_share_report` - 预览上传前的已脱敏/伪匿名分享载荷
+- `lipro.refresh_devices` - 强制刷新设备列表（全部条目或指定 entry_id）
+
+仅在调试模式下可用的升级排查服务：
+
+- 仅当标准 diagnostics 仍不足以解释问题，或维护者要求进一步排查时再使用。
 - `lipro.get_developer_report` - 仅在调试模式下可用的本地诊断导出；属于部分脱敏视图，但仍保留 `iotName` 等供应商诊断标识与本地标签，方便识别正在测试的设备（全部条目或指定 entry_id）
 - `lipro.submit_developer_feedback` - 仅在调试模式下可用的一键开发者诊断反馈；上传保留 `iotName`，但会脱敏设备/房间/面板/红外资产名称等用户自定义标签（全部条目或指定 entry_id）
-- `lipro.query_command_result` - 仅在调试模式下可用的开发者能力：按消息序列号查询云端上报的命令状态
-- `lipro.get_city` - 仅在调试模式下可用的开发者能力：按已验证的空对象 payload 契约查询云端城市元数据
-- `lipro.query_user_cloud` - 仅在调试模式下可用的开发者能力：按已验证的原始空 body 契约（`-d ''`）查询用户云端元数据；实测响应可能只有顶层 `data`，没有 `code` 包装
-- `lipro.fetch_body_sensor_history` - 仅在调试模式下可用的开发者能力：拉取人体传感器历史载荷用于调试
-- `lipro.fetch_door_sensor_history` - 仅在调试模式下可用的开发者能力：拉取门窗传感器历史载荷用于调试
-- `lipro.refresh_devices` - 强制刷新设备列表（全部条目或指定 entry_id）
+- `lipro.query_command_result` - 仅在调试模式下可用的协议探针：按消息序列号查询云端上报的命令状态
+- `lipro.get_city` - 仅在调试模式下可用的协议探针：按已验证的空对象 payload 契约查询云端城市元数据
+- `lipro.query_user_cloud` - 仅在调试模式下可用的协议探针：按已验证的原始空 body 契约（`-d ''`）查询用户云端元数据；实测响应可能只有顶层 `data`，没有 `code` 包装
+- `lipro.fetch_body_sensor_history` - 仅在调试模式下可用的协议探针：拉取人体传感器历史载荷用于更深排查
+- `lipro.fetch_door_sensor_history` - 仅在调试模式下可用的协议探针：拉取门窗传感器历史载荷用于更深排查
 
 固件验证清单：
 - 已认证固件 trust-root 资产：`custom_components/lipro/firmware_support_manifest.json`
@@ -327,7 +333,7 @@ data:
    - 频繁操作可能触发 API 限流
 
 5. **传感器电池**
-   - 传感器仅提供低电量警告，不提供具体电量百分比
+   - 电池信息因设备而异：部分电池设备会暴露电量百分比传感器，部分传感器还会额外暴露低电量二值传感器
 
 6. **关灯时亮度滑杆提示（Tip）**
    - 默认行为可配置：开启“关灯时调亮度/色温自动开灯”后，关灯时调节亮度/色温会自动开灯
@@ -370,6 +376,7 @@ data:
 若 diagnostics 仍不足以解释问题，或维护者要求进一步排查，可再在本地预览或上报以下载荷：
 - `lipro.get_developer_report` - 仅在调试模式下可用的本地诊断导出；属于部分脱敏视图，但仍保留 `iotName` 等供应商诊断标识与本地标签，便于识别实测设备
 - `lipro.submit_developer_feedback` - 仅在调试模式下可用的上传契约；保留 `iotName`，但会脱敏设备/房间/面板/红外资产名称等用户自定义标签
+- `lipro.query_command_result`、`lipro.get_city`、`lipro.query_user_cloud`、`lipro.fetch_body_sensor_history`、`lipro.fetch_door_sensor_history` - 更窄的调试模式协议探针，仅用于升级排查，不属于日常控制能力
 - 若可获取，请把 `failure_summary` / `failure_entries` 与 diagnostics 一并提供，便于维护者快速判型
 - `lipro.get_anonymous_share_report` - 已脱敏/伪匿名的 share-worker 载荷预览（仍包含稳定 installation/diagnostic 标识）
 

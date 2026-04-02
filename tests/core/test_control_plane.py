@@ -17,6 +17,7 @@ from custom_components.lipro import (
     async_unload_entry,
 )
 from custom_components.lipro.const.base import DOMAIN
+from custom_components.lipro.const.config import CONF_DEBUG_MODE
 from custom_components.lipro.control.runtime_access_types import RuntimeEntryPort
 from custom_components.lipro.runtime_types import LiproCoordinator
 from tests.helpers.service_call import service_call
@@ -404,6 +405,40 @@ def test_build_single_runtime_coordinator_iterator_returns_stable_singleton(
 
     assert list(iterator_factory(hass)) == [coordinator]
     assert list(iterator_factory(hass)) == [coordinator]
+
+
+def test_collect_developer_reports_requested_entry_uses_entry_view_coordinator(
+    hass,
+) -> None:
+    from custom_components.lipro.control.developer_router_support import (
+        collect_developer_reports,
+    )
+
+    coordinator = MagicMock(name="coordinator")
+    entry = SimpleNamespace(
+        entry_id="entry-1",
+        options={CONF_DEBUG_MODE: True},
+        runtime_data=None,
+    )
+    expected = [{"debug_mode": True}]
+
+    with (
+        patch(
+            "custom_components.lipro.control.developer_router_support._iter_runtime_entry_coordinators",
+            return_value=[(entry, coordinator)],
+        ),
+        patch(
+            "custom_components.lipro.control.developer_router_support._collect_developer_reports_service",
+            return_value=expected,
+        ) as collect_reports,
+    ):
+        result = collect_developer_reports(hass, requested_entry_id=entry.entry_id)
+
+    assert result == expected
+    iter_runtime_coordinators = collect_reports.call_args.kwargs[
+        "iter_runtime_coordinators"
+    ]
+    assert list(iter_runtime_coordinators(hass)) == [coordinator]
 
 
 def test_runtime_access_filters_debug_runtime_coordinators(hass) -> None:

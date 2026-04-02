@@ -56,7 +56,8 @@ logger:
 ### Developer / Diagnostics Services
 
 - These services are escalation paths after diagnostics, not hard prerequisites for every bug report or every access mode.
-- `lipro.get_developer_report` keeps vendor diagnosis identifiers such as `iotName`, but anonymizes user-defined labels before upload when using `lipro.submit_developer_feedback`.
+- `lipro.get_developer_report` and `lipro.submit_developer_feedback` are debug-mode-only escalation services for deeper runtime diagnostics. The local report keeps vendor diagnosis identifiers such as `iotName`; uploads anonymize user-defined labels.
+- `lipro.query_command_result`, `lipro.get_city`, `lipro.query_user_cloud`, `lipro.fetch_body_sensor_history`, and `lipro.fetch_door_sensor_history` are narrower debug-mode-only protocol probes, not part of normal day-to-day control flow.
 - If a report or diagnostics export already contains `failure_summary` / `failure_entries`, keep those fields intact when filing the issue; they are part of the shared failure vocabulary.
 - `lipro.get_anonymous_share_report` is the safe preview path before anonymous sharing.
 - If a developer service fails, mention the exact service name, arguments, and whether debug mode was enabled.

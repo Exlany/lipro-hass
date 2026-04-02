@@ -47,11 +47,27 @@ type RuntimeEntryCoordinator = tuple[RuntimeEntryPort, LiproCoordinator]
 type RuntimeDeviceAndCoordinator = tuple[LiproDevice, LiproCoordinator]
 
 
+def _build_entry_telemetry_exporter_from_view(
+    runtime_entry: RuntimeEntryView | None,
+) -> RuntimeTelemetryExporter | None:
+    return _support.build_entry_telemetry_exporter_from_view_support(runtime_entry)
+
+
+def _build_entry_system_health_view_from_view(
+    runtime_entry: RuntimeEntryView | None,
+) -> SystemHealthTelemetryView | None:
+    exporter = _build_entry_telemetry_exporter_from_view(runtime_entry)
+    if exporter is None:
+        return None
+    return exporter.export_views().system_health
+
+
 def build_entry_telemetry_exporter(
     entry: RuntimeEntryLike,
 ) -> RuntimeTelemetryExporter | None:
     """Return the formal runtime telemetry exporter for one config entry."""
-    return _support.build_entry_telemetry_exporter_support(entry)
+    runtime_entry = entry if isinstance(entry, RuntimeEntryView) else build_runtime_entry_view(entry)
+    return _build_entry_telemetry_exporter_from_view(runtime_entry)
 
 
 def build_runtime_entry_view(
@@ -192,10 +208,8 @@ def build_entry_system_health_view(
     entry: RuntimeEntryLike,
 ) -> SystemHealthTelemetryView | None:
     """Return the control-plane system-health projection for one config entry."""
-    exporter = build_entry_telemetry_exporter(entry)
-    if exporter is None:
-        return None
-    return exporter.export_views().system_health
+    runtime_entry = entry if isinstance(entry, RuntimeEntryView) else build_runtime_entry_view(entry)
+    return _build_entry_system_health_view_from_view(runtime_entry)
 
 
 def _coerce_device_count(
@@ -261,6 +275,12 @@ def build_runtime_snapshot(
 ) -> RuntimeCoordinatorSnapshot | None:
     """Build one control-plane runtime snapshot from a config entry."""
     runtime_entry = build_runtime_entry_view(entry)
+    return _build_runtime_snapshot_from_view(runtime_entry)
+
+
+def _build_runtime_snapshot_from_view(
+    runtime_entry: RuntimeEntryView | None,
+) -> RuntimeCoordinatorSnapshot | None:
     if runtime_entry is None or not runtime_entry.entry_id:
         return None
 
@@ -268,7 +288,7 @@ def build_runtime_snapshot(
     if coordinator is None:
         return None
 
-    telemetry_view = build_entry_system_health_view(runtime_entry.entry)
+    telemetry_view = build_entry_system_health_view(runtime_entry)
     return RuntimeCoordinatorSnapshot(
         entry_id=runtime_entry.entry_id,
         entry_ref=_coerce_entry_ref(telemetry_view),
@@ -287,7 +307,7 @@ def build_runtime_diagnostics_projection(
     if runtime_entry is None or runtime_entry.coordinator is None:
         return None
 
-    snapshot = build_runtime_snapshot(runtime_entry.entry)
+    snapshot = _build_runtime_snapshot_from_view(runtime_entry)
     if snapshot is None:
         return None
 

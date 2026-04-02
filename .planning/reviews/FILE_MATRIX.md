@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 761
+**Python files total:** 762
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -11,7 +11,7 @@
 | `custom_components/lipro/__init__.py` | Control | Phase 90 | 保留 | protected thin HA root adapter / lazy wiring shell |
 | `custom_components/lipro/binary_sensor.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/climate.py` | Domain | Phase 4 | 保留 | - |
-| `custom_components/lipro/config_flow.py` | Control | Phase 3 / 124 / 125 | 保留 | HA config-flow thin adapter over localized flow step handlers and private-helper orchestration seams |
+| `custom_components/lipro/config_flow.py` | Control | Phase 3 / 124 | 保留 | HA config-flow thin adapter over localized flow step handlers |
 | `custom_components/lipro/const/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/const/api.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/const/base.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -28,14 +28,14 @@
 | `custom_components/lipro/control/entry_lifecycle_support.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/entry_root_support.py` | Control | Phase 103 | 保留 | root-entry lazy-load / entry-auth / service-registry adapter support home |
 | `custom_components/lipro/control/entry_root_wiring.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/control/models.py` | Control | Phase 3 / 127 | 保留 | control-plane read models; `FailureSummary` now reuses core telemetry truth |
+| `custom_components/lipro/control/models.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/redaction.py` | Control | Phase 92 | 保留 | diagnostics-facing redaction adapter on shared redaction contract with inward recursion helpers |
-| `custom_components/lipro/control/runtime_access.py` | Control | Phase 90 / 127 | 保留 | protected thin runtime read-model / typed access home |
+| `custom_components/lipro/control/runtime_access.py` | Control | Phase 90 | 保留 | protected thin runtime read-model / typed access home |
 | `custom_components/lipro/control/runtime_access_support.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/runtime_access_support_devices.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/runtime_access_support_members.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/runtime_access_support_telemetry.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/control/runtime_access_support_views.py` | Control | Phase 3 / 127 | 保留 | explicit runtime-entry/coordinator narrowing helper home; reflection-free support seam |
+| `custom_components/lipro/control/runtime_access_support_views.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/runtime_access_types.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/service_registry.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/service_router.py` | Control | Phase 3 / 14 / 15 / 37 | 保留 | public router shell over focused handler/support collaborators |
@@ -43,7 +43,7 @@
 | `custom_components/lipro/control/service_router_handlers.py` | Control | Phase 123 | 保留 | control-local callback family home for command/schedule/share/maintenance service-router handlers |
 | `custom_components/lipro/control/service_router_support.py` | Control | Phase 123 | 保留 | router lookup/logging/runtime-iterator helper home |
 | `custom_components/lipro/control/system_health_surface.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/control/telemetry_surface.py` | Control | Phase 7.3 / 127 | 保留 | observer-only typed telemetry bridge |
+| `custom_components/lipro/control/telemetry_surface.py` | Control | Phase 7.3 | 保留 | - |
 | `custom_components/lipro/coordinator_entry.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/core/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/anonymous_share/__init__.py` | Protocol | Phase 2.6 | 保留 | - |
@@ -97,7 +97,7 @@
 | `custom_components/lipro/core/api/request_policy.py` | Protocol | Phase 2 | 重构 | formal 429 / busy / pacing policy home |
 | `custom_components/lipro/core/api/request_policy_support.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/response_safety.py` | Protocol | Phase 2 | 重构 | - |
-| `custom_components/lipro/core/api/rest_facade.py` | Protocol | Phase 90 / 129 | 重构 | canonical REST child-façade composition home with explicit local surface over wrapper modules |
+| `custom_components/lipro/core/api/rest_facade.py` | Protocol | Phase 90 | 重构 | canonical REST child-façade composition home |
 | `custom_components/lipro/core/api/rest_facade_endpoint_methods.py` | Protocol | Phase 101 | 保留 | REST child-facing typed endpoint wording helper |
 | `custom_components/lipro/core/api/rest_facade_request_methods.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/schedule_codec.py` | Protocol | Phase 2 | 重构 | - |
@@ -108,7 +108,7 @@
 | `custom_components/lipro/core/api/status_fallback.py` | Protocol | Phase 14 | 保留 | status fallback outward home with support-backed binary-split implementation |
 | `custom_components/lipro/core/api/status_fallback_split_executor.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/status_fallback_summary_logging.py` | Protocol | Phase 2 | 重构 | - |
-| `custom_components/lipro/core/api/status_fallback_support.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 / 129 | 保留 | status fallback local primary-query / retriable-fallback support collaborator |
+| `custom_components/lipro/core/api/status_fallback_support.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 | 保留 | status fallback local recursion/logging support collaborator |
 | `custom_components/lipro/core/api/status_service.py` | Protocol | Phase 2 / 13 / 14 | 重构 | public status orchestration home |
 | `custom_components/lipro/core/api/transport_core.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/transport_executor.py` | Protocol | Phase 2 / 35 | 重构 | REST signed transport execution + response normalization home |
@@ -147,9 +147,9 @@
 | `custom_components/lipro/core/coordinator/runtime/command/confirmation.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/command/retry.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/command/sender.py` | Runtime | Phase 5 | 重构 | - |
-| `custom_components/lipro/core/coordinator/runtime/command_runtime.py` | Runtime | Phase 90 / 130 | 重构 | formal command-runtime orchestration home with thin-root trace / dispatch / verify wrappers over localized support helpers |
-| `custom_components/lipro/core/coordinator/runtime/command_runtime_outcome_support.py` | Runtime | Phase 104 / 130 | 保留 | command-runtime localized outcome / verification support collaborator |
-| `custom_components/lipro/core/coordinator/runtime/command_runtime_support.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 / 130 | 保留 | command-runtime local request / dispatch-normalization / summary support collaborator |
+| `custom_components/lipro/core/coordinator/runtime/command_runtime.py` | Runtime | Phase 90 | 重构 | formal command-runtime orchestration home with inward trace / failure helpers and support-backed request / failure helpers |
+| `custom_components/lipro/core/coordinator/runtime/command_runtime_outcome_support.py` | Runtime | Phase 104 | 保留 | command-runtime localized outcome support collaborator |
+| `custom_components/lipro/core/coordinator/runtime/command_runtime_support.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 | 保留 | command-runtime local request/summary support collaborator |
 | `custom_components/lipro/core/coordinator/runtime/device/__init__.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/device/batch_optimizer.py` | Runtime | Phase 5 | 重构 | - |
 | `custom_components/lipro/core/coordinator/runtime/device/filter.py` | Runtime | Phase 5 | 重构 | - |
@@ -282,9 +282,9 @@
 | `custom_components/lipro/entities/base.py` | Domain | Phase 90 | 保留 | protected thin entity command / state projection shell |
 | `custom_components/lipro/entities/commands.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/entities/descriptors.py` | Domain | Phase 4 | 保留 | - |
-| `custom_components/lipro/entities/firmware_update.py` | Domain | Phase 90 / 130 | 保留 | protected thin OTA projection shell over support-backed install / query / refresh seams |
-| `custom_components/lipro/entities/firmware_update_support.py` | Domain | Phase 4 / 130 | 保留 | firmware-update install / query-context / refresh-projection / task-outcome support collaborator |
-| `custom_components/lipro/entry_auth.py` | Cross-cutting | Phase 112 / 124 / 125 | 保留 | config-entry auth/bootstrap formal home + persisted auth-seed single-source + token persistence truth |
+| `custom_components/lipro/entities/firmware_update.py` | Domain | Phase 90 | 保留 | protected thin OTA projection shell after runtime-boundary tightening |
+| `custom_components/lipro/entities/firmware_update_support.py` | Domain | Phase 4 | 保留 | - |
+| `custom_components/lipro/entry_auth.py` | Cross-cutting | Phase 112 / 124 | 保留 | config-entry auth/bootstrap formal home + persisted auth-seed single-source + token persistence truth |
 | `custom_components/lipro/entry_options.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/fan.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/firmware_manifest.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -293,7 +293,7 @@
 | `custom_components/lipro/flow/login.py` | Control | Phase 3 / 124 | 保留 | config-entry login projection consuming entry_auth seed truth |
 | `custom_components/lipro/flow/options_flow.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/flow/schemas.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/flow/step_handlers.py` | Control | Phase 124 / 125 | 保留 | localized user / reauth / reconfigure orchestration home directly bound to config_flow private helpers |
+| `custom_components/lipro/flow/step_handlers.py` | Control | Phase 124 | 保留 | localized user / reauth / reconfigure orchestration home behind config_flow thin adapter |
 | `custom_components/lipro/flow/submission.py` | Control | Phase 3 / 124 | 保留 | flow submission normalization consuming entry_auth remembered-hash truth |
 | `custom_components/lipro/headless/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/headless/boot.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -302,7 +302,7 @@
 | `custom_components/lipro/light.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/runtime_infra.py` | Cross-cutting | Phase 112 | 保留 | shared runtime infra formal home |
 | `custom_components/lipro/runtime_infra_device_registry.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `custom_components/lipro/runtime_types.py` | Cross-cutting | Phase 91 / 125 | 保留 | sanctioned runtime/control public protocol surface and telemetry projection type home with shared service-facing contract truth |
+| `custom_components/lipro/runtime_types.py` | Cross-cutting | Phase 91 | 保留 | runtime/control public protocol surface and telemetry projection type home |
 | `custom_components/lipro/select.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/select_internal/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/select_internal/gear.py` | Cross-cutting | Phase 7 | 保留 | - |
@@ -333,7 +333,7 @@
 | `scripts/__init__.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `scripts/agent_worker.py` | Assurance | Phase 89 | 保留 | retired fail-fast migration stub only; not the runtime orchestrator |
 | `scripts/check_architecture_policy.py` | Assurance | Phase 7.2 | 保留 | - |
-| `scripts/check_benchmark_baseline.py` | Assurance | Phase 6 / 7 / 128 | 保留 | benchmark manifest subset / smoke/full selector helper; do not fork a second perf truth |
+| `scripts/check_benchmark_baseline.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `scripts/check_file_matrix.py` | Assurance | Phase 6 / 7 / 60 | 保留 | thin governance checker root; sibling modules own inventory/classification/markdown/validation truth families |
 | `scripts/check_file_matrix_inventory.py` | Assurance | Phase 60 | 保留 | checker inventory walk and repo-root helper home |
 | `scripts/check_file_matrix_markdown.py` | Assurance | Phase 60 | 保留 | FILE_MATRIX render and parse helper home |
@@ -344,7 +344,7 @@
 | `scripts/check_file_matrix_validation.py` | Assurance | Phase 60 | 保留 | file-governance drift validators and run_checks home |
 | `scripts/check_markdown_links.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `scripts/check_translations.py` | Assurance | Phase 6 / 7 | 保留 | - |
-| `scripts/coverage_diff.py` | Assurance | Phase 6 / 7 / 128 | 保留 | baseline-aware total + changed-surface coverage gate helper; CI and local lint mirror the same contract |
+| `scripts/coverage_diff.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `scripts/export_ai_debug_evidence_pack.py` | Assurance | Phase 8 | 保留 | - |
 | `scripts/lib/__init__.py` | Assurance | Phase 6 / 7 | 保留 | - |
 | `scripts/lib/architecture_policy.py` | Assurance | Phase 6 / 7 | 保留 | - |
@@ -433,8 +433,8 @@
 | `tests/core/coordinator/runtime/test_command_runtime_orchestration.py` | Runtime | Phase 5 / 6 / 74 | 保留 | CommandRuntime orchestration topic home |
 | `tests/core/coordinator/runtime/test_command_runtime_outcome_support.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/runtime/test_command_runtime_sender.py` | Runtime | Phase 5 / 6 / 74 | 保留 | CommandRuntime sender topic home |
-| `tests/core/coordinator/runtime/test_command_runtime_support.py` | Runtime | Phase 5 / 6 / 74 | 保留 | shared fixture root for CommandRuntime topicized suites |
-| `tests/core/coordinator/runtime/test_command_runtime_support_helpers.py` | Runtime | Phase 130 | 保留 | direct support-helper topic suite for CommandRuntime seams |
+| `tests/core/coordinator/runtime/test_command_runtime_support.py` | Runtime | Phase 5 / 6 / 74 | 保留 | shared helper root for CommandRuntime topicized suites |
+| `tests/core/coordinator/runtime/test_command_runtime_support_helpers.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/runtime/test_device_runtime.py` | Runtime | Phase 5 / 6 | 保留 | - |
 | `tests/core/coordinator/runtime/test_mqtt_runtime.py` | Runtime | Phase 5 / 6 / 85 / 87 | 保留 | thin shell after MQTT runtime hotspot topicization |
 | `tests/core/coordinator/runtime/test_mqtt_runtime_connection.py` | Runtime | Phase 5 / 6 | 保留 | - |
@@ -556,7 +556,7 @@
 | `tests/core/test_outlet_power_runtime.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_property_normalization.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_report_builder.py` | Cross-cutting | Phase 7 | 保留 | - |
-| `tests/core/test_runtime_access.py` | Cross-cutting | Phase 7 / 127 | 保留 | focused runtime-access typed telemetry / de-reflection proof |
+| `tests/core/test_runtime_access.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_runtime_infra.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_runtime_support.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `tests/core/test_share_client.py` | Cross-cutting | Phase 7 / 74 | 保留 | thin shell after ShareWorkerClient topicization |
@@ -615,6 +615,7 @@
 | `tests/meta/dependency_guards_protocol_contracts.py` | Assurance | Phase 40 / 52 / 57 | 保留 | protocol/schedule dependency-story guard family |
 | `tests/meta/dependency_guards_review_ledgers.py` | Assurance | Phase 48 / 49 / 54 / 55 / 56 / 58 / 62 | 保留 | dependency-note / verification / naming topic guard family |
 | `tests/meta/dependency_guards_service_runtime.py` | Assurance | Phase 40 / 43 / 50 / 53 / 68 | 保留 | service/runtime dependency-story guard family |
+| `tests/meta/governance_archive_history.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/governance_contract_helpers.py` | Assurance | Phase 6 / 77 / 79 / 105 | 保留 | shared governance route/doc helper home |
 | `tests/meta/governance_current_truth.py` | Assurance | Phase 6 / 77 / 79 / 105 | 保留 | governance-route contract + shared current/latest archive truth helper |
 | `tests/meta/governance_followup_route_closeouts.py` | Assurance | Phase 59 | 保留 | followup-route closeout topic home |
@@ -666,7 +667,7 @@
 | `tests/meta/test_phase108_mqtt_transport_de_friendization_guards.py` | Assurance | Phase 108 | 保留 | focused predecessor guard home for Phase 108 MQTT transport-runtime de-friendization |
 | `tests/meta/test_phase109_anonymous_share_manager_inward_decomposition_guards.py` | Assurance | Phase 109 | 保留 | focused predecessor guard home for Phase 109 anonymous-share manager inward decomposition |
 | `tests/meta/test_phase110_runtime_snapshot_closeout_guards.py` | Assurance | Phase 110 | 保留 | focused active-route guard home for Phase 110 runtime snapshot surface reduction and milestone closeout |
-| `tests/meta/test_phase111_runtime_boundary_guards.py` | Assurance | Phase 6 / 127 | 保留 | meta guard freezing runtime-entry narrowing discipline |
+| `tests/meta/test_phase111_runtime_boundary_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase112_formal_home_governance_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase113_hotspot_assurance_guards.py` | Assurance | Phase 113 | 保留 | focused hotspot budget and changed-surface assurance guard home for Phase 113 |
 | `tests/meta/test_phase114_open_source_surface_honesty_guards.py` | Assurance | Phase 114 | 保留 | focused open-source surface honesty guard home for Phase 114 |
@@ -705,7 +706,7 @@
 | `tests/meta/test_phase99_runtime_hotspot_support_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 | 保留 | focused predecessor guard home for Phase 99 runtime hotspot support extraction / governance freeze |
 | `tests/meta/test_protocol_replay_assets.py` | Assurance | Phase 7.4 | 保留 | - |
 | `tests/meta/test_public_surface_guards.py` | Assurance | Phase 6 | 保留 | thin shell after public-surface topicization |
-| `tests/meta/test_runtime_contract_truth.py` | Assurance | Phase 6 / 127 | 保留 | runtime contract single-source truth guard |
+| `tests/meta/test_runtime_contract_truth.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_service_translation_sync.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_toolchain_truth.py` | Assurance | Phase 16 / 60 | 保留 | thin daily runnable shell for topicized toolchain truth suites |
 | `tests/meta/test_translation_tree_sync.py` | Assurance | Phase 6 | 保留 | - |
@@ -728,7 +729,7 @@
 | `tests/platforms/test_fan.py` | Domain | Phase 4 | 保留 | thin shell after fan topic extraction |
 | `tests/platforms/test_fan_entity_behavior.py` | Domain | Phase 4 | 保留 | - |
 | `tests/platforms/test_fan_model_and_commands.py` | Domain | Phase 4 | 保留 | - |
-| `tests/platforms/test_firmware_update_entity_edges.py` | Domain | Phase 4 / 49 / 130 | 保留 | edge / projection shell suite after firmware-update inward split |
+| `tests/platforms/test_firmware_update_entity_edges.py` | Domain | Phase 4 / 49 | 保留 | edge-branch shell after topic extraction |
 | `tests/platforms/test_light.py` | Domain | Phase 4 | 保留 | thin shell after light topic extraction |
 | `tests/platforms/test_light_entity_additional_coverage.py` | Domain | Phase 4 | 保留 | - |
 | `tests/platforms/test_light_entity_behavior.py` | Domain | Phase 4 | 保留 | - |
@@ -744,11 +745,11 @@
 | `tests/platforms/test_switch_behavior.py` | Domain | Phase 4 | 保留 | - |
 | `tests/platforms/test_switch_models.py` | Domain | Phase 4 | 保留 | - |
 | `tests/platforms/test_update.py` | Domain | Phase 4 / 49 | 保留 | thin setup / happy-path smoke shell |
-| `tests/platforms/test_update_background_tasks.py` | Domain | Phase 49 / 130 | 保留 | update background-task / refresh-outcome topic suite |
+| `tests/platforms/test_update_background_tasks.py` | Domain | Phase 49 | 保留 | update background-task topic suite |
 | `tests/platforms/test_update_certification_policy.py` | Domain | Phase 49 | 保留 | update certification-policy topic suite |
-| `tests/platforms/test_update_entity_refresh.py` | Domain | Phase 49 / 130 | 保留 | update refresh / row-selection / projection topic suite |
-| `tests/platforms/test_update_install_flow.py` | Domain | Phase 49 / 130 | 保留 | update install-flow / request-resolution topic suite |
-| `tests/platforms/test_update_task_callback.py` | Domain | Phase 4 / 130 | 保留 | update task-callback / error-observability topic suite |
+| `tests/platforms/test_update_entity_refresh.py` | Domain | Phase 49 | 保留 | update refresh / row-selection topic suite |
+| `tests/platforms/test_update_install_flow.py` | Domain | Phase 49 | 保留 | update install-flow topic suite |
+| `tests/platforms/test_update_task_callback.py` | Domain | Phase 4 | 保留 | - |
 | `tests/services/__init__.py` | Control | Phase 3 / 7 | 保留 | - |
 | `tests/services/test_device_lookup.py` | Control | Phase 3 / 7 | 保留 | - |
 | `tests/services/test_execution.py` | Control | Phase 3 / 7 | 保留 | - |

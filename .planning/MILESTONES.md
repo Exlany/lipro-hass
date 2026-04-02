@@ -1,5 +1,21 @@
 # Milestones
 
+## Current Milestone (v1.39)
+
+**Name:** `Governance Recovery, Runtime Consistency & Public Contract Correction`
+**Status:** `active / phase 133 complete; closeout-ready (2026-04-02)`
+**Current route:** `v1.39 active milestone route / starting from latest archived baseline = v1.38`
+**Phase range:** `133 -> 133`
+**Progress:** `1/1 phases, 4/4 plans`
+**Default next command:** `$gsd-complete-milestone v1.39`
+**Latest archived pointer:** `.planning/reviews/V1_38_EVIDENCE_INDEX.md`
+**Archived audit:** `.planning/v1.38-MILESTONE-AUDIT.md`
+**Archived snapshots:** `.planning/milestones/v1.38-ROADMAP.md`, `.planning/milestones/v1.38-REQUIREMENTS.md`
+
+**Active phase story:**
+
+- `Phase 133`: governance recovery, runtime consistency, and public contract correction ✅ (`133-01` governance bootstrap + `133-02` runtime consistency + `133-03` public contract correction + `133-04` governance closeout/resync complete；当前处于 active / phase 133 complete; closeout-ready (2026-04-02)，下一步 = `$gsd-complete-milestone v1.39`)`
+
 ## Latest Archived Milestone (v1.38)
 
 **Name:** `Governance Story Compression, Archive Segregation & Public Entry Simplification`
@@ -66,7 +82,13 @@ projection_targets:
 - .planning/REQUIREMENTS.md
 - .planning/STATE.md
 - .planning/MILESTONES.md
-active_milestone: null
+active_milestone:
+  version: v1.39
+  name: Governance Recovery, Runtime Consistency & Public Contract Correction
+  status: active / phase 133 complete; closeout-ready (2026-04-02)
+  phase: '133'
+  phase_title: governance recovery, runtime consistency, and public contract correction
+  phase_dir: 133-governance-recovery-runtime-consistency-and-public-contract-correction
 latest_archived:
   version: v1.38
   name: Governance Story Compression, Archive Segregation & Public Entry Simplification
@@ -82,11 +104,28 @@ previous_archived:
   name: Repo-Wide Terminal Audit, Hotspot Decomposition & Governance Continuity Decisions
   evidence_path: .planning/reviews/V1_37_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.38
-  default_next_command: $gsd-new-milestone
+  current_route: v1.39 active milestone route / starting from latest archived baseline = v1.38
+  default_next_command: $gsd-complete-milestone v1.39
   latest_archived_evidence_pointer: .planning/reviews/V1_38_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
+## Current Milestone (v1.39)
+
+**Phase range:** `133 -> 133`
+**Phases completed:** `1/1 phases, 4/4 plans, 0 tasks`
+**Status:** `active / phase 133 complete; closeout-ready (2026-04-02)`
+**Route truth:** `v1.39 active milestone route / starting from latest archived baseline = v1.38`
+**Latest archived baseline:** `v1.38`
+**Default next command:** `$gsd-complete-milestone v1.39`
+**Route truth:** latest archived evidence index = `.planning/reviews/V1_38_EVIDENCE_INDEX.md`
+**Latest archived audit artifact:** `.planning/v1.38-MILESTONE-AUDIT.md`
+
+**Active milestone intent:**
+
+- 已完成 governance lane recovery、runtime consistency 修补与 public contract correction，并把它们压回单一 `Phase 133` 主线。
+- 当前 active milestone 仍未归档，但 phase execution 已完成；下一步只剩 `$gsd-complete-milestone v1.39`。
+- `$gsd-next` 的等价结论应回到 milestone closeout，而不是再次重复 execute-phase。
+
 ## Latest Archived Milestone (v1.38)
 
 **Phase range:** `132 -> 132`
@@ -143,3 +182,38 @@ bootstrap:
 **Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.35`
 
 ## Historical Archived Milestone (v1.35)
+
+## Archived Chronology Appendix
+
+## v1.2 Host-Neutral Core & Replay Completion
+- historical continuity anchor retained.
+
+## v1.5 Governance Truth Consolidation & Control-Surface Finalization
+- historical continuity anchor retained.
+
+## v1.6 Delivery Trust Hardening, Runtime Boundary Decoupling & Maintainability Closure
+- historical continuity anchor retained.
+
+## v1.13 Tooling Truth Decomposition, Formal-Home Slimming & Naming/Discoverability Convergence
+- historical continuity anchor retained.
+
+## v1.14 Governance Truth Realignment, Typed Runtime Access & Final Hidden-Root Closure
+- evidence pointer: `.planning/reviews/V1_14_EVIDENCE_INDEX.md`
+
+## v1.20 Runtime Bootstrap Convergence, Service-Family Deduplication & Legacy Residual Retirement
+- historical continuity anchor retained.
+
+## v1.23 Repository-Wide Terminal Code Audit, Residual Eradication & Closeout Truth Freeze
+- evidence pointer: `.planning/reviews/V1_23_EVIDENCE_INDEX.md`
+
+## v1.24 Runtime Boundary Tightening, Tooling Kernel Decoupling & Open-Source Entry Convergence
+- evidence pointer: `.planning/reviews/V1_24_EVIDENCE_INDEX.md`
+
+## v1.25 Hotspot Inward Decomposition, Typed Boundary Hardening & Redaction Convergence
+- evidence pointer: `.planning/reviews/V1_25_EVIDENCE_INDEX.md`
+
+## v1.28 Governance Portability, Verification Stratification & Open-Source Continuity Hardening
+- evidence pointer: `.planning/reviews/V1_28_EVIDENCE_INDEX.md`
+
+## v1.29 Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization
+- evidence pointer: `.planning/reviews/V1_29_EVIDENCE_INDEX.md`
