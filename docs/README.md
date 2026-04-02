@@ -55,6 +55,8 @@ Current access-mode truth: this repository is private-access. GitHub-hosted Issu
   North-star target architecture and long-term authority baseline.
 - `developer_architecture.md`：当前代码分层、主链、边界与开发者入口。
   Current code layering, main chain, boundaries, and developer entrypoints.
+- `architecture_archive.md`：只供回溯的 pull-only appendix；历史 route / retired notes 不再回流到当前 first hop。
+  Pull-only appendix for historical route context; retired notes must not flow back into the current first hop.
 - `CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md`：面向贡献者的变更边界、证据回写位置与验证入口。
   Contributor-facing change boundaries, evidence destinations, and validation entrypoints.
 - `TROUBLESHOOTING.md`：用户与贡献者共用的规范排障入口。

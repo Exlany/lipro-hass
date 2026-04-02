@@ -125,6 +125,8 @@ def test_phase_43_control_service_boundary_stays_one_way_and_explicit() -> None:
     ):
         assert token not in control_init_text
 
+    assert "formal service-router bridge helpers" in service_router_support_text.lower()
+    assert "never a public root" in service_router_support_text.lower()
     assert "resolve_device_id_from_service_call" in service_router_support_text
     assert "find_runtime_device_and_coordinator" in service_router_support_text
     assert "iter_runtime_entries" not in service_router_support_text

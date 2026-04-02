@@ -50,7 +50,7 @@
 ## Phase 43 Control / Runtime Boundary Notes
 
 - `custom_components/lipro/control/runtime_access.py` 现在同时固定 typed diagnostics/system-health projection 与 entry-scoped runtime lookup；control consumers 不再混搭 coordinator internals / ad-hoc mapping reads。
-- `custom_components/lipro/control/service_router_support.py` 是 service callback 热路径里唯一正式 `(device, coordinator)` bridge；`custom_components/lipro/services/device_lookup.py` 只保留 service-facing `device_id` resolution，不再拥有 runtime truth。
+- `custom_components/lipro/control/service_router_support.py` 是 service callback 热路径里唯一正式 `(device, coordinator)` bridge；它是 inward formal bridge home，但绝不是第二个 public control root。`custom_components/lipro/services/device_lookup.py` 只保留 service-facing `device_id` resolution，不再拥有 runtime truth。
 - `custom_components/lipro/runtime_infra.py` 继续是 device-registry listener 的 outward formal home；`custom_components/lipro/runtime_infra_device_registry.py` 只承接 listener / reload / pending-task mechanics 的 inward collaborator 身份；`custom_components/lipro/services/maintenance.py` 只保留消费 control 注入 runtime provider 的 `refresh_devices` thin adapter。
 - `custom_components/lipro/control/service_router.py` 继续是 public callback home；`custom_components/lipro/control/service_registry.py` 是唯一正式 service-registration owner，HA root adapter 只能经它与 `control/entry_root_wiring.py` 组装服务注册，不得直连 `services/registry.py`。
 
@@ -235,7 +235,7 @@
 - `custom_components/lipro/core/coordinator/runtime_wiring.py` 只允许作为 `Coordinator` 的 support-only bootstrapping seam 存在；`Coordinator` 继续是唯一 runtime orchestration root 与 public import home。
 - `custom_components/lipro/control/entry_lifecycle_support.py` 只承接 setup / activate / rollback / unload mechanics；`EntryLifecycleController` 继续是 setup / unload / reload 的唯一 control-plane owner。
 - `custom_components/lipro/control/entry_root_wiring.py` 只承接 `custom_components/lipro/__init__.py` 的 controller/service-registry mechanical assembly；HA root adapter 继续以 module-level alias seam + thin delegate 保持 lazy composition。
-- `custom_components/lipro/__init__.py`、`custom_components/lipro/coordinator_entry.py` 与 `custom_components/lipro/runtime_types.py` 的 formal-home truth 不变；support-only seams 不得被 tests/docs/imports 讲成第二 root。
+- `custom_components/lipro/__init__.py`、`custom_components/lipro/coordinator_entry.py`、`custom_components/lipro/runtime_types.py` 与 `custom_components/lipro/service_types.py` 的 formal-home truth 不变；support-only seams 不得被 tests/docs/imports 讲成第二 root。
 
 ## Phase 54 Helper-Hotspot Formalization Notes
 

@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from ..api.types import (
     CommandResultApiResponse,
+    ConnectStatusQueryResult,
     JsonObject,
     LoginResponse,
     OtaInfoRow,
@@ -111,7 +112,7 @@ async def query_mesh_group_status(
 async def query_connect_status(
     self: LiproProtocolFacade,
     device_ids: list[str],
-) -> dict[str, bool]:
+) -> ConnectStatusQueryResult:
     """Query connectivity through the status child-facing port."""
     return await self._rest_ports.status.query_connect_status(device_ids)
 

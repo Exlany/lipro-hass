@@ -1,4 +1,4 @@
-"""Private support helpers for the formal control-plane service router."""
+"""Formal service-router bridge helpers; inward support-local, never a public root."""
 
 from __future__ import annotations
 

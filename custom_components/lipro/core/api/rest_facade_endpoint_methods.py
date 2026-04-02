@@ -12,6 +12,7 @@ from .power_service import OutletPowerInfoResult
 from .status_fallback import RecordStatusBatchMetric
 from .types import (
     CommandResultApiResponse,
+    ConnectStatusQueryResult,
     DeviceListResponse,
     DeviceStatusItem,
     JsonObject,
@@ -64,8 +65,8 @@ async def query_mesh_group_status(
 async def query_connect_status(
     self: LiproRestFacade,
     device_ids: list[str],
-) -> dict[str, bool]:
-    """Return connectivity status for the requested devices."""
+) -> ConnectStatusQueryResult:
+    """Return connectivity outcome/statuses for the requested devices."""
     return await self._endpoint_surface.query_connect_status(device_ids)
 
 

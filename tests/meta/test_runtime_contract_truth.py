@@ -19,6 +19,8 @@ def test_runtime_types_is_single_source_for_service_facing_runtime_contracts() -
     runtime_telemetry_text = (_ROOT / "custom_components" / "lipro" / "control" / "runtime_access_support_telemetry.py").read_text(encoding="utf-8")
 
     assert "class CommandServiceLike(Protocol):" in runtime_types_text
+    assert "from .service_types import CommandFailureSummary, ServicePropertyList" in runtime_types_text
+    assert "from .services.contracts import" not in runtime_types_text
     assert "type CommandProperties = ServicePropertyList" in runtime_types_text
     assert "type ProtocolDiagnosticsSnapshot = JsonObject" in runtime_types_text
     assert "def last_failure(self) -> CommandFailureSummary | None:" in runtime_types_text

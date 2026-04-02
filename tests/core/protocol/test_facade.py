@@ -12,6 +12,10 @@ import pytest
 from custom_components.lipro.core.api.client import LiproRestFacade
 from custom_components.lipro.core.api.request_policy import RequestPolicy
 from custom_components.lipro.core.api.session_state import RestSessionState
+from custom_components.lipro.core.api.types import (
+    ConnectStatusOutcome,
+    ConnectStatusQueryResult,
+)
 from custom_components.lipro.core.protocol.diagnostics_context import (
     ProtocolDiagnosticsContext,
 )
@@ -226,3 +230,24 @@ def test_protocol_rest_ports_bind_real_adapters_instead_of_rest_aliases() -> Non
     assert facade._rest_ports.misc is not facade.rest
     assert facade._rest_ports.schedule is not facade.rest
     assert facade._rest_ports.diagnostics is not facade.rest
+
+
+@pytest.mark.asyncio
+async def test_protocol_query_connect_status_preserves_typed_result() -> None:
+    facade = LiproProtocolFacade(
+        "test-phone-id",
+        entry_id="entry-1",
+        rest_facade_factory=cast(type[LiproRestFacade], _FakeRestFacade),
+    )
+    expected = ConnectStatusQueryResult(
+        ConnectStatusOutcome.SUCCESS,
+        {"03ab5ccd7caaaaaa": True},
+    )
+    facade._rest_ports.status.query_connect_status = AsyncMock(return_value=expected)
+
+    result = await facade.query_connect_status(["03ab5ccd7caaaaaa"])
+
+    assert result is expected
+    cast(Any, facade._rest_ports.status.query_connect_status).assert_awaited_once_with(
+        ["03ab5ccd7caaaaaa"]
+    )

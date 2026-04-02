@@ -12,11 +12,10 @@ projection_targets:
 active_milestone:
   version: v1.42
   name: Hotspot Burn-Down, Observability Truth & Governance Cost Compression
-  status: active / phase 137 complete; closeout-ready (2026-04-02)
-  phase: '137'
-  phase_title: hotspot burn-down, command/observability convergence, and governance
-    derivation compression
-  phase_dir: 137-hotspot-burn-down-command-observability-and-governance-compression
+  status: active / phase 138 complete; closeout-ready (2026-04-02)
+  phase: '138'
+  phase_title: runtime contract decoupling, support-guard hardening, and docs archive alignment
+  phase_dir: 138-runtime-contract-decoupling-support-guard-and-docs-alignment
   route_mode: v1.42 active milestone route / starting from latest archived baseline
     = v1.41
 latest_archived:
@@ -45,20 +44,22 @@ contract_version: 1
 
 ## v1.42 Hotspot Burn-Down, Observability Truth & Governance Cost Compression (Active: 2026-04-02)
 
-**Status:** `active / phase 137 complete; closeout-ready (2026-04-02)`
+**Status:** `active / phase 138 complete; closeout-ready (2026-04-02)`
 **Current route:** `v1.42 active milestone route / starting from latest archived baseline = v1.41`
-**Phase range:** `137 -> 137`
-**Progress:** `1/1 phases, 3/3 plans`
+**Phase range:** `137 -> 138`
+**Progress:** `2/2 phases, 7/7 plans`
 **Default next command:** `$gsd-complete-milestone v1.42`
 **Latest archived pointer:** `.planning/reviews/V1_41_EVIDENCE_INDEX.md`
 **Archived audit reference:** `.planning/v1.41-MILESTONE-AUDIT.md`
 **Starting baseline:** `.planning/v1.41-MILESTONE-AUDIT.md, .planning/reviews/V1_41_EVIDENCE_INDEX.md, .planning/milestones/v1.41-ROADMAP.md, .planning/milestones/v1.41-REQUIREMENTS.md`
-**Requirements basket:** `ARC-46, HOT-67, HOT-68, HOT-69, OBS-01, GOV-92, DOC-20, TST-57`
+**Requirements basket:** `ARC-46, HOT-67, HOT-68, HOT-69, OBS-01, GOV-92, DOC-20, TST-57, ARC-47, QLT-59, GOV-93, DOC-21, TST-58`
 **Archive state:** `latest archived baseline inherited / phase closeout-ready`
 
 **Completed phase story:**
 
 - `Phase 137`: hotspot burn-down, command/observability convergence, and governance derivation compression ✅ (`137-01` governance/docs/test contract hardening + `137-02` protocol/rest/auth hotspot decomposition + `137-03` device/command/observability hardening completed; `137-01..03-SUMMARY.md`, `137-SUMMARY.md`, `137-VERIFICATION.md` recorded)
+- `Phase 138`: runtime contract decoupling, support-guard hardening, and docs archive alignment ✅ (`138-01` governance/docs/route follow-up + `138-02` runtime/service contract decoupling + `138-03` support naming guard / verification sync + `138-04` connect-status outcome propagation completed; `138-01..04-SUMMARY.md`, `138-SUMMARY.md`, `138-VERIFICATION.md` recorded)
+
 
 ## Latest Archived Milestone (v1.41)
 
@@ -87,7 +88,7 @@ contract_version: 1
 **Status:** `archived / evidence-ready (2026-04-02)`
 **Current route:** `no active milestone route / latest archived baseline = v1.40`
 **Phase range:** `134 -> 135`
-**Progress:** `2/2 phases, 6/6 plans`
+**Progress:** `2/2 phases, 7/7 plans`
 **Default next command:** `$gsd-complete-milestone v1.42`
 **Latest archived pointer:** `.planning/reviews/V1_40_EVIDENCE_INDEX.md`
 **Archived audit reference:** `.planning/v1.40-MILESTONE-AUDIT.md`

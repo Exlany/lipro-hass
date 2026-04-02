@@ -13,7 +13,7 @@ from custom_components.lipro.core.api.status_service import (
     query_device_status,
     query_mesh_group_status,
 )
-from custom_components.lipro.core.api.types import JsonObject
+from custom_components.lipro.core.api.types import ConnectStatusOutcome, JsonObject
 
 
 class DummyApiError(Exception):
@@ -166,7 +166,8 @@ async def test_query_connect_status_empty_input_returns_empty_dict() -> None:
         path_query_connect_status="/v2/status/connect",
     )
 
-    assert result == {}
+    assert result.outcome == ConnectStatusOutcome.EMPTY_INPUT
+    assert result.statuses == {}
 
 
 @pytest.mark.asyncio
@@ -183,7 +184,8 @@ async def test_query_connect_status_returns_empty_for_wrapped_non_mapping_data()
         path_query_connect_status="/v2/status/connect",
     )
 
-    assert result == {}
+    assert result.outcome == ConnectStatusOutcome.WRAPPED_NON_MAPPING
+    assert result.statuses == {}
 
 
 @pytest.mark.asyncio
@@ -198,7 +200,8 @@ async def test_query_connect_status_returns_empty_on_api_error() -> None:
         path_query_connect_status="/v2/status/connect",
     )
 
-    assert result == {}
+    assert result.outcome == ConnectStatusOutcome.API_ERROR
+    assert result.statuses == {}
 
 
 @pytest.mark.asyncio
@@ -216,7 +219,24 @@ async def test_query_connect_status_projects_only_sanitized_requested_ids() -> N
         path_query_connect_status="/v2/status/connect",
     )
 
-    assert result == {requested_id: True}
+    assert result.outcome == ConnectStatusOutcome.SUCCESS
+    assert result.statuses == {requested_id: True}
+
+
+@pytest.mark.asyncio
+async def test_query_connect_status_distinguishes_successful_empty_projection() -> None:
+    result = await query_connect_status(
+        device_ids=["03ab5ccd7caaaaaa"],
+        sanitize_iot_device_ids=lambda device_ids, endpoint: device_ids,
+        iot_request=AsyncMock(return_value={"03ab5ccd7cbbbbbb": "1"}),
+        coerce_connect_status=lambda value: str(value) == "1",
+        lipro_api_error=DummyApiError,
+        logger=MagicMock(),
+        path_query_connect_status="/v2/status/connect",
+    )
+
+    assert result.outcome == ConnectStatusOutcome.SUCCESS
+    assert result.statuses == {}
 
 
 @pytest.mark.asyncio
@@ -238,7 +258,8 @@ async def test_query_connect_status_logs_safe_api_error_placeholder() -> None:
         path_query_connect_status="/v2/status/connect",
     )
 
-    assert result == {}
+    assert result.outcome == ConnectStatusOutcome.API_ERROR
+    assert result.statuses == {}
     assert any(
         call.args == (
             "Failed to query connect status (device_count=%d): %s",

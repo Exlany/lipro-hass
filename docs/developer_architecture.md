@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `v1.42 active / phase 137 complete; closeout-ready` (`2026-04-02`)
-> **Current route alignment**: `v1.42 active milestone route / starting from latest archived baseline = v1.41` (`2026-04-02`, active / phase 137 complete; closeout-ready (2026-04-02))
+> **Last aligned through**: `v1.42 active / phase 138 complete; closeout-ready` (`2026-04-02`)
+> **Current route alignment**: `v1.42 active milestone route / starting from latest archived baseline = v1.41` (`2026-04-02`, active / phase 138 complete; closeout-ready (2026-04-02))
 > **Default next command**: `$gsd-complete-milestone v1.42`
 > **Latest archived evidence path**: `.planning/reviews/V1_41_EVIDENCE_INDEX.md`
 > **Latest archived audit path**: `.planning/v1.41-MILESTONE-AUDIT.md`
@@ -20,9 +20,9 @@
 
 ## Current Route Compression
 
-- `v1.42 / Phase 137` 已完成 developer first-hop 的 burn-down 收口：当前 live route 现记录已交付的 hotspot compression / command-observability convergence / governance sync，latest archived baseline `v1.41` 继续只承担 pull-only evidence anchor。
-- 当前 live route 已把 sanctioned hotspots 收口为 closeout-ready deliverables：`core/protocol/rest_port.py`、`core/auth/manager.py`、`core/auth/manager_support.py`、`core/command/dispatch.py`、`core/api/status_service.py`、`core/device/device.py` 与 governance semantic guards 已形成单一执行证据链。
-- 当前开发入口应优先关注 closeout-ready artifacts：`.planning/phases/137-hotspot-burn-down-command-observability-and-governance-compression/{137-01-SUMMARY.md,137-02-SUMMARY.md,137-03-SUMMARY.md,137-SUMMARY.md,137-VERIFICATION.md}`、`dispatch.py`、`manager.py`、`rest_port.py`、`status_service.py`、`device.py` 与 governance route selector family；避免重新把审查结论散落回临时对话或第二条治理故事线。
+- `v1.42 / Phase 138` 已完成 developer first-hop 的 burn-down 收口：当前 live route 现记录已交付的 hotspot compression / command-observability convergence / governance sync，latest archived baseline `v1.41` 继续只承担 pull-only evidence anchor。
+- 当前 live route 已把 sanctioned hotspots 与 residual contract cleanup 收口为 closeout-ready deliverables：`core/protocol/rest_port.py`、`core/auth/manager.py`、`core/auth/manager_support.py`、`core/command/dispatch.py`、`core/api/{status_service.py,types.py}`、`custom_components/lipro/{runtime_types.py,service_types.py}`、`control/service_router_support.py` 与 governance semantic guards 已形成单一执行证据链。
+- 当前开发入口应优先关注 closeout-ready artifacts：`.planning/phases/137-hotspot-burn-down-command-observability-and-governance-compression/{137-01-SUMMARY.md,137-02-SUMMARY.md,137-03-SUMMARY.md,137-SUMMARY.md,137-VERIFICATION.md} + 138-runtime-contract-decoupling-support-guard-and-docs-alignment/{138-01-SUMMARY.md,138-02-SUMMARY.md,138-03-SUMMARY.md,138-04-SUMMARY.md,138-SUMMARY.md,138-VERIFICATION.md}`、`dispatch.py`、`manager.py`、`rest_port.py`、`status_service.py`、`device.py` 与 governance route selector family；避免重新把审查结论散落回临时对话或第二条治理故事线。
 
 ## 快速导航
 
@@ -39,7 +39,7 @@
 | Domain truth | `custom_components/lipro/core/device/`, `custom_components/lipro/core/capability/` | device aggregate 与 capability truth |
 | Control formal home | `custom_components/lipro/control/` | lifecycle / service router / runtime access / diagnostics / system health |
 | Shared runtime infra | `custom_components/lipro/runtime_infra.py` | device-registry listener / pending reload / shared runtime bootstrap ownership |
-| Root runtime contracts | `custom_components/lipro/runtime_types.py` | typed runtime coordinator / telemetry contract home |
+| Root runtime contracts | `custom_components/lipro/runtime_types.py`, `custom_components/lipro/service_types.py` | typed runtime coordinator / service contract home |
 | Auth/bootstrap root helper | `custom_components/lipro/entry_auth.py` | config-entry auth seed / token persistence / setup-exception home |
 | Control service adapters | `custom_components/lipro/services/` | service declarations、request shaping、thin service helpers |
 | Platform adapters | `custom_components/lipro/*.py` platform files | entity projection / HA platform binding |
@@ -48,7 +48,7 @@
 ## Sanctioned Root-level Homes
 
 - `custom_components/lipro/runtime_infra.py`：shared runtime infra / device-registry listener / pending reload ownership 的 sanctioned root-level home。
-- `custom_components/lipro/runtime_types.py`：typed runtime coordinator / telemetry contract 的 sanctioned root-level home；它是 formal contract entry，不是 accidental helper。
+- `custom_components/lipro/runtime_types.py` + `custom_components/lipro/service_types.py`：typed runtime coordinator / service contract 的 sanctioned root-level homes；它们是 formal contract entry，不是 accidental helper。
 - `custom_components/lipro/entry_auth.py`：config-entry auth/bootstrap seed、token persistence、setup-exception mapping 的 sanctioned root-level home。
 
 ## Phase 127 Execution Notes
@@ -65,7 +65,7 @@
 
 ## Phase 125 Execution Notes
 
-- `custom_components/lipro/runtime_types.py` 继续保持 sanctioned root-level contract home；`ScheduleMeshDeviceLike`、`CommandProperties` 与 `DeviceRefreshServiceLike` 已回收到同一正式真源，不再在下游 runtime/service 文件里重复定义。
+- `custom_components/lipro/runtime_types.py` + `custom_components/lipro/service_types.py` 继续保持 sanctioned root-level contract homes；`ScheduleMeshDeviceLike`、`CommandProperties`、`DeviceRefreshServiceLike` 与 service-facing failure/property shapes 已回收到同一正式真源，不再在下游 runtime/service 文件里重复定义。
 - `custom_components/lipro/config_flow.py` 继续只保留 Home Assistant entry-point glue；`custom_components/lipro/flow/step_handlers.py` 现在直接消费 `_show_*` / `_get_*` / `_async_*` private helper seam，不再借由 public pass-through wrapper 中转。
 - `custom_components/lipro/entry_auth.py` 继续承担 persisted auth-seed / token persistence / setup-exception formal home；单次中转 helper 已被压平，没有重新长出第二套 bootstrap story。
 - 当前治理 current-route truth 已 canonicalize 到 `.planning/baseline/GOVERNANCE_REGISTRY.json` 的 `planning_route`；`PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES` 只保留 projection / consistency target 身份。
@@ -107,7 +107,7 @@
 - `ServiceRouter` 是 service callback home；`RuntimeAccess` 是 control → runtime 的 typed read-model 与 runtime locator。
 - `DiagnosticsSurface` / `SystemHealthSurface` / `EntryLifecycleController` 是 formal control collaborators。
 - `custom_components/lipro/runtime_infra.py` 是 device-registry listener、pending reload coordination 与 runtime listener ownership 的正式 home。
-- `custom_components/lipro/runtime_types.py` 是 root-level typed runtime contract 的正式 home；它固定 coordinator-facing protocol / telemetry typing，而不是 accidental glue。
+- `custom_components/lipro/runtime_types.py` + `custom_components/lipro/service_types.py` 共同承接 root-level typed runtime/service contract truth；runtime root 不再反向依赖 `services/contracts.py` 的 service schema home。
 - `custom_components/lipro/entry_auth.py` 是 config-entry auth/bootstrap 的正式 home；它复用 shared bootstrap / auth contract，而不是第二 control root。
 - 根层 `__init__.py`、`diagnostics.py`、`system_health.py`、`config_flow.py` 继续保持 thin adapter 身份。
 - `custom_components/lipro/services/` 不再承载“legacy carrier”身份；它的正式角色是：
@@ -161,6 +161,7 @@ custom_components/lipro/
 ├── config_flow.py             # control-plane flow thin adapter
 ├── runtime_infra.py           # sanctioned root-level runtime infra / listener ownership home
 ├── runtime_types.py           # sanctioned root-level typed runtime contract home
+├── service_types.py           # shared service-facing command/failure typed contract home
 └── entry_auth.py              # sanctioned root-level config-entry auth/bootstrap home
 ```
 

@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 763
+**Python files total:** 764
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -309,6 +309,7 @@
 | `custom_components/lipro/select_internal/gear.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/select_internal/mapped_property.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/sensor.py` | Domain | Phase 4 | 保留 | - |
+| `custom_components/lipro/service_types.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/services/__init__.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/command.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/services/contracts.py` | Control | Phase 3 / 124 | 保留 | schedule direct-call normalization / result-typing truth home |

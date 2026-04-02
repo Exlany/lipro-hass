@@ -10,7 +10,13 @@ import voluptuous as vol
 
 from homeassistant.helpers import config_validation as cv
 
+from .. import service_types as _service_types
 from ..const.base import IOT_DEVICE_ID_PREFIX
+
+CommandFailureSummary = _service_types.CommandFailureSummary
+ServiceProperty = _service_types.ServiceProperty
+ServicePropertyList = _service_types.ServicePropertyList
+ServicePropertySummary = _service_types.ServicePropertySummary
 
 SERVICE_SEND_COMMAND: Final = "send_command"
 SERVICE_GET_SCHEDULES: Final = "get_schedules"
@@ -319,38 +325,12 @@ class DeleteSchedulesResult(TypedDict):
     remaining_count: int
 
 
-class ServiceProperty(TypedDict):
-    """One key/value property item accepted by send_command."""
-
-    key: str
-    value: str
-
-
-type ServicePropertyList = list[ServiceProperty]
-
-
 class SendCommandServiceData(TypedDict, total=False):
     """Normalized payload accepted by the send_command service handler."""
 
     device_id: str
     command: str
     properties: ServicePropertyList
-
-
-class ServicePropertySummary(TypedDict):
-    """Log-safe summary of the requested command properties."""
-
-    count: int
-    keys: list[str]
-
-
-class CommandFailureSummary(TypedDict, total=False):
-    """Normalized command failure details exposed to control/service callers."""
-
-    reason: str
-    code: int | str
-    route: str
-    device_id: str
 
 
 class SendCommandResult(TypedDict):

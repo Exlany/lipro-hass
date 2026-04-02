@@ -1,6 +1,6 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** `active / phase 137 complete; closeout-ready (2026-04-02)`
+**Status:** `active / phase 138 complete; closeout-ready (2026-04-02)`
 **Current route:** `v1.42 active milestone route / starting from latest archived baseline = v1.41`；latest archived evidence index = `.planning/reviews/V1_41_EVIDENCE_INDEX.md`.
 **Goal:** `把 v1.41 终极审阅与 remediation charter 从 archived evidence 提升为单一 active execution route，一次性收口当前 sanctioned hotspots、observability residual 与 governance derivation cost。`
 **Default next step:** `$gsd-complete-milestone v1.42`
@@ -18,11 +18,10 @@ projection_targets:
 active_milestone:
   version: v1.42
   name: Hotspot Burn-Down, Observability Truth & Governance Cost Compression
-  status: active / phase 137 complete; closeout-ready (2026-04-02)
-  phase: '137'
-  phase_title: hotspot burn-down, command/observability convergence, and governance
-    derivation compression
-  phase_dir: 137-hotspot-burn-down-command-observability-and-governance-compression
+  status: active / phase 138 complete; closeout-ready (2026-04-02)
+  phase: '138'
+  phase_title: runtime contract decoupling, support-guard hardening, and docs archive alignment
+  phase_dir: 138-runtime-contract-decoupling-support-guard-and-docs-alignment
   route_mode: v1.42 active milestone route / starting from latest archived baseline
     = v1.41
 latest_archived:
@@ -51,19 +50,20 @@ contract_version: 1
 
 **Name:** `Hotspot Burn-Down, Observability Truth & Governance Cost Compression`
 
-**Why it matters:** `契约者要求继续下一步，并把 v1.41 已识别的高/中优先残留转为一次性、深度、可执行的重构路线；因此 v1.42 不再重新做浅层扫描，而是直接继承终极审阅真源，进入正式 burn-down。`
+**Why it matters:** `契约者明确要求不接受“Phase 137 closeout-ready 就直接归档”的 tech-debt 式收官；因此 v1.42 继续把 closeout review 暴露出的 residual contract debt 收为同一 milestone 的 follow-up，而不是把它们再次留给下一轮浅层补丁。`
 
-**North-star fit:** `v1.42` 继续沿 single formal home、explicit composition、typed contract、honesty-over-folklore 与 docs-first governance 推进：不回流旧 compat 主链，不让“暂时能跑”的 delegation wall/relay wall/empty-state ambiguity 继续合法化。`
+**North-star fit:** `v1.42` 继续沿 single formal home、explicit composition、typed contract、honesty-over-folklore 与 docs-first governance 推进：既不回流旧 compat 主链，也不允许 runtime/service contract 反向依赖、support 名义漂移与 archive/live docs 张力继续合法化。`
 
-**Current status:** `active / phase 137 complete; closeout-ready (2026-04-02)`
-**Phase range:** `Phase 137 -> 137`
+**Current status:** `active / phase 138 complete; closeout-ready (2026-04-02)`
+**Phase range:** `Phase 137 -> 138`
 **Starting baseline:** `.planning/v1.41-MILESTONE-AUDIT.md, .planning/reviews/V1_41_EVIDENCE_INDEX.md, .planning/milestones/v1.41-ROADMAP.md, .planning/milestones/v1.41-REQUIREMENTS.md`
-**Requirements basket:** `ARC-46, HOT-67, HOT-68, HOT-69, OBS-01, GOV-92, DOC-20, TST-57`
+**Requirements basket:** `ARC-46, HOT-67, HOT-68, HOT-69, OBS-01, GOV-92, DOC-20, TST-57, ARC-47, QLT-59, GOV-93, DOC-21, TST-58`
 **Latest archived baseline:** `v1.41`
 **Latest archived pointer:** `.planning/reviews/V1_41_EVIDENCE_INDEX.md`
 **Latest archived audit artifact:** `.planning/v1.41-MILESTONE-AUDIT.md`
 **Default next command:** `$gsd-complete-milestone v1.42`
-**Current phase handoff:** `Phase 137 的三条执行轨已全部完成；137-01..03-SUMMARY.md、137-SUMMARY.md 与 137-VERIFICATION.md 现构成 closeout-ready evidence，下一步直接执行 $gsd-complete-milestone v1.42。`
+**Current phase handoff:** `Phase 138 已完成 runtime/service contract decoupling、connect-status outcome formalization、service-router bridge naming guard hardening 与 docs/archive alignment；138-01..04-SUMMARY.md、138-SUMMARY.md 与 138-VERIFICATION.md 现与 Phase 137 bundle 一起构成 v1.42 的 latest closeout-ready evidence。`
+
 
 ## Latest Archived Milestone (v1.41)
 
@@ -81,7 +81,7 @@ contract_version: 1
 **Latest archived pointer:** `.planning/reviews/V1_41_EVIDENCE_INDEX.md`
 **Latest archived audit artifact:** `.planning/v1.41-MILESTONE-AUDIT.md`
 **Default next command:** `$gsd-complete-milestone v1.42`
-**Current phase handoff:** `v1.41 保持 archived evidence-ready；其审阅结论与 workstream charter 已被 v1.42 Phase 137 的 closeout bundle 吸收为 pull-only active input。`
+**Current phase handoff:** `v1.41 保持 archived evidence-ready；其审阅结论与 workstream charter 已被 v1.42 Phase 137 -> 138 的 closeout bundle 吸收为 pull-only active input。`
 
 ## Previous Archived Milestone (v1.40)
 ## Previous Archived Milestone (v1.40)

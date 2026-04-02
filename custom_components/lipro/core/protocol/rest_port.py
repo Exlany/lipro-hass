@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Protocol
 from ..api.auth_recovery import AuthRecoveryTelemetrySnapshot
 from ..api.types import (
     CommandResultApiResponse,
+    ConnectStatusQueryResult,
     DeviceListResponse,
     DeviceStatusItem,
     JsonObject,
@@ -72,7 +73,9 @@ class _RestStatusPort(Protocol):
         group_ids: list[str],
     ) -> list[JsonObject]: ...
 
-    async def query_connect_status(self, device_ids: list[str]) -> dict[str, bool]: ...
+    async def query_connect_status(
+        self, device_ids: list[str]
+    ) -> ConnectStatusQueryResult: ...
 
 
 class _RestCommandPort(Protocol):
@@ -259,7 +262,9 @@ class _BoundRestStatusPort:
     ) -> list[JsonObject]:
         return await self.rest_facade.query_mesh_group_status(group_ids)
 
-    async def query_connect_status(self, device_ids: list[str]) -> dict[str, bool]:
+    async def query_connect_status(
+        self, device_ids: list[str]
+    ) -> ConnectStatusQueryResult:
         return await self.rest_facade.query_connect_status(device_ids)
 
 

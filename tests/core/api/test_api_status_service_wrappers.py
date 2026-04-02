@@ -14,7 +14,11 @@ from custom_components.lipro.core.api.status_service import (
     query_connect_status,
     query_device_status,
 )
-from custom_components.lipro.core.api.types import JsonObject
+from custom_components.lipro.core.api.types import (
+    ConnectStatusOutcome,
+    ConnectStatusQueryResult,
+    JsonObject,
+)
 
 if TYPE_CHECKING:
     from custom_components.lipro.core.api.rest_facade import LiproRestFacade
@@ -123,7 +127,26 @@ async def test_query_connect_status_handles_wrapped_payload() -> None:
         path_query_connect_status="/v2/status/connect",
     )
 
-    assert result == {requested_id: True}
+    assert result.outcome == ConnectStatusOutcome.SUCCESS
+    assert result.statuses == {requested_id: True}
+
+
+@pytest.mark.asyncio
+async def test_rest_facade_query_connect_status_wrapper_preserves_typed_result() -> None:
+    typed_result = ConnectStatusQueryResult(
+        ConnectStatusOutcome.SUCCESS,
+        {"03ab5ccd7caaaaaa": True},
+    )
+    surface = SimpleNamespace(query_connect_status=AsyncMock(return_value=typed_result))
+    facade = cast(object, SimpleNamespace(_endpoint_surface=surface))
+
+    result = await rest_facade_endpoint_methods.query_connect_status(
+        cast("LiproRestFacade", facade),
+        ["03ab5ccd7caaaaaa"],
+    )
+
+    assert result is typed_result
+    surface.query_connect_status.assert_awaited_once_with(["03ab5ccd7caaaaaa"])
 
 @pytest.mark.asyncio
 async def test_query_device_status_reports_batch_metrics_with_fallback_depth() -> None:

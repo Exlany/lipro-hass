@@ -19,6 +19,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: F401
 
+from custom_components.lipro.core.api.types import (
+    ConnectStatusOutcome,
+    ConnectStatusQueryResult,
+)
 from tests import topicized_collection as _topicized_collection
 from tests.coordinator_double import _CoordinatorDouble
 
@@ -180,7 +184,12 @@ def mock_lipro_api_client():
     client.get_devices = AsyncMock(return_value={"devices": [], "total": 0})
     client.query_device_status = AsyncMock(return_value=[])
     client.query_mesh_group_status = AsyncMock(return_value=[])
-    client.query_connect_status = AsyncMock(return_value={})
+    client.query_connect_status = AsyncMock(
+        return_value=ConnectStatusQueryResult(
+            ConnectStatusOutcome.SUCCESS,
+            {},
+        )
+    )
     client.get_mqtt_config = AsyncMock(return_value={})
     client.get_product_configs = AsyncMock(return_value=[])
     client.send_command = AsyncMock(

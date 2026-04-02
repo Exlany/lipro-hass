@@ -30,7 +30,7 @@ from ..status_service import (
     query_device_status as query_device_status_service,
     query_mesh_group_status as query_mesh_group_status_service,
 )
-from ..types import DeviceStatusItem
+from ..types import ConnectStatusQueryResult, DeviceStatusItem
 from .connect_status import coerce_connect_status
 from .payloads import _EndpointAdapter
 
@@ -136,7 +136,9 @@ class StatusEndpoints(_EndpointAdapter):
             path_query_mesh_group_status=PATH_QUERY_MESH_GROUP_STATUS,
         )
 
-    async def query_connect_status(self, device_ids: list[str]) -> dict[str, bool]:
+    async def query_connect_status(
+        self, device_ids: list[str]
+    ) -> ConnectStatusQueryResult:
         """Query real-time connection status for devices."""
         return await query_connect_status_service(
             device_ids=device_ids,

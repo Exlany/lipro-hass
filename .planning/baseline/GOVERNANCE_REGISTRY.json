@@ -178,10 +178,10 @@
     "active_milestone": {
       "version": "v1.42",
       "name": "Hotspot Burn-Down, Observability Truth & Governance Cost Compression",
-      "status": "active / phase 137 complete; closeout-ready (2026-04-02)",
-      "phase": "137",
-      "phase_title": "hotspot burn-down, command/observability convergence, and governance derivation compression",
-      "phase_dir": "137-hotspot-burn-down-command-observability-and-governance-compression",
+      "status": "active / phase 138 complete; closeout-ready (2026-04-02)",
+      "phase": "138",
+      "phase_title": "runtime contract decoupling, support-guard hardening, and docs archive alignment",
+      "phase_dir": "138-runtime-contract-decoupling-support-guard-and-docs-alignment",
       "route_mode": "v1.42 active milestone route / starting from latest archived baseline = v1.41"
     },
     "latest_archived": {

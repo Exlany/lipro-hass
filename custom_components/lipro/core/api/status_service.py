@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Mapping
-from dataclasses import dataclass
-from enum import StrEnum
 import logging
 from time import monotonic
 from typing import cast
@@ -23,7 +21,12 @@ from .status_fallback import (
     _resolve_device_status_batch_size,
     query_with_fallback,
 )
-from .types import DeviceStatusItem, JsonValue
+from .types import (
+    ConnectStatusOutcome,
+    ConnectStatusQueryResult,
+    DeviceStatusItem,
+    JsonValue,
+)
 
 
 def _build_device_status_batches(
@@ -256,26 +259,6 @@ async def query_mesh_group_status(
     )
 
 
-class ConnectStatusOutcome(StrEnum):
-    """Internal outcome markers for connect-status query parsing."""
-
-    SUCCESS = "success"
-    EMPTY_INPUT = "empty_input"
-    EMPTY_SANITIZED = "empty_sanitized"
-    NON_MAPPING = "non_mapping"
-    WRAPPED_NON_MAPPING = "wrapped_non_mapping"
-    EMPTY_MAPPING = "empty_mapping"
-    API_ERROR = "api_error"
-
-
-@dataclass(frozen=True, slots=True)
-class _ConnectStatusQueryResult:
-    """Typed internal result that preserves failure reasons for observability."""
-
-    outcome: ConnectStatusOutcome
-    statuses: dict[str, bool]
-
-
 def _unwrap_connect_status_mapping(
     payload: object,
 ) -> tuple[ConnectStatusOutcome, Mapping[object, object] | None]:
@@ -318,17 +301,17 @@ async def _query_connect_status_result(
     lipro_api_error: type[Exception],
     logger: logging.Logger,
     path_query_connect_status: str,
-) -> _ConnectStatusQueryResult:
+) -> ConnectStatusQueryResult:
     """Return the projected connect-status mapping plus an explicit parse outcome."""
     if not device_ids:
-        return _ConnectStatusQueryResult(ConnectStatusOutcome.EMPTY_INPUT, {})
+        return ConnectStatusQueryResult(ConnectStatusOutcome.EMPTY_INPUT, {})
 
     sanitized_ids = sanitize_iot_device_ids(
         device_ids,
         endpoint=path_query_connect_status,
     )
     if not sanitized_ids:
-        return _ConnectStatusQueryResult(ConnectStatusOutcome.EMPTY_SANITIZED, {})
+        return ConnectStatusQueryResult(ConnectStatusOutcome.EMPTY_SANITIZED, {})
 
     try:
         payload = await iot_request(
@@ -341,7 +324,7 @@ async def _query_connect_status_result(
             len(sanitized_ids),
             safe_error_placeholder(err),
         )
-        return _ConnectStatusQueryResult(ConnectStatusOutcome.API_ERROR, {})
+        return ConnectStatusQueryResult(ConnectStatusOutcome.API_ERROR, {})
 
     outcome, mapping = _unwrap_connect_status_mapping(payload)
     if mapping is None:
@@ -350,14 +333,14 @@ async def _query_connect_status_result(
             outcome.value,
             len(sanitized_ids),
         )
-        return _ConnectStatusQueryResult(outcome, {})
+        return ConnectStatusQueryResult(outcome, {})
 
     statuses = _project_connect_status_mapping(
         mapping,
         requested_ids=sanitized_ids,
         coerce_connect_status=coerce_connect_status,
     )
-    return _ConnectStatusQueryResult(outcome, statuses)
+    return ConnectStatusQueryResult(outcome, statuses)
 
 
 async def query_connect_status(
@@ -369,9 +352,9 @@ async def query_connect_status(
     lipro_api_error: type[Exception],
     logger: logging.Logger,
     path_query_connect_status: str,
-) -> dict[str, bool]:
-    """Query real-time connection status for devices."""
-    result = await _query_connect_status_result(
+) -> ConnectStatusQueryResult:
+    """Query real-time connection status for devices with explicit parse outcome."""
+    return await _query_connect_status_result(
         device_ids=device_ids,
         sanitize_iot_device_ids=sanitize_iot_device_ids,
         iot_request=iot_request,
@@ -380,4 +363,3 @@ async def query_connect_status(
         logger=logger,
         path_query_connect_status=path_query_connect_status,
     )
-    return result.statuses

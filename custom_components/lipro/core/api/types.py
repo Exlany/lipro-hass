@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+from enum import StrEnum
 from typing import TypedDict
 
 type JsonScalar = str | int | float | bool | None
@@ -20,6 +22,26 @@ type ValidatedMappingResult = tuple[int, JsonObject, str | None]
 type ApiResponseData = JsonValue | list[JsonObject] | JsonObject
 type DevicePropertyMap = dict[str, JsonValue]
 type DeviceStatusItem = dict[str, JsonValue]
+
+
+class ConnectStatusOutcome(StrEnum):
+    """Explicit parse outcomes for connect-status queries."""
+
+    SUCCESS = "success"
+    EMPTY_INPUT = "empty_input"
+    EMPTY_SANITIZED = "empty_sanitized"
+    NON_MAPPING = "non_mapping"
+    WRAPPED_NON_MAPPING = "wrapped_non_mapping"
+    EMPTY_MAPPING = "empty_mapping"
+    API_ERROR = "api_error"
+
+
+@dataclass(frozen=True, slots=True)
+class ConnectStatusQueryResult:
+    """Projected connect-status map plus the explicit parse outcome."""
+
+    outcome: ConnectStatusOutcome
+    statuses: dict[str, bool]
 
 
 class ApiResponse(TypedDict, total=False):
@@ -164,6 +186,8 @@ __all__ = [
     "ApiResponse",
     "ApiResponseData",
     "CommandResultApiResponse",
+    "ConnectStatusOutcome",
+    "ConnectStatusQueryResult",
     "DeviceApiResponse",
     "DeviceListItem",
     "DeviceListResponse",

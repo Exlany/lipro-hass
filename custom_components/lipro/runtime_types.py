@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Protocol
 from homeassistant.core import CALLBACK_TYPE, callback
 
 from .core.api.types import JsonObject
-from .services.contracts import CommandFailureSummary, ServicePropertyList
+from .service_types import CommandFailureSummary, ServicePropertyList
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry

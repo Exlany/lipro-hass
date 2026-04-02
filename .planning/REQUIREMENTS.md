@@ -12,11 +12,10 @@ projection_targets:
 active_milestone:
   version: v1.42
   name: Hotspot Burn-Down, Observability Truth & Governance Cost Compression
-  status: active / phase 137 complete; closeout-ready (2026-04-02)
-  phase: '137'
-  phase_title: hotspot burn-down, command/observability convergence, and governance
-    derivation compression
-  phase_dir: 137-hotspot-burn-down-command-observability-and-governance-compression
+  status: active / phase 138 complete; closeout-ready (2026-04-02)
+  phase: '138'
+  phase_title: runtime contract decoupling, support-guard hardening, and docs archive alignment
+  phase_dir: 138-runtime-contract-decoupling-support-guard-and-docs-alignment
   route_mode: v1.42 active milestone route / starting from latest archived baseline
     = v1.41
 latest_archived:
@@ -43,20 +42,21 @@ contract_version: 1
 <!-- governance-route-contract:end -->
 ## Current Milestone (v1.42)
 
-**Milestone Goal:** 基于 `v1.41` latest archived baseline，把 mega-facade/manual delegation、auth hotspot、device relay wall、typed command grammar、connect-status failure semantics 与 derived-governance cost 一次性收为单一 active execution route，而不是继续把它们留在 vague residual。 
-**Milestone status:** `active / phase 137 complete; closeout-ready (2026-04-02)`
+**Milestone Goal:** 基于 `v1.41` latest archived baseline，先完成 sanctioned hotspot burn-down，再把 closeout review 暴露出的 runtime/service typed contract 反向依赖、connect-status outcome 压平、support 命名守卫与 docs/archive 叙事张力收回同一 active execution route，而不是带着非阻塞残留直接归档。 
+**Milestone status:** `active / phase 138 complete; closeout-ready (2026-04-02)`
 **Current route mode:** `v1.42 active milestone route / starting from latest archived baseline = v1.41`
 **Starting baseline:** `.planning/v1.41-MILESTONE-AUDIT.md, .planning/reviews/V1_41_EVIDENCE_INDEX.md, .planning/milestones/v1.41-ROADMAP.md, .planning/milestones/v1.41-REQUIREMENTS.md`
-**Requirements basket:** `ARC-46, HOT-67, HOT-68, HOT-69, OBS-01, GOV-92, DOC-20, TST-57`
+**Requirements basket:** `ARC-46, HOT-67, HOT-68, HOT-69, OBS-01, GOV-92, DOC-20, TST-57, ARC-47, QLT-59, GOV-93, DOC-21, TST-58`
 **Latest archived baseline:** `v1.41`
 **Archive pointer:** `.planning/reviews/V1_41_EVIDENCE_INDEX.md`
 **Latest archived audit artifact:** `.planning/v1.41-MILESTONE-AUDIT.md`
 **Default next command:** `$gsd-complete-milestone v1.42`
-**Current phase handoff:** `Phase 137 已完成 3 条执行轨；当前 closeout evidence 由 137-01..03-SUMMARY.md、137-SUMMARY.md 与 137-VERIFICATION.md 承载。`
+**Current phase handoff:** `Phase 137 + 138 已共同完成；当前 closeout evidence 由 137-01..03-SUMMARY.md、137-SUMMARY.md、137-VERIFICATION.md 与 138-01..04-SUMMARY.md、138-SUMMARY.md、138-VERIFICATION.md 承载。`
 
 ### Protocol / Architecture
 - [x] **ARC-46**: `core/api/rest_facade.py` 与 `core/protocol/facade.py` 必须继续削减 manual delegation wall / child-facade rebinding seam，同时保持单一 formal root、stable import home 与 outward contract 不回退。 
 - [x] **HOT-67**: `core/auth/manager.py` 必须把 credential seed、token lifecycle、adaptive expiry、refresh dedupe 与 re-login fallback 拆回更清晰的 collaborator / helper 边界，避免 manager 继续吸纳新策略。 
+- [x] **ARC-47**: `custom_components/lipro/runtime_types.py` 不得再反向依赖 `services/contracts.py` 的 schema home；shared service-facing property / failure typing 必须回到 root-level formal contract home，并保持 service/runtime outward contract 不回退。 
 
 ### Domain / Command / Observability
 - [x] **HOT-68**: `core/device/device.py` 必须收紧 relay wall 的正式边界，明确 facade 保留面与 view/component truth 的职责，不再让新 relay 无约束增长。 
@@ -67,6 +67,10 @@ contract_version: 1
 - [x] **GOV-92**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES`、registry、verification baseline、developer/runbook route note 与 current-route guards 必须共同承认 `v1.42 active milestone route / starting from latest archived baseline = v1.41`，并把 `Phase 137` 作为唯一 active phase。 
 - [x] **DOC-20**: 本轮 repo-wide 终极审阅输入、phase context/research、执行摘要与 closeout evidence 必须继续保持单一 pullable 叙事，不让 v1.41 charter 与 v1.42 改造结果分裂为两条 authority story。 
 - [x] **TST-57**: focused unit tests、meta guards、route/diff verification 与 lint/check 命令必须证明本轮 hotspot burn-down 没有破坏现有 outward contract。 
+- [x] **QLT-59**: `control/service_router_support.py` 的“support 名称 + formal bridge 身份”必须被 docs/tests 明确钉死：它可以是 inward bridge home，但绝不能被重新讲成 public control root。 
+- [x] **GOV-93**: selector family、registry、developer/runbook route note 与 current milestone docs 必须共同承认 `Phase 138` 是当前 closeout-ready terminal phase，而 `Phase 137` 退为已完成前置 phase。 
+- [x] **DOC-21**: `docs/README.md`、`docs/developer_architecture.md` 与相关 baseline docs 必须把 live docs / pull-only archive appendix / root-level service contract truth 讲清楚，不再留下 archive/live first-hop 张力。 
+- [x] **TST-58**: focused tests、lint、`check_file_matrix` 与 `check_architecture_policy` 必须证明本轮 residual cleanup 不是文档空转，而是 machine-checkable structural follow-up。 
 
 ## Traceability
 
@@ -76,17 +80,23 @@ contract_version: 1
 | HOT-67 | Phase 137 | Complete |
 | HOT-68 | Phase 137 | Complete |
 | HOT-69 | Phase 137 | Complete |
-| OBS-01 | Phase 137 | Complete |
+| OBS-01 | Phase 138 | Complete |
 | GOV-92 | Phase 137 | Complete |
 | DOC-20 | Phase 137 | Complete |
 | TST-57 | Phase 137 | Complete |
+| ARC-47 | Phase 138 | Complete |
+| QLT-59 | Phase 138 | Complete |
+| GOV-93 | Phase 138 | Complete |
+| DOC-21 | Phase 138 | Complete |
+| TST-58 | Phase 138 | Complete |
 
 ## Coverage
 
-- v1.42 requirements: 8 total
-- Current mapped: 8
-- Current complete: 8
+- v1.42 requirements: 13 total
+- Current mapped: 13
+- Current complete: 13
 - Current pending: 0
+
 
 ## Previous Archived Milestone (v1.41)
 ## Previous Archived Milestone (v1.40)

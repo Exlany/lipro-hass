@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🚧 **v1.42 Hotspot Burn-Down, Observability Truth & Governance Cost Compression** - `Phase 137 -> 137` active on 2026-04-02; current route = `v1.42 active milestone route / starting from latest archived baseline = v1.41`; latest archived evidence index = `.planning/reviews/V1_41_EVIDENCE_INDEX.md`
+- 🚧 **v1.42 Hotspot Burn-Down, Observability Truth & Governance Cost Compression** - `Phase 137 -> 138` active on 2026-04-02; current route = `v1.42 active milestone route / starting from latest archived baseline = v1.41`; latest archived evidence index = `.planning/reviews/V1_41_EVIDENCE_INDEX.md`
 - ✅ **v1.41 Terminal Residual Audit, Remediation Charter & Maintainability Hardening** - `Phase 136 -> 136` archived on 2026-04-02; historical closeout route truth = `no active milestone route / latest archived baseline = v1.41`; evidence index = `.planning/reviews/V1_41_EVIDENCE_INDEX.md`
 - ✅ **v1.40 Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening** - `Phase 134 -> 135` archived on 2026-04-02; historical closeout route truth = `no active milestone route / latest archived baseline = v1.40`; evidence index = `.planning/reviews/V1_40_EVIDENCE_INDEX.md`
 - ✅ **v1.39 Governance Recovery, Runtime Consistency & Public Contract Correction** - `Phase 133 -> 133` archived on 2026-04-02; historical closeout route truth = `no active milestone route / latest archived baseline = v1.39`; evidence index = `.planning/reviews/V1_39_EVIDENCE_INDEX.md`
@@ -20,11 +20,10 @@ projection_targets:
 active_milestone:
   version: v1.42
   name: Hotspot Burn-Down, Observability Truth & Governance Cost Compression
-  status: active / phase 137 complete; closeout-ready (2026-04-02)
-  phase: '137'
-  phase_title: hotspot burn-down, command/observability convergence, and governance
-    derivation compression
-  phase_dir: 137-hotspot-burn-down-command-observability-and-governance-compression
+  status: active / phase 138 complete; closeout-ready (2026-04-02)
+  phase: '138'
+  phase_title: runtime contract decoupling, support-guard hardening, and docs archive alignment
+  phase_dir: 138-runtime-contract-decoupling-support-guard-and-docs-alignment
   route_mode: v1.42 active milestone route / starting from latest archived baseline
     = v1.41
 latest_archived:
@@ -53,25 +52,26 @@ contract_version: 1
 
 `v1.42` 直接继承 `v1.41` 的终极审阅与 remediation charter，不再重复浅层 audit，而是把已识别的 sanctioned hotspots 与 governance cost 一次性转为唯一 active execution route。
 
-**Coverage:** `8/8` `v1.42` requirements complete in `Phase 137`.
+**Coverage:** `13/13` `v1.42` requirements complete in `Phase 137 -> 138`.
 **Default next command:** `$gsd-complete-milestone v1.42`
 
 ## Current Milestone
 
 ## v1.42: Hotspot Burn-Down, Observability Truth & Governance Cost Compression
 
-**Milestone status:** `active / phase 137 complete; closeout-ready (2026-04-02)`
+**Milestone status:** `active / phase 138 complete; closeout-ready (2026-04-02)`
 **Default next command:** `$gsd-complete-milestone v1.42`
 **Current route story:** `v1.42 active milestone route / starting from latest archived baseline = v1.41`
 **Latest archived pointer:** `.planning/reviews/V1_41_EVIDENCE_INDEX.md`
 **Latest archived audit artifact:** `.planning/v1.41-MILESTONE-AUDIT.md`
 **Archived snapshots:** `.planning/milestones/v1.41-ROADMAP.md`, `.planning/milestones/v1.41-REQUIREMENTS.md`
 **Promoted phase evidence allowlist:** `.planning/reviews/PROMOTED_PHASE_ASSETS.md`
-**Current phase handoff:** `Phase 137 的 3 份计划、3 份计划摘要、phase summary 与 verification 已闭环；当前 milestone 处于 closeout-ready，下一步直接执行 $gsd-complete-milestone v1.42。`
+**Current phase handoff:** `Phase 137 的 hotspot burn-down closeout bundle 已完成；Phase 138 继续收口 runtime/service contract decoupling、connect-status outcome formalization、support-guard hardening 与 docs/archive alignment，当前 milestone 再次进入 closeout-ready。`
 
 ## Phases
 
 - [x] **Phase 137: hotspot burn-down, command/observability convergence, and governance derivation compression** - 已完成 `137-01` governance/docs/test contract hardening、`137-02` protocol/rest/auth hotspot decomposition、`137-03` device/command/observability hardening，并产出 closeout-ready summaries/verification。 (complete 2026-04-02)
+- [x] **Phase 138: runtime contract decoupling, support-guard hardening, and docs archive alignment** - 已完成 `138-01` governance/docs/route follow-up、`138-02` runtime/service contract decoupling、`138-03` support naming guard + verification sync、`138-04` connect-status outcome propagation，并产出 closeout-ready summaries/verification。 (complete 2026-04-02)
 
 ## Phase Details
 
@@ -79,16 +79,30 @@ contract_version: 1
 
 **Goal:** 把 v1.41 审阅章程中的 WS-01 ~ WS-06 收敛到一个 machine-checkable 的 active phase：先压低 governance derivation tax 与 semantic-guard blind spot，再处理 mega-facade / auth hotspot，最后同步压缩 device relay wall、typed command semantics 与 connect-status observability。
 **Depends on:** none
-**Requirements**: `ARC-46`, `HOT-67`, `HOT-68`, `HOT-69`, `OBS-01`, `GOV-92`, `DOC-20`, `TST-57`
+**Requirements**: `ARC-46`, `HOT-67`, `HOT-68`, `HOT-69`, `GOV-92`, `DOC-20`, `TST-57`
 **Success Criteria** (what must be TRUE):
   1. runbook/developer docs/current-route guards 对 latest archived pointer 与 current selector 的断言必须只有单一 canonical 角色，不允许“新旧 pointer 同页共存也算通过”。
   2. `core/api/rest_facade.py` 与 `core/protocol/facade.py` 必须继续减少 manual delegation wall / rebinding seam，但不能回退到 mixin、compat shell 或第二 public import chain。
   3. `core/auth/manager.py` 必须把 token/credential/refresh/relogin/adaptive-expiry 的职责边界收紧；新增行为不得继续堆进 manager monolith。
   4. `core/device/device.py` 与 `core/command/dispatch.py` 必须把 relay wall / stringly route grammar 进一步数据化、typed 化，fallback 语义与 trace 一致。
-  5. `core/api/status_service.py` 及相关调用链必须显式区分 connect-status 查询失败 vs 真空结果，并继续遵守 log-safety。
-  6. `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES`、registry、verification baseline、developer/runbook note 与 focused meta guards 必须共同承认 `v1.42 active milestone route / starting from latest archived baseline = v1.41`。
-  7. `uv run pytest` focused suites、route guards、`uv run ruff check` 与必要的 governance checks 必须证明本轮 deliverable 是真实收口，而非临时修补。
-**Plans**: 3 planned / 3 completed — summaries captured; next = `$gsd-complete-milestone v1.42`
+  5. `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES`、registry、verification baseline、developer/runbook note 与 focused meta guards 必须共同承认 `v1.42 active milestone route / starting from latest archived baseline = v1.41`。
+  6. `uv run pytest` focused suites、route guards、`uv run ruff check` 与必要的 governance checks 必须证明本轮 deliverable 是真实收口，而非临时修补。
+**Plans**: 3 planned / 3 completed — summaries captured.
+
+### Phase 138: runtime contract decoupling, support-guard hardening, and docs archive alignment
+
+**Goal:** 把 phase 137 closeout review 暴露出的 remaining structural debt 收回同一 milestone：消除 `runtime_types.py` 对 `services/contracts.py` 的反向依赖，正式贯通 connect-status outcome contract，明确 `service_router_support.py` 的 formal bridge / non-public-root 身份，并同步 live docs / archive appendix 叙事。
+**Depends on:** Phase 137
+**Requirements**: `ARC-47`, `OBS-01`, `QLT-59`, `GOV-93`, `DOC-21`, `TST-58`
+**Success Criteria** (what must be TRUE):
+  1. `custom_components/lipro/runtime_types.py` 不再从 `services/contracts.py` 导入 shared service-facing types；新的 root-level typed contract home 必须 machine-checkable。
+  2. `core/api/status_service.py` 与 `endpoint_surface -> rest_port -> protocol facade` 调用链必须保留显式 `ConnectStatusQueryResult`，不再把不同 outcome 压平成 `{}`。
+  3. `control/service_router_support.py` 的角色必须被 docs/tests 明确限制为 inward formal bridge home，而不是第二 public control root。
+  4. `docs/README.md`、`docs/developer_architecture.md`、runbook 与 baseline docs 必须共同承认 live docs / pull-only archive appendix 的角色分工。
+  5. `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`、registry 与 verification baseline 必须共同承认 `Phase 138` 是当前 terminal closeout-ready phase。
+  6. focused `pytest`、`ruff`、`check_file_matrix` 与 `check_architecture_policy` 必须通过。
+**Plans**: 4 planned / 4 completed — summaries captured; next = `$gsd-complete-milestone v1.42`
+
 
 ## Latest Archived Milestone
 

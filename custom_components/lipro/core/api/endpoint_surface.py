@@ -9,6 +9,7 @@ from .power_service import OutletPowerInfoResult
 from .status_fallback import RecordStatusBatchMetric
 from .types import (
     CommandResultApiResponse,
+    ConnectStatusQueryResult,
     DeviceListResponse,
     DeviceStatusItem,
     JsonObject,
@@ -39,7 +40,9 @@ class _StatusEndpointsPort(Protocol):
 
     async def query_mesh_group_status(self, group_ids: list[str]) -> list[JsonObject]: ...
 
-    async def query_connect_status(self, device_ids: list[str]) -> dict[str, bool]: ...
+    async def query_connect_status(
+        self, device_ids: list[str]
+    ) -> ConnectStatusQueryResult: ...
 
 
 class _CommandEndpointsPort(Protocol):
@@ -182,7 +185,9 @@ class RestEndpointSurface:
     ) -> list[JsonObject]:
         return await self._status_endpoints.query_mesh_group_status(group_ids)
 
-    async def query_connect_status(self, device_ids: list[str]) -> dict[str, bool]:
+    async def query_connect_status(
+        self, device_ids: list[str]
+    ) -> ConnectStatusQueryResult:
         return await self._status_endpoints.query_connect_status(device_ids)
 
     async def send_command(

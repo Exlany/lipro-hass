@@ -65,7 +65,7 @@
 
 - `.planning/baseline/GOVERNANCE_REGISTRY.json` 只允许被 governance docs / contributor templates / meta guards pull 取；production code、runtime orchestration 与 service execution 不得把它当作运行时配置源。
 - `custom_components/lipro/control/runtime_access.py` 继续是 control/runtime typed read-model 的唯一 helper home；diagnostics / service_router_support / maintenance 不得散落 `runtime_data`、ad hoc coordinator iteration 或 direct device mapping 读取。
-- `custom_components/lipro/services/device_lookup.py` 只允许处理 service-facing target → device-id resolution；最终 `(device, coordinator)` bridge 必须由 `custom_components/lipro/control/service_router_support.py` 通过 `RuntimeAccess` 完成。
+- `custom_components/lipro/services/device_lookup.py` 只允许处理 service-facing target → device-id resolution；最终 `(device, coordinator)` bridge 必须由 `custom_components/lipro/control/service_router_support.py` 通过 `RuntimeAccess` 完成。该文件是 inward formal bridge home，不得被 docs/tests/imports 讲成 public control root。
 - `custom_components/lipro/services/maintenance.py` 只允许消费由 control plane 注入的 `iter_runtime_entry_coordinators` provider 实现 `refresh_devices`；runtime traversal truth 仍由 `custom_components/lipro/control/runtime_access.py` 持有，device-registry listener outward ownership 固定在 `custom_components/lipro/runtime_infra.py`，而 listener / reload / pending-task mechanics 只允许 inward split 到 `custom_components/lipro/runtime_infra_device_registry.py`。
 - `custom_components/lipro/services/execution.py` 是唯一 shared auth/error execution home；`custom_components/lipro/services/schedule.py` 只允许提供 schedule-specific 参数封装、日志与翻译 key，不得复制独立 coordinator auth chain 或 reauth story。
 
@@ -241,7 +241,7 @@
 ## Phase 91 Canonicalization / Typed-Boundary Clarifications
 
 - `custom_components/lipro/core/protocol/protocol_facade_rest_methods.py` 现在依赖 raw `rest_port.py` child ports + `contracts.normalize_*`；runtime consumers must pull canonical rows from `LiproProtocolFacade`，而不是重新归一化 raw payload。
-- `custom_components/lipro/runtime_types.py`、`custom_components/lipro/core/coordinator/types.py` 与 `custom_components/lipro/core/coordinator/services/telemetry_service.py` 共同承担 `RuntimeTelemetrySnapshot` / `MetricMapping` / `CommandTrace` truth；control/read-model helpers 不得把这些 typed snapshots 扩回 `dict[str, Any]`。
+- `custom_components/lipro/runtime_types.py`、`custom_components/lipro/service_types.py`、`custom_components/lipro/core/coordinator/types.py` 与 `custom_components/lipro/core/coordinator/services/telemetry_service.py` 共同承担 `RuntimeTelemetrySnapshot` / `MetricMapping` / `CommandTrace` / service-facing command payload truth；runtime root 不得再反向依赖 `services/contracts.py` 的 schema home，control/read-model helpers 也不得把这些 typed snapshots 扩回 `dict[str, Any]`。
 - `custom_components/lipro/control/runtime_access.py`、`custom_components/lipro/entities/base.py` 与 `custom_components/lipro/entities/firmware_update.py` 继续只依赖 named runtime verbs / read-model helpers；不得重新吸附 `command_service`、`protocol_service` 或 coordinator-internal shortcuts。
 
 
