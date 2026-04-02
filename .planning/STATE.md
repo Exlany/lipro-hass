@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.42
 milestone_name: Hotspot Burn-Down, Observability Truth & Governance Cost Compression
 status: active / phase 138 complete; closeout-ready (2026-04-02)
-stopped_at: Phase 138 complete; connect-status outcome propagation + residual cleanup summaries + verification recorded; next step = $gsd-complete-milestone v1.42
+stopped_at: v1.42 milestone audit passed; phase/validation evidence recorded; next step = $gsd-complete-milestone v1.42
 last_updated: '2026-04-02T23:59:59Z'
 last_activity: '2026-04-02'
 progress:
@@ -64,7 +64,7 @@ contract_version: 1
 **Latest archived milestone:** `v1.41 Terminal Residual Audit, Remediation Charter & Maintainability Hardening`
 **Previous archived milestone:** `v1.40 Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening`
 **Core value:** `不重新制造第二条审阅故事线；v1.42 只从 v1.41 archived verdict/charter 拉取事实，并把 sanctioned hotspots 与 closeout review 暴露的 residual contract debt 一并转为单一 active execution route。`
-**Current focus:** `Phase 138 的 runtime/service contract decoupling、connect-status outcome formalization、support naming guard hardening 与 docs/archive alignment 已完成；当前回到 milestone closeout。`
+**Current focus:** `v1.42 milestone audit 已通过；当前处于 archive-ready closeout gate，等待执行 $gsd-complete-milestone v1.42。`
 **Current mode:** `v1.42 active milestone route / starting from latest archived baseline = v1.41`
 
 ## Current Position
@@ -72,7 +72,7 @@ contract_version: 1
 - **Phase:** `138 of 138`
 - **Plan:** `7 of 7`
 - **Status:** `active / phase 138 complete; closeout-ready (2026-04-02)`
-- **Last activity:** `2026-04-02` — 已完成 Phase 138 四条执行轨、connect-status outcome propagation、focused contract/baseline follow-up 与 closeout evidence 汇总。
+- **Last activity:** `2026-04-02` — 已完成 Phase 138 四条执行轨、Nyquist validation 资产与 v1.42 milestone audit，closeout evidence 已汇总。
 - **Progress:** `[██████████] 100%`
 
 ## Performance Metrics
@@ -89,6 +89,7 @@ contract_version: 1
 ## Governance Truth Sources
 
 - Primary route contract: `.planning/PROJECT.md`
+- Current milestone audit verdict: `.planning/v1.42-MILESTONE-AUDIT.md`
 - Route execution map: `.planning/ROADMAP.md`
 - Requirement coverage truth: `.planning/REQUIREMENTS.md`
 - Current milestone timeline: `.planning/MILESTONES.md`
@@ -115,7 +116,7 @@ contract_version: 1
 
 ### Blockers/Concerns
 
-- 当前无 phase-level blocker；remaining work 已回到 milestone closeout / archive gate。
+- 当前无 phase-level 或 milestone-level blocker；remaining work 已回到 milestone closeout / archive gate。
 - `v1.42` 仍不宣称“仓库永久无残留”；closeout 后的下一轮 work 应从 archived verdict / new milestone truth 开始，而不是重开当前 active route。
 
 ## Recommended Next Command
