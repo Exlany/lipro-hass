@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.40
 milestone_name: Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening
-status: active / phase 135 complete; closeout-ready (2026-04-02)
-stopped_at: Phase 135 complete; next step = $gsd-complete-milestone v1.40
+status: archived / evidence-ready (2026-04-02)
+stopped_at: Milestone v1.40 archived; next step = $gsd-new-milestone
 last_updated: '2026-04-02T23:59:59Z'
 last_activity: '2026-04-02'
 progress:
@@ -30,47 +30,40 @@ projection_targets:
 - .planning/REQUIREMENTS.md
 - .planning/STATE.md
 - .planning/MILESTONES.md
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.40
   name: Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening
-  status: active / phase 135 complete; closeout-ready (2026-04-02)
+  status: archived / evidence-ready (2026-04-02)
   phase: '135'
   phase_title: runtime-access projection split, auth reason typing, and dispatch route hardening
   phase_dir: 135-runtime-access-auth-and-dispatch-contract-hardening
-  route_mode: v1.40 active milestone route / starting from latest archived baseline = v1.39
-latest_archived:
-  version: v1.39
-  name: Governance Recovery, Runtime Consistency & Public Contract Correction
-  status: archived / evidence-ready (2026-04-02)
-  phase: '133'
-  phase_title: governance recovery, runtime consistency, and public contract correction
-  phase_dir: 133-governance-recovery-runtime-consistency-and-public-contract-correction
-  audit_path: .planning/v1.39-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_39_EVIDENCE_INDEX.md
+  audit_path: .planning/v1.40-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_40_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.38
-  name: Governance Story Compression, Archive Segregation & Public Entry Simplification
-  evidence_path: .planning/reviews/V1_38_EVIDENCE_INDEX.md
+  version: v1.39
+  name: Governance Recovery, Runtime Consistency & Public Contract Correction
+  evidence_path: .planning/reviews/V1_39_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.40 active milestone route / starting from latest archived baseline = v1.39
-  default_next_command: $gsd-complete-milestone v1.40
-  latest_archived_evidence_pointer: .planning/reviews/V1_39_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.40
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_40_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
-**Current milestone:** `v1.40 Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening`
-**Latest archived milestone:** `v1.39 Governance Recovery, Runtime Consistency & Public Contract Correction`
-**Previous archived milestone:** `v1.38 Governance Story Compression, Archive Segregation & Public Entry Simplification`
-**Core value:** `v1.40 已完成两个显式 phase：Phase 134 收口 request-policy/entity/fan truth，Phase 135 再把 runtime_access/auth_service/dispatch 三个 sanctioned hotspots 压回 typed / thin / support-split 主链。`
-**Current focus:** `当前 milestone 已重新回到 closeout-ready；下一步应诚实执行 $gsd-complete-milestone v1.40，而不是继续伪装存在未落盘的 active gap。`
-**Current mode:** `v1.40 active milestone route / starting from latest archived baseline = v1.39`
+**Current milestone:** `No active milestone route`
+**Latest archived milestone:** `v1.40 Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening`
+**Previous archived milestone:** `v1.39 Governance Recovery, Runtime Consistency & Public Contract Correction`
+**Core value:** `v1.40 已作为 latest archived baseline 冻结：Phase 134 完成 request-policy/entity/fan truth 收口，Phase 135 完成 runtime/auth/dispatch contract hardening，治理真源与证据链已完成 closeout。`
+**Current focus:** `当前无 active milestone route；下一步应从 $gsd-new-milestone 开始新路线，而不是继续回写已归档的 v1.40。`
+**Current mode:** `no active milestone route / latest archived baseline = v1.40`
 
 ## Current Position
 
 - **Phase:** `135 of 135`
 - **Plan:** `6 of 6`
-- **Status:** `active / phase 135 complete; closeout-ready (2026-04-02)`
-- **Last activity:** `2026-04-02` — 已完成 `v1.40 / Phase 135` 的 runtime-access projection split、typed reauth reason、dispatch route enum 化与 governance/docs/test resync。
+- **Status:** `archived / evidence-ready (2026-04-02)`
+- **Last activity:** `2026-04-02` — 已完成 `v1.40` milestone audit、evidence index、archive snapshot 与 route closeout sync。
 - **Progress:** `[██████████] 100%`
 
 ## Performance Metrics
@@ -90,10 +83,10 @@ bootstrap:
 - Route execution map: `.planning/ROADMAP.md`
 - Requirement coverage truth: `.planning/REQUIREMENTS.md`
 - Current milestone timeline: `.planning/MILESTONES.md`
-- Latest archived evidence pointer: `.planning/reviews/V1_39_EVIDENCE_INDEX.md`
-- Latest archived audit verdict: `.planning/v1.39-MILESTONE-AUDIT.md`
-- Latest archived snapshots: `.planning/milestones/v1.39-ROADMAP.md`, `.planning/milestones/v1.39-REQUIREMENTS.md`
-- Current active phase workspace: `.planning/phases/135-runtime-access-auth-and-dispatch-contract-hardening/`
+- Latest archived evidence pointer: `.planning/reviews/V1_40_EVIDENCE_INDEX.md`
+- Latest archived audit verdict: `.planning/v1.40-MILESTONE-AUDIT.md`
+- Legacy archive audit anchor: `.planning/v1.16-MILESTONE-AUDIT.md`
+- Latest archived snapshots: `.planning/milestones/v1.40-ROADMAP.md`, `.planning/milestones/v1.40-REQUIREMENTS.md`
 - FILE_MATRIX inventory truth: `.planning/reviews/FILE_MATRIX.md`
 - Promoted phase evidence allowlist: `.planning/reviews/PROMOTED_PHASE_ASSETS.md`
 - Testing-map derived counts: `.planning/codebase/TESTING.md`
@@ -103,30 +96,28 @@ bootstrap:
 
 ### Decisions
 
-- `v1.40` 继续保持单一 active milestone route，而不是在 `Phase 134` closeout-ready 后偷开第二条平行故事线。
-- `runtime_access.py` 已回到更薄的 outward import home；snapshot / diagnostics projection coercion 已下沉到 support surface。
-- `RuntimeReauthReason` 已成为 shared runtime contract；`auth_service.py` 只保留兼容归一化而不再放任裸字符串漂移。
-- `CommandDispatchPlan.route`、sender error 与 runtime command orchestration 已围绕 enum-backed `CommandRoute` 协作。
-- developer architecture、release runbook、verification matrix、registry、follow-up route guards 与 phase assets 已同步承认 `Phase 135 complete; closeout-ready`。
+- `v1.40` 已完成 closeout，并升级为 latest archived baseline；current route truth 不再保留 active milestone 叙事。
+- `Phase 134` 与 `Phase 135` 的 closeout bundle、milestone audit 与 evidence index 已形成 pull-only archived evidence chain。
+- developer architecture、release runbook、verification matrix、registry 与 current-route guards 已同步承认 `no active milestone route / latest archived baseline = v1.40`。
 
 ### Pending Todos
 
-- 执行 `$gsd-complete-milestone v1.40`，把 `Phase 134 -> 135` 的 closeout-ready 路线提升为 archived baseline truth。
-- 若契约者继续要求更深层 repo-wide 审视，应在新 milestone 中显式立项，而不是再把 closeout-ready 状态伪装成未完成 phase。
+- 从 `$gsd-new-milestone` 开始下一轮显式路线，不要把 `v1.40` archived baseline 重新改写成隐性 active story。
+- 若继续全仓极限减压，优先考虑大型 formal-home 热点、meta mega-suite topicization 与 derived-governance automation。
 
 ### Blockers/Concerns
 
-- 当前无 blocker；剩余 concern 已降级为下一里程碑候选，而非 `v1.40` 的未完成项。
-- repo-wide 仍可能存在非阻塞的长期质量提升空间，但不再属于本轮 `Phase 135` 的 formal gap。
+- 当前无 closeout blocker；剩余 concern 已降级为 future milestone 候选。
+- repo-wide 仍存在可继续优化的 maintainability debt，但不再属于 `v1.40` closeout 缺口。
 
 ## Recommended Next Command
 
-- **Primary:** `$gsd-complete-milestone v1.40` — `Phase 135` 已 complete / closeout-ready，当前最诚实的下一步是 milestone closeout。
+- **Primary:** `$gsd-new-milestone` — `v1.40` 已 archived / evidence-ready，当前最诚实的下一步是开启新里程碑。
 - **Status check:** `$gsd-next` — 若要复核自动下一步，可重新计算当前路线。
 
 ## Session Continuity
 
 - **Workspace root:** `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass`
-- **Phase directory:** `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/.planning/phases/135-runtime-access-auth-and-dispatch-contract-hardening`
-- **Resume file:** `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/.planning/phases/135-runtime-access-auth-and-dispatch-contract-hardening/135-SUMMARY.md`
-- **Read next:** `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/.planning/phases/135-runtime-access-auth-and-dispatch-contract-hardening/135-VERIFICATION.md` → `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/.planning/PROJECT.md` → `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/.planning/ROADMAP.md`
+- **Latest archived audit:** `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/.planning/v1.40-MILESTONE-AUDIT.md`
+- **Latest archived evidence index:** `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/.planning/reviews/V1_40_EVIDENCE_INDEX.md`
+- **Read next:** `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/.planning/v1.40-MILESTONE-AUDIT.md` → `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/.planning/reviews/V1_40_EVIDENCE_INDEX.md` → `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/.planning/PROJECT.md`

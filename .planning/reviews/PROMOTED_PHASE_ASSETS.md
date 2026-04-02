@@ -657,3 +657,18 @@ policy:
 - 133-SUMMARY.md
 - 133-VERIFICATION.md
 - 133-VALIDATION.md
+
+  134-request-policy-ownership-entity-de-reflection-and-fan-truth-hardening:
+  - 134-01-SUMMARY.md
+  - 134-02-SUMMARY.md
+  - 134-03-SUMMARY.md
+  - 134-SUMMARY.md
+  - 134-VERIFICATION.md
+  - 134-VALIDATION.md
+  135-runtime-access-auth-and-dispatch-contract-hardening:
+  - 135-01-SUMMARY.md
+  - 135-02-SUMMARY.md
+  - 135-03-SUMMARY.md
+  - 135-SUMMARY.md
+  - 135-VERIFICATION.md
+  - 135-VALIDATION.md

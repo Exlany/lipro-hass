@@ -176,35 +176,27 @@
       ".planning/STATE.md",
       ".planning/MILESTONES.md"
     ],
-    "active_milestone": {
+    "active_milestone": null,
+    "latest_archived": {
       "version": "v1.40",
       "name": "Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening",
-      "status": "active / phase 135 complete; closeout-ready (2026-04-02)",
+      "status": "archived / evidence-ready (2026-04-02)",
       "phase": "135",
       "phase_title": "runtime-access projection split, auth reason typing, and dispatch route hardening",
       "phase_dir": "135-runtime-access-auth-and-dispatch-contract-hardening",
-      "route_mode": "v1.40 active milestone route / starting from latest archived baseline = v1.39"
-    },
-    "latest_archived": {
-      "version": "v1.39",
-      "name": "Governance Recovery, Runtime Consistency & Public Contract Correction",
-      "status": "archived / evidence-ready (2026-04-02)",
-      "phase": "133",
-      "phase_title": "governance recovery, runtime consistency, and public contract correction",
-      "phase_dir": "133-governance-recovery-runtime-consistency-and-public-contract-correction",
-      "audit_path": ".planning/v1.39-MILESTONE-AUDIT.md",
-      "evidence_path": ".planning/reviews/V1_39_EVIDENCE_INDEX.md",
+      "audit_path": ".planning/v1.40-MILESTONE-AUDIT.md",
+      "evidence_path": ".planning/reviews/V1_40_EVIDENCE_INDEX.md",
       "evidence_label": "latest archived evidence index"
     },
     "previous_archived": {
-      "version": "v1.38",
-      "name": "Governance Story Compression, Archive Segregation & Public Entry Simplification",
-      "evidence_path": ".planning/reviews/V1_38_EVIDENCE_INDEX.md"
+      "version": "v1.39",
+      "name": "Governance Recovery, Runtime Consistency & Public Contract Correction",
+      "evidence_path": ".planning/reviews/V1_39_EVIDENCE_INDEX.md"
     },
     "bootstrap": {
-      "current_route": "v1.40 active milestone route / starting from latest archived baseline = v1.39",
-      "default_next_command": "$gsd-complete-milestone v1.40",
-      "latest_archived_evidence_pointer": ".planning/reviews/V1_39_EVIDENCE_INDEX.md"
+      "current_route": "no active milestone route / latest archived baseline = v1.40",
+      "default_next_command": "$gsd-new-milestone",
+      "latest_archived_evidence_pointer": ".planning/reviews/V1_40_EVIDENCE_INDEX.md"
     }
   }
 }

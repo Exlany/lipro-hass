@@ -1,10 +1,10 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** `active / phase 135 complete; closeout-ready (2026-04-02)`
-**Current route:** `v1.40 active milestone route / starting from latest archived baseline = v1.39`；latest archived evidence index = `.planning/reviews/V1_39_EVIDENCE_INDEX.md`.
-**Goal:** `以 v1.39 latest archived baseline 为唯一起点，先完成 RequestPolicy / entity / fan truth 收口，再把 runtime_access / auth_service / dispatch 三个 sanctioned hotspots 通过 Phase 135 压回更薄、更显式、更可验证的主链。`
-**Default next step:** `$gsd-complete-milestone v1.40`
-**Archived baseline chain:** latest archived baseline = `v1.39`；previous archived baseline = `v1.38`.
+**Status:** `archived / evidence-ready (2026-04-02)`
+**Current route:** `no active milestone route / latest archived baseline = v1.40`；latest archived evidence index = `.planning/reviews/V1_40_EVIDENCE_INDEX.md`.
+**Goal:** `v1.40 已完成 request-policy/entity/fan truth 与 runtime/auth/dispatch contract 两层 sanctioned hotspot 收口，并正式升级为 latest archived baseline，供下一里程碑作为唯一归档起点。`
+**Default next step:** `$gsd-new-milestone`
+**Archived baseline chain:** latest archived baseline = `v1.40`；previous archived baseline = `v1.39`.
 
 <!-- governance-route-contract:start -->
 ```yaml
@@ -16,35 +16,28 @@ projection_targets:
 - .planning/REQUIREMENTS.md
 - .planning/STATE.md
 - .planning/MILESTONES.md
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.40
   name: Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening
-  status: active / phase 135 complete; closeout-ready (2026-04-02)
+  status: archived / evidence-ready (2026-04-02)
   phase: '135'
   phase_title: runtime-access projection split, auth reason typing, and dispatch route hardening
   phase_dir: 135-runtime-access-auth-and-dispatch-contract-hardening
-  route_mode: v1.40 active milestone route / starting from latest archived baseline = v1.39
-latest_archived:
-  version: v1.39
-  name: Governance Recovery, Runtime Consistency & Public Contract Correction
-  status: archived / evidence-ready (2026-04-02)
-  phase: '133'
-  phase_title: governance recovery, runtime consistency, and public contract correction
-  phase_dir: 133-governance-recovery-runtime-consistency-and-public-contract-correction
-  audit_path: .planning/v1.39-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_39_EVIDENCE_INDEX.md
+  audit_path: .planning/v1.40-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_40_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.38
-  name: Governance Story Compression, Archive Segregation & Public Entry Simplification
-  evidence_path: .planning/reviews/V1_38_EVIDENCE_INDEX.md
+  version: v1.39
+  name: Governance Recovery, Runtime Consistency & Public Contract Correction
+  evidence_path: .planning/reviews/V1_39_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.40 active milestone route / starting from latest archived baseline = v1.39
-  default_next_command: $gsd-complete-milestone v1.40
-  latest_archived_evidence_pointer: .planning/reviews/V1_39_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.40
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_40_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
-## Current Milestone (v1.40)
+## Latest Archived Milestone (v1.40)
 
 **Name:** `Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening`
 
@@ -52,15 +45,15 @@ bootstrap:
 
 **North-star fit:** `v1.40` 继续沿 single owner、formal home、typed contract、inward support split 与 honesty-over-folklore 推进：Phase 134 解决 request-policy/entity/fan truth，Phase 135 再把 runtime projection、runtime auth reason 与 command dispatch route 的 stringly drift 收回正式主链。`
 
-**Current status:** `active / phase 135 complete; closeout-ready (2026-04-02)`
+**Current status:** `archived / evidence-ready (2026-04-02)`
 **Phase range:** `Phase 134 -> 135`
 **Starting baseline:** `.planning/v1.39-MILESTONE-AUDIT.md, .planning/reviews/V1_39_EVIDENCE_INDEX.md, .planning/milestones/v1.39-ROADMAP.md, .planning/milestones/v1.39-REQUIREMENTS.md`
 **Requirements basket:** `GOV-90, ARC-43, HOT-62, HOT-63, QLT-56, TST-54, ARC-44, HOT-64, HOT-65, HOT-66, QLT-57, TST-55`
-**Latest archived baseline:** `v1.39`
-**Latest archived pointer:** `.planning/reviews/V1_39_EVIDENCE_INDEX.md`
-**Latest archived audit artifact:** `.planning/v1.39-MILESTONE-AUDIT.md`
-**Default next command:** `$gsd-complete-milestone v1.40`
-**Current phase handoff:** `Phase 135 的 3 份 PLAN、3 份 plan summary、phase summary、verification 与 validation 已齐备；当前 route 已再次推进到 phase complete / closeout-ready。`
+**Latest archived baseline:** `v1.40`
+**Latest archived pointer:** `.planning/reviews/V1_40_EVIDENCE_INDEX.md`
+**Latest archived audit artifact:** `.planning/v1.40-MILESTONE-AUDIT.md`
+**Default next command:** `$gsd-new-milestone`
+**Current phase handoff:** `Milestone closeout complete；Phase 134 -> 135 的 summary / verification / validation / audit / evidence index 已冻结为 latest archived baseline truth。`
 
 ## Primary Sources
 
@@ -106,7 +99,7 @@ bootstrap:
 - `.planning/v1.39-MILESTONE-AUDIT.md`
 - `docs/developer_architecture.md`
 - `docs/MAINTAINER_RELEASE_RUNBOOK.md`
-## Latest Archived Milestone (v1.39)
+## Previous Archived Milestone (v1.39)
 
 **Name:** `Governance Recovery, Runtime Consistency & Public Contract Correction`
 **Current status:** `archived / evidence-ready (2026-04-02)`
@@ -193,3 +186,11 @@ bootstrap:
 ## v1.29 Root Adapter Thinning, Test Topology Second Pass & Terminology Contract Normalization
 **Current status:** `archived / evidence-ready (2026-03-22)`
 **Evidence pointer:** `.planning/reviews/V1_29_EVIDENCE_INDEX.md`
+
+## Archive Readiness Questions
+
+当当前里程碑完成时，应能同时回答以下问题：
+
+- 当前 latest archived baseline 是什么？
+- milestone audit 与 evidence index 是否已经成对落盘？
+- 下一步是否应该进入 `$gsd-new-milestone`，而不是继续修改已归档路线？
