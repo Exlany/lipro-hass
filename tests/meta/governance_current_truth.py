@@ -311,13 +311,14 @@ CURRENT_MILESTONE_COMPLETED_PLAN_COUNT = sum(
     snapshot.plan_summary_count for snapshot in _CURRENT_MILESTONE_ASSETS.values()
 )
 CURRENT_ROUTE_FOCUSED_GUARDS = (
-    "tests/meta/test_governance_bootstrap_smoke.py",
-    "tests/meta/test_governance_route_handoff_smoke.py",
     "tests/meta/governance_followup_route_current_milestones.py",
-    "tests/meta/test_runtime_contract_truth.py",
     "tests/meta/test_governance_release_docs.py",
-    "tests/meta/toolchain_truth_checker_paths.py",
-    "tests/meta/test_phase89_tooling_decoupling_guards.py",
+    "tests/meta/test_governance_release_continuity.py",
+    "tests/meta/test_governance_release_contract.py",
+    "tests/meta/test_phase140_governance_source_freshness_guards.py",
+    "tests/meta/toolchain_truth_docs_fast_path.py",
+    "tests/meta/toolchain_truth_testing_governance.py",
+    "tests/meta/test_version_sync.py",
 )
 
 

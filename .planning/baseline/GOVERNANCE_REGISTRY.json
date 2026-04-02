@@ -178,11 +178,11 @@
     "active_milestone": {
       "version": "v1.43",
       "name": "Hotspot Second-Pass Slimming & Governance Load Shedding",
-      "status": "active / phase 139 complete; phase 140 planning-ready (2026-04-02)",
-      "phase": "139",
-      "phase_title": "REST/protocol mega-facade second-pass slimming and boundary hardening",
-      "phase_dir": "139-rest-protocol-surface-second-pass-slimming-and-boundary-hardening",
-      "route_mode": "v1.43 active milestone route / Phase 139 complete / Phase 140 planning-ready / latest archived baseline = v1.42"
+      "status": "active / phase 140 complete; phase 141 planning-ready (2026-04-02)",
+      "phase": "140",
+      "phase_title": "release/governance source compression and codebase freshness",
+      "phase_dir": "140-release-governance-source-compression-and-codebase-freshness",
+      "route_mode": "v1.43 active milestone route / Phase 140 complete / Phase 141 planning-ready / latest archived baseline = v1.42"
     },
     "latest_archived": {
       "version": "v1.42",
@@ -201,8 +201,8 @@
       "evidence_path": ".planning/reviews/V1_41_EVIDENCE_INDEX.md"
     },
     "bootstrap": {
-      "current_route": "v1.43 active milestone route / Phase 139 complete / Phase 140 planning-ready / latest archived baseline = v1.42",
-      "default_next_command": "$gsd-plan-phase 140",
+      "current_route": "v1.43 active milestone route / Phase 140 complete / Phase 141 planning-ready / latest archived baseline = v1.42",
+      "default_next_command": "$gsd-plan-phase 141",
       "latest_archived_evidence_pointer": ".planning/reviews/V1_42_EVIDENCE_INDEX.md"
     },
     "contract_version": 1

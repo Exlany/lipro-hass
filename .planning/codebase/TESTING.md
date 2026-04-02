@@ -25,6 +25,12 @@ uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro 
 ./scripts/lint --full
 ```
 
+## Phase 140 Execution Freeze
+
+- `tests/meta/test_governance_release_docs.py`、`tests/meta/test_governance_release_continuity.py`、`tests/meta/test_governance_release_contract.py`、`tests/meta/test_phase140_governance_source_freshness_guards.py` 与 `tests/meta/governance_followup_route_current_milestones.py` 共同冻结 stale verification lane refresh、public changelog scope、runbook access-mode wording、route selector projection 与 planning-ready handoff。
+- `uv run pytest -q tests/meta/test_governance_release_docs.py tests/meta/test_governance_release_continuity.py tests/meta/test_governance_release_contract.py tests/meta/test_phase140_governance_source_freshness_guards.py tests/meta/governance_followup_route_current_milestones.py tests/meta/toolchain_truth_docs_fast_path.py tests/meta/toolchain_truth_testing_governance.py tests/meta/test_version_sync.py` 与 `uv run python scripts/check_file_matrix.py --check` 共同定义 Phase 140 的 governance/docs exit proof。
+- nested worktree 下 `gsd-tools` root detection 不作为 testing inventory 的 live truth authority；以 selector family、registry、baseline docs、focused guards 与 `140-*` phase assets 的一致投影为准。
+
 ## Phase 139 Execution Freeze
 
 - `tests/core/protocol/test_facade.py`、`tests/core/api/test_api_transport_and_schedule_schedules.py`、`tests/core/api/test_protocol_contract_facade_runtime.py` 与 `tests/meta/test_phase139_mega_facade_second_pass_guards.py` 共同冻结 REST/protocol second-pass slimming、schedule `group_id` forwarding honesty、formal-home locality 与 governance route projection。
@@ -41,7 +47,7 @@ uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro 
 **Location:**
 - Tests live in a dedicated `tests/` tree, not beside production files.
 - Current topology is broad and intentional: `tests/core`, `tests/services`, `tests/flows`, `tests/platforms`, `tests/entities`, `tests/meta`, `tests/integration`, `tests/snapshots`, `tests/benchmarks`, `tests/harness`, and `tests/fixtures`.
-- Repository counts from current scanning: `420` Python files under `tests`, `336` runnable `test_*.py` files, `77` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
+- Repository counts from current scanning: `421` Python files under `tests`, `337` runnable `test_*.py` files, `78` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
 
 **Naming:**
 - Use `test_*.py` everywhere.

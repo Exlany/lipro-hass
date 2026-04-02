@@ -9,9 +9,8 @@
 
 ## Proposed Direction
 
-5. 在不扩大本 phase 风险的前提下，把 audit 中记录的 control/runtime/domain hotspot 继续整理成后续 codebase-freshness backlog：service-router layering、runtime_types breadth、device façade side-car residual、entry-root lazy import tax。
-
 1. 刷新 baseline/archived docs 中所有已迁移的测试路径，优先修复不可执行 proof。
 2. 收紧 changelog Unreleased contract，只保留 public-facing stories。
 3. 统一 README/SUPPORT/runbook 对 private-access 与 release asset reachability 的条件表述。
 4. 用 focused meta tests 冻结上述 contract，避免下一轮再回流。
+5. 把 audit 中记录的 control/runtime/domain hotspot 仅整理为后续 codebase-freshness backlog，不在本 phase 顺手扩 scope：service-router layering、runtime_types breadth、device façade side-car residual、entry-root lazy import tax。

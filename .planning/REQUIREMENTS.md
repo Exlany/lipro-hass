@@ -12,11 +12,11 @@ projection_targets:
 active_milestone:
   version: v1.43
   name: Hotspot Second-Pass Slimming & Governance Load Shedding
-  status: active / phase 139 complete; phase 140 planning-ready (2026-04-02)
-  phase: '139'
-  phase_title: REST/protocol mega-facade second-pass slimming and boundary hardening
-  phase_dir: 139-rest-protocol-surface-second-pass-slimming-and-boundary-hardening
-  route_mode: v1.43 active milestone route / Phase 139 complete / Phase 140 planning-ready / latest archived baseline = v1.42
+  status: active / phase 140 complete; phase 141 planning-ready (2026-04-02)
+  phase: '140'
+  phase_title: release/governance source compression and codebase freshness
+  phase_dir: 140-release-governance-source-compression-and-codebase-freshness
+  route_mode: v1.43 active milestone route / Phase 140 complete / Phase 141 planning-ready / latest archived baseline = v1.42
 latest_archived:
   version: v1.42
   name: Hotspot Burn-Down, Observability Truth & Governance Cost Compression
@@ -32,8 +32,8 @@ previous_archived:
   name: Terminal Residual Audit, Remediation Charter & Maintainability Hardening
   evidence_path: .planning/reviews/V1_41_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.43 active milestone route / Phase 139 complete / Phase 140 planning-ready / latest archived baseline = v1.42
-  default_next_command: $gsd-plan-phase 140
+  current_route: v1.43 active milestone route / Phase 140 complete / Phase 141 planning-ready / latest archived baseline = v1.42
+  default_next_command: $gsd-plan-phase 141
   latest_archived_evidence_pointer: .planning/reviews/V1_42_EVIDENCE_INDEX.md
 contract_version: 1
 ```
@@ -41,16 +41,16 @@ contract_version: 1
 
 ## Current Milestone (v1.43)
 
-**Milestone Goal:** 基于 `v1.42` latest archived baseline，先完成 REST/protocol mega-facade second-pass slimming 与 forwarding honesty 修复，再把 release/governance docs 的 stale verification paths、public changelog 身份漂移、private-access conditional wording 与 meta-guard blind spots 收回同一 current route。
-**Milestone status:** `active / phase 139 complete; phase 140 planning-ready (2026-04-02)`
-**Current route mode:** `v1.43 active milestone route / Phase 139 complete / Phase 140 planning-ready / latest archived baseline = v1.42`
+**Milestone Goal:** 基于 `v1.42` latest archived baseline，已完成 REST/protocol second-pass slimming、forwarding honesty 与 release/governance freshness formalization，并把下一轮 control/runtime/device hotspot narrowing 诚实前推到 `Phase 141` planning-ready。
+**Milestone status:** `active / phase 140 complete; phase 141 planning-ready (2026-04-02)`
+**Current route mode:** `v1.43 active milestone route / Phase 140 complete / Phase 141 planning-ready / latest archived baseline = v1.42`
 **Starting baseline:** `.planning/v1.42-MILESTONE-AUDIT.md, .planning/reviews/V1_42_EVIDENCE_INDEX.md, .planning/milestones/v1.42-ROADMAP.md, .planning/milestones/v1.42-REQUIREMENTS.md`
 **Requirements basket:** `ARC-48, HOT-70, HOT-71, GOV-94, DOC-22, TST-59, AUD-09, GOV-95, DOC-23, TST-60`
 **Latest archived baseline:** `v1.42`
 **Archive pointer:** `.planning/reviews/V1_42_EVIDENCE_INDEX.md`
 **Latest archived audit artifact:** `.planning/v1.42-MILESTONE-AUDIT.md`
-**Default next command:** `$gsd-plan-phase 140`
-**Current phase handoff:** `Phase 139 deliverables 已完成并写入 route truth；Phase 140 context/research 已就位，下一步聚焦 governance/docs freshness 与 public/internal contract convergence。`
+**Default next command:** `$gsd-plan-phase 141`
+**Current phase handoff:** `Phase 140 deliverables 已完成并写入 route truth；当前 requirements basket 已全部收口，Phase 141 仅以 planning-ready context/research 接入，等待后续正式 planning。`
 
 ### Protocol / Architecture
 - [x] **ARC-48**: `custom_components/lipro/core/protocol/rest_port.py` 必须继续瘦身到 typed contracts + port family + bind helper；bound adapter mechanics 下沉到 sibling helper，但不得新增第二 protocol root。 
@@ -58,20 +58,20 @@ contract_version: 1
 - [x] **HOT-71**: schedule `group_id` 在 `protocol facade -> rest ports -> rest facade -> endpoint surface -> schedule endpoint` 调用链中必须保持显式透传，mesh / standard schedule 行为不得 silently diverge。 
 
 ### Governance / Docs / Tests
-- [x] **GOV-94**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES`、registry、verification baseline、developer/runbook docs 与 focused route guards 必须共同承认 `v1.43 active milestone route / Phase 139 complete / Phase 140 planning-ready / latest archived baseline = v1.42`。 
-- [x] **DOC-22**: `docs/developer_architecture.md` 与 `docs/MAINTAINER_RELEASE_RUNBOOK.md` 必须把 second-pass split 结果、latest archived pointer 与 active-route handoff 讲清楚，而不制造新 authority chain。 
+- [x] **GOV-94**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES`、registry、verification baseline、developer/runbook docs 与 focused route guards 必须共同承认当前 active route truth；当前投影已切到 `v1.43 active milestone route / Phase 140 complete / Phase 141 planning-ready / latest archived baseline = v1.42`。 
+- [x] **DOC-22**: `docs/developer_architecture.md` 与 `docs/MAINTAINER_RELEASE_RUNBOOK.md` 必须把 second-pass split 结果、latest archived pointer、Phase 140 formalization 与 `Phase 141` planning-ready handoff 讲清楚，而不制造新 authority chain。 
 - [x] **TST-59**: focused unit tests、meta guards、route/diff verification 与 lint/check 命令必须证明本轮 second-pass slimming 没有破坏 outward contract。 
-- [ ] **AUD-09**: `.planning/baseline/VERIFICATION_MATRIX.md`、archived remediation docs 与 related ledgers 必须清掉已删除/迁移测试路径，保证 archived / current verification commands 都仍可执行。 
-- [ ] **GOV-95**: release/governance selector family、baseline docs、residual ledgers 与 archived remediation docs 必须压缩重复叙事，减少 stale route / stale path duplication。 
-- [ ] **DOC-23**: `CHANGELOG.md`、`SUPPORT.md`、`README*.md` 与 `docs/MAINTAINER_RELEASE_RUNBOOK.md` 必须对 public-facing summary、private-access / future public mirror 与 release asset reachability 使用一致语义。 
-- [ ] **TST-60**: `tests/meta` 必须补齐 changelog public-summary、runbook conditional wording 与 governance freshness 的守卫，避免上述 drift 再次无声回流。 
+- [x] **AUD-09**: `.planning/baseline/VERIFICATION_MATRIX.md`、archived remediation docs 与 related ledgers 已清掉 stale release/governance verification paths，并把 runnable proof 更新到当前 guard family。 
+- [x] **GOV-95**: release/governance selector family、baseline docs、residual ledgers 与 archived remediation docs 已压缩重复叙事，减少 stale route / stale path duplication。 
+- [x] **DOC-23**: `CHANGELOG.md`、`SUPPORT.md`、`README*.md` 与 `docs/MAINTAINER_RELEASE_RUNBOOK.md` 已对 public-facing summary、private-access / future public mirror 与 release asset reachability 使用一致语义。 
+- [x] **TST-60**: `tests/meta` 已补齐 changelog public-summary、runbook conditional wording 与 governance freshness 的守卫，避免上述 drift 再次无声回流。 
 
 ## Coverage Snapshot
 
 - v1.43 requirements: 10 total
 - Current mapped: 10
-- Current complete: 6
-- Current pending: 4
+- Current complete: 10
+- Current pending: 0
 
 ## Requirement Trace Table
 
@@ -83,10 +83,10 @@ contract_version: 1
 | GOV-94 | Phase 139 | Complete |
 | DOC-22 | Phase 139 | Complete |
 | TST-59 | Phase 139 | Complete |
-| AUD-09 | Phase 140 | Planned |
-| GOV-95 | Phase 140 | Planned |
-| DOC-23 | Phase 140 | Planned |
-| TST-60 | Phase 140 | Planned |
+| AUD-09 | Phase 140 | Complete |
+| GOV-95 | Phase 140 | Complete |
+| DOC-23 | Phase 140 | Complete |
+| TST-60 | Phase 140 | Complete |
 
 ## Previous Archived Milestone (v1.41)
 
@@ -216,4 +216,3 @@ contract_version: 1
 **Current phase handoff:** `Milestone closeout complete；Phase 129 -> 131 的 requirement coverage、summary / verification / audit / evidence index 已冻结为 archived evidence frozen。`
 
 ## Historical Archived Milestone (v1.35)
-

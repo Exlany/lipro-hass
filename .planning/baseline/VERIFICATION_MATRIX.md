@@ -1,22 +1,22 @@
 # Verification Matrix
 
 **Purpose:** 建立 requirement → artifact → test → doc → phase acceptance / handoff 的统一验证闭环。
-**Current route selector:** `v1.43 active milestone route / Phase 139 complete / Phase 140 planning-ready / latest archived baseline = v1.42`
-**Default next command:** `$gsd-plan-phase 140`
+**Current route selector:** `v1.43 active milestone route / Phase 140 complete / Phase 141 planning-ready / latest archived baseline = v1.42`
+**Default next command:** `$gsd-plan-phase 141`
 **Latest archived pointer:** `.planning/reviews/V1_42_EVIDENCE_INDEX.md`
 **Status:** Formal baseline asset (`BASE-03` phase acceptance truth source)
-**Updated:** 2026-04-02 (v1.43 Phase 139 complete / Phase 140 planning-ready)
+**Updated:** 2026-04-02 (v1.43 Phase 140 complete / Phase 141 planning-ready)
 
 ## Formal Role
 
 ## Current Route
 
-- **Current route story:** `v1.43 active milestone route / Phase 139 complete / Phase 140 planning-ready / latest archived baseline = v1.42`
-- **Current milestone status:** `active / phase 139 complete; phase 140 planning-ready (2026-04-02)`
-- **Default next command:** `$gsd-plan-phase 140`
+- **Current route story:** `v1.43 active milestone route / Phase 140 complete / Phase 141 planning-ready / latest archived baseline = v1.42`
+- **Current milestone status:** `active / phase 140 complete; phase 141 planning-ready (2026-04-02)`
+- **Default next command:** `$gsd-plan-phase 141`
 - **Latest archived pointer:** `.planning/reviews/V1_42_EVIDENCE_INDEX.md`
 - **Carry-forward audit anchors:** `.planning/reviews/V1_42_EVIDENCE_INDEX.md`, `.planning/v1.42-MILESTONE-AUDIT.md`
-- **Focused guards:** `tests/meta/governance_followup_route_current_milestones.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/test_governance_release_contract.py`, `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_guards.py`, `tests/meta/test_governance_release_docs.py`, `tests/meta/test_version_sync.py`, `tests/meta/test_dependency_guards.py`, `tests/meta/test_public_surface_guards.py`, `tests/meta/test_runtime_contract_truth.py`, `tests/meta/toolchain_truth_checker_paths.py`, `tests/meta/test_phase89_tooling_decoupling_guards.py`, `tests/core/test_auth.py`, `tests/core/api/test_api.py`, `tests/services/test_services_schedule.py`, `tests/core/test_outlet_power_runtime.py`
+- **Focused guards:** `tests/meta/governance_followup_route_current_milestones.py`, `tests/meta/test_governance_release_docs.py`, `tests/meta/test_governance_release_continuity.py`, `tests/meta/test_governance_release_contract.py`, `tests/meta/test_phase140_governance_source_freshness_guards.py`, `tests/meta/toolchain_truth_docs_fast_path.py`, `tests/meta/toolchain_truth_testing_governance.py`, `tests/meta/test_version_sync.py`
 
 - 本文件是 `Phase 1.5` 及其下游 phases 的正式 acceptance truth；phase docs / summaries 只能引用、实例化或扩展，不得平行定义 exit contract。
 - 任一 phase 只有同时交付 requirement evidence、artifact updates、verification proof 与 governance disposition，才可宣称完成。
@@ -29,11 +29,19 @@
 
 ## Phase 139 Exit Contract
 
-- **Route truth:** `v1.43 active milestone route / Phase 139 complete / Phase 140 planning-ready / latest archived baseline = v1.42`
+- **Route truth:** `v1.43 predecessor handoff snapshot immediately before Phase 140 closeout`
 - **Focused guards:** `tests/core/protocol/test_facade.py`, `tests/core/api/test_api_transport_and_schedule_schedules.py`, `tests/core/api/test_protocol_contract_facade_runtime.py`, `tests/meta/test_phase139_mega_facade_second_pass_guards.py`, `tests/meta/governance_followup_route_current_milestones.py`
 - **Required artifacts:** `custom_components/lipro/core/api/{rest_facade.py,rest_facade_internal_methods.py,rest_facade_endpoint_methods.py,endpoint_surface.py}`、`custom_components/lipro/core/protocol/{rest_port.py,rest_port_bindings.py}`、`.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md,MILESTONES.md}`、`.planning/baseline/{GOVERNANCE_REGISTRY.json,VERIFICATION_MATRIX.md}`、`.planning/reviews/{FILE_MATRIX.md,RESIDUAL_LEDGER.md}`、`.planning/codebase/TESTING.md`、`docs/{developer_architecture.md,MAINTAINER_RELEASE_RUNBOOK.md}`、`.planning/phases/139-rest-protocol-surface-second-pass-slimming-and-boundary-hardening/{139-CONTEXT.md,139-RESEARCH.md,139-01-PLAN.md,139-02-PLAN.md,139-03-PLAN.md,139-01-SUMMARY.md,139-02-SUMMARY.md,139-03-SUMMARY.md,139-SUMMARY.md,139-VERIFICATION.md,139-VALIDATION.md}`。
-- **Required governance proof:** `LiproRestFacade` 与 `rest_port.py` 仍是唯一 formal homes；`rest_facade_internal_methods.py` 与 `rest_port_bindings.py` 只能承担 inward support / binding mechanics 身份；schedule `group_id` forwarding 不得在 protocol/rest/surface 链上被 silently drop；selector family、developer/runbook route note 与 current-route guards 必须共同承认 `Phase 139 complete / Phase 140 planning-ready`。
-- **Required runnable proof:** `uv run ruff check custom_components/lipro/core/api/rest_facade.py custom_components/lipro/core/api/rest_facade_internal_methods.py custom_components/lipro/core/api/rest_facade_endpoint_methods.py custom_components/lipro/core/api/endpoint_surface.py custom_components/lipro/core/protocol/rest_port.py custom_components/lipro/core/protocol/rest_port_bindings.py tests/core/protocol/test_facade.py tests/core/api/test_api_transport_and_schedule_schedules.py tests/core/api/test_protocol_contract_facade_runtime.py tests/meta/test_phase139_mega_facade_second_pass_guards.py`、`uv run pytest -q tests/core/protocol/test_facade.py tests/core/api/test_api_transport_and_schedule_schedules.py tests/core/api/test_protocol_contract_facade_runtime.py tests/meta/test_phase69_support_budget_guards.py tests/meta/test_phase91_typed_boundary_guards.py tests/meta/test_phase139_mega_facade_second_pass_guards.py`、`uv run python scripts/check_file_matrix.py --check`、`uv run python scripts/check_architecture_policy.py --check`、`uv run pytest -q tests/meta/test_governance_bootstrap_smoke.py tests/meta/test_governance_route_handoff_smoke.py tests/meta/test_governance_release_contract.py tests/meta/test_governance_release_docs.py tests/meta/governance_followup_route_current_milestones.py tests/meta/test_version_sync.py`。
+- **Required governance proof:** `LiproRestFacade` 与 `rest_port.py` 仍是唯一 formal homes；`rest_facade_internal_methods.py` 与 `rest_port_bindings.py` 只能承担 inward support / binding mechanics 身份；schedule `group_id` forwarding 不得在 protocol/rest/surface 链上被 silently drop；selector family、developer/runbook route note 与 predecessor handoff guards 必须继续保存 `Phase 139` 的 machine-checkable closeout story。
+- **Required runnable proof:** `uv run ruff check custom_components/lipro/core/api/rest_facade.py custom_components/lipro/core/api/rest_facade_internal_methods.py custom_components/lipro/core/api/rest_facade_endpoint_methods.py custom_components/lipro/core/api/endpoint_surface.py custom_components/lipro/core/protocol/rest_port.py custom_components/lipro/core/protocol/rest_port_bindings.py tests/core/protocol/test_facade.py tests/core/api/test_api_transport_and_schedule_schedules.py tests/core/api/test_protocol_contract_facade_runtime.py tests/meta/test_phase139_mega_facade_second_pass_guards.py`、`uv run pytest -q tests/core/protocol/test_facade.py tests/core/api/test_api_transport_and_schedule_schedules.py tests/core/api/test_protocol_contract_facade_runtime.py tests/meta/test_phase69_support_budget_guards.py tests/meta/test_phase91_typed_boundary_guards.py tests/meta/test_phase139_mega_facade_second_pass_guards.py`、`uv run python scripts/check_file_matrix.py --check`、`uv run python scripts/check_architecture_policy.py --check`、`uv run pytest -q tests/meta/test_governance_release_contract.py tests/meta/test_governance_release_docs.py tests/meta/test_governance_release_continuity.py tests/meta/governance_followup_route_current_milestones.py tests/meta/test_version_sync.py`。
+
+## Phase 140 Exit Contract
+
+- **Route truth:** `v1.43 active milestone route / Phase 140 complete / Phase 141 planning-ready / latest archived baseline = v1.42`
+- **Focused guards:** `tests/meta/governance_followup_route_current_milestones.py`, `tests/meta/test_governance_release_docs.py`, `tests/meta/test_governance_release_continuity.py`, `tests/meta/test_governance_release_contract.py`, `tests/meta/test_phase140_governance_source_freshness_guards.py`
+- **Required artifacts:** `.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md,MILESTONES.md}`、`.planning/baseline/{GOVERNANCE_REGISTRY.json,VERIFICATION_MATRIX.md}`、`.planning/codebase/TESTING.md`、`.planning/reviews/{FILE_MATRIX.md,RESIDUAL_LEDGER.md,V1_41_REMEDIATION_CHARTER.md}`、`docs/{developer_architecture.md,MAINTAINER_RELEASE_RUNBOOK.md}`、`CHANGELOG.md`、`tests/meta/{governance_followup_route_current_milestones.py,test_governance_release_docs.py,test_governance_release_continuity.py,test_governance_release_contract.py,test_phase140_governance_source_freshness_guards.py,toolchain_truth_docs_fast_path.py,toolchain_truth_testing_governance.py,test_version_sync.py}`、`.planning/phases/140-release-governance-source-compression-and-codebase-freshness/{140-CONTEXT.md,140-RESEARCH.md,140-01-PLAN.md,140-02-PLAN.md,140-03-PLAN.md,140-01-SUMMARY.md,140-02-SUMMARY.md,140-03-SUMMARY.md,140-SUMMARY.md,140-VERIFICATION.md,140-VALIDATION.md}`、`.planning/phases/141-control-runtime-hotspot-narrowing-and-device-aggregate-hardening/{141-CONTEXT.md,141-RESEARCH.md}`。
+- **Required governance proof:** stale release/governance verification lanes 不再回流 historical bootstrap / route-handoff smoke proof fragments；`CHANGELOG.md` 继续保持 public-facing release summary 身份；`docs/MAINTAINER_RELEASE_RUNBOOK.md` 保留 `reachable in the current access mode`；selector family、registry、testing inventory、verification baseline、file/residual ledgers 与 developer guidance 共同承认 `Phase 140 complete / Phase 141 planning-ready`；nested worktree 下 `gsd-tools` root detection 不作为 live route authority。
+- **Required runnable proof:** `uv run pytest -q tests/meta/test_governance_release_docs.py tests/meta/test_governance_release_continuity.py tests/meta/test_governance_release_contract.py tests/meta/test_phase140_governance_source_freshness_guards.py tests/meta/governance_followup_route_current_milestones.py tests/meta/toolchain_truth_docs_fast_path.py tests/meta/toolchain_truth_testing_governance.py tests/meta/test_version_sync.py`、`uv run python scripts/check_file_matrix.py --check`。
 
 ## Phase 126 Exit Contract
 

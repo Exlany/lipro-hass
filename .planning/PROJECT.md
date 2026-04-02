@@ -1,8 +1,8 @@
 # Project: Lipro-HASS
 
-**Current route:** `v1.43 active milestone route / Phase 139 complete / Phase 140 planning-ready / latest archived baseline = v1.42`；latest archived evidence index = `.planning/reviews/V1_42_EVIDENCE_INDEX.md`.
-**Goal:** `在 v1.42 archived baseline 之上，继续按“单一 formal home / inward split / governance honesty / public-doc scope discipline”推进 second-pass hotspot slimming，并把 stale verification commands、release wording drift 与 route-selector duplication 纳入下一步 source-compression charter。`
-**Default next step:** `$gsd-plan-phase 140`
+**Current route:** `v1.43 active milestone route / Phase 140 complete / Phase 141 planning-ready / latest archived baseline = v1.42`；latest archived evidence index = `.planning/reviews/V1_42_EVIDENCE_INDEX.md`.
+**Goal:** `在 v1.42 archived baseline 之上，已把 release/governance source compression、stale verification command refresh 与 release-doc wording convergence 正式收口；下一步把 control/runtime hotspot narrowing、device aggregate boundary hardening 与 entry-root maintenance tax 规划到 Phase 141。`
+**Default next step:** `$gsd-plan-phase 141`
 **Archived baseline chain:** latest archived baseline = `v1.42`；previous archived baseline = `v1.41`.
 
 <!-- governance-route-contract:start -->
@@ -17,11 +17,11 @@ projection_targets:
 active_milestone:
   version: v1.43
   name: Hotspot Second-Pass Slimming & Governance Load Shedding
-  status: active / phase 139 complete; phase 140 planning-ready (2026-04-02)
-  phase: '139'
-  phase_title: REST/protocol mega-facade second-pass slimming and boundary hardening
-  phase_dir: 139-rest-protocol-surface-second-pass-slimming-and-boundary-hardening
-  route_mode: v1.43 active milestone route / Phase 139 complete / Phase 140 planning-ready / latest archived baseline = v1.42
+  status: active / phase 140 complete; phase 141 planning-ready (2026-04-02)
+  phase: '140'
+  phase_title: release/governance source compression and codebase freshness
+  phase_dir: 140-release-governance-source-compression-and-codebase-freshness
+  route_mode: v1.43 active milestone route / Phase 140 complete / Phase 141 planning-ready / latest archived baseline = v1.42
 latest_archived:
   version: v1.42
   name: Hotspot Burn-Down, Observability Truth & Governance Cost Compression
@@ -37,8 +37,8 @@ previous_archived:
   name: Terminal Residual Audit, Remediation Charter & Maintainability Hardening
   evidence_path: .planning/reviews/V1_41_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.43 active milestone route / Phase 139 complete / Phase 140 planning-ready / latest archived baseline = v1.42
-  default_next_command: $gsd-plan-phase 140
+  current_route: v1.43 active milestone route / Phase 140 complete / Phase 141 planning-ready / latest archived baseline = v1.42
+  default_next_command: $gsd-plan-phase 141
   latest_archived_evidence_pointer: .planning/reviews/V1_42_EVIDENCE_INDEX.md
 contract_version: 1
 ```
@@ -47,15 +47,15 @@ contract_version: 1
 ## Current Milestone (v1.43)
 
 **Milestone theme:** `Hotspot Second-Pass Slimming & Governance Load Shedding`
-**Current status:** `active / phase 139 complete; phase 140 planning-ready (2026-04-02)`
-**Default next command:** `$gsd-plan-phase 140`
-**Why it matters:** `本轮不再接受“热点文件已瘦身，但 route/governance/docs 仍停在上一里程碑”的半收口状态。Phase 139 把 rest/protocol mega-facade second-pass slimming、schedule group_id forwarding honesty 与 current-route truth 一起拉回同一条可验证主线。`
+**Current status:** `active / phase 140 complete; phase 141 planning-ready (2026-04-02)`
+**Default next command:** `$gsd-plan-phase 141`
+**Why it matters:** `本轮不再接受“实际修复已落地，但 route/governance/docs 仍停在上一相位”的半收口状态。Phase 140 已把 stale verification paths、public changelog scope、maintainer access-mode wording 与 selector/ledger sync 一起 formalize；nested worktree 下 gsd-tools root detection 继续不被当作 live route authority。`
 **North-star fit:** `继续沿 single formal home、explicit composition、typed boundary、honesty-over-folklore 与 public/internal docs separation 推进；允许向内拆分 support/bindings/internal helpers，但不制造第二 root、不把派生视图升格为 authority。`
 **Latest archived baseline:** `v1.42`
 **Latest archived audit artifact:** `.planning/v1.42-MILESTONE-AUDIT.md`
-**Current phase handoff:** `Phase 139 已完成 rest_port.py / rest_facade.py 的 inward second-pass slimming，并修复 schedule group_id forwarding chain；Phase 140 的 planning-ready charter 已登记为 governance source compression、stale verification command refresh、public release/support wording tightening 与 meta-guard blind-spot closure。`
-**Delivered in current phase:** `custom_components/lipro/core/api/rest_facade_internal_methods.py`、`custom_components/lipro/core/protocol/rest_port_bindings.py`、`tests/meta/test_phase139_mega_facade_second_pass_guards.py` 已形成 machine-checkable bundle；`rest_facade.py` / `rest_port.py` formal-home 身份保持不变。`
-**Planned next focus:** `Phase 140` 将压缩 release/governance docs duplication，刷新 archived remediation / verification commands 的陈旧路径，并把 public changelog / support contract 与 private-access 现实重新对齐。`
+**Current phase handoff:** `Phase 140 已把 CHANGELOG / runbook wording、baseline / ledgers、route docs 与 focused guards formalize 为 machine-checkable bundle；Phase 141 现仅以 planning-ready 形式接入，引用既有 141-CONTEXT.md / 141-RESEARCH.md，不提前创建 141 PLAN。`
+**Delivered in current phase:** `tests/meta/test_phase140_governance_source_freshness_guards.py`、`.planning/phases/140-release-governance-source-compression-and-codebase-freshness/{140-01-SUMMARY.md,140-02-SUMMARY.md,140-03-SUMMARY.md,140-SUMMARY.md,140-VERIFICATION.md,140-VALIDATION.md}`、selector family / registry / testing / residual ledgers 现共同承认 `Phase 140 complete / Phase 141 planning-ready`。
+**Planned next focus:** `Phase 141` 将继续处理 `service_router` layering / underscore leakage、`runtime_types.py` breadth、`core/device/device.py` aggregate boundary 与 `entry_root_support.py` lazy-import maintenance tax。`
 
 ## Latest Archived Milestone (v1.42)
 
@@ -248,4 +248,3 @@ contract_version: 1
 - 当前 latest archived baseline 是什么？
 - milestone audit 与 evidence index 是否已经成对落盘？
 - 下一步是否应该进入 `$gsd-new-milestone`，而不是继续修改已归档路线？
-

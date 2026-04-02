@@ -12,11 +12,11 @@ projection_targets:
 active_milestone:
   version: v1.43
   name: Hotspot Second-Pass Slimming & Governance Load Shedding
-  status: active / phase 139 complete; phase 140 planning-ready (2026-04-02)
-  phase: '139'
-  phase_title: REST/protocol mega-facade second-pass slimming and boundary hardening
-  phase_dir: 139-rest-protocol-surface-second-pass-slimming-and-boundary-hardening
-  route_mode: v1.43 active milestone route / Phase 139 complete / Phase 140 planning-ready / latest archived baseline = v1.42
+  status: active / phase 140 complete; phase 141 planning-ready (2026-04-02)
+  phase: '140'
+  phase_title: release/governance source compression and codebase freshness
+  phase_dir: 140-release-governance-source-compression-and-codebase-freshness
+  route_mode: v1.43 active milestone route / Phase 140 complete / Phase 141 planning-ready / latest archived baseline = v1.42
 latest_archived:
   version: v1.42
   name: Hotspot Burn-Down, Observability Truth & Governance Cost Compression
@@ -32,8 +32,8 @@ previous_archived:
   name: Terminal Residual Audit, Remediation Charter & Maintainability Hardening
   evidence_path: .planning/reviews/V1_41_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.43 active milestone route / Phase 139 complete / Phase 140 planning-ready / latest archived baseline = v1.42
-  default_next_command: $gsd-plan-phase 140
+  current_route: v1.43 active milestone route / Phase 140 complete / Phase 141 planning-ready / latest archived baseline = v1.42
+  default_next_command: $gsd-plan-phase 141
   latest_archived_evidence_pointer: .planning/reviews/V1_42_EVIDENCE_INDEX.md
 contract_version: 1
 ```
@@ -43,11 +43,11 @@ contract_version: 1
 
 ## v1.43 Hotspot Second-Pass Slimming & Governance Load Shedding (Started: 2026-04-02)
 
-**Status:** `active / phase 139 complete; phase 140 planning-ready (2026-04-02)`
-**Current route:** `v1.43 active milestone route / Phase 139 complete / Phase 140 planning-ready / latest archived baseline = v1.42`
-**Phase range:** `139 -> 140`
-**Progress:** `1/2 phases, 3/3 plans`
-**Default next command:** `$gsd-plan-phase 140`
+**Status:** `active / phase 140 complete; phase 141 planning-ready (2026-04-02)`
+**Current route:** `v1.43 active milestone route / Phase 140 complete / Phase 141 planning-ready / latest archived baseline = v1.42`
+**Phase range:** `139 -> 141`
+**Progress:** `2/3 phases, 6/6 plans`
+**Default next command:** `$gsd-plan-phase 141`
 **Latest archived pointer:** `.planning/reviews/V1_42_EVIDENCE_INDEX.md`
 **Pointer label:** latest archived evidence index = `.planning/reviews/V1_42_EVIDENCE_INDEX.md`
 **Latest archived audit:** `.planning/v1.42-MILESTONE-AUDIT.md`
@@ -57,7 +57,8 @@ contract_version: 1
 **Current phase story:**
 
 - `Phase 139`: REST/protocol mega-facade second-pass slimming and boundary hardening ✅ (`139-01` protocol rest-port binding split + `139-02` REST facade internal split / schedule group_id repair + `139-03` tests/docs/governance sync complete)
-- `Phase 140`: release/governance source compression and codebase freshness ⏳ (`140-CONTEXT.md` / `140-RESEARCH.md` recorded; next = `$gsd-plan-phase 140`)
+- `Phase 140`: release/governance source compression and codebase freshness ✅ (`140-01` stale verification lane / baseline refresh + `140-02` public-summary / access-mode contract formalization + `140-03` route/governance/guard sync complete)
+- `Phase 141`: control/runtime hotspot narrowing and device aggregate hardening ⏳ (`141-CONTEXT.md` / `141-RESEARCH.md` recorded; next = `$gsd-plan-phase 141`)
 
 ## Latest Archived Milestone (v1.42)
 
@@ -269,4 +270,3 @@ contract_version: 1
 - `v1.27-REQUIREMENTS.md`
 - `v1.28-ROADMAP.md`
 - `v1.28-REQUIREMENTS.md`
-

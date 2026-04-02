@@ -52,7 +52,7 @@
 - **Goal:** 降低 current-route / promoted-phase / file-matrix 手工同步成本。
 - **Acceptance:** current selector family 与 tests/meta 继续 machine-readable；不得引入第二 authority chain。
 - **Delete gate:** 任何自动化都不能削弱 baseline docs 的 formal authority，也不能把派生文件升格为新真源。
-- **Verification:** `uv run pytest -q tests/meta/governance_followup_route_current_milestones.py tests/meta/test_governance_route_handoff_smoke.py tests/meta/test_governance_release_contract.py tests/meta/test_governance_bootstrap_smoke.py tests/meta/test_governance_release_docs.py`
+- **Verification:** `uv run pytest -q tests/meta/governance_followup_route_current_milestones.py tests/meta/test_governance_release_docs.py tests/meta/test_governance_release_continuity.py tests/meta/test_governance_release_contract.py tests/meta/test_phase140_governance_source_freshness_guards.py tests/meta/toolchain_truth_docs_fast_path.py tests/meta/toolchain_truth_testing_governance.py`
 
 ### WS-06 Observability & Log-Safety Follow-Up
 - **Severity:** `Medium`

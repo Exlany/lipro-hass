@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 767
+**Python files total:** 768
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -679,6 +679,7 @@
 | `tests/meta/test_phase123_service_router_reconvergence_guards.py` | Assurance | Phase 123 | 保留 | focused closeout guard home for Phase 123 service-router reconvergence |
 | `tests/meta/test_phase124_flow_auth_schedule_contract_guards.py` | Assurance | Phase 124 | 保留 | focused closeout guard home for Phase 124 auth/flow/schedule contract closure |
 | `tests/meta/test_phase139_mega_facade_second_pass_guards.py` | Assurance | Phase 139 | 保留 | second-pass mega-facade line-budget / locality / route sync guard home |
+| `tests/meta/test_phase140_governance_source_freshness_guards.py` | Assurance | Phase 140 | 保留 | stale-proof lane refresh / changelog scope / runbook wording / route-ledger sync guard home |
 | `tests/meta/test_phase31_runtime_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase45_hotspot_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase50_rest_typed_budget_guards.py` | Assurance | Phase 6 | 保留 | - |

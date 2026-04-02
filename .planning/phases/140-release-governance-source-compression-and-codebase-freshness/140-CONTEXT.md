@@ -21,14 +21,14 @@
 
 ## Exit Truth
 
+- current / archived verification commands 均不再引用不存在的测试路径
+- `CHANGELOG.md` 回到 public-facing release summary 身份，不再承载 internal selector / `.planning` jargon
+- private-access / mirror reachability / release asset availability 在 README/SUPPORT/runbook/tests 中使用一致条件语义
+- docs/governance freshness drift 拥有 focused meta guards，而不是继续依赖人工复查
+
 ## Additional Audit Findings
 
 - `custom_components/lipro/control/service_router.py` / `service_router_handlers.py` / `service_router_support.py` 仍有 callback onion layering 与 underscore helper public-surface leakage，属于下一轮 control-plane narrowing 候选。
 - `custom_components/lipro/runtime_types.py` 仍是跨平面 contract hub，需继续评估如何在不重引循环依赖的前提下压低 breadth。
 - `custom_components/lipro/core/device/device.py` 仍保留较宽 façade + side-car extra-data 清理模式，后续应继续收紧 aggregate boundary。
 - `custom_components/lipro/control/entry_root_support.py` 仍大量依赖 string module names / lazy import factories，属于开源维护税热点。
-
-- current / archived verification commands 均不再引用不存在的测试路径
-- `CHANGELOG.md` 回到 public-facing release summary 身份，不再承载 internal selector / `.planning` jargon
-- private-access / mirror reachability / release asset availability 在 README/SUPPORT/runbook/tests 中使用一致条件语义
-- docs/governance freshness drift 拥有 focused meta guards，而不是继续依赖人工复查
