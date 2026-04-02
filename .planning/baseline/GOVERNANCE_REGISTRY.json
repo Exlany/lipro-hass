@@ -176,34 +176,27 @@
       ".planning/STATE.md",
       ".planning/MILESTONES.md"
     ],
-    "active_milestone": {
+    "active_milestone": null,
+    "latest_archived": {
       "version": "v1.37",
       "name": "Repo-Wide Terminal Audit, Hotspot Decomposition & Governance Continuity Decisions",
-      "status": "active / phase 131 complete; closeout-ready (2026-04-01)",
+      "status": "archived / evidence-ready (2026-04-01)",
       "phase": "131",
       "phase_title": "repo-wide terminal audit closeout and governance continuity decisions",
-      "phase_dir": "131-repo-wide-terminal-audit-closeout-and-governance-continuity-decisions"
-    },
-    "latest_archived": {
-      "version": "v1.36",
-      "name": "Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening",
-      "status": "archived / evidence-ready (2026-04-01)",
-      "phase": "128",
-      "phase_title": "open-source readiness, benchmark-coverage gates, and maintainer continuity hardening",
-      "phase_dir": "128-open-source-readiness-benchmark-coverage-gates-and-maintainer-continuity-hardening",
-      "audit_path": ".planning/v1.36-MILESTONE-AUDIT.md",
-      "evidence_path": ".planning/reviews/V1_36_EVIDENCE_INDEX.md",
+      "phase_dir": "131-repo-wide-terminal-audit-closeout-and-governance-continuity-decisions",
+      "audit_path": ".planning/v1.37-MILESTONE-AUDIT.md",
+      "evidence_path": ".planning/reviews/V1_37_EVIDENCE_INDEX.md",
       "evidence_label": "latest archived evidence index"
     },
     "previous_archived": {
-      "version": "v1.35",
-      "name": "Master Audit Closure, Public Surface Finalization & Release Traceability",
-      "evidence_path": ".planning/reviews/V1_35_EVIDENCE_INDEX.md"
+      "version": "v1.36",
+      "name": "Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening",
+      "evidence_path": ".planning/reviews/V1_36_EVIDENCE_INDEX.md"
     },
     "bootstrap": {
-      "current_route": "v1.37 active milestone route / starting from latest archived baseline = v1.36",
-      "default_next_command": "$gsd-complete-milestone v1.37",
-      "latest_archived_evidence_pointer": ".planning/reviews/V1_36_EVIDENCE_INDEX.md"
+      "current_route": "no active milestone route / latest archived baseline = v1.37",
+      "default_next_command": "$gsd-new-milestone",
+      "latest_archived_evidence_pointer": ".planning/reviews/V1_37_EVIDENCE_INDEX.md"
     }
   }
 }

@@ -20,6 +20,7 @@ from .governance_current_truth import (
     LATEST_ARCHIVED_AUDIT_PATH,
     LATEST_ARCHIVED_EVIDENCE_PATH,
     LATEST_ARCHIVED_MILESTONE,
+    PREVIOUS_ARCHIVED_MILESTONE,
     PREVIOUS_ARCHIVED_PROJECT_HEADER,
     _as_mapping,
     _as_optional_mapping,
@@ -60,7 +61,7 @@ def test_machine_readable_route_contracts_point_to_current_selector_state() -> N
             assert latest_archived["phase"] == CURRENT_PHASE
             assert latest_archived["status"] == CURRENT_MILESTONE_STATUS
         assert latest_archived["version"] == LATEST_ARCHIVED_MILESTONE
-        assert previous_archived["version"] == "v1.35"
+        assert previous_archived["version"] == PREVIOUS_ARCHIVED_MILESTONE
         assert bootstrap["current_route"] == CURRENT_ROUTE_MODE
         assert bootstrap["default_next_command"] == CURRENT_MILESTONE_DEFAULT_NEXT
         assert bootstrap["latest_archived_evidence_pointer"] == LATEST_ARCHIVED_EVIDENCE_PATH
@@ -191,13 +192,23 @@ def test_current_requirements_traceability_and_coverage_stay_in_sync() -> None:
 
 
 def test_historical_route_truth_stays_archived_while_live_docs_stop_claiming_old_handoffs() -> None:
+    expected_closeout = (
+        "historical closeout route truth = `no active milestone route / latest archived baseline = v1.36`"
+        if PREVIOUS_ARCHIVED_MILESTONE == "v1.36"
+        else "historical closeout route truth = `no active milestone route / latest archived baseline = v1.35`"
+    )
+    expected_transition = (
+        "historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.35`"
+        if PREVIOUS_ARCHIVED_MILESTONE == "v1.36"
+        else "historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.34`"
+    )
     assert_contains_all(
         _MILESTONES_TEXT,
-        "## Previous Archived Milestone (v1.35)",
-        "historical closeout route truth = `no active milestone route / latest archived baseline = v1.35`",
-        "historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.34`",
+        PREVIOUS_ARCHIVED_PROJECT_HEADER,
+        expected_closeout,
+        expected_transition,
     )
-    assert_contains_all(_PROJECT_TEXT, "## Previous Archived Milestone (v1.35)", "Latest archived pointer")
+    assert_contains_all(_PROJECT_TEXT, PREVIOUS_ARCHIVED_PROJECT_HEADER, "Latest archived pointer")
     assert_not_contains_any(
         _PROJECT_TEXT,
         "Phase 125 planning-ready",

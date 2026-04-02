@@ -2,17 +2,17 @@
 
 **Purpose:** 建立 requirement → artifact → test → doc → phase acceptance / handoff 的统一验证闭环。
 **Status:** Formal baseline asset (`BASE-03` phase acceptance truth source)
-**Updated:** 2026-04-01 (v1.37 phase 131 closeout-ready proof aligned)
+**Updated:** 2026-04-01 (v1.37 archive promotion aligned)
 
 ## Formal Role
 
 ## Current Route
 
-- **Current route story:** `v1.37 active milestone route / starting from latest archived baseline = v1.36`
-- **Current milestone status:** `active / phase 131 complete; closeout-ready (2026-04-01)`
-- **Default next command:** `$gsd-complete-milestone v1.37`
-- **Latest archived pointer:** `.planning/reviews/V1_36_EVIDENCE_INDEX.md`
-- **Carry-forward audit anchors:** `.planning/reviews/V1_36_EVIDENCE_INDEX.md`, `.planning/v1.36-MILESTONE-AUDIT.md`
+- **Current route story:** `no active milestone route / latest archived baseline = v1.37`
+- **Current milestone status:** `archived / evidence-ready (2026-04-01)`
+- **Default next command:** `$gsd-new-milestone`
+- **Latest archived pointer:** `.planning/reviews/V1_37_EVIDENCE_INDEX.md`
+- **Carry-forward audit anchors:** `.planning/reviews/V1_37_EVIDENCE_INDEX.md`, `.planning/v1.37-MILESTONE-AUDIT.md`
 - **Focused guards:** `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/governance_followup_route_current_milestones.py`, `tests/meta/test_runtime_contract_truth.py`, `tests/meta/test_governance_release_docs.py`, `tests/meta/toolchain_truth_checker_paths.py`, `tests/meta/test_phase89_tooling_decoupling_guards.py`, `tests/meta/test_governance_release_contract.py`, `tests/services/test_services_diagnostics_capabilities.py`, `tests/services/test_services_diagnostics_payloads.py`
 
 - 本文件是 `Phase 1.5` 及其下游 phases 的正式 acceptance truth；phase docs / summaries 只能引用、实例化或扩展，不得平行定义 exit contract。
