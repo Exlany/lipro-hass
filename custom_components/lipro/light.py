@@ -169,8 +169,8 @@ class LiproLight(LiproEntity, LightEntity):
 
     def _turn_on_when_adjusting_while_off(self) -> bool:
         """Return whether slider adjust should power on when light is off."""
-        config_entry = getattr(self.coordinator, "config_entry", None)
-        options = getattr(config_entry, "options", {})
+        config_entry = self.runtime_coordinator.config_entry
+        options = config_entry.options if config_entry is not None else {}
         raw_value = options.get(
             CONF_LIGHT_TURN_ON_ON_ADJUST,
             DEFAULT_LIGHT_TURN_ON_ON_ADJUST,
