@@ -9,6 +9,9 @@ CURRENT_ROUTE_PROSE_FORBIDDEN = (
     "v1.38 active milestone route / starting from latest archived baseline = v1.37",
     "$gsd-complete-milestone v1.38",
     "active / phase 132 complete; closeout-ready (2026-04-02)",
+    "v1.39 active milestone route / starting from latest archived baseline = v1.38",
+    "$gsd-complete-milestone v1.39",
+    "active / phase 133 complete; closeout-ready (2026-04-02)",
     "v1.33 active milestone route / starting from latest archived baseline = v1.32",
     "$gsd-complete-milestone v1.33",
     "v1.31 active milestone route / starting from latest archived baseline = v1.30",
@@ -28,11 +31,11 @@ CURRENT_ROUTE_PROSE_FORBIDDEN = (
 
 HISTORICAL_CLOSEOUT_ROUTE_TRUTH = (
     "historical closeout route truth = "
-    "`no active milestone route / latest archived baseline = v1.37`"
+    "`no active milestone route / latest archived baseline = v1.38`"
 )
 HISTORICAL_ARCHIVE_TRANSITION_ROUTE_TRUTH = (
     "historical archive-transition route truth = "
-    "`no active milestone route / latest archived baseline = v1.36`"
+    "`no active milestone route / latest archived baseline = v1.37`"
 )
 
 __all__ = [
