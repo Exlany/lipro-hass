@@ -482,12 +482,12 @@ def test_runbook_docs_appendix_and_changelog_share_single_release_story() -> Non
     assert LATEST_ARCHIVED_EVIDENCE_PATH not in docs_readme_text
     assert LATEST_ARCHIVED_AUDIT_PATH not in docs_readme_text
 
+    assert "## [Unreleased]（未发布）" in changelog_text
     for token in (
-        "CI reuse",
-        "CodeQL",
-        "SBOM",
-        "cosign",
-        "release identity",
-        "compatibility preview",
+        ".planning/",
+        "GOVERNANCE_REGISTRY.json",
+        "$gsd-",
+        "Phase 124",
+        "Phase 125",
     ):
-        assert token in changelog_text
+        assert token not in changelog_text

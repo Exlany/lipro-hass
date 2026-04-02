@@ -1,8 +1,8 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `v1.42 archived / evidence-ready` (`2026-04-02`)
-> **Current route alignment**: `no active milestone route / latest archived baseline = v1.42` (`2026-04-02`, archived / evidence-ready (2026-04-02))
-> **Default next command**: `$gsd-new-milestone`
+> **Last aligned through**: `v1.43 active / phase 139 complete; phase 140 planning-ready` (`2026-04-02`)
+> **Current route alignment**: `v1.43 active milestone route / Phase 139 complete / Phase 140 planning-ready / latest archived baseline = v1.42` (`2026-04-02`, active / phase 139 complete; phase 140 planning-ready (2026-04-02))
+> **Default next command**: `$gsd-plan-phase 140`
 > **Latest archived evidence path**: `.planning/reviews/V1_42_EVIDENCE_INDEX.md`
 > **Latest archived audit path**: `.planning/v1.42-MILESTONE-AUDIT.md`
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
@@ -20,9 +20,12 @@
 
 ## Current Route Compression
 
-- `v1.42` 已从 closeout-ready route 冻结为 latest archived baseline：当前 live first hop 只保留已交付的 hotspot compression / runtime contract decoupling / governance sync 结果，不再假装仍有 active milestone 正在执行。
-- 当前 developer first hop 应把 `Phase 137` 与 `Phase 138` bundle 视为 archived evidence chain：`core/protocol/rest_port.py`、`core/auth/manager.py`、`core/command/dispatch.py`、`core/api/{status_service.py,types.py}`、`custom_components/lipro/{runtime_types.py,service_types.py}`、`control/service_router_support.py` 与 selector family 已共同冻结为 latest archived truth。
-- 如需继续演进，请先读取 `.planning/reviews/V1_42_EVIDENCE_INDEX.md`、`.planning/v1.42-MILESTONE-AUDIT.md` 与 `.planning/PROJECT.md`，再显式开启新 milestone；不要回流为第二条 active closeout 叙事。
+- `v1.43` 已显式作为 active milestone route 存在：当前 developer first hop 需要同时承认 `Phase 139` 已完成、`Phase 140` 已 planning-ready，而不是继续停留在 `v1.42 archived-only` selector。
+- `custom_components/lipro/core/api/rest_facade.py` 与 `custom_components/lipro/core/protocol/rest_port.py` 继续保持 canonical formal-home 身份；`rest_facade_internal_methods.py` 与 `rest_port_bindings.py` 只承担 inward support / binding mechanics，不是第二 root。
+- schedule `group_id` 现在贯通 `protocol facade -> rest ports -> rest facade -> endpoint surface -> schedule endpoint`；后续若再变更该链路，必须同时更新 typed contracts、focused tests 与 phase guards。
+- 如需继续演进，请先读取 `.planning/phases/139-rest-protocol-surface-second-pass-slimming-and-boundary-hardening/139-SUMMARY.md`、`.planning/phases/139-rest-protocol-surface-second-pass-slimming-and-boundary-hardening/139-VERIFICATION.md` 与 `.planning/PROJECT.md`，再进入 `Phase 140` 规划，不要回流为第二条 archived-only 叙事。
+
+
 
 ## 快速导航
 

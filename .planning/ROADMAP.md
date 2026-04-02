@@ -2,6 +2,7 @@
 
 ## Milestones
 
+- 🟡 **v1.43 Hotspot Second-Pass Slimming & Governance Load Shedding** - active on 2026-04-02; current route truth = `v1.43 active milestone route / Phase 139 complete / Phase 140 planning-ready / latest archived baseline = v1.42`; next = `$gsd-plan-phase 140`
 - ✅ **v1.42 Hotspot Burn-Down, Observability Truth & Governance Cost Compression** - `Phase 137 -> 138` archived on 2026-04-02; historical closeout route truth = `no active milestone route / latest archived baseline = v1.42`; evidence index = `.planning/reviews/V1_42_EVIDENCE_INDEX.md`
 - ✅ **v1.41 Terminal Residual Audit, Remediation Charter & Maintainability Hardening** - `Phase 136 -> 136` archived on 2026-04-02; historical closeout route truth = `no active milestone route / latest archived baseline = v1.41`; evidence index = `.planning/reviews/V1_41_EVIDENCE_INDEX.md`
 - ✅ **v1.40 Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening** - `Phase 134 -> 135` archived on 2026-04-02; historical closeout route truth = `no active milestone route / latest archived baseline = v1.40`; evidence index = `.planning/reviews/V1_40_EVIDENCE_INDEX.md`
@@ -17,7 +18,14 @@ projection_targets:
 - .planning/REQUIREMENTS.md
 - .planning/STATE.md
 - .planning/MILESTONES.md
-active_milestone: null
+active_milestone:
+  version: v1.43
+  name: Hotspot Second-Pass Slimming & Governance Load Shedding
+  status: active / phase 139 complete; phase 140 planning-ready (2026-04-02)
+  phase: '139'
+  phase_title: REST/protocol mega-facade second-pass slimming and boundary hardening
+  phase_dir: 139-rest-protocol-surface-second-pass-slimming-and-boundary-hardening
+  route_mode: v1.43 active milestone route / Phase 139 complete / Phase 140 planning-ready / latest archived baseline = v1.42
 latest_archived:
   version: v1.42
   name: Hotspot Burn-Down, Observability Truth & Governance Cost Compression
@@ -33,18 +41,63 @@ previous_archived:
   name: Terminal Residual Audit, Remediation Charter & Maintainability Hardening
   evidence_path: .planning/reviews/V1_41_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.42
-  default_next_command: $gsd-new-milestone
+  current_route: v1.43 active milestone route / Phase 139 complete / Phase 140 planning-ready / latest archived baseline = v1.42
+  default_next_command: $gsd-plan-phase 140
   latest_archived_evidence_pointer: .planning/reviews/V1_42_EVIDENCE_INDEX.md
 contract_version: 1
 ```
 <!-- governance-route-contract:end -->
+
 ## Overview
 
-`v1.42` 已正式从 active closeout route 提升为 latest archived baseline：hotspot burn-down、connect-status outcome honesty、runtime/service contract formal-home split、support-guard hardening 与 docs/archive alignment 现统一冻结为 pull-only archived evidence chain。
+`v1.43` 已显式开启新 active milestone：先把 REST/protocol mega-facade second-pass slimming 做成真正 inward split，并同步修复 forwarding honesty、route selector truth 与最显性的 governance/doc drift；随后在 `Phase 140` 压缩 source duplication、刷新过期验证命令、收紧 public release/support wording 与 meta-guard blind spots。
 
-**Coverage:** `13/13` `v1.42` requirements complete in `Phase 137 -> 138`.
-**Default next command:** `$gsd-new-milestone`
+**Coverage:** `10/10` current requirements mapped; `6/10` complete in `Phase 139`, `4/10` queued in `Phase 140`.
+**Default next command:** `$gsd-plan-phase 140`
+
+## Current Milestone
+
+## v1.43: Hotspot Second-Pass Slimming & Governance Load Shedding
+
+**Milestone status:** `active / phase 139 complete; phase 140 planning-ready (2026-04-02)`
+**Default next command:** `$gsd-plan-phase 140`
+**Current route story:** `v1.43 active milestone route / Phase 139 complete / Phase 140 planning-ready / latest archived baseline = v1.42`
+**Latest archived pointer:** `.planning/reviews/V1_42_EVIDENCE_INDEX.md`
+**Latest archived audit artifact:** `.planning/v1.42-MILESTONE-AUDIT.md`
+**Starting baseline:** `.planning/v1.42-MILESTONE-AUDIT.md`, `.planning/reviews/V1_42_EVIDENCE_INDEX.md`, `.planning/milestones/v1.42-ROADMAP.md`, `.planning/milestones/v1.42-REQUIREMENTS.md`
+**Current phase handoff:** `Phase 139 execution 已闭环；current route 不再停在 v1.42 archived-only selector，下一步是把 Phase 140 的 governance/doc compression 计划具体化。`
+
+## Phases
+
+- [x] **Phase 139: REST/protocol mega-facade second-pass slimming and boundary hardening** - 已完成 `139-01` protocol rest-port binding split、`139-02` REST facade internal split + schedule group_id repair、`139-03` tests/docs/governance sync，并产出 summaries/verification/validation。 (complete 2026-04-02)
+- [ ] **Phase 140: release/governance source compression and codebase freshness** - planning-ready context/research 已登记；待压缩 stale verification commands、public changelog scope、runbook/support access-mode wording 与 governance blind spots。 (planning-ready 2026-04-02)
+
+## Phase Details
+
+### Phase 139: REST/protocol mega-facade second-pass slimming and boundary hardening
+
+**Goal:** 在不改变 `LiproRestFacade` 与 `rest_port.py` formal-home 身份的前提下，继续把 mega-facade / bound-port mechanics 往内层 support 模块迁移，并修复 schedule group_id forwarding honesty。
+**Depends on:** none
+**Requirements**: `ARC-48`, `HOT-70`, `HOT-71`, `GOV-94`, `DOC-22`, `TST-59`
+**Success Criteria** (what must be TRUE):
+  1. `custom_components/lipro/core/protocol/rest_port.py` 只保留 typed port contracts、port family 与 bind helper；bound adapters 下沉到 `rest_port_bindings.py`，但不得长出第二 protocol root。
+  2. `custom_components/lipro/core/api/rest_facade.py` 只保留 canonical REST child-façade composition / outward binding；transport/auth/mapping private mechanics 下沉到 `rest_facade_internal_methods.py`，不得回退到 mixin / dynamic delegation folklore。
+  3. schedule `group_id` 在 `protocol facade -> rest ports -> rest facade -> endpoint surface -> schedule endpoint` 链路中保持显式透传，不再 silently drop。
+  4. `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`、registry、verification baseline、developer/runbook docs 与 focused guards 必须共同承认 `v1.43` active route。
+  5. focused `pytest`、`ruff`、`check_file_matrix` 与 `check_architecture_policy` 必须通过。
+**Plans**: 3 planned / 3 completed — summaries captured; next = `$gsd-plan-phase 140`
+
+### Phase 140: release/governance source compression and codebase freshness
+
+**Goal:** 压缩 release/governance docs duplication，刷新 archived remediation / verification commands 的过期路径，并把 public release notes、support contract 与 maintainer runbook 的 access-mode 语义重新对齐。
+**Depends on:** Phase 139
+**Requirements**: `AUD-09`, `GOV-95`, `DOC-23`, `TST-60`
+**Success Criteria** (what must be TRUE):
+  1. `.planning/baseline/VERIFICATION_MATRIX.md`、archived remediation charter 与 related ledgers 不再引用已删除/迁移的测试路径。
+  2. `CHANGELOG.md` 重新回到 public-facing release summary 身份，不再直接承载 `.planning` / selector / phase-internal 术语。
+  3. `docs/MAINTAINER_RELEASE_RUNBOOK.md` 与 `SUPPORT.md` / `README*.md` 对 private-access / future public mirror / release asset reachability 的条件语义保持一致。
+  4. `tests/meta` 补齐相应守卫，避免上述 drift 再次无声回流。
+**Plans**: 0 planned — context/research recorded; default next = `$gsd-plan-phase 140`
 
 ## Latest Archived Milestone
 
@@ -75,18 +128,18 @@ contract_version: 1
 **Requirements**: `ARC-46`, `HOT-67`, `HOT-68`, `HOT-69`, `GOV-92`, `DOC-20`, `TST-57`
 **Success Criteria** (what must be TRUE):
   1. runbook/developer docs/current-route guards 对 latest archived pointer 与 current selector 的断言必须只有单一 canonical 角色，不允许“新旧 pointer 同页共存也算通过”。
-  2. `core/api/rest_facade.py` 与 `core/protocol/facade.py` 必须继续减少 manual delegation wall / rebinding seam，但不能回退到 mixin、compat shell 或第二 public import chain。
-  3. `core/auth/manager.py` 必须把 token/credential/refresh/relogin/adaptive-expiry 的职责边界收紧；新增行为不得继续堆进 manager monolith。
-  4. `core/device/device.py` 与 `core/command/dispatch.py` 必须把 relay wall / stringly route grammar 进一步数据化、typed 化，fallback 语义与 trace 一致。
-  5. `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES`、registry、verification baseline、developer/runbook note 与 focused meta guards 必须共同承认 `v1.42 active milestone route / starting from latest archived baseline = v1.41`。
-  6. `uv run pytest` focused suites、route guards、`uv run ruff check` 与必要的 governance checks 必须证明本轮 deliverable 是真实收口，而非临时修补。
-**Plans**: 3 planned / 3 completed — summaries captured.
+  2. `core/api/rest_facade.py` 与 `core/protocol/facade.py` 必须继续削减 manual delegation wall / child-façade rebinding seam，同时保持单一 formal root、stable import home 与 outward contract 不回退。
+  3. `core/auth/manager.py` 必须把 credential seed、token lifecycle、adaptive expiry、refresh dedupe 与 re-login fallback 拆回更清晰的 collaborator / helper 边界。
+  4. `core/device/device.py` 必须收紧 relay wall 的正式边界，`core/command/dispatch.py` 与 `core/api/status_service.py` 必须保持 typed command / observability honesty。
+  5. `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES`、registry、verification baseline、developer/runbook note 与 current-route guards 必须共同承认 `v1.42 active milestone route / starting from latest archived baseline = v1.41`。
+  6. focused `pytest`、`ruff`、`check_file_matrix` 与 `check_architecture_policy` 必须通过。
+**Plans**: 3 planned / 3 completed — summaries captured; archived baseline frozen; next = `$gsd-new-milestone`
 
 ### Phase 138: runtime contract decoupling, support-guard hardening, and docs archive alignment
 
-**Goal:** 把 phase 137 closeout review 暴露出的 remaining structural debt 收回同一 milestone：消除 `runtime_types.py` 对 `services/contracts.py` 的反向依赖，正式贯通 connect-status outcome contract，明确 `service_router_support.py` 的 formal bridge / non-public-root 身份，并同步 live docs / archive appendix 叙事。
+**Goal:** 在 `Phase 137` 已完成 sanctioned hotspot burn-down 的前提下，继续收口 closeout review 暴露的 remaining structural debt：runtime/service shared contract reverse import、connect-status outcome flattening、support bridge naming tension 与 live docs/archive appendix 叙事分工。
 **Depends on:** Phase 137
-**Requirements**: `ARC-47`, `OBS-01`, `QLT-59`, `GOV-93`, `DOC-21`, `TST-58`
+**Requirements**: `OBS-01`, `ARC-47`, `QLT-59`, `GOV-93`, `DOC-21`, `TST-58`
 **Success Criteria** (what must be TRUE):
   1. `custom_components/lipro/runtime_types.py` 不再从 `services/contracts.py` 导入 shared service-facing types；新的 root-level typed contract home 必须 machine-checkable。
   2. `core/api/status_service.py` 与 `endpoint_surface -> rest_port -> protocol facade` 调用链必须保留显式 `ConnectStatusQueryResult`，不再把不同 outcome 压平成 `{}`。
@@ -246,3 +299,4 @@ contract_version: 1
 - `v1.27-REQUIREMENTS.md`
 - `v1.28-ROADMAP.md`
 - `v1.28-REQUIREMENTS.md`
+

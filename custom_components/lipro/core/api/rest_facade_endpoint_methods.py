@@ -217,6 +217,7 @@ async def add_device_schedule(
     days: list[int],
     times: list[int],
     events: list[int],
+    group_id: str = "",
     *,
     mesh_gateway_id: str = "",
     mesh_member_ids: list[str] | None = None,
@@ -228,6 +229,7 @@ async def add_device_schedule(
         days=days,
         times=times,
         events=events,
+        group_id=group_id,
         mesh_gateway_id=mesh_gateway_id,
         mesh_member_ids=mesh_member_ids,
     )
@@ -238,6 +240,7 @@ async def delete_device_schedules(
     device_id: str,
     device_type: int | str,
     schedule_ids: list[int],
+    group_id: str = "",
     *,
     mesh_gateway_id: str = "",
     mesh_member_ids: list[str] | None = None,
@@ -247,6 +250,7 @@ async def delete_device_schedules(
         device_id=device_id,
         device_type=device_type,
         schedule_ids=schedule_ids,
+        group_id=group_id,
         mesh_gateway_id=mesh_gateway_id,
         mesh_member_ids=mesh_member_ids,
     )

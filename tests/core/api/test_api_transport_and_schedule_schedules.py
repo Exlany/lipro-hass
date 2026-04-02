@@ -323,6 +323,68 @@ class TestLiproRestFacadeSchedules:
         assert result == rows
 
     @pytest.mark.asyncio
+    async def test_add_device_schedule_standard_forwards_explicit_group_id(self):
+        """Standard schedule ADD should preserve explicit group IDs."""
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access", "refresh")
+
+        with patch.object(
+            client, "_iot_request", new_callable=AsyncMock
+        ) as mock_request:
+            mock_request.return_value = []
+
+            await client.add_device_schedule(
+                "03ab5ccd7caaaaaa",
+                1,
+                [1, 2, 3],
+                [3600],
+                [0],
+                group_id="mesh_group_10001",
+            )
+
+        mock_request.assert_awaited_once_with(
+            PATH_SCHEDULE_ADD,
+            {
+                "deviceId": "03ab5ccd7caaaaaa",
+                "deviceType": client._to_device_type_hex(1),
+                "scheduleInfo": {"days": [1, 2, 3], "time": [3600], "evt": [0]},
+                "groupId": "mesh_group_10001",
+                "singleBle": False,
+            },
+        )
+
+
+    @pytest.mark.asyncio
+    async def test_delete_device_schedules_standard_forwards_explicit_group_id(self):
+        """Standard schedule DELETE should preserve explicit group IDs."""
+        client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
+        client.set_tokens("access", "refresh")
+
+        with patch.object(
+            client, "_iot_request", new_callable=AsyncMock
+        ) as mock_request:
+            mock_request.return_value = []
+
+            await client.delete_device_schedules(
+                "03ab5ccd7caaaaaa",
+                1,
+                [4],
+                group_id="mesh_group_10001",
+            )
+
+        mock_request.assert_awaited_once_with(
+            PATH_SCHEDULE_DELETE,
+            {
+                "deviceId": "03ab5ccd7caaaaaa",
+                "deviceType": client._to_device_type_hex(1),
+                "idList": [4],
+                "groupId": "mesh_group_10001",
+                "singleBle": False,
+            },
+        )
+
+
+    @pytest.mark.asyncio
     async def test_delete_device_schedules_standard_accepts_data_wrapper(self):
         """Standard schedule DELETE should accept data-wrapped rows."""
         client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")

@@ -1,5 +1,17 @@
 # Residual Ledger
 
+## Current Residual Posture
+
+- `v1.43` 已显式重开为 active milestone route；remaining concern 不再伪装成“v1.42 archived-only 之后自然会自己消失”的无主延续。
+- `Phase 139` 未新增 active residual family：`rest_facade.py` 与 `rest_port.py` 继续保持 formal-home 身份，`rest_facade_internal_methods.py` 与 `rest_port_bindings.py` 只是 inward split seams，不是新的 authority chain。
+- 当前 live follow-up 已显式前推到 `Phase 140`：stale verification commands、archived remediation drift、public changelog scope、private-access conditional wording 与 corresponding meta guards 仍待继续压缩收口。
+
+## Phase 139 Residual Delta
+
+- `Phase 139` 未新增 active residual family；canonical roots 仍是 `custom_components/lipro/core/api/rest_facade.py` 与 `custom_components/lipro/core/protocol/rest_port.py`。
+- schedule `group_id` forwarding honesty 已进入 closed bundle，不再作为“后续某轮也许要查”的 silent behavioral carry-forward。
+- 仍需后续关注的是 governance/docs freshness，而不是新的 protocol/root residual：Phase 140 将处理 verification command rot、release/support wording drift 与 guard blind spots。
+
 ## Active Residual Families
 
 | Family | Current example | Owner phase | Residual owner | Exit condition |

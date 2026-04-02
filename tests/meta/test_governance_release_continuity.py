@@ -162,6 +162,8 @@ def test_support_and_issue_routing_are_consistent() -> None:
     assert "已校验 GitHub Release 资产" in readme_zh_text
     assert "matching HACS install" in runbook_text
     assert "verified GitHub Release assets" in runbook_text
+    assert "reachable in the current access mode" in runbook_text
+    assert "real public mirror" in runbook_text or "reachable GitHub Release surface" in runbook_text
     assert "Best effort" in security_text or "best effort" in security_text
     assert "verified GitHub Release assets" in security_text
 

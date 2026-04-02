@@ -336,6 +336,52 @@ def test_rest_child_facade_file_uses_local_request_and_endpoint_collaborators() 
     assert "RestSessionState" in facade_module_text
 
 
+def test_rest_child_facade_file_keeps_internal_method_module_local_to_formal_home() -> None:
+    facade_module_text = (
+        Path(__file__).resolve().parents[3]
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "api"
+        / "rest_facade.py"
+    ).read_text(encoding="utf-8")
+    internal_module_text = (
+        Path(__file__).resolve().parents[3]
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "api"
+        / "rest_facade_internal_methods.py"
+    ).read_text(encoding="utf-8")
+
+    assert "rest_facade_internal_methods import" in facade_module_text
+    assert "_request_smart_home_mapping = _request_smart_home_mapping_impl" in facade_module_text
+    assert "_require_mapping_response = staticmethod(_require_mapping_response_impl)" in facade_module_text
+    assert "class LiproRestFacade" not in internal_module_text
+
+
+def test_rest_port_file_keeps_bindings_module_local_to_formal_home() -> None:
+    rest_port_text = (
+        Path(__file__).resolve().parents[3]
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "protocol"
+        / "rest_port.py"
+    ).read_text(encoding="utf-8")
+    bindings_text = (
+        Path(__file__).resolve().parents[3]
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "protocol"
+        / "rest_port_bindings.py"
+    ).read_text(encoding="utf-8")
+
+    assert "from .rest_port_bindings import (" in rest_port_text
+    assert "class ProtocolRestPortFamily:" in rest_port_text
+    assert "class LiproProtocolFacade" not in bindings_text
+
 @pytest.mark.asyncio
 async def test_protocol_live_get_devices_normalizes_raw_inventory_payload() -> None:
     client = LiproProtocolFacade("test-phone-id")

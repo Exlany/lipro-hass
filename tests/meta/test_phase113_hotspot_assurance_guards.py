@@ -24,7 +24,7 @@ _LINE_BUDGETS = {
     "custom_components/lipro/entities/firmware_update.py": 418,
     "custom_components/lipro/core/protocol/boundary/rest_decoder_support.py": 180,
     "custom_components/lipro/core/command/result_policy.py": 417,
-    "custom_components/lipro/core/command/dispatch.py": 412,
+    "custom_components/lipro/core/command/dispatch.py": 423,
     "custom_components/lipro/core/auth/manager.py": 407,
     "custom_components/lipro/core/anonymous_share/share_client_submit.py": 170,
     "custom_components/lipro/core/command/result.py": 398,

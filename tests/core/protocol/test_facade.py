@@ -251,3 +251,61 @@ async def test_protocol_query_connect_status_preserves_typed_result() -> None:
     cast(Any, facade._rest_ports.status.query_connect_status).assert_awaited_once_with(
         ["03ab5ccd7caaaaaa"]
     )
+
+
+@pytest.mark.asyncio
+async def test_protocol_add_device_schedule_forwards_group_id() -> None:
+    facade = LiproProtocolFacade(
+        "test-phone-id",
+        entry_id="entry-1",
+        rest_facade_factory=cast(type[LiproRestFacade], _FakeRestFacade),
+    )
+    facade._rest_ports.schedule.add_device_schedule = AsyncMock(return_value=[])
+
+    result = await facade.add_device_schedule(
+        "03ab5ccd7caaaaaa",
+        1,
+        [1, 2, 3],
+        [3600],
+        [0],
+        group_id="mesh_group_10001",
+    )
+
+    assert result == []
+    cast(Any, facade._rest_ports.schedule.add_device_schedule).assert_awaited_once_with(
+        "03ab5ccd7caaaaaa",
+        1,
+        [1, 2, 3],
+        [3600],
+        [0],
+        "mesh_group_10001",
+        mesh_gateway_id="",
+        mesh_member_ids=None,
+    )
+
+
+@pytest.mark.asyncio
+async def test_protocol_delete_device_schedules_forwards_group_id() -> None:
+    facade = LiproProtocolFacade(
+        "test-phone-id",
+        entry_id="entry-1",
+        rest_facade_factory=cast(type[LiproRestFacade], _FakeRestFacade),
+    )
+    facade._rest_ports.schedule.delete_device_schedules = AsyncMock(return_value=[])
+
+    result = await facade.delete_device_schedules(
+        "03ab5ccd7caaaaaa",
+        1,
+        [4],
+        group_id="mesh_group_10001",
+    )
+
+    assert result == []
+    cast(Any, facade._rest_ports.schedule.delete_device_schedules).assert_awaited_once_with(
+        "03ab5ccd7caaaaaa",
+        1,
+        [4],
+        "mesh_group_10001",
+        mesh_gateway_id="",
+        mesh_member_ids=None,
+    )

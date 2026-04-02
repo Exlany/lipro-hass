@@ -1,8 +1,8 @@
 # Testing Patterns
 
-**Analysis Date:** 2026-04-01
+**Analysis Date:** 2026-04-02
 
-> Snapshot: `2026-04-01`
+> Snapshot: `2026-04-02`
 > Freshness: 基于 `tests/**`、`pyproject.toml`、`.github/workflows/{ci,release}.yml`、`scripts/{lint,check_architecture_policy.py,check_file_matrix.py,check_markdown_links.py}` 与 `.planning/baseline/VERIFICATION_MATRIX.md` 的当前截面。
 > Derived collaboration map: 本文件是受约束的协作图谱 / 派生视图，仅用于导航、审阅与后续实现对齐。
 > Authority: 若与 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md}`、`.planning/baseline/*.md`、`.planning/reviews/*.md` 或 `docs/developer_architecture.md` 冲突，以后者为准；本文件不得反向充当当前治理真源。
@@ -25,6 +25,11 @@ uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro 
 ./scripts/lint --full
 ```
 
+## Phase 139 Execution Freeze
+
+- `tests/core/protocol/test_facade.py`、`tests/core/api/test_api_transport_and_schedule_schedules.py`、`tests/core/api/test_protocol_contract_facade_runtime.py` 与 `tests/meta/test_phase139_mega_facade_second_pass_guards.py` 共同冻结 REST/protocol second-pass slimming、schedule `group_id` forwarding honesty、formal-home locality 与 governance route projection。
+- `uv run ruff check custom_components/lipro/core/api/rest_facade.py custom_components/lipro/core/api/rest_facade_internal_methods.py custom_components/lipro/core/api/rest_facade_endpoint_methods.py custom_components/lipro/core/api/endpoint_surface.py custom_components/lipro/core/protocol/rest_port.py custom_components/lipro/core/protocol/rest_port_bindings.py tests/core/protocol/test_facade.py tests/core/api/test_api_transport_and_schedule_schedules.py tests/core/api/test_protocol_contract_facade_runtime.py tests/meta/test_phase139_mega_facade_second_pass_guards.py`、`uv run pytest -q tests/core/protocol/test_facade.py tests/core/api/test_api_transport_and_schedule_schedules.py tests/core/api/test_protocol_contract_facade_runtime.py tests/meta/test_phase69_support_budget_guards.py tests/meta/test_phase91_typed_boundary_guards.py tests/meta/test_phase139_mega_facade_second_pass_guards.py`、`uv run python scripts/check_file_matrix.py --check` 与 `uv run python scripts/check_architecture_policy.py --check` 共同构成 Phase 139 exit proof。
+
 ## Phase 131 Execution Freeze
 
 - `Phase 131` 的 final proof chain 由三层组成：repo-wide docs/governance/toolchain truth guards、selector-route/promoted-assets guards，以及 `ruff` / `check_file_matrix` / markdown-link validation。
@@ -36,7 +41,7 @@ uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro 
 **Location:**
 - Tests live in a dedicated `tests/` tree, not beside production files.
 - Current topology is broad and intentional: `tests/core`, `tests/services`, `tests/flows`, `tests/platforms`, `tests/entities`, `tests/meta`, `tests/integration`, `tests/snapshots`, `tests/benchmarks`, `tests/harness`, and `tests/fixtures`.
-- Repository counts from current scanning: `419` Python files under `tests`, `335` runnable `test_*.py` files, `76` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
+- Repository counts from current scanning: `420` Python files under `tests`, `336` runnable `test_*.py` files, `77` meta suites, `5` integration suites, `4` snapshot suites, `4` benchmark suites, and `5` fixture family READMEs.
 
 **Naming:**
 - Use `test_*.py` everywhere.

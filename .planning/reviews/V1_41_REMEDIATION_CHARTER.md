@@ -12,7 +12,7 @@
 - **Goal:** 降低 manual rebinding wall，提升 discoverability 与 ownership clarity。
 - **Acceptance:** outward import home 不变；delegation count 降低；runtime/protocol focused tests 不退化。
 - **Delete gate:** 旧 delegation shell 不再承担新的业务入口；不得引入第二条 public import chain。
-- **Verification:** `uv run pytest -q tests/core/test_rest_facade.py tests/core/test_protocol_facade.py tests/meta/test_public_surface_guards.py`
+- **Verification:** `uv run pytest -q tests/core/api/test_protocol_contract_facade_runtime.py tests/core/protocol/test_facade.py tests/meta/test_public_surface_guards.py`
 
 ### WS-02 Auth Hotspot Decomposition
 - **Severity:** `High`
@@ -32,7 +32,7 @@
 - **Goal:** 明确哪些 outward properties 必须保留，哪些应下沉到 focused views/ports。
 - **Acceptance:** entity/platform outward contract 不破；IDE/type discoverability 提升；新增 relay 禁止继续无节制膨胀。
 - **Delete gate:** 旧 relay 仅在 formal migration 完成后才可移除，不允许破坏 outward compatibility。
-- **Verification:** `uv run pytest -q tests/core/test_device.py tests/meta/test_public_surface_guards.py`
+- **Verification:** `uv run pytest -q tests/core/device/test_device.py tests/meta/test_public_surface_guards.py`
 
 ### WS-04 Typed Command Grammar
 - **Severity:** `Medium`

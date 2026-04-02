@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 764
+**Python files total:** 767
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -99,6 +99,7 @@
 | `custom_components/lipro/core/api/response_safety.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/rest_facade.py` | Protocol | Phase 90 | 重构 | canonical REST child-façade composition home |
 | `custom_components/lipro/core/api/rest_facade_endpoint_methods.py` | Protocol | Phase 101 | 保留 | REST child-facing typed endpoint wording helper |
+| `custom_components/lipro/core/api/rest_facade_internal_methods.py` | Protocol | Phase 139 | 保留 | rest-facade inward private mechanics support home |
 | `custom_components/lipro/core/api/rest_facade_request_methods.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/schedule_codec.py` | Protocol | Phase 2 | 重构 | - |
 | `custom_components/lipro/core/api/schedule_endpoint.py` | Protocol | Phase 2 | 重构 | - |
@@ -255,6 +256,7 @@
 | `custom_components/lipro/core/protocol/mqtt_facade.py` | Protocol | Phase 35 | 保留 | MQTT child façade home under the unified protocol root |
 | `custom_components/lipro/core/protocol/protocol_facade_rest_methods.py` | Protocol | Phase 2.5 | 保留 | canonical protocol live-verb normalization home over REST child ports |
 | `custom_components/lipro/core/protocol/rest_port.py` | Protocol | Phase 35 | 保留 | typed REST child-façade port home |
+| `custom_components/lipro/core/protocol/rest_port_bindings.py` | Protocol | Phase 139 | 保留 | protocol rest-port inward bound-adapter binding home |
 | `custom_components/lipro/core/protocol/session.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/protocol/telemetry.py` | Protocol | Phase 2.5 | 保留 | - |
 | `custom_components/lipro/core/telemetry/__init__.py` | Assurance | Phase 7.3 | 保留 | - |
@@ -676,6 +678,7 @@
 | `tests/meta/test_phase119_mqtt_boundary_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase123_service_router_reconvergence_guards.py` | Assurance | Phase 123 | 保留 | focused closeout guard home for Phase 123 service-router reconvergence |
 | `tests/meta/test_phase124_flow_auth_schedule_contract_guards.py` | Assurance | Phase 124 | 保留 | focused closeout guard home for Phase 124 auth/flow/schedule contract closure |
+| `tests/meta/test_phase139_mega_facade_second_pass_guards.py` | Assurance | Phase 139 | 保留 | second-pass mega-facade line-budget / locality / route sync guard home |
 | `tests/meta/test_phase31_runtime_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase45_hotspot_budget_guards.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_phase50_rest_typed_budget_guards.py` | Assurance | Phase 6 | 保留 | - |

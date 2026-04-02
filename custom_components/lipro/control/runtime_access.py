@@ -157,9 +157,9 @@ def iter_developer_runtime_coordinators(hass: HomeAssistant) -> list[LiproCoordi
     return _iter_developer_runtime_coordinators_support(hass)
 
 
-def has_debug_mode_runtime_entry(entry: RuntimeEntryLike) -> bool:
-    """Return whether one runtime entry explicitly exposes debug mode metadata."""
-    return _has_debug_mode_runtime_entry_support(entry)
+def has_debug_mode_runtime_entry(hass: HomeAssistant) -> bool:
+    """Return whether any loaded runtime entry explicitly enables debug mode."""
+    return _has_debug_mode_runtime_entry_support(hass)
 
 
 def is_debug_mode_enabled_for_entry(entry: RuntimeEntryLike) -> bool:
@@ -167,9 +167,12 @@ def is_debug_mode_enabled_for_entry(entry: RuntimeEntryLike) -> bool:
     return _is_debug_mode_enabled_for_entry_support(entry)
 
 
-def is_developer_runtime_coordinator(coordinator: LiproCoordinator) -> bool:
+def is_developer_runtime_coordinator(
+    hass: HomeAssistant,
+    coordinator: LiproCoordinator,
+) -> bool:
     """Return whether one runtime coordinator belongs to a developer/debug entry."""
-    return _is_developer_runtime_coordinator_support(coordinator)
+    return _is_developer_runtime_coordinator_support(hass, coordinator)
 
 
 def is_runtime_device_mapping_degraded(

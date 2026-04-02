@@ -125,6 +125,7 @@ class _ScheduleEndpointsPort(Protocol):
         days: list[int],
         times: list[int],
         events: list[int],
+        group_id: str = "",
         *,
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
@@ -135,12 +136,11 @@ class _ScheduleEndpointsPort(Protocol):
         device_id: str,
         device_type: int | str,
         schedule_ids: list[int],
+        group_id: str = "",
         *,
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
     ) -> list[ScheduleTimingRow]: ...
-
-
 
 class RestEndpointSurface:
     """Group endpoint operations away from the REST façade root body."""
@@ -312,6 +312,7 @@ class RestEndpointSurface:
         days: list[int],
         times: list[int],
         events: list[int],
+        group_id: str = "",
         *,
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
@@ -322,6 +323,7 @@ class RestEndpointSurface:
             days=days,
             times=times,
             events=events,
+            group_id=group_id,
             mesh_gateway_id=mesh_gateway_id,
             mesh_member_ids=mesh_member_ids,
         )
@@ -331,6 +333,7 @@ class RestEndpointSurface:
         device_id: str,
         device_type: int | str,
         schedule_ids: list[int],
+        group_id: str = "",
         *,
         mesh_gateway_id: str = "",
         mesh_member_ids: list[str] | None = None,
@@ -339,9 +342,9 @@ class RestEndpointSurface:
             device_id=device_id,
             device_type=device_type,
             schedule_ids=schedule_ids,
+            group_id=group_id,
             mesh_gateway_id=mesh_gateway_id,
             mesh_member_ids=mesh_member_ids,
         )
-
 
 __all__ = ["RestEndpointSurface"]

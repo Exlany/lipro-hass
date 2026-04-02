@@ -110,7 +110,7 @@ def test_runtime_snapshot_uses_telemetry_surface_projection() -> None:
     entry.runtime_data = coordinator
 
     with patch(
-        "custom_components.lipro.control.runtime_access.build_entry_system_health_view",
+        "custom_components.lipro.control.runtime_access_support.build_entry_system_health_view_from_view_support",
         return_value={
             "entry_ref": "entry_deadbeef",
             "device_count": 5,
@@ -444,6 +444,7 @@ def test_collect_developer_reports_requested_entry_uses_entry_view_coordinator(
 def test_runtime_access_filters_debug_runtime_coordinators(hass) -> None:
     from custom_components.lipro.control.runtime_access import (
         has_debug_mode_runtime_entry,
+        is_developer_runtime_coordinator,
         iter_developer_runtime_coordinators,
     )
 
@@ -462,6 +463,8 @@ def test_runtime_access_filters_debug_runtime_coordinators(hass) -> None:
 
     assert coordinators == [debug_entry.runtime_data]
     assert has_debug_mode_runtime_entry(hass) is True
+    assert is_developer_runtime_coordinator(hass, debug_entry.runtime_data) is True
+    assert is_developer_runtime_coordinator(hass, quiet_entry.runtime_data) is False
 
 
 def test_runtime_diagnostics_projection_exposes_typed_projection() -> None:
@@ -477,7 +480,7 @@ def test_runtime_diagnostics_projection_exposes_typed_projection() -> None:
     entry = SimpleNamespace(entry_id="entry-1", options={}, runtime_data=coordinator)
 
     with patch(
-        "custom_components.lipro.control.runtime_access.build_entry_system_health_view",
+        "custom_components.lipro.control.runtime_access_support.build_entry_system_health_view_from_view_support",
         return_value={
             "entry_ref": "entry_deadbeef",
             "device_count": 5,

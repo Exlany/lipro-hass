@@ -308,6 +308,24 @@ def test_quality_scale_and_devcontainer_truth_are_in_sync() -> None:
 
 
 
+
+def test_changelog_keeps_public_release_summary_scope() -> None:
+    changelog_text = (_ROOT / 'CHANGELOG.md').read_text(encoding='utf-8')
+    match = re.search(
+        r"## \[Unreleased\]（未发布）\n(?P<body>.*?)(?:\n## \[1\.0\.0\] - 2026-02-08)",
+        changelog_text,
+        flags=re.DOTALL,
+    )
+    assert match is not None
+    body = match.group('body')
+    for token in (
+        '.planning/',
+        'GOVERNANCE_REGISTRY.json',
+        '$gsd-',
+        'Phase 124',
+        'Phase 125',
+    ):
+        assert token not in body
 def test_maintainer_appendix_routes_to_latest_archived_evidence_without_polluting_public_first_hop() -> None:
     docs_readme_text = _DOCS_README.read_text(encoding="utf-8")
     readme_text = _README.read_text(encoding="utf-8")

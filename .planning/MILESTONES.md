@@ -9,7 +9,14 @@ projection_targets:
 - .planning/REQUIREMENTS.md
 - .planning/STATE.md
 - .planning/MILESTONES.md
-active_milestone: null
+active_milestone:
+  version: v1.43
+  name: Hotspot Second-Pass Slimming & Governance Load Shedding
+  status: active / phase 139 complete; phase 140 planning-ready (2026-04-02)
+  phase: '139'
+  phase_title: REST/protocol mega-facade second-pass slimming and boundary hardening
+  phase_dir: 139-rest-protocol-surface-second-pass-slimming-and-boundary-hardening
+  route_mode: v1.43 active milestone route / Phase 139 complete / Phase 140 planning-ready / latest archived baseline = v1.42
 latest_archived:
   version: v1.42
   name: Hotspot Burn-Down, Observability Truth & Governance Cost Compression
@@ -25,12 +32,33 @@ previous_archived:
   name: Terminal Residual Audit, Remediation Charter & Maintainability Hardening
   evidence_path: .planning/reviews/V1_41_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.42
-  default_next_command: $gsd-new-milestone
+  current_route: v1.43 active milestone route / Phase 139 complete / Phase 140 planning-ready / latest archived baseline = v1.42
+  default_next_command: $gsd-plan-phase 140
   latest_archived_evidence_pointer: .planning/reviews/V1_42_EVIDENCE_INDEX.md
 contract_version: 1
 ```
 <!-- governance-route-contract:end -->
+
+## Current Milestone (v1.43)
+
+## v1.43 Hotspot Second-Pass Slimming & Governance Load Shedding (Started: 2026-04-02)
+
+**Status:** `active / phase 139 complete; phase 140 planning-ready (2026-04-02)`
+**Current route:** `v1.43 active milestone route / Phase 139 complete / Phase 140 planning-ready / latest archived baseline = v1.42`
+**Phase range:** `139 -> 140`
+**Progress:** `1/2 phases, 3/3 plans`
+**Default next command:** `$gsd-plan-phase 140`
+**Latest archived pointer:** `.planning/reviews/V1_42_EVIDENCE_INDEX.md`
+**Pointer label:** latest archived evidence index = `.planning/reviews/V1_42_EVIDENCE_INDEX.md`
+**Latest archived audit:** `.planning/v1.42-MILESTONE-AUDIT.md`
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.42`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.41`
+
+**Current phase story:**
+
+- `Phase 139`: REST/protocol mega-facade second-pass slimming and boundary hardening ✅ (`139-01` protocol rest-port binding split + `139-02` REST facade internal split / schedule group_id repair + `139-03` tests/docs/governance sync complete)
+- `Phase 140`: release/governance source compression and codebase freshness ⏳ (`140-CONTEXT.md` / `140-RESEARCH.md` recorded; next = `$gsd-plan-phase 140`)
+
 ## Latest Archived Milestone (v1.42)
 
 ## v1.42 Hotspot Burn-Down, Observability Truth & Governance Cost Compression (Shipped: 2026-04-02)
@@ -49,8 +77,8 @@ contract_version: 1
 
 **Shipped phase story:**
 
-- `Phase 137`: hotspot burn-down, command/observability convergence, and governance derivation compression ✅ (`137-01` governance/docs/test contract hardening + `137-02` protocol/rest/auth hotspot decomposition + `137-03` device/command/observability hardening completed; `137-01..03-SUMMARY.md`, `137-SUMMARY.md`, `137-VERIFICATION.md`, `137-VALIDATION.md` recorded)
-- `Phase 138`: runtime contract decoupling, support-guard hardening, and docs archive alignment ✅ (`138-01` governance/docs/route follow-up + `138-02` runtime/service contract decoupling + `138-03` support naming guard / verification sync + `138-04` connect-status outcome propagation completed; `138-01..04-SUMMARY.md`, `138-SUMMARY.md`, `138-VERIFICATION.md`, `138-VALIDATION.md` recorded)
+- `Phase 137`: hotspot burn-down, command/observability convergence, and governance derivation compression ✅ (`137-01` governance/docs/test contract hardening + `137-02` protocol/rest/auth hotspot decomposition + `137-03` device/command/observability hardening complete)
+- `Phase 138`: runtime contract decoupling, support-guard hardening, and docs archive alignment ✅ (`138-01` governance/docs/route follow-up + `138-02` runtime/service contract decoupling + `138-03` support naming guard / verification sync + `138-04` connect-status outcome propagation complete)
 
 ## Previous Archived Milestone (v1.41)
 
@@ -80,7 +108,7 @@ contract_version: 1
 **Current route:** `no active milestone route / latest archived baseline = v1.40`
 **Phase range:** `134 -> 135`
 **Progress:** `2/2 phases, 7/7 plans`
-**Default next command:** `$gsd-complete-milestone v1.42`
+**Default next command:** `$gsd-new-milestone`
 **Latest archived pointer:** `.planning/reviews/V1_40_EVIDENCE_INDEX.md`
 **Archived audit reference:** `.planning/v1.40-MILESTONE-AUDIT.md`
 **Archived snapshots:** `.planning/milestones/v1.40-ROADMAP.md`, `.planning/milestones/v1.40-REQUIREMENTS.md`
@@ -241,3 +269,4 @@ contract_version: 1
 - `v1.27-REQUIREMENTS.md`
 - `v1.28-ROADMAP.md`
 - `v1.28-REQUIREMENTS.md`
+
