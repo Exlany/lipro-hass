@@ -12,6 +12,8 @@ from ...const.device_types import DEVICE_TYPE_PANEL
 from ..api import LiproApiError
 from ..device import LiproDevice
 from ..utils.identifiers import is_valid_iot_device_id
+from ..utils.log_safety import safe_error_placeholder
+from ..utils.redaction import redact_identifier
 from .result import CommandResultPayload, is_command_push_failed
 from .trace import update_trace_with_resolved_request, update_trace_with_response
 
@@ -22,6 +24,11 @@ _LOGGER = logging.getLogger(__name__)
 
 type RedactIdentifier = Callable[[str | None], str | None]
 type CommandTracePayload = dict[str, object]
+
+
+def _safe_identifier(identifier: str | None) -> str:
+    """Return one redacted identifier marker suitable for logs."""
+    return redact_identifier(identifier) or "***"
 
 
 def _as_command_result_payload(result: Mapping[str, object]) -> CommandResultPayload:
@@ -155,8 +162,8 @@ def plan_command_dispatch(
         _LOGGER.debug(
             "Ignoring member fallback %s for group %s "
             "(requires single-member mesh group)",
-            fallback_device_id,
-            device.serial,
+            _safe_identifier(fallback_device_id),
+            _safe_identifier(device.serial),
         )
 
     actual_command, actual_properties = normalize_group_power_command(
@@ -167,7 +174,7 @@ def plan_command_dispatch(
             "Normalized group command %s to %s for %s",
             command,
             actual_command,
-            device.serial,
+            _safe_identifier(device.serial),
         )
     return CommandDispatchPlan(
         route=route,
@@ -251,9 +258,9 @@ async def _send_group_with_error_fallback(
             log_message="Group command %s to %s failed (%s), fallback to member %s",
             log_args=(
                 plan.command,
-                device.serial,
-                err,
-                plan.member_fallback_id,
+                _safe_identifier(device.serial),
+                safe_error_placeholder(err),
+                _safe_identifier(plan.member_fallback_id),
             ),
         )
 
@@ -316,7 +323,7 @@ async def _execute_group_command(
         plan=plan,
     )
     member_fallback_id = plan.member_fallback_id
-    if member_fallback_id is not None and _should_fallback_after_group_result(
+    if route == plan.route and member_fallback_id is not None and _should_fallback_after_group_result(
         member_fallback_id=member_fallback_id,
         result=result,
     ):
@@ -333,8 +340,8 @@ async def _execute_group_command(
             ),
             log_args=(
                 plan.command,
-                device.serial,
-                member_fallback_id,
+                _safe_identifier(device.serial),
+                _safe_identifier(member_fallback_id),
             ),
         )
 
@@ -392,7 +399,7 @@ async def execute_command_plan_with_trace(
     fallback_device_id: str | None,
     trace: CommandTracePayload,
     redact_identifier: RedactIdentifier,
-) -> tuple[CommandDispatchPlan, CommandResultPayload, str]:
+) -> tuple[CommandDispatchPlan, CommandResultPayload, CommandRoute]:
     """Plan command dispatch and append resolved request/response trace fields.
 
     Returns:

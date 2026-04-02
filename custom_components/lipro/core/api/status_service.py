@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable
+from collections.abc import Awaitable, Mapping
+from dataclasses import dataclass
+from enum import StrEnum
 import logging
 from time import monotonic
 from typing import cast
 
+from ..utils.log_safety import safe_error_placeholder
 from .status_fallback import (
     CoerceConnectStatus,
     ExtractDataList,
@@ -253,6 +256,110 @@ async def query_mesh_group_status(
     )
 
 
+class ConnectStatusOutcome(StrEnum):
+    """Internal outcome markers for connect-status query parsing."""
+
+    SUCCESS = "success"
+    EMPTY_INPUT = "empty_input"
+    EMPTY_SANITIZED = "empty_sanitized"
+    NON_MAPPING = "non_mapping"
+    WRAPPED_NON_MAPPING = "wrapped_non_mapping"
+    EMPTY_MAPPING = "empty_mapping"
+    API_ERROR = "api_error"
+
+
+@dataclass(frozen=True, slots=True)
+class _ConnectStatusQueryResult:
+    """Typed internal result that preserves failure reasons for observability."""
+
+    outcome: ConnectStatusOutcome
+    statuses: dict[str, bool]
+
+
+def _unwrap_connect_status_mapping(
+    payload: object,
+) -> tuple[ConnectStatusOutcome, Mapping[object, object] | None]:
+    """Return the raw connect-status mapping together with its parse outcome."""
+    if not isinstance(payload, Mapping):
+        return ConnectStatusOutcome.NON_MAPPING, None
+
+    mapping: Mapping[object, object] = payload
+    if "code" in mapping and "data" in mapping:
+        wrapped_data = mapping.get("data")
+        if not isinstance(wrapped_data, Mapping):
+            return ConnectStatusOutcome.WRAPPED_NON_MAPPING, None
+        mapping = wrapped_data
+
+    if not mapping:
+        return ConnectStatusOutcome.EMPTY_MAPPING, mapping
+    return ConnectStatusOutcome.SUCCESS, mapping
+
+
+def _project_connect_status_mapping(
+    mapping: Mapping[object, object],
+    *,
+    requested_ids: list[str],
+    coerce_connect_status: CoerceConnectStatus,
+) -> dict[str, bool]:
+    """Project raw backend data onto the sanitized request set only."""
+    return {
+        device_id: coerce_connect_status(mapping[device_id])
+        for device_id in requested_ids
+        if device_id in mapping
+    }
+
+
+async def _query_connect_status_result(
+    *,
+    device_ids: list[str],
+    sanitize_iot_device_ids: SanitizeIoTDeviceIds,
+    iot_request: IoTRequest,
+    coerce_connect_status: CoerceConnectStatus,
+    lipro_api_error: type[Exception],
+    logger: logging.Logger,
+    path_query_connect_status: str,
+) -> _ConnectStatusQueryResult:
+    """Return the projected connect-status mapping plus an explicit parse outcome."""
+    if not device_ids:
+        return _ConnectStatusQueryResult(ConnectStatusOutcome.EMPTY_INPUT, {})
+
+    sanitized_ids = sanitize_iot_device_ids(
+        device_ids,
+        endpoint=path_query_connect_status,
+    )
+    if not sanitized_ids:
+        return _ConnectStatusQueryResult(ConnectStatusOutcome.EMPTY_SANITIZED, {})
+
+    try:
+        payload = await iot_request(
+            path_query_connect_status,
+            {"deviceIdList": cast(JsonValue, sanitized_ids)},
+        )
+    except lipro_api_error as err:
+        logger.debug(
+            "Failed to query connect status (device_count=%d): %s",
+            len(sanitized_ids),
+            safe_error_placeholder(err),
+        )
+        return _ConnectStatusQueryResult(ConnectStatusOutcome.API_ERROR, {})
+
+    outcome, mapping = _unwrap_connect_status_mapping(payload)
+    if mapping is None:
+        logger.debug(
+            "Connect status query returned %s payload (device_count=%d)",
+            outcome.value,
+            len(sanitized_ids),
+        )
+        return _ConnectStatusQueryResult(outcome, {})
+
+    statuses = _project_connect_status_mapping(
+        mapping,
+        requested_ids=sanitized_ids,
+        coerce_connect_status=coerce_connect_status,
+    )
+    return _ConnectStatusQueryResult(outcome, statuses)
+
+
 async def query_connect_status(
     *,
     device_ids: list[str],
@@ -264,34 +371,13 @@ async def query_connect_status(
     path_query_connect_status: str,
 ) -> dict[str, bool]:
     """Query real-time connection status for devices."""
-    if not device_ids:
-        return {}
-
-    sanitized_ids = sanitize_iot_device_ids(
-        device_ids,
-        endpoint=path_query_connect_status,
+    result = await _query_connect_status_result(
+        device_ids=device_ids,
+        sanitize_iot_device_ids=sanitize_iot_device_ids,
+        iot_request=iot_request,
+        coerce_connect_status=coerce_connect_status,
+        lipro_api_error=lipro_api_error,
+        logger=logger,
+        path_query_connect_status=path_query_connect_status,
     )
-    if not sanitized_ids:
-        return {}
-
-    try:
-        result = await iot_request(
-            path_query_connect_status,
-            {"deviceIdList": cast(JsonValue, sanitized_ids)},
-        )
-        if isinstance(result, dict):
-            if "code" in result and "data" in result:
-                wrapped_data = result.get("data")
-                if isinstance(wrapped_data, dict):
-                    result = wrapped_data
-                else:
-                    return {}
-            return {k: coerce_connect_status(v) for k, v in result.items()}
-        return {}
-    except lipro_api_error as err:
-        logger.debug(
-            "Failed to query connect status (device_count=%d): %s",
-            len(device_ids),
-            err,
-        )
-        return {}
+    return result.statuses

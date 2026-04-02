@@ -104,17 +104,26 @@ async def test_query_device_status_applies_adaptive_soft_batch_limit() -> None:
 
 @pytest.mark.asyncio
 async def test_query_connect_status_handles_wrapped_payload() -> None:
+    requested_id = "03ab5ccd7caaaaaa"
     result = await query_connect_status(
-        device_ids=["03ab5ccd7caaaaaa"],
+        device_ids=[requested_id],
         sanitize_iot_device_ids=lambda device_ids, endpoint: device_ids,
-        iot_request=AsyncMock(return_value={"code": "0000", "data": {"03ab": "1"}}),
+        iot_request=AsyncMock(
+            return_value={
+                "code": "0000",
+                "data": {
+                    requested_id: "1",
+                    "03ab5ccd7cbbbbbb": "0",
+                },
+            }
+        ),
         coerce_connect_status=lambda value: str(value) == "1",
         lipro_api_error=_DummyApiError,
         logger=MagicMock(),
         path_query_connect_status="/v2/status/connect",
     )
 
-    assert result == {"03ab": True}
+    assert result == {requested_id: True}
 
 @pytest.mark.asyncio
 async def test_query_device_status_reports_batch_metrics_with_fallback_depth() -> None:

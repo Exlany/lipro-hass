@@ -1,6 +1,6 @@
 # File Matrix
 
-**Python files total:** 762
+**Python files total:** 763
 **Status:** File-level governance authority
 **Rule:** workspace inventory excluding caches / virtual env / tooling artifacts
 
@@ -118,6 +118,7 @@
 | `custom_components/lipro/core/auth/__init__.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/auth/bootstrap.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/auth/manager.py` | Cross-cutting | Phase 7 | 保留 | - |
+| `custom_components/lipro/core/auth/manager_support.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/core/capability/__init__.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/core/capability/models.py` | Domain | Phase 4 | 保留 | - |
 | `custom_components/lipro/core/capability/registry.py` | Domain | Phase 4 | 保留 | - |

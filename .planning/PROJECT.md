@@ -1,14 +1,13 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** `archived / evidence-ready (2026-04-02)`
-**Current route:** `no active milestone route / latest archived baseline = v1.41`；latest archived evidence index = `.planning/reviews/V1_41_EVIDENCE_INDEX.md`.
-**Goal:** `v1.41 已完成 repo-wide terminal residual audit、remediation charter 与首批 hygiene fixes，并被冻结为 latest archived baseline，供下一里程碑直接继承。`
-**Default next step:** `$gsd-new-milestone`
+**Status:** `active / phase 137 complete; closeout-ready (2026-04-02)`
+**Current route:** `v1.42 active milestone route / starting from latest archived baseline = v1.41`；latest archived evidence index = `.planning/reviews/V1_41_EVIDENCE_INDEX.md`.
+**Goal:** `把 v1.41 终极审阅与 remediation charter 从 archived evidence 提升为单一 active execution route，一次性收口当前 sanctioned hotspots、observability residual 与 governance derivation cost。`
+**Default next step:** `$gsd-complete-milestone v1.42`
 **Archived baseline chain:** latest archived baseline = `v1.41`；previous archived baseline = `v1.40`.
 
 <!-- governance-route-contract:start -->
 ```yaml
-contract_version: 1
 contract_name: governance-route
 projection_targets:
 - .planning/PROJECT.md
@@ -16,7 +15,16 @@ projection_targets:
 - .planning/REQUIREMENTS.md
 - .planning/STATE.md
 - .planning/MILESTONES.md
-active_milestone: null
+active_milestone:
+  version: v1.42
+  name: Hotspot Burn-Down, Observability Truth & Governance Cost Compression
+  status: active / phase 137 complete; closeout-ready (2026-04-02)
+  phase: '137'
+  phase_title: hotspot burn-down, command/observability convergence, and governance
+    derivation compression
+  phase_dir: 137-hotspot-burn-down-command-observability-and-governance-compression
+  route_mode: v1.42 active milestone route / starting from latest archived baseline
+    = v1.41
 latest_archived:
   version: v1.41
   name: Terminal Residual Audit, Remediation Charter & Maintainability Hardening
@@ -32,18 +40,38 @@ previous_archived:
   name: Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening
   evidence_path: .planning/reviews/V1_40_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.41
-  default_next_command: $gsd-new-milestone
+  current_route: v1.42 active milestone route / starting from latest archived baseline
+    = v1.41
+  default_next_command: $gsd-complete-milestone v1.42
   latest_archived_evidence_pointer: .planning/reviews/V1_41_EVIDENCE_INDEX.md
+contract_version: 1
 ```
 <!-- governance-route-contract:end -->
+## Current Milestone (v1.42)
+
+**Name:** `Hotspot Burn-Down, Observability Truth & Governance Cost Compression`
+
+**Why it matters:** `契约者要求继续下一步，并把 v1.41 已识别的高/中优先残留转为一次性、深度、可执行的重构路线；因此 v1.42 不再重新做浅层扫描，而是直接继承终极审阅真源，进入正式 burn-down。`
+
+**North-star fit:** `v1.42` 继续沿 single formal home、explicit composition、typed contract、honesty-over-folklore 与 docs-first governance 推进：不回流旧 compat 主链，不让“暂时能跑”的 delegation wall/relay wall/empty-state ambiguity 继续合法化。`
+
+**Current status:** `active / phase 137 complete; closeout-ready (2026-04-02)`
+**Phase range:** `Phase 137 -> 137`
+**Starting baseline:** `.planning/v1.41-MILESTONE-AUDIT.md, .planning/reviews/V1_41_EVIDENCE_INDEX.md, .planning/milestones/v1.41-ROADMAP.md, .planning/milestones/v1.41-REQUIREMENTS.md`
+**Requirements basket:** `ARC-46, HOT-67, HOT-68, HOT-69, OBS-01, GOV-92, DOC-20, TST-57`
+**Latest archived baseline:** `v1.41`
+**Latest archived pointer:** `.planning/reviews/V1_41_EVIDENCE_INDEX.md`
+**Latest archived audit artifact:** `.planning/v1.41-MILESTONE-AUDIT.md`
+**Default next command:** `$gsd-complete-milestone v1.42`
+**Current phase handoff:** `Phase 137 的三条执行轨已全部完成；137-01..03-SUMMARY.md、137-SUMMARY.md 与 137-VERIFICATION.md 现构成 closeout-ready evidence，下一步直接执行 $gsd-complete-milestone v1.42。`
+
 ## Latest Archived Milestone (v1.41)
 
 **Name:** `Terminal Residual Audit, Remediation Charter & Maintainability Hardening`
 
-**Why it matters:** `v1.41` 把 repo-wide terminal audit、命名/目录/开源 readiness 审视、remediation charter 与首批 focused hygiene fixes 收为单一 closeout bundle，避免“审查、修复、治理”各讲一套。`
+**Why it matters:** `v1.41` 已把 repo-wide terminal audit、命名/目录/开源 readiness 审视、remediation charter 与首批 focused hygiene fixes 收为单一 closeout bundle，避免“审查、修复、治理”各讲一套。`
 
-**North-star fit:** `v1.41` 沿 single formal home、typed contract、honesty-over-folklore 与 docs-first governance 推进：先形成单一 verdict home，再形成 charter，再把 vendor-crypto 与 selected log-safety drift 以 focused proof 收口。`
+**North-star fit:** `v1.41` 先冻结单一 verdict home，再冻结 charter，再以 focused proof 收口 selected hygiene drift；v1.42 的 active route 必须以它为 pull-only truth anchor，而不是另起审查故事线。`
 
 **Current status:** `archived / evidence-ready (2026-04-02)`
 **Phase range:** `Phase 136 -> 136`
@@ -52,9 +80,10 @@ bootstrap:
 **Latest archived baseline:** `v1.41`
 **Latest archived pointer:** `.planning/reviews/V1_41_EVIDENCE_INDEX.md`
 **Latest archived audit artifact:** `.planning/v1.41-MILESTONE-AUDIT.md`
-**Default next command:** `$gsd-new-milestone`
-**Current phase handoff:** `Milestone closeout complete；Phase 136 的 summary / verification / validation / audit / evidence index 已冻结为 latest archived baseline truth。`
+**Default next command:** `$gsd-complete-milestone v1.42`
+**Current phase handoff:** `v1.41 保持 archived evidence-ready；其审阅结论与 workstream charter 已被 v1.42 Phase 137 的 closeout bundle 吸收为 pull-only active input。`
 
+## Previous Archived Milestone (v1.40)
 ## Previous Archived Milestone (v1.40)
 
 **Name:** `Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening`

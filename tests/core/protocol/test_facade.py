@@ -210,3 +210,19 @@ async def test_mqtt_facade_wait_until_connected_records_transport_error_after_su
     cast(Any, mqtt_facade._transport.wait_until_connected).assert_awaited_once_with(timeout=3.0)
     assert mqtt_facade.telemetry.mqtt_last_error_type == "RuntimeError"
     assert mqtt_facade.telemetry.mqtt_last_error_stage == "transport"
+
+
+def test_protocol_rest_ports_bind_real_adapters_instead_of_rest_aliases() -> None:
+    facade = LiproProtocolFacade(
+        "test-phone-id",
+        entry_id="entry-1",
+        rest_facade_factory=cast(type[LiproRestFacade], _FakeRestFacade),
+    )
+
+    assert facade._rest_ports.auth is not facade.rest
+    assert facade._rest_ports.inventory is not facade.rest
+    assert facade._rest_ports.status is not facade.rest
+    assert facade._rest_ports.command is not facade.rest
+    assert facade._rest_ports.misc is not facade.rest
+    assert facade._rest_ports.schedule is not facade.rest
+    assert facade._rest_ports.diagnostics is not facade.rest

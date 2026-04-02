@@ -114,7 +114,19 @@ def load_canonical_route_contract() -> dict[str, object]:
 def assert_machine_readable_route_contracts() -> dict[str, dict[str, object]]:
     contracts = load_planning_route_contracts()
     canonical = load_canonical_route_contract()
+    expected_keys = {
+        'contract_version',
+        'contract_name',
+        'projection_targets',
+        'active_milestone',
+        'latest_archived',
+        'previous_archived',
+        'bootstrap',
+    }
+    assert canonical.get('contract_version') == 1
+    assert set(canonical) == expected_keys
     for doc_name, contract in contracts.items():
+        assert set(contract) == expected_keys, f"{doc_name} route contract schema drifted"
         assert contract == canonical, f"{doc_name} route contract drifted"
     return contracts
 

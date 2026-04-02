@@ -32,6 +32,9 @@ from .governance_contract_helpers import (
     assert_issue_docs_entry_contact_link,
 )
 from .governance_current_truth import (
+    CURRENT_MILESTONE_DEFAULT_NEXT,
+    CURRENT_MILESTONE_STATUS,
+    CURRENT_ROUTE,
     LATEST_ARCHIVED_AUDIT_PATH,
     LATEST_ARCHIVED_EVIDENCE_PATH,
 )
@@ -235,6 +238,12 @@ def test_current_developer_architecture_points_to_archive_appendix() -> None:
     assert '## Historical Phase Notes Appendix' not in developer_text
     assert '## Historical Phase Notes Appendix' in archive_text
     assert 'pull-only architecture appendix' in archive_text
+    assert CURRENT_ROUTE in developer_text
+    assert CURRENT_MILESTONE_STATUS in developer_text
+    assert CURRENT_MILESTONE_DEFAULT_NEXT in developer_text
+    assert LATEST_ARCHIVED_EVIDENCE_PATH in developer_text
+    assert LATEST_ARCHIVED_AUDIT_PATH in developer_text
+    assert 'latest archived baseline = v1.34' not in developer_text
 
 
 def test_runbook_and_pr_template_use_stable_pointer_family() -> None:
@@ -246,6 +255,10 @@ def test_runbook_and_pr_template_use_stable_pointer_family() -> None:
     assert stable_selector in pr_text
     for token in ('latest archived evidence index', 'latest archived milestone audit'):
         assert token in runbook_text
+    assert CURRENT_ROUTE in runbook_text
+    assert CURRENT_MILESTONE_STATUS in runbook_text
+    assert CURRENT_MILESTONE_DEFAULT_NEXT in runbook_text
+    assert LATEST_ARCHIVED_EVIDENCE_PATH in runbook_text
     assert LATEST_ARCHIVED_AUDIT_PATH in runbook_text
     assert 'pull-only pointer' in pr_text
     assert 'hidden delegate' in pr_text or 'undocumented delegate' in pr_text

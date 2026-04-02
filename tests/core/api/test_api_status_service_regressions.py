@@ -199,3 +199,51 @@ async def test_query_connect_status_returns_empty_on_api_error() -> None:
     )
 
     assert result == {}
+
+
+@pytest.mark.asyncio
+async def test_query_connect_status_projects_only_sanitized_requested_ids() -> None:
+    requested_id = "03ab5ccd7caaaaaa"
+    result = await query_connect_status(
+        device_ids=[requested_id, "mesh_group_10001"],
+        sanitize_iot_device_ids=lambda device_ids, endpoint: [requested_id],
+        iot_request=AsyncMock(
+            return_value={requested_id: "1", "03ab5ccd7cbbbbbb": "0"}
+        ),
+        coerce_connect_status=lambda value: str(value) == "1",
+        lipro_api_error=DummyApiError,
+        logger=MagicMock(),
+        path_query_connect_status="/v2/status/connect",
+    )
+
+    assert result == {requested_id: True}
+
+
+@pytest.mark.asyncio
+async def test_query_connect_status_logs_safe_api_error_placeholder() -> None:
+    logger = MagicMock()
+
+    result = await query_connect_status(
+        device_ids=["03ab5ccd7caaaaaa"],
+        sanitize_iot_device_ids=lambda device_ids, endpoint: device_ids,
+        iot_request=AsyncMock(
+            side_effect=DummyApiError(
+                "token=secret 03ab5ccd7caaaaaa",
+                500,
+            )
+        ),
+        coerce_connect_status=lambda value: str(value) == "1",
+        lipro_api_error=DummyApiError,
+        logger=logger,
+        path_query_connect_status="/v2/status/connect",
+    )
+
+    assert result == {}
+    assert any(
+        call.args == (
+            "Failed to query connect status (device_count=%d): %s",
+            1,
+            "DummyApiError(code=500)",
+        )
+        for call in logger.debug.call_args_list
+    )

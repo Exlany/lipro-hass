@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import Any, cast
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -374,3 +374,59 @@ async def test_execute_command_plan_with_trace_updates_resolved_request_and_resp
     assert trace["resolved_property_keys"] == ["powerState"]
     assert trace["push_success"] is True
     assert trace["response_msg_sn"] == "12345"
+
+
+@pytest.mark.asyncio
+async def test_execute_command_dispatch_group_error_fallback_does_not_retry_member() -> None:
+    """Member fallback triggered by group error should execute only once."""
+    device = _make_device(serial="mesh_group_10001", is_group=True)
+    client = AsyncMock()
+    client.send_group_command = AsyncMock(side_effect=LiproApiError("boom", 500))
+    client.send_command = AsyncMock(return_value={"pushSuccess": False, "source": "m"})
+
+    result, route = await execute_command_dispatch(
+        client,
+        device=device,
+        plan=CommandDispatchPlan(
+            route="group_direct",
+            command="POWER_ON",
+            properties=None,
+            member_fallback_id="03ab111111111111",
+        ),
+    )
+
+    assert result == {"pushSuccess": False, "source": "m"}
+    assert route is CommandRoute.GROUP_ERROR_FALLBACK
+    assert client.send_command.await_count == 1
+
+
+@pytest.mark.asyncio
+async def test_execute_command_dispatch_group_error_fallback_logs_redacted_details() -> None:
+    """Fallback warnings should avoid raw identifiers and raw error text."""
+    device = _make_device(serial="mesh_group_10001", is_group=True)
+    client = AsyncMock()
+    client.send_group_command = AsyncMock(
+        side_effect=LiproApiError("token=secret mesh_group_10001", 500)
+    )
+    client.send_command = AsyncMock(return_value={"pushSuccess": True})
+
+    with patch("custom_components.lipro.core.command.dispatch._LOGGER") as logger:
+        await execute_command_dispatch(
+            client,
+            device=device,
+            plan=CommandDispatchPlan(
+                route="group_direct",
+                command="POWER_ON",
+                properties=None,
+                member_fallback_id="03ab111111111111",
+            ),
+        )
+
+    logger.warning.assert_called_once()
+    assert logger.warning.call_args.args == (
+        "Group command %s to %s failed (%s), fallback to member %s",
+        "POWER_ON",
+        "mesh***0001",
+        "LiproApiError(code=500)",
+        "03ab***1111",
+    )

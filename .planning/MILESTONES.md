@@ -1,5 +1,65 @@
 # Milestones
 
+<!-- governance-route-contract:start -->
+```yaml
+contract_name: governance-route
+projection_targets:
+- .planning/PROJECT.md
+- .planning/ROADMAP.md
+- .planning/REQUIREMENTS.md
+- .planning/STATE.md
+- .planning/MILESTONES.md
+active_milestone:
+  version: v1.42
+  name: Hotspot Burn-Down, Observability Truth & Governance Cost Compression
+  status: active / phase 137 complete; closeout-ready (2026-04-02)
+  phase: '137'
+  phase_title: hotspot burn-down, command/observability convergence, and governance
+    derivation compression
+  phase_dir: 137-hotspot-burn-down-command-observability-and-governance-compression
+  route_mode: v1.42 active milestone route / starting from latest archived baseline
+    = v1.41
+latest_archived:
+  version: v1.41
+  name: Terminal Residual Audit, Remediation Charter & Maintainability Hardening
+  status: archived / evidence-ready (2026-04-02)
+  phase: '136'
+  phase_title: repo-wide terminal residual audit, hygiene fixes, and remediation charter
+  phase_dir: 136-repo-wide-terminal-residual-audit-and-remediation-charter
+  audit_path: .planning/v1.41-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_41_EVIDENCE_INDEX.md
+  evidence_label: latest archived evidence index
+previous_archived:
+  version: v1.40
+  name: Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening
+  evidence_path: .planning/reviews/V1_40_EVIDENCE_INDEX.md
+bootstrap:
+  current_route: v1.42 active milestone route / starting from latest archived baseline
+    = v1.41
+  default_next_command: $gsd-complete-milestone v1.42
+  latest_archived_evidence_pointer: .planning/reviews/V1_41_EVIDENCE_INDEX.md
+contract_version: 1
+```
+<!-- governance-route-contract:end -->
+## Current Milestone (v1.42)
+
+## v1.42 Hotspot Burn-Down, Observability Truth & Governance Cost Compression (Active: 2026-04-02)
+
+**Status:** `active / phase 137 complete; closeout-ready (2026-04-02)`
+**Current route:** `v1.42 active milestone route / starting from latest archived baseline = v1.41`
+**Phase range:** `137 -> 137`
+**Progress:** `1/1 phases, 3/3 plans`
+**Default next command:** `$gsd-complete-milestone v1.42`
+**Latest archived pointer:** `.planning/reviews/V1_41_EVIDENCE_INDEX.md`
+**Archived audit reference:** `.planning/v1.41-MILESTONE-AUDIT.md`
+**Starting baseline:** `.planning/v1.41-MILESTONE-AUDIT.md, .planning/reviews/V1_41_EVIDENCE_INDEX.md, .planning/milestones/v1.41-ROADMAP.md, .planning/milestones/v1.41-REQUIREMENTS.md`
+**Requirements basket:** `ARC-46, HOT-67, HOT-68, HOT-69, OBS-01, GOV-92, DOC-20, TST-57`
+**Archive state:** `latest archived baseline inherited / phase closeout-ready`
+
+**Completed phase story:**
+
+- `Phase 137`: hotspot burn-down, command/observability convergence, and governance derivation compression ✅ (`137-01` governance/docs/test contract hardening + `137-02` protocol/rest/auth hotspot decomposition + `137-03` device/command/observability hardening completed; `137-01..03-SUMMARY.md`, `137-SUMMARY.md`, `137-VERIFICATION.md` recorded)
+
 ## Latest Archived Milestone (v1.41)
 
 ## v1.41 Terminal Residual Audit, Remediation Charter & Maintainability Hardening (Shipped: 2026-04-02)
@@ -8,7 +68,7 @@
 **Current route:** `no active milestone route / latest archived baseline = v1.41`
 **Phase range:** `136 -> 136`
 **Progress:** `1/1 phases, 3/3 plans`
-**Default next command:** `$gsd-new-milestone`
+**Default next command:** `$gsd-complete-milestone v1.42`
 **Latest archived pointer:** `.planning/reviews/V1_41_EVIDENCE_INDEX.md`
 **Archived audit reference:** `.planning/v1.41-MILESTONE-AUDIT.md`
 **Archived snapshots:** `.planning/milestones/v1.41-ROADMAP.md`, `.planning/milestones/v1.41-REQUIREMENTS.md`
@@ -28,7 +88,7 @@
 **Current route:** `no active milestone route / latest archived baseline = v1.40`
 **Phase range:** `134 -> 135`
 **Progress:** `2/2 phases, 6/6 plans`
-**Default next command:** `$gsd-new-milestone`
+**Default next command:** `$gsd-complete-milestone v1.42`
 **Latest archived pointer:** `.planning/reviews/V1_40_EVIDENCE_INDEX.md`
 **Archived audit reference:** `.planning/v1.40-MILESTONE-AUDIT.md`
 **Archived snapshots:** `.planning/milestones/v1.40-ROADMAP.md`, `.planning/milestones/v1.40-REQUIREMENTS.md`
@@ -105,37 +165,6 @@
 
 > Machine-readable bootstrap truth now lives in the shared `governance-route` contract block below; milestone chronology remains human-readable archive history instead of the parser-visible selector.
 
-<!-- governance-route-contract:start -->
-```yaml
-contract_version: 1
-contract_name: governance-route
-projection_targets:
-- .planning/PROJECT.md
-- .planning/ROADMAP.md
-- .planning/REQUIREMENTS.md
-- .planning/STATE.md
-- .planning/MILESTONES.md
-active_milestone: null
-latest_archived:
-  version: v1.41
-  name: Terminal Residual Audit, Remediation Charter & Maintainability Hardening
-  status: archived / evidence-ready (2026-04-02)
-  phase: '136'
-  phase_title: repo-wide terminal residual audit, hygiene fixes, and remediation charter
-  phase_dir: 136-repo-wide-terminal-residual-audit-and-remediation-charter
-  audit_path: .planning/v1.41-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_41_EVIDENCE_INDEX.md
-  evidence_label: latest archived evidence index
-previous_archived:
-  version: v1.40
-  name: Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening
-  evidence_path: .planning/reviews/V1_40_EVIDENCE_INDEX.md
-bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.41
-  default_next_command: $gsd-new-milestone
-  latest_archived_evidence_pointer: .planning/reviews/V1_41_EVIDENCE_INDEX.md
-```
-<!-- governance-route-contract:end -->
 ## Archived Chronology Appendix
 
 

@@ -2,15 +2,14 @@
 
 ## Milestones
 
+- 🚧 **v1.42 Hotspot Burn-Down, Observability Truth & Governance Cost Compression** - `Phase 137 -> 137` active on 2026-04-02; current route = `v1.42 active milestone route / starting from latest archived baseline = v1.41`; latest archived evidence index = `.planning/reviews/V1_41_EVIDENCE_INDEX.md`
 - ✅ **v1.41 Terminal Residual Audit, Remediation Charter & Maintainability Hardening** - `Phase 136 -> 136` archived on 2026-04-02; historical closeout route truth = `no active milestone route / latest archived baseline = v1.41`; evidence index = `.planning/reviews/V1_41_EVIDENCE_INDEX.md`
 - ✅ **v1.40 Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening** - `Phase 134 -> 135` archived on 2026-04-02; historical closeout route truth = `no active milestone route / latest archived baseline = v1.40`; evidence index = `.planning/reviews/V1_40_EVIDENCE_INDEX.md`
 - ✅ **v1.39 Governance Recovery, Runtime Consistency & Public Contract Correction** - `Phase 133 -> 133` archived on 2026-04-02; historical closeout route truth = `no active milestone route / latest archived baseline = v1.39`; evidence index = `.planning/reviews/V1_39_EVIDENCE_INDEX.md`
 - ✅ **v1.38 Governance Story Compression, Archive Segregation & Public Entry Simplification** - `Phase 132 -> 132` archived on 2026-04-02; historical closeout route truth = `no active milestone route / latest archived baseline = v1.38`; evidence index = `.planning/reviews/V1_38_EVIDENCE_INDEX.md`
-- ✅ **v1.37 Repo-Wide Terminal Audit, Hotspot Decomposition & Governance Continuity Decisions** - `Phase 129 -> 131` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.37`; evidence index = `.planning/reviews/V1_37_EVIDENCE_INDEX.md`
 
 <!-- governance-route-contract:start -->
 ```yaml
-contract_version: 1
 contract_name: governance-route
 projection_targets:
 - .planning/PROJECT.md
@@ -18,7 +17,16 @@ projection_targets:
 - .planning/REQUIREMENTS.md
 - .planning/STATE.md
 - .planning/MILESTONES.md
-active_milestone: null
+active_milestone:
+  version: v1.42
+  name: Hotspot Burn-Down, Observability Truth & Governance Cost Compression
+  status: active / phase 137 complete; closeout-ready (2026-04-02)
+  phase: '137'
+  phase_title: hotspot burn-down, command/observability convergence, and governance
+    derivation compression
+  phase_dir: 137-hotspot-burn-down-command-observability-and-governance-compression
+  route_mode: v1.42 active milestone route / starting from latest archived baseline
+    = v1.41
 latest_archived:
   version: v1.41
   name: Terminal Residual Audit, Remediation Charter & Maintainability Hardening
@@ -34,24 +42,60 @@ previous_archived:
   name: Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening
   evidence_path: .planning/reviews/V1_40_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.41
-  default_next_command: $gsd-new-milestone
+  current_route: v1.42 active milestone route / starting from latest archived baseline
+    = v1.41
+  default_next_command: $gsd-complete-milestone v1.42
   latest_archived_evidence_pointer: .planning/reviews/V1_41_EVIDENCE_INDEX.md
+contract_version: 1
 ```
 <!-- governance-route-contract:end -->
 ## Overview
 
-`v1.41` 已完成 repo-wide terminal residual audit、remediation charter 与首批 focused hygiene fixes，并在 closeout 后提升为 latest archived baseline。
+`v1.42` 直接继承 `v1.41` 的终极审阅与 remediation charter，不再重复浅层 audit，而是把已识别的 sanctioned hotspots 与 governance cost 一次性转为唯一 active execution route。
 
-**Coverage:** `6/6` `v1.41` requirements complete in `Phase 136`.
-**Default next command:** `$gsd-new-milestone`
+**Coverage:** `8/8` `v1.42` requirements complete in `Phase 137`.
+**Default next command:** `$gsd-complete-milestone v1.42`
+
+## Current Milestone
+
+## v1.42: Hotspot Burn-Down, Observability Truth & Governance Cost Compression
+
+**Milestone status:** `active / phase 137 complete; closeout-ready (2026-04-02)`
+**Default next command:** `$gsd-complete-milestone v1.42`
+**Current route story:** `v1.42 active milestone route / starting from latest archived baseline = v1.41`
+**Latest archived pointer:** `.planning/reviews/V1_41_EVIDENCE_INDEX.md`
+**Latest archived audit artifact:** `.planning/v1.41-MILESTONE-AUDIT.md`
+**Archived snapshots:** `.planning/milestones/v1.41-ROADMAP.md`, `.planning/milestones/v1.41-REQUIREMENTS.md`
+**Promoted phase evidence allowlist:** `.planning/reviews/PROMOTED_PHASE_ASSETS.md`
+**Current phase handoff:** `Phase 137 的 3 份计划、3 份计划摘要、phase summary 与 verification 已闭环；当前 milestone 处于 closeout-ready，下一步直接执行 $gsd-complete-milestone v1.42。`
+
+## Phases
+
+- [x] **Phase 137: hotspot burn-down, command/observability convergence, and governance derivation compression** - 已完成 `137-01` governance/docs/test contract hardening、`137-02` protocol/rest/auth hotspot decomposition、`137-03` device/command/observability hardening，并产出 closeout-ready summaries/verification。 (complete 2026-04-02)
+
+## Phase Details
+
+### Phase 137: hotspot burn-down, command/observability convergence, and governance derivation compression
+
+**Goal:** 把 v1.41 审阅章程中的 WS-01 ~ WS-06 收敛到一个 machine-checkable 的 active phase：先压低 governance derivation tax 与 semantic-guard blind spot，再处理 mega-facade / auth hotspot，最后同步压缩 device relay wall、typed command semantics 与 connect-status observability。
+**Depends on:** none
+**Requirements**: `ARC-46`, `HOT-67`, `HOT-68`, `HOT-69`, `OBS-01`, `GOV-92`, `DOC-20`, `TST-57`
+**Success Criteria** (what must be TRUE):
+  1. runbook/developer docs/current-route guards 对 latest archived pointer 与 current selector 的断言必须只有单一 canonical 角色，不允许“新旧 pointer 同页共存也算通过”。
+  2. `core/api/rest_facade.py` 与 `core/protocol/facade.py` 必须继续减少 manual delegation wall / rebinding seam，但不能回退到 mixin、compat shell 或第二 public import chain。
+  3. `core/auth/manager.py` 必须把 token/credential/refresh/relogin/adaptive-expiry 的职责边界收紧；新增行为不得继续堆进 manager monolith。
+  4. `core/device/device.py` 与 `core/command/dispatch.py` 必须把 relay wall / stringly route grammar 进一步数据化、typed 化，fallback 语义与 trace 一致。
+  5. `core/api/status_service.py` 及相关调用链必须显式区分 connect-status 查询失败 vs 真空结果，并继续遵守 log-safety。
+  6. `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES`、registry、verification baseline、developer/runbook note 与 focused meta guards 必须共同承认 `v1.42 active milestone route / starting from latest archived baseline = v1.41`。
+  7. `uv run pytest` focused suites、route guards、`uv run ruff check` 与必要的 governance checks 必须证明本轮 deliverable 是真实收口，而非临时修补。
+**Plans**: 3 planned / 3 completed — summaries captured; next = `$gsd-complete-milestone v1.42`
 
 ## Latest Archived Milestone
 
 ## v1.41: Terminal Residual Audit, Remediation Charter & Maintainability Hardening
 
 **Milestone status:** `archived / evidence-ready (2026-04-02)`
-**Default next command:** `$gsd-new-milestone`
+**Default next command:** `$gsd-complete-milestone v1.42`
 **Current route story:** `no active milestone route / latest archived baseline = v1.41`
 **Latest archived pointer:** `.planning/reviews/V1_41_EVIDENCE_INDEX.md`
 **Latest archived audit artifact:** `.planning/v1.41-MILESTONE-AUDIT.md`
@@ -75,65 +119,13 @@ bootstrap:
   2. `V1_41_REMEDIATION_CHARTER.md` 必须把热点按 severity、formal home、delete gate 与后续计划分流，明确哪些已修复、哪些仍需后续 phase。
   3. 首批生产修复必须至少覆盖一类策略漂移：本轮选定 vendor-crypto helper 统一与 log-safety placeholder 一致性。
   4. `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES`、registry、verification baseline、developer/runbook note 与 current-route guards 必须共同承认 `v1.41 active milestone route / starting from latest archived baseline = v1.40`。
-  5. phase assets、focused tests 与 `uv run ruff check` 必须证明本轮 deliverable 不是文档空转，而是可回放的 closeout-ready current route。 
+  5. phase assets、focused tests 与 `uv run ruff check` 必须证明本轮 deliverable 不是文档空转，而是可回放的 closeout-ready current route。
 **Plans**: 3/3 complete — `136-01` audit+charter、`136-02` hygiene fixes、`136-03` governance route sync
 **Execution summaries**: `136-01-SUMMARY.md`, `136-02-SUMMARY.md`, `136-03-SUMMARY.md`, `136-SUMMARY.md`
 **Verification**: `136-VERIFICATION.md`
 **Validation**: `136-VALIDATION.md`
 
-## Latest Archived Milestone
-
-## v1.40: Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening
-
-**Milestone status:** `archived / evidence-ready (2026-04-02)`
-**Default next command:** `$gsd-new-milestone`
-**Current route story:** `no active milestone route / latest archived baseline = v1.40`
-**Starting baseline:** `.planning/v1.39-MILESTONE-AUDIT.md, .planning/reviews/V1_39_EVIDENCE_INDEX.md, .planning/milestones/v1.39-ROADMAP.md, .planning/milestones/v1.39-REQUIREMENTS.md`
-**Latest archived baseline:** `v1.40`
-**Latest archived pointer:** `.planning/reviews/V1_40_EVIDENCE_INDEX.md`
-**Latest archived audit artifact:** `.planning/v1.40-MILESTONE-AUDIT.md`
-**Promoted phase evidence allowlist:** `.planning/reviews/PROMOTED_PHASE_ASSETS.md`
-**Current phase handoff:** `Milestone closeout complete；Phase 134 -> 135 的 summary / verification / validation / audit / evidence index 已冻结为 latest archived baseline truth。`
-**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.40`
-**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.39`
-
-## Phases
-
-- [x] **Phase 134: request-policy ownership, entity de-reflection, and fan truth hardening** - 已完成 `134-01` request-policy ownership convergence、`134-02` entity de-reflection + fan truth correction、`134-03` docs/guards/tests/verification sync。 (complete 2026-04-02)
-- [x] **Phase 135: runtime-access projection split, auth reason typing, and dispatch route hardening** - 已完成 `135-01` runtime-access projection split、`135-02` auth reason typing + dispatch route typing、`135-03` docs/guards/route sync；当前 milestone 重新回到 closeout-ready。 (complete 2026-04-02)
-
-## Phase Details
-
-### Phase 134: request-policy ownership, entity de-reflection, and fan truth hardening
-
-**Requirements**: `GOV-90`, `ARC-43`, `HOT-62`, `HOT-63`, `QLT-56`, `TST-54`
-**Success Criteria** (what must be TRUE):
-  1. `RequestPolicy` 必须把 pacing caches / busy counters / target locks 收回单一实例 owner，module-level mutating pacing entry 不再作为第二条正式主链。
-  2. `request_policy_support.py` 的 pacing helpers 必须围绕 `_CommandPacingCaches` bundle 协作，不再在 support surface 里搬运多组并行 dict state。
-  3. `entities/descriptors.py`、`light.py` 与 `binary_sensor.py` 不再依赖 dotted-path/getattr 反射；entity projection 改为显式 resolver / state reader。
-  4. `fan.py` 的 unknown `fanMode` 不再伪装成 `cycle`；preset 与 supported-features 投影必须保持 truthful 一致。
-  5. closeout 后 current governance docs、developer/runbook route note、follow-up guards 与 phase assets 必须共同承认 `no active milestone route / latest archived baseline = v1.40` 与 `$gsd-new-milestone`。
-  6. focused tests / meta guards / ruff 必须通过，且 phase assets 足以支撑 `$gsd-next` 等价收敛到 `$gsd-complete-milestone v1.40`。
-**Plans**: 3 planned — `134-01` request-policy ownership convergence、`134-02` entity de-reflection + fan truth correction、`134-03` docs/guards/tests/verification sync
-**Planning summaries**: `134-01-SUMMARY.md`, `134-02-SUMMARY.md`, `134-03-SUMMARY.md`, `134-SUMMARY.md`
-**Verification**: `134-VERIFICATION.md`
-**Validation**: `134-VALIDATION.md`
-
-### Phase 135: runtime-access projection split, auth reason typing, and dispatch route hardening
-
-**Requirements**: `ARC-44`, `HOT-64`, `HOT-65`, `HOT-66`, `QLT-57`, `TST-55`
-**Success Criteria** (what must be TRUE):
-  1. `runtime_access.py` 必须继续薄化为 outward import home；runtime snapshot / diagnostics projection coercion 回到 support surface。
-  2. `runtime_types.py` / `auth_service.py` / `services/execution.py` 必须围绕单一 `RuntimeReauthReason` contract 协作，不再把 reauth reason 继续保留为裸字符串约定。
-  3. `dispatch.py` / sender / runtime command path 的 route contract 必须采用 enum-backed canonical form，阻断 stringly drift。
-  4. 新增 typed contract / support split 后，focused tests / meta guards / ruff 必须通过，且不引入新的 compat root。
-  5. current governance docs、registry、verification matrix 与 phase assets 必须共同承认 `Phase 135 complete; closeout-ready` 与 `$gsd-complete-milestone v1.40`。
-  6. `$gsd-next` 的等价结果必须重新回到 `$gsd-complete-milestone v1.40`，而不是留在 half-reopened 中间态。
-**Plans**: 3 planned — `135-01` runtime-access projection split、`135-02` auth reason typing + dispatch route typing、`135-03` docs/guards/route sync
-**Planning summaries**: `135-01-SUMMARY.md`, `135-02-SUMMARY.md`, `135-03-SUMMARY.md`, `135-SUMMARY.md`
-**Verification**: `135-VERIFICATION.md`
-**Validation**: `135-VALIDATION.md`
-
+## Previous Archived Milestone
 ## Previous Archived Milestone
 
 

@@ -1,19 +1,19 @@
 # Verification Matrix
 
 **Purpose:** 建立 requirement → artifact → test → doc → phase acceptance / handoff 的统一验证闭环。
-**Current route selector:** `no active milestone route / latest archived baseline = v1.41`
-**Default next command:** `$gsd-new-milestone`
+**Current route selector:** `v1.42 active milestone route / starting from latest archived baseline = v1.41`
+**Default next command:** `$gsd-complete-milestone v1.42`
 **Latest archived pointer:** `.planning/reviews/V1_41_EVIDENCE_INDEX.md`
 **Status:** Formal baseline asset (`BASE-03` phase acceptance truth source)
-**Updated:** 2026-04-02 (v1.41 archived-route aligned)
+**Updated:** 2026-04-02 (v1.42 phase 137 closeout-ready)
 
 ## Formal Role
 
 ## Current Route
 
-- **Current route story:** `no active milestone route / latest archived baseline = v1.41`
-- **Current milestone status:** `archived / evidence-ready (2026-04-02)`
-- **Default next command:** `$gsd-new-milestone`
+- **Current route story:** `v1.42 active milestone route / starting from latest archived baseline = v1.41`
+- **Current milestone status:** `active / phase 137 complete; closeout-ready (2026-04-02)`
+- **Default next command:** `$gsd-complete-milestone v1.42`
 - **Latest archived pointer:** `.planning/reviews/V1_41_EVIDENCE_INDEX.md`
 - **Carry-forward audit anchors:** `.planning/reviews/V1_41_EVIDENCE_INDEX.md`, `.planning/v1.41-MILESTONE-AUDIT.md`
 - **Focused guards:** `tests/meta/governance_followup_route_current_milestones.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/test_governance_release_contract.py`, `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_guards.py`, `tests/meta/test_governance_release_docs.py`, `tests/meta/test_version_sync.py`, `tests/meta/test_dependency_guards.py`, `tests/meta/test_public_surface_guards.py`, `tests/meta/test_runtime_contract_truth.py`, `tests/meta/toolchain_truth_checker_paths.py`, `tests/meta/test_phase89_tooling_decoupling_guards.py`, `tests/core/test_auth.py`, `tests/core/api/test_api.py`, `tests/services/test_services_schedule.py`, `tests/core/test_outlet_power_runtime.py`

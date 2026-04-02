@@ -175,7 +175,15 @@
       ".planning/STATE.md",
       ".planning/MILESTONES.md"
     ],
-    "active_milestone": null,
+    "active_milestone": {
+      "version": "v1.42",
+      "name": "Hotspot Burn-Down, Observability Truth & Governance Cost Compression",
+      "status": "active / phase 137 complete; closeout-ready (2026-04-02)",
+      "phase": "137",
+      "phase_title": "hotspot burn-down, command/observability convergence, and governance derivation compression",
+      "phase_dir": "137-hotspot-burn-down-command-observability-and-governance-compression",
+      "route_mode": "v1.42 active milestone route / starting from latest archived baseline = v1.41"
+    },
     "latest_archived": {
       "version": "v1.41",
       "name": "Terminal Residual Audit, Remediation Charter & Maintainability Hardening",
@@ -193,8 +201,8 @@
       "evidence_path": ".planning/reviews/V1_40_EVIDENCE_INDEX.md"
     },
     "bootstrap": {
-      "current_route": "no active milestone route / latest archived baseline = v1.41",
-      "default_next_command": "$gsd-new-milestone",
+      "current_route": "v1.42 active milestone route / starting from latest archived baseline = v1.41",
+      "default_next_command": "$gsd-complete-milestone v1.42",
       "latest_archived_evidence_pointer": ".planning/reviews/V1_41_EVIDENCE_INDEX.md"
     },
     "contract_version": 1

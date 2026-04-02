@@ -1,7 +1,10 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `v1.41 archived / evidence-ready` (`2026-04-02`)
-> **Current route alignment**: `no active milestone route / latest archived baseline = v1.41` (`2026-04-02`, archived / evidence-ready (2026-04-02))
+> **Last aligned through**: `v1.42 active / phase 137 complete; closeout-ready` (`2026-04-02`)
+> **Current route alignment**: `v1.42 active milestone route / starting from latest archived baseline = v1.41` (`2026-04-02`, active / phase 137 complete; closeout-ready (2026-04-02))
+> **Default next command**: `$gsd-complete-milestone v1.42`
+> **Latest archived evidence path**: `.planning/reviews/V1_41_EVIDENCE_INDEX.md`
+> **Latest archived audit path**: `.planning/v1.41-MILESTONE-AUDIT.md`
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
@@ -13,13 +16,13 @@
 
 - 先看下方的“快速导航”“五大平面”“当前正式主链”，这是 current-topology first hop。
 - historical freeze / typed-boundary / sanitizer / assurance notes 已下沉到 `docs/architecture_archive.md`，作为 pull-only appendix 供回溯，不再占据当前开发入口主线。
-- predecessor archive selector note 仍可在本文回溯到：`no active milestone route / latest archived baseline = v1.34`；这只是历史锚点，不再代表当前 live route。
+- predecessor archive selector notes 已全部下沉到 `docs/architecture_archive.md`；当前 first hop 不再混入 retired route tokens。
 
 ## Current Route Compression
 
-- `v1.41 / Phase 136` 已把 developer first hop 从“仅指向 archived baseline”推进到“active route + latest archived anchor”双层结构：当前 live route 负责 terminal audit / hygiene fixes / remediation charter，latest archived baseline `v1.40` 只承担 pull-only evidence anchor。
-- 本轮审查确认了几类仍需后续 phase 继续拆解的 sanctioned hotspots：`core/api/rest_facade.py`、`core/protocol/facade.py`、`core/auth/manager.py`、`core/device/device.py` 与 `core/command/dispatch.py`；但同时已落实首批生产清理，统一 vendor-crypto helper 与部分异常日志脱敏策略。
-- 当前开发入口应优先关注 active route 正在冻结的 artifacts：`V1_41_TERMINAL_AUDIT_REPORT.md`、`V1_41_REMEDIATION_CHARTER.md`、`dispatch.py`、`auth_manager.py`、`rest_facade.py` 与 `runtime/coordinator` 的 formal homes；避免重新把审查结论散落回临时对话或第二条治理故事线。
+- `v1.42 / Phase 137` 已完成 developer first-hop 的 burn-down 收口：当前 live route 现记录已交付的 hotspot compression / command-observability convergence / governance sync，latest archived baseline `v1.41` 继续只承担 pull-only evidence anchor。
+- 当前 live route 已把 sanctioned hotspots 收口为 closeout-ready deliverables：`core/protocol/rest_port.py`、`core/auth/manager.py`、`core/auth/manager_support.py`、`core/command/dispatch.py`、`core/api/status_service.py`、`core/device/device.py` 与 governance semantic guards 已形成单一执行证据链。
+- 当前开发入口应优先关注 closeout-ready artifacts：`.planning/phases/137-hotspot-burn-down-command-observability-and-governance-compression/{137-01-SUMMARY.md,137-02-SUMMARY.md,137-03-SUMMARY.md,137-SUMMARY.md,137-VERIFICATION.md}`、`dispatch.py`、`manager.py`、`rest_port.py`、`status_service.py`、`device.py` 与 governance route selector family；避免重新把审查结论散落回临时对话或第二条治理故事线。
 
 ## 快速导航
 

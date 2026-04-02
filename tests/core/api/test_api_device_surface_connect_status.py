@@ -18,36 +18,49 @@ class TestLiproRestFacadeConnectStatus:
         """Bool/int/string variants should be normalized to bool."""
         client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
+        requested_ids = [
+            "03ab5ccd7caaa001",
+            "03ab5ccd7caaa002",
+            "03ab5ccd7caaa003",
+            "03ab5ccd7caaa004",
+            "03ab5ccd7caaa005",
+            "03ab5ccd7caaa006",
+            "03ab5ccd7caaa007",
+            "03ab5ccd7caaa008",
+            "03ab5ccd7caaa009",
+            "03ab5ccd7caaa00a",
+        ]
 
         with patch.object(
             client, "_iot_request", new_callable=AsyncMock
         ) as mock_request:
             mock_request.return_value = {
-                "dev_bool_true": True,
-                "dev_bool_false": False,
-                "dev_int_one": 1,
-                "dev_int_zero": 0,
-                "dev_str_one": "1",
-                "dev_str_zero": "0",
-                "dev_str_true": "true",
-                "dev_str_false": "false",
-                "dev_yes": "yes",
-                "dev_off": "off",
+                requested_ids[0]: True,
+                requested_ids[1]: False,
+                requested_ids[2]: 1,
+                requested_ids[3]: 0,
+                requested_ids[4]: "1",
+                requested_ids[5]: "0",
+                requested_ids[6]: "true",
+                requested_ids[7]: "false",
+                requested_ids[8]: "yes",
+                requested_ids[9]: "off",
+                "03ab5ccd7cfffffe": True,
             }
 
-            result = await client.query_connect_status(["03ab5ccd7caaaaaa"])
+            result = await client.query_connect_status(requested_ids)
 
         assert result == {
-            "dev_bool_true": True,
-            "dev_bool_false": False,
-            "dev_int_one": True,
-            "dev_int_zero": False,
-            "dev_str_one": True,
-            "dev_str_zero": False,
-            "dev_str_true": True,
-            "dev_str_false": False,
-            "dev_yes": True,
-            "dev_off": False,
+            requested_ids[0]: True,
+            requested_ids[1]: False,
+            requested_ids[2]: True,
+            requested_ids[3]: False,
+            requested_ids[4]: True,
+            requested_ids[5]: False,
+            requested_ids[6]: True,
+            requested_ids[7]: False,
+            requested_ids[8]: True,
+            requested_ids[9]: False,
         }
 
     @pytest.mark.asyncio
@@ -69,22 +82,28 @@ class TestLiproRestFacadeConnectStatus:
         """Unknown backend variants should be treated as offline."""
         client = LiproRestFacade("550e8400-e29b-41d4-a716-446655440000")
         client.set_tokens("access", "refresh")
+        requested_ids = [
+            "03ab5ccd7cbbb001",
+            "03ab5ccd7cbbb002",
+            "03ab5ccd7cbbb003",
+        ]
 
         with patch.object(
             client, "_iot_request", new_callable=AsyncMock
         ) as mock_request:
             mock_request.return_value = {
-                "dev_unknown_str": "offline",
-                "dev_unknown_obj": {"status": "up"},
-                "dev_none": None,
+                requested_ids[0]: "offline",
+                requested_ids[1]: {"status": "up"},
+                requested_ids[2]: None,
+                "03ab5ccd7cfffffd": "1",
             }
 
-            result = await client.query_connect_status(["03ab5ccd7caaaaaa"])
+            result = await client.query_connect_status(requested_ids)
 
         assert result == {
-            "dev_unknown_str": False,
-            "dev_unknown_obj": False,
-            "dev_none": False,
+            requested_ids[0]: False,
+            requested_ids[1]: False,
+            requested_ids[2]: False,
         }
 
     @pytest.mark.asyncio

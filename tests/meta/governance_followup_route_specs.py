@@ -28,10 +28,12 @@ class RequirementTrace:
     requirement_id: str
     phase: str
     status: str = "Complete"
+    checked: bool = True
 
     @property
     def checkbox_marker(self) -> str:
-        return f"- [x] **{self.requirement_id}**"
+        mark = "x" if self.checked else " "
+        return f"- [{mark}] **{self.requirement_id}**"
 
     @property
     def table_marker(self) -> str:

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from unittest.mock import patch
+
 import pytest
 
 from custom_components.lipro.core.capability import CapabilitySnapshot
@@ -280,3 +282,27 @@ def test_lipro_device_unknown_attribute_raises_attribute_error(make_device) -> N
 
     with pytest.raises(AttributeError, match="has no attribute"):
         _ = device.not_a_real_attribute
+
+
+def test_lipro_device_outlet_power_info_copies_payload_and_clears_legacy_sidecar(make_device) -> None:
+    device = make_device("outlet", extra_data={"power_info": {"voltage": 220}})
+    payload = {"voltage": 220, "power": 10}
+
+    device.outlet_power_info = payload
+    payload["power"] = 20
+
+    assert device.outlet_power_info == {"voltage": 220, "power": 10}
+    assert "power_info" not in device.extra_data
+
+
+def test_lipro_device_recent_mqtt_update_window(make_device) -> None:
+    device = make_device("light")
+
+    assert device.has_recent_mqtt_update() is False
+
+    device.mark_mqtt_update(timestamp=100.0)
+
+    with patch("custom_components.lipro.core.device.device.monotonic", return_value=250.0):
+        assert device.has_recent_mqtt_update(stale_window_seconds=180.0) is True
+    with patch("custom_components.lipro.core.device.device.monotonic", return_value=281.0):
+        assert device.has_recent_mqtt_update(stale_window_seconds=180.0) is False
