@@ -5,7 +5,6 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Mapping
 from dataclasses import dataclass
-import hashlib
 import logging
 import time
 from typing import TYPE_CHECKING
@@ -22,6 +21,7 @@ from ...const.config import CONF_ACCESS_TOKEN, CONF_REFRESH_TOKEN, CONF_USER_ID
 from ..api import LiproAuthError, LiproRefreshTokenExpiredError
 from ..protocol import LiproProtocolFacade
 from ..utils.log_safety import safe_error_placeholder
+from ..utils.vendor_crypto import md5_compat_hexdigest
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -159,9 +159,7 @@ class LiproAuthManager:
         if password_is_hashed:
             self._password = password
         else:
-            self._password = hashlib.md5(
-                password.encode("utf-8"), usedforsecurity=False
-            ).hexdigest()
+            self._password = md5_compat_hexdigest(password)
         self._password_is_hashed = True
 
     def set_tokens(

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import cast
 from unittest.mock import AsyncMock, Mock, call
 
 import pytest
@@ -16,6 +17,7 @@ from custom_components.lipro.core.coordinator.runtime.outlet_power_runtime impor
     resolve_outlet_power_cycle_size,
 )
 from custom_components.lipro.core.device import LiproDevice
+from custom_components.lipro.core.utils.log_safety import safe_error_placeholder
 
 
 def _make_device(*, name: str = "Test Outlet") -> LiproDevice:
@@ -125,7 +127,7 @@ async def test_query_outlet_power_returns_index_when_truthy_iterable_expands_emp
     fetch = AsyncMock()
 
     updated = await query_outlet_power(
-        outlet_ids_to_query=_TruthyEmptyIterable(),  # type: ignore[arg-type]
+        outlet_ids_to_query=cast(list[str], _TruthyEmptyIterable()),
         round_robin_index=11,
         resolve_cycle_size=lambda _: 3,
         fetch_outlet_power_info=fetch,
@@ -258,7 +260,11 @@ async def test_query_single_outlet_power_swallows_non_retryable_api_errors() -> 
         logger=logger,
     )
 
-    logger.debug.assert_called_once()
+    logger.debug.assert_called_once_with(
+        "Failed to query power for %s: %s",
+        "abc",
+        safe_error_placeholder(LiproApiError("boom", 500)),
+    )
 
 
 @pytest.mark.asyncio

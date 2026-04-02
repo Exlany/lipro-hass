@@ -1,5 +1,21 @@
 # Milestones
 
+## v1.41 Terminal Residual Audit, Remediation Charter & Maintainability Hardening (Active: 2026-04-02)
+
+**Status:** `active / phase 136 complete; closeout-ready (2026-04-02)`
+**Current route:** `v1.41 active milestone route / starting from latest archived baseline = v1.40`
+**Phase range:** `136 -> 136`
+**Progress:** `1/1 phases, 3/3 plans`
+**Default next command:** `$gsd-complete-milestone v1.41`
+**Latest archived pointer:** `.planning/reviews/V1_40_EVIDENCE_INDEX.md`
+**Archived audit reference:** `.planning/v1.40-MILESTONE-AUDIT.md`
+**Starting baseline snapshots:** `.planning/milestones/v1.40-ROADMAP.md`, `.planning/milestones/v1.40-REQUIREMENTS.md`
+**Current phase story:**
+
+- `Phase 136`: repo-wide terminal residual audit, hygiene fixes, and remediation charter ✅ (`136-01` terminal audit report + remediation charter + `136-02` vendor-crypto/log-safety hygiene fixes + `136-03` governance/docs/guards sync complete)
+
+## Latest Archived Milestone (v1.40)
+
 ## v1.40 Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening (Shipped: 2026-04-02)
 
 **Status:** `archived / evidence-ready (2026-04-02)`
@@ -11,6 +27,8 @@
 **Archived audit reference:** `.planning/v1.40-MILESTONE-AUDIT.md`
 **Archived snapshots:** `.planning/milestones/v1.40-ROADMAP.md`, `.planning/milestones/v1.40-REQUIREMENTS.md`
 **Archive state:** `archived snapshots created / handoff-ready`
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.40`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.39`
 
 **Shipped phase story:**
 
@@ -29,6 +47,8 @@
 **Latest archived pointer:** `.planning/reviews/V1_39_EVIDENCE_INDEX.md`
 **Archived audit:** `.planning/v1.39-MILESTONE-AUDIT.md`
 **Archived snapshots:** `.planning/milestones/v1.39-ROADMAP.md`, `.planning/milestones/v1.39-REQUIREMENTS.md`
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.39`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.38`
 
 **Archived phase story:**
 
@@ -44,8 +64,8 @@
 **Latest archived pointer:** `.planning/reviews/V1_38_EVIDENCE_INDEX.md`
 **Archived audit:** `.planning/v1.38-MILESTONE-AUDIT.md`
 **Archived snapshots:** `.planning/milestones/v1.38-ROADMAP.md`, `.planning/milestones/v1.38-REQUIREMENTS.md`
-**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.39`
-**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.38`
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.38`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.37`
 
 **Archived phase story:**
 
@@ -89,13 +109,20 @@ projection_targets:
 - .planning/REQUIREMENTS.md
 - .planning/STATE.md
 - .planning/MILESTONES.md
-active_milestone: null
+active_milestone:
+  version: v1.41
+  name: Terminal Residual Audit, Remediation Charter & Maintainability Hardening
+  status: active / phase 136 complete; closeout-ready (2026-04-02)
+  phase: '136'
+  phase_title: repo-wide terminal residual audit, hygiene fixes, and remediation charter
+  phase_dir: 136-repo-wide-terminal-residual-audit-and-remediation-charter
 latest_archived:
   version: v1.40
   name: Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening
   status: archived / evidence-ready (2026-04-02)
   phase: '135'
-  phase_title: runtime-access projection split, auth reason typing, and dispatch route hardening
+  phase_title: runtime-access projection split, auth reason typing, and dispatch route
+    hardening
   phase_dir: 135-runtime-access-auth-and-dispatch-contract-hardening
   audit_path: .planning/v1.40-MILESTONE-AUDIT.md
   evidence_path: .planning/reviews/V1_40_EVIDENCE_INDEX.md
@@ -105,8 +132,9 @@ previous_archived:
   name: Governance Recovery, Runtime Consistency & Public Contract Correction
   evidence_path: .planning/reviews/V1_39_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.40
-  default_next_command: $gsd-new-milestone
+  current_route: v1.41 active milestone route / starting from latest archived baseline
+    = v1.40
+  default_next_command: $gsd-complete-milestone v1.41
   latest_archived_evidence_pointer: .planning/reviews/V1_40_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->

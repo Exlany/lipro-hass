@@ -19,6 +19,7 @@ from ..api import (
 from ..device import LiproDevice
 from ..protocol import LiproProtocolFacade
 from ..utils.background_task_manager import BackgroundTaskManager
+from ..utils.log_safety import safe_error_placeholder
 from .mqtt.setup import build_mqtt_subscription_device_ids
 from .mqtt_lifecycle import async_setup_mqtt as setup_mqtt_lifecycle
 from .runtime.device.snapshot import RuntimeSnapshotRefreshRejectedError
@@ -61,7 +62,7 @@ def _raise_auth_update_failed(
 ) -> None:
     """Raise the canonical auth failure after recording telemetry."""
     telemetry_service.record_update_failure(err, stage="auth")
-    _LOGGER.error("Authentication failed: %s", err)
+    _LOGGER.error("Authentication failed: %s", safe_error_placeholder(err))
     error_message = f"Authentication failed: {err}"
     raise ConfigEntryAuthFailed(error_message) from err
 
@@ -72,7 +73,7 @@ def _raise_protocol_update_failed(
 ) -> None:
     """Raise the canonical protocol failure after recording telemetry."""
     telemetry_service.record_update_failure(err, stage="protocol")
-    _LOGGER.error("Update failed: %s", err)
+    _LOGGER.error("Update failed: %s", safe_error_placeholder(err))
     error_message = f"Update failed: {err}"
     raise UpdateFailed(error_message) from err
 
@@ -83,7 +84,10 @@ def _raise_runtime_update_failed(
 ) -> None:
     """Raise the canonical runtime failure after recording telemetry."""
     telemetry_service.record_update_failure(err, stage="runtime")
-    _LOGGER.warning("Device snapshot refresh rejected: %s", err)
+    _LOGGER.warning(
+        "Device snapshot refresh rejected: %s",
+        safe_error_placeholder(err),
+    )
     raise UpdateFailed(str(err)) from err
 
 

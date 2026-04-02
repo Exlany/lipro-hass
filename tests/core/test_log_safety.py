@@ -59,21 +59,21 @@ class TestSafeErrorPlaceholder:
 
     def test_bool_code_does_not_render_code(self) -> None:
         err = RuntimeError("token=secret")
-        err.code = True  # type: ignore[attr-defined]
+        err.code = True
         assert safe_error_placeholder(err) == "RuntimeError"
 
     def test_int_code_renders_marker(self) -> None:
         err = RuntimeError("boom")
-        err.code = 401  # type: ignore[attr-defined]
+        err.code = 401
         assert safe_error_placeholder(err) == "RuntimeError(code=401)"
 
     def test_str_code_renders_trimmed(self) -> None:
         err = RuntimeError("boom")
-        err.code = " 401 "  # type: ignore[attr-defined]
+        err.code = " 401 "
         assert safe_error_placeholder(err) == "RuntimeError(code=401)"
 
     def test_empty_code_falls_back_to_name(self) -> None:
         err = RuntimeError("boom")
-        err.code = " "  # type: ignore[attr-defined]
+        err.code = " "
         assert safe_error_placeholder(err) == "RuntimeError"
 

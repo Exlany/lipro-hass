@@ -192,8 +192,8 @@ async def test_aggregate_submit_report_combines_scoped_results() -> None:
     manager_two = aggregate.for_scope("entry-2")
     manager_one.set_enabled(True)
     manager_two.set_enabled(True)
-    manager_one.submit_report = AsyncMock(return_value=True)  # type: ignore[method-assign]
-    manager_two.submit_report = AsyncMock(return_value=False)  # type: ignore[method-assign]
+    manager_one.submit_report = AsyncMock(return_value=True)
+    manager_two.submit_report = AsyncMock(return_value=False)
 
     result = await aggregate.submit_report(MagicMock(spec=aiohttp.ClientSession), force=True)
 
@@ -211,8 +211,8 @@ async def test_aggregate_submit_if_needed_combines_scoped_results() -> None:
     manager_two = aggregate.for_scope("entry-2")
     manager_one.set_enabled(True)
     manager_two.set_enabled(True)
-    manager_one.submit_if_needed = AsyncMock(return_value=True)  # type: ignore[method-assign]
-    manager_two.submit_if_needed = AsyncMock(return_value=False)  # type: ignore[method-assign]
+    manager_one.submit_if_needed = AsyncMock(return_value=True)
+    manager_two.submit_if_needed = AsyncMock(return_value=False)
 
     result = await aggregate.submit_if_needed(MagicMock(spec=aiohttp.ClientSession))
 

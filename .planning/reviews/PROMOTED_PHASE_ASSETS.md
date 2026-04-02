@@ -672,3 +672,11 @@ policy:
   - 135-SUMMARY.md
   - 135-VERIFICATION.md
   - 135-VALIDATION.md
+
+  136-repo-wide-terminal-residual-audit-and-remediation-charter:
+  - 136-01-SUMMARY.md
+  - 136-02-SUMMARY.md
+  - 136-03-SUMMARY.md
+  - 136-SUMMARY.md
+  - 136-VERIFICATION.md
+  - 136-VALIDATION.md

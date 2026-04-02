@@ -176,7 +176,14 @@
       ".planning/STATE.md",
       ".planning/MILESTONES.md"
     ],
-    "active_milestone": null,
+    "active_milestone": {
+      "version": "v1.41",
+      "name": "Terminal Residual Audit, Remediation Charter & Maintainability Hardening",
+      "status": "active / phase 136 complete; closeout-ready (2026-04-02)",
+      "phase": "136",
+      "phase_title": "repo-wide terminal residual audit, hygiene fixes, and remediation charter",
+      "phase_dir": "136-repo-wide-terminal-residual-audit-and-remediation-charter"
+    },
     "latest_archived": {
       "version": "v1.40",
       "name": "Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening",
@@ -194,8 +201,8 @@
       "evidence_path": ".planning/reviews/V1_39_EVIDENCE_INDEX.md"
     },
     "bootstrap": {
-      "current_route": "no active milestone route / latest archived baseline = v1.40",
-      "default_next_command": "$gsd-new-milestone",
+      "current_route": "v1.41 active milestone route / starting from latest archived baseline = v1.40",
+      "default_next_command": "$gsd-complete-milestone v1.41",
       "latest_archived_evidence_pointer": ".planning/reviews/V1_40_EVIDENCE_INDEX.md"
     }
   }

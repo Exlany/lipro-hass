@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import hashlib
 import logging
 from typing import Protocol
 
 from ...const.api import PATH_LOGIN, PATH_REFRESH_TOKEN
+from ..utils.vendor_crypto import md5_compat_hexdigest
 from .types import JsonObject, JsonValue, LoginResponse
 
 
@@ -116,9 +116,7 @@ class AuthApiService:
     ) -> LoginResponse:
         """Login with phone number and password/hash."""
         password_hash = (
-            password
-            if password_is_hashed
-            else hashlib.md5(password.encode("utf-8"), usedforsecurity=False).hexdigest()
+            password if password_is_hashed else md5_compat_hexdigest(password)
         )
 
         result = await self._auth_port.smart_home_request(

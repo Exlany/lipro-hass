@@ -45,6 +45,14 @@ _STATE_TEXT = _SNAPSHOT.state
 _PHASE_TERMINAL = CURRENT_MILESTONE_PHASES[-1]
 
 _REQUIREMENT_TRACES_BY_MILESTONE = {
+    "v1.41": (
+        RequirementTrace("AUD-08", "136"),
+        RequirementTrace("GOV-91", "136"),
+        RequirementTrace("DOC-19", "136"),
+        RequirementTrace("ARC-45", "136"),
+        RequirementTrace("QLT-58", "136"),
+        RequirementTrace("TST-56", "136"),
+    ),
     "v1.40": (
         RequirementTrace("GOV-90", "134"),
         RequirementTrace("ARC-43", "134"),
@@ -92,6 +100,7 @@ _REQUIREMENT_TRACES_BY_MILESTONE = {
 }
 
 _COVERAGE_BY_MILESTONE = {
+    "v1.41": CoverageSnapshot("v1.41 requirements", 6, mapped=6, complete=6, pending=0),
     "v1.40": CoverageSnapshot("v1.40 requirements", 12, mapped=12, complete=12, pending=0),
     "v1.39": CoverageSnapshot("v1.39 requirements", 6, mapped=6, complete=6, pending=0),
     "v1.38": CoverageSnapshot("v1.38 requirements", 6, mapped=6, complete=6, pending=0),

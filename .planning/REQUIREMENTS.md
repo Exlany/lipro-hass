@@ -1,4 +1,4 @@
-# Requirements: Lipro-HASS v1.40
+# Requirements: Lipro-HASS v1.41
 
 <!-- governance-route-contract:start -->
 ```yaml
@@ -10,13 +10,20 @@ projection_targets:
 - .planning/REQUIREMENTS.md
 - .planning/STATE.md
 - .planning/MILESTONES.md
-active_milestone: null
+active_milestone:
+  version: v1.41
+  name: Terminal Residual Audit, Remediation Charter & Maintainability Hardening
+  status: active / phase 136 complete; closeout-ready (2026-04-02)
+  phase: '136'
+  phase_title: repo-wide terminal residual audit, hygiene fixes, and remediation charter
+  phase_dir: 136-repo-wide-terminal-residual-audit-and-remediation-charter
 latest_archived:
   version: v1.40
   name: Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening
   status: archived / evidence-ready (2026-04-02)
   phase: '135'
-  phase_title: runtime-access projection split, auth reason typing, and dispatch route hardening
+  phase_title: runtime-access projection split, auth reason typing, and dispatch route
+    hardening
   phase_dir: 135-runtime-access-auth-and-dispatch-contract-hardening
   audit_path: .planning/v1.40-MILESTONE-AUDIT.md
   evidence_path: .planning/reviews/V1_40_EVIDENCE_INDEX.md
@@ -26,11 +33,53 @@ previous_archived:
   name: Governance Recovery, Runtime Consistency & Public Contract Correction
   evidence_path: .planning/reviews/V1_39_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.40
-  default_next_command: $gsd-new-milestone
+  current_route: v1.41 active milestone route / starting from latest archived baseline
+    = v1.40
+  default_next_command: $gsd-complete-milestone v1.41
   latest_archived_evidence_pointer: .planning/reviews/V1_40_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
+## Current Milestone (v1.41)
+
+**Milestone Goal:** 基于 `v1.40` latest archived baseline，完成一次不遗漏 Python/docs/config/governance 的 repo-wide terminal residual audit，形成 remediation charter，并通过首批 hygiene fixes 验证审查结论与生产代码收口保持一致。
+**Milestone status:** `active / phase 136 complete; closeout-ready (2026-04-02)`
+**Current route mode:** `v1.41 active milestone route / starting from latest archived baseline = v1.40`
+**Starting baseline:** `.planning/v1.40-MILESTONE-AUDIT.md, .planning/reviews/V1_40_EVIDENCE_INDEX.md, .planning/milestones/v1.40-ROADMAP.md, .planning/milestones/v1.40-REQUIREMENTS.md`
+**Requirements basket:** `AUD-08, GOV-91, DOC-19, ARC-45, QLT-58, TST-56`
+**Latest archived baseline:** `v1.40`
+**Archive pointer:** `.planning/reviews/V1_40_EVIDENCE_INDEX.md`
+**Latest archived audit artifact:** `.planning/v1.40-MILESTONE-AUDIT.md`
+**Default next command:** `$gsd-complete-milestone v1.41`
+**Current phase handoff:** `Phase 136 的 audit / charter / hygiene-fix / governance-sync 三条执行轨均已完成；下一步为 $gsd-complete-milestone v1.41。`
+
+### Terminal Audit & Governance
+- [x] **AUD-08**: 必须形成 repo-wide terminal audit verdict home，覆盖 Python hotspot、命名、边界、日志安全、类型残留、目录/治理/开源 readiness，并给出 severity / rationale / remediation。 
+- [x] **GOV-91**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES`、`GOVERNANCE_REGISTRY.json`、`VERIFICATION_MATRIX.md`、developer/runbook route note 与 current-route guards 必须共同承认 `v1.41 active milestone route / starting from latest archived baseline = v1.40`，并把 `Phase 136` 作为唯一 active phase。
+
+### Architecture & Quality
+- [x] **DOC-19**: `V1_41_TERMINAL_AUDIT_REPORT.md` 与 `V1_41_REMEDIATION_CHARTER.md` 必须成为单一 pullable 审阅真源，不再依赖零散对话记忆或 phase summary 拼接。
+- [x] **ARC-45**: 审查必须明确列出 formal-home hotspot decomposition 的优先级与边界，包括 mega-facade、auth manager、device facade 与 stringly command 语义的后续处理路线。
+- [x] **QLT-58**: 本轮必须至少消除一类已识别策略漂移；当前要求统一 vendor MD5 compatibility helper，并把部分原始异常日志收回到 `safe_error_placeholder`。
+- [x] **TST-56**: focused governance/meta guards 与 targeted unit tests 必须承认 `v1.41` / `Phase 136` current route，并验证本轮 hygiene fixes 没有破坏既有 outward contract。
+
+## Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| AUD-08 | Phase 136 | Complete |
+| GOV-91 | Phase 136 | Complete |
+| DOC-19 | Phase 136 | Complete |
+| ARC-45 | Phase 136 | Complete |
+| QLT-58 | Phase 136 | Complete |
+| TST-56 | Phase 136 | Complete |
+
+## Coverage
+
+- v1.41 requirements: 6 total
+- Current mapped: 6
+- Current complete: 6
+- Current pending: 0
+
 ## Latest Archived Milestone (v1.40)
 
 **Milestone Goal:** 基于 `v1.39` latest archived baseline，先完成 RequestPolicy pacing ownership、entity projection de-reflection 与 fan preset truth 收口，再把 `runtime_access.py`、`auth_service.py` 与 `dispatch.py` 的剩余 sanctioned hotspot 继续压回 typed / thin / support-split 主链。 
@@ -43,8 +92,8 @@ bootstrap:
 **Latest archived audit artifact:** `.planning/v1.40-MILESTONE-AUDIT.md`
 **Default next command:** `$gsd-new-milestone`
 **Current phase handoff:** `Milestone closeout complete；Phase 134 -> 135 的 requirement coverage、summary / verification / validation / audit / evidence index 已冻结为 latest archived baseline truth。`
-**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.39`
-**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.38`
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.40`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.39`
 
 ### Governance Ownership
 - [x] **GOV-90**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES` 与 `GOVERNANCE_REGISTRY.json` 必须共同承认 `v1.40 active milestone route / starting from latest archived baseline = v1.39`，并把 `Phase 134 -> 135` 作为当前 active milestone 范围、`$gsd-complete-milestone v1.40` 作为默认下一步。

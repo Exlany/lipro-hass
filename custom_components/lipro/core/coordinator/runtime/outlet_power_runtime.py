@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, cast
 
 from ...api import LiproApiError
 from ...protocol.contracts import OutletPowerInfoResult
+from ...utils.log_safety import safe_error_placeholder
 from ..types import PropertyDict
 
 if TYPE_CHECKING:
@@ -209,4 +210,8 @@ async def query_single_outlet_power(
     except LiproApiError as err:
         if should_reraise_outlet_power_error(err):
             raise
-        logger.debug("Failed to query power for %s: %s", device_id, err)
+        logger.debug(
+            "Failed to query power for %s: %s",
+            device_id,
+            safe_error_placeholder(err),
+        )

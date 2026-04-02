@@ -34,11 +34,11 @@ CURRENT_ROUTE_PROSE_FORBIDDEN = (
 
 HISTORICAL_CLOSEOUT_ROUTE_TRUTH = (
     "historical closeout route truth = "
-    "`no active milestone route / latest archived baseline = v1.39`"
+    "`no active milestone route / latest archived baseline = v1.40`"
 )
 HISTORICAL_ARCHIVE_TRANSITION_ROUTE_TRUTH = (
     "historical archive-transition route truth = "
-    "`no active milestone route / latest archived baseline = v1.38`"
+    "`no active milestone route / latest archived baseline = v1.39`"
 )
 
 __all__ = [

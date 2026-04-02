@@ -1,9 +1,9 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** `archived / evidence-ready (2026-04-02)`
-**Current route:** `no active milestone route / latest archived baseline = v1.40`；latest archived evidence index = `.planning/reviews/V1_40_EVIDENCE_INDEX.md`.
-**Goal:** `v1.40 已完成 request-policy/entity/fan truth 与 runtime/auth/dispatch contract 两层 sanctioned hotspot 收口，并正式升级为 latest archived baseline，供下一里程碑作为唯一归档起点。`
-**Default next step:** `$gsd-new-milestone`
+**Status:** `active / phase 136 complete; closeout-ready (2026-04-02)`
+**Current route:** `v1.41 active milestone route / starting from latest archived baseline = v1.40`；latest archived evidence index = `.planning/reviews/V1_40_EVIDENCE_INDEX.md`.
+**Goal:** `v1.41 以 v1.40 archived baseline 为唯一起点，完成一次 repo-wide terminal residual audit，沉淀 remediation charter，并落实首批 vendor-crypto / log-safety hygiene fixes，让下一轮 hotspot 清扫建立在可验证的 current route 与终审报告之上。`
+**Default next step:** `$gsd-complete-milestone v1.41`
 **Archived baseline chain:** latest archived baseline = `v1.40`；previous archived baseline = `v1.39`.
 
 <!-- governance-route-contract:start -->
@@ -16,13 +16,20 @@ projection_targets:
 - .planning/REQUIREMENTS.md
 - .planning/STATE.md
 - .planning/MILESTONES.md
-active_milestone: null
+active_milestone:
+  version: v1.41
+  name: Terminal Residual Audit, Remediation Charter & Maintainability Hardening
+  status: active / phase 136 complete; closeout-ready (2026-04-02)
+  phase: '136'
+  phase_title: repo-wide terminal residual audit, hygiene fixes, and remediation charter
+  phase_dir: 136-repo-wide-terminal-residual-audit-and-remediation-charter
 latest_archived:
   version: v1.40
   name: Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening
   status: archived / evidence-ready (2026-04-02)
   phase: '135'
-  phase_title: runtime-access projection split, auth reason typing, and dispatch route hardening
+  phase_title: runtime-access projection split, auth reason typing, and dispatch route
+    hardening
   phase_dir: 135-runtime-access-auth-and-dispatch-contract-hardening
   audit_path: .planning/v1.40-MILESTONE-AUDIT.md
   evidence_path: .planning/reviews/V1_40_EVIDENCE_INDEX.md
@@ -32,11 +39,30 @@ previous_archived:
   name: Governance Recovery, Runtime Consistency & Public Contract Correction
   evidence_path: .planning/reviews/V1_39_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.40
-  default_next_command: $gsd-new-milestone
+  current_route: v1.41 active milestone route / starting from latest archived baseline
+    = v1.40
+  default_next_command: $gsd-complete-milestone v1.41
   latest_archived_evidence_pointer: .planning/reviews/V1_40_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
+## Current Milestone (v1.41)
+
+**Name:** `Terminal Residual Audit, Remediation Charter & Maintainability Hardening`
+
+**Why it matters:** `契约者要求一次性、深度、彻底地重新审视 lipro-hass 的 Python/docs/config/governance 全部切面；因此 v1.41 不假装“所有历史 debt 已自然消失”，而是把终极审查、分级 charter 与首批 hygiene fix 显式收为单一 active milestone。`
+
+**North-star fit:** `v1.41` 沿 single formal home、typed contract、honesty-over-folklore 与 docs-first governance 推进：先把 repo-wide terminal residual audit 固化为单一 verdict home，再用最小且高价值的生产修复收口 log-safety / vendor-crypto policy drift，同时为后续大热点拆解建立正式 charter。`
+
+**Current status:** `active / phase 136 complete; closeout-ready (2026-04-02)`
+**Phase range:** `Phase 136 -> 136`
+**Starting baseline:** `.planning/v1.40-MILESTONE-AUDIT.md, .planning/reviews/V1_40_EVIDENCE_INDEX.md, .planning/milestones/v1.40-ROADMAP.md, .planning/milestones/v1.40-REQUIREMENTS.md`
+**Requirements basket:** `AUD-08, GOV-91, DOC-19, ARC-45, QLT-58, TST-56`
+**Latest archived baseline:** `v1.40`
+**Latest archived pointer:** `.planning/reviews/V1_40_EVIDENCE_INDEX.md`
+**Latest archived audit artifact:** `.planning/v1.40-MILESTONE-AUDIT.md`
+**Default next command:** `$gsd-complete-milestone v1.41`
+**Current phase handoff:** `Phase 136 已完成 repo-wide audit report、remediation charter、vendor-crypto/log-safety hygiene fixes 与 governance route sync；下一步为 $gsd-complete-milestone v1.41。`
+
 ## Latest Archived Milestone (v1.40)
 
 **Name:** `Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening`
@@ -72,6 +98,20 @@ bootstrap:
 
 ## Current Execution Workspace Inputs
 
+- `.planning/reviews/V1_41_TERMINAL_AUDIT_REPORT.md`
+- `.planning/reviews/V1_41_REMEDIATION_CHARTER.md`
+- `.planning/phases/136-repo-wide-terminal-residual-audit-and-remediation-charter/136-CONTEXT.md`
+- `.planning/phases/136-repo-wide-terminal-residual-audit-and-remediation-charter/136-RESEARCH.md`
+- `.planning/phases/136-repo-wide-terminal-residual-audit-and-remediation-charter/136-01-PLAN.md`
+- `.planning/phases/136-repo-wide-terminal-residual-audit-and-remediation-charter/136-02-PLAN.md`
+- `.planning/phases/136-repo-wide-terminal-residual-audit-and-remediation-charter/136-03-PLAN.md`
+- `.planning/phases/136-repo-wide-terminal-residual-audit-and-remediation-charter/136-01-SUMMARY.md`
+- `.planning/phases/136-repo-wide-terminal-residual-audit-and-remediation-charter/136-02-SUMMARY.md`
+- `.planning/phases/136-repo-wide-terminal-residual-audit-and-remediation-charter/136-03-SUMMARY.md`
+- `.planning/phases/136-repo-wide-terminal-residual-audit-and-remediation-charter/136-SUMMARY.md`
+- `.planning/phases/136-repo-wide-terminal-residual-audit-and-remediation-charter/136-VERIFICATION.md`
+- `.planning/phases/136-repo-wide-terminal-residual-audit-and-remediation-charter/136-VALIDATION.md`
+
 - `.planning/phases/134-request-policy-ownership-entity-de-reflection-and-fan-truth-hardening/134-CONTEXT.md`
 - `.planning/phases/134-request-policy-ownership-entity-de-reflection-and-fan-truth-hardening/134-RESEARCH.md`
 - `.planning/phases/134-request-policy-ownership-entity-de-reflection-and-fan-truth-hardening/134-01-PLAN.md`
@@ -99,6 +139,7 @@ bootstrap:
 - `.planning/v1.39-MILESTONE-AUDIT.md`
 - `docs/developer_architecture.md`
 - `docs/MAINTAINER_RELEASE_RUNBOOK.md`
+
 ## Previous Archived Milestone (v1.39)
 
 **Name:** `Governance Recovery, Runtime Consistency & Public Contract Correction`

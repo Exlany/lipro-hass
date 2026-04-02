@@ -166,7 +166,10 @@ async def test_async_execute_schedule_operation_maps_lipro_api_error() -> None:
         )
 
     protocol_call.assert_awaited_once_with(device)
-    logger.warning.assert_called_once_with("API error getting schedules: %s", api_error)
+    logger.warning.assert_called_once_with(
+        "API error getting schedules: %s",
+        api_error,
+    )
     raise_service_error.assert_called_once_with("schedule_fetch_failed", err=api_error)
 
 

@@ -282,7 +282,7 @@ class TestStatusExecutor:
             apply_properties_update=AsyncMock(return_value=True),
             get_device_by_id=lambda _device_id: None,
         )
-        executor.execute_status_query = AsyncMock(  # type: ignore[method-assign]
+        executor.execute_status_query = AsyncMock(
             side_effect=[
                 {
                     "duration": 0.1,
