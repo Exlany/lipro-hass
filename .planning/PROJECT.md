@@ -1,8 +1,8 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** `active / phase 134 complete; closeout-ready (2026-04-02)`
+**Status:** `active / phase 135 complete; closeout-ready (2026-04-02)`
 **Current route:** `v1.40 active milestone route / starting from latest archived baseline = v1.39`；latest archived evidence index = `.planning/reviews/V1_39_EVIDENCE_INDEX.md`.
-**Goal:** `以 v1.39 latest archived baseline 为唯一起点，把 RequestPolicy pacing ownership、entity projection de-reflection 与 fan preset truth 在一个 active milestone 内彻底收口，并把默认下一步诚实推进到 milestone closeout。`
+**Goal:** `以 v1.39 latest archived baseline 为唯一起点，先完成 RequestPolicy / entity / fan truth 收口，再把 runtime_access / auth_service / dispatch 三个 sanctioned hotspots 通过 Phase 135 压回更薄、更显式、更可验证的主链。`
 **Default next step:** `$gsd-complete-milestone v1.40`
 **Archived baseline chain:** latest archived baseline = `v1.39`；previous archived baseline = `v1.38`.
 
@@ -19,10 +19,10 @@ projection_targets:
 active_milestone:
   version: v1.40
   name: Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening
-  status: active / phase 134 complete; closeout-ready (2026-04-02)
-  phase: '134'
-  phase_title: request-policy ownership, entity de-reflection, and fan truth hardening
-  phase_dir: 134-request-policy-ownership-entity-de-reflection-and-fan-truth-hardening
+  status: active / phase 135 complete; closeout-ready (2026-04-02)
+  phase: '135'
+  phase_title: runtime-access projection split, auth reason typing, and dispatch route hardening
+  phase_dir: 135-runtime-access-auth-and-dispatch-contract-hardening
   route_mode: v1.40 active milestone route / starting from latest archived baseline = v1.39
 latest_archived:
   version: v1.39
@@ -48,19 +48,19 @@ bootstrap:
 
 **Name:** `Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening`
 
-**Why it matters:** `v1.39 closeout 后，repo-wide 深审仍明确暴露三类残留：RequestPolicy 仍保留多入口 / 高参数密度 pacing story，entity descriptors 与 binary sensors 仍有反射/stringly projection，fan unknown mode 仍伪装成 cycle，导致平台 truth 与能力 truth 自相矛盾。`
+**Why it matters:** `契约者在 Phase 134 closeout-ready 后继续要求一次性、彻底地收口 repo-wide 剩余 sanctioned hotspots；因此 v1.40 不直接 closeout，而是显式扩 scope 纳入 runtime_access / auth_service / dispatch 三个 formal-home 热点。`
 
-**North-star fit:** `v1.40` 继续沿 single owner、formal home、explicit projection 与 honesty-over-folklore 推进：RequestPolicy 把 pacing state 收回实例 owner；entity/platform projection 不再依赖 dotted-path/getattr 反射；fan preset 投影不再捏造 cycle fallback。`
+**North-star fit:** `v1.40` 继续沿 single owner、formal home、typed contract、inward support split 与 honesty-over-folklore 推进：Phase 134 解决 request-policy/entity/fan truth，Phase 135 再把 runtime projection、runtime auth reason 与 command dispatch route 的 stringly drift 收回正式主链。`
 
-**Current status:** `active / phase 134 complete; closeout-ready (2026-04-02)`
-**Phase range:** `Phase 134 -> 134`
+**Current status:** `active / phase 135 complete; closeout-ready (2026-04-02)`
+**Phase range:** `Phase 134 -> 135`
 **Starting baseline:** `.planning/v1.39-MILESTONE-AUDIT.md, .planning/reviews/V1_39_EVIDENCE_INDEX.md, .planning/milestones/v1.39-ROADMAP.md, .planning/milestones/v1.39-REQUIREMENTS.md`
-**Requirements basket:** `GOV-90, ARC-43, HOT-62, HOT-63, QLT-56, TST-54`
+**Requirements basket:** `GOV-90, ARC-43, HOT-62, HOT-63, QLT-56, TST-54, ARC-44, HOT-64, HOT-65, HOT-66, QLT-57, TST-55`
 **Latest archived baseline:** `v1.39`
 **Latest archived pointer:** `.planning/reviews/V1_39_EVIDENCE_INDEX.md`
 **Latest archived audit artifact:** `.planning/v1.39-MILESTONE-AUDIT.md`
 **Default next command:** `$gsd-complete-milestone v1.40`
-**Current phase handoff:** `Phase 134 的 3 份 PLAN、3 份 plan summary、phase summary、verification 与 validation 已齐备；当前 route 已推进到 phase complete / closeout-ready。`
+**Current phase handoff:** `Phase 135 的 3 份 PLAN、3 份 plan summary、phase summary、verification 与 validation 已齐备；当前 route 已再次推进到 phase complete / closeout-ready。`
 
 ## Primary Sources
 
@@ -90,12 +90,22 @@ bootstrap:
 - `.planning/phases/134-request-policy-ownership-entity-de-reflection-and-fan-truth-hardening/134-SUMMARY.md`
 - `.planning/phases/134-request-policy-ownership-entity-de-reflection-and-fan-truth-hardening/134-VERIFICATION.md`
 - `.planning/phases/134-request-policy-ownership-entity-de-reflection-and-fan-truth-hardening/134-VALIDATION.md`
+- `.planning/phases/135-runtime-access-auth-and-dispatch-contract-hardening/135-CONTEXT.md`
+- `.planning/phases/135-runtime-access-auth-and-dispatch-contract-hardening/135-RESEARCH.md`
+- `.planning/phases/135-runtime-access-auth-and-dispatch-contract-hardening/135-01-PLAN.md`
+- `.planning/phases/135-runtime-access-auth-and-dispatch-contract-hardening/135-02-PLAN.md`
+- `.planning/phases/135-runtime-access-auth-and-dispatch-contract-hardening/135-03-PLAN.md`
+- `.planning/phases/135-runtime-access-auth-and-dispatch-contract-hardening/135-01-SUMMARY.md`
+- `.planning/phases/135-runtime-access-auth-and-dispatch-contract-hardening/135-02-SUMMARY.md`
+- `.planning/phases/135-runtime-access-auth-and-dispatch-contract-hardening/135-03-SUMMARY.md`
+- `.planning/phases/135-runtime-access-auth-and-dispatch-contract-hardening/135-SUMMARY.md`
+- `.planning/phases/135-runtime-access-auth-and-dispatch-contract-hardening/135-VERIFICATION.md`
+- `.planning/phases/135-runtime-access-auth-and-dispatch-contract-hardening/135-VALIDATION.md`
 - `.planning/milestones/v1.39-ROADMAP.md`
 - `.planning/milestones/v1.39-REQUIREMENTS.md`
 - `.planning/v1.39-MILESTONE-AUDIT.md`
 - `docs/developer_architecture.md`
 - `docs/MAINTAINER_RELEASE_RUNBOOK.md`
-
 ## Latest Archived Milestone (v1.39)
 
 **Name:** `Governance Recovery, Runtime Consistency & Public Contract Correction`

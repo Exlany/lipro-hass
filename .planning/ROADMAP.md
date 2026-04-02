@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🚧 **v1.40 Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening** - `Phase 134 -> 134` active on 2026-04-02; current route truth = `v1.40 active milestone route / starting from latest archived baseline = v1.39`; default next = `$gsd-complete-milestone v1.40`; latest archived baseline = `v1.39`
+- 🚧 **v1.40 Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening** - `Phase 134 -> 135` active on 2026-04-02; current route truth = `v1.40 active milestone route / starting from latest archived baseline = v1.39`; default next = `$gsd-complete-milestone v1.40`; latest archived baseline = `v1.39`
 - ✅ **v1.39 Governance Recovery, Runtime Consistency & Public Contract Correction** - `Phase 133 -> 133` archived on 2026-04-02; historical closeout route truth = `no active milestone route / latest archived baseline = v1.39`; evidence index = `.planning/reviews/V1_39_EVIDENCE_INDEX.md`
 - ✅ **v1.38 Governance Story Compression, Archive Segregation & Public Entry Simplification** - `Phase 132 -> 132` archived on 2026-04-02; historical closeout route truth = `no active milestone route / latest archived baseline = v1.38`; evidence index = `.planning/reviews/V1_38_EVIDENCE_INDEX.md`
 - ✅ **v1.37 Repo-Wide Terminal Audit, Hotspot Decomposition & Governance Continuity Decisions** - `Phase 129 -> 131` archived on 2026-04-01; historical closeout route truth = `no active milestone route / latest archived baseline = v1.37`; evidence index = `.planning/reviews/V1_37_EVIDENCE_INDEX.md`
@@ -21,10 +21,10 @@ projection_targets:
 active_milestone:
   version: v1.40
   name: Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening
-  status: active / phase 134 complete; closeout-ready (2026-04-02)
-  phase: '134'
-  phase_title: request-policy ownership, entity de-reflection, and fan truth hardening
-  phase_dir: 134-request-policy-ownership-entity-de-reflection-and-fan-truth-hardening
+  status: active / phase 135 complete; closeout-ready (2026-04-02)
+  phase: '135'
+  phase_title: runtime-access projection split, auth reason typing, and dispatch route hardening
+  phase_dir: 135-runtime-access-auth-and-dispatch-contract-hardening
   route_mode: v1.40 active milestone route / starting from latest archived baseline = v1.39
 latest_archived:
   version: v1.39
@@ -48,14 +48,14 @@ bootstrap:
 <!-- governance-route-contract:end -->
 ## Overview
 
-`v1.40` 以 archived baseline `v1.39` 为唯一起点，先把 `RequestPolicy` 的 pacing/busy-retry state 收回单一 owner，再把 `descriptors.py` / `binary_sensor.py` / `light.py` 的反射/stringly projection 收口为显式 reader，最后修复 `fan.py` 的 unknown-mode truth、同步 docs/guards/tests，并把路线推进到 closeout-ready。
+`v1.40` 以 archived baseline `v1.39` 为唯一起点，先把 `RequestPolicy` 的 pacing/busy-retry state 收回单一 owner，再把 `descriptors.py` / `binary_sensor.py` / `light.py` 的反射/stringly projection 收口为显式 reader，修复 `fan.py` 的 unknown-mode truth，随后在契约者继续要求的终极深审下显式追加 `Phase 135`，把 `runtime_access.py`、`auth_service.py` 与 `dispatch.py` 三个 sanctioned hotspots 继续压回 typed / thin / support-split 主链。
 
-**Coverage:** `6/6` `v1.40` requirements complete in `Phase 134`.
+**Coverage:** `12/12` `v1.40` requirements complete in `Phase 134 -> 135`.
 **Default next command:** `$gsd-complete-milestone v1.40`
 
 ## v1.40: Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening
 
-**Milestone status:** `active / phase 134 complete; closeout-ready (2026-04-02)`
+**Milestone status:** `active / phase 135 complete; closeout-ready (2026-04-02)`
 **Default next command:** `$gsd-complete-milestone v1.40`
 **Current route story:** `v1.40 active milestone route / starting from latest archived baseline = v1.39`
 **Starting baseline:** `.planning/v1.39-MILESTONE-AUDIT.md, .planning/reviews/V1_39_EVIDENCE_INDEX.md, .planning/milestones/v1.39-ROADMAP.md, .planning/milestones/v1.39-REQUIREMENTS.md`
@@ -63,11 +63,12 @@ bootstrap:
 **Latest archived pointer:** `.planning/reviews/V1_39_EVIDENCE_INDEX.md`
 **Latest archived audit artifact:** `.planning/v1.39-MILESTONE-AUDIT.md`
 **Promoted phase evidence allowlist:** `.planning/reviews/PROMOTED_PHASE_ASSETS.md`
-**Current phase handoff:** `Phase 134 已完成 request-policy owner convergence、entity de-reflection、fan truth correction 与 docs/guard/test resync；下一步是 milestone closeout，而不是重跑 plan/execute。`
+**Current phase handoff:** `契约者继续要求彻底 deep audit 后，v1.40 已显式扩 scope 吸收 Phase 135；当前 milestone 再次进入 closeout-ready，而不是假装已完成 closeout。`
 
 ## Phases
 
-- [x] **Phase 134: request-policy ownership, entity de-reflection, and fan truth hardening** - 已完成 `134-01` request-policy ownership convergence、`134-02` entity de-reflection + fan truth correction、`134-03` docs/guards/tests/verification sync；当前 milestone 已进入 closeout-ready。 (complete 2026-04-02)
+- [x] **Phase 134: request-policy ownership, entity de-reflection, and fan truth hardening** - 已完成 `134-01` request-policy ownership convergence、`134-02` entity de-reflection + fan truth correction、`134-03` docs/guards/tests/verification sync。 (complete 2026-04-02)
+- [x] **Phase 135: runtime-access projection split, auth reason typing, and dispatch route hardening** - 已完成 `135-01` runtime-access projection split、`135-02` auth reason typing + dispatch route typing、`135-03` docs/guards/route sync；当前 milestone 重新回到 closeout-ready。 (complete 2026-04-02)
 
 ## Phase Details
 
@@ -79,12 +80,27 @@ bootstrap:
   2. `request_policy_support.py` 的 pacing helpers 必须围绕 `_CommandPacingCaches` bundle 协作，不再在 support surface 里搬运多组并行 dict state。
   3. `entities/descriptors.py`、`light.py` 与 `binary_sensor.py` 不再依赖 dotted-path/getattr 反射；entity projection 改为显式 resolver / state reader。
   4. `fan.py` 的 unknown `fanMode` 不再伪装成 `cycle`；preset 与 supported-features 投影必须保持 truthful 一致。
-  5. current governance docs、developer/runbook route note、follow-up guards 与 new phase assets 必须共同承认 `v1.40 active milestone route / starting from latest archived baseline = v1.39` 与 `$gsd-complete-milestone v1.40`。
+  5. current governance docs、developer/runbook route note、follow-up guards 与 phase assets 必须共同承认 `v1.40 active milestone route / starting from latest archived baseline = v1.39` 与 `$gsd-complete-milestone v1.40`。
   6. focused tests / meta guards / ruff 必须通过，且 phase assets 足以支撑 `$gsd-next` 等价收敛到 `$gsd-complete-milestone v1.40`。
 **Plans**: 3 planned — `134-01` request-policy ownership convergence、`134-02` entity de-reflection + fan truth correction、`134-03` docs/guards/tests/verification sync
 **Planning summaries**: `134-01-SUMMARY.md`, `134-02-SUMMARY.md`, `134-03-SUMMARY.md`, `134-SUMMARY.md`
 **Verification**: `134-VERIFICATION.md`
 **Validation**: `134-VALIDATION.md`
+
+### Phase 135: runtime-access projection split, auth reason typing, and dispatch route hardening
+
+**Requirements**: `ARC-44`, `HOT-64`, `HOT-65`, `HOT-66`, `QLT-57`, `TST-55`
+**Success Criteria** (what must be TRUE):
+  1. `runtime_access.py` 必须继续薄化为 outward import home；runtime snapshot / diagnostics projection coercion 回到 support surface。
+  2. `runtime_types.py` / `auth_service.py` / `services/execution.py` 必须围绕单一 `RuntimeReauthReason` contract 协作，不再把 reauth reason 继续保留为裸字符串约定。
+  3. `dispatch.py` / sender / runtime command path 的 route contract 必须采用 enum-backed canonical form，阻断 stringly drift。
+  4. 新增 typed contract / support split 后，focused tests / meta guards / ruff 必须通过，且不引入新的 compat root。
+  5. current governance docs、registry、verification matrix 与 phase assets 必须共同承认 `Phase 135 complete; closeout-ready` 与 `$gsd-complete-milestone v1.40`。
+  6. `$gsd-next` 的等价结果必须重新回到 `$gsd-complete-milestone v1.40`，而不是留在 half-reopened 中间态。
+**Plans**: 3 planned — `135-01` runtime-access projection split、`135-02` auth reason typing + dispatch route typing、`135-03` docs/guards/route sync
+**Planning summaries**: `135-01-SUMMARY.md`, `135-02-SUMMARY.md`, `135-03-SUMMARY.md`, `135-SUMMARY.md`
+**Verification**: `135-VERIFICATION.md`
+**Validation**: `135-VALIDATION.md`
 
 ## Latest Archived Milestone
 

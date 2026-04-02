@@ -5,18 +5,18 @@
 **Default next command:** `$gsd-complete-milestone v1.40`
 **Latest archived pointer:** `.planning/reviews/V1_39_EVIDENCE_INDEX.md`
 **Status:** Formal baseline asset (`BASE-03` phase acceptance truth source)
-**Updated:** 2026-04-02 (v1.40 active-route closeout-ready aligned)
+**Updated:** 2026-04-02 (v1.40 phase-135 closeout-ready aligned)
 
 ## Formal Role
 
 ## Current Route
 
 - **Current route story:** `v1.40 active milestone route / starting from latest archived baseline = v1.39`
-- **Current milestone status:** `active / phase 134 complete; closeout-ready (2026-04-02)`
+- **Current milestone status:** `active / phase 135 complete; closeout-ready (2026-04-02)`
 - **Default next command:** `$gsd-complete-milestone v1.40`
 - **Latest archived pointer:** `.planning/reviews/V1_39_EVIDENCE_INDEX.md`
 - **Carry-forward audit anchors:** `.planning/reviews/V1_39_EVIDENCE_INDEX.md`, `.planning/v1.39-MILESTONE-AUDIT.md`
-- **Focused guards:** `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/governance_followup_route_current_milestones.py`, `tests/meta/test_runtime_contract_truth.py`, `tests/meta/test_governance_release_docs.py`, `tests/meta/toolchain_truth_checker_paths.py`, `tests/meta/test_phase89_tooling_decoupling_guards.py`, `tests/meta/test_governance_release_contract.py`, `tests/services/test_services_diagnostics_capabilities.py`, `tests/services/test_services_diagnostics_payloads.py`
+- **Focused guards:** `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/governance_followup_route_current_milestones.py`, `tests/meta/test_runtime_contract_truth.py`, `tests/meta/test_governance_release_docs.py`, `tests/meta/toolchain_truth_checker_paths.py`, `tests/meta/test_phase89_tooling_decoupling_guards.py`, `tests/meta/test_governance_release_contract.py`, `tests/core/test_runtime_access.py`, `tests/core/coordinator/services/test_auth_service.py`, `tests/core/test_command_dispatch.py`, `tests/core/coordinator/runtime/test_command_runtime_sender.py`, `tests/core/coordinator/runtime/test_command_runtime_orchestration.py`, `tests/services/test_execution.py`
 
 - 本文件是 `Phase 1.5` 及其下游 phases 的正式 acceptance truth；phase docs / summaries 只能引用、实例化或扩展，不得平行定义 exit contract。
 - 任一 phase 只有同时交付 requirement evidence、artifact updates、verification proof 与 governance disposition，才可宣称完成。

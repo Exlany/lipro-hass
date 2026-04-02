@@ -3,10 +3,10 @@
 ## Current Milestone (v1.40)
 
 **Name:** `Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening`
-**Status:** `active / phase 134 complete; closeout-ready (2026-04-02)`
+**Status:** `active / phase 135 complete; closeout-ready (2026-04-02)`
 **Current route:** `v1.40 active milestone route / starting from latest archived baseline = v1.39`
-**Phase range:** `134 -> 134`
-**Progress:** `1/1 phases, 3/3 plans`
+**Phase range:** `134 -> 135`
+**Progress:** `2/2 phases, 6/6 plans`
 **Default next command:** `$gsd-complete-milestone v1.40`
 **Latest archived pointer:** `.planning/reviews/V1_39_EVIDENCE_INDEX.md`
 **Archived audit reference:** `.planning/v1.39-MILESTONE-AUDIT.md`
@@ -14,7 +14,8 @@
 
 **Active phase story:**
 
-- `Phase 134`: request-policy ownership, entity de-reflection, and fan truth hardening ✅ (`134-01` RequestPolicy owner convergence + `134-02` entity projection de-reflection / fan truth correction + `134-03` docs/guards/tests/verification sync complete；当前 next = `$gsd-complete-milestone v1.40`)
+- `Phase 134`: request-policy ownership, entity de-reflection, and fan truth hardening ✅ (`134-01` RequestPolicy owner convergence + `134-02` entity projection de-reflection / fan truth correction + `134-03` docs/guards/tests/verification sync complete)
+- `Phase 135`: runtime-access projection split, auth reason typing, and dispatch route hardening ✅ (`135-01` runtime-access projection split + `135-02` auth reason typing / dispatch route typing + `135-03` docs/guards/route sync complete；当前 next = `$gsd-complete-milestone v1.40`)
 
 ## Latest Archived Milestone (v1.39)
 
@@ -91,10 +92,10 @@ projection_targets:
 active_milestone:
   version: v1.40
   name: Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening
-  status: active / phase 134 complete; closeout-ready (2026-04-02)
-  phase: '134'
-  phase_title: request-policy ownership, entity de-reflection, and fan truth hardening
-  phase_dir: 134-request-policy-ownership-entity-de-reflection-and-fan-truth-hardening
+  status: active / phase 135 complete; closeout-ready (2026-04-02)
+  phase: '135'
+  phase_title: runtime-access projection split, auth reason typing, and dispatch route hardening
+  phase_dir: 135-runtime-access-auth-and-dispatch-contract-hardening
   route_mode: v1.40 active milestone route / starting from latest archived baseline = v1.39
 latest_archived:
   version: v1.39

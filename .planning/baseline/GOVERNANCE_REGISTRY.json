@@ -179,10 +179,10 @@
     "active_milestone": {
       "version": "v1.40",
       "name": "Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening",
-      "status": "active / phase 134 complete; closeout-ready (2026-04-02)",
-      "phase": "134",
-      "phase_title": "request-policy ownership, entity de-reflection, and fan truth hardening",
-      "phase_dir": "134-request-policy-ownership-entity-de-reflection-and-fan-truth-hardening",
+      "status": "active / phase 135 complete; closeout-ready (2026-04-02)",
+      "phase": "135",
+      "phase_title": "runtime-access projection split, auth reason typing, and dispatch route hardening",
+      "phase_dir": "135-runtime-access-auth-and-dispatch-contract-hardening",
       "route_mode": "v1.40 active milestone route / starting from latest archived baseline = v1.39"
     },
     "latest_archived": {

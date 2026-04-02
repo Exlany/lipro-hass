@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `v1.40 active / phase 134 complete; closeout-ready` (`2026-04-02`)
-> **Current route alignment**: `v1.40 active milestone route / starting from latest archived baseline = v1.39` (`2026-04-02`, phase 134 complete / closeout-ready)
+> **Last aligned through**: `v1.40 active / phase 135 complete; closeout-ready` (`2026-04-02`)
+> **Current route alignment**: `v1.40 active milestone route / starting from latest archived baseline = v1.39` (`2026-04-02`, phase 135 complete / closeout-ready)
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
@@ -17,9 +17,9 @@
 
 ## Current Route Compression
 
-- `Phase 132` 已把 developer first hop、release runbook first hop、route-marker helpers 与 recent promoted-asset / handoff-smoke 边界压回同一条 current story：当前 selector 已切到 `v1.40 active milestone route / starting from latest archived baseline = v1.39`；latest archived pointer 继续是 `.planning/reviews/V1_39_EVIDENCE_INDEX.md`。
-- latest archived baseline `v1.39` 现只承担 archived evidence anchor；developer current entry 聚焦 `Phase 134` 已完成的 owner/projection truth，并把更深层 sanctioned hotspots 保持为后续显式路线。
-- sanctioned hotspot 仍保留为正式 home，而不是被重新叙述成 delete target：重点关注 `rest_facade.py`、`runtime_types.py`、`request_policy.py`、`dispatch.py`、`auth/manager.py` 与 `firmware_update.py` 这类仍需后续持续减压的 formal files。
+- `Phase 132` 已把 developer first hop、release runbook first hop、route-marker helpers 与 recent promoted-asset / handoff-smoke 边界压回同一条 current story；而 `v1.40 / Phase 135` 进一步把 `runtime_access.py`、`auth_service.py` 与 `dispatch.py` 的 sanctioned hotspot 收回 typed / thin / support-split 正式主链。
+- latest archived baseline `v1.39` 现只承担 archived evidence anchor；developer current entry 现在覆盖 `Phase 134` 的 owner/projection/fan truth 与 `Phase 135` 的 runtime/auth/dispatch contract hardening。
+- sanctioned hotspot 仍保留为正式 home，而不是被重新叙述成 delete target：当前应重点关注已经硬化后的 `runtime_access.py` / `runtime_access_support.py`、`runtime_types.py`、`dispatch.py`、`auth_service.py` 与 `request_policy.py` 等 formal files，并持续避免 stringly / backdoor 回流。
 
 ## 快速导航
 

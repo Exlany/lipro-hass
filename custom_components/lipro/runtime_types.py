@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterable, Mapping
 from datetime import timedelta
+from enum import StrEnum
 from typing import TYPE_CHECKING, Protocol
 
 from homeassistant.core import CALLBACK_TYPE, callback
@@ -24,6 +25,13 @@ if TYPE_CHECKING:
 
 type CommandProperties = ServicePropertyList
 type ProtocolDiagnosticsSnapshot = JsonObject
+
+
+class RuntimeReauthReason(StrEnum):
+    """Stable reauth reasons exposed across runtime-owned auth surfaces."""
+
+    AUTH_ERROR = "auth_error"
+    AUTH_EXPIRED = "auth_expired"
 
 
 class RuntimeEntityLike(Protocol):
@@ -224,7 +232,7 @@ class RuntimeAuthServiceLike(Protocol):
 
     async def async_ensure_authenticated(self) -> None: ...
 
-    async def async_trigger_reauth(self, reason: str) -> None: ...
+    async def async_trigger_reauth(self, reason: RuntimeReauthReason) -> None: ...
 
 
 class ProtocolDiagnosticsContextLike(Protocol):
@@ -340,6 +348,7 @@ __all__ = [
     "ProtocolTelemetryFacadeLike",
     "RuntimeAuthServiceLike",
     "RuntimeEntityLike",
+    "RuntimeReauthReason",
     "RuntimeTelemetryServiceLike",
     "ScheduleMeshDeviceLike",
 ]

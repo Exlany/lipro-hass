@@ -10,6 +10,7 @@ import pytest
 from custom_components.lipro.core.api import LiproApiError
 from custom_components.lipro.core.command.dispatch import (
     CommandDispatchPlan,
+    CommandRoute,
     execute_command_dispatch,
     execute_command_plan_with_trace,
     normalize_group_power_command,
@@ -39,6 +40,17 @@ def _make_device(
         is_group=is_group,
         extra_data=extra_data or {},
     )
+
+
+def test_command_dispatch_plan_coerces_route_to_enum() -> None:
+    plan = CommandDispatchPlan(
+        route="group_direct",
+        command="POWER_ON",
+        properties=None,
+        member_fallback_id=None,
+    )
+
+    assert plan.route is CommandRoute.GROUP_DIRECT
 
 
 def test_normalize_group_power_command_non_string_key_keeps_original() -> None:
@@ -179,7 +191,7 @@ def test_plan_command_dispatch_normalizes_group_power_and_ignores_invalid_fallba
         "03ab111111111111",
     )
 
-    assert plan.route == "group_direct"
+    assert plan.route is CommandRoute.GROUP_DIRECT
     assert plan.command == "POWER_ON"
     assert plan.properties is None
     assert plan.member_fallback_id is None
@@ -296,7 +308,7 @@ def test_plan_command_dispatch_routes_panel_commands_via_group_endpoint() -> Non
         None,
     )
 
-    assert plan.route == "panel_direct_via_group_endpoint"
+    assert plan.route is CommandRoute.PANEL_DIRECT
 
 
 @pytest.mark.asyncio

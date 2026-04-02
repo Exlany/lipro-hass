@@ -43,10 +43,14 @@ class CommandRoute(StrEnum):
 class CommandDispatchPlan:
     """Resolved command route and payload for one send operation."""
 
-    route: str
+    route: CommandRoute
     command: str
     properties: list[dict[str, str]] | None
     member_fallback_id: str | None
+
+    def __post_init__(self) -> None:
+        """Normalize string routes into the canonical route enum."""
+        object.__setattr__(self, "route", CommandRoute(self.route))
 
 
 def normalize_group_power_command(
@@ -203,7 +207,7 @@ async def _fallback_to_member(
     route: CommandRoute,
     log_message: str,
     log_args: tuple[object, ...],
-) -> tuple[CommandResultPayload, str]:
+) -> tuple[CommandResultPayload, CommandRoute]:
     """Run one fallback send to the resolved member and return updated route."""
     _LOGGER.warning(log_message, *log_args)
     result = await _send_member_command(
@@ -221,7 +225,7 @@ async def _send_group_with_error_fallback(
     *,
     device: LiproDevice,
     plan: CommandDispatchPlan,
-) -> tuple[CommandResultPayload, str]:
+) -> tuple[CommandResultPayload, CommandRoute]:
     """Send group command and fallback on group API error when allowed."""
     try:
         result = _as_command_result_payload(
@@ -268,7 +272,7 @@ async def _execute_panel_command(
     *,
     device: LiproDevice,
     plan: CommandDispatchPlan,
-) -> tuple[CommandResultPayload, str]:
+) -> tuple[CommandResultPayload, CommandRoute]:
     """Execute panel command via group endpoint."""
     result = _as_command_result_payload(
         await client.send_group_command(
@@ -287,7 +291,7 @@ async def _execute_device_command(
     *,
     device: LiproDevice,
     plan: CommandDispatchPlan,
-) -> tuple[CommandResultPayload, str]:
+) -> tuple[CommandResultPayload, CommandRoute]:
     """Execute direct device command."""
     result = await _send_member_command(
         client,
@@ -304,7 +308,7 @@ async def _execute_group_command(
     *,
     device: LiproDevice,
     plan: CommandDispatchPlan,
-) -> tuple[CommandResultPayload, str]:
+) -> tuple[CommandResultPayload, CommandRoute]:
     """Execute group command with fallback logic."""
     result, route = await _send_group_with_error_fallback(
         client,
@@ -342,7 +346,7 @@ async def execute_command_dispatch(
     *,
     device: LiproDevice,
     plan: CommandDispatchPlan,
-) -> tuple[CommandResultPayload, str]:
+) -> tuple[CommandResultPayload, CommandRoute]:
     """Execute direct/group command send with fallback routing."""
     if plan.route == CommandRoute.PANEL_DIRECT:
         return await _execute_panel_command(client, device=device, plan=plan)

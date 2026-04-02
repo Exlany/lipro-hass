@@ -276,3 +276,38 @@ def test_light_descriptors_and_binary_sensors_keep_explicit_projection_readers()
     assert "resolver:" in descriptors_text
     assert "return MODE_TO_PRESET.get(mode)" in fan_text
     assert "return MODE_TO_PRESET.get(mode, PRESET_MODE_CYCLE)" not in fan_text
+
+
+def test_runtime_access_auth_and_dispatch_keep_typed_contracts() -> None:
+    runtime_access_text = (
+        _ROOT / "custom_components" / "lipro" / "control" / "runtime_access.py"
+    ).read_text(encoding="utf-8")
+    runtime_types_text = (
+        _ROOT / "custom_components" / "lipro" / "runtime_types.py"
+    ).read_text(encoding="utf-8")
+    auth_service_text = (
+        _ROOT
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "coordinator"
+        / "services"
+        / "auth_service.py"
+    ).read_text(encoding="utf-8")
+    execution_text = (
+        _ROOT / "custom_components" / "lipro" / "services" / "execution.py"
+    ).read_text(encoding="utf-8")
+    dispatch_text = (
+        _ROOT / "custom_components" / "lipro" / "core" / "command" / "dispatch.py"
+    ).read_text(encoding="utf-8")
+
+    assert "class RuntimeReauthReason(StrEnum):" in runtime_types_text
+    assert "async def async_trigger_reauth(self, reason: RuntimeReauthReason)" in runtime_types_text
+    assert "RuntimeReauthReason.AUTH_ERROR" in execution_text
+    assert "RuntimeReauthReason.AUTH_EXPIRED" in execution_text
+    assert "normalized_reason = _coerce_reauth_reason(reason)" in auth_service_text
+    assert "route: CommandRoute" in dispatch_text
+    assert "def __post_init__(self)" in dispatch_text
+    assert "build_runtime_snapshot_from_view_support" in runtime_access_text
+    assert "build_runtime_diagnostics_projection_from_view_support" in runtime_access_text
+    assert "def _coerce_update_interval" not in runtime_access_text

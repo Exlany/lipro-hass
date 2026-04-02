@@ -11,6 +11,7 @@ from custom_components.lipro.const.base import DOMAIN
 from custom_components.lipro.core.coordinator.services.auth_service import (
     CoordinatorAuthService,
 )
+from custom_components.lipro.runtime_types import RuntimeReauthReason
 
 
 @pytest.mark.asyncio
@@ -40,6 +41,23 @@ async def test_auth_service_triggers_reauth_without_raising(hass) -> None:
         config_entry=entry,
     )
 
-    await service.async_trigger_reauth("auth_error")
+    await service.async_trigger_reauth(RuntimeReauthReason.AUTH_ERROR)
 
     entry.async_start_reauth.assert_called_once_with(hass)
+
+
+@pytest.mark.asyncio
+async def test_auth_service_rejects_unknown_reauth_reason(hass) -> None:
+    entry = MockConfigEntry(domain=DOMAIN, data={})
+    entry.add_to_hass(hass)
+    entry.async_start_reauth = MagicMock()
+    service = CoordinatorAuthService(
+        hass=hass,
+        auth_manager=MagicMock(),
+        config_entry=entry,
+    )
+
+    with pytest.raises(ValueError):
+        await service.async_trigger_reauth("unsupported")
+
+    entry.async_start_reauth.assert_not_called()

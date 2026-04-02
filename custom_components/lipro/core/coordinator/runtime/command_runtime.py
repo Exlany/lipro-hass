@@ -6,6 +6,7 @@ from collections import deque
 import logging
 from typing import TYPE_CHECKING, cast
 
+from ...command.dispatch import CommandRoute
 from ...command.result import CommandFailurePayload
 from ...utils.redaction import redact_identifier as _redact_identifier
 from ..types import (
@@ -154,7 +155,7 @@ class CommandRuntime:
         command: str,
         properties: CommandProperties,
         fallback_device_id: str | None,
-    ) -> tuple[bool, str]:
+    ) -> tuple[bool, CommandRoute]:
         """Send command to device with full flow."""
         request = _CommandRequest(
             device=device,
@@ -178,7 +179,7 @@ class CommandRuntime:
         request: _CommandRequest,
         result: object,
         trace: CommandTrace,
-        route: str,
+        route: CommandRoute,
     ) -> str | None:
         """Validate the dispatch-stage result and return its message serial number."""
         return _handle_command_dispatch_result_support(
@@ -195,7 +196,7 @@ class CommandRuntime:
         *,
         request: _CommandRequest,
         trace: CommandTrace,
-        route: str,
+        route: CommandRoute,
         msg_sn: str,
     ) -> bool:
         """Verify delivery, then finalize success bookkeeping when confirmed."""
@@ -223,7 +224,7 @@ class CommandRuntime:
         *,
         request: _CommandRequest,
         trace: CommandTrace,
-    ) -> tuple[object | None, str]:
+    ) -> tuple[object | None, CommandRoute]:
         """Send one command and normalize API errors into the shared failure path."""
         try:
             return await self._sender.send_command(
@@ -248,7 +249,7 @@ class CommandRuntime:
         self,
         *,
         request: _CommandRequest,
-    ) -> tuple[bool, str, CommandTrace]:
+    ) -> tuple[bool, CommandRoute, CommandTrace]:
         """Execute the shared command flow and return trace for all callers."""
         trace = self._build_trace_for_request(request)
         result, route = await self._send_command_with_trace(
@@ -279,7 +280,7 @@ class CommandRuntime:
         self,
         *,
         trace: CommandTrace,
-        route: str,
+        route: CommandRoute,
         msg_sn: str,
         device: LiproDevice,
     ) -> bool:

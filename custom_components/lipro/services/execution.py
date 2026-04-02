@@ -7,7 +7,11 @@ from typing import NoReturn, Protocol, TypeVar
 
 from ..core import LiproApiError, LiproAuthError, LiproRefreshTokenExpiredError
 from ..core.utils.log_safety import safe_error_placeholder
-from ..runtime_types import LiproCoordinator, RuntimeAuthServiceLike
+from ..runtime_types import (
+    LiproCoordinator,
+    RuntimeAuthServiceLike,
+    RuntimeReauthReason,
+)
 
 _ResultT = TypeVar("_ResultT")
 
@@ -44,7 +48,7 @@ async def _async_ensure_authenticated(
 
 async def _async_trigger_reauth(
     coordinator: AuthenticatedCoordinator,
-    reason: str,
+    reason: RuntimeReauthReason,
 ) -> None:
     """Trigger formal coordinator reauth flow for one auth failure."""
     await coordinator.auth_service.async_trigger_reauth(reason)
@@ -60,10 +64,10 @@ async def async_capture_coordinator_call(
         await _async_ensure_authenticated(coordinator)
         return True, await call(), None
     except LiproRefreshTokenExpiredError as err:
-        await _async_trigger_reauth(coordinator, "auth_expired")
+        await _async_trigger_reauth(coordinator, RuntimeReauthReason.AUTH_EXPIRED)
         return False, None, err
     except LiproAuthError as err:
-        await _async_trigger_reauth(coordinator, "auth_error")
+        await _async_trigger_reauth(coordinator, RuntimeReauthReason.AUTH_ERROR)
         return False, None, err
     except LiproApiError as err:
         return False, None, err
@@ -81,11 +85,11 @@ async def async_execute_coordinator_call(
         await _async_ensure_authenticated(coordinator)
         return await call()
     except LiproRefreshTokenExpiredError as err:
-        await _async_trigger_reauth(coordinator, "auth_expired")
+        await _async_trigger_reauth(coordinator, RuntimeReauthReason.AUTH_EXPIRED)
         raise_service_error("auth_expired", err=err)
     except LiproAuthError as err:
         safe_error = safe_error_placeholder(err)
-        await _async_trigger_reauth(coordinator, "auth_error")
+        await _async_trigger_reauth(coordinator, RuntimeReauthReason.AUTH_ERROR)
         raise_service_error(
             "auth_error",
             err=err,

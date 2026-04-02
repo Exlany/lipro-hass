@@ -13,10 +13,10 @@ projection_targets:
 active_milestone:
   version: v1.40
   name: Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening
-  status: active / phase 134 complete; closeout-ready (2026-04-02)
-  phase: '134'
-  phase_title: request-policy ownership, entity de-reflection, and fan truth hardening
-  phase_dir: 134-request-policy-ownership-entity-de-reflection-and-fan-truth-hardening
+  status: active / phase 135 complete; closeout-ready (2026-04-02)
+  phase: '135'
+  phase_title: runtime-access projection split, auth reason typing, and dispatch route hardening
+  phase_dir: 135-runtime-access-auth-and-dispatch-contract-hardening
   route_mode: v1.40 active milestone route / starting from latest archived baseline = v1.39
 latest_archived:
   version: v1.39
@@ -40,28 +40,36 @@ bootstrap:
 <!-- governance-route-contract:end -->
 ## Current Milestone (v1.40)
 
-**Milestone Goal:** 基于 `v1.39` latest archived baseline，把 RequestPolicy pacing ownership、entity projection de-reflection 与 fan preset truth 收束到同一条 active milestone 主链，并把 docs/guards/tests 同步推进到 closeout-ready。
-**Milestone status:** `active / phase 134 complete; closeout-ready (2026-04-02)`
+**Milestone Goal:** 基于 `v1.39` latest archived baseline，先完成 RequestPolicy pacing ownership、entity projection de-reflection 与 fan preset truth 收口，再把 `runtime_access.py`、`auth_service.py` 与 `dispatch.py` 的剩余 sanctioned hotspot 继续压回 typed / thin / support-split 主链。 
+**Milestone status:** `active / phase 135 complete; closeout-ready (2026-04-02)`
 **Current route mode:** `v1.40 active milestone route / starting from latest archived baseline = v1.39`
 **Starting baseline:** `.planning/v1.39-MILESTONE-AUDIT.md, .planning/reviews/V1_39_EVIDENCE_INDEX.md, .planning/milestones/v1.39-ROADMAP.md, .planning/milestones/v1.39-REQUIREMENTS.md`
-**Requirements basket:** `GOV-90, ARC-43, HOT-62, HOT-63, QLT-56, TST-54`
+**Requirements basket:** `GOV-90, ARC-43, HOT-62, HOT-63, QLT-56, TST-54, ARC-44, HOT-64, HOT-65, HOT-66, QLT-57, TST-55`
 **Latest archived baseline:** `v1.39`
 **Archive pointer:** `.planning/reviews/V1_39_EVIDENCE_INDEX.md`
 **Latest archived audit artifact:** `.planning/v1.39-MILESTONE-AUDIT.md`
 **Default next command:** `$gsd-complete-milestone v1.40`
-**Current phase handoff:** `Phase 134 已完成 3/3 plans 与 focused verification/validation；默认下一步是 milestone closeout。`
+**Current phase handoff:** `Phase 135 已完成 3/3 plans 与 focused verification/validation；默认下一步重新回到 milestone closeout。`
 
 ### Governance Ownership
-- [x] **GOV-90**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES` 与 `GOVERNANCE_REGISTRY.json` 必须共同承认 `v1.40 active milestone route / starting from latest archived baseline = v1.39`，并把 `Phase 134` 作为唯一 active phase、`$gsd-complete-milestone v1.40` 作为默认下一步。
+- [x] **GOV-90**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES` 与 `GOVERNANCE_REGISTRY.json` 必须共同承认 `v1.40 active milestone route / starting from latest archived baseline = v1.39`，并把 `Phase 134 -> 135` 作为当前 active milestone 范围、`$gsd-complete-milestone v1.40` 作为默认下一步。
 
 ### RequestPolicy / Entity Architecture
 - [x] **ARC-43**: `custom_components/lipro/core/api/request_policy.py` 必须把 pacing caches / busy counters / target locks 收回单一实例 owner；`request_policy_support.py` 只保留 support helpers，不再让 mutable pacing state 以 parallel dict 参数形式四处流动。
 - [x] **HOT-62**: `custom_components/lipro/entities/descriptors.py`、`custom_components/lipro/light.py` 与 `custom_components/lipro/binary_sensor.py` 必须移除 dotted-path/getattr 反射，改为显式 resolver / state-reader projection。
 - [x] **HOT-63**: `custom_components/lipro/fan.py` 的 unknown `fanMode` 不能再 fallback 成 `cycle`；preset / supported_features / behavior tests 必须维持 truthful 一致投影。
 
+### Runtime Hotspot Final Hardening
+- [x] **ARC-44**: `custom_components/lipro/control/runtime_access.py` 必须继续薄化为 outward import home；runtime snapshot / diagnostics projection coercion 必须委托给 support surface，而不是继续在 import home 中膨胀。
+- [x] **HOT-64**: `custom_components/lipro/runtime_types.py`、`custom_components/lipro/core/coordinator/services/auth_service.py` 与 `custom_components/lipro/services/execution.py` 必须围绕单一 typed reauth reason contract 协作。
+- [x] **HOT-65**: `custom_components/lipro/core/command/dispatch.py` 的 route contract 必须采用 enum-backed canonical form，不再以裸字符串作为唯一正式表达。
+- [x] **HOT-66**: sender / runtime command orchestration 必须承认新的 dispatch route canonical form，避免 stringly route 在下游继续漂移。
+
 ### Quality / Verification
-- [x] **QLT-56**: developer architecture、maintainer runbook、public-surface meta guards 与 phase assets 必须同步描述新的 owner/projection truth，避免 route/docs/guards 各讲一套。
+- [x] **QLT-56**: developer architecture、maintainer runbook、public-surface meta guards 与 phase assets 必须同步描述 Phase 134 的 owner/projection truth，避免 route/docs/guards 各讲一套。
 - [x] **TST-54**: focused `pytest`/meta/ruff lane 必须覆盖 RequestPolicy ownership、entity de-reflection、fan truth 与 `v1.40` 当前治理路由。
+- [x] **QLT-57**: Phase 135 完成后，`runtime_access` support split、typed reauth reason 与 enum-backed route 必须有 focused architecture guard 防回流。
+- [x] **TST-55**: focused `pytest`/meta/ruff lane 必须覆盖 runtime_access/auth_service/dispatch 以及 reopened `v1.40` current-route truth。
 
 ## Traceability
 
@@ -73,14 +81,19 @@ bootstrap:
 | HOT-63 | Phase 134 | Complete |
 | QLT-56 | Phase 134 | Complete |
 | TST-54 | Phase 134 | Complete |
+| ARC-44 | Phase 135 | Complete |
+| HOT-64 | Phase 135 | Complete |
+| HOT-65 | Phase 135 | Complete |
+| HOT-66 | Phase 135 | Complete |
+| QLT-57 | Phase 135 | Complete |
+| TST-55 | Phase 135 | Complete |
 
 ## Coverage
 
-- v1.40 requirements: 6 total
-- Current mapped: 6
-- Current complete: 6
+- v1.40 requirements: 12 total
+- Current mapped: 12
+- Current complete: 12
 - Current pending: 0
-
 
 ## Historical Traceability Appendix
 

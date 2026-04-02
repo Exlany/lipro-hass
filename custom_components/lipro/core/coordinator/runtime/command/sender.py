@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 
 from ....api import LiproApiError, LiproAuthError, LiproConnectionError
 from ....command.dispatch import (
+    CommandRoute,
     execute_command_dispatch,
     resolve_command_plan_with_trace,
 )
@@ -48,7 +49,7 @@ _NON_FATAL_VERIFICATION_QUERY_EXCEPTIONS = (
 class CommandDispatchApiError(Exception):
     """Protocol API error annotated with the resolved command route."""
 
-    route: str
+    route: CommandRoute
     error: LiproApiError
 
 
@@ -73,7 +74,7 @@ class CommandSender:
         properties: list[dict[str, str]] | None,
         fallback_device_id: str | None,
         trace: CommandTrace,
-    ) -> tuple[CommandResultPayload, str]:
+    ) -> tuple[CommandResultPayload, CommandRoute]:
         """Send command to device and return result with route.
 
         Returns:
