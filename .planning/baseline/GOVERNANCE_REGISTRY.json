@@ -175,35 +175,27 @@
       ".planning/STATE.md",
       ".planning/MILESTONES.md"
     ],
-    "active_milestone": {
+    "active_milestone": null,
+    "latest_archived": {
       "version": "v1.42",
       "name": "Hotspot Burn-Down, Observability Truth & Governance Cost Compression",
-      "status": "active / phase 138 complete; closeout-ready (2026-04-02)",
+      "status": "archived / evidence-ready (2026-04-02)",
       "phase": "138",
       "phase_title": "runtime contract decoupling, support-guard hardening, and docs archive alignment",
       "phase_dir": "138-runtime-contract-decoupling-support-guard-and-docs-alignment",
-      "route_mode": "v1.42 active milestone route / starting from latest archived baseline = v1.41"
-    },
-    "latest_archived": {
-      "version": "v1.41",
-      "name": "Terminal Residual Audit, Remediation Charter & Maintainability Hardening",
-      "status": "archived / evidence-ready (2026-04-02)",
-      "phase": "136",
-      "phase_title": "repo-wide terminal residual audit, hygiene fixes, and remediation charter",
-      "phase_dir": "136-repo-wide-terminal-residual-audit-and-remediation-charter",
-      "audit_path": ".planning/v1.41-MILESTONE-AUDIT.md",
-      "evidence_path": ".planning/reviews/V1_41_EVIDENCE_INDEX.md",
+      "audit_path": ".planning/v1.42-MILESTONE-AUDIT.md",
+      "evidence_path": ".planning/reviews/V1_42_EVIDENCE_INDEX.md",
       "evidence_label": "latest archived evidence index"
     },
     "previous_archived": {
-      "version": "v1.40",
-      "name": "Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening",
-      "evidence_path": ".planning/reviews/V1_40_EVIDENCE_INDEX.md"
+      "version": "v1.41",
+      "name": "Terminal Residual Audit, Remediation Charter & Maintainability Hardening",
+      "evidence_path": ".planning/reviews/V1_41_EVIDENCE_INDEX.md"
     },
     "bootstrap": {
-      "current_route": "v1.42 active milestone route / starting from latest archived baseline = v1.41",
-      "default_next_command": "$gsd-complete-milestone v1.42",
-      "latest_archived_evidence_pointer": ".planning/reviews/V1_41_EVIDENCE_INDEX.md"
+      "current_route": "no active milestone route / latest archived baseline = v1.42",
+      "default_next_command": "$gsd-new-milestone",
+      "latest_archived_evidence_pointer": ".planning/reviews/V1_42_EVIDENCE_INDEX.md"
     },
     "contract_version": 1
   }

@@ -680,3 +680,19 @@ policy:
   - 136-SUMMARY.md
   - 136-VERIFICATION.md
   - 136-VALIDATION.md
+
+  137-hotspot-burn-down-command-observability-and-governance-compression:
+  - 137-01-SUMMARY.md
+  - 137-02-SUMMARY.md
+  - 137-03-SUMMARY.md
+  - 137-SUMMARY.md
+  - 137-VERIFICATION.md
+  - 137-VALIDATION.md
+  138-runtime-contract-decoupling-support-guard-and-docs-alignment:
+  - 138-01-SUMMARY.md
+  - 138-02-SUMMARY.md
+  - 138-03-SUMMARY.md
+  - 138-04-SUMMARY.md
+  - 138-SUMMARY.md
+  - 138-VERIFICATION.md
+  - 138-VALIDATION.md

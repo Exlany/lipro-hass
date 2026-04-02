@@ -1,10 +1,10 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `v1.42 active / phase 138 complete; closeout-ready` (`2026-04-02`)
-> **Current route alignment**: `v1.42 active milestone route / starting from latest archived baseline = v1.41` (`2026-04-02`, active / phase 138 complete; closeout-ready (2026-04-02))
-> **Default next command**: `$gsd-complete-milestone v1.42`
-> **Latest archived evidence path**: `.planning/reviews/V1_41_EVIDENCE_INDEX.md`
-> **Latest archived audit path**: `.planning/v1.41-MILESTONE-AUDIT.md`
+> **Last aligned through**: `v1.42 archived / evidence-ready` (`2026-04-02`)
+> **Current route alignment**: `no active milestone route / latest archived baseline = v1.42` (`2026-04-02`, archived / evidence-ready (2026-04-02))
+> **Default next command**: `$gsd-new-milestone`
+> **Latest archived evidence path**: `.planning/reviews/V1_42_EVIDENCE_INDEX.md`
+> **Latest archived audit path**: `.planning/v1.42-MILESTONE-AUDIT.md`
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
@@ -20,9 +20,9 @@
 
 ## Current Route Compression
 
-- `v1.42 / Phase 138` 已完成 developer first-hop 的 burn-down 收口：当前 live route 现记录已交付的 hotspot compression / command-observability convergence / governance sync，latest archived baseline `v1.41` 继续只承担 pull-only evidence anchor。
-- 当前 live route 已把 sanctioned hotspots 与 residual contract cleanup 收口为 closeout-ready deliverables：`core/protocol/rest_port.py`、`core/auth/manager.py`、`core/auth/manager_support.py`、`core/command/dispatch.py`、`core/api/{status_service.py,types.py}`、`custom_components/lipro/{runtime_types.py,service_types.py}`、`control/service_router_support.py` 与 governance semantic guards 已形成单一执行证据链。
-- 当前开发入口应优先关注 closeout-ready artifacts：`.planning/phases/137-hotspot-burn-down-command-observability-and-governance-compression/{137-01-SUMMARY.md,137-02-SUMMARY.md,137-03-SUMMARY.md,137-SUMMARY.md,137-VERIFICATION.md} + 138-runtime-contract-decoupling-support-guard-and-docs-alignment/{138-01-SUMMARY.md,138-02-SUMMARY.md,138-03-SUMMARY.md,138-04-SUMMARY.md,138-SUMMARY.md,138-VERIFICATION.md}`、`dispatch.py`、`manager.py`、`rest_port.py`、`status_service.py`、`device.py` 与 governance route selector family；避免重新把审查结论散落回临时对话或第二条治理故事线。
+- `v1.42` 已从 closeout-ready route 冻结为 latest archived baseline：当前 live first hop 只保留已交付的 hotspot compression / runtime contract decoupling / governance sync 结果，不再假装仍有 active milestone 正在执行。
+- 当前 developer first hop 应把 `Phase 137` 与 `Phase 138` bundle 视为 archived evidence chain：`core/protocol/rest_port.py`、`core/auth/manager.py`、`core/command/dispatch.py`、`core/api/{status_service.py,types.py}`、`custom_components/lipro/{runtime_types.py,service_types.py}`、`control/service_router_support.py` 与 selector family 已共同冻结为 latest archived truth。
+- 如需继续演进，请先读取 `.planning/reviews/V1_42_EVIDENCE_INDEX.md`、`.planning/v1.42-MILESTONE-AUDIT.md` 与 `.planning/PROJECT.md`，再显式开启新 milestone；不要回流为第二条 active closeout 叙事。
 
 ## 快速导航
 

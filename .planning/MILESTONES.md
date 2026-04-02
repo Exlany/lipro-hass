@@ -9,59 +9,50 @@ projection_targets:
 - .planning/REQUIREMENTS.md
 - .planning/STATE.md
 - .planning/MILESTONES.md
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.42
   name: Hotspot Burn-Down, Observability Truth & Governance Cost Compression
-  status: active / phase 138 complete; closeout-ready (2026-04-02)
+  status: archived / evidence-ready (2026-04-02)
   phase: '138'
   phase_title: runtime contract decoupling, support-guard hardening, and docs archive alignment
   phase_dir: 138-runtime-contract-decoupling-support-guard-and-docs-alignment
-  route_mode: v1.42 active milestone route / starting from latest archived baseline
-    = v1.41
-latest_archived:
-  version: v1.41
-  name: Terminal Residual Audit, Remediation Charter & Maintainability Hardening
-  status: archived / evidence-ready (2026-04-02)
-  phase: '136'
-  phase_title: repo-wide terminal residual audit, hygiene fixes, and remediation charter
-  phase_dir: 136-repo-wide-terminal-residual-audit-and-remediation-charter
-  audit_path: .planning/v1.41-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_41_EVIDENCE_INDEX.md
+  audit_path: .planning/v1.42-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_42_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.40
-  name: Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening
-  evidence_path: .planning/reviews/V1_40_EVIDENCE_INDEX.md
+  version: v1.41
+  name: Terminal Residual Audit, Remediation Charter & Maintainability Hardening
+  evidence_path: .planning/reviews/V1_41_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.42 active milestone route / starting from latest archived baseline
-    = v1.41
-  default_next_command: $gsd-complete-milestone v1.42
-  latest_archived_evidence_pointer: .planning/reviews/V1_41_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.42
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_42_EVIDENCE_INDEX.md
 contract_version: 1
 ```
 <!-- governance-route-contract:end -->
-## Current Milestone (v1.42)
+## Latest Archived Milestone (v1.42)
 
-## v1.42 Hotspot Burn-Down, Observability Truth & Governance Cost Compression (Active: 2026-04-02)
+## v1.42 Hotspot Burn-Down, Observability Truth & Governance Cost Compression (Shipped: 2026-04-02)
 
-**Status:** `active / phase 138 complete; closeout-ready (2026-04-02)`
-**Current route:** `v1.42 active milestone route / starting from latest archived baseline = v1.41`
+**Status:** `archived / evidence-ready (2026-04-02)`
+**Current route:** `no active milestone route / latest archived baseline = v1.42`
 **Phase range:** `137 -> 138`
 **Progress:** `2/2 phases, 7/7 plans`
-**Default next command:** `$gsd-complete-milestone v1.42`
-**Latest archived pointer:** `.planning/reviews/V1_41_EVIDENCE_INDEX.md`
-**Archived audit reference:** `.planning/v1.41-MILESTONE-AUDIT.md`
-**Starting baseline:** `.planning/v1.41-MILESTONE-AUDIT.md, .planning/reviews/V1_41_EVIDENCE_INDEX.md, .planning/milestones/v1.41-ROADMAP.md, .planning/milestones/v1.41-REQUIREMENTS.md`
-**Requirements basket:** `ARC-46, HOT-67, HOT-68, HOT-69, OBS-01, GOV-92, DOC-20, TST-57, ARC-47, QLT-59, GOV-93, DOC-21, TST-58`
-**Archive state:** `latest archived baseline inherited / phase closeout-ready`
+**Default next command:** `$gsd-new-milestone`
+**Latest archived pointer:** `.planning/reviews/V1_42_EVIDENCE_INDEX.md`
+**Archived audit reference:** `.planning/v1.42-MILESTONE-AUDIT.md`
+**Archived snapshots:** `.planning/milestones/v1.42-ROADMAP.md, .planning/milestones/v1.42-REQUIREMENTS.md`
+**Archive state:** `archived snapshots created / evidence-ready`
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.42`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.41`
 
-**Completed phase story:**
+**Shipped phase story:**
 
-- `Phase 137`: hotspot burn-down, command/observability convergence, and governance derivation compression ✅ (`137-01` governance/docs/test contract hardening + `137-02` protocol/rest/auth hotspot decomposition + `137-03` device/command/observability hardening completed; `137-01..03-SUMMARY.md`, `137-SUMMARY.md`, `137-VERIFICATION.md` recorded)
-- `Phase 138`: runtime contract decoupling, support-guard hardening, and docs archive alignment ✅ (`138-01` governance/docs/route follow-up + `138-02` runtime/service contract decoupling + `138-03` support naming guard / verification sync + `138-04` connect-status outcome propagation completed; `138-01..04-SUMMARY.md`, `138-SUMMARY.md`, `138-VERIFICATION.md` recorded)
+- `Phase 137`: hotspot burn-down, command/observability convergence, and governance derivation compression ✅ (`137-01` governance/docs/test contract hardening + `137-02` protocol/rest/auth hotspot decomposition + `137-03` device/command/observability hardening completed; `137-01..03-SUMMARY.md`, `137-SUMMARY.md`, `137-VERIFICATION.md`, `137-VALIDATION.md` recorded)
+- `Phase 138`: runtime contract decoupling, support-guard hardening, and docs archive alignment ✅ (`138-01` governance/docs/route follow-up + `138-02` runtime/service contract decoupling + `138-03` support naming guard / verification sync + `138-04` connect-status outcome propagation completed; `138-01..04-SUMMARY.md`, `138-SUMMARY.md`, `138-VERIFICATION.md`, `138-VALIDATION.md` recorded)
 
-
-## Latest Archived Milestone (v1.41)
+## Previous Archived Milestone (v1.41)
 
 ## v1.41 Terminal Residual Audit, Remediation Charter & Maintainability Hardening (Shipped: 2026-04-02)
 
@@ -69,10 +60,10 @@ contract_version: 1
 **Current route:** `no active milestone route / latest archived baseline = v1.41`
 **Phase range:** `136 -> 136`
 **Progress:** `1/1 phases, 3/3 plans`
-**Default next command:** `$gsd-complete-milestone v1.42`
+**Default next command:** `$gsd-new-milestone`
 **Latest archived pointer:** `.planning/reviews/V1_41_EVIDENCE_INDEX.md`
 **Archived audit reference:** `.planning/v1.41-MILESTONE-AUDIT.md`
-**Archived snapshots:** `.planning/milestones/v1.41-ROADMAP.md`, `.planning/milestones/v1.41-REQUIREMENTS.md`
+**Archived snapshots:** `.planning/milestones/v1.41-ROADMAP.md, .planning/milestones/v1.41-REQUIREMENTS.md`
 **Archive state:** `archived snapshots created / evidence-ready`
 **Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.41`
 **Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.40`
