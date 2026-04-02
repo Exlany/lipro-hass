@@ -27,9 +27,13 @@ from .governance_current_truth import (
     assert_machine_readable_route_contracts,
 )
 from .governance_followup_route_specs import (
+    CoverageSnapshot,
+    RequirementTrace,
     assert_contains_all,
     assert_not_contains_any,
     load_planning_docs_snapshot,
+    requirement_checkbox_markers,
+    requirement_table_markers,
 )
 
 _SNAPSHOT = load_planning_docs_snapshot()
@@ -39,6 +43,38 @@ _REQUIREMENTS_TEXT = _SNAPSHOT.requirements
 _PROJECT_TEXT = _SNAPSHOT.project
 _STATE_TEXT = _SNAPSHOT.state
 _PHASE_TERMINAL = CURRENT_MILESTONE_PHASES[-1]
+
+_REQUIREMENT_TRACES_BY_MILESTONE = {
+    "v1.38": (
+        RequirementTrace("AUD-07", "132"),
+        RequirementTrace("GOV-88", "132"),
+        RequirementTrace("DOC-17", "132"),
+        RequirementTrace("OSS-19", "132"),
+        RequirementTrace("QLT-54", "132"),
+        RequirementTrace("TST-52", "132"),
+    ),
+    "v1.37": (
+        RequirementTrace("AUD-06", "131"),
+        RequirementTrace("GOV-87", "131"),
+        RequirementTrace("DOC-16", "131"),
+        RequirementTrace("OSS-18", "131"),
+        RequirementTrace("ARC-40", "129"),
+        RequirementTrace("HOT-59", "129"),
+        RequirementTrace("TST-50", "129"),
+        RequirementTrace("QLT-52", "129"),
+        RequirementTrace("ARC-41", "130"),
+        RequirementTrace("HOT-60", "130"),
+        RequirementTrace("TST-51", "130"),
+        RequirementTrace("QLT-53", "131"),
+    ),
+}
+
+_COVERAGE_BY_MILESTONE = {
+    "v1.38": CoverageSnapshot("v1.38 requirements", 6, mapped=6, complete=6, pending=0),
+    "v1.37": CoverageSnapshot(
+        "v1.37 requirements", 12, mapped=12, complete=12, pending=0
+    ),
+}
 
 
 def test_machine_readable_route_contracts_point_to_current_selector_state() -> None:
@@ -64,7 +100,10 @@ def test_machine_readable_route_contracts_point_to_current_selector_state() -> N
         assert previous_archived["version"] == PREVIOUS_ARCHIVED_MILESTONE
         assert bootstrap["current_route"] == CURRENT_ROUTE_MODE
         assert bootstrap["default_next_command"] == CURRENT_MILESTONE_DEFAULT_NEXT
-        assert bootstrap["latest_archived_evidence_pointer"] == LATEST_ARCHIVED_EVIDENCE_PATH
+        assert (
+            bootstrap["latest_archived_evidence_pointer"]
+            == LATEST_ARCHIVED_EVIDENCE_PATH
+        )
 
 
 def test_current_truth_is_reflected_in_live_docs() -> None:
@@ -85,7 +124,6 @@ def test_current_truth_is_reflected_in_live_docs() -> None:
             f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`",
             CURRENT_PHASE_HEADING,
             "## Phases",
-            "## Progress",
         )
         for phase in CURRENT_MILESTONE_PHASES:
             assert f"Phase {phase}" in _ROADMAP_TEXT
@@ -107,7 +145,6 @@ def test_current_truth_is_reflected_in_live_docs() -> None:
             f"**Milestone status:** `{CURRENT_MILESTONE_STATUS}`",
             f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`",
             "## Phases",
-            "## Progress",
             "Latest Archived Milestone",
         )
         assert_contains_all(
@@ -133,65 +170,23 @@ def test_current_requirements_traceability_and_coverage_stay_in_sync() -> None:
     )
     assert_contains_all(_REQUIREMENTS_TEXT, *base_markers)
 
-    if CURRENT_MILESTONE == "v1.37":
-        assert_contains_all(
-            _REQUIREMENTS_TEXT,
-            "- [x] **AUD-06**",
-            "- [x] **GOV-87**",
-            "- [x] **DOC-16**",
-            "- [x] **OSS-18**",
-            "- [x] **ARC-40**",
-            "- [x] **HOT-59**",
-            "- [x] **TST-50**",
-            "- [x] **QLT-52**",
-            "- [x] **ARC-41**",
-            "- [x] **HOT-60**",
-            "- [x] **TST-51**",
-            "- [x] **QLT-53**",
-            "| AUD-06 | Phase 131 | Complete |",
-            "| GOV-87 | Phase 131 | Complete |",
-            "| DOC-16 | Phase 131 | Complete |",
-            "| OSS-18 | Phase 131 | Complete |",
-            "| ARC-40 | Phase 129 | Complete |",
-            "| HOT-59 | Phase 129 | Complete |",
-            "| TST-50 | Phase 129 | Complete |",
-            "| QLT-52 | Phase 129 | Complete |",
-            "| ARC-41 | Phase 130 | Complete |",
-            "| HOT-60 | Phase 130 | Complete |",
-            "| TST-51 | Phase 130 | Complete |",
-            "| QLT-53 | Phase 131 | Complete |",
-            "- v1.37 requirements: 12 total",
-            "- Mapped to phases: 12",
-            "- Complete: 12",
-            "- Pending: 0",
-        )
-        return
+    traces = _REQUIREMENT_TRACES_BY_MILESTONE.get(CURRENT_MILESTONE)
+    coverage = _COVERAGE_BY_MILESTONE.get(CURRENT_MILESTONE)
+
+    assert traces is not None, CURRENT_MILESTONE
+    assert coverage is not None, CURRENT_MILESTONE
 
     assert_contains_all(
         _REQUIREMENTS_TEXT,
-        "- [x] **ARC-38**",
-        "- [x] **HOT-57**",
-        "- [x] **GOV-85**",
-        "- [x] **TST-48**",
-        "- [x] **QLT-50**",
-        "- [x] **DOC-15**",
-        "- [x] **ARC-39**",
-        "- [x] **HOT-58**",
-        "- [x] **TST-49**",
-        "- [x] **OSS-17**",
-        "- [x] **GOV-86**",
-        "- [x] **QLT-51**",
-        "| OSS-17 | Phase 128 | Complete |",
-        "| GOV-86 | Phase 128 | Complete |",
-        "| QLT-51 | Phase 128 | Complete |",
-        "- v1.36 requirements: 12 total",
-        "- Mapped to phases: 12",
-        "- Complete: 12",
-        "- Pending: 0",
+        *requirement_checkbox_markers(*traces),
+        *requirement_table_markers(*traces),
+        *coverage.markers(),
     )
 
 
-def test_historical_route_truth_stays_archived_while_live_docs_stop_claiming_old_handoffs() -> None:
+def test_historical_route_truth_stays_archived_while_live_docs_stop_claiming_old_handoffs() -> (
+    None
+):
     expected_closeout = (
         "historical closeout route truth = `no active milestone route / latest archived baseline = v1.36`"
         if PREVIOUS_ARCHIVED_MILESTONE == "v1.36"
@@ -208,7 +203,9 @@ def test_historical_route_truth_stays_archived_while_live_docs_stop_claiming_old
         expected_closeout,
         expected_transition,
     )
-    assert_contains_all(_PROJECT_TEXT, PREVIOUS_ARCHIVED_PROJECT_HEADER, "Latest archived pointer")
+    assert_contains_all(
+        _PROJECT_TEXT, PREVIOUS_ARCHIVED_PROJECT_HEADER, "Latest archived pointer"
+    )
     assert_not_contains_any(
         _PROJECT_TEXT,
         "Phase 125 planning-ready",

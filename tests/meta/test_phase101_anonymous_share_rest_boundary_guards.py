@@ -6,8 +6,10 @@ from pathlib import Path
 
 from tests.helpers.repo_root import repo_root
 
-from .governance_contract_helpers import assert_testing_inventory_snapshot
-from .governance_current_truth import CURRENT_MILESTONE_DEFAULT_NEXT, CURRENT_ROUTE
+from .governance_contract_helpers import (
+    assert_current_route_markers,
+    assert_testing_inventory_snapshot,
+)
 
 _ROOT = repo_root(Path(__file__))
 _PROJECT = _ROOT / ".planning" / "PROJECT.md"
@@ -23,13 +25,54 @@ _FILE_MATRIX = _ROOT / ".planning" / "reviews" / "FILE_MATRIX.md"
 _TESTING = _ROOT / ".planning" / "codebase" / "TESTING.md"
 _CONCERNS = _ROOT / ".planning" / "codebase" / "CONCERNS.md"
 _DEV_ARCH = _ROOT / "docs" / "architecture_archive.md"
-_MANAGER = _ROOT / "custom_components" / "lipro" / "core" / "anonymous_share" / "manager.py"
-_MANAGER_SUBMISSION = _ROOT / "custom_components" / "lipro" / "core" / "anonymous_share" / "manager_submission.py"
-_MANAGER_SUPPORT = _ROOT / "custom_components" / "lipro" / "core" / "anonymous_share" / "manager_support.py"
-_MQTT_API_SERVICE = _ROOT / "custom_components" / "lipro" / "core" / "api" / "mqtt_api_service.py"
-_REST_DECODER_SUPPORT = _ROOT / "custom_components" / "lipro" / "core" / "protocol" / "boundary" / "rest_decoder_support.py"
-_REST_DECODER = _ROOT / "custom_components" / "lipro" / "core" / "protocol" / "boundary" / "rest_decoder.py"
-_REST_FACADE_ENDPOINT_METHODS = _ROOT / "custom_components" / "lipro" / "core" / "api" / "rest_facade_endpoint_methods.py"
+_MANAGER = (
+    _ROOT / "custom_components" / "lipro" / "core" / "anonymous_share" / "manager.py"
+)
+_MANAGER_SUBMISSION = (
+    _ROOT
+    / "custom_components"
+    / "lipro"
+    / "core"
+    / "anonymous_share"
+    / "manager_submission.py"
+)
+_MANAGER_SUPPORT = (
+    _ROOT
+    / "custom_components"
+    / "lipro"
+    / "core"
+    / "anonymous_share"
+    / "manager_support.py"
+)
+_MQTT_API_SERVICE = (
+    _ROOT / "custom_components" / "lipro" / "core" / "api" / "mqtt_api_service.py"
+)
+_REST_DECODER_SUPPORT = (
+    _ROOT
+    / "custom_components"
+    / "lipro"
+    / "core"
+    / "protocol"
+    / "boundary"
+    / "rest_decoder_support.py"
+)
+_REST_DECODER = (
+    _ROOT
+    / "custom_components"
+    / "lipro"
+    / "core"
+    / "protocol"
+    / "boundary"
+    / "rest_decoder.py"
+)
+_REST_FACADE_ENDPOINT_METHODS = (
+    _ROOT
+    / "custom_components"
+    / "lipro"
+    / "core"
+    / "api"
+    / "rest_facade_endpoint_methods.py"
+)
 _PHASE101_DIR = (
     _ROOT
     / ".planning"
@@ -53,24 +96,28 @@ def test_phase101_previous_archived_docs_and_closeout_bundle_align() -> None:
     dev_arch_text = _read(_DEV_ARCH)
     phase101_summary = _read(_PHASE101_DIR / "101-03-SUMMARY.md")
 
-    for text in (
+    assert_current_route_markers(
         project_text,
         roadmap_text,
         requirements_text,
         state_text,
         milestones_text,
         verification_text,
-    ):
-        assert CURRENT_ROUTE in text
-        assert CURRENT_MILESTONE_DEFAULT_NEXT in text
+    )
 
     assert "Final Carry-Forward Eradication & Route Reactivation" in audit_text
-    assert "v1.27 active route / Phase 101 complete / latest archived baseline = v1.26" in audit_text
+    assert (
+        "v1.27 active route / Phase 101 complete / latest archived baseline = v1.26"
+        in audit_text
+    )
     assert "$gsd-complete-milestone v1.27" not in audit_text
     assert "[To be planned]" not in roadmap_text
     assert "**Plans:** 0 plans" not in roadmap_text
     assert "run /gsd:plan-phase 101 to break down" not in roadmap_text
-    assert "Phase 101 Anonymous-share Manager / REST Decoder Hotspot Decomposition Freeze Note" in dev_arch_text
+    assert (
+        "Phase 101 Anonymous-share Manager / REST Decoder Hotspot Decomposition Freeze Note"
+        in dev_arch_text
+    )
     assert "Phase 101" in phase101_summary
 
 
@@ -82,17 +129,37 @@ def test_phase101_maps_and_ledgers_project_previous_archived_hotspot_truth() -> 
     public_surfaces_text = _read(_PUBLIC_SURFACES)
     dependency_text = _read(_DEPENDENCY_MATRIX)
 
-    assert "tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py" in file_matrix_text
-    assert "focused predecessor guard home for Phase 101 anonymous-share / REST-boundary hotspot decomposition / governance freeze" in file_matrix_text
+    assert (
+        "tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py"
+        in file_matrix_text
+    )
+    assert (
+        "focused predecessor guard home for Phase 101 anonymous-share / REST-boundary hotspot decomposition / governance freeze"
+        in file_matrix_text
+    )
     assert_testing_inventory_snapshot(testing_text)
-    assert "tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py" in verification_text
-    assert "## Phase 101 Anonymous-share Manager / REST Decoder Hotspot Decomposition Freeze" in verification_text
-    assert "Phase 101 已把 `anonymous_share/manager.py` 收窄到 435 行 formal manager home" in concerns_text
-    assert "manager_submission.py`、`share_client_{flows,ports,refresh,submit}.py`" in public_surfaces_text
+    assert (
+        "tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py"
+        in verification_text
+    )
+    assert (
+        "## Phase 101 Anonymous-share Manager / REST Decoder Hotspot Decomposition Freeze"
+        in verification_text
+    )
+    assert (
+        "Phase 101 已把 `anonymous_share/manager.py` 收窄到 435 行 formal manager home"
+        in concerns_text
+    )
+    assert (
+        "manager_submission.py`、`share_client_{flows,ports,refresh,submit}.py`"
+        in public_surfaces_text
+    )
     assert "manager_submission.py` 只是 inward collaborator" in dependency_text
 
 
-def test_phase101_anonymous_share_and_rest_boundary_formal_homes_preserve_single_route() -> None:
+def test_phase101_anonymous_share_and_rest_boundary_formal_homes_preserve_single_route() -> (
+    None
+):
     manager_text = _read(_MANAGER)
     manager_submission_text = _read(_MANAGER_SUBMISSION)
     manager_support_text = _read(_MANAGER_SUPPORT)

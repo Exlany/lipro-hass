@@ -176,7 +176,14 @@
       ".planning/STATE.md",
       ".planning/MILESTONES.md"
     ],
-    "active_milestone": null,
+    "active_milestone": {
+      "version": "v1.38",
+      "name": "Governance Story Compression, Archive Segregation & Public Entry Simplification",
+      "status": "active / phase 132 complete; closeout-ready (2026-04-02)",
+      "phase": "132",
+      "phase_title": "current-story compression and archive-boundary cleanup",
+      "phase_dir": "132-current-story-compression-and-archive-boundary-cleanup"
+    },
     "latest_archived": {
       "version": "v1.37",
       "name": "Repo-Wide Terminal Audit, Hotspot Decomposition & Governance Continuity Decisions",
@@ -194,8 +201,8 @@
       "evidence_path": ".planning/reviews/V1_36_EVIDENCE_INDEX.md"
     },
     "bootstrap": {
-      "current_route": "no active milestone route / latest archived baseline = v1.37",
-      "default_next_command": "$gsd-new-milestone",
+      "current_route": "v1.38 active milestone route / starting from latest archived baseline = v1.37",
+      "default_next_command": "$gsd-complete-milestone v1.38",
       "latest_archived_evidence_pointer": ".planning/reviews/V1_37_EVIDENCE_INDEX.md"
     }
   }

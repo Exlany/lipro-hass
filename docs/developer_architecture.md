@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `v1.37 archived / evidence-ready` (`2026-04-01`)
-> **Current route alignment**: `no active milestone route / latest archived baseline = v1.37` (`2026-04-01`, archived baseline frozen)
+> **Last aligned through**: `v1.38 active / phase 132 complete; closeout-ready` (`2026-04-02`)
+> **Current route alignment**: `v1.38 active milestone route / starting from latest archived baseline = v1.37` (`2026-04-02`, live selector active)
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
@@ -15,11 +15,11 @@
 - historical freeze / typed-boundary / sanitizer / assurance notes 已下沉到 `docs/architecture_archive.md`，作为 pull-only appendix 供回溯，不再占据当前开发入口主线。
 - predecessor archive selector note 仍可在本文回溯到：`no active milestone route / latest archived baseline = v1.34`；这只是历史锚点，不再代表当前 live route。
 
-## Phase 131 Terminal Audit Closeout
+## Current Route Compression
 
-- `Phase 131` 已把 repo-wide terminal audit、docs-first routing、toolchain truth 与 selector governance 收敛到同一条 archived closeout truth：当前 live selector 已回到 `no active milestone route / latest archived baseline = v1.37`，下一步只剩 `$gsd-new-milestone`。
+- `Phase 132` 已把 developer first hop、release runbook first hop、route-marker helpers 与 recent promoted-asset / handoff-smoke 边界压回同一条 current story：当前 live selector = `v1.38 active milestone route / starting from latest archived baseline = v1.37`，latest archived pointer 继续是 `.planning/reviews/V1_37_EVIDENCE_INDEX.md`。
+- latest archived baseline `v1.37` 继续只作为 pull-only archive proof 供回溯；developer current entry 不再混用 archived-only frozen wording 或 closeout 语气。
 - sanctioned hotspot 仍保留为正式 home，而不是被重新叙述成 delete target：重点关注 `rest_facade.py`、`runtime_types.py`、`request_policy.py`、`dispatch.py`、`auth/manager.py` 与 `firmware_update.py` 这类仍需后续持续减压的 formal files。
-- repo-external continuity / private fallback 仍是 honest governance boundary：仓内文档与 registry 已明确 freeze posture / no-hidden-delegate / no-guaranteed-non-GitHub-private-fallback，而不是伪装成已在仓内解决。
 
 ## 快速导航
 

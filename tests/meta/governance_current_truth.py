@@ -1,4 +1,4 @@
-"""Shared machine-readable active-route and archived-baseline truth for governance tests."""
+"""Shared machine-readable current-route truth for governance tests."""
 
 from __future__ import annotations
 
@@ -11,6 +11,11 @@ import re
 import yaml
 
 from .conftest import _ROOT
+from .governance_archive_history import (
+    CURRENT_ROUTE_PROSE_FORBIDDEN,
+    HISTORICAL_ARCHIVE_TRANSITION_ROUTE_TRUTH,
+    HISTORICAL_CLOSEOUT_ROUTE_TRUTH,
+)
 
 _ROUTE_CONTRACT_START = "<!-- governance-route-contract:start -->"
 _ROUTE_CONTRACT_END = "<!-- governance-route-contract:end -->"
@@ -23,7 +28,9 @@ _ROUTE_CONTRACT_PATHS = {
     "MILESTONES": _ROOT / ".planning" / "MILESTONES.md",
 }
 
-_GOVERNANCE_REGISTRY_PATH = _ROOT / ".planning" / "baseline" / "GOVERNANCE_REGISTRY.json"
+_GOVERNANCE_REGISTRY_PATH = (
+    _ROOT / ".planning" / "baseline" / "GOVERNANCE_REGISTRY.json"
+)
 _PLANNING_ROUTE_REGISTRY_KEY = "planning_route"
 
 
@@ -98,7 +105,9 @@ def load_canonical_route_contract() -> dict[str, object]:
     registry = json.loads(_GOVERNANCE_REGISTRY_PATH.read_text(encoding="utf-8"))
     assert isinstance(registry, dict)
     planning_route = registry.get(_PLANNING_ROUTE_REGISTRY_KEY)
-    assert isinstance(planning_route, dict), "Missing planning_route in GOVERNANCE_REGISTRY.json"
+    assert isinstance(planning_route, dict), (
+        "Missing planning_route in GOVERNANCE_REGISTRY.json"
+    )
     return planning_route
 
 
@@ -112,7 +121,9 @@ def assert_machine_readable_route_contracts() -> dict[str, dict[str, object]]:
 
 def _load_phase_asset_snapshot(phase: str, phase_dir_name: str) -> PhaseAssetSnapshot:
     phase_root = _ROOT / ".planning" / "phases" / phase_dir_name
-    plan_files = tuple(sorted(path.name for path in phase_root.glob(f"{phase}-*-PLAN.md")))
+    plan_files = tuple(
+        sorted(path.name for path in phase_root.glob(f"{phase}-*-PLAN.md"))
+    )
     plan_summary_files = tuple(
         sorted(
             path.name
@@ -120,7 +131,9 @@ def _load_phase_asset_snapshot(phase: str, phase_dir_name: str) -> PhaseAssetSna
             if path.name != f"{phase}-SUMMARY.md"
         )
     )
-    summary_files = tuple(sorted(path.name for path in phase_root.glob(f"{phase}*-SUMMARY.md")))
+    summary_files = tuple(
+        sorted(path.name for path in phase_root.glob(f"{phase}*-SUMMARY.md"))
+    )
     return PhaseAssetSnapshot(
         phase=phase,
         directory=phase_dir_name,
@@ -132,15 +145,15 @@ def _load_phase_asset_snapshot(phase: str, phase_dir_name: str) -> PhaseAssetSna
 
 def _resolve_phase_directory(phase: str) -> str:
     matches = sorted((_ROOT / ".planning" / "phases").glob(f"{phase}-*"))
-    assert len(matches) == 1, f"Expected exactly one phase directory for {phase}, got {matches}"
+    assert len(matches) == 1, (
+        f"Expected exactly one phase directory for {phase}, got {matches}"
+    )
     return matches[0].name
 
 
-
-
-
-
-def _load_current_milestone_phase_statuses(current_phase: str) -> tuple[tuple[str, str], ...]:
+def _load_current_milestone_phase_statuses(
+    current_phase: str,
+) -> tuple[tuple[str, str], ...]:
     roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
     section_match = re.search(
         r"## Phases\n(?P<body>.*?)(?:\n## Phase Details|\n## Archived Highlights|\n## Progress|\Z)",
@@ -155,7 +168,11 @@ def _load_current_milestone_phase_statuses(current_phase: str) -> tuple[tuple[st
         r"- \[(?P<mark>[ xX])\] \*\*Phase (?P<phase>\d+):",
         section_match.group("body"),
     ):
-        status = "complete" if mark.lower() == "x" else ("in_progress" if phase == current_phase else "pending")
+        status = (
+            "complete"
+            if mark.lower() == "x"
+            else ("in_progress" if phase == current_phase else "pending")
+        )
         phase_statuses.append((phase, status))
 
     assert phase_statuses, "Current milestone phases not found in roadmap"
@@ -239,21 +256,29 @@ CURRENT_PHASE_PLAN_SUMMARY_FILENAMES = _CURRENT_PHASE_ASSETS.plan_summary_files
 CURRENT_PHASE_SUMMARY_FILENAMES = _CURRENT_PHASE_ASSETS.summary_files
 CURRENT_PHASE_VERIFICATION_FILENAME = f"{CURRENT_PHASE}-VERIFICATION.md"
 
-_CURRENT_MILESTONE_PHASE_STATUSES = _load_current_milestone_phase_statuses(CURRENT_PHASE)
+_CURRENT_MILESTONE_PHASE_STATUSES = _load_current_milestone_phase_statuses(
+    CURRENT_PHASE
+)
 _CURRENT_MILESTONE_ASSETS = {
     phase: _load_phase_asset_snapshot(
         phase,
-        CURRENT_PHASE_DIR if phase == CURRENT_PHASE else _resolve_phase_directory(phase),
+        CURRENT_PHASE_DIR
+        if phase == CURRENT_PHASE
+        else _resolve_phase_directory(phase),
     )
     for phase, _status in _CURRENT_MILESTONE_PHASE_STATUSES
 }
 
-CURRENT_MILESTONE_PHASES = tuple(phase for phase, _status in _CURRENT_MILESTONE_PHASE_STATUSES)
+CURRENT_MILESTONE_PHASES = tuple(
+    phase for phase, _status in _CURRENT_MILESTONE_PHASE_STATUSES
+)
 CURRENT_MILESTONE_COMPLETED_PHASES = tuple(
     phase for phase, status in _CURRENT_MILESTONE_PHASE_STATUSES if status == "complete"
 )
 CURRENT_MILESTONE_IN_PROGRESS_PHASES = tuple(
-    phase for phase, status in _CURRENT_MILESTONE_PHASE_STATUSES if status == "in_progress"
+    phase
+    for phase, status in _CURRENT_MILESTONE_PHASE_STATUSES
+    if status == "in_progress"
 )
 CURRENT_MILESTONE_PENDING_PHASES = tuple(
     phase for phase, status in _CURRENT_MILESTONE_PHASE_STATUSES if status == "pending"
@@ -263,9 +288,12 @@ CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE = {
 }
 CURRENT_MILESTONE_PLAN_COUNT = CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE[CURRENT_PHASE]
 CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE = {
-    phase: snapshot.summary_count for phase, snapshot in _CURRENT_MILESTONE_ASSETS.items()
+    phase: snapshot.summary_count
+    for phase, snapshot in _CURRENT_MILESTONE_ASSETS.items()
 }
-CURRENT_MILESTONE_SUMMARY_COUNT = CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE[CURRENT_PHASE]
+CURRENT_MILESTONE_SUMMARY_COUNT = CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE[
+    CURRENT_PHASE
+]
 CURRENT_MILESTONE_TOTAL_PLAN_COUNT = sum(CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE.values())
 CURRENT_MILESTONE_COMPLETED_PLAN_COUNT = sum(
     snapshot.plan_summary_count for snapshot in _CURRENT_MILESTONE_ASSETS.values()
@@ -284,43 +312,18 @@ CURRENT_ROUTE_FOCUSED_GUARDS = (
 def _count_test_inventory() -> tuple[int, int, int]:
     tests_root = _ROOT / "tests"
     python_files = tuple(tests_root.rglob("*.py"))
-    runnable_files = tuple(path for path in python_files if path.name.startswith("test_"))
+    runnable_files = tuple(
+        path for path in python_files if path.name.startswith("test_")
+    )
     meta_suites = tuple((tests_root / "meta").glob("test_*.py"))
     return len(python_files), len(runnable_files), len(meta_suites)
 
 
-TESTS_PYTHON_FILE_COUNT, TESTS_RUNNABLE_FILE_COUNT, TESTS_META_SUITE_COUNT = _count_test_inventory()
-
-CURRENT_ROUTE_PROSE_FORBIDDEN = (
-    "active / roadmap drafted; phase 119 pending planning (2026-04-01)",
-    "$gsd-plan-phase 119",
-    "Phase 119 planning pending",
-    "v1.33 active milestone route / starting from latest archived baseline = v1.32",
-    "$gsd-complete-milestone v1.33",
-    "v1.31 active milestone route / starting from latest archived baseline = v1.30",
-    "v1.32 active milestone route / starting from latest archived baseline = v1.31",
-    "no active milestone route / latest archived baseline = v1.20",
-    "no active milestone route / latest archived baseline = v1.21",
-    "no active milestone route / latest archived baseline = v1.22",
-    "no active milestone route / latest archived baseline = v1.23",
-    "no active milestone route / latest archived baseline = v1.24",
-    "no active milestone route / latest archived baseline = v1.25",
-    "no active milestone route / latest archived baseline = v1.26",
-    "no active milestone route / latest archived baseline = v1.27",
-    "no active milestone route / latest archived baseline = v1.28",
-    "no active milestone route / latest archived baseline = v1.29",
-    "v1.24 / Phase 89 complete",
+TESTS_PYTHON_FILE_COUNT, TESTS_RUNNABLE_FILE_COUNT, TESTS_META_SUITE_COUNT = (
+    _count_test_inventory()
 )
+
 CURRENT_RUNTIME_ROOT_TEST = "tests/core/coordinator/test_runtime_root.py"
-
-HISTORICAL_CLOSEOUT_ROUTE_TRUTH = (
-    "historical closeout route truth = "
-    "`no active milestone route / latest archived baseline = v1.33`"
-)
-HISTORICAL_ARCHIVE_TRANSITION_ROUTE_TRUTH = (
-    "historical archive-transition route truth = "
-    "`no active milestone route / latest archived baseline = v1.32`"
-)
 
 
 __all__ = [

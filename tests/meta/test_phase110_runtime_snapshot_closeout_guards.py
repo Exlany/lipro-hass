@@ -6,12 +6,14 @@ from pathlib import Path
 
 from tests.helpers.repo_root import repo_root
 
-from .governance_contract_helpers import assert_testing_inventory_snapshot
+from .governance_contract_helpers import (
+    assert_current_route_markers,
+    assert_testing_inventory_snapshot,
+)
 from .governance_current_truth import (
     CURRENT_MILESTONE_DEFAULT_NEXT,
     CURRENT_MILESTONE_HEADER,
     CURRENT_MILESTONE_STATUS,
-    CURRENT_ROUTE,
 )
 
 _ROOT = repo_root(Path(__file__))
@@ -26,10 +28,35 @@ _RESIDUAL = _ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md"
 _KILL = _ROOT / ".planning" / "reviews" / "KILL_LIST.md"
 _TESTING = _ROOT / ".planning" / "codebase" / "TESTING.md"
 _DEV_ARCH = _ROOT / "docs" / "architecture_archive.md"
-_SNAPSHOT = _ROOT / "custom_components" / "lipro" / "core" / "coordinator" / "runtime" / "device" / "snapshot.py"
-_SNAPSHOT_SUPPORT = _ROOT / "custom_components" / "lipro" / "core" / "coordinator" / "runtime" / "device" / "snapshot_support.py"
-_SNAPSHOT_SUPPORT_TEST = _ROOT / "tests" / "core" / "coordinator" / "runtime" / "test_snapshot_support.py"
-_PHASE_DIR = _ROOT / ".planning" / "phases" / "110-runtime-snapshot-surface-reduction-and-milestone-closeout"
+_SNAPSHOT = (
+    _ROOT
+    / "custom_components"
+    / "lipro"
+    / "core"
+    / "coordinator"
+    / "runtime"
+    / "device"
+    / "snapshot.py"
+)
+_SNAPSHOT_SUPPORT = (
+    _ROOT
+    / "custom_components"
+    / "lipro"
+    / "core"
+    / "coordinator"
+    / "runtime"
+    / "device"
+    / "snapshot_support.py"
+)
+_SNAPSHOT_SUPPORT_TEST = (
+    _ROOT / "tests" / "core" / "coordinator" / "runtime" / "test_snapshot_support.py"
+)
+_PHASE_DIR = (
+    _ROOT
+    / ".planning"
+    / "phases"
+    / "110-runtime-snapshot-surface-reduction-and-milestone-closeout"
+)
 
 
 def _read(path: Path) -> str:
@@ -47,24 +74,24 @@ def test_phase110_route_bundle_is_current_truth() -> None:
     verification_doc = _read(_PHASE_DIR / "110-VERIFICATION.md")
     validation_doc = _read(_PHASE_DIR / "110-VALIDATION.md")
 
-    for text in (
+    assert_current_route_markers(
         project_text,
         roadmap_text,
         requirements_text,
         state_text,
         milestones_text,
         verification_text,
-    ):
-        assert CURRENT_ROUTE in text
-        assert CURRENT_MILESTONE_DEFAULT_NEXT in text
+    )
 
     assert CURRENT_MILESTONE_STATUS in project_text
     assert CURRENT_MILESTONE_STATUS in roadmap_text
-    assert "### Phase 110: Runtime snapshot surface reduction and milestone closeout" in roadmap_text
     assert CURRENT_MILESTONE_HEADER in project_text
     assert CURRENT_MILESTONE_HEADER in requirements_text
     assert CURRENT_MILESTONE_HEADER in milestones_text
-    assert "Phase 110 Runtime Snapshot Surface Reduction and Milestone Closeout Note" in dev_arch_text
+    assert (
+        "Phase 110 Runtime Snapshot Surface Reduction and Milestone Closeout Note"
+        in dev_arch_text
+    )
     assert "# Phase 110 Verification" in verification_doc
     assert "# Phase 110 Validation Contract" in validation_doc
 

@@ -36,7 +36,7 @@ uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro 
 **Location:**
 - Tests live in a dedicated `tests/` tree, not beside production files.
 - Current topology is broad and intentional: `tests/core`, `tests/services`, `tests/flows`, `tests/platforms`, `tests/entities`, `tests/meta`, `tests/integration`, `tests/snapshots`, `tests/benchmarks`, `tests/harness`, and `tests/fixtures`.
-- Repository counts from current scanning: `418` Python files under `tests`, `335` runnable `test_*.py` files, `76` meta suites, `5` integration suites, `5` snapshot suites, `5` benchmark suites, and `5` fixture family READMEs.
+- Repository counts from current scanning: `419` Python files under `tests`, `335` runnable `test_*.py` files, `76` meta suites, `5` integration suites, `5` snapshot suites, `5` benchmark suites, and `5` fixture family READMEs.
 
 **Naming:**
 - Use `test_*.py` everywhere.

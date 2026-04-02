@@ -57,6 +57,13 @@ def assert_current_route_focused_guards(text: str) -> None:
         assert guard in text
 
 
+def assert_current_route_markers(*texts: str) -> None:
+    """Assert each text carries the shared current-route and next-step markers."""
+    for text in texts:
+        assert CURRENT_ROUTE in text
+        assert CURRENT_MILESTONE_DEFAULT_NEXT in text
+
+
 def assert_testing_inventory_snapshot(testing_text: str) -> None:
     """Assert the derived testing map reflects the current repository inventory."""
     assert f"`{TESTS_PYTHON_FILE_COUNT}` Python files under `tests`" in testing_text
@@ -79,14 +86,19 @@ def _assert_state_keeps_forward_progress_commands(state_text: str) -> None:
 def _assert_project_allows_post_v1_4_next_step(project_text: str) -> None:
     assert (
         "**Default next step:** `$gsd-new-milestone`" in project_text
-        or re.search(r"\*\*Default next step:\*\* `\$gsd-discuss-phase \d+(?:\.\d+)?`", project_text)
+        or re.search(
+            r"\*\*Default next step:\*\* `\$gsd-discuss-phase \d+(?:\.\d+)?`",
+            project_text,
+        )
         is not None
         or re.search(
             r"\*\*Default next step:\*\* `\$gsd-discuss-phase \d+(?:\.\d+)?` → `\$gsd-plan-phase \d+(?:\.\d+)?`",
             project_text,
         )
         is not None
-        or re.search(r"\*\*Default next step:\*\* `\$gsd-plan-phase \d+(?:\.\d+)?`", project_text)
+        or re.search(
+            r"\*\*Default next step:\*\* `\$gsd-plan-phase \d+(?:\.\d+)?`", project_text
+        )
         is not None
         or re.search(
             r"\*\*Default next step:\*\* `\$gsd-plan-phase \d+(?:\.\d+)?` → `\$gsd-execute-phase \d+(?:\.\d+)?`",
@@ -135,10 +147,14 @@ def _assert_current_route_truth(
         assert LATEST_ARCHIVED_PROJECT_HEADER in project_text
     assert PREVIOUS_ARCHIVED_PROJECT_HEADER in project_text
     assert f"**Current status:** `{CURRENT_MILESTONE_STATUS}`" in project_text
-    assert f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`" in project_text
+    assert (
+        f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`" in project_text
+    )
     assert CURRENT_MILESTONE_ROADMAP_HEADER in roadmap_text
     assert f"**Milestone status:** `{CURRENT_MILESTONE_STATUS}`" in roadmap_text
-    assert f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`" in roadmap_text
+    assert (
+        f"**Default next command:** `{CURRENT_MILESTONE_DEFAULT_NEXT}`" in roadmap_text
+    )
     if HAS_ACTIVE_MILESTONE:
         assert CURRENT_PHASE_HEADING in roadmap_text
     else:
@@ -220,6 +236,7 @@ __all__ = [
     "_assert_state_keeps_forward_progress_commands",
     "_assert_state_reflects_post_v1_4_continuation",
     "assert_current_route_focused_guards",
+    "assert_current_route_markers",
     "assert_docs_readme_public_contract",
     "assert_issue_docs_entry_contact_link",
     "assert_pull_only_evidence_index",
