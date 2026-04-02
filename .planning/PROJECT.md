@@ -1,10 +1,10 @@
 # Project: Lipro-HASS North Star Evolution
 
-**Status:** `Active milestone v1.38`
-**Current route:** `v1.38 active milestone route / starting from latest archived baseline = v1.37`；latest archived evidence index = `.planning/reviews/V1_37_EVIDENCE_INDEX.md`.
-**Goal:** `压缩 current-story、把 archive/history 与 live selector 分层，并把 governance/test/docs 当前真相继续收口到 registry-backed 单一路径。`
-**Default next step:** `$gsd-complete-milestone v1.38`
-**Archived baseline chain:** latest archived baseline = `v1.37`；previous archived baseline = `v1.36`.
+**Status:** `No active milestone route`
+**Current route:** `no active milestone route / latest archived baseline = v1.38`；latest archived evidence index = `.planning/reviews/V1_38_EVIDENCE_INDEX.md`.
+**Goal:** `保持 archived-only selector truth 稳定、冻结 v1.38 closeout 证据链，并为下一轮 `$gsd-new-milestone` 留出干净入口。`
+**Default next step:** `$gsd-new-milestone`
+**Archived baseline chain:** latest archived baseline = `v1.38`；previous archived baseline = `v1.37`.
 
 <!-- governance-route-contract:start -->
 ```yaml
@@ -16,34 +16,28 @@ projection_targets:
 - .planning/REQUIREMENTS.md
 - .planning/STATE.md
 - .planning/MILESTONES.md
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.38
   name: Governance Story Compression, Archive Segregation & Public Entry Simplification
-  status: active / phase 132 complete; closeout-ready (2026-04-02)
+  status: archived / evidence-ready (2026-04-02)
   phase: '132'
   phase_title: current-story compression and archive-boundary cleanup
   phase_dir: 132-current-story-compression-and-archive-boundary-cleanup
-latest_archived:
-  version: v1.37
-  name: Repo-Wide Terminal Audit, Hotspot Decomposition & Governance Continuity Decisions
-  status: archived / evidence-ready (2026-04-01)
-  phase: '131'
-  phase_title: repo-wide terminal audit closeout and governance continuity decisions
-  phase_dir: 131-repo-wide-terminal-audit-closeout-and-governance-continuity-decisions
-  audit_path: .planning/v1.37-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_37_EVIDENCE_INDEX.md
+  audit_path: .planning/v1.38-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_38_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.36
-  name: Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening
-  evidence_path: .planning/reviews/V1_36_EVIDENCE_INDEX.md
+  version: v1.37
+  name: Repo-Wide Terminal Audit, Hotspot Decomposition & Governance Continuity Decisions
+  evidence_path: .planning/reviews/V1_37_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.38 active milestone route / starting from latest archived baseline = v1.37
-  default_next_command: $gsd-complete-milestone v1.38
-  latest_archived_evidence_pointer: .planning/reviews/V1_37_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.38
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_38_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
-## Current Milestone (v1.38)
+## Latest Archived Milestone (v1.38)
 
 **Name:** `Governance Story Compression, Archive Segregation & Public Entry Simplification`
 
@@ -51,17 +45,17 @@ bootstrap:
 
 **North-star fit:** `v1.38` 继续沿 single authority chain、docs-first、machine-readable truth、honesty over folklore 推进：live selector 继续由 registry-backed route contract 仲裁，archive/history 退回 pull-only 位置，focused meta guards 不再为重复 prose 承担第二真源角色。`
 
-**Current status:** `active / phase 132 complete; closeout-ready (2026-04-02)`
+**Current status:** `archived / evidence-ready (2026-04-02)`
 **Phase range:** `Phase 132 -> 132`
 **Starting baseline:** `.planning/v1.37-MILESTONE-AUDIT.md, .planning/reviews/V1_37_EVIDENCE_INDEX.md, .planning/milestones/v1.37-ROADMAP.md, .planning/milestones/v1.37-REQUIREMENTS.md`
 **Requirements basket:** `AUD-07, GOV-88, DOC-17, OSS-19, QLT-54, TST-52`
-**Latest archived baseline:** `v1.37`
-**Latest archived pointer:** `.planning/reviews/V1_37_EVIDENCE_INDEX.md`
-**Latest archived audit artifact:** `.planning/v1.37-MILESTONE-AUDIT.md`
-**Default next command:** `$gsd-complete-milestone v1.38`
-**Current phase handoff:** `Phase 132 已完成 current-story compression、route-marker helper dedupe、route handoff smoke 瘦身与 recent promoted-asset coverage 回流；下一步进入 milestone closeout，把 v1.38 提升为 latest archived baseline truth。`
+**Latest archived baseline:** `v1.38`
+**Latest archived pointer:** `.planning/reviews/V1_38_EVIDENCE_INDEX.md`
+**Latest archived audit artifact:** `.planning/v1.38-MILESTONE-AUDIT.md`
+**Default next command:** `$gsd-new-milestone`
+**Current phase handoff:** `Milestone closeout complete；Phase 132 的 summary / verification / validation / audit / evidence index 已冻结为 archived evidence，后续新路线应从 `$gsd-new-milestone` 开始。`
 
-## Latest Archived Milestone (v1.37)
+## Previous Archived Milestone (v1.37)
 
 **Name:** `Repo-Wide Terminal Audit, Hotspot Decomposition & Governance Continuity Decisions`
 
@@ -79,7 +73,7 @@ bootstrap:
 **Default next command:** `$gsd-new-milestone`
 **Current phase handoff:** `Milestone closeout complete；Phase 129 -> 131 的 summary / verification / audit / evidence index 已冻结为 archived evidence frozen，后续新路线应从 `$gsd-new-milestone` 开始。`
 
-## Previous Archived Milestone (v1.36)
+## Historical Archived Milestone (v1.36)
 
 **Name:** `Terminal Residual Convergence, Runtime Access De-Reflection & Open-Source Readiness Hardening`
 

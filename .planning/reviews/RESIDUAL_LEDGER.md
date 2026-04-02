@@ -9,6 +9,12 @@ _None currently registered._
 > **Phase 88 freeze note:** 这里的 zero-active posture 是显式 closeout verdict，而不是尚未清点完成的空白。若未来出现新 residual，必须以新的 family 重新登记 owner、exit condition 与 evidence。
 
 
+## Phase 132 Residual Delta
+
+- `Phase 132` 未新增 active residual family；本轮完成的是 current selector、archive/history boundary、developer/runbook first-hop 与 route-marker helper ownership 的收口，而不是新的 lingering exception。
+- `v1.38` closeout 后，remaining concern 只保留为 future milestone 显式 reopen 的 sanctioned hotspot breadth（如 `runtime_types.py`、`request_policy.py`、`dispatch.py`、`auth/manager.py`、`firmware_update.py`）；它们不是 active residual family。
+- archive-era governance mega-suite topicization 仍有继续减压空间，但 `Phase 132` 已把 current route / latest archived pointer / promoted-asset ownership 的职责混装消除，不再留下 live-route residual。
+
 ## Phase 131 Residual Delta
 
 - `Phase 131` 未新增 active residual family；本轮收口的是 repo-wide terminal audit、docs/toolchain/governance selector truth 与 closeout evidence chain，而不是新的 lingering exception。

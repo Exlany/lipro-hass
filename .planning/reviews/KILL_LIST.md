@@ -1,6 +1,12 @@
 # Kill List
 
 
+## Phase 132 Status Update
+
+- `Phase 132` 没有创造新的 active kill target；本轮是 current-story compression、archive-boundary segregation 与 helper ownership 收口，不是新的 file-level delete campaign。
+- `docs/developer_architecture.md`、`docs/MAINTAINER_RELEASE_RUNBOOK.md`、`tests/meta/governance_contract_helpers.py` 与 promoted/handoff governance suites 继续保留为 formal guidance / proof carriers，不被误登记为 future delete target。
+- closeout 后如需继续减压 production hotspot，只能通过新的 milestone / phase 显式推进，而不是回写 `v1.38` archived truth。
+
 ## Phase 131 Status Update
 
 - `Phase 131` 没有创造新的 active kill target；本轮是 final audit、docs honesty、toolchain contract 与 selector/promoted-evidence freeze 的 closeout，不是新的 file-level delete campaign。

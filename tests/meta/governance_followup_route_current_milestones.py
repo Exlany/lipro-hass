@@ -187,15 +187,14 @@ def test_current_requirements_traceability_and_coverage_stay_in_sync() -> None:
 def test_historical_route_truth_stays_archived_while_live_docs_stop_claiming_old_handoffs() -> (
     None
 ):
+    previous_minor = int(PREVIOUS_ARCHIVED_MILESTONE.split(".")[-1])
     expected_closeout = (
-        "historical closeout route truth = `no active milestone route / latest archived baseline = v1.36`"
-        if PREVIOUS_ARCHIVED_MILESTONE == "v1.36"
-        else "historical closeout route truth = `no active milestone route / latest archived baseline = v1.35`"
+        "historical closeout route truth = "
+        f"`no active milestone route / latest archived baseline = {PREVIOUS_ARCHIVED_MILESTONE}`"
     )
     expected_transition = (
-        "historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.35`"
-        if PREVIOUS_ARCHIVED_MILESTONE == "v1.36"
-        else "historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.34`"
+        "historical archive-transition route truth = "
+        f"`no active milestone route / latest archived baseline = v1.{previous_minor - 1}`"
     )
     assert_contains_all(
         _MILESTONES_TEXT,

@@ -624,6 +624,13 @@ phases:
   - 131-VERIFICATION.md
   - 131-VALIDATION.md
   - 131-TERMINAL-AUDIT.md
+  132-current-story-compression-and-archive-boundary-cleanup:
+  - 132-01-SUMMARY.md
+  - 132-02-SUMMARY.md
+  - 132-03-SUMMARY.md
+  - 132-SUMMARY.md
+  - 132-VERIFICATION.md
+  - 132-VALIDATION.md
 policy:
   default_identity: execution-trace
   promotion_contract: Only assets listed under `phases` count as long-term governance/CI

@@ -1,6 +1,9 @@
 # Verification Matrix
 
 **Purpose:** 建立 requirement → artifact → test → doc → phase acceptance / handoff 的统一验证闭环。
+**Current route selector:** `no active milestone route / latest archived baseline = v1.38`
+**Default next command:** `$gsd-new-milestone`
+**Latest archived pointer:** `.planning/reviews/V1_38_EVIDENCE_INDEX.md`
 **Status:** Formal baseline asset (`BASE-03` phase acceptance truth source)
 **Updated:** 2026-04-02 (v1.38 current-story compression aligned)
 
@@ -8,11 +11,11 @@
 
 ## Current Route
 
-- **Current route story:** `v1.38 active milestone route / starting from latest archived baseline = v1.37`
-- **Current milestone status:** `active / phase 132 complete; closeout-ready (2026-04-02)`
-- **Default next command:** `$gsd-complete-milestone v1.38`
-- **Latest archived pointer:** `.planning/reviews/V1_37_EVIDENCE_INDEX.md`
-- **Carry-forward audit anchors:** `.planning/reviews/V1_37_EVIDENCE_INDEX.md`, `.planning/v1.37-MILESTONE-AUDIT.md`
+- **Current route story:** `no active milestone route / latest archived baseline = v1.38`
+- **Current milestone status:** `archived / evidence-ready (2026-04-02)`
+- **Default next command:** `$gsd-new-milestone`
+- **Latest archived pointer:** `.planning/reviews/V1_38_EVIDENCE_INDEX.md`
+- **Carry-forward audit anchors:** `.planning/reviews/V1_38_EVIDENCE_INDEX.md`, `.planning/v1.38-MILESTONE-AUDIT.md`
 - **Focused guards:** `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/governance_followup_route_current_milestones.py`, `tests/meta/test_runtime_contract_truth.py`, `tests/meta/test_governance_release_docs.py`, `tests/meta/toolchain_truth_checker_paths.py`, `tests/meta/test_phase89_tooling_decoupling_guards.py`, `tests/meta/test_governance_release_contract.py`, `tests/services/test_services_diagnostics_capabilities.py`, `tests/services/test_services_diagnostics_payloads.py`
 
 - 本文件是 `Phase 1.5` 及其下游 phases 的正式 acceptance truth；phase docs / summaries 只能引用、实例化或扩展，不得平行定义 exit contract。
@@ -48,6 +51,14 @@
 - **Phase asset bundle:** `.planning/phases/128-open-source-readiness-benchmark-coverage-gates-and-maintainer-continuity-hardening/{128-01-SUMMARY.md,128-02-SUMMARY.md,128-03-SUMMARY.md,128-SUMMARY.md,128-VERIFICATION.md,128-VALIDATION.md}`
 - **Touched formal homes:** `.github/workflows/ci.yml`, `pyproject.toml`, `scripts/{coverage_diff.py,check_benchmark_baseline.py,lint}`, `tests/benchmarks/benchmark_baselines.json`, `tests/meta/{test_governance_release_continuity.py,toolchain_truth_docs_fast_path.py,test_version_sync.py,toolchain_truth_ci_contract.py,test_governance_release_contract.py,toolchain_truth_testing_governance.py,test_governance_route_handoff_smoke.py}`, `SECURITY.md`, `CONTRIBUTING.md`, `docs/MAINTAINER_RELEASE_RUNBOOK.md`, `.github/{ISSUE_TEMPLATE/bug.yml,pull_request_template.md}`, `.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md,MILESTONES.md}`, `.planning/baseline/{GOVERNANCE_REGISTRY.json,VERIFICATION_MATRIX.md}`, `.planning/reviews/{FILE_MATRIX.md,RESIDUAL_LEDGER.md,KILL_LIST.md}`, `.planning/codebase/{ARCHITECTURE.md,CONCERNS.md,TESTING.md}`, `docs/developer_architecture.md`
 
+
+## Phase 132 Exit Contract
+
+- **Route truth:** `active / phase 132 complete; closeout-ready (2026-04-02)`
+- **Focused guards:** `tests/meta/governance_followup_route_current_milestones.py`, `tests/meta/test_governance_bootstrap_smoke.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/test_governance_promoted_phase_assets.py`, `tests/meta/test_governance_release_docs.py`, `tests/meta/toolchain_truth_docs_fast_path.py`, `tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py`, `tests/meta/test_phase102_governance_portability_guards.py`, `tests/meta/test_phase103_root_thinning_guards.py`, `tests/meta/test_phase104_service_router_runtime_split_guards.py`, `tests/meta/test_phase105_governance_freeze_guards.py`, `tests/meta/test_phase107_rest_status_hotspot_guards.py`, `tests/meta/test_phase108_mqtt_transport_de_friendization_guards.py`, `tests/meta/test_phase109_anonymous_share_manager_inward_decomposition_guards.py`, `tests/meta/test_phase110_runtime_snapshot_closeout_guards.py`, `tests/meta/test_phase123_service_router_reconvergence_guards.py`
+- **Proof chain:** current-story compression + route-marker/helper dedupe + promoted/handoff boundary cleanup + latest-archived pointer/docs sync → `uv run pytest -q tests/meta/governance_followup_route_current_milestones.py tests/meta/test_governance_bootstrap_smoke.py tests/meta/test_governance_route_handoff_smoke.py` → `uv run pytest -q tests/meta/test_governance_promoted_phase_assets.py tests/meta/test_governance_release_docs.py tests/meta/toolchain_truth_docs_fast_path.py` → `uv run pytest -q tests/meta/test_phase101_anonymous_share_rest_boundary_guards.py tests/meta/test_phase102_governance_portability_guards.py tests/meta/test_phase103_root_thinning_guards.py tests/meta/test_phase104_service_router_runtime_split_guards.py tests/meta/test_phase105_governance_freeze_guards.py tests/meta/test_phase107_rest_status_hotspot_guards.py tests/meta/test_phase108_mqtt_transport_de_friendization_guards.py tests/meta/test_phase109_anonymous_share_manager_inward_decomposition_guards.py tests/meta/test_phase110_runtime_snapshot_closeout_guards.py tests/meta/test_phase123_service_router_reconvergence_guards.py` → `uv run ruff check tests/meta docs .planning`
+- **Phase asset bundle:** `.planning/phases/132-current-story-compression-and-archive-boundary-cleanup/{132-01-SUMMARY.md,132-02-SUMMARY.md,132-03-SUMMARY.md,132-SUMMARY.md,132-VERIFICATION.md,132-VALIDATION.md}`
+- **Touched formal homes:** `.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md,MILESTONES.md}`, `.planning/baseline/{GOVERNANCE_REGISTRY.json,VERIFICATION_MATRIX.md}`, `.planning/reviews/{PROMOTED_PHASE_ASSETS.md,RESIDUAL_LEDGER.md,KILL_LIST.md}`, `docs/{developer_architecture.md,MAINTAINER_RELEASE_RUNBOOK.md}`, `tests/meta/{governance_archive_history.py,governance_contract_helpers.py,governance_current_truth.py,governance_followup_route_current_milestones.py,test_governance_route_handoff_smoke.py,test_governance_promoted_phase_assets.py}`
 
 ## Phase 131 Exit Contract
 

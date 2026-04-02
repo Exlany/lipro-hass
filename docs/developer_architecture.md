@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `v1.38 active / phase 132 complete; closeout-ready` (`2026-04-02`)
-> **Current route alignment**: `v1.38 active milestone route / starting from latest archived baseline = v1.37` (`2026-04-02`, live selector active)
+> **Last aligned through**: `v1.38 archived / evidence-ready` (`2026-04-02`)
+> **Current route alignment**: `no active milestone route / latest archived baseline = v1.38` (`2026-04-02`, archived-only selector active)
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
@@ -17,8 +17,8 @@
 
 ## Current Route Compression
 
-- `Phase 132` 已把 developer first hop、release runbook first hop、route-marker helpers 与 recent promoted-asset / handoff-smoke 边界压回同一条 current story：当前 live selector = `v1.38 active milestone route / starting from latest archived baseline = v1.37`，latest archived pointer 继续是 `.planning/reviews/V1_37_EVIDENCE_INDEX.md`。
-- latest archived baseline `v1.37` 继续只作为 pull-only archive proof 供回溯；developer current entry 不再混用 archived-only frozen wording 或 closeout 语气。
+- `Phase 132` 已把 developer first hop、release runbook first hop、route-marker helpers 与 recent promoted-asset / handoff-smoke 边界压回同一条 current story：当前 selector 已切回 `no active milestone route / latest archived baseline = v1.38`，latest archived pointer 现为 `.planning/reviews/V1_38_EVIDENCE_INDEX.md`。
+- latest archived baseline `v1.38` 现同时承担 current archived-only selector 的锚点；developer current entry 继续避免混用 phase-log 语气，并把更深层 hotspot 留给下一轮显式 milestone。
 - sanctioned hotspot 仍保留为正式 home，而不是被重新叙述成 delete target：重点关注 `rest_facade.py`、`runtime_types.py`、`request_policy.py`、`dispatch.py`、`auth/manager.py` 与 `firmware_update.py` 这类仍需后续持续减压的 formal files。
 
 ## 快速导航
