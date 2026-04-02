@@ -1,20 +1,26 @@
 # Milestones
 
-## v1.41 Terminal Residual Audit, Remediation Charter & Maintainability Hardening (Active: 2026-04-02)
+## Latest Archived Milestone (v1.41)
 
-**Status:** `active / phase 136 complete; closeout-ready (2026-04-02)`
-**Current route:** `v1.41 active milestone route / starting from latest archived baseline = v1.40`
+## v1.41 Terminal Residual Audit, Remediation Charter & Maintainability Hardening (Shipped: 2026-04-02)
+
+**Status:** `archived / evidence-ready (2026-04-02)`
+**Current route:** `no active milestone route / latest archived baseline = v1.41`
 **Phase range:** `136 -> 136`
 **Progress:** `1/1 phases, 3/3 plans`
-**Default next command:** `$gsd-complete-milestone v1.41`
-**Latest archived pointer:** `.planning/reviews/V1_40_EVIDENCE_INDEX.md`
-**Archived audit reference:** `.planning/v1.40-MILESTONE-AUDIT.md`
-**Starting baseline snapshots:** `.planning/milestones/v1.40-ROADMAP.md`, `.planning/milestones/v1.40-REQUIREMENTS.md`
-**Current phase story:**
+**Default next command:** `$gsd-new-milestone`
+**Latest archived pointer:** `.planning/reviews/V1_41_EVIDENCE_INDEX.md`
+**Archived audit reference:** `.planning/v1.41-MILESTONE-AUDIT.md`
+**Archived snapshots:** `.planning/milestones/v1.41-ROADMAP.md`, `.planning/milestones/v1.41-REQUIREMENTS.md`
+**Archive state:** `archived snapshots created / evidence-ready`
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.41`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.40`
+
+**Shipped phase story:**
 
 - `Phase 136`: repo-wide terminal residual audit, hygiene fixes, and remediation charter ✅ (`136-01` terminal audit report + remediation charter + `136-02` vendor-crypto/log-safety hygiene fixes + `136-03` governance/docs/guards sync complete)
 
-## Latest Archived Milestone (v1.40)
+## Previous Archived Milestone (v1.40)
 
 ## v1.40 Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening (Shipped: 2026-04-02)
 
@@ -109,33 +115,25 @@ projection_targets:
 - .planning/REQUIREMENTS.md
 - .planning/STATE.md
 - .planning/MILESTONES.md
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.41
   name: Terminal Residual Audit, Remediation Charter & Maintainability Hardening
-  status: active / phase 136 complete; closeout-ready (2026-04-02)
+  status: archived / evidence-ready (2026-04-02)
   phase: '136'
   phase_title: repo-wide terminal residual audit, hygiene fixes, and remediation charter
   phase_dir: 136-repo-wide-terminal-residual-audit-and-remediation-charter
-latest_archived:
-  version: v1.40
-  name: Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening
-  status: archived / evidence-ready (2026-04-02)
-  phase: '135'
-  phase_title: runtime-access projection split, auth reason typing, and dispatch route
-    hardening
-  phase_dir: 135-runtime-access-auth-and-dispatch-contract-hardening
-  audit_path: .planning/v1.40-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_40_EVIDENCE_INDEX.md
+  audit_path: .planning/v1.41-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_41_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.39
-  name: Governance Recovery, Runtime Consistency & Public Contract Correction
-  evidence_path: .planning/reviews/V1_39_EVIDENCE_INDEX.md
+  version: v1.40
+  name: Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening
+  evidence_path: .planning/reviews/V1_40_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.41 active milestone route / starting from latest archived baseline
-    = v1.40
-  default_next_command: $gsd-complete-milestone v1.41
-  latest_archived_evidence_pointer: .planning/reviews/V1_40_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.41
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_41_EVIDENCE_INDEX.md
 ```
 <!-- governance-route-contract:end -->
 ## Archived Chronology Appendix

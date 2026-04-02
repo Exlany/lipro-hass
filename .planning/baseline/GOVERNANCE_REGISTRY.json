@@ -167,7 +167,6 @@
     "compatibility_stub_delete_gate": "delete after maintained docs and automation no longer rely on the stub names as migration hints"
   },
   "planning_route": {
-    "contract_version": 1,
     "contract_name": "governance-route",
     "projection_targets": [
       ".planning/PROJECT.md",
@@ -176,34 +175,28 @@
       ".planning/STATE.md",
       ".planning/MILESTONES.md"
     ],
-    "active_milestone": {
+    "active_milestone": null,
+    "latest_archived": {
       "version": "v1.41",
       "name": "Terminal Residual Audit, Remediation Charter & Maintainability Hardening",
-      "status": "active / phase 136 complete; closeout-ready (2026-04-02)",
+      "status": "archived / evidence-ready (2026-04-02)",
       "phase": "136",
       "phase_title": "repo-wide terminal residual audit, hygiene fixes, and remediation charter",
-      "phase_dir": "136-repo-wide-terminal-residual-audit-and-remediation-charter"
-    },
-    "latest_archived": {
-      "version": "v1.40",
-      "name": "Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening",
-      "status": "archived / evidence-ready (2026-04-02)",
-      "phase": "135",
-      "phase_title": "runtime-access projection split, auth reason typing, and dispatch route hardening",
-      "phase_dir": "135-runtime-access-auth-and-dispatch-contract-hardening",
-      "audit_path": ".planning/v1.40-MILESTONE-AUDIT.md",
-      "evidence_path": ".planning/reviews/V1_40_EVIDENCE_INDEX.md",
+      "phase_dir": "136-repo-wide-terminal-residual-audit-and-remediation-charter",
+      "audit_path": ".planning/v1.41-MILESTONE-AUDIT.md",
+      "evidence_path": ".planning/reviews/V1_41_EVIDENCE_INDEX.md",
       "evidence_label": "latest archived evidence index"
     },
     "previous_archived": {
-      "version": "v1.39",
-      "name": "Governance Recovery, Runtime Consistency & Public Contract Correction",
-      "evidence_path": ".planning/reviews/V1_39_EVIDENCE_INDEX.md"
+      "version": "v1.40",
+      "name": "Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening",
+      "evidence_path": ".planning/reviews/V1_40_EVIDENCE_INDEX.md"
     },
     "bootstrap": {
-      "current_route": "v1.41 active milestone route / starting from latest archived baseline = v1.40",
-      "default_next_command": "$gsd-complete-milestone v1.41",
-      "latest_archived_evidence_pointer": ".planning/reviews/V1_40_EVIDENCE_INDEX.md"
-    }
+      "current_route": "no active milestone route / latest archived baseline = v1.41",
+      "default_next_command": "$gsd-new-milestone",
+      "latest_archived_evidence_pointer": ".planning/reviews/V1_41_EVIDENCE_INDEX.md"
+    },
+    "contract_version": 1
   }
 }

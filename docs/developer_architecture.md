@@ -1,7 +1,7 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `v1.41 active / phase 136 complete; closeout-ready` (`2026-04-02`)
-> **Current route alignment**: `v1.41 active milestone route / starting from latest archived baseline = v1.40` (`2026-04-02`, active / phase 136 complete; closeout-ready (2026-04-02))
+> **Last aligned through**: `v1.41 archived / evidence-ready` (`2026-04-02`)
+> **Current route alignment**: `no active milestone route / latest archived baseline = v1.41` (`2026-04-02`, archived / evidence-ready (2026-04-02))
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
 >
 > 本文档是 **current-topology guide**，不是 phase 日志、评分快照或覆盖率公告板。  
