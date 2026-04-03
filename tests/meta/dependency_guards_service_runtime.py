@@ -252,3 +252,66 @@ def test_phase_68_dependency_notes_keep_boundary_and_inward_helpers_local() -> N
     assert "import_module(" not in topics_text
     assert 'topic.split("/")' not in topics_text
     assert "from . import runtime_access_support as _support" in runtime_access_text
+
+def test_phase_141_runtime_contract_projections_stay_local_and_one_way() -> None:
+    runtime_types_text = (
+        _ROOT / "custom_components" / "lipro" / "runtime_types.py"
+    ).read_text(encoding="utf-8")
+    runtime_access_types_text = (
+        _ROOT
+        / "custom_components"
+        / "lipro"
+        / "control"
+        / "runtime_access_types.py"
+    ).read_text(encoding="utf-8")
+    runtime_access_text = (
+        _ROOT / "custom_components" / "lipro" / "control" / "runtime_access.py"
+    ).read_text(encoding="utf-8")
+    lifecycle_text = (
+        _ROOT / "custom_components" / "lipro" / "control" / "entry_lifecycle_support.py"
+    ).read_text(encoding="utf-8")
+    runtime_devices_text = (
+        _ROOT
+        / "custom_components"
+        / "lipro"
+        / "control"
+        / "runtime_access_support_devices.py"
+    ).read_text(encoding="utf-8")
+    runtime_telemetry_text = (
+        _ROOT
+        / "custom_components"
+        / "lipro"
+        / "control"
+        / "runtime_access_support_telemetry.py"
+    ).read_text(encoding="utf-8")
+    command_text = (
+        _ROOT / "custom_components" / "lipro" / "services" / "command.py"
+    ).read_text(encoding="utf-8")
+    execution_text = (
+        _ROOT / "custom_components" / "lipro" / "services" / "execution.py"
+    ).read_text(encoding="utf-8")
+
+    assert "from .control" not in runtime_types_text
+    assert "from .services.command" not in runtime_types_text
+    assert "from .services.execution" not in runtime_types_text
+
+    assert "type RuntimeAccessCoordinator = LiproCoordinator" in runtime_access_types_text
+    assert "type RuntimeAccessProtocol = ProtocolTelemetryFacadeLike" in runtime_access_types_text
+    assert "type RuntimeEntryRuntimeData = LiproRuntimeCoordinator | None" in runtime_access_types_text
+    assert "from ..services" not in runtime_access_types_text
+
+    assert "RuntimeAccessCoordinator" in runtime_access_text
+    assert "from ..runtime_types import LiproCoordinator" not in runtime_access_text
+    assert "from ..runtime_types import" not in runtime_devices_text
+    assert "RuntimeAccessProtocol" in runtime_telemetry_text
+    assert "ProtocolTelemetryFacadeLike" not in runtime_telemetry_text
+
+    assert "EntryRuntimeCoordinator = LiproCoordinator" in lifecycle_text
+    assert "EntryRuntimeData = LiproRuntimeCoordinator | None" in lifecycle_text
+    assert "class CoordinatorRuntimeLike(EntryRuntimeCoordinator, Protocol):" in lifecycle_text
+
+    assert "control.runtime_access" not in command_text
+    assert "control.runtime_access_types" not in command_text
+    assert "control.runtime_access" not in execution_text
+    assert "control.runtime_access_types" not in execution_text
+

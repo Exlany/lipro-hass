@@ -185,17 +185,29 @@ class LiproLight(LiproEntity, LightEntity):
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the light on."""
-        state_changes: dict[str, int] = {PROP_POWER_STATE: 1}
+        state_changes: dict[str, int] = {}
+
         if (brightness := kwargs.get(ATTR_BRIGHTNESS)) is not None:
             state_changes[PROP_BRIGHTNESS] = self._ha_brightness_to_device(brightness)
         if (kelvin := kwargs.get(ATTR_COLOR_TEMP_KELVIN)) is not None:
             state_changes[PROP_TEMPERATURE] = self._kelvin_to_device_temp_percent(kelvin)
-        await self.async_change_state(state_changes)
+
+        if not state_changes:
+            await self._power.turn_on(self)
+            return
+
+        if not self.is_on and self._turn_on_when_adjusting_while_off():
+            state_changes[PROP_POWER_STATE] = 1
+
+        await self.async_change_state(
+            self._merge_slider_state(state_changes),
+            debounced=True,
+        )
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the light off."""
         del kwargs
-        await self.async_change_state({PROP_POWER_STATE: 0})
+        await self._power.turn_off(self)
 
     async def async_set_brightness(self, brightness: int) -> None:
         """Set the light brightness."""

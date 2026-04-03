@@ -37,7 +37,9 @@ def test_build_entry_lifecycle_controller_dependencies_returns_typed_bundle() ->
         async_authenticate_entry=AsyncMock(name="async_authenticate_entry"),
         clear_entry_runtime_data=MagicMock(name="clear_entry_runtime_data"),
         get_entry_int_option=MagicMock(name="get_entry_int_option"),
-        persist_entry_tokens_if_changed=MagicMock(name="persist_entry_tokens_if_changed"),
+        persist_entry_tokens_if_changed=MagicMock(
+            name="persist_entry_tokens_if_changed"
+        ),
         store_entry_options_snapshot=MagicMock(name="store_entry_options_snapshot"),
         remove_entry_options_snapshot=MagicMock(name="remove_entry_options_snapshot"),
         async_reload_entry_if_options_changed=AsyncMock(
@@ -45,7 +47,9 @@ def test_build_entry_lifecycle_controller_dependencies_returns_typed_bundle() ->
         ),
         async_ensure_runtime_infra=AsyncMock(name="async_ensure_runtime_infra"),
         setup_device_registry_listener=MagicMock(name="setup_device_registry_listener"),
-        remove_device_registry_listener=MagicMock(name="remove_device_registry_listener"),
+        remove_device_registry_listener=MagicMock(
+            name="remove_device_registry_listener"
+        ),
         has_other_runtime_entries=MagicMock(name="has_other_runtime_entries"),
         service_registry=service_registry,
     )
@@ -81,10 +85,7 @@ def test_build_entry_lifecycle_controller_passes_named_dependencies() -> None:
     )
 
     built = build_entry_lifecycle_controller(
-        load_module=MagicMock(
-            return_value=SimpleNamespace(EntryLifecycleController=controller_factory)
-        ),
-        controller_module_name="custom_components.lipro.control.entry_lifecycle_controller",
+        controller_factory=controller_factory,
         controller_dependencies=dependencies,
     )
 
@@ -92,7 +93,9 @@ def test_build_entry_lifecycle_controller_passes_named_dependencies() -> None:
     assert built is controller
 
 
-async def test_build_service_registry_keeps_public_and_developer_tables_separate() -> None:
+async def test_build_service_registry_keeps_public_and_developer_tables_separate() -> (
+    None
+):
     async_setup_services = AsyncMock()
     remove_services = MagicMock()
     registrations = SimpleNamespace(

@@ -7,10 +7,10 @@ module only carries mechanical controller/service-registry assembly.
 
 from __future__ import annotations
 
-from collections.abc import Callable, Sequence
+from collections.abc import Sequence
 from dataclasses import dataclass
 import logging
-from typing import TYPE_CHECKING, Protocol, cast
+from typing import TYPE_CHECKING, Protocol
 
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
@@ -82,7 +82,9 @@ class EntryLifecycleControllerDependencies:
 class EntryLifecycleControllerLike(Protocol):
     """Minimal lifecycle-controller surface consumed by HA root adapters."""
 
-    async def async_setup_component(self, hass: HomeAssistant, config: object) -> bool: ...
+    async def async_setup_component(
+        self, hass: HomeAssistant, config: object
+    ) -> bool: ...
 
     async def async_setup_entry(self, hass: HomeAssistant, entry: object) -> bool: ...
 
@@ -99,13 +101,6 @@ class EntryLifecycleControllerFactory(Protocol):
         *,
         dependencies: EntryLifecycleControllerDependencies,
     ) -> EntryLifecycleControllerLike: ...
-
-
-class EntryLifecycleControllerModule(Protocol):
-    """Runtime-loaded lifecycle-controller module surface."""
-
-    EntryLifecycleController: EntryLifecycleControllerFactory
-
 
 
 def build_service_registry(
@@ -127,7 +122,6 @@ def build_service_registry(
         has_debug_mode_runtime_entry=registrations.has_debug_mode_runtime_entry,
         get_runtime_infra_lock=get_runtime_infra_lock,
     )
-
 
 
 def build_entry_lifecycle_controller_dependencies(
@@ -176,19 +170,12 @@ def build_entry_lifecycle_controller_dependencies(
     )
 
 
-
 def build_entry_lifecycle_controller(
     *,
-    load_module: Callable[[str], object],
-    controller_module_name: str,
+    controller_factory: EntryLifecycleControllerFactory,
     controller_dependencies: EntryLifecycleControllerDependencies,
 ) -> EntryLifecycleControllerLike:
     """Build the runtime lifecycle controller outside the HA root adapter."""
-    controller_module = cast(
-        EntryLifecycleControllerModule,
-        load_module(controller_module_name),
-    )
-    controller_factory = controller_module.EntryLifecycleController
     return controller_factory(dependencies=controller_dependencies)
 
 

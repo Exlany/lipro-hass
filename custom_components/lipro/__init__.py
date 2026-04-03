@@ -22,7 +22,7 @@ from .control.entry_root_support import (
     build_service_registry as _build_service_registry_impl,
     clear_entry_runtime_data,
     get_entry_int_option,
-    load_module as _load_module,
+    load_entry_lifecycle_controller_factory as _load_entry_lifecycle_controller_factory,
     persist_entry_tokens_if_changed,
 )
 from .control.entry_root_wiring import (
@@ -82,7 +82,9 @@ if TYPE_CHECKING:
     from collections.abc import Awaitable
 
     type ProtocolFactory = Callable[..., _LiproProtocolFacadeType]
-    type AuthManagerFactory = Callable[[_LiproProtocolFacadeType], _LiproAuthManagerType]
+    type AuthManagerFactory = Callable[
+        [_LiproProtocolFacadeType], _LiproAuthManagerType
+    ]
 
     class CoordinatorFactory(Protocol):
         """Typed lazy coordinator constructor used only for local casts."""
@@ -141,29 +143,32 @@ def _build_service_registry() -> ServiceRegistry:
     )
 
 
-def _build_entry_lifecycle_controller_dependencies(
-) -> _EntryLifecycleControllerDependencies:
+def _build_entry_lifecycle_controller_dependencies() -> (
+    _EntryLifecycleControllerDependencies
+):
     """Build the stable collaborator bundle for one lifecycle-controller instance."""
     return _build_entry_lifecycle_controller_dependencies_impl(
         logger=_LOGGER,
         platforms=PLATFORMS,
-        protocol_factory=cast('ProtocolFactory', LiproProtocolFacade),
-        auth_manager_factory=cast('AuthManagerFactory', LiproAuthManager),
-        coordinator_factory=cast('CoordinatorFactory', Coordinator),
+        protocol_factory=cast("ProtocolFactory", LiproProtocolFacade),
+        auth_manager_factory=cast("AuthManagerFactory", LiproAuthManager),
+        coordinator_factory=cast("CoordinatorFactory", Coordinator),
         get_client_session=async_get_clientsession,
-        build_entry_auth_context=cast('BuildEntryAuthContext', build_entry_auth_context),
-        async_authenticate_entry=cast('AuthenticateEntry', async_authenticate_entry),
+        build_entry_auth_context=cast(
+            "BuildEntryAuthContext", build_entry_auth_context
+        ),
+        async_authenticate_entry=cast("AuthenticateEntry", async_authenticate_entry),
         clear_entry_runtime_data=clear_entry_runtime_data,
         get_entry_int_option=get_entry_int_option,
         persist_entry_tokens_if_changed=cast(
-            'PersistEntryTokens', persist_entry_tokens_if_changed
+            "PersistEntryTokens", persist_entry_tokens_if_changed
         ),
         store_entry_options_snapshot=cast(
-            'StoreEntryOptionsSnapshot', store_entry_options_snapshot
+            "StoreEntryOptionsSnapshot", store_entry_options_snapshot
         ),
         remove_entry_options_snapshot=remove_entry_options_snapshot,
         async_reload_entry_if_options_changed=cast(
-            'ReloadEntryIfOptionsChanged', async_reload_entry_if_options_changed
+            "ReloadEntryIfOptionsChanged", async_reload_entry_if_options_changed
         ),
         async_ensure_runtime_infra=async_ensure_runtime_infra,
         setup_device_registry_listener=setup_device_registry_listener,
@@ -175,8 +180,7 @@ def _build_entry_lifecycle_controller_dependencies(
 
 def _build_entry_lifecycle_controller() -> _EntryLifecycleControllerLike:
     return _build_entry_lifecycle_controller_impl(
-        load_module=_load_module,
-        controller_module_name='custom_components.lipro.control.entry_lifecycle_controller',
+        controller_factory=_load_entry_lifecycle_controller_factory(),
         controller_dependencies=_build_entry_lifecycle_controller_dependencies(),
     )
 

@@ -2,7 +2,7 @@
 
 ## Milestones
 
-- 🟡 **v1.43 Hotspot Second-Pass Slimming & Governance Load Shedding** - active on 2026-04-02; current route truth = `v1.43 active milestone route / Phase 140 complete / Phase 141 planning-ready / latest archived baseline = v1.42`; next = `$gsd-plan-phase 141`
+- 🟡 **v1.43 Hotspot Second-Pass Slimming & Governance Load Shedding** - active on 2026-04-02; current route truth = `v1.43 active milestone route / Phase 141 complete / closeout-ready / latest archived baseline = v1.42`; next = `$gsd-complete-milestone v1.43`
 - ✅ **v1.42 Hotspot Burn-Down, Observability Truth & Governance Cost Compression** - `Phase 137 -> 138` archived on 2026-04-02; historical closeout route truth = `no active milestone route / latest archived baseline = v1.42`; evidence index = `.planning/reviews/V1_42_EVIDENCE_INDEX.md`
 - ✅ **v1.41 Terminal Residual Audit, Remediation Charter & Maintainability Hardening** - `Phase 136 -> 136` archived on 2026-04-02; historical closeout route truth = `no active milestone route / latest archived baseline = v1.41`; evidence index = `.planning/reviews/V1_41_EVIDENCE_INDEX.md`
 - ✅ **v1.40 Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening** - `Phase 134 -> 135` archived on 2026-04-02; historical closeout route truth = `no active milestone route / latest archived baseline = v1.40`; evidence index = `.planning/reviews/V1_40_EVIDENCE_INDEX.md`
@@ -21,11 +21,11 @@ projection_targets:
 active_milestone:
   version: v1.43
   name: Hotspot Second-Pass Slimming & Governance Load Shedding
-  status: active / phase 140 complete; phase 141 planning-ready (2026-04-02)
-  phase: '140'
-  phase_title: release/governance source compression and codebase freshness
-  phase_dir: 140-release-governance-source-compression-and-codebase-freshness
-  route_mode: v1.43 active milestone route / Phase 140 complete / Phase 141 planning-ready / latest archived baseline = v1.42
+  status: active / phase 141 complete; closeout-ready (2026-04-02)
+  phase: '141'
+  phase_title: control/runtime hotspot narrowing and device aggregate hardening
+  phase_dir: 141-control-runtime-hotspot-narrowing-and-device-aggregate-hardening
+  route_mode: v1.43 active milestone route / Phase 141 complete / closeout-ready / latest archived baseline = v1.42
 latest_archived:
   version: v1.42
   name: Hotspot Burn-Down, Observability Truth & Governance Cost Compression
@@ -41,8 +41,8 @@ previous_archived:
   name: Terminal Residual Audit, Remediation Charter & Maintainability Hardening
   evidence_path: .planning/reviews/V1_41_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.43 active milestone route / Phase 140 complete / Phase 141 planning-ready / latest archived baseline = v1.42
-  default_next_command: $gsd-plan-phase 141
+  current_route: v1.43 active milestone route / Phase 141 complete / closeout-ready / latest archived baseline = v1.42
+  default_next_command: $gsd-complete-milestone v1.43
   latest_archived_evidence_pointer: .planning/reviews/V1_42_EVIDENCE_INDEX.md
 contract_version: 1
 ```
@@ -50,28 +50,28 @@ contract_version: 1
 
 ## Overview
 
-`v1.43` 已显式开启新 active milestone，并已完成 `Phase 139` / `Phase 140` 两轮收口：前者解决 REST/protocol second-pass slimming 与 forwarding honesty，后者 formalize stale-proof refresh、public changelog scope、runbook access-mode wording 与 route-ledger sync。下一步只把既有 `141-CONTEXT.md` / `141-RESEARCH.md` 拆成可执行 plans；nested worktree 下 `gsd-tools` root detection 仍不作为 live route authority。
+`v1.43` 已完成 `Phase 139` / `Phase 140` / `Phase 141` 三轮收口：REST/protocol second-pass slimming、release/governance freshness、control/runtime hotspot narrowing 与 device aggregate hardening 现已统一进入 closeout-ready governance bundle；nested worktree 下 `gsd-tools` root detection 仍不作为 live route authority。
 
-**Coverage:** `10/10` current requirements mapped; `10/10` complete in `Phase 139-140`; `Phase 141` 当前仅接入 planning-ready context/research。
-**Default next command:** `$gsd-plan-phase 141`
+**Coverage:** `18/18` current requirements mapped and complete in `Phase 139-141`。
+**Default next command:** `$gsd-complete-milestone v1.43`
 
 ## Current Milestone
 
 ## v1.43: Hotspot Second-Pass Slimming & Governance Load Shedding
 
-**Milestone status:** `active / phase 140 complete; phase 141 planning-ready (2026-04-02)`
-**Default next command:** `$gsd-plan-phase 141`
-**Current route story:** `v1.43 active milestone route / Phase 140 complete / Phase 141 planning-ready / latest archived baseline = v1.42`
+**Milestone status:** `active / phase 141 complete; closeout-ready (2026-04-02)`
+**Default next command:** `$gsd-complete-milestone v1.43`
+**Current route story:** `v1.43 active milestone route / Phase 141 complete / closeout-ready / latest archived baseline = v1.42`
 **Latest archived pointer:** `.planning/reviews/V1_42_EVIDENCE_INDEX.md`
 **Latest archived audit artifact:** `.planning/v1.42-MILESTONE-AUDIT.md`
 **Starting baseline:** `.planning/v1.42-MILESTONE-AUDIT.md`, `.planning/reviews/V1_42_EVIDENCE_INDEX.md`, `.planning/milestones/v1.42-ROADMAP.md`, `.planning/milestones/v1.42-REQUIREMENTS.md`
-**Current phase handoff:** `Phase 140 execution 已用 phase assets + selector family + registry + focused guards 手工等价 formalize；current route 已不再停在上一阶段的 planning-ready 幻觉，下一步只把既有 Phase 141 context/research 计划化。`
+**Current phase handoff:** `Phase 141 已把 141-01 ~ 141-05 的代码、phase assets、selector family、registry、verification baseline 与 governance guards 一起推进到 closeout-ready；当前下一步只剩 milestone archive closeout。`
 
 ## Phases
 
 - [x] **Phase 139: REST/protocol mega-facade second-pass slimming and boundary hardening** - 已完成 `139-01` protocol rest-port binding split、`139-02` REST facade internal split + schedule group_id repair、`139-03` tests/docs/governance sync，并产出 summaries/verification/validation。 (complete 2026-04-02)
 - [x] **Phase 140: release/governance source compression and codebase freshness** - 已 formalize stale verification path refresh、CHANGELOG public-summary scope、runbook access-mode wording、phase assets 与 governance ledgers/guards sync，并产出 summaries/verification/validation。 (complete 2026-04-02)
-- [ ] **Phase 141: control/runtime hotspot narrowing and device aggregate hardening** - planning-ready `141-CONTEXT.md` / `141-RESEARCH.md` 已接入 current route；本轮不创建 `141-*-PLAN.md`。 (planning-ready 2026-04-02)
+- [x] **Phase 141: control/runtime hotspot narrowing and device aggregate hardening** - 已完成 `141-01` router seam narrowing、`141-02` entry-root explicit factory wiring、`141-03` runtime contract inward decomposition、`141-04` device aggregate/runtime side-car hardening、`141-05` governance closeout sync，并产出 summaries/verification/validation。 (complete 2026-04-02)
 
 ## Phase Details
 
@@ -105,8 +105,10 @@ contract_version: 1
 **Goal:** 在不破坏既有 formal homes 的前提下，继续收窄 `service_router` layering / underscore leakage、`runtime_types.py` breadth、`core/device/device.py` aggregate 宽面与 `entry_root_support.py` lazy-import maintenance tax。
 **Depends on:** Phase 140
 **Inputs**: `.planning/phases/141-control-runtime-hotspot-narrowing-and-device-aggregate-hardening/{141-CONTEXT.md,141-RESEARCH.md}`
-**Status**: planning-ready only — 本轮只把既有 context/research 接入 current route，不创建 `141-*-PLAN.md`。
-**Default next**: `$gsd-plan-phase 141`
+**Requirements**: `ARC-49`, `ARC-50`, `ARC-51`, `HOT-72`, `HOT-73`, `GOV-96`, `DOC-24`, `TST-61`
+**Plans**: 5 planned / 5 completed — `141-01` router seam narrowing、`141-02` entry-root explicit factory wiring、`141-03` runtime contract inward decomposition、`141-04` device aggregate/runtime side-car hardening、`141-05` governance closeout and route sync。
+**Status**: complete / closeout-ready — `141-*` summaries、aggregate closeout bundle 与 governance route truth 已同步收口。
+**Default next**: `$gsd-complete-milestone v1.43`
 
 ## Latest Archived Milestone
 

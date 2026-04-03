@@ -95,6 +95,10 @@ def test_phase123_codeboundaries_keep_single_non_diagnostics_handler_home() -> N
     handlers_text = _read(
         _ROOT / "custom_components" / "lipro" / "control" / "service_router_handlers.py"
     )
+    support_text = _read(
+        _ROOT / "custom_components" / "lipro" / "control" / "service_router_support.py"
+    )
+    router_exports = service_router_text.split("__all__ = [", 1)[1]
 
     assert (
         "from . import service_router_handlers as _handlers, service_router_support as _support"
@@ -105,6 +109,15 @@ def test_phase123_codeboundaries_keep_single_non_diagnostics_handler_home() -> N
     assert "from .service_router_share_handlers import" not in handlers_text
     assert "from .service_router_maintenance_handlers import" not in handlers_text
     assert "from .service_router_diagnostics_handlers import (" in handlers_text
+    assert "def get_anonymous_share_manager(" in support_text
+    assert "def get_client_session(" in support_text
+    for token in (
+        '"_get_device_and_coordinator"',
+        '"_summarize_service_properties"',
+        '"get_anonymous_share_manager"',
+        '"get_client_session"',
+    ):
+        assert token not in router_exports
     for token in (
         "_async_handle_send_command_service",
         "_async_handle_add_schedule_service",

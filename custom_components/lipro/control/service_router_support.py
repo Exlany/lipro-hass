@@ -8,15 +8,24 @@ import logging
 import re
 from typing import Protocol, cast
 
+from aiohttp import ClientSession
+
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
+from homeassistant.helpers.aiohttp_client import (
+    async_get_clientsession as _async_get_clientsession,
+)
 
-from ..core import LiproDevice
+from ..core import (
+    LiproDevice,
+    get_anonymous_share_manager as _get_anonymous_share_manager,
+)
 from ..runtime_types import LiproCoordinator
 from ..services.command import SendCommandLogger
 from ..services.contracts import ServicePropertySummary
 from ..services.device_lookup import resolve_device_id_from_service_call
 from ..services.diagnostics.types import RuntimeCoordinatorIterator
+from ..services.share import AnonymousShareManager
 from .developer_router_support import (
     build_developer_runtime_coordinator_iterator as _build_developer_runtime_coordinator_iterator,
     get_developer_device_and_coordinator as _get_developer_device_and_coordinator_support,
@@ -202,6 +211,20 @@ def build_developer_runtime_coordinator_iterator(
     return _build_developer_runtime_coordinator_iterator(hass)
 
 
+def get_anonymous_share_manager(
+    hass: HomeAssistant,
+    *,
+    entry_id: str | None = None,
+) -> AnonymousShareManager:
+    """Resolve one anonymous-share manager through the sanctioned support seam."""
+    return _get_anonymous_share_manager(hass, entry_id=entry_id)
+
+
+def get_client_session(hass: HomeAssistant) -> ClientSession:
+    """Resolve the Home Assistant client session through the support seam."""
+    return _async_get_clientsession(hass)
+
+
 __all__ = [
     "DeviceAndCoordinatorGetter",
     "IdentifierRedactor",
@@ -212,6 +235,8 @@ __all__ = [
     "build_device_and_coordinator_getter",
     "build_send_command_logger",
     "build_serial_pattern",
+    "get_anonymous_share_manager",
+    "get_client_session",
     "log_send_command_call",
     "summarize_service_properties",
 ]

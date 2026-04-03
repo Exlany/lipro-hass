@@ -26,8 +26,8 @@ _STALE_VERIFICATION_TOKENS = (
     "tests/meta/test_governance_route_handoff_smoke.py",
 )
 _PHASE140_ROUTE = (
-    "v1.43 active milestone route / Phase 140 complete / "
-    "Phase 141 planning-ready / latest archived baseline = v1.42"
+    "v1.43 active milestone route / Phase 141 complete / "
+    "closeout-ready / latest archived baseline = v1.42"
 )
 _PHASE140_GUARD = "tests/meta/test_phase140_governance_source_freshness_guards.py"
 
@@ -49,11 +49,10 @@ def _extract_section(text: str, start: str, end: str) -> str:
 def test_phase140_release_governance_proof_lanes_drop_stale_paths() -> None:
     verification_text = _read(_VERIFICATION)
     remediation_text = _read(_REMEDIATION)
-    verification_scope = "\n".join(
-        (
-            _extract_section(verification_text, "## Current Route", "## Phase 139 Exit Contract"),
-            _extract_section(verification_text, "## Phase 140 Exit Contract", "## Phase 126 Exit Contract"),
-        )
+    verification_scope = _extract_section(
+        verification_text,
+        "## Phase 140 Exit Contract",
+        "## Phase 141 Exit Contract",
     )
     remediation_scope = _extract_section(
         remediation_text,
@@ -99,7 +98,7 @@ def test_phase140_runbook_keeps_access_mode_honesty() -> None:
     assert "reachable in the current access mode" in runbook_text
 
 
-def test_phase140_ledgers_registry_and_guides_register_current_guard_chain() -> None:
+def test_phase140_ledgers_registry_and_guides_register_predecessor_guard_chain() -> None:
     verification_text = _read(_VERIFICATION)
     testing_text = _read(_TESTING)
     file_matrix_text = _read(_FILE_MATRIX)
@@ -113,16 +112,17 @@ def test_phase140_ledgers_registry_and_guides_register_current_guard_chain() -> 
     active_milestone = planning_route["active_milestone"]
     bootstrap = planning_route["bootstrap"]
 
-    assert active_milestone["phase"] == "140"
+    assert active_milestone["phase"] == "141"
     assert (
         active_milestone["phase_title"]
-        == "release/governance source compression and codebase freshness"
+        == "control/runtime hotspot narrowing and device aggregate hardening"
     )
     assert bootstrap["current_route"] == _PHASE140_ROUTE
-    assert bootstrap["default_next_command"] == "$gsd-plan-phase 141"
+    assert bootstrap["default_next_command"] == "$gsd-complete-milestone v1.43"
 
     for text in (verification_text, testing_text, file_matrix_text, residual_text):
         assert "Phase 140" in text
         assert _PHASE140_GUARD in text
 
-    assert "Phase 140" in developer_text
+    assert _PHASE140_ROUTE in developer_text
+    assert "Phase 140" not in developer_text

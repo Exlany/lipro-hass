@@ -178,11 +178,11 @@
     "active_milestone": {
       "version": "v1.43",
       "name": "Hotspot Second-Pass Slimming & Governance Load Shedding",
-      "status": "active / phase 140 complete; phase 141 planning-ready (2026-04-02)",
-      "phase": "140",
-      "phase_title": "release/governance source compression and codebase freshness",
-      "phase_dir": "140-release-governance-source-compression-and-codebase-freshness",
-      "route_mode": "v1.43 active milestone route / Phase 140 complete / Phase 141 planning-ready / latest archived baseline = v1.42"
+      "status": "active / phase 141 complete; closeout-ready (2026-04-02)",
+      "phase": "141",
+      "phase_title": "control/runtime hotspot narrowing and device aggregate hardening",
+      "phase_dir": "141-control-runtime-hotspot-narrowing-and-device-aggregate-hardening",
+      "route_mode": "v1.43 active milestone route / Phase 141 complete / closeout-ready / latest archived baseline = v1.42"
     },
     "latest_archived": {
       "version": "v1.42",
@@ -201,8 +201,8 @@
       "evidence_path": ".planning/reviews/V1_41_EVIDENCE_INDEX.md"
     },
     "bootstrap": {
-      "current_route": "v1.43 active milestone route / Phase 140 complete / Phase 141 planning-ready / latest archived baseline = v1.42",
-      "default_next_command": "$gsd-plan-phase 141",
+      "current_route": "v1.43 active milestone route / Phase 141 complete / closeout-ready / latest archived baseline = v1.42",
+      "default_next_command": "$gsd-complete-milestone v1.43",
       "latest_archived_evidence_pointer": ".planning/reviews/V1_42_EVIDENCE_INDEX.md"
     },
     "contract_version": 1

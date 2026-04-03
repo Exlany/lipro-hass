@@ -79,6 +79,14 @@ def _redact_gateway_projection(projection: Mapping[str, object]) -> DiagnosticsP
     return redacted
 
 
+def _build_outlet_power_diagnostics(device: LiproDevice) -> DiagnosticsPayload | None:
+    """Return the formal outlet-power payload exposed by the device aggregate."""
+    outlet_power_info = device.outlet_power_info
+    if outlet_power_info is None:
+        return None
+    return cast(DiagnosticsPayload, outlet_power_info)
+
+
 def build_device_diagnostics(
     device: LiproDevice,
     *,
@@ -94,7 +102,7 @@ def build_device_diagnostics(
         "is_group": device.is_group,
         "room_name": "**REDACTED**",
         "available": device.available,
-        "is_connected": device.state.is_connected,
+        "is_connected": device.is_connected,
         "properties": redact_device_properties(device.properties),
     }
     if device.network_info.firmware_version:
@@ -110,11 +118,9 @@ def build_device_diagnostics(
     if device.network_info.is_mesh_gateway:
         device_info["is_mesh_gateway"] = True
 
-    outlet_power_info = device.outlet_power_info
+    outlet_power_info = _build_outlet_power_diagnostics(device)
     if outlet_power_info is not None:
-        device_info["outlet_power_info"] = cast(
-            DiagnosticsPayload, dict(outlet_power_info)
-        )
+        device_info["outlet_power_info"] = outlet_power_info
 
     gateway_projection = diagnostic_gateway_projection(device.extras)
     if gateway_projection is not None:

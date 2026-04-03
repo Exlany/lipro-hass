@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-from time import monotonic
 
 from ...const.api import DEFAULT_MAX_FAN_GEAR
 from ...const.properties import MAX_COLOR_TEMP_KELVIN, MIN_COLOR_TEMP_KELVIN
@@ -186,13 +185,12 @@ class LiproDevice:
     @property
     def outlet_power_info(self) -> OutletPowerInfo | None:
         """Return the formal outlet-power primitive."""
-        return self._outlet_power_info
+        return device_runtime.get_outlet_power_info(self)
 
     @outlet_power_info.setter
     def outlet_power_info(self, value: OutletPowerInfo | None) -> None:
         """Persist the formal outlet-power primitive and clear legacy side-car state."""
-        self._outlet_power_info = None if value is None else dict(value)
-        self.extra_data.pop("power_info", None)
+        device_runtime.set_outlet_power_info(self, value)
 
     @property
     def is_online(self) -> bool:
@@ -201,13 +199,13 @@ class LiproDevice:
 
     def mark_mqtt_update(self, *, timestamp: float | None = None) -> None:
         """Record that the device received an MQTT property update."""
-        self._last_mqtt_update_at = monotonic() if timestamp is None else timestamp
+        device_runtime.mark_device_mqtt_update(self, timestamp=timestamp)
 
     def has_recent_mqtt_update(self, *, stale_window_seconds: float = 180.0) -> bool:
         """Return True when an MQTT update arrived within the stale window."""
-        if self._last_mqtt_update_at <= 0.0:
-            return False
-        return monotonic() - self._last_mqtt_update_at <= stale_window_seconds
+        return device_runtime.has_recent_device_mqtt_update(
+            self, stale_window_seconds=stale_window_seconds
+        )
 
     def update_properties(self, properties: Mapping[str, object]) -> None:
         """Merge normalized properties into the live facade state."""

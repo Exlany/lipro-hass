@@ -22,12 +22,12 @@
 | `custom_components/lipro/const/properties.py` | Cross-cutting | Phase 7 | 保留 | - |
 | `custom_components/lipro/control/__init__.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/developer_router_support.py` | Control | Phase 14 / 15 | 保留 | developer diagnostics glue + typed helper home |
-| `custom_components/lipro/control/diagnostics_surface.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/control/diagnostics_surface.py` | Control | Phase 3 / 141 | 保留 | diagnostics-facing formal read-model over runtime/device primitives; must not revive `extra_data["power_info"]` backdoor |
 | `custom_components/lipro/control/entry_lifecycle_controller.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/entry_lifecycle_failures.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/control/entry_lifecycle_support.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/control/entry_lifecycle_support.py` | Control | Phase 3 / 141 | 保留 | control-plane lifecycle support home with local runtime-entry projections (`EntryRuntimeCoordinator` / `EntryRuntimeData`) |
 | `custom_components/lipro/control/entry_root_support.py` | Control | Phase 103 | 保留 | root-entry lazy-load / entry-auth / service-registry adapter support home |
-| `custom_components/lipro/control/entry_root_wiring.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/control/entry_root_wiring.py` | Control | Phase 3 / 103 / 141 | 保留 | explicit entry-root wiring home; receives controller factory directly instead of generic module loader folklore |
 | `custom_components/lipro/control/models.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/redaction.py` | Control | Phase 92 | 保留 | diagnostics-facing redaction adapter on shared redaction contract with inward recursion helpers |
 | `custom_components/lipro/control/runtime_access.py` | Control | Phase 90 | 保留 | protected thin runtime read-model / typed access home |
@@ -36,7 +36,7 @@
 | `custom_components/lipro/control/runtime_access_support_members.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/runtime_access_support_telemetry.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/runtime_access_support_views.py` | Control | Phase 3 | 保留 | - |
-| `custom_components/lipro/control/runtime_access_types.py` | Control | Phase 3 | 保留 | - |
+| `custom_components/lipro/control/runtime_access_types.py` | Control | Phase 3 / 141 | 保留 | local runtime-access projection home anchored to `runtime_types.py` single outward root |
 | `custom_components/lipro/control/service_registry.py` | Control | Phase 3 | 保留 | - |
 | `custom_components/lipro/control/service_router.py` | Control | Phase 3 / 14 / 15 / 37 | 保留 | public router shell over focused handler/support collaborators |
 | `custom_components/lipro/control/service_router_diagnostics_handlers.py` | Control | Phase 104 | 保留 | focused diagnostics/developer handler family home for service-router callbacks |
@@ -200,7 +200,7 @@
 | `custom_components/lipro/core/device/__init__.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/device/device.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/device/device_factory.py` | Domain | Phase 4 | 重构 | - |
-| `custom_components/lipro/core/device/device_runtime.py` | Domain | Phase 4 | 重构 | - |
+| `custom_components/lipro/core/device/device_runtime.py` | Domain | Phase 4 / 141 | 重构 | device-runtime side-car helper home for state/extras cache, MQTT freshness, outlet-power bookkeeping, and legacy cleanup |
 | `custom_components/lipro/core/device/device_snapshots.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/device/device_views.py` | Domain | Phase 4 | 重构 | - |
 | `custom_components/lipro/core/device/extras.py` | Domain | Phase 4 | 重构 | - |
@@ -618,7 +618,7 @@
 | `tests/meta/dependency_guards_policy.py` | Assurance | Phase 6 | 保留 | architecture-policy structural-rule guard family |
 | `tests/meta/dependency_guards_protocol_contracts.py` | Assurance | Phase 40 / 52 / 57 | 保留 | protocol/schedule dependency-story guard family |
 | `tests/meta/dependency_guards_review_ledgers.py` | Assurance | Phase 48 / 49 / 54 / 55 / 56 / 58 / 62 | 保留 | dependency-note / verification / naming topic guard family |
-| `tests/meta/dependency_guards_service_runtime.py` | Assurance | Phase 40 / 43 / 50 / 53 / 68 | 保留 | service/runtime dependency-story guard family |
+| `tests/meta/dependency_guards_service_runtime.py` | Assurance | Phase 40 / 43 / 50 / 53 / 68 / 141 | 保留 | service/runtime dependency-story guard family; now also freezes phase-141 local projection and one-way import story |
 | `tests/meta/governance_archive_history.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/governance_contract_helpers.py` | Assurance | Phase 6 / 77 / 79 / 105 | 保留 | shared governance route/doc helper home |
 | `tests/meta/governance_current_truth.py` | Assurance | Phase 6 / 77 / 79 / 105 | 保留 | governance-route contract + shared current/latest archive truth helper |
@@ -712,7 +712,7 @@
 | `tests/meta/test_phase99_runtime_hotspot_support_guards.py` | Assurance | Phase 94 / 95 / 96 / 97 / 98 / 99 / 100 / 101 / 102 | 保留 | focused predecessor guard home for Phase 99 runtime hotspot support extraction / governance freeze |
 | `tests/meta/test_protocol_replay_assets.py` | Assurance | Phase 7.4 | 保留 | - |
 | `tests/meta/test_public_surface_guards.py` | Assurance | Phase 6 | 保留 | thin shell after public-surface topicization |
-| `tests/meta/test_runtime_contract_truth.py` | Assurance | Phase 6 | 保留 | - |
+| `tests/meta/test_runtime_contract_truth.py` | Assurance | Phase 6 / 141 | 保留 | focused single-root runtime contract truth guard with local projection assertions |
 | `tests/meta/test_service_translation_sync.py` | Assurance | Phase 6 | 保留 | - |
 | `tests/meta/test_toolchain_truth.py` | Assurance | Phase 16 / 60 | 保留 | thin daily runnable shell for topicized toolchain truth suites |
 | `tests/meta/test_translation_tree_sync.py` | Assurance | Phase 6 | 保留 | - |

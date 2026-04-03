@@ -56,6 +56,14 @@ _REQUIREMENT_TRACES_BY_MILESTONE = {
         RequirementTrace("GOV-95", "140"),
         RequirementTrace("DOC-23", "140"),
         RequirementTrace("TST-60", "140"),
+        RequirementTrace("ARC-49", "141"),
+        RequirementTrace("ARC-50", "141"),
+        RequirementTrace("ARC-51", "141"),
+        RequirementTrace("HOT-72", "141"),
+        RequirementTrace("HOT-73", "141"),
+        RequirementTrace("GOV-96", "141"),
+        RequirementTrace("DOC-24", "141"),
+        RequirementTrace("TST-61", "141"),
     ),
     "v1.42": (
         RequirementTrace("ARC-46", "137"),
@@ -127,7 +135,7 @@ _REQUIREMENT_TRACES_BY_MILESTONE = {
 }
 
 _COVERAGE_BY_MILESTONE = {
-    "v1.43": CoverageSnapshot("v1.43 requirements", 10, mapped=10, complete=10, pending=0),
+    "v1.43": CoverageSnapshot("v1.43 requirements", 18, mapped=18, complete=18, pending=0),
     "v1.42": CoverageSnapshot("v1.42 requirements", 13, mapped=13, complete=13, pending=0),
     "v1.41": CoverageSnapshot("v1.41 requirements", 6, mapped=6, complete=6, pending=0),
     "v1.40": CoverageSnapshot("v1.40 requirements", 12, mapped=12, complete=12, pending=0),

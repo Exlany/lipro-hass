@@ -6,9 +6,12 @@ from collections.abc import Mapping
 
 from ..core.telemetry.models import TelemetryJsonValue, TelemetrySourcePayload
 from ..core.telemetry.ports import ProtocolTelemetrySource, RuntimeTelemetrySource
-from ..runtime_types import LiproCoordinator, ProtocolTelemetryFacadeLike
 from .runtime_access_support_members import _has_explicit_runtime_member
-from .runtime_access_types import RuntimeCoordinatorView
+from .runtime_access_types import (
+    RuntimeAccessCoordinator,
+    RuntimeAccessProtocol,
+    RuntimeCoordinatorView,
+)
 
 
 def _coerce_telemetry_json_value(value: object) -> TelemetryJsonValue | None:
@@ -43,7 +46,7 @@ def _coerce_telemetry_source_payload(
 class _ProtocolFacadeTelemetrySource(ProtocolTelemetrySource):
     """Adapter exposing protocol-root telemetry through an explicit source port."""
 
-    def __init__(self, protocol: ProtocolTelemetryFacadeLike) -> None:
+    def __init__(self, protocol: RuntimeAccessProtocol) -> None:
         self._protocol = protocol
 
     def get_protocol_telemetry_snapshot(self) -> TelemetrySourcePayload:
@@ -74,7 +77,9 @@ class _ProtocolFacadeTelemetrySource(ProtocolTelemetrySource):
 class _CoordinatorTelemetrySource(RuntimeTelemetrySource):
     """Adapter exposing runtime telemetry through an explicit source port."""
 
-    def __init__(self, coordinator: RuntimeCoordinatorView, *, entry_id: str | None) -> None:
+    def __init__(
+        self, coordinator: RuntimeCoordinatorView, *, entry_id: str | None
+    ) -> None:
         self._coordinator = coordinator
         self._entry_id = entry_id
 
@@ -87,7 +92,9 @@ class _CoordinatorTelemetrySource(RuntimeTelemetrySource):
         return payload
 
 
-def _build_runtime_telemetry_snapshot(coordinator: LiproCoordinator) -> Mapping[str, object]:
+def _build_runtime_telemetry_snapshot(
+    coordinator: RuntimeAccessCoordinator,
+) -> Mapping[str, object]:
     """Return a normalized runtime telemetry snapshot for one coordinator."""
     if not _has_explicit_runtime_member(coordinator, "telemetry_service"):
         return {}

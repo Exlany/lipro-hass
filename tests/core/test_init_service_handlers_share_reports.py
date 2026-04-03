@@ -28,7 +28,7 @@ class TestInitServiceHandlerAnonymousShare(_InitServiceHandlerBase):
 
         with (
             patch(
-                "custom_components.lipro.control.service_router.get_anonymous_share_manager",
+                "custom_components.lipro.control.service_router_support.get_anonymous_share_manager",
                 return_value=share_manager,
             ),
             pytest.raises(ServiceValidationError),
@@ -47,7 +47,7 @@ class TestInitServiceHandlerAnonymousShare(_InitServiceHandlerBase):
         share_manager.get_pending_report.return_value = report
 
         with patch(
-            "custom_components.lipro.control.service_router.get_anonymous_share_manager",
+            "custom_components.lipro.control.service_router_support.get_anonymous_share_manager",
             return_value=share_manager,
         ):
             result = await async_handle_get_anonymous_share_report(
@@ -71,7 +71,7 @@ class TestInitServiceHandlerAnonymousShare(_InitServiceHandlerBase):
         share_manager.submit_report = AsyncMock(return_value=True)
 
         with patch(
-            "custom_components.lipro.control.service_router.get_anonymous_share_manager",
+            "custom_components.lipro.control.service_router_support.get_anonymous_share_manager",
             return_value=share_manager,
         ) as get_share_manager:
             result = await async_handle_submit_anonymous_share(
@@ -100,7 +100,7 @@ class TestInitServiceHandlerAnonymousShare(_InitServiceHandlerBase):
         }
 
         with patch(
-            "custom_components.lipro.control.service_router.get_anonymous_share_manager",
+            "custom_components.lipro.control.service_router_support.get_anonymous_share_manager",
             return_value=share_manager,
         ) as get_share_manager:
             result = await async_handle_get_anonymous_share_report(
@@ -129,7 +129,7 @@ class TestInitServiceHandlerAnonymousShareEdges(_InitServiceHandlerBase):
         share_manager.pending_count = (0, 0)
 
         with patch(
-            "custom_components.lipro.control.service_router.get_anonymous_share_manager",
+            "custom_components.lipro.control.service_router_support.get_anonymous_share_manager",
             return_value=share_manager,
         ):
             result = await async_handle_submit_anonymous_share(
@@ -165,10 +165,12 @@ class TestInitServiceHandlerAnonymousShareEdges(_InitServiceHandlerBase):
         share_manager.submit_report = AsyncMock(return_value=False)
 
         with patch(
-            "custom_components.lipro.control.service_router.get_anonymous_share_manager",
+            "custom_components.lipro.control.service_router_support.get_anonymous_share_manager",
             return_value=share_manager,
         ):
-            result = await async_handle_submit_anonymous_share(hass, service_call(hass, {}))
+            result = await async_handle_submit_anonymous_share(
+                hass, service_call(hass, {})
+            )
 
         assert result == {
             "success": False,
@@ -192,7 +194,7 @@ class TestInitServiceHandlerAnonymousShareEdges(_InitServiceHandlerBase):
         share_manager.get_pending_report.return_value = None
 
         with patch(
-            "custom_components.lipro.control.service_router.get_anonymous_share_manager",
+            "custom_components.lipro.control.service_router_support.get_anonymous_share_manager",
             return_value=share_manager,
         ):
             result = await async_handle_get_anonymous_share_report(

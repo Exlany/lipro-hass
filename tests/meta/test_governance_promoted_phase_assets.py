@@ -662,3 +662,62 @@ def test_phase_131_closeout_assets_exist_and_are_promoted() -> None:
     assert "## Phase 131 Exit Contract" in verification_text
     assert "## Phase 131 Residual Delta" in residual_text
     assert "## Phase 131 Status Update" in kill_text
+
+
+def test_phase_139_closeout_assets_exist_and_are_promoted() -> None:
+    _assert_promoted_phase_assets(
+        "139-rest-protocol-surface-second-pass-slimming-and-boundary-hardening",
+        "139-01-SUMMARY.md",
+        "139-02-SUMMARY.md",
+        "139-03-SUMMARY.md",
+        "139-SUMMARY.md",
+        "139-VERIFICATION.md",
+        "139-VALIDATION.md",
+    )
+
+
+def test_phase_140_closeout_assets_exist_and_are_promoted() -> None:
+    _assert_promoted_phase_assets(
+        "140-release-governance-source-compression-and-codebase-freshness",
+        "140-01-SUMMARY.md",
+        "140-02-SUMMARY.md",
+        "140-03-SUMMARY.md",
+        "140-SUMMARY.md",
+        "140-VERIFICATION.md",
+        "140-VALIDATION.md",
+    )
+
+
+def test_phase_141_closeout_assets_exist_and_are_promoted() -> None:
+    _assert_promoted_phase_assets(
+        "141-control-runtime-hotspot-narrowing-and-device-aggregate-hardening",
+        "141-01-SUMMARY.md",
+        "141-02-SUMMARY.md",
+        "141-03-SUMMARY.md",
+        "141-04-SUMMARY.md",
+        "141-05-SUMMARY.md",
+        "141-SUMMARY.md",
+        "141-VERIFICATION.md",
+        "141-VALIDATION.md",
+    )
+    _assert_phase_assets_not_promoted(
+        "141-control-runtime-hotspot-narrowing-and-device-aggregate-hardening",
+        "141-CONTEXT.md",
+        "141-RESEARCH.md",
+        "141-01-PLAN.md",
+        "141-02-PLAN.md",
+        "141-03-PLAN.md",
+        "141-04-PLAN.md",
+        "141-05-PLAN.md",
+    )
+
+    verification_text = (
+        _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
+    ).read_text(encoding="utf-8")
+    residual_text = (_ROOT / ".planning" / "reviews" / "RESIDUAL_LEDGER.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "## Phase 141 Exit Contract" in verification_text
+    assert "## Phase 141 Residual Delta" in residual_text
+

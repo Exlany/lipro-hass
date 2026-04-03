@@ -6,17 +6,26 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Protocol
 
-from ..runtime_types import LiproRuntimeCoordinator, ProtocolTelemetryFacadeLike
+from ..runtime_types import (
+    LiproCoordinator,
+    LiproRuntimeCoordinator,
+    ProtocolTelemetryFacadeLike,
+)
 
 if TYPE_CHECKING:
     from ..core.device import LiproDevice
+
+
+type RuntimeAccessCoordinator = LiproCoordinator
+type RuntimeAccessProtocol = ProtocolTelemetryFacadeLike
+type RuntimeEntryRuntimeData = LiproRuntimeCoordinator | None
 
 
 class RuntimeEntryPort(Protocol):
     """Minimal config-entry surface consumed by control runtime access."""
 
     entry_id: str
-    runtime_data: LiproRuntimeCoordinator | None
+    runtime_data: RuntimeEntryRuntimeData
     options: object
 
 
@@ -27,7 +36,7 @@ class RuntimeCoordinatorFacts:
     update_interval: str | None
     last_update_success: bool
     mqtt_connected: bool | None
-    protocol: ProtocolTelemetryFacadeLike | None
+    protocol: RuntimeAccessProtocol | None
     runtime_telemetry_snapshot: Mapping[str, object]
     devices: Mapping[str, LiproDevice] | None
 
@@ -38,7 +47,7 @@ class RuntimeEntryFacts:
 
     entry_id: str
     options: Mapping[str, object]
-    runtime_data: LiproRuntimeCoordinator | None
+    runtime_data: RuntimeEntryRuntimeData
 
 
 @dataclass(frozen=True, slots=True)
@@ -48,7 +57,7 @@ class RuntimeCoordinatorView:
     update_interval: str | None
     last_update_success: bool
     mqtt_connected: bool | None
-    protocol: ProtocolTelemetryFacadeLike | None
+    protocol: RuntimeAccessProtocol | None
     runtime_telemetry_snapshot: Mapping[str, object]
     devices: Mapping[str, LiproDevice] | None
 

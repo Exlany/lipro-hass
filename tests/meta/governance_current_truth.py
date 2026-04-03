@@ -312,9 +312,11 @@ CURRENT_MILESTONE_COMPLETED_PLAN_COUNT = sum(
 )
 CURRENT_ROUTE_FOCUSED_GUARDS = (
     "tests/meta/governance_followup_route_current_milestones.py",
+    "tests/meta/test_governance_route_handoff_smoke.py",
     "tests/meta/test_governance_release_docs.py",
     "tests/meta/test_governance_release_continuity.py",
     "tests/meta/test_governance_release_contract.py",
+    "tests/meta/test_governance_promoted_phase_assets.py",
     "tests/meta/test_phase140_governance_source_freshness_guards.py",
     "tests/meta/toolchain_truth_docs_fast_path.py",
     "tests/meta/toolchain_truth_testing_governance.py",

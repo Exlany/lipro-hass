@@ -2,16 +2,22 @@
 
 ## Current Residual Posture
 
-- `v1.43` 已显式保持为 active milestone route；remaining concern 不再伪装成“上一 archived baseline 之后自然会自己消失”的无主延续。
-- `Phase 140` 未新增 active residual family：它收口的是 stale verification path、release-doc wording 与 route-ledger drift，而不是新的 runtime/protocol exception。
-- 当前 live follow-up 已显式前推到 `Phase 141`：`service_router` layering / underscore leakage、`runtime_types.py` breadth、`core/device/device.py` aggregate boundary 与 `entry_root_support.py` lazy-import maintenance tax 仍待继续收窄。
+- `v1.43` 已显式保持为 active milestone route；当前 closeout verdict 已承认 `Phase 141 complete / closeout-ready`，不再留下 planning-ready 幻觉。
+- `Phase 141` 未新增 active residual family：service-router seam narrowing、entry-root explicit factory wiring、runtime contract inward decomposition、device aggregate/runtime side-car hardening 与 governance closeout sync 现已收束为同一 closeout bundle。
+- 当前 active residual posture = `zero active residual family`；若未来 reopen follow-up，必须登记新 family / owner / exit condition，而不是复用已关闭的 `Phase 141` route。
+
+## Phase 141 Residual Delta
+
+- `Phase 141` 未新增 active residual family；本轮完成的是 service-router seam narrowing、entry-root explicit factory wiring、runtime contract inward decomposition、device aggregate/runtime side-car hardening 与 governance closeout sync 的一次性收口。
+- `runtime_types.py` 继续保持 shared runtime contract 的唯一 sanctioned outward root；control/service/device 本地 projections 仅承担 inward helper 身份。
+- `LiproDevice` outward façade 未改名、未改 public call shape；MQTT freshness 与 outlet-power bookkeeping 已回收到 `device_runtime.py`，`diagnostics_surface.py` 继续只消费 formal primitive。
 
 ## Phase 140 Residual Delta
 
 - `Phase 140` 未新增 active residual family；本轮 formalize 的是 governance/docs freshness 收口，而不是新的 structural residual campaign。
 - stale verification lane、`CHANGELOG.md` public-summary scope、runbook access-mode wording 与 route/ledger sync 现已进入 closed bundle，不再作为 silent carry-forward 漂浮；`tests/meta/test_phase140_governance_source_freshness_guards.py` 负责冻结这条 freshness guard chain。
 - nested worktree 下 `gsd-tools` root detection 继续不作为 live truth authority；route proof 以 selector family、registry、focused guards 与 `140-*` phase assets 为准。
-- sanctioned follow-up 已诚实前推到 `Phase 141` planning-ready context/research：`service_router`、`runtime_types.py`、`core/device/device.py` 与 `entry_root_support.py` 是下一轮 narrowing owner。
+- sanctioned follow-up 已在 `Phase 141` 被完整消费并收口：`service_router`、`runtime_types.py`、`core/device/device.py` 与 `entry_root_support.py` 的 narrowing owner 现已回流到 closeout bundle，不再保留 planning-ready carry-forward 幻觉。
 
 ## Phase 139 Residual Delta
 

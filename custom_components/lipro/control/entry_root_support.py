@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Protocol, cast
 from homeassistant.core import HomeAssistant
 
 if TYPE_CHECKING:
+    from .entry_root_wiring import EntryLifecycleControllerFactory
     from .service_registry import ServiceRegistry
 
 
@@ -81,42 +82,71 @@ class _ServiceRegistrationsModule(Protocol):
     ) -> ServiceRegistry: ...
 
 
-_CORE_MODULE_NAME = 'custom_components.lipro.core'
-_COORDINATOR_MODULE_NAME = 'custom_components.lipro.coordinator_entry'
-_ENTRY_AUTH_MODULE_NAME = 'custom_components.lipro.entry_auth'
-_SERVICE_REGISTRY_MODULE_NAME = 'custom_components.lipro.control.service_registry'
+class _EntryLifecycleControllerModule(Protocol):
+    """Runtime-loaded lifecycle-controller module surface used by the root adapter."""
+
+    EntryLifecycleController: EntryLifecycleControllerFactory
 
 
-def load_module(module_name: str) -> object:
+_CORE_MODULE_NAME = "custom_components.lipro.core"
+_COORDINATOR_MODULE_NAME = "custom_components.lipro.coordinator_entry"
+_ENTRY_AUTH_MODULE_NAME = "custom_components.lipro.entry_auth"
+_SERVICE_REGISTRY_MODULE_NAME = "custom_components.lipro.control.service_registry"
+
+
+def _load_module(module_name: str) -> object:
     """Load one module via runtime import only."""
     return import_module(module_name)
 
 
+def _core_module() -> _CoreModule:
+    """Return the lazily imported core module."""
+    return cast(_CoreModule, _load_module(_CORE_MODULE_NAME))
+
+
+def _coordinator_module() -> _CoordinatorModule:
+    """Return the lazily imported coordinator-entry module."""
+    return cast(_CoordinatorModule, _load_module(_COORDINATOR_MODULE_NAME))
+
+
+def _service_registrations_module() -> _ServiceRegistrationsModule:
+    """Return the lazily imported service-registry module."""
+    return cast(
+        _ServiceRegistrationsModule, _load_module(_SERVICE_REGISTRY_MODULE_NAME)
+    )
+
+
+def _entry_lifecycle_controller_module() -> _EntryLifecycleControllerModule:
+    """Return the lazily imported lifecycle-controller module."""
+    return cast(
+        _EntryLifecycleControllerModule,
+        _load_module("custom_components.lipro.control.entry_lifecycle_controller"),
+    )
+
+
 def _load_core_callable(name: str) -> Callable[..., object]:
     """Resolve one core-plane constructor lazily."""
-    core_module = cast(_CoreModule, load_module(_CORE_MODULE_NAME))
-    return cast(Callable[..., object], getattr(core_module, name))
+    return cast(Callable[..., object], getattr(_core_module(), name))
 
 
 def build_lipro_protocol_facade(*args: object, **kwargs: object) -> object:
     """Lazy protocol-facade constructor exposed for runtime wiring/tests."""
-    return _load_core_callable('LiproProtocolFacade')(*args, **kwargs)
+    return _load_core_callable("LiproProtocolFacade")(*args, **kwargs)
 
 
 def build_lipro_auth_manager(*args: object, **kwargs: object) -> object:
     """Lazy auth-manager constructor exposed for runtime wiring/tests."""
-    return _load_core_callable('LiproAuthManager')(*args, **kwargs)
+    return _load_core_callable("LiproAuthManager")(*args, **kwargs)
 
 
 def build_coordinator(*args: object, **kwargs: object) -> object:
     """Lazy runtime-coordinator constructor exposed for runtime wiring/tests."""
-    coordinator_module = cast(_CoordinatorModule, load_module(_COORDINATOR_MODULE_NAME))
-    return coordinator_module.Coordinator(*args, **kwargs)
+    return _coordinator_module().Coordinator(*args, **kwargs)
 
 
 def _entry_auth_module() -> _EntryAuthModule:
     """Load entry-auth helpers lazily to keep adapter typing local."""
-    return cast(_EntryAuthModule, load_module(_ENTRY_AUTH_MODULE_NAME))
+    return cast(_EntryAuthModule, _load_module(_ENTRY_AUTH_MODULE_NAME))
 
 
 def build_entry_auth_context(
@@ -184,10 +214,7 @@ def build_service_registry(
     get_runtime_infra_lock: Callable[[HomeAssistant], object],
 ) -> ServiceRegistry:
     """Build the formal service registry for the HA root adapter."""
-    registrations = cast(
-        _ServiceRegistrationsModule,
-        load_module(_SERVICE_REGISTRY_MODULE_NAME),
-    )
+    registrations = _service_registrations_module()
     return registrations.build_default_service_registry(
         domain=domain,
         public_registrations=registrations.PUBLIC_SERVICE_REGISTRATIONS,
@@ -197,15 +224,20 @@ def build_service_registry(
     )
 
 
+def load_entry_lifecycle_controller_factory() -> EntryLifecycleControllerFactory:
+    """Return the lazy lifecycle-controller factory for the HA root adapter."""
+    return _entry_lifecycle_controller_module().EntryLifecycleController
+
+
 __all__ = [
-    'async_authenticate_entry',
-    'build_coordinator',
-    'build_entry_auth_context',
-    'build_lipro_auth_manager',
-    'build_lipro_protocol_facade',
-    'build_service_registry',
-    'clear_entry_runtime_data',
-    'get_entry_int_option',
-    'load_module',
-    'persist_entry_tokens_if_changed',
+    "async_authenticate_entry",
+    "build_coordinator",
+    "build_entry_auth_context",
+    "build_lipro_auth_manager",
+    "build_lipro_protocol_facade",
+    "build_service_registry",
+    "clear_entry_runtime_data",
+    "get_entry_int_option",
+    "load_entry_lifecycle_controller_factory",
+    "persist_entry_tokens_if_changed",
 ]

@@ -12,11 +12,11 @@ projection_targets:
 active_milestone:
   version: v1.43
   name: Hotspot Second-Pass Slimming & Governance Load Shedding
-  status: active / phase 140 complete; phase 141 planning-ready (2026-04-02)
-  phase: '140'
-  phase_title: release/governance source compression and codebase freshness
-  phase_dir: 140-release-governance-source-compression-and-codebase-freshness
-  route_mode: v1.43 active milestone route / Phase 140 complete / Phase 141 planning-ready / latest archived baseline = v1.42
+  status: active / phase 141 complete; closeout-ready (2026-04-02)
+  phase: '141'
+  phase_title: control/runtime hotspot narrowing and device aggregate hardening
+  phase_dir: 141-control-runtime-hotspot-narrowing-and-device-aggregate-hardening
+  route_mode: v1.43 active milestone route / Phase 141 complete / closeout-ready / latest archived baseline = v1.42
 latest_archived:
   version: v1.42
   name: Hotspot Burn-Down, Observability Truth & Governance Cost Compression
@@ -32,8 +32,8 @@ previous_archived:
   name: Terminal Residual Audit, Remediation Charter & Maintainability Hardening
   evidence_path: .planning/reviews/V1_41_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.43 active milestone route / Phase 140 complete / Phase 141 planning-ready / latest archived baseline = v1.42
-  default_next_command: $gsd-plan-phase 141
+  current_route: v1.43 active milestone route / Phase 141 complete / closeout-ready / latest archived baseline = v1.42
+  default_next_command: $gsd-complete-milestone v1.43
   latest_archived_evidence_pointer: .planning/reviews/V1_42_EVIDENCE_INDEX.md
 contract_version: 1
 ```
@@ -41,16 +41,16 @@ contract_version: 1
 
 ## Current Milestone (v1.43)
 
-**Milestone Goal:** 基于 `v1.42` latest archived baseline，已完成 REST/protocol second-pass slimming、forwarding honesty 与 release/governance freshness formalization，并把下一轮 control/runtime/device hotspot narrowing 诚实前推到 `Phase 141` planning-ready。
-**Milestone status:** `active / phase 140 complete; phase 141 planning-ready (2026-04-02)`
-**Current route mode:** `v1.43 active milestone route / Phase 140 complete / Phase 141 planning-ready / latest archived baseline = v1.42`
+**Milestone Goal:** 基于 `v1.42` latest archived baseline，已完成 REST/protocol second-pass slimming、forwarding honesty、release/governance freshness formalization，以及 control/runtime/device hotspot narrowing 与 governance closeout truth 的一次性收口。
+**Milestone status:** `active / phase 141 complete; closeout-ready (2026-04-02)`
+**Current route mode:** `v1.43 active milestone route / Phase 141 complete / closeout-ready / latest archived baseline = v1.42`
 **Starting baseline:** `.planning/v1.42-MILESTONE-AUDIT.md, .planning/reviews/V1_42_EVIDENCE_INDEX.md, .planning/milestones/v1.42-ROADMAP.md, .planning/milestones/v1.42-REQUIREMENTS.md`
-**Requirements basket:** `ARC-48, HOT-70, HOT-71, GOV-94, DOC-22, TST-59, AUD-09, GOV-95, DOC-23, TST-60`
+**Requirements basket:** `ARC-48, HOT-70, HOT-71, GOV-94, DOC-22, TST-59, AUD-09, GOV-95, DOC-23, TST-60, ARC-49, ARC-50, ARC-51, HOT-72, HOT-73, GOV-96, DOC-24, TST-61`
 **Latest archived baseline:** `v1.42`
 **Archive pointer:** `.planning/reviews/V1_42_EVIDENCE_INDEX.md`
 **Latest archived audit artifact:** `.planning/v1.42-MILESTONE-AUDIT.md`
-**Default next command:** `$gsd-plan-phase 141`
-**Current phase handoff:** `Phase 140 deliverables 已完成并写入 route truth；当前 requirements basket 已全部收口，Phase 141 仅以 planning-ready context/research 接入，等待后续正式 planning。`
+**Default next command:** `$gsd-complete-milestone v1.43`
+**Current phase handoff:** `Phase 141 deliverables 已完成并写入 route truth；当前 requirements basket 已全部收口，下一步只剩 milestone closeout / archive promotion。`
 
 ### Protocol / Architecture
 - [x] **ARC-48**: `custom_components/lipro/core/protocol/rest_port.py` 必须继续瘦身到 typed contracts + port family + bind helper；bound adapter mechanics 下沉到 sibling helper，但不得新增第二 protocol root。 
@@ -58,19 +58,29 @@ contract_version: 1
 - [x] **HOT-71**: schedule `group_id` 在 `protocol facade -> rest ports -> rest facade -> endpoint surface -> schedule endpoint` 调用链中必须保持显式透传，mesh / standard schedule 行为不得 silently diverge。 
 
 ### Governance / Docs / Tests
-- [x] **GOV-94**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES`、registry、verification baseline、developer/runbook docs 与 focused route guards 必须共同承认当前 active route truth；当前投影已切到 `v1.43 active milestone route / Phase 140 complete / Phase 141 planning-ready / latest archived baseline = v1.42`。 
-- [x] **DOC-22**: `docs/developer_architecture.md` 与 `docs/MAINTAINER_RELEASE_RUNBOOK.md` 必须把 second-pass split 结果、latest archived pointer、Phase 140 formalization 与 `Phase 141` planning-ready handoff 讲清楚，而不制造新 authority chain。 
+- [x] **GOV-94**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES`、registry、verification baseline、developer/runbook docs 与 focused route guards 必须共同承认当前 active route truth；当前投影已切到 `v1.43 active milestone route / Phase 141 complete / closeout-ready / latest archived baseline = v1.42`。 
+- [x] **DOC-22**: `docs/developer_architecture.md` 与 `docs/MAINTAINER_RELEASE_RUNBOOK.md` 必须把 second-pass split 结果、latest archived pointer、Phase 140 predecessor freshness chain 与 `Phase 141` closeout-ready current route 讲清楚，而不制造新 authority chain。 
 - [x] **TST-59**: focused unit tests、meta guards、route/diff verification 与 lint/check 命令必须证明本轮 second-pass slimming 没有破坏 outward contract。 
 - [x] **AUD-09**: `.planning/baseline/VERIFICATION_MATRIX.md`、archived remediation docs 与 related ledgers 已清掉 stale release/governance verification paths，并把 runnable proof 更新到当前 guard family。 
 - [x] **GOV-95**: release/governance selector family、baseline docs、residual ledgers 与 archived remediation docs 已压缩重复叙事，减少 stale route / stale path duplication。 
 - [x] **DOC-23**: `CHANGELOG.md`、`SUPPORT.md`、`README*.md` 与 `docs/MAINTAINER_RELEASE_RUNBOOK.md` 已对 public-facing summary、private-access / future public mirror 与 release asset reachability 使用一致语义。 
 - [x] **TST-60**: `tests/meta` 已补齐 changelog public-summary、runbook conditional wording 与 governance freshness 的守卫，避免上述 drift 再次无声回流。 
 
+### Phase 141 Delivered Hotspots
+- [x] **ARC-49**: `custom_components/lipro/control/service_router.py` 必须退回 public callback shell；underscore helper 与 imported collaborator patch seam 必须收回 `service_router_support.py` 这样的 sanctioned seam。 
+- [x] **ARC-50**: `custom_components/lipro/control/entry_root_support.py` / `custom_components/lipro/__init__.py` 必须把 lazy factory wiring 显式化，同时保持 HA root adapter 的 call-time factory 与 patch-friendly 语义。 
+- [x] **ARC-51**: `custom_components/lipro/runtime_types.py` 必须 inward decomposition 到 capability-local projections，但仍是 shared runtime contract 的唯一 sanctioned outward root。 
+- [x] **HOT-72**: service-router layering / underscore leakage 必须继续收窄，focused control-plane tests 与 guards 不得再依赖 router-root accidental exports。 
+- [x] **HOT-73**: `custom_components/lipro/core/device/device.py` 必须继续收窄 aggregate surface，并把 MQTT freshness / outlet-power / legacy cleanup 固定在本地 runtime side-car seam。 
+- [x] **GOV-96**: Phase 141 closeout 必须把 selector family、registry、verification baseline、phase assets 与 governance guards 一次性推进到 `Phase 141 complete / closeout-ready`。 
+- [x] **DOC-24**: `docs/developer_architecture.md` 必须记录 service-router、entry-root、runtime-types、device aggregate 的新 formal home，但不得形成第二 authority chain。 
+- [x] **TST-61**: focused control/runtime/device/meta/governance lanes 必须冻结本 phase 的 narrowing/hardening 与 final closeout truth。 
+
 ## Coverage Snapshot
 
-- v1.43 requirements: 10 total
-- Current mapped: 10
-- Current complete: 10
+- v1.43 requirements: 18 total
+- Current mapped: 18
+- Current complete: 18
 - Current pending: 0
 
 ## Requirement Trace Table
@@ -87,6 +97,14 @@ contract_version: 1
 | GOV-95 | Phase 140 | Complete |
 | DOC-23 | Phase 140 | Complete |
 | TST-60 | Phase 140 | Complete |
+| ARC-49 | Phase 141 | Complete |
+| ARC-50 | Phase 141 | Complete |
+| ARC-51 | Phase 141 | Complete |
+| HOT-72 | Phase 141 | Complete |
+| HOT-73 | Phase 141 | Complete |
+| GOV-96 | Phase 141 | Complete |
+| DOC-24 | Phase 141 | Complete |
+| TST-61 | Phase 141 | Complete |
 
 ## Previous Archived Milestone (v1.41)
 

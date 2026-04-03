@@ -153,11 +153,11 @@ class TestInitServiceHandlerSensorHistoryAndFeedback(_InitServiceHandlerBase):
 
         with (
             patch(
-                "custom_components.lipro.control.service_router.get_anonymous_share_manager",
+                "custom_components.lipro.control.service_router_support.get_anonymous_share_manager",
                 return_value=share_manager,
             ) as get_share_manager,
             patch(
-                "custom_components.lipro.control.service_router.async_get_clientsession",
+                "custom_components.lipro.control.service_router_support.get_client_session",
                 return_value=MagicMock(),
             ),
             patch(
@@ -198,11 +198,11 @@ class TestInitServiceHandlerSensorHistoryAndFeedback(_InitServiceHandlerBase):
 
         with (
             patch(
-                "custom_components.lipro.control.service_router.get_anonymous_share_manager",
+                "custom_components.lipro.control.service_router_support.get_anonymous_share_manager",
                 return_value=share_manager,
             ),
             patch(
-                "custom_components.lipro.control.service_router.async_get_clientsession",
+                "custom_components.lipro.control.service_router_support.get_client_session",
                 return_value=MagicMock(),
             ),
             patch(
@@ -212,4 +212,3 @@ class TestInitServiceHandlerSensorHistoryAndFeedback(_InitServiceHandlerBase):
             pytest.raises(HomeAssistantError),
         ):
             await async_handle_submit_developer_feedback(hass, service_call(hass, {}))
-

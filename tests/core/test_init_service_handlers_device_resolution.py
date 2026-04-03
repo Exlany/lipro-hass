@@ -5,9 +5,9 @@ from __future__ import annotations
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.lipro.const.base import DOMAIN
+from custom_components.lipro.const.base import DOMAIN, IOT_DEVICE_ID_PREFIX
 from custom_components.lipro.const.config import CONF_DEBUG_MODE
-from custom_components.lipro.control.service_router import _get_device_and_coordinator
+from custom_components.lipro.control import service_router_support
 from custom_components.lipro.services.contracts import ATTR_DEVICE_ID
 from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.exceptions import ServiceValidationError
@@ -15,6 +15,16 @@ from homeassistant.helpers import entity_registry as er
 from tests.helpers.service_call import service_call
 
 from .test_init_service_handlers import _InitServiceHandlerBase
+
+_get_device_and_coordinator = (
+    service_router_support.build_device_and_coordinator_getter(
+        domain=DOMAIN,
+        serial_pattern=service_router_support.build_serial_pattern(
+            IOT_DEVICE_ID_PREFIX
+        ),
+        attr_device_id=ATTR_DEVICE_ID,
+    )
+)
 
 
 class TestInitServiceHandlerDeviceTargeting(_InitServiceHandlerBase):

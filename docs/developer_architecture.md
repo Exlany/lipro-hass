@@ -1,8 +1,8 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `v1.43 active / phase 140 complete; phase 141 planning-ready` (`2026-04-02`)
-> **Current route alignment**: `v1.43 active milestone route / Phase 140 complete / Phase 141 planning-ready / latest archived baseline = v1.42` (`2026-04-02`, active / phase 140 complete; phase 141 planning-ready (2026-04-02))
-> **Default next command**: `$gsd-plan-phase 141`
+> **Last aligned through**: `v1.43 active / phase 141 complete; closeout-ready` (`2026-04-02`)
+> **Current route alignment**: `v1.43 active milestone route / Phase 141 complete / closeout-ready / latest archived baseline = v1.42` (`2026-04-02`, active / phase 141 complete; closeout-ready (2026-04-02))
+> **Default next command**: `$gsd-complete-milestone v1.43`
 > **Latest archived evidence path**: `.planning/reviews/V1_42_EVIDENCE_INDEX.md`
 > **Latest archived audit path**: `.planning/v1.42-MILESTONE-AUDIT.md`
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
@@ -20,11 +20,11 @@
 
 ## Current Route Compression
 
-- `v1.43` 已显式作为 active milestone route 存在：当前 developer first hop 需要同时承认 `Phase 140` 已完成、`Phase 141` 已 planning-ready，而不是继续停留在上一阶段的 planning-ready 幻觉或 `v1.42 archived-only` selector。
+- `v1.43` 已显式作为 active milestone route 存在：当前 developer first hop 需要直接承认 `Phase 141 complete / closeout-ready`，而不是继续停留在 `Phase 141 planning-ready` 或 `v1.42 archived-only` selector。
 - `custom_components/lipro/core/api/rest_facade.py` 与 `custom_components/lipro/core/protocol/rest_port.py` 继续保持 canonical formal-home 身份；`rest_facade_internal_methods.py` 与 `rest_port_bindings.py` 只承担 inward support / binding mechanics，不是第二 root。
 - schedule `group_id` 现在贯通 `protocol facade -> rest ports -> rest facade -> endpoint surface -> schedule endpoint`；后续若再变更该链路，必须同时更新 typed contracts、focused tests 与 phase guards。
-- `Phase 140` 已把 release/governance source compression、stale-proof refresh 与 route/ledger sync formalize 为 current bundle；nested worktree 下 `gsd-tools` root detection 不是 live truth authority，当前以 selector family、registry、focused guards 与 `140-*` phase assets 的一致投影为准。
-- 如需继续演进，请先读取 `.planning/phases/140-release-governance-source-compression-and-codebase-freshness/{140-SUMMARY.md,140-VERIFICATION.md}`、`.planning/phases/141-control-runtime-hotspot-narrowing-and-device-aggregate-hardening/{141-CONTEXT.md,141-RESEARCH.md}` 与 `.planning/PROJECT.md`，再进入 `Phase 141` 规划，不要回流为第二条 archived-only 叙事。
+- `Phase 141` 已把 `service_router.py` 收紧为 public callback shell、`service_router_support.py` 收回 sanctioned patch seam、`entry_root_support.py` / `entry_root_wiring.py` 固化显式 lazy factory wiring、`runtime_access_types.py` / `entry_lifecycle_support.py` 固化 local runtime projections、`device_runtime.py` 承接 MQTT freshness 与 outlet-power side-car bookkeeping；nested worktree 下 `gsd-tools` root detection 不是 live truth authority，当前以 selector family、registry、focused guards 与 `141-*` phase assets 的一致投影为准。
+- 如需继续演进，请先读取 `.planning/phases/141-control-runtime-hotspot-narrowing-and-device-aggregate-hardening/{141-SUMMARY.md,141-VERIFICATION.md,141-VALIDATION.md}` 与 `.planning/PROJECT.md`，再从 milestone closeout 或后续新 milestone 继续，不要回流为第二条 planning-only / archived-only 叙事。
 
 
 

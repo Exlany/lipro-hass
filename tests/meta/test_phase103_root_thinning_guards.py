@@ -92,3 +92,20 @@ def test_phase103_maps_and_ledgers_project_new_helper_homes() -> None:
         "## Phase 103 Root Adapter Thinning / Test Topology Second Pass / Terminology Contract Normalization"
         in verification_text
     )
+
+
+def test_phase103_root_wiring_stays_explicit_and_patch_friendly() -> None:
+    support_text = _read(
+        _ROOT / "custom_components" / "lipro" / "control" / "entry_root_support.py"
+    )
+    wiring_text = _read(
+        _ROOT / "custom_components" / "lipro" / "control" / "entry_root_wiring.py"
+    )
+    root_text = _read(_ROOT / "custom_components" / "lipro" / "__init__.py")
+
+    assert "def load_module(" not in support_text
+    assert "def load_entry_lifecycle_controller_factory(" in support_text
+    assert "controller_module_name" not in wiring_text
+    assert "load_module:" not in wiring_text
+    assert "controller_factory=_load_entry_lifecycle_controller_factory()" in root_text
+    assert "load_module as _load_module" not in root_text

@@ -23,6 +23,9 @@ def test_lipro_device_surface_is_explicit() -> None:
     assert "brightness" in LiproDevice.__dict__
     assert "wifi_rssi" in LiproDevice.__dict__
     assert "gear_list" in LiproDevice.__dict__
+    assert "outlet_power_info" in LiproDevice.__dict__
+    assert "mark_mqtt_update" in LiproDevice.__dict__
+    assert "has_recent_mqtt_update" in LiproDevice.__dict__
 
 
 def test_lipro_device_exposes_extracted_helper_objects(make_device) -> None:
@@ -292,6 +295,10 @@ def test_lipro_device_outlet_power_info_copies_payload_and_clears_legacy_sidecar
     payload["power"] = 20
 
     assert device.outlet_power_info == {"voltage": 220, "power": 10}
+    outlet_power_info = device.outlet_power_info
+    assert outlet_power_info is not None
+    outlet_power_info["power"] = 30
+    assert device.outlet_power_info == {"voltage": 220, "power": 10}
     assert "power_info" not in device.extra_data
 
 
@@ -302,7 +309,7 @@ def test_lipro_device_recent_mqtt_update_window(make_device) -> None:
 
     device.mark_mqtt_update(timestamp=100.0)
 
-    with patch("custom_components.lipro.core.device.device.monotonic", return_value=250.0):
+    with patch("custom_components.lipro.core.device.device_runtime.monotonic", return_value=250.0):
         assert device.has_recent_mqtt_update(stale_window_seconds=180.0) is True
-    with patch("custom_components.lipro.core.device.device.monotonic", return_value=281.0):
+    with patch("custom_components.lipro.core.device.device_runtime.monotonic", return_value=281.0):
         assert device.has_recent_mqtt_update(stale_window_seconds=180.0) is False

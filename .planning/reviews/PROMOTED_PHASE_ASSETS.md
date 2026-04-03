@@ -631,6 +631,73 @@ phases:
   - 132-SUMMARY.md
   - 132-VERIFICATION.md
   - 132-VALIDATION.md
+  133-governance-recovery-runtime-consistency-and-public-contract-correction:
+  - 133-01-SUMMARY.md
+  - 133-02-SUMMARY.md
+  - 133-03-SUMMARY.md
+  - 133-04-SUMMARY.md
+  - 133-SUMMARY.md
+  - 133-VERIFICATION.md
+  - 133-VALIDATION.md
+  134-request-policy-ownership-entity-de-reflection-and-fan-truth-hardening:
+  - 134-01-SUMMARY.md
+  - 134-02-SUMMARY.md
+  - 134-03-SUMMARY.md
+  - 134-SUMMARY.md
+  - 134-VERIFICATION.md
+  - 134-VALIDATION.md
+  135-runtime-access-auth-and-dispatch-contract-hardening:
+  - 135-01-SUMMARY.md
+  - 135-02-SUMMARY.md
+  - 135-03-SUMMARY.md
+  - 135-SUMMARY.md
+  - 135-VERIFICATION.md
+  - 135-VALIDATION.md
+  136-repo-wide-terminal-residual-audit-and-remediation-charter:
+  - 136-01-SUMMARY.md
+  - 136-02-SUMMARY.md
+  - 136-03-SUMMARY.md
+  - 136-SUMMARY.md
+  - 136-VERIFICATION.md
+  - 136-VALIDATION.md
+  137-hotspot-burn-down-command-observability-and-governance-compression:
+  - 137-01-SUMMARY.md
+  - 137-02-SUMMARY.md
+  - 137-03-SUMMARY.md
+  - 137-SUMMARY.md
+  - 137-VERIFICATION.md
+  - 137-VALIDATION.md
+  138-runtime-contract-decoupling-support-guard-and-docs-alignment:
+  - 138-01-SUMMARY.md
+  - 138-02-SUMMARY.md
+  - 138-03-SUMMARY.md
+  - 138-04-SUMMARY.md
+  - 138-SUMMARY.md
+  - 138-VERIFICATION.md
+  - 138-VALIDATION.md
+  139-rest-protocol-surface-second-pass-slimming-and-boundary-hardening:
+  - 139-01-SUMMARY.md
+  - 139-02-SUMMARY.md
+  - 139-03-SUMMARY.md
+  - 139-SUMMARY.md
+  - 139-VERIFICATION.md
+  - 139-VALIDATION.md
+  140-release-governance-source-compression-and-codebase-freshness:
+  - 140-01-SUMMARY.md
+  - 140-02-SUMMARY.md
+  - 140-03-SUMMARY.md
+  - 140-SUMMARY.md
+  - 140-VERIFICATION.md
+  - 140-VALIDATION.md
+  141-control-runtime-hotspot-narrowing-and-device-aggregate-hardening:
+  - 141-01-SUMMARY.md
+  - 141-02-SUMMARY.md
+  - 141-03-SUMMARY.md
+  - 141-04-SUMMARY.md
+  - 141-05-SUMMARY.md
+  - 141-SUMMARY.md
+  - 141-VERIFICATION.md
+  - 141-VALIDATION.md
 policy:
   default_identity: execution-trace
   promotion_contract: Only assets listed under `phases` count as long-term governance/CI
@@ -649,50 +716,3 @@ policy:
 - 仅 frontmatter `phases` 下列出的 phase 资产，才视为长期治理 / CI 证据。
 - 未列出的 `*-PLAN.md`、`*-CONTEXT.md`、`*-RESEARCH.md`、`*-PRD.md`、`*-ARCHITECTURE.md`、`*-UAT.md`，以及未被 allowlist 显式列出的 `*-SUMMARY.md`、`*-VERIFICATION.md`、`*-VALIDATION.md`，默认仍是执行痕迹。
 - 若未来要把新的 phase 资产纳入长期守卫，必须先在 `ROADMAP` / `VERIFICATION_MATRIX` / 里程碑文档 / reviews 文档中显式拉升，再更新此清单。
-133-governance-recovery-runtime-consistency-and-public-contract-correction:
-- 133-01-SUMMARY.md
-- 133-02-SUMMARY.md
-- 133-03-SUMMARY.md
-- 133-04-SUMMARY.md
-- 133-SUMMARY.md
-- 133-VERIFICATION.md
-- 133-VALIDATION.md
-
-  134-request-policy-ownership-entity-de-reflection-and-fan-truth-hardening:
-  - 134-01-SUMMARY.md
-  - 134-02-SUMMARY.md
-  - 134-03-SUMMARY.md
-  - 134-SUMMARY.md
-  - 134-VERIFICATION.md
-  - 134-VALIDATION.md
-  135-runtime-access-auth-and-dispatch-contract-hardening:
-  - 135-01-SUMMARY.md
-  - 135-02-SUMMARY.md
-  - 135-03-SUMMARY.md
-  - 135-SUMMARY.md
-  - 135-VERIFICATION.md
-  - 135-VALIDATION.md
-
-  136-repo-wide-terminal-residual-audit-and-remediation-charter:
-  - 136-01-SUMMARY.md
-  - 136-02-SUMMARY.md
-  - 136-03-SUMMARY.md
-  - 136-SUMMARY.md
-  - 136-VERIFICATION.md
-  - 136-VALIDATION.md
-
-  137-hotspot-burn-down-command-observability-and-governance-compression:
-  - 137-01-SUMMARY.md
-  - 137-02-SUMMARY.md
-  - 137-03-SUMMARY.md
-  - 137-SUMMARY.md
-  - 137-VERIFICATION.md
-  - 137-VALIDATION.md
-  138-runtime-contract-decoupling-support-guard-and-docs-alignment:
-  - 138-01-SUMMARY.md
-  - 138-02-SUMMARY.md
-  - 138-03-SUMMARY.md
-  - 138-04-SUMMARY.md
-  - 138-SUMMARY.md
-  - 138-VERIFICATION.md
-  - 138-VALIDATION.md

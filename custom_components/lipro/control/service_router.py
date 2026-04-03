@@ -3,13 +3,10 @@
 from __future__ import annotations
 
 import logging
-from typing import cast
 
 from homeassistant.core import HomeAssistant, ServiceCall
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from ..const.base import DOMAIN, IOT_DEVICE_ID_PREFIX
-from ..core import get_anonymous_share_manager
 from ..core.utils.redaction import redact_identifier as _redact_identifier
 from ..services import contracts as _contracts
 from ..services.contracts import RefreshDevicesResult, SendCommandResult
@@ -20,10 +17,7 @@ from ..services.diagnostics.types import (
     QueryCommandResultResponse,
     SensorHistoryResponse,
 )
-from ..services.share import (
-    AnonymousShareManagerFactory as ShareAnonymousShareManagerFactory,
-    ShareServiceResponse,
-)
+from ..services.share import ShareServiceResponse
 from . import service_router_handlers as _handlers, service_router_support as _support
 
 _LOGGER = logging.getLogger(__name__)
@@ -107,11 +101,8 @@ async def async_handle_submit_anonymous_share(
     return await _handlers.async_handle_submit_anonymous_share(
         hass,
         call,
-        get_share_manager=cast(
-            ShareAnonymousShareManagerFactory,
-            get_anonymous_share_manager,
-        ),
-        get_client_session=async_get_clientsession,
+        get_share_manager=_support.get_anonymous_share_manager,
+        get_client_session=_support.get_client_session,
     )
 
 
@@ -123,10 +114,7 @@ async def async_handle_get_anonymous_share_report(
     return await _handlers.async_handle_get_anonymous_share_report(
         hass,
         call,
-        get_share_manager=cast(
-            ShareAnonymousShareManagerFactory,
-            get_anonymous_share_manager,
-        ),
+        get_share_manager=_support.get_anonymous_share_manager,
     )
 
 
@@ -146,8 +134,8 @@ async def async_handle_submit_developer_feedback(
     return await _handlers.async_handle_submit_developer_feedback(
         hass,
         call,
-        get_share_manager=get_anonymous_share_manager,
-        get_client_session=async_get_clientsession,
+        get_share_manager=_support.get_anonymous_share_manager,
+        get_client_session=_support.get_client_session,
     )
 
 
@@ -224,9 +212,6 @@ async def async_handle_refresh_devices(
 
 
 __all__ = [
-    "_get_device_and_coordinator",
-    "_summarize_service_properties",
-    "async_get_clientsession",
     "async_handle_add_schedule",
     "async_handle_delete_schedules",
     "async_handle_fetch_body_sensor_history",
@@ -241,5 +226,4 @@ __all__ = [
     "async_handle_send_command",
     "async_handle_submit_anonymous_share",
     "async_handle_submit_developer_feedback",
-    "get_anonymous_share_manager",
 ]

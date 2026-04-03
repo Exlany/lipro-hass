@@ -22,7 +22,9 @@ from ..core import LiproAuthManager, LiproProtocolFacade
 from ..runtime_types import LiproCoordinator, LiproRuntimeCoordinator
 from .entry_root_wiring import EntryLifecycleControllerDependencies
 
-type EntryLike = ConfigEntry[LiproRuntimeCoordinator | None]
+EntryRuntimeCoordinator = LiproCoordinator
+EntryRuntimeData = LiproRuntimeCoordinator | None
+type EntryLike = ConfigEntry[EntryRuntimeData]
 type ProtocolFactory = Callable[..., LiproProtocolFacade]
 type AuthManagerFactory = Callable[[LiproProtocolFacade], LiproAuthManager]
 type GetClientSession = Callable[[HomeAssistant], ClientSession]
@@ -60,7 +62,7 @@ class HasOtherRuntimeEntries(Protocol):
         """Return whether another runtime entry remains active."""
 
 
-class CoordinatorRuntimeLike(LiproCoordinator, Protocol):
+class CoordinatorRuntimeLike(EntryRuntimeCoordinator, Protocol):
     """Minimal coordinator lifecycle surface owned by the control plane."""
 
     async def async_config_entry_first_refresh(self) -> None:
@@ -103,12 +105,18 @@ class EntryLifecycleSupport:
         self._build_entry_auth_context = dependencies.build_entry_auth_context
         self._async_authenticate_entry = dependencies.async_authenticate_entry
         self._clear_entry_runtime_data = dependencies.clear_entry_runtime_data
-        self._persist_entry_tokens_if_changed = dependencies.persist_entry_tokens_if_changed
+        self._persist_entry_tokens_if_changed = (
+            dependencies.persist_entry_tokens_if_changed
+        )
         self._store_entry_options_snapshot = dependencies.store_entry_options_snapshot
         self._remove_entry_options_snapshot = dependencies.remove_entry_options_snapshot
         self._async_ensure_runtime_infra = dependencies.async_ensure_runtime_infra
-        self._setup_device_registry_listener = dependencies.setup_device_registry_listener
-        self._remove_device_registry_listener = dependencies.remove_device_registry_listener
+        self._setup_device_registry_listener = (
+            dependencies.setup_device_registry_listener
+        )
+        self._remove_device_registry_listener = (
+            dependencies.remove_device_registry_listener
+        )
         self._has_other_runtime_entries = dependencies.has_other_runtime_entries
         self._service_registry = dependencies.service_registry
 
@@ -165,11 +173,15 @@ class EntryLifecycleSupport:
         entry: EntryLike,
         setup_artifacts: EntrySetupArtifacts,
         *,
-        reload_listener: Callable[[HomeAssistant, ConfigEntry[Any]], Coroutine[Any, Any, None]],
+        reload_listener: Callable[
+            [HomeAssistant, ConfigEntry[Any]], Coroutine[Any, Any, None]
+        ],
     ) -> None:
         """Run refresh, platform forwarding, shared-service sync, and hook attachment."""
         await setup_artifacts.coordinator.async_config_entry_first_refresh()
-        entry.runtime_data = cast(LiproRuntimeCoordinator | None, setup_artifacts.coordinator)
+        entry.runtime_data = cast(
+            EntryRuntimeData, setup_artifacts.coordinator
+        )
         self._persist_entry_tokens_if_changed(hass, entry, setup_artifacts.auth_manager)
         await hass.config_entries.async_forward_entry_setups(entry, self._platforms)
         await self._service_registry.async_sync_with_lock(hass)
