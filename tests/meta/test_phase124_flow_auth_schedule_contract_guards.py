@@ -32,7 +32,10 @@ _CONCERNS = _ROOT / ".planning" / "codebase" / "CONCERNS.md"
 _TESTING = _ROOT / ".planning" / "codebase" / "TESTING.md"
 _DEV_ARCH = _ROOT / "docs" / "developer_architecture.md"
 _CHANGELOG = _ROOT / "CHANGELOG.md"
-_PHASE_DIR = _ROOT / ".planning/phases/124-config-entry-auth-seed-normalization-config-flow-adapter-thinning-and-schedule-contract-closure"
+_PHASE_DIR = (
+    _ROOT
+    / ".planning/phases/124-config-entry-auth-seed-normalization-config-flow-adapter-thinning-and-schedule-contract-closure"
+)
 
 
 def _read(path: Path) -> str:
@@ -48,7 +51,13 @@ def test_phase124_route_truth_and_closeout_assets_are_current() -> None:
     phase_summary = _read(_PHASE_DIR / "124-SUMMARY.md")
     verification = _read(_PHASE_DIR / "124-VERIFICATION.md")
 
-    for text in (project_text, roadmap_text, requirements_text, state_text, milestones_text):
+    for text in (
+        project_text,
+        roadmap_text,
+        requirements_text,
+        state_text,
+        milestones_text,
+    ):
         assert CURRENT_ROUTE in text
         assert CURRENT_MILESTONE_DEFAULT_NEXT in text
         assert CURRENT_MILESTONE_STATUS in text
@@ -80,7 +89,9 @@ def test_phase124_governance_maps_and_ledgers_project_closeout_truth() -> None:
     changelog_text = _read(_CHANGELOG)
 
     assert "## Phase 124 Auth/Flow/Schedule Clarifications" in public_surfaces_text
-    assert "## Phase 124 Auth/Flow/Schedule Dependency Clarifications" in dependency_text
+    assert (
+        "## Phase 124 Auth/Flow/Schedule Dependency Clarifications" in dependency_text
+    )
     assert "## Phase 125 Exit Contract" in verification_text
     assert "## Phase 124 Exit Contract" in verification_text
     assert "## Phase 125 Residual Delta" in residual_text
@@ -91,8 +102,8 @@ def test_phase124_governance_maps_and_ledgers_project_closeout_truth() -> None:
     assert "## Phase 125 Concern Update" in concerns_text
     assert "## Phase 125 Execution Freeze" in testing_text
     assert "## Phase 125 Execution Notes" in dev_arch_text
-    assert "Phase 124" in changelog_text
-    assert "Phase 125" in changelog_text
+    assert "Phase 124" not in changelog_text
+    assert "Phase 125" not in changelog_text
     assert_testing_inventory_snapshot(testing_text)
     for token in (
         "custom_components/lipro/flow/step_handlers.py",
@@ -109,14 +120,25 @@ def test_phase124_codeboundaries_keep_single_flow_auth_schedule_truth() -> None:
     config_flow_text = _read(_ROOT / "custom_components" / "lipro" / "config_flow.py")
     entry_auth_text = _read(_ROOT / "custom_components" / "lipro" / "entry_auth.py")
     login_text = _read(_ROOT / "custom_components" / "lipro" / "flow" / "login.py")
-    submission_text = _read(_ROOT / "custom_components" / "lipro" / "flow" / "submission.py")
-    contracts_text = _read(_ROOT / "custom_components" / "lipro" / "services" / "contracts.py")
-    schedule_text = _read(_ROOT / "custom_components" / "lipro" / "services" / "schedule.py")
+    submission_text = _read(
+        _ROOT / "custom_components" / "lipro" / "flow" / "submission.py"
+    )
+    contracts_text = _read(
+        _ROOT / "custom_components" / "lipro" / "services" / "contracts.py"
+    )
+    schedule_text = _read(
+        _ROOT / "custom_components" / "lipro" / "services" / "schedule.py"
+    )
     en_text = _read(_ROOT / "custom_components" / "lipro" / "translations" / "en.json")
-    zh_text = _read(_ROOT / "custom_components" / "lipro" / "translations" / "zh-Hans.json")
+    zh_text = _read(
+        _ROOT / "custom_components" / "lipro" / "translations" / "zh-Hans.json"
+    )
 
     assert "from .flow.step_handlers import (" in config_flow_text
-    assert "return await _async_handle_user_step(self, user_input, logger=_LOGGER)" in config_flow_text
+    assert (
+        "return await _async_handle_user_step(self, user_input, logger=_LOGGER)"
+        in config_flow_text
+    )
     assert "return await _async_handle_reauth_confirm_step(" in config_flow_text
     assert "return await _async_handle_reconfigure_step(" in config_flow_text
     assert "def show_user_form(" not in config_flow_text

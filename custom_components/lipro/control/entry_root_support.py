@@ -10,8 +10,13 @@ from typing import TYPE_CHECKING, Protocol, cast
 from homeassistant.core import HomeAssistant
 
 if TYPE_CHECKING:
-    from .entry_root_wiring import EntryLifecycleControllerFactory
     from .service_registry import ServiceRegistry
+
+
+class EntryLifecycleControllerFactory(Protocol):
+    """Localized lifecycle-controller constructor surface for lazy imports."""
+
+    def __call__(self, *, dependencies: object) -> object: ...
 
 
 class _CoreModule(Protocol):

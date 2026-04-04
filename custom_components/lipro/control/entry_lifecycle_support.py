@@ -1,8 +1,4 @@
-"""Support-only lifecycle mechanics for `EntryLifecycleController`.
-
-This module holds entry setup/unload mechanics so the controller can remain the
-sole control-plane owner while delegating mechanical flow steps inward.
-"""
+"""Support-only lifecycle mechanics for `EntryLifecycleController`."""
 
 from __future__ import annotations
 
@@ -162,10 +158,7 @@ class EntryLifecycleSupport:
             entry,
             update_interval=resolve_scan_interval(entry),
         )
-        return EntrySetupArtifacts(
-            auth_manager=auth_manager,
-            coordinator=coordinator,
-        )
+        return EntrySetupArtifacts(auth_manager=auth_manager, coordinator=coordinator)
 
     async def async_activate_entry_setup(
         self,
@@ -179,9 +172,7 @@ class EntryLifecycleSupport:
     ) -> None:
         """Run refresh, platform forwarding, shared-service sync, and hook attachment."""
         await setup_artifacts.coordinator.async_config_entry_first_refresh()
-        entry.runtime_data = cast(
-            EntryRuntimeData, setup_artifacts.coordinator
-        )
+        entry.runtime_data = cast(EntryRuntimeData, setup_artifacts.coordinator)
         self._persist_entry_tokens_if_changed(hass, entry, setup_artifacts.auth_manager)
         await hass.config_entries.async_forward_entry_setups(entry, self._platforms)
         await self._service_registry.async_sync_with_lock(hass)

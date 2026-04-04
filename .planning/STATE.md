@@ -97,6 +97,7 @@ contract_version: 1
 - State/handoff truth: `.planning/STATE.md`
 - Canonical route registry: `.planning/baseline/GOVERNANCE_REGISTRY.json`
 - Verification baseline: `.planning/baseline/VERIFICATION_MATRIX.md`
+- Promoted phase evidence allowlist: `.planning/reviews/PROMOTED_PHASE_ASSETS.md`
 - FILE_MATRIX inventory truth: `.planning/reviews/FILE_MATRIX.md`
 - Residual posture ledger: `.planning/reviews/RESIDUAL_LEDGER.md`
 - Latest archived evidence pointer: `.planning/reviews/V1_42_EVIDENCE_INDEX.md`

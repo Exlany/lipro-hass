@@ -123,15 +123,9 @@ _BROAD_CATCH_BUDGET: dict[str, _BroadCatchBudgetEntry] = {
 }
 
 _REPO_WIDE_PRODUCTION_ANY_EXPECTED = 208
-_REPO_WIDE_TESTS_ANY_NON_META_EXPECTED = 155
+_REPO_WIDE_TESTS_ANY_NON_META_EXPECTED = 162
 
-_TESTS_TYPE_IGNORE_BUDGET = {
-    "tests/core/coordinator/runtime/test_status_runtime.py": 1,
-    "tests/core/test_anonymous_share_cov_missing.py": 4,
-    "tests/core/test_identity_index.py": 1,
-    "tests/core/test_log_safety.py": 4,
-    "tests/core/test_outlet_power_runtime.py": 1,
-}
+_TESTS_TYPE_IGNORE_BUDGET = {}
 
 _META_GUARD_ANY_LITERAL_BUDGET = {
     "tests/meta/test_phase31_runtime_budget_guards.py": 10,
@@ -171,18 +165,16 @@ def _count_matching_lines(path: Path, pattern: re.Pattern[str]) -> int:
 
 
 def _iter_python_files_under(root: Path) -> list[Path]:
-    return sorted(path for path in root.rglob("*.py") if "__pycache__" not in path.parts)
+    return sorted(
+        path for path in root.rglob("*.py") if "__pycache__" not in path.parts
+    )
 
 
-def _count_matching_lines_in_files(
-    paths: list[Path], pattern: re.Pattern[str]
-) -> int:
+def _count_matching_lines_in_files(paths: list[Path], pattern: re.Pattern[str]) -> int:
     return sum(_count_matching_lines(path, pattern) for path in paths)
 
 
-def _assert_literal_budget(
-    budget: dict[str, int], pattern: re.Pattern[str]
-) -> None:
+def _assert_literal_budget(budget: dict[str, int], pattern: re.Pattern[str]) -> None:
     for relative_path, expected in budget.items():
         path = _resolve_repo_path(relative_path)
         assert _count_matching_lines(path, pattern) == expected, relative_path

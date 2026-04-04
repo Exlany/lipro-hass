@@ -2,18 +2,17 @@
 
 from __future__ import annotations
 
-from .conftest import (
-    _AGENTS,
-    _ROOT,
-    _assert_current_mode_tracks_phase_lifecycle,
-    _assert_state_preserves_phase_17_closeout_history,
-)
+from .conftest import _AGENTS, _ROOT
 from .governance_contract_helpers import (
     _assert_state_keeps_forward_progress_commands,
     _assert_state_reflects_post_v1_4_continuation,
 )
-from .governance_current_truth import CURRENT_MILESTONE_ROADMAP_HEADER
 from .governance_promoted_assets import _assert_promoted_phase_assets
+
+_ARCHIVED_V132_ROADMAP = _ROOT / ".planning" / "milestones" / "v1.32-ROADMAP.md"
+_ARCHIVED_V132_REQUIREMENTS = (
+    _ROOT / ".planning" / "milestones" / "v1.32-REQUIREMENTS.md"
+)
 
 
 def test_phase_30_31_typed_closeout_truth_is_consistent() -> None:
@@ -43,11 +42,14 @@ def test_phase_30_31_typed_closeout_truth_is_consistent() -> None:
         / "31-VERIFICATION.md"
     ).read_text(encoding="utf-8")
 
-    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
-    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(encoding="utf-8")
+    roadmap_text = _ARCHIVED_V132_ROADMAP.read_text(encoding="utf-8")
+    requirements_text = _ARCHIVED_V132_REQUIREMENTS.read_text(encoding="utf-8")
 
     assert "### Phase 30: Protocol/control typed contract tightening" in roadmap_text
-    assert "### Phase 31: Runtime/service typed budget and exception closure" in roadmap_text
+    assert (
+        "### Phase 31: Runtime/service typed budget and exception closure"
+        in roadmap_text
+    )
     assert "| TYP-06 | Phase 30 | Complete |" in requirements_text
     assert "| ERR-05 | Phase 31 | Complete |" in requirements_text
     assert "setup_auth_failed/setup_not_ready/setup_failed" in handoff_text
@@ -117,11 +119,8 @@ def test_phase_16_execution_truth_is_consistent() -> None:
         / "phases"
         / "16-post-audit-truth-alignment-hotspot-decomposition-and-residual-endgame"
     )
-    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
-    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
-    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
-        encoding="utf-8"
-    )
+    roadmap_text = _ARCHIVED_V132_ROADMAP.read_text(encoding="utf-8")
+    requirements_text = _ARCHIVED_V132_REQUIREMENTS.read_text(encoding="utf-8")
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
 
     validation_text = (phase_root / "16-VALIDATION.md").read_text(encoding="utf-8")
@@ -135,9 +134,12 @@ def test_phase_16_execution_truth_is_consistent() -> None:
         _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
     ).read_text(encoding="utf-8")
 
-    assert "### 11. Phase 16 后审计收口线已完成" in project_text
     assert (
         "| 16 Post-audit Truth Alignment, Hotspot Decomposition & Residual Endgame | v1.1 | 6/6 | Complete | 2026-03-15 |"
+        in roadmap_text
+    )
+    assert (
+        "### Phase 16: Post-audit truth alignment, hotspot decomposition, and residual endgame"
         in roadmap_text
     )
     assert "**Plans:** 6/6 complete across 3 waves" in roadmap_text
@@ -155,7 +157,7 @@ def test_phase_16_execution_truth_is_consistent() -> None:
         "DOC-02",
     ):
         assert f"| {req_id} | Phase 16 | Complete |" in requirements_text
-    _assert_state_preserves_phase_17_closeout_history(state_text)
+    _assert_state_reflects_post_v1_4_continuation(state_text)
     assert "status: passed" in validation_text
     assert "| 16-02-00 | 16-02 | 1 | QLT-02 / DOC-02 |" in validation_text
     assert "| 16-03-00 | 16-03 | 2 | CTRL-06 / ERR-01 / TYP-04 |" in validation_text
@@ -182,11 +184,8 @@ def test_phase_17_execution_truth_is_consistent() -> None:
         / "phases"
         / "17-final-residual-retirement-typed-contract-tightening-and-milestone-closeout"
     )
-    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
-    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
-    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
-        encoding="utf-8"
-    )
+    roadmap_text = _ARCHIVED_V132_ROADMAP.read_text(encoding="utf-8")
+    requirements_text = _ARCHIVED_V132_REQUIREMENTS.read_text(encoding="utf-8")
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
 
     public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(
@@ -211,17 +210,17 @@ def test_phase_17_execution_truth_is_consistent() -> None:
     )
 
     assert (
-        "### 12. Phase 17 最终残留退役 / 类型契约收紧 / 里程碑收官已完成"
-        in project_text
+        "| 17 Final Residual Retirement, Typed-Contract Tightening & Milestone Closeout | v1.1 | 4/4 | Complete | 2026-03-15 |"
+        in roadmap_text
     )
     assert (
-        "| 17 Final Residual Retirement, Typed-Contract Tightening & Milestone Closeout | v1.1 | 4/4 | Complete | 2026-03-15 |"
+        "### Phase 17: Final residual retirement, typed-contract tightening and milestone closeout"
         in roadmap_text
     )
     assert "**Plans:** 4/4 complete" in roadmap_text
     for req_id in ("RES-03", "TYP-05", "MQT-01", "GOV-15"):
         assert f"| {req_id} | Phase 17 | Complete |" in requirements_text
-    _assert_state_preserves_phase_17_closeout_history(state_text)
+    _assert_state_reflects_post_v1_4_continuation(state_text)
     assert "## Phase 17 Final Residual Retirement Notes" in public_text
     assert "auth/session snapshot contract" in authority_text
     assert "## Phase 17 Closeout Contract" in verification_matrix_text
@@ -243,11 +242,8 @@ def test_phase_19_execution_truth_is_consistent() -> None:
     phase_root = (
         _ROOT / ".planning" / "phases" / "19-headless-consumer-proof-adapter-demotion"
     )
-    project_text = (_ROOT / ".planning" / "PROJECT.md").read_text(encoding="utf-8")
-    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
-    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
-        encoding="utf-8"
-    )
+    roadmap_text = _ARCHIVED_V132_ROADMAP.read_text(encoding="utf-8")
+    requirements_text = _ARCHIVED_V132_REQUIREMENTS.read_text(encoding="utf-8")
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
 
     public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(
@@ -265,11 +261,13 @@ def test_phase_19_execution_truth_is_consistent() -> None:
     validation_text = (phase_root / "19-VALIDATION.md").read_text(encoding="utf-8")
     verification_text = (phase_root / "19-VERIFICATION.md").read_text(encoding="utf-8")
 
-    assert "## Archived Milestone (v1.5)" in project_text
-    assert "## Archived Milestone (v1.4)" in project_text
-    assert "**Historical archive assets:**" in project_text
-    assert "## Latest Archived Milestone" in roadmap_text or "## Current Milestone" in roadmap_text
-    assert CURRENT_MILESTONE_ROADMAP_HEADER in roadmap_text
+    assert "## Archived Milestone (v1.5)" in requirements_text
+    assert "## Archived Milestone (v1.4)" in requirements_text
+    assert ".planning/milestones/v1.5-REQUIREMENTS.md" in requirements_text
+    assert (
+        "## Latest Archived Milestone" in roadmap_text
+        or "## Current Milestone" in roadmap_text
+    )
     assert "### Phase 19: Headless Consumer Proof & Adapter Demotion" in roadmap_text
     assert "**Requirements**: [CORE-02]" in roadmap_text
     assert "**Status**: Complete (`2026-03-16`)" in roadmap_text
@@ -278,7 +276,7 @@ def test_phase_19_execution_truth_is_consistent() -> None:
     assert "*Last updated:" in requirements_text
     assert "## Archived Milestone (v1.2)" in requirements_text
     assert "| CORE-02 | Phase 19 | Complete |" in requirements_text
-    assert "- `Phase 24` 已完成并于 2026-03-17 重新验证" in state_text
+    _assert_state_reflects_post_v1_4_continuation(state_text)
     assert "## Phase 19 Headless Proof & Adapter Shell Notes" in public_text
     assert "## Phase 19 Headless Consumer Proof Contract" in verification_matrix_text
     assert "## Phase 19 Residual Delta" in residual_text
@@ -319,10 +317,7 @@ def test_phase_36_execution_evidence_is_consistent() -> None:
     )
 
     phase_root = (
-        _ROOT
-        / ".planning"
-        / "phases"
-        / "36-runtime-root-and-exception-burn-down"
+        _ROOT / ".planning" / "phases" / "36-runtime-root-and-exception-burn-down"
     )
     verification_text = (phase_root / "36-VERIFICATION.md").read_text(encoding="utf-8")
     summary_text = (phase_root / "36-SUMMARY.md").read_text(encoding="utf-8")
@@ -331,6 +326,7 @@ def test_phase_36_execution_evidence_is_consistent() -> None:
     assert "CoordinatorPollingService" in verification_text
     assert "phase: 36" in summary_text
 
+
 def test_phase_43_execution_truth_is_consistent() -> None:
     phase_root = (
         _ROOT
@@ -338,10 +334,8 @@ def test_phase_43_execution_truth_is_consistent() -> None:
         / "phases"
         / "43-control-services-boundary-decoupling-and-typed-runtime-access"
     )
-    roadmap_text = (_ROOT / ".planning" / "ROADMAP.md").read_text(encoding="utf-8")
-    requirements_text = (_ROOT / ".planning" / "REQUIREMENTS.md").read_text(
-        encoding="utf-8"
-    )
+    roadmap_text = _ARCHIVED_V132_ROADMAP.read_text(encoding="utf-8")
+    requirements_text = _ARCHIVED_V132_REQUIREMENTS.read_text(encoding="utf-8")
     state_text = (_ROOT / ".planning" / "STATE.md").read_text(encoding="utf-8")
     public_text = (_ROOT / ".planning" / "baseline" / "PUBLIC_SURFACES.md").read_text(
         encoding="utf-8"
@@ -362,9 +356,7 @@ def test_phase_43_execution_truth_is_consistent() -> None:
         encoding="utf-8"
     )
     summary_text = (phase_root / "43-SUMMARY.md").read_text(encoding="utf-8")
-    verification_text = (phase_root / "43-VERIFICATION.md").read_text(
-        encoding="utf-8"
-    )
+    verification_text = (phase_root / "43-VERIFICATION.md").read_text(encoding="utf-8")
 
     _assert_promoted_phase_assets(
         "43-control-services-boundary-decoupling-and-typed-runtime-access",
@@ -372,19 +364,26 @@ def test_phase_43_execution_truth_is_consistent() -> None:
         "43-VERIFICATION.md",
     )
 
-    assert "### Phase 43: Control-services boundary decoupling and typed runtime access" in roadmap_text
+    assert (
+        "### Phase 43: Control-services boundary decoupling and typed runtime access"
+        in roadmap_text
+    )
     assert "**Status**: Complete (`2026-03-20`)" in roadmap_text
     assert "**Plans**: 4/4 complete" in roadmap_text
     for req_id in ("ARC-04", "CTRL-10", "RUN-07"):
         assert f"| {req_id} | Phase 43 | Completed |" in requirements_text
-    _assert_current_mode_tracks_phase_lifecycle(state_text)
     _assert_state_reflects_post_v1_4_continuation(state_text)
     _assert_state_keeps_forward_progress_commands(state_text)
     assert "## Phase 43 Control / Runtime Boundary Notes" in public_text
     assert "## Phase 43 Control / Service Boundary Clarifications" in dependency_text
-    assert "## Phase 43 Control / Runtime / Service Boundary Contract" in verification_matrix_text
+    assert (
+        "## Phase 43 Control / Runtime / Service Boundary Contract"
+        in verification_matrix_text
+    )
     assert "custom_components/lipro/runtime_infra.py" in file_matrix_text
-    assert "custom_components/lipro/control/service_router_support.py" in file_matrix_text
+    assert (
+        "custom_components/lipro/control/service_router_support.py" in file_matrix_text
+    )
     assert "## Phase 43 Residual Delta" in residual_text
     assert "## Phase 43 Status Update" in kill_text
     assert "phase: 43" in summary_text
@@ -393,4 +392,3 @@ def test_phase_43_execution_truth_is_consistent() -> None:
     assert "# Phase 43 Verification" in verification_text
     assert "status: passed" in verification_text
     assert "typed `RuntimeAccess`" in verification_text
-

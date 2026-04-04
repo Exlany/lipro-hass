@@ -11,16 +11,28 @@ from .governance_current_truth import CURRENT_MILESTONE_STATUS, CURRENT_ROUTE
 
 _ROOT = repo_root(Path(__file__))
 _PROJECT = _ROOT / ".planning" / "PROJECT.md"
-_ROADMAP = _ROOT / ".planning" / "ROADMAP.md"
-_REQUIREMENTS = _ROOT / ".planning" / "REQUIREMENTS.md"
+_ARCHIVED_V128_ROADMAP = _ROOT / ".planning" / "milestones" / "v1.28-ROADMAP.md"
+_ARCHIVED_V128_REQUIREMENTS = (
+    _ROOT / ".planning" / "milestones" / "v1.28-REQUIREMENTS.md"
+)
 _STATE = _ROOT / ".planning" / "STATE.md"
 _MILESTONES = _ROOT / ".planning" / "MILESTONES.md"
 _VERIFICATION_MATRIX = _ROOT / ".planning" / "baseline" / "VERIFICATION_MATRIX.md"
 _FILE_MATRIX = _ROOT / ".planning" / "reviews" / "FILE_MATRIX.md"
 _TESTING = _ROOT / ".planning" / "codebase" / "TESTING.md"
 _DEV_ARCH = _ROOT / "docs" / "architecture_archive.md"
-_PHASE96_DIR = _ROOT / ".planning" / "phases" / "96-redaction-telemetry-and-anonymous-share-sanitizer-burndown"
-_PHASE97_DIR = _ROOT / ".planning" / "phases" / "97-governance-open-source-contract-sync-and-assurance-freeze"
+_PHASE96_DIR = (
+    _ROOT
+    / ".planning"
+    / "phases"
+    / "96-redaction-telemetry-and-anonymous-share-sanitizer-burndown"
+)
+_PHASE97_DIR = (
+    _ROOT
+    / ".planning"
+    / "phases"
+    / "97-governance-open-source-contract-sync-and-assurance-freeze"
+)
 
 
 def _read(path: Path) -> str:
@@ -29,22 +41,25 @@ def _read(path: Path) -> str:
 
 def test_phase97_closeout_bundle_stays_pull_only_after_v1_28_archived_handoff() -> None:
     project_text = _read(_PROJECT)
-    roadmap_text = _read(_ROADMAP)
-    requirements_text = _read(_REQUIREMENTS)
+    roadmap_text = _read(_ARCHIVED_V128_ROADMAP)
+    requirements_text = _read(_ARCHIVED_V128_REQUIREMENTS)
     state_text = _read(_STATE)
-    milestones_text = _read(_MILESTONES)
     dev_arch_text = _read(_DEV_ARCH)
     phase96_verification = _read(_PHASE96_DIR / "96-VERIFICATION.md")
     phase96_validation = _read(_PHASE96_DIR / "96-VALIDATION.md")
     phase97_verification = _read(_PHASE97_DIR / "97-VERIFICATION.md")
     phase97_validation = _read(_PHASE97_DIR / "97-VALIDATION.md")
 
-    for text in (project_text, roadmap_text, requirements_text, milestones_text):
-        assert "historical closeout route truth = `no active milestone route / latest archived baseline = v1.26`" in text
+    for text in (roadmap_text, requirements_text):
+        assert (
+            "historical closeout route truth = `no active milestone route / latest archived baseline = v1.26`"
+            in text
+        )
 
+    assert CURRENT_ROUTE in project_text
     assert CURRENT_ROUTE in state_text
-    assert ".planning/v1.26-MILESTONE-AUDIT.md" in project_text
-    assert ".planning/reviews/V1_26_EVIDENCE_INDEX.md" in project_text
+    assert ".planning/v1.26-MILESTONE-AUDIT.md" in roadmap_text
+    assert ".planning/reviews/V1_26_EVIDENCE_INDEX.md" in roadmap_text
     assert CURRENT_MILESTONE_STATUS in project_text
     assert "Phase 97 planning-ready" in phase96_verification
     assert "$gsd-plan-phase 97" in phase96_validation
@@ -53,12 +68,23 @@ def test_phase97_closeout_bundle_stays_pull_only_after_v1_28_archived_handoff() 
     assert "Phase 97 Governance / Assurance Freeze Note" in dev_arch_text
 
 
-def test_phase97_file_testing_and_verification_maps_keep_historical_freeze_visible() -> None:
+def test_phase97_file_testing_and_verification_maps_keep_historical_freeze_visible() -> (
+    None
+):
     file_matrix_text = _read(_FILE_MATRIX)
     testing_text = _read(_TESTING)
     verification_text = _read(_VERIFICATION_MATRIX)
 
-    assert "tests/meta/test_phase97_governance_assurance_freeze_guards.py" in file_matrix_text
-    assert "focused closeout guard home for Phase 97 governance / assurance freeze" in file_matrix_text
+    assert (
+        "tests/meta/test_phase97_governance_assurance_freeze_guards.py"
+        in file_matrix_text
+    )
+    assert (
+        "focused closeout guard home for Phase 97 governance / assurance freeze"
+        in file_matrix_text
+    )
     assert_testing_inventory_snapshot(testing_text)
-    assert "## Phase 97 Governance / Open-Source Contract Sync and Assurance Freeze" in verification_text
+    assert (
+        "## Phase 97 Governance / Open-Source Contract Sync and Assurance Freeze"
+        in verification_text
+    )
