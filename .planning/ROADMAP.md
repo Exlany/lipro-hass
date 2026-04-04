@@ -80,7 +80,7 @@ contract_version: 1
 
 **Goal:** 先把 `.planning` 派生文档、selector projections、promoted assets、latest archived pointer 与 maintainer-facing docs first-hop 的职责重新压缩成单一 authority story，再为后续 toolchain 与 hotspot work 建立不漂移的 planning foundation。
 **Depends on:** none
-**Inputs**: `.planning/phases/142-governance-load-shedding-and-derived-truth-audit/142-CONTEXT.md`
+**Inputs**: selector family / baseline docs merge-clean snapshot（`PROJECT.md`, `ROADMAP.md`, `REQUIREMENTS.md`, `STATE.md`, `VERIFICATION_MATRIX.md`）
 **Requirements**: `AUD-10`, `GOV-99`, `GOV-100`, `DOC-25`, `TST-62`
 **Success Criteria** (what must be TRUE):
   1. `.planning/codebase/*.md` 的 freshness / authority / snapshot 身份与 current route selector family 的边界被重新明确，derived views 不再伪装成 live truth。
@@ -106,7 +106,7 @@ contract_version: 1
 
 **Goal:** 在不改变 sanctioned formal homes 的前提下，继续缩减 `runtime_types.py` breadth、request-policy family ownership ambiguity 与 command dispatch/result policy 的 mixed responsibilities。
 **Depends on:** Phase 143
-**Inputs**: `.planning/phases/144-runtime-types-request-policy-and-dispatch-hotspot-narrowing/144-CONTEXT.md`
+**Inputs**: `Phase 143` execution outputs + selector family / baseline docs（phase context 在 `Phase 144` 激活时再物化）
 **Requirements**: `ARC-52`, `ARC-53`, `HOT-74`, `HOT-75`, `DOC-27`, `TST-64`
 **Success Criteria** (what must be TRUE):
   1. `runtime_types.py` 继续保持唯一 outward runtime contract home，但 capability-local / control-local projections 不再把 breadth 无限制吸回 root。
@@ -119,7 +119,7 @@ contract_version: 1
 
 **Goal:** 在 auth/session、firmware update / OTA manifest 与 anonymous-share/report boundaries 上继续 inward split，同时把 milestone closeout selector story 一并收口。
 **Depends on:** Phase 144
-**Inputs**: `.planning/phases/145-auth-firmware-and-share-boundary-hardening/145-CONTEXT.md`
+**Inputs**: `Phase 144` execution outputs + selector family / baseline docs（phase context 在 `Phase 145` 激活时再物化）
 **Requirements**: `ARC-54`, `HOT-76`, `HOT-77`, `GOV-102`, `DOC-28`, `TST-65`
 **Success Criteria** (what must be TRUE):
   1. auth manager / auth recovery 继续 inward decomposition，但 formal auth/session home 不漂移。

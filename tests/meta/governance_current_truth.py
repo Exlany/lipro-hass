@@ -131,7 +131,18 @@ def assert_machine_readable_route_contracts() -> dict[str, dict[str, object]]:
     return contracts
 
 
-def _load_phase_asset_snapshot(phase: str, phase_dir_name: str) -> PhaseAssetSnapshot:
+def _load_phase_asset_snapshot(
+    phase: str, phase_dir_name: str | None
+) -> PhaseAssetSnapshot:
+    if phase_dir_name is None:
+        return PhaseAssetSnapshot(
+            phase=phase,
+            directory="",
+            plan_files=(),
+            plan_summary_files=(),
+            summary_files=(),
+        )
+
     phase_root = _ROOT / ".planning" / "phases" / phase_dir_name
     plan_files = tuple(
         sorted(path.name for path in phase_root.glob(f"{phase}-*-PLAN.md"))
@@ -155,12 +166,14 @@ def _load_phase_asset_snapshot(phase: str, phase_dir_name: str) -> PhaseAssetSna
     )
 
 
-def _resolve_phase_directory(phase: str) -> str:
+def _resolve_phase_directory(phase: str) -> str | None:
     matches = sorted((_ROOT / ".planning" / "phases").glob(f"{phase}-*"))
-    assert len(matches) == 1, (
-        f"Expected exactly one phase directory for {phase}, got {matches}"
+    if len(matches) == 1:
+        return matches[0].name
+    assert not matches, (
+        f"Expected zero or one phase directory for {phase}, got {matches}"
     )
-    return matches[0].name
+    return None
 
 
 def _load_current_milestone_phase_statuses(

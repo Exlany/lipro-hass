@@ -2,7 +2,7 @@
 
 **Purpose:** 定义文档、fixtures、generated、implementation 的权威来源与同步方向，避免多口径漂移。
 **Status:** Formal baseline asset (`BASE-01` authority truth source)
-**Updated:** 2026-04-04 (Phase 142 complete / Phase 143 planning-ready / v1.43 archived evidence retained)
+**Updated:** 2026-04-04 (Phase 143 planned / execution-ready / v1.43 archived evidence retained)
 
 ## Formal Role
 
