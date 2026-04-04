@@ -48,27 +48,34 @@ def _isolated_gsd_cwd() -> Path:
     return _isolated_gsd_root_bundle()[1]
 
 
-def _run_gsd_tools(*args: str) -> dict[str, object]:
-    node_executable = shutil.which("node")
-    if node_executable is None:
-        pytest.skip("node unavailable; skipping gsd fast-path smoke")
-    if not _GSD_TOOLS.exists():
-        pytest.skip("gsd-tools unavailable; skipping gsd fast-path smoke")
-    isolated_cwd = _isolated_gsd_cwd()
-    result = subprocess.run(  # noqa: S603
-        [node_executable, str(_GSD_TOOLS), f"--cwd={isolated_cwd}", *args],
-        cwd=_ROOT,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    assert result.returncode == 0, result.stderr
-    payload = result.stdout.strip()
+def _load_payload(output: str) -> dict[str, object]:
+    payload = output.strip()
     if payload.startswith("@file:"):
         payload = Path(payload.removeprefix("@file:")).read_text(encoding="utf-8")
     loaded = json.loads(payload)
     assert isinstance(loaded, dict)
     return loaded
+
+
+def _run_gsd_tools_result(cwd: Path, *args: str) -> subprocess.CompletedProcess[str]:
+    node_executable = shutil.which("node")
+    if node_executable is None:
+        pytest.skip("node unavailable; skipping gsd fast-path smoke")
+    if not _GSD_TOOLS.exists():
+        pytest.skip("gsd-tools unavailable; skipping gsd fast-path smoke")
+    return subprocess.run(  # noqa: S603
+        [node_executable, str(_GSD_TOOLS), f"--cwd={cwd}", *args],
+        cwd=_ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+
+def _run_gsd_tools(*args: str) -> dict[str, object]:
+    result = _run_gsd_tools_result(_isolated_gsd_cwd(), *args)
+    assert result.returncode == 0, result.stderr
+    return _load_payload(result.stdout)
 
 
 def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
@@ -114,6 +121,33 @@ def test_route_handoff_docs_and_ledgers_stay_in_sync() -> None:
     assert milestone_progress in milestones_text
 
 
+def test_nested_worktree_fast_path_uses_isolated_cwd_proof_when_direct_root_drifts() -> None:
+    developer_text = (_ROOT / "docs" / "developer_architecture.md").read_text(encoding="utf-8")
+    runbook_text = (_ROOT / "docs" / "MAINTAINER_RELEASE_RUNBOOK.md").read_text(encoding="utf-8")
+
+    isolated = _run_gsd_tools("init", "execute-phase", CURRENT_PHASE)
+    assert _as_bool(isolated["phase_found"]) is True
+    assert _as_str(isolated["phase_number"]) == CURRENT_PHASE
+
+    direct = _run_gsd_tools_result(_ROOT, "init", "execute-phase", CURRENT_PHASE)
+    if direct.returncode != 0:
+        assert "nested worktree" in developer_text
+        assert "nested worktree" in runbook_text
+        assert "--cwd" in developer_text
+        assert "--cwd" in runbook_text
+        return
+
+    direct_payload = _load_payload(direct.stdout)
+    direct_matches = _as_bool(direct_payload.get("phase_found")) and (
+        _as_str(direct_payload["phase_number"]) == CURRENT_PHASE
+    )
+    if not direct_matches:
+        assert "nested worktree" in developer_text
+        assert "nested worktree" in runbook_text
+        assert "--cwd" in developer_text
+        assert "--cwd" in runbook_text
+
+
 def test_gsd_fast_path_matches_current_archived_route_story() -> None:
     progress = _run_gsd_tools("init", "progress")
     phases = _as_mapping_list(progress["phases"])
@@ -136,7 +170,10 @@ def test_gsd_fast_path_matches_current_archived_route_story() -> None:
 
     for phase_number in CURRENT_MILESTONE_IN_PROGRESS_PHASES:
         phase_progress = _as_mapping(phase_by_number[phase_number])
-        assert _as_str(phase_progress["status"]) == "in_progress"
+        expected_statuses = {"in_progress"}
+        if CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE[phase_number] == 0:
+            expected_statuses.add("researched")
+        assert _as_str(phase_progress["status"]) in expected_statuses
         assert (
             phase_progress["plan_count"]
             == CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE[phase_number]
@@ -162,12 +199,14 @@ def test_gsd_fast_path_matches_current_archived_route_story() -> None:
             == CURRENT_MILESTONE_SUMMARY_COUNT_BY_PHASE[phase_number]
         )
 
+    current_phase_plan_count = CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE[CURRENT_PHASE]
     phase_index = _run_gsd_tools("phase-plan-index", CURRENT_PHASE)
     assert _as_str(phase_index["phase"]) == CURRENT_PHASE
-    assert (
-        len(_as_mapping_list(phase_index["plans"]))
-        == CURRENT_MILESTONE_PLAN_COUNT_BY_PHASE[CURRENT_PHASE]
-    )
+    plans = phase_index.get("plans")
+    if current_phase_plan_count:
+        assert len(_as_mapping_list(plans)) == current_phase_plan_count
+    else:
+        assert plans in (None, [])
 
     state = _run_gsd_tools("state", "json")
     assert _as_str(state["milestone"]) == CURRENT_MILESTONE
@@ -186,15 +225,15 @@ def test_gsd_fast_path_matches_current_archived_route_story() -> None:
     plan_init = _run_gsd_tools("init", "plan-phase", CURRENT_PHASE)
     assert _as_bool(plan_init["phase_found"]) is True
     assert _as_str(plan_init["phase_number"]) == CURRENT_PHASE
-    assert _as_bool(plan_init["has_plans"]) is True
     assert _as_bool(plan_init["has_context"]) is True
     assert _as_bool(plan_init["has_research"]) is True
     assert plan_init["plan_count"] == CURRENT_MILESTONE_PLAN_COUNT
+    assert _as_bool(plan_init["has_plans"]) is (current_phase_plan_count > 0)
 
     execute_init = _run_gsd_tools("init", "execute-phase", CURRENT_PHASE)
     assert _as_bool(execute_init["phase_found"]) is True
     assert _as_str(execute_init["phase_number"]) == CURRENT_PHASE
     assert execute_init["plan_count"] == CURRENT_MILESTONE_PLAN_COUNT
-    plans = execute_init["plans"]
-    assert isinstance(plans, list)
-    assert len(plans) == CURRENT_MILESTONE_PLAN_COUNT
+    execute_plans = execute_init["plans"]
+    assert isinstance(execute_plans, list)
+    assert len(execute_plans) == CURRENT_MILESTONE_PLAN_COUNT

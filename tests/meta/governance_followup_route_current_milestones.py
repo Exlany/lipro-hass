@@ -45,6 +45,29 @@ _STATE_TEXT = _SNAPSHOT.state
 _PHASE_TERMINAL = CURRENT_MILESTONE_PHASES[-1]
 
 _REQUIREMENT_TRACES_BY_MILESTONE = {
+    "v1.44": (
+        RequirementTrace("AUD-10", "142", status="Complete", checked=True),
+        RequirementTrace("GOV-99", "142", status="Complete", checked=True),
+        RequirementTrace("GOV-100", "142", status="Complete", checked=True),
+        RequirementTrace("DOC-25", "142", status="Complete", checked=True),
+        RequirementTrace("TST-62", "142", status="Complete", checked=True),
+        RequirementTrace("QLT-60", "143", status="Planned", checked=False),
+        RequirementTrace("GOV-101", "143", status="Planned", checked=False),
+        RequirementTrace("DOC-26", "143", status="Planned", checked=False),
+        RequirementTrace("TST-63", "143", status="Planned", checked=False),
+        RequirementTrace("ARC-52", "144", status="Planned", checked=False),
+        RequirementTrace("ARC-53", "144", status="Planned", checked=False),
+        RequirementTrace("HOT-74", "144", status="Planned", checked=False),
+        RequirementTrace("HOT-75", "144", status="Planned", checked=False),
+        RequirementTrace("DOC-27", "144", status="Planned", checked=False),
+        RequirementTrace("TST-64", "144", status="Planned", checked=False),
+        RequirementTrace("ARC-54", "145", status="Planned", checked=False),
+        RequirementTrace("HOT-76", "145", status="Planned", checked=False),
+        RequirementTrace("HOT-77", "145", status="Planned", checked=False),
+        RequirementTrace("GOV-102", "145", status="Planned", checked=False),
+        RequirementTrace("DOC-28", "145", status="Planned", checked=False),
+        RequirementTrace("TST-65", "145", status="Planned", checked=False),
+    ),
     "v1.43": (
         RequirementTrace("ARC-48", "139"),
         RequirementTrace("HOT-70", "139"),
@@ -135,6 +158,7 @@ _REQUIREMENT_TRACES_BY_MILESTONE = {
 }
 
 _COVERAGE_BY_MILESTONE = {
+    "v1.44": CoverageSnapshot("v1.44 requirements", 21, mapped=21, complete=5, pending=16),
     "v1.43": CoverageSnapshot("v1.43 requirements", 18, mapped=18, complete=18, pending=0),
     "v1.42": CoverageSnapshot("v1.42 requirements", 13, mapped=13, complete=13, pending=0),
     "v1.41": CoverageSnapshot("v1.41 requirements", 6, mapped=6, complete=6, pending=0),

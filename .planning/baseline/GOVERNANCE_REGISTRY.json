@@ -175,7 +175,15 @@
       ".planning/STATE.md",
       ".planning/MILESTONES.md"
     ],
-    "active_milestone": null,
+    "active_milestone": {
+      "version": "v1.44",
+      "name": "Governance Load Shedding & Sanctioned Hotspot Narrowing",
+      "status": "active / phase 143 planned; execution-ready (2026-04-04)",
+      "phase": "143",
+      "phase_title": "toolchain freshness hardening and route-projection automation",
+      "phase_dir": "143-toolchain-freshness-hardening-and-route-projection-automation",
+      "route_mode": "v1.44 active milestone route / Phase 143 planned / execution-ready / latest archived baseline = v1.43"
+    },
     "latest_archived": {
       "version": "v1.43",
       "name": "Hotspot Second-Pass Slimming & Governance Load Shedding",
@@ -193,8 +201,8 @@
       "evidence_path": ".planning/reviews/V1_42_EVIDENCE_INDEX.md"
     },
     "bootstrap": {
-      "current_route": "no active milestone route / latest archived baseline = v1.43",
-      "default_next_command": "$gsd-new-milestone",
+      "current_route": "v1.44 active milestone route / Phase 143 planned / execution-ready / latest archived baseline = v1.43",
+      "default_next_command": "$gsd-execute-phase 143",
       "latest_archived_evidence_pointer": ".planning/reviews/V1_43_EVIDENCE_INDEX.md"
     },
     "contract_version": 1

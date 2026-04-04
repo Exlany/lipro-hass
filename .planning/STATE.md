@@ -1,19 +1,19 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.43
-milestone_name: Hotspot Second-Pass Slimming & Governance Load Shedding
-phase: '141'
-phase_name: control/runtime hotspot narrowing and device aggregate hardening
-status: archived / evidence-ready (2026-04-04)
-stopped_at: v1.43 milestone closeout complete; archived snapshots/evidence index recorded; next step = $gsd-new-milestone
-last_updated: '2026-04-04T04:24:14Z'
+milestone: v1.44
+milestone_name: Governance Load Shedding & Sanctioned Hotspot Narrowing
+phase: '143'
+phase_name: toolchain freshness hardening and route-projection automation
+status: active / phase 143 planned; execution-ready (2026-04-04)
+stopped_at: Phase 143 plan bundle created; execution-ready with 143-01 ~ 143-03; next step = $gsd-execute-phase 143
+last_updated: '2026-04-04T18:39:46Z'
 last_activity: '2026-04-04'
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 11
-  completed_plans: 11
-  percent: 100
+  total_phases: 4
+  completed_phases: 1
+  total_plans: 6
+  completed_plans: 3
+  percent: 50
 ---
 
 # Project State
@@ -31,7 +31,14 @@ projection_targets:
 - .planning/REQUIREMENTS.md
 - .planning/STATE.md
 - .planning/MILESTONES.md
-active_milestone: null
+active_milestone:
+  version: v1.44
+  name: Governance Load Shedding & Sanctioned Hotspot Narrowing
+  status: active / phase 143 planned; execution-ready (2026-04-04)
+  phase: '143'
+  phase_title: toolchain freshness hardening and route-projection automation
+  phase_dir: 143-toolchain-freshness-hardening-and-route-projection-automation
+  route_mode: v1.44 active milestone route / Phase 143 planned / execution-ready / latest archived baseline = v1.43
 latest_archived:
   version: v1.43
   name: Hotspot Second-Pass Slimming & Governance Load Shedding
@@ -47,83 +54,71 @@ previous_archived:
   name: Hotspot Burn-Down, Observability Truth & Governance Cost Compression
   evidence_path: .planning/reviews/V1_42_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.43
-  default_next_command: $gsd-new-milestone
+  current_route: v1.44 active milestone route / Phase 143 planned / execution-ready / latest archived baseline = v1.43
+  default_next_command: $gsd-execute-phase 143
   latest_archived_evidence_pointer: .planning/reviews/V1_43_EVIDENCE_INDEX.md
 contract_version: 1
 ```
 <!-- governance-route-contract:end -->
-
-**Current milestone:** `No active milestone route`
+**Current milestone:** `v1.44 Governance Load Shedding & Sanctioned Hotspot Narrowing`
 **Latest archived milestone:** `v1.43 Hotspot Second-Pass Slimming & Governance Load Shedding`
 **Previous archived milestone:** `v1.42 Hotspot Burn-Down, Observability Truth & Governance Cost Compression`
-**Core value:** `closeout 完成后不再维持伪 active 路线；所有 v1.43 的代码、治理、文档与验证结论统一冻结为 latest archived baseline，下一步只能显式开启新 milestone。`
-**Current focus:** `v1.43 已完成 archive promotion；当前工作是从 archived evidence 诚实衔接下一里程碑，而不是重开 v1.43 active route。`
-**Current mode:** `no active milestone route / latest archived baseline = v1.43`
+**Core value:** `zero-active archived posture 不是“停止演进”的借口；所有后续工作都必须以新的 active milestone 显式开启，并继续沿 single formal home、machine-checkable selector truth 与 derived-view non-authority 推进。`
+**Current focus:** Phase 143 execution-ready：执行 143-01 ~ 143-03，把 nested worktree proof、route-projection automation 与 freshness/link guards 从计划态落到 machine-checkable contract。
+**Current mode:** `v1.44 active milestone route / Phase 143 planned / execution-ready / latest archived baseline = v1.43`
 
 ## Current Position
 
-- **Phase:** `141 of 141`
-- **Plan:** `11 of 11`
-- **Status:** `archived / evidence-ready (2026-04-04)`
-- **Last activity:** `2026-04-04` — 已完成 v1.43 archived snapshots、evidence index、selector family freeze 与 latest archived baseline 提升。
-- **Progress:** `[██████████] 100%`
-
-## Performance Metrics
-
-- **Total plans completed:** `11`
-- **Average duration:** `n/a`
-- **Total execution time:** `-`
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 139 | complete | 3/3 | n/a |
-| 140 | complete | 3/3 | n/a |
-| 141 | complete | 5/5 | n/a |
+- **Phase:** `143 of 145`
+- **Plan:** `3 of 6`
+- **Status:** `active / phase 143 planned; execution-ready (2026-04-04)`
+- **Last activity:** `2026-04-04` — Phase 143 已完成计划化：143-01 ~ 143-03 plan bundle 已落盘，selector family 切到 execution-ready；下一步执行 `$gsd-execute-phase 143`。
+- **Progress:** `[█████░░░░░] 50%`
 
 ## Governance Truth Sources
 
 - Primary route contract: `.planning/PROJECT.md`
-- Latest archived milestone audit verdict: `.planning/v1.43-MILESTONE-AUDIT.md`
-- Latest archived evidence pointer: `.planning/reviews/V1_43_EVIDENCE_INDEX.md`
 - Route execution map: `.planning/ROADMAP.md`
 - Requirement coverage truth: `.planning/REQUIREMENTS.md`
 - Milestone timeline truth: `.planning/MILESTONES.md`
-- Previous archived evidence pointer: `.planning/reviews/V1_42_EVIDENCE_INDEX.md`
-- Previous archived audit verdict: `.planning/v1.42-MILESTONE-AUDIT.md`
-- Promoted phase evidence allowlist: `.planning/reviews/PROMOTED_PHASE_ASSETS.md`
+- State/handoff truth: `.planning/STATE.md`
+- Canonical route registry: `.planning/baseline/GOVERNANCE_REGISTRY.json`
+- Verification baseline: `.planning/baseline/VERIFICATION_MATRIX.md`
 - FILE_MATRIX inventory truth: `.planning/reviews/FILE_MATRIX.md`
 - Residual posture ledger: `.planning/reviews/RESIDUAL_LEDGER.md`
+- Latest archived evidence pointer: `.planning/reviews/V1_43_EVIDENCE_INDEX.md`
+- Latest archived milestone audit: `.planning/v1.43-MILESTONE-AUDIT.md`
+- Promoted phase evidence allowlist: `.planning/reviews/PROMOTED_PHASE_ASSETS.md`
 - North-star authority: `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`
 
 ## Accumulated Context
 
 ### Decisions
 
-- `v1.43` 已从 active closeout-ready route 提升为 latest archived baseline；`v1.42` 退回 previous archived baseline。
-- `Phase 139` / `Phase 140` / `Phase 141` 的 summaries / verification / validation、milestone audit、archived snapshots 与 evidence index 现只保留 archived evidence 身份，不再承担 live current-route selector 职责。
-- nested worktree 下 `gsd-tools` root detection 继续不是 authority signal；closeout 后 current route 只由 selector family 与 archived evidence pointer 共同投影。
+- `v1.44` 已作为新的 active milestone 显式开启；它不是对 `141` archived bundle 的隐式重用，而是单独注册的 follow-up route。
+- `v1.43` 继续只承担 latest archived baseline / pull-only evidence chain 身份；后续任何变更都必须通过 `v1.44` selector family 承认。
+- Phase 142 已完成治理减负 / derived-truth audit bundle；Phase 143 现已拥有 143-01 ~ 143-03 plan bundle，并作为 execution-ready current phase 接管 route。
 
 ### Pending Todos
 
-- 运行 `$gsd-new-milestone`，显式建立下一里程碑。
-- 运行 `$gsd-next`，确认 closeout 后自动路由已收口为 `$gsd-new-milestone`。
+- 运行 `$gsd-execute-phase 143`，按 wave 落地 nested worktree / freshness / route-projection hardening。
+- 优先执行 `143-01` / `143-02`，再由 `143-03` 收口 selector projection 与 docs-entry continuity。
+- 确认 `Phase 144 -> 145` 的 hotspot slicing 是否需要进一步 topicize。
 
 ### Blockers/Concerns
 
-- 当前无 closeout blocker；remaining work 已全部转移到 next milestone planning gate。
-- `v1.43` 作为 latest archived baseline 代表“本轮 scoped 审阅与修复已完整闭环”，不代表仓库永久无任何未来优化空间。
+- 当前无 blocker；唯一约束是不得把 `v1.43` archived-only truth 重新伪装成 live current route。
+- remaining hotspots 都是 sanctioned formal homes；只能继续 inward split / narrowing，不得误判为 kill targets。
 
 ## Recommended Next Command
 
-- **Primary:** `$gsd-new-milestone` — `v1.43` archived baseline 已冻结，下一步应开启新 milestone 而不是重开旧 route。
-- **Status check:** `$gsd-next` — 验证自动路由已切到 archived-only continuation。
+- **Primary:** `$gsd-execute-phase 143` — `Phase 143` 已 execution-ready；下一步按 `143-01` / `143-02` / `143-03` 进入执行波次。
+- **Status check:** `$gsd-next` — 验证 active route 已从 `plan-phase 143` 切到 `execute-phase 143`。
 
 ## Session Continuity
 
 - **Workspace root:** `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass`
-- **Latest archived roadmap snapshot:** `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/.planning/milestones/v1.43-ROADMAP.md`
-- **Latest archived requirements snapshot:** `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/.planning/milestones/v1.43-REQUIREMENTS.md`
+- **Current phase context:** `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/.planning/phases/143-toolchain-freshness-hardening-and-route-projection-automation/143-CONTEXT.md`
 - **Latest archived evidence index:** `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/.planning/reviews/V1_43_EVIDENCE_INDEX.md`
 - **Latest archived milestone audit:** `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/.planning/v1.43-MILESTONE-AUDIT.md`
-- **Read next:** `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/.planning/reviews/V1_43_EVIDENCE_INDEX.md` → `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/.planning/v1.43-MILESTONE-AUDIT.md` → `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/.planning/PROJECT.md`
+- **Read next:** `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/.planning/phases/143-toolchain-freshness-hardening-and-route-projection-automation/143-CONTEXT.md` → `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/.planning/phases/143-toolchain-freshness-hardening-and-route-projection-automation/143-RESEARCH.md` → `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/.planning/phases/143-toolchain-freshness-hardening-and-route-projection-automation/143-01-PLAN.md` → `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/.planning/phases/143-toolchain-freshness-hardening-and-route-projection-automation/143-02-PLAN.md` → `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/.planning/phases/143-toolchain-freshness-hardening-and-route-projection-automation/143-03-PLAN.md`

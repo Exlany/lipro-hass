@@ -15,6 +15,8 @@ from tests.helpers.repo_root import repo_root
 from .governance_current_truth import CURRENT_RUNTIME_ROOT_TEST
 
 _ROOT = repo_root(Path(__file__))
+_RUNBOOK = _ROOT / 'docs' / 'MAINTAINER_RELEASE_RUNBOOK.md'
+_ROUTE_HANDOFF_SMOKE = _ROOT / 'tests' / 'meta' / 'test_governance_route_handoff_smoke.py'
 _DEVELOP_SCRIPT = _ROOT / 'scripts' / 'develop'
 _CHECKER_SCRIPT = _ROOT / 'scripts' / 'check_file_matrix.py'
 _CONFTEXT = _ROOT / 'tests' / 'conftest.py'
@@ -58,6 +60,8 @@ def test_verification_matrix_and_checker_guard_active_path_truth() -> None:
     checker_text = _CHECKER_SCRIPT.read_text(encoding='utf-8')
     checker_module = importlib.import_module('scripts.check_file_matrix')
     conftest_text = _CONFTEXT.read_text(encoding='utf-8')
+    runbook_text = _RUNBOOK.read_text(encoding='utf-8')
+    route_smoke_text = _ROUTE_HANDOFF_SMOKE.read_text(encoding='utf-8')
 
     assert 'tests/core/anonymous_share/test_manager_submission.py' in verification_text
     assert 'tests/core/test_coordinator_entry.py' in verification_text
@@ -68,6 +72,11 @@ def test_verification_matrix_and_checker_guard_active_path_truth() -> None:
     assert CURRENT_RUNTIME_ROOT_TEST in docs_text
     assert 'docs/architecture_archive.md' in docs_text
     assert 'tests/test_coordinator_public.py' not in docs_text
+    assert 'nested worktree' in docs_text
+    assert 'nested worktree' in runbook_text
+    assert '--cwd' in runbook_text
+    assert 'symlink_to' in route_smoke_text
+    assert '--cwd=' in route_smoke_text
     assert 'VERIFICATION_MATRIX_PATH' in checker_text
     assert 'validate_verification_matrix_paths' in checker_text
     assert 'TYPE_CHECKING' not in checker_text

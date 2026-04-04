@@ -1,8 +1,8 @@
 # Lipro Home Assistant Integration - Developer Architecture
 
-> **Last aligned through**: `v1.43 archived / evidence-ready` (`2026-04-04`)
-> **Current route alignment**: `no active milestone route / latest archived baseline = v1.43` (`2026-04-04`, archived / evidence-ready (2026-04-04))
-> **Default next command**: `$gsd-new-milestone`
+> **Last aligned through**: `v1.44 active / phase 143 planned; execution-ready` (`2026-04-04`)
+> **Current route alignment**: `v1.44 active milestone route / Phase 143 planned / execution-ready / latest archived baseline = v1.43` (`2026-04-04`, active / phase 143 planned; execution-ready (2026-04-04))
+> **Default next command**: `$gsd-execute-phase 143`
 > **Latest archived evidence path**: `.planning/reviews/V1_43_EVIDENCE_INDEX.md`
 > **Latest archived audit path**: `.planning/v1.43-MILESTONE-AUDIT.md`
 > **Role**: 描述当前正式实现拓扑、目录归属与开发者入口。
@@ -11,6 +11,7 @@
 > 北极星终态裁决请见 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`。  
 > 当前治理真源请以 `.planning/ROADMAP.md`、`.planning/REQUIREMENTS.md`、`.planning/STATE.md`、`.planning/baseline/*.md`、`.planning/reviews/*.md` 为准。  
 > `.planning/codebase/*.md` 属于 `derived collaboration maps / 协作图谱 / 派生视图`，帮助协作与定位，但不构成新的 authority chain。
+> nested worktree 下的本地 `gsd-tools` fast-path 只能作为 tooling proof：`tests/meta/test_governance_route_handoff_smoke.py` 现以 isolated `--cwd` root 做 machine-checkable proof；direct-cwd 漂移只能算 fallback signal，不能反向定义 current route。
 
 ## 阅读顺序
 
@@ -20,10 +21,10 @@
 
 ## Current Route Compression
 
-- `v1.43` 已从 closeout-ready route 冻结为 latest archived baseline：当前 developer first hop 只保留已交付的 REST/protocol second-pass slimming、release/governance freshness、control/runtime narrowing 与 device aggregate hardening 结果，不再假装仍有 active milestone 正在执行。
+- `v1.44` 已作为新的 active milestone 显式推进到 `Phase 143 planned / execution-ready`：当前 developer first hop 不再停在 archived-only posture，而是先沿既定 `143-01` ~ `143-03` 计划束执行 toolchain hardening，再继续 sanctioned hotspots narrowing。
+- `v1.43` 继续保持 latest archived baseline 身份：REST/protocol second-pass slimming、release/governance freshness、control/runtime narrowing 与 device aggregate hardening 现在只是 predecessor evidence，不再承担 current route owner 角色。
 - `custom_components/lipro/core/api/rest_facade.py` 与 `custom_components/lipro/core/protocol/rest_port.py` 继续保持 canonical formal-home 身份；`rest_facade_internal_methods.py` 与 `rest_port_bindings.py` 只承担 inward support / binding mechanics，不是第二 root。
-- `Phase 141` 的 service-router public shell、entry-root explicit factory wiring、runtime local projection 与 `device_runtime.py` side-car bookkeeping 已共同冻结为 archived evidence；nested worktree 下 `gsd-tools` root detection 不是 live truth authority。
-- 如需继续演进，请先读取 `.planning/reviews/V1_43_EVIDENCE_INDEX.md`、`.planning/v1.43-MILESTONE-AUDIT.md` 与 `.planning/PROJECT.md`，再显式开启新 milestone；不要回流为第二条 active / planning-only 叙事。
+- 当前继续演进时，应先读取 `.planning/phases/143-toolchain-freshness-hardening-and-route-projection-automation/{143-CONTEXT.md,143-RESEARCH.md,143-01-PLAN.md,143-02-PLAN.md,143-03-PLAN.md}`、`.planning/PROJECT.md` 与 `.planning/reviews/V1_43_EVIDENCE_INDEX.md`，再沿 `Phase 143 -> 145` 的 active route 推进；不要把 `v1.43` archived-only truth 回流成第二条 live story。
 
 ## 快速导航
 

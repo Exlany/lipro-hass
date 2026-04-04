@@ -79,6 +79,7 @@ def test_codebase_maps_publish_snapshot_freshness_and_authority_boundaries() -> 
             assert "Authority order:" in text, path.as_posix()
             assert "Conflict rule:" in text, path.as_posix()
             assert "不得自称当前治理真源" in text, path.as_posix()
+            assert "nested worktree / direct-cwd" in text, path.as_posix()
             continue
 
         assert "Authority:" in text, path.as_posix()

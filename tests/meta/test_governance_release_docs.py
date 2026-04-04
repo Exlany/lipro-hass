@@ -243,6 +243,9 @@ def test_current_developer_architecture_points_to_archive_appendix() -> None:
     assert CURRENT_MILESTONE_DEFAULT_NEXT in developer_text
     assert LATEST_ARCHIVED_EVIDENCE_PATH in developer_text
     assert LATEST_ARCHIVED_AUDIT_PATH in developer_text
+    assert 'derived collaboration maps' in developer_text
+    assert 'nested worktree' in developer_text
+    assert '--cwd' in developer_text
     assert 'latest archived baseline = v1.34' not in developer_text
 
 
@@ -260,6 +263,8 @@ def test_runbook_and_pr_template_use_stable_pointer_family() -> None:
     assert CURRENT_MILESTONE_DEFAULT_NEXT in runbook_text
     assert LATEST_ARCHIVED_EVIDENCE_PATH in runbook_text
     assert LATEST_ARCHIVED_AUDIT_PATH in runbook_text
+    assert 'nested worktree' in runbook_text
+    assert '--cwd' in runbook_text
     assert 'pull-only pointer' in pr_text
     assert 'hidden delegate' in pr_text or 'undocumented delegate' in pr_text
     assert '不暗示 hidden maintainer / undocumented delegate / repo-external continuity 已解决' in pr_text

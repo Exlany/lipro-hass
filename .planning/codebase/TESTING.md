@@ -1,9 +1,9 @@
 # Testing Patterns
 
-**Analysis Date:** 2026-04-02
+**Analysis Date:** 2026-04-04
 
-> Snapshot: `2026-04-02`
-> Freshness: 基于 `tests/**`、`pyproject.toml`、`.github/workflows/{ci,release}.yml`、`scripts/{lint,check_architecture_policy.py,check_file_matrix.py,check_markdown_links.py}` 与 `.planning/baseline/VERIFICATION_MATRIX.md` 的当前截面。
+> Snapshot: `2026-04-04`
+> Freshness: 基于 `tests/**`、`pyproject.toml`、`.github/workflows/{ci,release}.yml`、`scripts/{lint,check_architecture_policy.py,check_file_matrix.py,check_markdown_links.py}` 与 `Phase 143` 计划态 / execution-ready 下的 `.planning/baseline/VERIFICATION_MATRIX.md` 当前截面。
 > Derived collaboration map: 本文件是受约束的协作图谱 / 派生视图，仅用于导航、审阅与后续实现对齐。
 > Authority: 若与 `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`、`.planning/{PROJECT.md,ROADMAP.md,REQUIREMENTS.md,STATE.md}`、`.planning/baseline/*.md`、`.planning/reviews/*.md` 或 `docs/developer_architecture.md` 冲突，以后者为准；本文件不得反向充当当前治理真源。
 
@@ -24,6 +24,12 @@ uv run python scripts/check_markdown_links.py
 uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro --cov-fail-under=95 --cov-report=json --cov-report=xml --cov-report=term-missing
 ./scripts/lint --full
 ```
+
+## Phase 142 Execution Freeze
+
+- `tests/meta/governance_followup_route_current_milestones.py`、`tests/meta/test_governance_route_handoff_smoke.py`、`tests/meta/test_governance_release_docs.py`、`tests/meta/test_governance_release_continuity.py`、`tests/meta/test_phase140_governance_source_freshness_guards.py`、`tests/meta/toolchain_truth_checker_paths.py` 与 `tests/meta/toolchain_truth_testing_governance.py` 共同冻结 selector family、latest archived pointer、derived collaboration-map 身份与 maintainer/docs first-hop honesty。
+- `tests/meta/test_governance_route_handoff_smoke.py` 现以 isolated `--cwd` root 证明本地 GSD fast path；nested worktree 下 direct-cwd drift 只能视为 tooling fallback，不能充当 live route authority。
+- `uv run pytest -q tests/meta/governance_followup_route_current_milestones.py tests/meta/test_governance_route_handoff_smoke.py tests/meta/test_governance_release_contract.py tests/meta/test_governance_release_docs.py tests/meta/test_governance_release_continuity.py tests/meta/test_phase140_governance_source_freshness_guards.py tests/meta/toolchain_truth_checker_paths.py tests/meta/toolchain_truth_testing_governance.py tests/meta/test_version_sync.py` 与 `uv run python scripts/check_file_matrix.py --check` 共同定义 Phase 142 的 governance/toolchain exit proof。
 
 ## Phase 140 Execution Freeze
 

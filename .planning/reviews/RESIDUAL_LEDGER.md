@@ -2,9 +2,9 @@
 
 ## Current Residual Posture
 
-- `v1.43` 已从 active milestone route 冻结为 latest archived baseline；closeout verdict、archived snapshots、evidence index 与 selector family 现共同承认 archived-only current story。
-- `Phase 141` 未新增 active residual family：service-router seam narrowing、entry-root explicit factory wiring、runtime contract inward decomposition、device aggregate/runtime side-car hardening 与 governance closeout sync 现已收束为同一 archived bundle。
-- 当前 active residual posture = `zero active residual family`；若未来 reopen follow-up，必须登记新的 milestone / family / owner / exit condition，而不是复用已关闭的 `Phase 141` route。
+- `v1.44` 已从 `v1.43` latest archived baseline 显式重开为新的 active milestone route；这次 follow-up 的 owner 是新的 milestone / phase chain，而不是复活 `Phase 141` archived bundle。
+- `Phase 142` 已把 governance load shedding / derived-truth audit 收束成已完成的 current-route predecessor；当前 remaining work 继续是 `v1.44` milestone-owned follow-up charter，但**不额外登记为 active residual family**，范围只保留在 `Phase 143 -> 145` 的 toolchain/hotspot continuation。
+- `v1.43` 继续只承担 latest archived evidence 身份；任何新增工作都必须通过 `v1.44` selector family、`143-*` planning bundle 与后续 plans 显式承认。
 
 ## Phase 141 Residual Delta
 

@@ -1,4 +1,4 @@
-# Requirements: Lipro-HASS v1.43
+# Requirements
 
 <!-- governance-route-contract:start -->
 ```yaml
@@ -9,7 +9,14 @@ projection_targets:
 - .planning/REQUIREMENTS.md
 - .planning/STATE.md
 - .planning/MILESTONES.md
-active_milestone: null
+active_milestone:
+  version: v1.44
+  name: Governance Load Shedding & Sanctioned Hotspot Narrowing
+  status: active / phase 143 planned; execution-ready (2026-04-04)
+  phase: '143'
+  phase_title: toolchain freshness hardening and route-projection automation
+  phase_dir: 143-toolchain-freshness-hardening-and-route-projection-automation
+  route_mode: v1.44 active milestone route / Phase 143 planned / execution-ready / latest archived baseline = v1.43
 latest_archived:
   version: v1.43
   name: Hotspot Second-Pass Slimming & Governance Load Shedding
@@ -25,12 +32,87 @@ previous_archived:
   name: Hotspot Burn-Down, Observability Truth & Governance Cost Compression
   evidence_path: .planning/reviews/V1_42_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.43
-  default_next_command: $gsd-new-milestone
+  current_route: v1.44 active milestone route / Phase 143 planned / execution-ready / latest archived baseline = v1.43
+  default_next_command: $gsd-execute-phase 143
   latest_archived_evidence_pointer: .planning/reviews/V1_43_EVIDENCE_INDEX.md
 contract_version: 1
 ```
 <!-- governance-route-contract:end -->
+## Current Milestone (v1.44)
+
+**Milestone Goal:** 基于 `v1.43` latest archived baseline，显式重开 governance load shedding、toolchain freshness hardening 与 sanctioned hotspot narrowing：先清掉 derived truth / route hardcode / docs-entry 漂移，再继续 inward split `runtime_types.py`、request-policy family、dispatch / command-result、auth/session 与 firmware/share boundaries。 
+**Milestone status:** `active / phase 143 planned; execution-ready (2026-04-04)`
+**Current route mode:** `v1.44 active milestone route / Phase 143 planned / execution-ready / latest archived baseline = v1.43`
+**Starting baseline:** `.planning/v1.43-MILESTONE-AUDIT.md`, `.planning/reviews/V1_43_EVIDENCE_INDEX.md`, `.planning/milestones/v1.43-ROADMAP.md`, `.planning/milestones/v1.43-REQUIREMENTS.md`
+**Requirements basket:** `AUD-10, GOV-99, GOV-100, DOC-25, TST-62, QLT-60, GOV-101, DOC-26, TST-63, ARC-52, ARC-53, HOT-74, HOT-75, DOC-27, TST-64, ARC-54, HOT-76, HOT-77, GOV-102, DOC-28, TST-65`
+**Latest archived baseline:** `v1.43`
+**Archive pointer:** `.planning/reviews/V1_43_EVIDENCE_INDEX.md`
+**Latest archived audit artifact:** `.planning/v1.43-MILESTONE-AUDIT.md`
+**Default next command:** `$gsd-execute-phase 143`
+**Current phase handoff:** `Phase 142` 已完成治理减负 / derived-truth audit；`Phase 143` 当前已拥有 `143-01` ~ `143-03` plan bundle，下一步执行 `$gsd-execute-phase 143`，而不是回流为 archived-only continuation。
+
+### Governance / Derived Truth
+- [x] **AUD-10**: 审计 `.planning/codebase/*`、promoted assets、selector projections 与 maintainer-facing docs first-hop，清除重复 / 过期 / 影子真相，并把 derived-view 身份重新固定到 authority matrix / verification baseline 中。
+- [x] **GOV-99**: `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES`、registry、verification baseline、developer/runbook docs 与 focused route guards 必须共同承认 `v1.44 active milestone route / Phase 142 complete / Phase 143 planning-ready / latest archived baseline = v1.43`。
+- [x] **GOV-100**: selector family、latest archived pointer、promoted asset allowlist 与 archive snapshots 的职责边界必须继续 machine-checkable，避免 `.planning/codebase`、docs 或工具链回流成第二 authority chain。
+- [x] **DOC-25**: developer architecture / runbook 的 first-hop 说明必须从 archived-only posture 切到 `v1.44` active route，同时继续保持 `v1.43` 作为 pull-only archived evidence。
+- [x] **TST-62**: focused governance/toolchain/meta guards 必须冻结新 selector state、latest archived pointer 与 derived-view non-authority 边界。
+
+### Toolchain / Freshness
+- [ ] **QLT-60**: nested worktree / repo-root detection 在本仓库的工具链、freshness guard 与 link audit 中必须被显式硬化或降级为非 authority fallback，不再依赖 accidental cwd folklore。
+- [ ] **GOV-101**: `.planning/codebase` freshness、promoted asset projection、link audit 与 route hardcode 漏洞必须转成 machine-checkable proof，而不是靠手工复述。
+- [ ] **DOC-26**: contributor / release continuity first-hop 必须进一步压缩为 canonical selector family + latest archived evidence pointer，不得把 planning-only 叙事泄漏给 public docs。
+- [ ] **TST-63**: focused toolchain/freshness/link guards 必须覆盖 worktree/root-detection、selector projection 与 docs-entry drift。
+
+### Runtime / Command Contracts
+- [ ] **ARC-52**: `custom_components/lipro/runtime_types.py` 必须继续保持 shared runtime contract 的唯一 sanctioned outward root，但 breadth 仍可继续 inward decomposition 到 capability-local or control-local homes。
+- [ ] **ARC-53**: request-policy family 必须继续收敛到一个显式 owner / import home；support helper 只允许 inward narrowing，不得恢复 dual policy truth。
+- [ ] **HOT-74**: `core/command/dispatch.py`、`core/command/result.py` 与 `core/command/result_policy.py` 必须围绕单一 typed command-result taxonomy 继续瘦身。
+- [ ] **HOT-75**: request-policy / dispatch / command-result 交界处不得继续漂浮 stringly helper leakage、cross-family fallback folklore 或重复 failure classification。
+- [ ] **DOC-27**: developer/governance docs 必须记录 runtime-types、request-policy 与 command-result formal homes 的最新 narrowing 结果，但不得再造第二解释链。
+- [ ] **TST-64**: focused runtime/command/meta guards 必须冻结 narrowed command-policy contracts 与 outward semantics。
+
+### Auth / OTA / Share Boundaries
+- [ ] **ARC-54**: `core/auth/manager.py` 与 `core/api/auth_recovery.py` 必须继续 inward split / typed seam 收敛，同时保留单一 auth/session formal home。
+- [ ] **HOT-76**: refresh / relogin / recovery failure semantics 必须继续统一到 one typed contract，不再在 auth manager、API recovery 与 runtime call-sites 各自解释。
+- [ ] **HOT-77**: `entities/firmware_update.py`、`core/ota/manifest.py` 与 related share/report boundary 必须继续收窄 breadth；entity shell 仍是 thin projection，helpers 不得升格为 root。
+- [ ] **GOV-102**: v1.44 closeout 需要把 governance load shedding、toolchain hardening 与 sanctioned hotspot narrowing 同步收束为单一 selector story，而不是遗留 planning-only shadow route。
+- [ ] **DOC-28**: developer/release docs 必须解释 auth / firmware / share 正式归属与 archived evidence chain 的关系，不得引入新的 authority layer。
+- [ ] **TST-65**: focused auth/ota/share/meta suites 必须冻结 narrowed auth-session and firmware/share boundary contracts。
+
+## Coverage Snapshot
+
+- v1.44 requirements: 21 total
+- Current mapped: 21
+- Current complete: 5
+- Current pending: 16
+
+## Requirement Trace Table
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| AUD-10 | Phase 142 | Complete |
+| GOV-99 | Phase 142 | Complete |
+| GOV-100 | Phase 142 | Complete |
+| DOC-25 | Phase 142 | Complete |
+| TST-62 | Phase 142 | Complete |
+| QLT-60 | Phase 143 | Planned |
+| GOV-101 | Phase 143 | Planned |
+| DOC-26 | Phase 143 | Planned |
+| TST-63 | Phase 143 | Planned |
+| ARC-52 | Phase 144 | Planned |
+| ARC-53 | Phase 144 | Planned |
+| HOT-74 | Phase 144 | Planned |
+| HOT-75 | Phase 144 | Planned |
+| DOC-27 | Phase 144 | Planned |
+| TST-64 | Phase 144 | Planned |
+| ARC-54 | Phase 145 | Planned |
+| HOT-76 | Phase 145 | Planned |
+| HOT-77 | Phase 145 | Planned |
+| GOV-102 | Phase 145 | Planned |
+| DOC-28 | Phase 145 | Planned |
+| TST-65 | Phase 145 | Planned |
+
 ## Latest Archived Milestone (v1.43)
 
 **Milestone Goal:** 基于 `v1.42` latest archived baseline，完成 REST/protocol second-pass slimming、group_id forwarding honesty、release/governance freshness formalization，以及 control/runtime/device hotspot narrowing 与 governance closeout truth 的一次性收口；这些结果现已正式冻结为 archived baseline，而不是继续悬停在 closeout-ready 中间态。
@@ -99,7 +181,6 @@ contract_version: 1
 | GOV-96 | Phase 141 | Complete |
 | DOC-24 | Phase 141 | Complete |
 | TST-61 | Phase 141 | Complete |
-
 ## Previous Archived Milestone (v1.42)
 
 **Milestone Goal:** 基于 `v1.41` latest archived baseline，先完成 sanctioned hotspot burn-down，再把 closeout review 暴露出的 runtime/service typed contract 反向依赖、connect-status outcome 压平、support 命名守卫与 docs/archive 叙事张力收回同一 execution route；当前它已退回 previous archived baseline。
@@ -112,7 +193,6 @@ contract_version: 1
 **Latest archived audit artifact:** `.planning/v1.42-MILESTONE-AUDIT.md`
 **Default next command:** `$gsd-new-milestone`
 **Current phase handoff:** `v1.42 现已退回 previous archived baseline；其 archived snapshots、milestone audit 与 evidence index 继续作为 v1.43 closeout 的 pull-only predecessor truth。`
-
 ## Previous Archived Milestone (v1.41)
 
 **Milestone Goal:** 基于 `v1.40` latest archived baseline，完成 repo-wide terminal residual audit、remediation charter 与首批 focused hygiene fixes，把终极审阅结论冻结为 pull-only predecessor baseline。

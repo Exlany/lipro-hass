@@ -9,7 +9,14 @@ projection_targets:
 - .planning/REQUIREMENTS.md
 - .planning/STATE.md
 - .planning/MILESTONES.md
-active_milestone: null
+active_milestone:
+  version: v1.44
+  name: Governance Load Shedding & Sanctioned Hotspot Narrowing
+  status: active / phase 143 planned; execution-ready (2026-04-04)
+  phase: '143'
+  phase_title: toolchain freshness hardening and route-projection automation
+  phase_dir: 143-toolchain-freshness-hardening-and-route-projection-automation
+  route_mode: v1.44 active milestone route / Phase 143 planned / execution-ready / latest archived baseline = v1.43
 latest_archived:
   version: v1.43
   name: Hotspot Second-Pass Slimming & Governance Load Shedding
@@ -25,12 +32,33 @@ previous_archived:
   name: Hotspot Burn-Down, Observability Truth & Governance Cost Compression
   evidence_path: .planning/reviews/V1_42_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.43
-  default_next_command: $gsd-new-milestone
+  current_route: v1.44 active milestone route / Phase 143 planned / execution-ready / latest archived baseline = v1.43
+  default_next_command: $gsd-execute-phase 143
   latest_archived_evidence_pointer: .planning/reviews/V1_43_EVIDENCE_INDEX.md
 contract_version: 1
 ```
 <!-- governance-route-contract:end -->
+## Current Milestone (v1.44)
+
+## v1.44 Governance Load Shedding & Sanctioned Hotspot Narrowing (Started: 2026-04-04)
+
+**Status:** `active / phase 143 planned; execution-ready (2026-04-04)`
+**Current route:** `v1.44 active milestone route / Phase 143 planned / execution-ready / latest archived baseline = v1.43`
+**Phase range:** `142 -> 145`
+**Progress:** `1/4 phases, 3/6 plans`
+**Default next command:** `$gsd-execute-phase 143`
+**Latest archived pointer:** `.planning/reviews/V1_43_EVIDENCE_INDEX.md`
+**Pointer label:** latest archived evidence index = `.planning/reviews/V1_43_EVIDENCE_INDEX.md`
+**Latest archived audit:** `.planning/v1.43-MILESTONE-AUDIT.md`
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.43`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.42`
+
+**Current follow-up story:**
+
+- `Phase 142`: governance load shedding and derived truth audit ✅（`142-01` inventory & selector-boundary audit + `142-02` toolchain/freshness proof hardening + `142-03` docs/baseline/guard sync 已完成，并把 current route 继续清到 `Phase 143` execution-ready）
+- `Phase 143`: toolchain freshness hardening and route-projection automation 🚧（`143-01` nested-worktree/root-proof guards + `143-02` freshness/link/derived-map automation + `143-03` route projection/docs continuity guard sync 已计划化，下一步执行）
+- `Phase 144`: runtime-types, request-policy, and dispatch hotspot narrowing ⏳（typed runtime contracts + request-policy ownership + command-result taxonomy）
+- `Phase 145`: auth, firmware, and share boundary hardening ⏳（auth/session recovery + firmware/OTA/share boundary narrowing + closeout sync）
 
 ## Latest Archived Milestone (v1.43)
 
@@ -54,7 +82,6 @@ contract_version: 1
 - `Phase 139`: REST/protocol mega-facade second-pass slimming and boundary hardening ✅ (`139-01` protocol rest-port binding split + `139-02` REST facade internal split / schedule group_id repair + `139-03` tests/docs/governance sync complete)
 - `Phase 140`: release/governance source compression and codebase freshness ✅ (`140-01` stale verification lane / baseline refresh + `140-02` public-summary / access-mode contract formalization + `140-03` route/governance/guard sync complete)
 - `Phase 141`: control/runtime hotspot narrowing and device aggregate hardening ✅ (`141-01` service-router seam narrowing + `141-02` entry-root explicit factory wiring + `141-03` runtime contract inward decomposition + `141-04` device aggregate/runtime side-car hardening + `141-05` governance closeout sync complete)
-
 ## Previous Archived Milestone (v1.42)
 
 ## v1.42 Hotspot Burn-Down, Observability Truth & Governance Cost Compression (Shipped: 2026-04-02)
@@ -75,7 +102,6 @@ contract_version: 1
 
 - `Phase 137`: hotspot burn-down, command/observability convergence, and governance derivation compression ✅ (`137-01` governance/docs/test contract hardening + `137-02` protocol/rest/auth hotspot decomposition + `137-03` device/command/observability hardening complete)
 - `Phase 138`: runtime contract decoupling, support-guard hardening, and docs archive alignment ✅ (`138-01` governance/docs/route follow-up + `138-02` runtime/service contract decoupling + `138-03` support naming guard / verification sync + `138-04` connect-status outcome propagation complete)
-
 ## Previous Archived Milestone (v1.41)
 
 ## v1.41 Terminal Residual Audit, Remediation Charter & Maintainability Hardening (Shipped: 2026-04-02)

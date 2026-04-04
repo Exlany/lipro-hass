@@ -2,12 +2,12 @@
 
 ## Milestones
 
+- 🚧 **v1.44 Governance Load Shedding & Sanctioned Hotspot Narrowing** - `Phase 142 -> 145` active on 2026-04-04; current route = `v1.44 active milestone route / Phase 143 planned / execution-ready / latest archived baseline = v1.43`; latest archived evidence index = `.planning/reviews/V1_43_EVIDENCE_INDEX.md`
 - ✅ **v1.43 Hotspot Second-Pass Slimming & Governance Load Shedding** - `Phase 139 -> 141` archived on 2026-04-04; historical closeout route truth = `no active milestone route / latest archived baseline = v1.43`; evidence index = `.planning/reviews/V1_43_EVIDENCE_INDEX.md`
 - ✅ **v1.42 Hotspot Burn-Down, Observability Truth & Governance Cost Compression** - `Phase 137 -> 138` archived on 2026-04-02; historical closeout route truth = `no active milestone route / latest archived baseline = v1.42`; evidence index = `.planning/reviews/V1_42_EVIDENCE_INDEX.md`
 - ✅ **v1.41 Terminal Residual Audit, Remediation Charter & Maintainability Hardening** - `Phase 136 -> 136` archived on 2026-04-02; historical closeout route truth = `no active milestone route / latest archived baseline = v1.41`; evidence index = `.planning/reviews/V1_41_EVIDENCE_INDEX.md`
 - ✅ **v1.40 Request Policy Ownership, Entity De-Reflection & Fan Truth Hardening** - `Phase 134 -> 135` archived on 2026-04-02; historical closeout route truth = `no active milestone route / latest archived baseline = v1.40`; evidence index = `.planning/reviews/V1_40_EVIDENCE_INDEX.md`
 - ✅ **v1.39 Governance Recovery, Runtime Consistency & Public Contract Correction** - `Phase 133 -> 133` archived on 2026-04-02; historical closeout route truth = `no active milestone route / latest archived baseline = v1.39`; evidence index = `.planning/reviews/V1_39_EVIDENCE_INDEX.md`
-- ✅ **v1.38 Governance Story Compression, Archive Segregation & Public Entry Simplification** - `Phase 132 -> 132` archived on 2026-04-02; historical closeout route truth = `no active milestone route / latest archived baseline = v1.38`; evidence index = `.planning/reviews/V1_38_EVIDENCE_INDEX.md`
 
 <!-- governance-route-contract:start -->
 ```yaml
@@ -18,7 +18,14 @@ projection_targets:
 - .planning/REQUIREMENTS.md
 - .planning/STATE.md
 - .planning/MILESTONES.md
-active_milestone: null
+active_milestone:
+  version: v1.44
+  name: Governance Load Shedding & Sanctioned Hotspot Narrowing
+  status: active / phase 143 planned; execution-ready (2026-04-04)
+  phase: '143'
+  phase_title: toolchain freshness hardening and route-projection automation
+  phase_dir: 143-toolchain-freshness-hardening-and-route-projection-automation
+  route_mode: v1.44 active milestone route / Phase 143 planned / execution-ready / latest archived baseline = v1.43
 latest_archived:
   version: v1.43
   name: Hotspot Second-Pass Slimming & Governance Load Shedding
@@ -34,19 +41,92 @@ previous_archived:
   name: Hotspot Burn-Down, Observability Truth & Governance Cost Compression
   evidence_path: .planning/reviews/V1_42_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: no active milestone route / latest archived baseline = v1.43
-  default_next_command: $gsd-new-milestone
+  current_route: v1.44 active milestone route / Phase 143 planned / execution-ready / latest archived baseline = v1.43
+  default_next_command: $gsd-execute-phase 143
   latest_archived_evidence_pointer: .planning/reviews/V1_43_EVIDENCE_INDEX.md
 contract_version: 1
 ```
 <!-- governance-route-contract:end -->
-
 ## Overview
 
-`v1.43` 已正式从 active closeout route 提升为 latest archived baseline：REST/protocol second-pass slimming、release/governance freshness、control/runtime hotspot narrowing、device aggregate/runtime side-car hardening 与 milestone audit 现统一冻结为 pull-only archived evidence chain。
+`v1.44` 直接继承 `v1.43` 的 archived audit / evidence chain，但不把 zero-active archived posture 误读成“无需继续演进”：当前路线显式重开 governance load shedding、toolchain freshness hardening 与 sanctioned hotspot narrowing，继续把仓库压回单一 north-star 主链。
 
-**Coverage:** `18/18` `v1.43` requirements complete in `Phase 139 -> 141`.
-**Default next command:** `$gsd-new-milestone`
+**Coverage:** `5/21` `v1.44` requirements complete in `Phase 142 -> 145`; current active plan bundle = `3 completed predecessor / 3 planned current phase`.
+**Default next command:** `$gsd-execute-phase 143`
+
+## Current Milestone
+
+## v1.44: Governance Load Shedding & Sanctioned Hotspot Narrowing
+
+**Milestone status:** `active / phase 143 planned; execution-ready (2026-04-04)`
+**Default next command:** `$gsd-execute-phase 143`
+**Current route story:** `v1.44 active milestone route / Phase 143 planned / execution-ready / latest archived baseline = v1.43`
+**Latest archived pointer:** `.planning/reviews/V1_43_EVIDENCE_INDEX.md`
+**Latest archived audit artifact:** `.planning/v1.43-MILESTONE-AUDIT.md`
+**Promoted phase evidence allowlist:** `.planning/reviews/PROMOTED_PHASE_ASSETS.md`
+**Current phase handoff:** Phase 142 已作为已完成 predecessor 固化；Phase 143 现已具备 143-01 ~ 143-03 计划束，current route 进入 execution-ready，后续按既定 wave 执行再推进 Phase 144 -> 145。
+**Plans**: `3 completed predecessor + 3 planned current phase` — run `$gsd-execute-phase 143`
+
+## Phases
+
+- [x] **Phase 142: governance load shedding and derived truth audit** - 已收口 selector family、promoted assets、`.planning/codebase` derived views、latest archived pointer 与 maintainer-facing first-hop 的职责边界，并为 `Phase 143` 的 execution-ready 计划束清出单一路径。 (complete 2026-04-04)
+- [ ] **Phase 143: toolchain freshness hardening and route-projection automation** - 已生成 `143-01` root-proof guard hardening、`143-02` freshness/link/derived-map automation、`143-03` route projection/docs continuity guard sync 三个计划束；下一步执行并收口 machine-checkable contract。 (execution-ready 2026-04-04)
+- [ ] **Phase 144: runtime-types, request-policy, and dispatch hotspot narrowing** - 对 `runtime_types.py`、request-policy family 与 command-result / dispatch hot path 继续 inward split 与 typed narrowing。 (queued 2026-04-04)
+- [ ] **Phase 145: auth, firmware, and share boundary hardening** - 对 auth/session recovery、firmware update / OTA manifest 与 share/report 边界继续收窄，并完成 milestone closeout sync。 (queued 2026-04-04)
+
+## Phase Details
+
+### Phase 142: governance load shedding and derived truth audit
+
+**Goal:** 先把 `.planning` 派生文档、selector projections、promoted assets、latest archived pointer 与 maintainer-facing docs first-hop 的职责重新压缩成单一 authority story，再为后续 toolchain 与 hotspot work 建立不漂移的 planning foundation。
+**Depends on:** none
+**Inputs**: `.planning/phases/142-governance-load-shedding-and-derived-truth-audit/142-CONTEXT.md`
+**Requirements**: `AUD-10`, `GOV-99`, `GOV-100`, `DOC-25`, `TST-62`
+**Success Criteria** (what must be TRUE):
+  1. `.planning/codebase/*.md` 的 freshness / authority / snapshot 身份与 current route selector family 的边界被重新明确，derived views 不再伪装成 live truth。
+  2. `PROJECT / ROADMAP / REQUIREMENTS / STATE / MILESTONES`、registry、verification baseline、developer/runbook docs 与 focused guards 共同承认 `v1.44 active milestone route / Phase 142 complete / Phase 143 planning-ready / latest archived baseline = v1.43`。
+  3. promoted assets、archive snapshots、latest archived evidence pointer 与 default-next truth 的职责分工继续 machine-checkable。
+  4. 142 phase plan 明确指出哪些 toolchain / docs / guard drift 需要自动化 proof，哪些属于 archived-only predecessor evidence。
+**Plans**: `3 completed` — route has since advanced to `$gsd-execute-phase 143`
+
+### Phase 143: toolchain freshness hardening and route-projection automation
+
+**Goal:** 把 nested worktree / repo-root detection、freshness audit、link audit 与 route projection 从“经验性好用”升级为可验证 contract，降低后续治理维护税与 handoff 失真概率。
+**Depends on:** Phase 142
+**Inputs**: `.planning/phases/143-toolchain-freshness-hardening-and-route-projection-automation/{143-CONTEXT.md,143-RESEARCH.md}`
+**Requirements**: `QLT-60`, `GOV-101`, `DOC-26`, `TST-63`
+**Success Criteria** (what must be TRUE):
+  1. 本仓库中的 toolchain/root detection 不再把 nested worktree cwd 偶然性误当 authority signal。
+  2. `.planning/codebase` freshness、selector projection、docs-entry drift 与 link audit 至少有一条 machine-checkable proof chain。
+  3. contributor / release continuity first-hop 继续压缩到 canonical selector family + latest archived evidence，不引入新 authority layer。
+  4. focused tests 能证明上述 contract 在 worktree / CI / local checks 下不再 silently drift。
+**Plans**: `3 planned` — run `$gsd-execute-phase 143`
+
+### Phase 144: runtime-types, request-policy, and dispatch hotspot narrowing
+
+**Goal:** 在不改变 sanctioned formal homes 的前提下，继续缩减 `runtime_types.py` breadth、request-policy family ownership ambiguity 与 command dispatch/result policy 的 mixed responsibilities。
+**Depends on:** Phase 143
+**Inputs**: `.planning/phases/144-runtime-types-request-policy-and-dispatch-hotspot-narrowing/144-CONTEXT.md`
+**Requirements**: `ARC-52`, `ARC-53`, `HOT-74`, `HOT-75`, `DOC-27`, `TST-64`
+**Success Criteria** (what must be TRUE):
+  1. `runtime_types.py` 继续保持唯一 outward runtime contract home，但 capability-local / control-local projections 不再把 breadth 无限制吸回 root。
+  2. request-policy family 保持一个显式 owner / import home，support helpers 只承担 inward narrowing。
+  3. dispatch / result / result_policy 共享单一 typed command-result taxonomy，不再重复解释 failure / pending / confirmation semantics。
+  4. docs / meta guards 能解释并冻结新的 formal homes 与 dependency boundaries。
+**Plans**: `0 planned`
+
+### Phase 145: auth, firmware, and share boundary hardening
+
+**Goal:** 在 auth/session、firmware update / OTA manifest 与 anonymous-share/report boundaries 上继续 inward split，同时把 milestone closeout selector story 一并收口。
+**Depends on:** Phase 144
+**Inputs**: `.planning/phases/145-auth-firmware-and-share-boundary-hardening/145-CONTEXT.md`
+**Requirements**: `ARC-54`, `HOT-76`, `HOT-77`, `GOV-102`, `DOC-28`, `TST-65`
+**Success Criteria** (what must be TRUE):
+  1. auth manager / auth recovery 继续 inward decomposition，但 formal auth/session home 不漂移。
+  2. refresh / relogin / recovery semantics 与 firmware/share boundary semantics 分别保持 typed, machine-checkable truth。
+  3. firmware update entity shell 继续是 thin projection；OTA/share helpers 不得升格为第二 root。
+  4. closeout 时 selector family、docs first-hop、verification baseline 与 archived evidence chain 能回到单一 authoritative story。
+**Plans**: `0 planned`
 
 ## Latest Archived Milestone
 
@@ -105,7 +185,6 @@ contract_version: 1
 **Plans**: 5 planned / 5 completed — `141-01` router seam narrowing、`141-02` entry-root explicit factory wiring、`141-03` runtime contract inward decomposition、`141-04` device aggregate/runtime side-car hardening、`141-05` governance closeout and route sync。
 **Status**: complete / closeout-ready — `141-*` summaries、aggregate closeout bundle 与 governance route truth 已同步收口。
 **Default next**: `$gsd-complete-milestone v1.43`
-
 ## Previous Archived Milestone
 
 ## v1.42: Hotspot Burn-Down, Observability Truth & Governance Cost Compression
@@ -155,7 +234,6 @@ contract_version: 1
   5. `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`、registry 与 verification baseline 必须共同承认 `Phase 138` 是当前 terminal closeout-ready phase。
   6. focused `pytest`、`ruff`、`check_file_matrix` 与 `check_architecture_policy` 必须通过。
 **Plans**: 4 planned / 4 completed — summaries captured; archived baseline frozen; next = `$gsd-new-milestone`
-
 ## Previous Archived Milestone
 
 ## v1.41: Terminal Residual Audit, Remediation Charter & Maintainability Hardening
