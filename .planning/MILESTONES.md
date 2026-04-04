@@ -9,58 +9,53 @@ projection_targets:
 - .planning/REQUIREMENTS.md
 - .planning/STATE.md
 - .planning/MILESTONES.md
-active_milestone:
+active_milestone: null
+latest_archived:
   version: v1.43
   name: Hotspot Second-Pass Slimming & Governance Load Shedding
-  status: active / phase 141 complete; closeout-ready (2026-04-02)
+  status: archived / evidence-ready (2026-04-04)
   phase: '141'
   phase_title: control/runtime hotspot narrowing and device aggregate hardening
   phase_dir: 141-control-runtime-hotspot-narrowing-and-device-aggregate-hardening
-  route_mode: v1.43 active milestone route / Phase 141 complete / closeout-ready / latest archived baseline = v1.42
-latest_archived:
-  version: v1.42
-  name: Hotspot Burn-Down, Observability Truth & Governance Cost Compression
-  status: archived / evidence-ready (2026-04-02)
-  phase: '138'
-  phase_title: runtime contract decoupling, support-guard hardening, and docs archive alignment
-  phase_dir: 138-runtime-contract-decoupling-support-guard-and-docs-alignment
-  audit_path: .planning/v1.42-MILESTONE-AUDIT.md
-  evidence_path: .planning/reviews/V1_42_EVIDENCE_INDEX.md
+  audit_path: .planning/v1.43-MILESTONE-AUDIT.md
+  evidence_path: .planning/reviews/V1_43_EVIDENCE_INDEX.md
   evidence_label: latest archived evidence index
 previous_archived:
-  version: v1.41
-  name: Terminal Residual Audit, Remediation Charter & Maintainability Hardening
-  evidence_path: .planning/reviews/V1_41_EVIDENCE_INDEX.md
+  version: v1.42
+  name: Hotspot Burn-Down, Observability Truth & Governance Cost Compression
+  evidence_path: .planning/reviews/V1_42_EVIDENCE_INDEX.md
 bootstrap:
-  current_route: v1.43 active milestone route / Phase 141 complete / closeout-ready / latest archived baseline = v1.42
-  default_next_command: $gsd-complete-milestone v1.43
-  latest_archived_evidence_pointer: .planning/reviews/V1_42_EVIDENCE_INDEX.md
+  current_route: no active milestone route / latest archived baseline = v1.43
+  default_next_command: $gsd-new-milestone
+  latest_archived_evidence_pointer: .planning/reviews/V1_43_EVIDENCE_INDEX.md
 contract_version: 1
 ```
 <!-- governance-route-contract:end -->
 
-## Current Milestone (v1.43)
+## Latest Archived Milestone (v1.43)
 
-## v1.43 Hotspot Second-Pass Slimming & Governance Load Shedding (Started: 2026-04-02)
+## v1.43 Hotspot Second-Pass Slimming & Governance Load Shedding (Shipped: 2026-04-04)
 
-**Status:** `active / phase 141 complete; closeout-ready (2026-04-02)`
-**Current route:** `v1.43 active milestone route / Phase 141 complete / closeout-ready / latest archived baseline = v1.42`
+**Status:** `archived / evidence-ready (2026-04-04)`
+**Current route:** `no active milestone route / latest archived baseline = v1.43`
 **Phase range:** `139 -> 141`
 **Progress:** `3/3 phases, 11/11 plans`
-**Default next command:** `$gsd-complete-milestone v1.43`
-**Latest archived pointer:** `.planning/reviews/V1_42_EVIDENCE_INDEX.md`
-**Pointer label:** latest archived evidence index = `.planning/reviews/V1_42_EVIDENCE_INDEX.md`
-**Latest archived audit:** `.planning/v1.42-MILESTONE-AUDIT.md`
-**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.42`
-**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.41`
+**Default next command:** `$gsd-new-milestone`
+**Latest archived pointer:** `.planning/reviews/V1_43_EVIDENCE_INDEX.md`
+**Pointer label:** latest archived evidence index = `.planning/reviews/V1_43_EVIDENCE_INDEX.md`
+**Archived audit reference:** `.planning/v1.43-MILESTONE-AUDIT.md`
+**Archived snapshots:** `.planning/milestones/v1.43-ROADMAP.md, .planning/milestones/v1.43-REQUIREMENTS.md`
+**Archive state:** `archived snapshots created / evidence-ready`
+**Historical closeout marker:** historical closeout route truth = `no active milestone route / latest archived baseline = v1.43`
+**Historical archive-transition marker:** historical archive-transition route truth = `no active milestone route / latest archived baseline = v1.42`
 
-**Current phase story:**
+**Shipped phase story:**
 
 - `Phase 139`: REST/protocol mega-facade second-pass slimming and boundary hardening ✅ (`139-01` protocol rest-port binding split + `139-02` REST facade internal split / schedule group_id repair + `139-03` tests/docs/governance sync complete)
 - `Phase 140`: release/governance source compression and codebase freshness ✅ (`140-01` stale verification lane / baseline refresh + `140-02` public-summary / access-mode contract formalization + `140-03` route/governance/guard sync complete)
 - `Phase 141`: control/runtime hotspot narrowing and device aggregate hardening ✅ (`141-01` service-router seam narrowing + `141-02` entry-root explicit factory wiring + `141-03` runtime contract inward decomposition + `141-04` device aggregate/runtime side-car hardening + `141-05` governance closeout sync complete)
 
-## Latest Archived Milestone (v1.42)
+## Previous Archived Milestone (v1.42)
 
 ## v1.42 Hotspot Burn-Down, Observability Truth & Governance Cost Compression (Shipped: 2026-04-02)
 

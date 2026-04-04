@@ -25,10 +25,7 @@ _STALE_VERIFICATION_TOKENS = (
     "tests/meta/test_governance_bootstrap_smoke.py",
     "tests/meta/test_governance_route_handoff_smoke.py",
 )
-_PHASE140_ROUTE = (
-    "v1.43 active milestone route / Phase 141 complete / "
-    "closeout-ready / latest archived baseline = v1.42"
-)
+_CURRENT_ARCHIVED_ROUTE = "no active milestone route / latest archived baseline = v1.43"
 _PHASE140_GUARD = "tests/meta/test_phase140_governance_source_freshness_guards.py"
 
 
@@ -110,19 +107,21 @@ def test_phase140_ledgers_registry_and_guides_register_predecessor_guard_chain()
     registry = json.loads(_read(_GOVERNANCE_REGISTRY))
     planning_route = registry["planning_route"]
     active_milestone = planning_route["active_milestone"]
+    latest_archived = planning_route["latest_archived"]
     bootstrap = planning_route["bootstrap"]
 
-    assert active_milestone["phase"] == "141"
+    assert active_milestone is None
+    assert latest_archived["phase"] == "141"
     assert (
-        active_milestone["phase_title"]
+        latest_archived["phase_title"]
         == "control/runtime hotspot narrowing and device aggregate hardening"
     )
-    assert bootstrap["current_route"] == _PHASE140_ROUTE
-    assert bootstrap["default_next_command"] == "$gsd-complete-milestone v1.43"
+    assert bootstrap["current_route"] == _CURRENT_ARCHIVED_ROUTE
+    assert bootstrap["default_next_command"] == "$gsd-new-milestone"
 
     for text in (verification_text, testing_text, file_matrix_text, residual_text):
         assert "Phase 140" in text
         assert _PHASE140_GUARD in text
 
-    assert _PHASE140_ROUTE in developer_text
+    assert _CURRENT_ARCHIVED_ROUTE in developer_text
     assert "Phase 140" not in developer_text

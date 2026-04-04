@@ -2,9 +2,9 @@
 
 ## Current Residual Posture
 
-- `v1.43` 已显式保持为 active milestone route；当前 closeout verdict 已承认 `Phase 141 complete / closeout-ready`，不再留下 planning-ready 幻觉。
-- `Phase 141` 未新增 active residual family：service-router seam narrowing、entry-root explicit factory wiring、runtime contract inward decomposition、device aggregate/runtime side-car hardening 与 governance closeout sync 现已收束为同一 closeout bundle。
-- 当前 active residual posture = `zero active residual family`；若未来 reopen follow-up，必须登记新 family / owner / exit condition，而不是复用已关闭的 `Phase 141` route。
+- `v1.43` 已从 active milestone route 冻结为 latest archived baseline；closeout verdict、archived snapshots、evidence index 与 selector family 现共同承认 archived-only current story。
+- `Phase 141` 未新增 active residual family：service-router seam narrowing、entry-root explicit factory wiring、runtime contract inward decomposition、device aggregate/runtime side-car hardening 与 governance closeout sync 现已收束为同一 archived bundle。
+- 当前 active residual posture = `zero active residual family`；若未来 reopen follow-up，必须登记新的 milestone / family / owner / exit condition，而不是复用已关闭的 `Phase 141` route。
 
 ## Phase 141 Residual Delta
 

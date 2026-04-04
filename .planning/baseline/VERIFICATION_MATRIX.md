@@ -1,21 +1,21 @@
 # Verification Matrix
 
 **Purpose:** 建立 requirement → artifact → test → doc → phase acceptance / handoff 的统一验证闭环。
-**Current route selector:** `v1.43 active milestone route / Phase 141 complete / closeout-ready / latest archived baseline = v1.42`
-**Default next command:** `$gsd-complete-milestone v1.43`
-**Latest archived pointer:** `.planning/reviews/V1_42_EVIDENCE_INDEX.md`
+**Current route selector:** `no active milestone route / latest archived baseline = v1.43`
+**Default next command:** `$gsd-new-milestone`
+**Latest archived pointer:** `.planning/reviews/V1_43_EVIDENCE_INDEX.md`
 **Status:** Formal baseline asset (`BASE-03` phase acceptance truth source)
-**Updated:** 2026-04-02 (v1.43 Phase 141 complete / closeout-ready)
+**Updated:** 2026-04-04 (v1.43 archived closeout)
 
 ## Formal Role
 
 ## Current Route
 
-- **Current route story:** `v1.43 active milestone route / Phase 141 complete / closeout-ready / latest archived baseline = v1.42`
-- **Current milestone status:** `active / phase 141 complete; closeout-ready (2026-04-02)`
-- **Default next command:** `$gsd-complete-milestone v1.43`
-- **Latest archived pointer:** `.planning/reviews/V1_42_EVIDENCE_INDEX.md`
-- **Carry-forward audit anchors:** `.planning/reviews/V1_42_EVIDENCE_INDEX.md`, `.planning/v1.42-MILESTONE-AUDIT.md`
+- **Current route story:** `no active milestone route / latest archived baseline = v1.43`
+- **Current milestone status:** `archived / evidence-ready (2026-04-04)`
+- **Default next command:** `$gsd-new-milestone`
+- **Latest archived pointer:** `.planning/reviews/V1_43_EVIDENCE_INDEX.md`
+- **Carry-forward audit anchors:** `.planning/reviews/V1_43_EVIDENCE_INDEX.md`, `.planning/v1.43-MILESTONE-AUDIT.md`
 - **Focused guards:** `tests/meta/governance_followup_route_current_milestones.py`, `tests/meta/test_governance_route_handoff_smoke.py`, `tests/meta/test_governance_release_docs.py`, `tests/meta/test_governance_release_continuity.py`, `tests/meta/test_governance_release_contract.py`, `tests/meta/test_governance_promoted_phase_assets.py`, `tests/meta/test_phase140_governance_source_freshness_guards.py`, `tests/meta/toolchain_truth_docs_fast_path.py`, `tests/meta/toolchain_truth_testing_governance.py`, `tests/meta/test_version_sync.py`
 
 - 本文件是 `Phase 1.5` 及其下游 phases 的正式 acceptance truth；phase docs / summaries 只能引用、实例化或扩展，不得平行定义 exit contract。
