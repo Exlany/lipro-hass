@@ -1,4 +1,4 @@
-"""MQTT payload parsing and log sanitization helpers."""
+"""MQTT payload log sanitization helpers and boundary-family shim."""
 
 from __future__ import annotations
 
@@ -6,13 +6,12 @@ import json
 import re
 from typing import Any, Final
 
-from ..utils.property_normalization import normalize_properties
+from ..protocol.boundary.mqtt_decoder import (
+    _MAX_MQTT_PAYLOAD_BYTES,
+    decode_mqtt_message_envelope_payload,
+    decode_mqtt_properties_payload,
+)
 
-# Values that indicate "not supported" in MQTT payloads — skip these
-_NOISE_VALUES: Final[frozenset[str]] = frozenset({"-1", ""})
-
-# Hard limit for incoming MQTT payloads to avoid excessive memory/log churn.
-_MAX_MQTT_PAYLOAD_BYTES: Final[int] = 64 * 1024
 # Max payload preview length in debug logs.
 _MAX_MQTT_LOG_CHARS: Final[int] = 200
 
@@ -65,41 +64,11 @@ _MQTT_LOG_STRING_PATTERNS: Final[tuple[tuple[re.Pattern[str], str], ...]] = (
     ),
 )
 
-# MQTT payload property groups that contain device state
-_MQTT_PROPERTY_GROUPS: Final[tuple[str, ...]] = (
-    "common",
-    "light",
-    "fanLight",
-    "switchs",
-    "outlet",
-    "curtain",
-    "gateway",
-)
-
 
 def parse_mqtt_payload(payload: Any) -> dict[str, Any]:
-    """Parse MQTT payload and flatten properties."""
-    if not isinstance(payload, dict):
-        return {}
-
-    properties: dict[str, Any] = {}
-
-    for group_name in _MQTT_PROPERTY_GROUPS:
-        group_data = payload.get(group_name)
-        if not isinstance(group_data, dict):
-            continue
-
-        for mqtt_key, value in group_data.items():
-            # Skip noise values: "-1" means unsupported, "" means empty
-            if isinstance(value, str) and value.strip() in _NOISE_VALUES:
-                continue
-            if isinstance(value, (int, float)) and value == -1:
-                continue
-
-            key = str(mqtt_key)
-            properties[key] = value
-
-    return normalize_properties(properties)
+    """Decode MQTT payloads via the formal protocol boundary family."""
+    envelope = decode_mqtt_message_envelope_payload(payload).canonical
+    return decode_mqtt_properties_payload(envelope).canonical
 
 
 def _sanitize_mqtt_log_value(value: Any, key: str | None = None) -> Any:

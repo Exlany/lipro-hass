@@ -1,0 +1,16 @@
+{
+  "scenario_id": "rest-query-mesh-schedule-json-v1",
+  "channel": "rest",
+  "family": "rest.schedule-json",
+  "version": "v1",
+  "operation": "protocol.contracts.normalize_schedule_json",
+  "authority_path": "tests/fixtures/api_contracts/query_mesh_schedule_json.v1.json",
+  "assertion_families": [
+    "canonical",
+    "drift",
+    "telemetry"
+  ],
+  "seed": 7411,
+  "clock_baseline": "2026-03-14T00:00:00Z",
+  "notes": "mesh scheduleJson decode must reuse the same canonical boundary truth as request-side encoding"
+}

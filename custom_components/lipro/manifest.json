@@ -1,12 +1,17 @@
 {
   "domain": "lipro",
   "name": "Lipro Smart Home",
-  "codeowners": ["@Exlany"],
+  "codeowners": [
+    "@Exlany"
+  ],
   "config_flow": true,
-  "documentation": "https://github.com/Exlany/lipro-hass",
+  "documentation": "https://github.com/Exlany/lipro-hass/blob/v1.0.0/docs/README.md",
   "integration_type": "hub",
   "iot_class": "cloud_push",
-  "issue_tracker": "https://github.com/Exlany/lipro-hass/issues",
-  "requirements": ["aiomqtt>=2.0.0", "pycryptodome>=3.19.0"],
+  "issue_tracker": "https://github.com/Exlany/lipro-hass/blob/v1.0.0/SUPPORT.md",
+  "requirements": [
+    "aiomqtt>=2.0.0,<3.0.0",
+    "pycryptodome>=3.19.0,<4.0.0"
+  ],
   "version": "1.0.0"
 }

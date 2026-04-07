@@ -1,11 +1,16 @@
 """Command and property constants for the Lipro integration."""
 
+from __future__ import annotations
+
 from typing import Final
+
+from .entity_config import DEFAULT_MAX_KELVIN, DEFAULT_MIN_KELVIN
 
 # Commands
 CMD_POWER_ON: Final = "POWER_ON"
 CMD_POWER_OFF: Final = "POWER_OFF"
 CMD_CHANGE_STATE: Final = "CHANGE_STATE"
+CMD_PANEL_CHANGE_STATE: Final = "PANEL_CHANGE_STATE"
 CMD_CURTAIN_OPEN: Final = "CURTAIN_OPEN"
 CMD_CURTAIN_CLOSE: Final = "CURTAIN_CLOSE"
 CMD_CURTAIN_STOP: Final = "CURTAIN_STOP"
@@ -28,6 +33,12 @@ PROP_WAKE_UP_ENABLE: Final = "wakeUpEnable"
 # Property keys - Floor Lamp (落地灯)
 PROP_FOCUS_MODE: Final = "focusMode"
 PROP_BODY_REACTIVE: Final = "bodyReactive"
+
+# Property keys - Switch Panel (开关面板)
+PROP_LED: Final = "led"
+PROP_MEMORY: Final = "memory"
+PROP_PAIR_KEY_FULL: Final = "pairKeyFull"
+PROP_PANEL_INFO: Final = "panelInfo"
 
 # Property keys - Bedside Light (床头灯)
 PROP_BATTERY: Final = "battery"
@@ -71,6 +82,11 @@ PROP_MESH_TYPE: Final = "meshType"
 PROP_MESH_GATEWAY: Final = "gateway"
 PROP_BLE_MAC: Final = "bleMac"
 
+# Property keys - Infrared / Gateway (红外 / 网关)
+PROP_IR_SWITCH: Final = "irSwitch"
+PROP_IS_SUPPORT_IR_SWITCH: Final = "isSupportIrSwitch"
+PROP_RC_LIST: Final = "rcList"
+
 # Property keys - Metadata (元数据)
 PROP_LATEST_SYNC_TIMESTAMP: Final = "latestSyncTimestamp"
 
@@ -106,9 +122,10 @@ WIND_DIRECTION_FIX: Final = 2
 # Note: Actual device ranges vary by product (e.g., 3000-4000K, 3000-5000K)
 # Device-specific ranges are loaded from product configs and stored in
 # device.min_color_temp_kelvin / device.max_color_temp_kelvin
-MIN_COLOR_TEMP_KELVIN: Final = 2700
-MAX_COLOR_TEMP_KELVIN: Final = 6500
-COLOR_TEMP_RANGE: Final = MAX_COLOR_TEMP_KELVIN - MIN_COLOR_TEMP_KELVIN  # 3800
+# These constants reference centralized defaults from entity_config.py
+MIN_COLOR_TEMP_KELVIN: Final = DEFAULT_MIN_KELVIN
+MAX_COLOR_TEMP_KELVIN: Final = DEFAULT_MAX_KELVIN
+COLOR_TEMP_RANGE: Final = MAX_COLOR_TEMP_KELVIN - MIN_COLOR_TEMP_KELVIN
 
 
 def percent_to_kelvin(percent: int) -> int:

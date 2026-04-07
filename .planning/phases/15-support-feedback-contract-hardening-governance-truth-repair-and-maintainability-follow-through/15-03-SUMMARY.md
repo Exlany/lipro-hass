@@ -1,0 +1,2 @@
+- `pyproject.toml` 继续作为最低支持 Home Assistant 版本的唯一真源；README / README_zh / CONTRIBUTING / SUPPORT / SECURITY / bug template 已统一前置 `2026.3.1` 与 private-repo HACS caveat。
+- `tests/meta/test_version_sync.py` 现会阻断 README/support/security/phase docs 的版本与 HACS caveat 漂移。

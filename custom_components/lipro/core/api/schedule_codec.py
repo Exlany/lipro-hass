@@ -2,52 +2,28 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 import json
 import logging
-import re
-from typing import Any
+from typing import TypeGuard, cast
+
+from .types import ScheduleTimingRow
 
 _LOGGER = logging.getLogger(__name__)
-_HH_MM_TIME_PATTERN = re.compile(r"(\d{1,2}):(\d{2})")
 _INVALID_JSON_PREVIEW_MAX_CHARS = 200
 
-
-def _parse_hhmm_seconds(value: Any) -> list[int]:
-    """Parse ``HH:MM`` string into one schedule second value."""
-    if not isinstance(value, str):
-        return []
-    match = _HH_MM_TIME_PATTERN.fullmatch(value.strip())
-    if not match:
-        return []
-
-    hours = int(match.group(1))
-    minutes = int(match.group(2))
-    if not (0 <= hours <= 23 and 0 <= minutes <= 59):
-        return []
-    return [hours * 3600 + minutes * 60]
+type ScheduleJsonPayload = dict[str, list[int]]
 
 
-def _extract_power_action_event(
-    action: Any,
-    *,
-    coerce_connect_status: Callable[[Any], bool],
-) -> list[int]:
-    """Extract one ``evt`` value from legacy action payload."""
-    if not isinstance(action, dict):
-        return []
-    if str(action.get("command", "")).lower() != "power":
-        return []
+def _is_mapping(value: object) -> TypeGuard[dict[str, object]]:
+    """Return whether one raw payload value is a mapping."""
+    return isinstance(value, dict)
 
-    props = action.get("properties")
-    if not isinstance(props, list):
-        return []
 
-    for prop in props:
-        if not isinstance(prop, dict):
-            continue
-        if prop.get("key") == "power":
-            return [0 if coerce_connect_status(prop.get("value")) else 1]
+def _coerce_sequence_items(value: object) -> list[object]:
+    """Return list items for sequence-like schedule payloads."""
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+        return list(value)
     return []
 
 
@@ -64,7 +40,7 @@ def _align_time_event_pairs(
     return times[:pair_count], events[:pair_count]
 
 
-def coerce_int_list(value: Any) -> list[int]:
+def coerce_int_list(value: object) -> list[int]:
     """Convert mixed list payloads into a clean integer list."""
     if not isinstance(value, list):
         return []
@@ -76,10 +52,9 @@ def coerce_int_list(value: Any) -> list[int]:
     return result
 
 
-def _coerce_int_item(item: Any) -> int | None:
+def _coerce_int_item(item: object) -> int | None:
     """Coerce one mixed payload item into an integer when safe."""
     if isinstance(item, bool):
-        # Avoid treating bool as int.
         return None
     if isinstance(item, int):
         return item
@@ -95,14 +70,33 @@ def _coerce_int_item(item: Any) -> int | None:
     return None
 
 
+def build_mesh_schedule_json_payload(
+    days: object,
+    times: object,
+    events: object,
+) -> ScheduleJsonPayload:
+    """Build one canonical mesh ``scheduleJson`` payload mapping."""
+    canonical_days = coerce_int_list(_coerce_sequence_items(days))
+    canonical_times = coerce_int_list(_coerce_sequence_items(times))
+    canonical_events = coerce_int_list(_coerce_sequence_items(events))
+    canonical_times, canonical_events = _align_time_event_pairs(
+        canonical_times,
+        canonical_events,
+    )
+    return {
+        "days": canonical_days,
+        "time": canonical_times,
+        "evt": canonical_events,
+    }
+
+
 def parse_mesh_schedule_json(
-    schedule_json: Any,
+    schedule_json: object,
     *,
-    coerce_connect_status: Callable[[Any], bool],
     mask_sensitive_data: Callable[[str], str],
-) -> dict[str, list[int]]:
+) -> ScheduleJsonPayload:
     """Parse mesh ``scheduleJson`` into normalized ``days/time/evt`` arrays."""
-    empty: dict[str, list[int]] = {"days": [], "time": [], "evt": []}
+    empty: ScheduleJsonPayload = {"days": [], "time": [], "evt": []}
     payload = schedule_json
 
     if isinstance(payload, str):
@@ -119,55 +113,59 @@ def parse_mesh_schedule_json(
             )
             return empty
 
-    if isinstance(payload, dict) and isinstance(payload.get("schedule"), dict):
-        payload = payload["schedule"]
-
-    if not isinstance(payload, dict):
+    if not _is_mapping(payload):
         return empty
 
-    days = coerce_int_list(payload.get("days"))
-    times = coerce_int_list(payload.get("time"))
-    events = coerce_int_list(payload.get("evt"))
+    return build_mesh_schedule_json_payload(
+        payload.get("days", []),
+        payload.get("time", []),
+        payload.get("evt", []),
+    )
 
-    # Compatibility with richer scheduleJson variants from app docs.
-    if not days:
-        days = coerce_int_list(payload.get("weekDays"))
 
-    if not times:
-        times = _parse_hhmm_seconds(payload.get("time"))
+def _coerce_schedule_id(value: object) -> int | None:
+    """Coerce one raw schedule identifier into a usable non-negative integer."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value if value >= 0 else None
+    if isinstance(value, str):
+        normalized = value.strip()
+        if normalized.isdigit():
+            return int(normalized)
+    return None
 
-    if not events:
-        events = _extract_power_action_event(
-            payload.get("action"),
-            coerce_connect_status=coerce_connect_status,
-        )
 
-    times, events = _align_time_event_pairs(times, events)
-
-    return {"days": days, "time": times, "evt": events}
+def next_mesh_schedule_id(rows: Sequence[ScheduleTimingRow]) -> int:
+    """Return the first free non-negative mesh schedule identifier."""
+    used_ids = {
+        schedule_id
+        for row in rows
+        if (schedule_id := _coerce_schedule_id(row.get("id"))) is not None
+    }
+    next_id = 0
+    while next_id in used_ids:
+        next_id += 1
+    return next_id
 
 
 def normalize_mesh_timing_rows(
-    rows: list[Any],
+    rows: Sequence[object],
     *,
     fallback_device_id: str = "",
-    parse_schedule_json: Callable[[Any], dict[str, list[int]]],
-    coerce_connect_status: Callable[[Any], bool],
-) -> list[dict[str, Any]]:
+    parse_schedule_json: Callable[[object], ScheduleJsonPayload],
+    coerce_connect_status: Callable[[object], bool],
+) -> list[ScheduleTimingRow]:
     """Normalize mesh timing rows to include ``schedule`` dict payload."""
-    normalized_rows: list[dict[str, Any]] = []
+    normalized_rows: list[ScheduleTimingRow] = []
     for row in rows:
-        if not isinstance(row, dict):
+        if not _is_mapping(row):
             continue
-
-        schedule_payload = row.get("schedule", row.get("scheduleJson"))
-        schedule = parse_schedule_json(schedule_payload)
-
         normalized_row = dict(row)
-        normalized_row["schedule"] = schedule
+        normalized_row["schedule"] = parse_schedule_json(row.get("scheduleJson"))
         normalized_row["active"] = coerce_connect_status(row.get("active", True))
         if not isinstance(normalized_row.get("deviceId"), str) and fallback_device_id:
             normalized_row["deviceId"] = fallback_device_id
-        normalized_rows.append(normalized_row)
+        normalized_rows.append(cast(ScheduleTimingRow, normalized_row))
 
     return normalized_rows

@@ -1,0 +1,23 @@
+{
+  "data": [
+    {
+      "iotId": " 03AB5CCD7C000001 ",
+      "properties": {
+        "fanOnOff": "1",
+        "wifiSsid": "mesh-net"
+      }
+    },
+    {
+      "deviceId": "mesh_group_10001",
+      "powerState": "1",
+      "wifiRssi": "-60"
+    },
+    {
+      "id": "03ab5ccd7c000002",
+      "properties": [
+        {"key": "brightness", "value": "40"},
+        {"key": "progress", "value": "50"}
+      ]
+    }
+  ]
+}

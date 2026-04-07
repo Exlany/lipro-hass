@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 import pytest
 
 from custom_components.lipro.core.device import LiproDevice
@@ -52,7 +54,7 @@ def test_mapping_is_read_only_view() -> None:
     index.register("GW_Mixed_001", device)
 
     with pytest.raises(TypeError):
-        index.mapping["GW_Mixed_001"] = device  # type: ignore[index]
+        cast(dict[str, LiproDevice], index.mapping)["GW_Mixed_001"] = device
 
     assert index.get("gw_mixed_001") is device
 

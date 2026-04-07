@@ -2,6 +2,6 @@
 
 from __future__ import annotations
 
-from .coordinator import LiproDataUpdateCoordinator
+from .coordinator import Coordinator
 
-__all__ = ["LiproDataUpdateCoordinator"]
+__all__ = ["Coordinator"]

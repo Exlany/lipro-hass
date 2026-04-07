@@ -5,6 +5,11 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 from custom_components.lipro.core.ota.candidate import (
+    OtaManifestTruth,
+    _InstallCommand,
+    _OtaCandidate,
+    evaluate_install,
+    has_pending_confirmation,
     resolve_certification,
     resolve_inline_certification,
     resolve_latest_version,
@@ -88,10 +93,10 @@ def test_resolve_certification_returns_false_when_latest_missing() -> None:
             installed="1.0.0",
             latest=None,
             device_iot_name="21P3",
-            remote_verified_versions=frozenset({"1.1.0"}),
-            remote_versions_by_type={"21p3": frozenset({"1.1.0"})},
-            local_verified_versions=frozenset({"1.1.0"}),
-            local_versions_by_type={"21p3": frozenset({"1.1.0"})},
+            manifest_truth=OtaManifestTruth(
+                verified_versions=frozenset({"1.1.0"}),
+                versions_by_type={"21p3": frozenset({"1.1.0"})},
+            ),
             is_version_newer=_is_version_newer,
         )
         is False
@@ -137,3 +142,44 @@ def test_resolve_inline_certification_returns_none_when_nested_versions_no_match
         )
         is None
     )
+
+
+
+def test_evaluate_install_requires_confirmation_before_unverified_install() -> None:
+    """Unverified install policy should open a confirmation window before execution."""
+    evaluation = evaluate_install(
+        _OtaCandidate(
+            installed_version="1.0.0",
+            latest_version="1.1.0",
+            update_available=True,
+            certified=False,
+            release_summary=None,
+            release_url=None,
+            install_command=_InstallCommand(
+                command="CHANGE_STATE",
+                properties=[{"key": "version", "value": "1.1.0"}],
+            ),
+        ),
+        requested_version=None,
+        confirm_until=0.0,
+        now_monotonic=100.0,
+        confirmation_window_seconds=120,
+    )
+
+    assert evaluation.error_key == "firmware_unverified_confirm_required"
+    assert evaluation.confirm_until == 220.0
+    assert has_pending_confirmation(evaluation.confirm_until, now_monotonic=101.0) is True
+
+
+def test_resolve_local_manifest_certification_ignores_remote_advisory_truth() -> None:
+    assert resolve_certification(
+        {"latestVersion": "8.0.0"},
+        installed="7.0.0",
+        latest="8.0.0",
+        device_iot_name="21P3",
+        manifest_truth=OtaManifestTruth(
+            verified_versions=frozenset(),
+            versions_by_type={},
+        ),
+        is_version_newer=lambda candidate, current: candidate > current,
+    ) is False

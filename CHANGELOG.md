@@ -7,42 +7,18 @@
 
 ## [Unreleased]（未发布）
 
-### 新增（Added）
-
-- 一键安装脚本，便于自定义集成部署。
-- 设备诊断报告导出，并增强诊断脱敏相关测试覆盖。
-
 ### 变更（Changed）
 
-- 迁移依赖元数据到 `pyproject.toml`，并引入 `uv.lock`。
-- 将 CI 的类型检查合并到 lint 工作流，减少重复环境初始化。
-- 重构 coordinator 的更新/指令工作流，提升可维护性。
-- 重构匿名分享能力检测逻辑，改为更清晰的规则映射。
-- 重构共享 sensor 实体初始化，并进行更广泛的类型安全/代码质量清理。
-- 将 coordinator 的房间同步与 stale-device registry 操作重构到
-  `core/device/device_registry_sync.py`，让 `coordinator.py` 聚焦编排逻辑。
-- 重构 device identity index，使用更严格的注册 API，并移除遗留的直接修改兼容路径。
-- 移除 `core.api` 的旧兼容别名，改为使用标准子模块符号（`api_response_safety` / `request_policy`）。
-- 移除 `login_with_hash` 兼容入口；config flow 直接使用
-  `login(..., password_is_hashed=True)`。
-- 重构平台模块：直接导入 helper 子模块，移除 `helpers` 包级兼容 re-export。
-- 移除根模块遗留的 service contract re-export；以 `services/contracts.py` 作为权威来源。
+- 优化了 REST / protocol 内部边界的可维护性，减少超大 façade 文件里的重复样板与隐式中转。
+- 完善了设备定时相关调用链的一致性，补齐 mesh / standard schedule 之间的参数透传行为。
+- 同步收紧了开发者架构文档、维护者发布手册与治理基线之间的当前路线说明，降低后续维护时的定位成本。
+- 持续压缩内部实现热点，保持对外导入入口与正式根对象不变。
 
 ### 修复（Fixed）
 
-- 改进认证问题生命周期处理（repair 通知与 reauth 流程）。
-- 修复匿名分享的崩溃路径，并提升刷新稳定性。
-- 在 diagnostics/anonymous share 载荷中脱敏 `wifiSsid` 等敏感字段。
-- 加固属性解析逻辑，防御畸形 API item。
-- 恢复 `PROP_FAN_ONOFF` 导出，并修复 import 顺序问题。
-- 修正亮度取整与人体传感器能力检测行为。
-- 通过收紧依赖约束修复 aiodns/pycares 兼容性问题。
-- 补齐灯光平台 icons，并修正 command/device-id 示例。
-- 修复强制房间-区域同步：即使云端房间名不变，也能收敛用户在 HA 中手动修改的 area。
-- 修复 stale-device 对账：使用未过滤的云端 serials 并在冷启动时以 registry 为基线，避免过滤器误删。
-- 加固 bool-like coercion 的 debug 日志，避免记录原始异常值。
-- 加固敏感信息脱敏：覆盖国际化手机号与数值型 `user_id`/`biz_id`，并在 UI 中遮罩 reauth phone 占位符。
-- 减少状态兜底流程中冗余的全量 batch 重试，降低可重试批量失败时的重复 API 调用。
+- 修复了 schedule `group_id` 在部分 REST/protocol forwarding 链路中的透传缺口。
+- 修复了当前治理/验证文档仍引用过期路线状态与旧测试路径的若干漂移项。
+- 修复了维护者发布语义与 private-access / mirror reachability 条件之间的不一致表述。
 
 ## [1.0.0] - 2026-02-08
 

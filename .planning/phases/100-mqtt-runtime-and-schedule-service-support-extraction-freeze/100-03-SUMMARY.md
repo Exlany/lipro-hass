@@ -1,0 +1,3 @@
+- `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`、`docs/developer_architecture.md`、`.planning/baseline/VERIFICATION_MATRIX.md`、`.planning/codebase/{TESTING.md,CONCERNS.md}`、`.planning/reviews/{FILE_MATRIX.md,RESIDUAL_LEDGER.md,KILL_LIST.md}` 与 focused meta guards 已整体前推到 `v1.27 active route / Phase 100 complete / latest archived baseline = v1.26`。
+- `Phase 98` 与 `Phase 99` 现被清晰固定为 predecessor evidence；`Phase 100` 接手 current-route selector、focused guard 与 GSD fast-path truth。
+- `tests/meta/test_phase100_runtime_schedule_support_guards.py` 已成为 focused current-route guard；`$gsd-next` 的路由前提已被重新收缩到 `$gsd-complete-milestone v1.27`。

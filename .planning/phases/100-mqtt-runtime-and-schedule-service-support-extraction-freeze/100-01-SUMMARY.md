@@ -1,0 +1,3 @@
+- `custom_components/lipro/core/coordinator/runtime/mqtt_runtime.py` 已收窄为 `375` 行 MQTT orchestration home，`MqttRuntime` 继续保持单一正式 runtime orchestration root。
+- transport operation guard、disconnect notification、runtime metrics 与 background-task exception consumption 已外提到 `custom_components/lipro/core/coordinator/runtime/mqtt_runtime_support.py`，没有引入第二条 runtime root，也没有改变 public constructor / method contract。
+- focused runtime suites、`ruff` 与 focused `mypy` 已通过，证明 MQTT runtime outward/orchestration contract 与 new local support collaborator 同步稳定。

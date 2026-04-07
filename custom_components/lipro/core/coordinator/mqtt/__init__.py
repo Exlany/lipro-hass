@@ -1,1 +1,1 @@
-"""MQTT-related coordinator mixins."""
+"""MQTT-related coordinator runtime helpers."""

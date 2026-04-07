@@ -1,8 +1,11 @@
 blank_issues_enabled: false
 contact_links:
+  - name: 🔐 Security Policy / 安全策略
+    url: https://github.com/Exlany/lipro-hass/security/policy
+    about: Private disclosure route when your current access mode exposes it; start from `SECURITY.md` either way. No guaranteed non-GitHub private fallback is documented today / 当前访问模式可见时使用的私密披露入口；无论如何都先从 `SECURITY.md` 开始。当前没有已文档化、保证可达的非 GitHub 私密回报通道
   - name: 📖 Documentation / 文档
-    url: https://github.com/Exlany/lipro-hass#readme
-    about: Read the documentation before opening an issue / 提交问题前请先阅读文档
+    url: https://github.com/Exlany/lipro-hass/blob/main/docs/README.md
+    about: Start with `docs/README.md`; the docs-first route stays canonical even when GitHub routes require repository access / 先从 `docs/README.md` 开始；即使 GitHub 路径需要访问权限，docs-first 路由仍是唯一正式入口
   - name: 💬 Discussions / 讨论
     url: https://github.com/Exlany/lipro-hass/discussions
-    about: Ask questions and share ideas / 提问和分享想法
+    about: Ask questions only when your current access mode exposes Discussions or a future public mirror preserves the route / 仅当当前访问模式可见 Discussions，或未来 public mirror 保留该入口时，用于提问和分享想法

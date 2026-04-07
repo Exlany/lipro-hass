@@ -6,14 +6,19 @@ body:
   - type: markdown
     attributes:
       value: |
-        感谢你的建议！请描述你希望添加的功能。
-        Thanks for suggesting a new feature!
+        感谢你的建议！先走 docs-first 首跳：`docs/README.md` → `SUPPORT.md`。开放式想法与使用讨论只有在你当前访问模式可见 GitHub Discussions，或未来 public mirror 保留该入口时，才建议走 Discussions；若你已经有明确、可执行的改进提案，再使用这个表单。若你要报告的是确认过的 bug / regression，请改走 `docs/TROUBLESHOOTING.md` → `SUPPORT.md` → bug form。
+        Thanks for suggesting a new feature! Start with the docs-first first hop: `docs/README.md` → `SUPPORT.md`. Prefer GitHub Discussions for open-ended ideas only when your current access mode exposes Discussions or when a future public mirror preserves that route; use this form when you already have a concrete, actionable proposal. If you are reporting a confirmed bug or regression, use `docs/TROUBLESHOOTING.md` → `SUPPORT.md` → the bug form instead.
+
+        当前仍是 single-maintainer、best-effort 项目；提案若缺少受影响区域、真实 use case / user impact 与可验证的 acceptance signal，维护者通常还需要追问才能判断是否值得推进。任何功能提案也都需要符合现有 architecture 与 maintenance budget。
+        This is still a single-maintainer, best-effort project. If a proposal does not name the affected area, real use case / user impact, and a validation signal, maintainers usually need more follow-up before they can evaluate it. Any accepted feature also needs to fit the existing architecture and maintenance budget.
 
   - type: checkboxes
     attributes:
       label: Checklist / 检查清单
       options:
         - label: I have searched existing issues/feature requests and this is not a duplicate. / 我已搜索现有问题，确认这不是重复的。
+          required: true
+        - label: I understand this is a single-maintainer, best-effort project, and the proposal must fit the architecture + maintenance budget. / 我理解这是 single-maintainer、best-effort 项目，提案必须符合 architecture + maintenance budget。
           required: true
 
   - type: dropdown
@@ -51,6 +56,21 @@ body:
     validations:
       required: true
 
+  - type: dropdown
+    id: affected-area
+    attributes:
+      label: Affected Area / Boundary Family / 受影响区域 / 边界家族
+      description: Which area would this proposal primarily change? / 这个提案主要会影响哪个区域？
+      options:
+        - "Protocol / 协议面 (API / MQTT / auth / discovery)"
+        - "Runtime / 运行面 (coordinator / state sync / entity behavior)"
+        - "Control / 控制面 (config flow / services / diagnostics)"
+        - "External boundary / 外部边界 (installer / firmware metadata / release asset)"
+        - "Docs / governance / contributor workflow / 文档、治理或协作流程"
+        - "Not sure / 不确定"
+    validations:
+      required: true
+
   - type: textarea
     id: problem
     attributes:
@@ -66,10 +86,36 @@ body:
     id: solution
     attributes:
       label: Proposed Solution / 期望的解决方案
-      description: Describe the solution you'd like. / 描述你希望实现的功能。
+      description: Describe the smallest workable solution you want to propose. / 描述你希望推进的最小可执行方案。
       placeholder: |
         例如：希望能支持场景模式，一键切换多个设备状态...
         Example: I'd like scene mode support to switch multiple device states with one click...
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case-impact
+    attributes:
+      label: Use Case / User Impact / 使用场景 / 用户影响
+      description: Who needs this, when do they hit it, and what gets better if we implement it? / 谁会在什么场景下需要它？实现后会改善什么？
+      placeholder: |
+        受影响的用户 / Users affected:
+        典型场景 / Typical workflow:
+        当前成本或痛点 / Current pain or cost:
+        预期收益 / Expected user impact:
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-signal
+    attributes:
+      label: Acceptance / Validation Signal / 验收 / 验证信号
+      description: How should a maintainer know the proposal is done and working? / 维护者应如何判断这个提案已完成且有效？
+      placeholder: |
+        例如 / Example:
+        - New service appears and works for device family X
+        - A specific test, log signal, or UI behavior proves success
+        - Documentation or release note change needed
     validations:
       required: true
 

@@ -1,18 +1,15 @@
-"""Small shared helpers for LiproClient endpoints."""
+"""Small shared helpers for REST-facade status endpoints."""
 
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from ...utils.coerce import coerce_boollike
 
-# Use the same logger instance as custom_components.lipro.core.api.client._LOGGER
-# so tests patching client._LOGGER.* still intercept logs here.
-_LOGGER = logging.getLogger("custom_components.lipro.core.api.client")
+_LOGGER = logging.getLogger("custom_components.lipro.core.api")
 
 
-def coerce_connect_status(value: Any) -> bool:
+def coerce_connect_status(value: object) -> bool:
     """Normalize backend connection-state variants to boolean."""
     return coerce_boollike(value, logger=_LOGGER, context="connect-status")
 

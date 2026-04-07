@@ -2,27 +2,35 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable, Sequence
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.switch import SwitchDeviceClass, SwitchEntity
 from homeassistant.const import EntityCategory
 
-from .const.device_types import DEVICE_TYPE_OUTLET
 from .const.properties import (
-    CMD_POWER_OFF,
-    CMD_POWER_ON,
     PROP_BODY_REACTIVE,
     PROP_FADE_STATE,
     PROP_FOCUS_MODE,
-    PROP_POWER_STATE,
+    PROP_LED,
+    PROP_MEMORY,
     PROP_SLEEP_AID_ENABLE,
     PROP_WAKE_UP_ENABLE,
 )
 from .entities.base import LiproEntity
+from .entities.commands import (
+    PanelPropertyToggleCommand,
+    PowerCommand,
+    PropertyToggleCommand,
+)
 from .helpers.platform import (
+    add_entry_entities,
     build_device_entities_from_rules,
     create_device_entities,
-    create_platform_entities,
+    device_supports_platform,
+    should_expose_light_property_switch,
+    should_expose_panel_property_switch,
 )
 
 if TYPE_CHECKING:
@@ -30,61 +38,23 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
     from . import LiproConfigEntry
-    from .core.coordinator import LiproDataUpdateCoordinator
     from .core.device import LiproDevice
+    from .runtime_types import LiproRuntimeCoordinator
 
 # Limit parallel updates to avoid overwhelming the API
 PARALLEL_UPDATES = 1
 
 
-async def async_setup_entry(
-    hass: HomeAssistant,
-    entry: LiproConfigEntry,
-    async_add_entities: AddEntitiesCallback,
-) -> None:
-    """Set up Lipro switches."""
-    coordinator = entry.runtime_data
-    entities: list[SwitchEntity] = []
-    entities.extend(
-        create_platform_entities(
-            coordinator,
-            device_filter=lambda d: d.is_switch,
-            entity_factory=LiproSwitch,
-        )
-    )
+@dataclass
+class PropertySwitchConfig:
+    """Configuration for a property-based switch entity."""
 
-    # Add feature switches for lights.
-    entities.extend(
-        create_device_entities(
-            coordinator,
-            _build_light_feature_switches,
-            device_filter=lambda d: d.is_light,
-        )
-    )
-
-    async_add_entities(entities)
+    translation_key: str
+    entity_suffix: str
+    property_key: str
 
 
-def _build_light_feature_switches(
-    coordinator: LiproDataUpdateCoordinator,
-    device: LiproDevice,
-) -> list[SwitchEntity]:
-    """Build feature switches for one light device."""
-    return build_device_entities_from_rules(
-        coordinator,
-        device,
-        always_factories=(LiproFadeSwitch,),
-        rules=(
-            (
-                lambda d: d.has_sleep_wake_features,
-                (LiproSleepAidSwitch, LiproWakeUpSwitch),
-            ),
-            (
-                lambda d: d.has_floor_lamp_features,
-                (LiproFocusModeSwitch, LiproBodyReactiveSwitch),
-            ),
-        ),
-    )
+# ── Entity classes ──────────────────────────────────────────────────
 
 
 class LiproSwitch(LiproEntity, SwitchEntity):
@@ -92,16 +62,17 @@ class LiproSwitch(LiproEntity, SwitchEntity):
 
     _attr_name = None  # Use device name
 
+    _power = PowerCommand()
+
     def __init__(
         self,
-        coordinator: LiproDataUpdateCoordinator,
+        coordinator: LiproRuntimeCoordinator,
         device: LiproDevice,
     ) -> None:
         """Initialize the switch."""
         super().__init__(coordinator, device)
 
-        # Set device class and translation key based on device type
-        if device.device_type_hex == DEVICE_TYPE_OUTLET:
+        if device.capabilities.is_outlet:
             self._attr_device_class = SwitchDeviceClass.OUTLET
             self._attr_translation_key = "outlet"
         else:
@@ -111,107 +82,184 @@ class LiproSwitch(LiproEntity, SwitchEntity):
     @property
     def is_on(self) -> bool:
         """Return true if switch is on."""
-        return self.device.is_on
+        return self.device.state.is_on
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on the switch."""
-        await self.async_send_command(CMD_POWER_ON, None, {PROP_POWER_STATE: "1"})
+        await self._power.turn_on(self)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the switch."""
-        await self.async_send_command(CMD_POWER_OFF, None, {PROP_POWER_STATE: "0"})
+        await self._power.turn_off(self)
 
 
 class LiproPropertySwitch(LiproEntity, SwitchEntity):
-    """Base class for property-based feature switches.
-
-    Subclasses only need to define:
-    - _entity_suffix: Unique ID suffix for the entity
-    - _property_key: The property key to control
-    - _device_property: The device property name to read state from
-    - _attr_translation_key: Translation key for i18n
-
-    Icons are managed declaratively via icons.json (HA best practice).
-    """
+    """Generic property-based feature switch using configuration."""
 
     _attr_entity_category = EntityCategory.CONFIG
-    _property_key: str
-    _device_property: str
+
+    def __init__(
+        self,
+        coordinator: LiproRuntimeCoordinator,
+        device: LiproDevice,
+        config: PropertySwitchConfig,
+    ) -> None:
+        """Initialize the property switch."""
+        super().__init__(coordinator, device, config.entity_suffix)
+        self._config = config
+        self._toggle = PropertyToggleCommand(config.property_key)
+        self._attr_translation_key = config.translation_key
 
     @property
     def is_on(self) -> bool:
         """Return true if the feature is enabled."""
-        return bool(getattr(self.device, self._device_property, False))
+        return self.device.state.get_bool_property(self._config.property_key)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Enable the feature."""
-        await self.async_change_state({self._property_key: "1"})
+        await self._toggle.turn_on(self)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Disable the feature."""
-        await self.async_change_state({self._property_key: "0"})
+        await self._toggle.turn_off(self)
 
 
-class LiproFadeSwitch(LiproPropertySwitch):
-    """Switch entity for light fade/transition effect.
+class LiproPanelPropertySwitch(LiproEntity, SwitchEntity):
+    """Generic panel property switch using PANEL_CHANGE_STATE command."""
 
-    When enabled, the light will smoothly transition between brightness levels.
-    When disabled, brightness changes are instant.
-    """
+    _attr_entity_category = EntityCategory.CONFIG
 
-    _attr_translation_key = "fade"
-    _entity_suffix = "fade"
-    _property_key = PROP_FADE_STATE
-    _device_property = "fade_state"
+    def __init__(
+        self,
+        coordinator: LiproRuntimeCoordinator,
+        device: LiproDevice,
+        config: PropertySwitchConfig,
+    ) -> None:
+        """Initialize the panel property switch."""
+        super().__init__(coordinator, device, config.entity_suffix)
+        self._config = config
+        self._toggle = PanelPropertyToggleCommand(config.property_key)
+        self._attr_translation_key = config.translation_key
 
+    @property
+    def is_on(self) -> bool:
+        """Return true if the feature is enabled."""
+        return self.device.state.get_bool_property(self._config.property_key)
 
-class LiproSleepAidSwitch(LiproPropertySwitch):
-    """Switch entity for Natural Light sleep aid mode.
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Enable the panel feature."""
+        await self._toggle.turn_on(self)
 
-    When enabled, the light will gradually dim to help you fall asleep.
-    Only available on Natural Light (自然光灯) devices.
-    """
-
-    _attr_translation_key = "sleep_aid"
-    _entity_suffix = "sleep_aid"
-    _property_key = PROP_SLEEP_AID_ENABLE
-    _device_property = "sleep_aid_enabled"
-
-
-class LiproWakeUpSwitch(LiproPropertySwitch):
-    """Switch entity for Natural Light wake up mode.
-
-    When enabled, the light will gradually brighten to help you wake up.
-    Only available on Natural Light (自然光灯) devices.
-    """
-
-    _attr_translation_key = "wake_up"
-    _entity_suffix = "wake_up"
-    _property_key = PROP_WAKE_UP_ENABLE
-    _device_property = "wake_up_enabled"
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Disable the panel feature."""
+        await self._toggle.turn_off(self)
 
 
-class LiproFocusModeSwitch(LiproPropertySwitch):
-    """Switch entity for Floor Lamp focus mode.
+# ── Declarative config & rules ──────────────────────────────────────
 
-    When enabled, the light enters focus/reading mode.
-    Only available on Floor Lamp (落地灯) devices.
-    """
+# Light feature switches configuration
+LIGHT_FEATURE_SWITCHES = [
+    PropertySwitchConfig(
+        translation_key="fade",
+        entity_suffix="fade",
+        property_key=PROP_FADE_STATE,
+    ),
+    PropertySwitchConfig(
+        translation_key="sleep_aid",
+        entity_suffix="sleep_aid",
+        property_key=PROP_SLEEP_AID_ENABLE,
+    ),
+    PropertySwitchConfig(
+        translation_key="wake_up",
+        entity_suffix="wake_up",
+        property_key=PROP_WAKE_UP_ENABLE,
+    ),
+    PropertySwitchConfig(
+        translation_key="focus_mode",
+        entity_suffix="focus_mode",
+        property_key=PROP_FOCUS_MODE,
+    ),
+    PropertySwitchConfig(
+        translation_key="body_reactive",
+        entity_suffix="body_reactive",
+        property_key=PROP_BODY_REACTIVE,
+    ),
+]
 
-    _attr_translation_key = "focus_mode"
-    _entity_suffix = "focus_mode"
-    _property_key = PROP_FOCUS_MODE
-    _device_property = "focus_mode_enabled"
+# Panel feature switches configuration
+PANEL_FEATURE_SWITCHES = [
+    PropertySwitchConfig(
+        translation_key="panel_led",
+        entity_suffix="panel_led",
+        property_key=PROP_LED,
+    ),
+    PropertySwitchConfig(
+        translation_key="panel_memory",
+        entity_suffix="panel_memory",
+        property_key=PROP_MEMORY,
+    ),
+]
+
+# Declarative rules for switch entity creation.
+# Each (predicate, factories) pair follows the same pattern as fan.py/sensor.py.
+# Per-config conditions are expressed as individual rules with compound predicates.
+_SWITCH_RULES: list[
+    tuple[
+        Callable[[LiproDevice], bool],
+        Sequence[Callable[[LiproRuntimeCoordinator, LiproDevice], SwitchEntity]],
+    ]
+] = [
+    # Main switch entity (outlet or panel)
+    (lambda d: device_supports_platform(d, "switch"), [LiproSwitch]),
+    *[
+        (
+            lambda d, property_key=cfg.property_key: (
+                should_expose_light_property_switch(
+                    d,
+                    property_key=property_key,
+                )
+            ),
+            [lambda c, d, cfg=cfg: LiproPropertySwitch(c, d, cfg)],
+        )
+        for cfg in LIGHT_FEATURE_SWITCHES
+    ],
+    *[
+        (
+            lambda d, property_key=cfg.property_key: (
+                should_expose_panel_property_switch(
+                    d,
+                    property_key=property_key,
+                )
+            ),
+            [lambda c, d, cfg=cfg: LiproPanelPropertySwitch(c, d, cfg)],
+        )
+        for cfg in PANEL_FEATURE_SWITCHES
+    ],
+]
 
 
-class LiproBodyReactiveSwitch(LiproPropertySwitch):
-    """Switch entity for Floor Lamp body reactive (motion sensing) mode.
+# ── Platform setup ──────────────────────────────────────────────────
 
-    When enabled, the light responds to body/motion detection.
-    Only available on Floor Lamp (落地灯) devices.
-    """
 
-    _attr_translation_key = "body_reactive"
-    _entity_suffix = "body_reactive"
-    _property_key = PROP_BODY_REACTIVE
-    _device_property = "body_reactive_enabled"
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: LiproConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    """Set up Lipro switches."""
+    add_entry_entities(
+        entry,
+        async_add_entities,
+        entity_builder=lambda coordinator: create_device_entities(
+            coordinator,
+            _build_device_switches,
+        ),
+    )
+
+
+def _build_device_switches(
+    coordinator: LiproRuntimeCoordinator,
+    device: LiproDevice,
+) -> list[SwitchEntity]:
+    """Build switch entities for one device using declarative rules."""
+    return build_device_entities_from_rules(coordinator, device, rules=_SWITCH_RULES)

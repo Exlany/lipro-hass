@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from homeassistant.core import HomeAssistant
 
 from .const.base import DOMAIN
 
-type DomainData = dict[str, Any]
+type DomainData = dict[str, object]
 
 
 def get_domain_data(hass: HomeAssistant) -> DomainData | None:

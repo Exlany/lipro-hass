@@ -36,8 +36,14 @@
     "error": {
       "cannot_connect": "Unable to connect to Lipro server",
       "invalid_auth": "Invalid phone number or password",
+      "invalid_phone": "Invalid phone number format (must be 6-20 digits, optionally starting with +)",
+      "invalid_password": "Invalid password (must be 6-128 characters)",
       "reauth_user_mismatch": "This account does not match the integration entry. Please re-authenticate with the same Lipro account.",
-      "unknown": "An unknown error occurred"
+      "unknown": "An unknown error occurred",
+      "api_error": "Lipro API request failed",
+      "invalid_entry": "The saved integration data is invalid. Remove and re-add the integration.",
+      "invalid_response": "Lipro returned an invalid response",
+      "unexpected_error": "An unexpected internal error occurred"
     },
     "abort": {
       "already_configured": "This account is already configured",
@@ -76,7 +82,7 @@
           "debug_mode": "Enable debug mode (diagnostics)",
           "light_turn_on_on_adjust": "Auto turn on when adjusting brightness/color temp while off",
           "room_area_sync_force": "Force sync HA area from cloud room",
-          "command_result_verify": "Verify command delivery result",
+          "command_result_verify": "Check command result status",
           "device_filter_home_mode": "Filter by Home (off/include/exclude)",
           "device_filter_home_list": "Home filter list",
           "device_filter_model_mode": "Filter by Model (off/include/exclude)",
@@ -87,20 +93,20 @@
           "device_filter_did_list": "Device ID filter list"
         },
         "data_description": {
-          "power_query_interval": "How often to query power data for outlets (30-300 seconds). Only applies when power monitoring is enabled.",
+          "power_query_interval": "Default 300 seconds (~5 minutes). How often to query power data for outlets (30-300 seconds). Only applies when power monitoring is enabled.",
           "request_timeout": "Timeout for API requests (10-60 seconds). Increase if you have a slow network.",
           "debug_mode": "Capture a sanitized runtime diagnostics report with recent command traces. Enabling this also enables verbose logging.",
           "light_turn_on_on_adjust": "If enabled, adjusting brightness or color temperature while the light is off will also turn it on. If disabled, adjustments will not turn the light on.",
           "room_area_sync_force": "Default off (recommended): preserve user-customized HA areas and use cloud room as fallback. Turn on to always let cloud room overwrite HA area.",
-          "command_result_verify": "Default off (recommended): trust pushSuccess for lower latency. Turn on to confirm command result via msgSn and return clearer failures when cloud delivery is not confirmed.",
+          "command_result_verify": "Default on (recommended): poll cloud-reported command result status via msgSn and return clearer failures when no clear success state is observed within the retry budget. Turn off to trust pushSuccess for lower latency.",
           "device_filter_home_mode": "Select how to apply home filter: off/include/exclude.",
-          "device_filter_home_list": "Home names/IDs. Supports comma, semicolon, or newline separators.",
+          "device_filter_home_list": "Home or room names / home IDs. Matching is case-insensitive. Supports comma, semicolon, or newline separators.",
           "device_filter_model_mode": "Select how to apply model filter: off/include/exclude.",
-          "device_filter_model_list": "Model names (physicalModel/iotName/model). Supports comma, semicolon, or newline separators.",
+          "device_filter_model_list": "Model identifiers (physicalModel/iotName/model/productModel). Matching is case-insensitive. Supports comma, semicolon, or newline separators.",
           "device_filter_ssid_mode": "Select how to apply WiFi SSID filter: off/include/exclude.",
-          "device_filter_ssid_list": "WiFi SSID values. Supports comma, semicolon, or newline separators.",
+          "device_filter_ssid_list": "WiFi SSID values. Matching is case-insensitive. Supports comma, semicolon, or newline separators.",
           "device_filter_did_mode": "Select how to apply device ID filter: off/include/exclude.",
-          "device_filter_did_list": "Device identifiers (did/deviceId/serial). Supports comma, semicolon, or newline separators."
+          "device_filter_did_list": "Device identifiers (did/deviceDid/deviceId/iotDeviceId/serial). Matching is case-insensitive. Supports comma, semicolon, or newline separators."
         }
       }
     }
@@ -163,6 +169,12 @@
       },
       "body_reactive": {
         "name": "Motion Reactive"
+      },
+      "panel_led": {
+        "name": "Indicator LED"
+      },
+      "panel_memory": {
+        "name": "Power-loss Memory"
       }
     },
     "climate": {
@@ -249,7 +261,7 @@
       "fields": {
         "device_id": {
           "name": "Device ID",
-          "description": "The device serial number. If not provided, the device will be determined from the target entity."
+          "description": "The device serial number or mesh group ID. If not provided, the device will be determined from the target entity."
         },
         "command": {
           "name": "Command",
@@ -263,29 +275,29 @@
     },
     "get_schedules": {
       "name": "Get Schedules",
-      "description": "Get the list of timing schedules for a device.",
+      "description": "Get recurring weekly schedules for a device. Weekdays use 1=Monday through 7=Sunday. For mesh groups, reads use BLE gateway/member candidates only; real-device retests show standard schedule/get.do may return empty success for the group ID and may also echo shadow rows with non-reusable IDs for member IoT IDs, so it is not treated as a reliable mesh fallback.",
       "fields": {
         "device_id": {
           "name": "Device ID",
-          "description": "The device serial number. If not provided, the device will be determined from the target entity."
+          "description": "The device serial number or mesh group ID. If not provided, the device will be determined from the target entity."
         }
       }
     },
     "add_schedule": {
       "name": "Add Schedule",
-      "description": "Add or update a timing schedule for a device.",
+      "description": "Add a recurring weekly timing schedule for a device. No absolute-date schedule mode is exposed. For mesh groups, writes use BLE gateway/member candidates only; real-device retests show standard schedule/addOrUpdate.do returns service errors for member IoT IDs and is not a reliable mesh fallback.",
       "fields": {
         "device_id": {
           "name": "Device ID",
-          "description": "The device serial number. If not provided, the device will be determined from the target entity."
+          "description": "The device serial number or mesh group ID. If not provided, the device will be determined from the target entity."
         },
         "days": {
           "name": "Days",
-          "description": "List of weekdays when the schedule should run (1=Monday, 7=Sunday)."
+          "description": "List of weekdays for the recurring schedule (1=Monday, 7=Sunday)."
         },
         "times": {
           "name": "Times",
-          "description": "List of times in seconds from midnight (0-86399)."
+          "description": "List of times in seconds from midnight (0-86399), matching the app's 24-hour hour/minute UI."
         },
         "events": {
           "name": "Events",
@@ -295,11 +307,11 @@
     },
     "delete_schedules": {
       "name": "Delete Schedules",
-      "description": "Delete timing schedules from a device by their IDs.",
+      "description": "Delete timing schedules from a device by their IDs. For mesh groups, deletes use BLE gateway/member candidates only; real-device retests show standard schedule/delete.do can fail with 140003 for member readback IDs and does not reliably remove the target mesh schedule.",
       "fields": {
         "device_id": {
           "name": "Device ID",
-          "description": "The device serial number. If not provided, the device will be determined from the target entity."
+          "description": "The device serial number or mesh group ID. If not provided, the device will be determined from the target entity."
         },
         "schedule_ids": {
           "name": "Schedule IDs",
@@ -329,7 +341,7 @@
     },
     "get_developer_report": {
       "name": "Get Developer Report",
-      "description": "Export a sanitized runtime diagnostics report for real-device debugging. Includes mesh topology snapshot, recent command traces, and runtime options.",
+      "description": "Export a redacted runtime diagnostics report for local real-device debugging. This local view keeps vendor diagnosis identifiers such as iotName and local labels so you can identify the device under test.",
       "fields": {
         "entry_id": {
           "name": "Entry ID",
@@ -339,7 +351,7 @@
     },
     "submit_developer_feedback": {
       "name": "Submit Developer Feedback",
-      "description": "One-click submit sanitized developer diagnostics to the share worker. Optionally include a note for easier triage.",
+      "description": "One-click submit developer diagnostics to the share worker. Upload keeps vendor diagnosis identifiers such as iotName, but anonymizes user-defined labels such as device/room/panel/IR names. Optionally include a note for easier triage.",
       "fields": {
         "entry_id": {
           "name": "Entry ID",
@@ -353,7 +365,7 @@
     },
     "query_command_result": {
       "name": "Query Command Result",
-      "description": "Developer-only optional capability. Query command delivery result by msgSn.",
+      "description": "Developer-only optional capability. Query cloud-reported command result status by msgSn with bounded polling inside the default retry budget. Actual attempts may be lower than max_attempts because exponential backoff is clipped by the time budget.",
       "fields": {
         "device_id": {
           "name": "Device ID",
@@ -362,12 +374,24 @@
         "msg_sn": {
           "name": "Message SN",
           "description": "Command message serial number returned by send command response."
+        },
+        "max_attempts": {
+          "name": "Max Attempts",
+          "description": "Maximum query attempts within the retry budget. Default 6; set to 1 for a single-shot check."
+        },
+        "time_budget_seconds": {
+          "name": "Time Budget (Seconds)",
+          "description": "Total retry budget in seconds. Default 3.0; set to 0 to disable polling and perform a single-shot query."
         }
       }
     },
     "get_city": {
       "name": "Get City",
-      "description": "Developer-only optional capability. Query cloud city metadata."
+      "description": "Developer-only optional capability. Query cloud city metadata using the verified empty-object ({}) payload contract."
+    },
+    "query_user_cloud": {
+      "name": "Query User Cloud",
+      "description": "Developer-only optional capability. Query user cloud metadata using the verified raw empty-body contract (`-d ''`). Tested responses may contain only a top-level data field without a code wrapper."
     },
     "fetch_body_sensor_history": {
       "name": "Fetch Body Sensor History",
@@ -435,6 +459,9 @@
     "command_failed": {
       "message": "Failed to send command to device."
     },
+    "invalid_command_request": {
+      "message": "Invalid send_command service payload."
+    },
     "command_device_not_connected": {
       "message": "Device is not connected. Check the device network and try again."
     },
@@ -456,6 +483,9 @@
     "schedule_delete_failed": {
       "message": "Failed to delete device schedules."
     },
+    "invalid_schedule_request": {
+      "message": "Invalid schedule request. Check device_id, weekdays, times, events, and schedule IDs."
+    },
     "times_events_mismatch": {
       "message": "The number of times must match the number of events."
     },
@@ -470,6 +500,9 @@
     },
     "entry_not_found": {
       "message": "Config entry not found or not loaded: {entry_id}"
+    },
+    "developer_mode_not_enabled": {
+      "message": "Developer diagnostics are disabled. Enable debug mode first."
     },
     "optional_capability_failed": {
       "message": "Optional capability {capability} failed ({error})."

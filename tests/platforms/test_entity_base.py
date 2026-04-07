@@ -117,10 +117,16 @@ class TestLiproEntityDeviceProperty:
         updated = make_device("light", name="Updated")
         entity = _make_entity(mock_coordinator, original)
 
-        # Put updated device into coordinator's device dict (keyed by serial)
-        mock_coordinator.devices[original.serial] = updated
+        mock_coordinator.set_device(updated)
 
         assert entity.device.name == "Updated"
+
+    def test_capabilities_returns_canonical_snapshot(self, mock_coordinator, make_device):
+        """capabilities property should expose the device snapshot directly."""
+        device = make_device("light")
+        entity = _make_entity(mock_coordinator, device)
+
+        assert entity.capabilities == device.capabilities
 
     def test_device_falls_back_to_initial_when_not_in_coordinator(
         self, mock_coordinator, make_device
@@ -141,8 +147,10 @@ class TestLiproEntityDeviceProperty:
 class TestLiproEntitySendCommand:
     """Tests for LiproEntity.async_send_command."""
 
-    async def test_send_command_calls_coordinator(self, mock_coordinator, make_device):
-        """async_send_command delegates to coordinator.async_send_command."""
+    async def test_send_command_uses_formal_command_service_by_default(
+        self, mock_coordinator, make_device
+    ):
+        """async_send_command should route through the formal runtime verb."""
         device = make_device("light")
         mock_coordinator.get_device.return_value = device
         entity = _make_entity(mock_coordinator, device)
@@ -152,6 +160,27 @@ class TestLiproEntitySendCommand:
         )
 
         assert result is True
+        mock_coordinator.command_service.async_send_command.assert_not_awaited()
+        mock_coordinator.async_send_command.assert_awaited_once_with(
+            device, "powerOn", [{"key": "powerState", "value": "1"}]
+        )
+
+    async def test_send_command_prefers_command_service_when_available(
+        self, mock_coordinator, make_device
+    ) -> None:
+        """Runtime command dispatch should ignore leaked service handles."""
+        device = make_device("light")
+        mock_coordinator.get_device.return_value = device
+        mock_coordinator.command_service = MagicMock()
+        mock_coordinator.command_service.async_send_command = AsyncMock(return_value=True)
+        entity = _make_entity(mock_coordinator, device)
+
+        result = await entity.async_send_command(
+            "powerOn", [{"key": "powerState", "value": "1"}]
+        )
+
+        assert result is True
+        mock_coordinator.command_service.async_send_command.assert_not_awaited()
         mock_coordinator.async_send_command.assert_awaited_once_with(
             device, "powerOn", [{"key": "powerState", "value": "1"}]
         )
@@ -169,6 +198,9 @@ class TestLiproEntitySendCommand:
         )
 
         assert device.properties["powerState"] == "1"
+        mock_coordinator.async_apply_optimistic_state.assert_awaited_once_with(
+            device, {"powerState": "1"}
+        )
         entity.async_write_ha_state.assert_called_once()
 
     async def test_send_command_skips_when_unavailable(

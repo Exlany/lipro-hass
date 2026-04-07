@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.lipro.const.base import DOMAIN, VERSION
+from custom_components.lipro.control.runtime_access import get_entry_runtime_coordinator
 from custom_components.lipro.system_health import async_register, system_health_info
 
 
@@ -36,6 +37,26 @@ async def test_async_register_registers_system_health_callback(hass) -> None:
 
 
 @pytest.mark.asyncio
+async def test_system_health_info_delegates_to_control_surface(hass) -> None:
+    """System-health adapter should stay a thin wrapper over control surface."""
+    payload = {
+        "component_version": VERSION,
+        "can_reach_server": False,
+        "logged_accounts": 0,
+        "total_devices": 0,
+    }
+
+    with patch(
+        "custom_components.lipro.system_health._system_health_info_surface",
+        new=AsyncMock(return_value=payload),
+    ) as mock_surface:
+        result = await system_health_info(hass)
+
+    assert result == payload
+    mock_surface.assert_awaited_once_with(hass, version=VERSION)
+
+
+@pytest.mark.asyncio
 async def test_system_health_info_aggregates_entries(hass) -> None:
     """System health payload should aggregate runtime coordinator statistics."""
     _add_runtime_entry(
@@ -44,7 +65,7 @@ async def test_system_health_info_aggregates_entries(hass) -> None:
         runtime_data=SimpleNamespace(
             devices={"d1": object(), "d2": object()},
             last_update_success=True,
-            mqtt_connected=True,
+            mqtt_service=SimpleNamespace(connected=True),
         ),
     )
     _add_runtime_entry(
@@ -53,7 +74,7 @@ async def test_system_health_info_aggregates_entries(hass) -> None:
         runtime_data=SimpleNamespace(
             devices={"d3": object()},
             last_update_success=False,
-            mqtt_connected=False,
+            mqtt_service=SimpleNamespace(connected=False),
         ),
     )
 
@@ -66,6 +87,56 @@ async def test_system_health_info_aggregates_entries(hass) -> None:
         "total_devices": 3,
         "mqtt_connected_entries": 1,
     }
+
+
+@pytest.mark.asyncio
+async def test_system_health_info_surfaces_failure_entries_from_telemetry(hass) -> None:
+    """System health should expose normalized failure summaries when available."""
+    entry = MockConfigEntry(domain=DOMAIN, data={"phone": "13800000000"})
+    entry.add_to_hass(hass)
+    entry.runtime_data = SimpleNamespace(
+        protocol=SimpleNamespace(
+            protocol_diagnostics_snapshot=lambda: {
+                "entry_id": entry.entry_id,
+                "telemetry": {"mqtt_last_error_type": "TimeoutError"},
+            }
+        ),
+        telemetry_service=SimpleNamespace(
+            build_snapshot=lambda: {
+                "device_count": 1,
+                "last_update_success": False,
+                "mqtt": {
+                    "connected": False,
+                    "last_transport_error": "RuntimeError",
+                },
+            }
+        ),
+        devices={"d1": object()},
+        last_update_success=False,
+        mqtt_service=SimpleNamespace(connected=False),
+    )
+
+    result = await system_health_info(hass)
+
+    failure_entry = result["failure_entries"][0]
+
+    assert failure_entry["entry_ref"].startswith("entry_")
+    assert set(failure_entry) == {
+        "entry_ref",
+        "failure_category",
+        "failure_origin",
+        "handling_policy",
+        "error_type",
+    }
+    assert result["failure_entries"] == [
+        {
+            "entry_ref": failure_entry["entry_ref"],
+            "failure_category": "network",
+            "failure_origin": "protocol.mqtt",
+            "handling_policy": "retry",
+            "error_type": "TimeoutError",
+        }
+    ]
 
 
 @pytest.mark.asyncio
@@ -112,7 +183,7 @@ async def test_system_health_info_skips_non_sized_devices(hass) -> None:
         runtime_data=SimpleNamespace(
             devices=123,
             last_update_success=True,
-            mqtt_connected=True,
+            mqtt_service=SimpleNamespace(connected=True),
         ),
     )
     _add_runtime_entry(
@@ -121,7 +192,7 @@ async def test_system_health_info_skips_non_sized_devices(hass) -> None:
         runtime_data=SimpleNamespace(
             devices={"d1": object(), "d2": object()},
             last_update_success=False,
-            mqtt_connected=False,
+            mqtt_service=SimpleNamespace(connected=False),
         ),
     )
 
@@ -141,7 +212,7 @@ async def test_system_health_info_skips_none_devices_field(hass) -> None:
         runtime_data=SimpleNamespace(
             devices=None,
             last_update_success=True,
-            mqtt_connected=True,
+            mqtt_service=SimpleNamespace(connected=True),
         ),
     )
     _add_runtime_entry(
@@ -150,7 +221,7 @@ async def test_system_health_info_skips_none_devices_field(hass) -> None:
         runtime_data=SimpleNamespace(
             devices={"d1": object()},
             last_update_success=False,
-            mqtt_connected=False,
+            mqtt_service=SimpleNamespace(connected=False),
         ),
     )
 
@@ -172,10 +243,68 @@ async def test_system_health_info_omits_mqtt_count_when_mqtt_connected_is_non_bo
         runtime_data=SimpleNamespace(
             devices={"d1": object()},
             last_update_success=True,
-            mqtt_connected="true",
+            mqtt_service=SimpleNamespace(connected="true"),
         ),
     )
 
     result = await system_health_info(hass)
 
     assert "mqtt_connected_entries" not in result
+
+
+@pytest.mark.asyncio
+async def test_system_health_info_ignores_probe_only_entries() -> None:
+    """System health should only count entries that satisfy the formal runtime port."""
+
+    class ProbeOnlyEntry:
+        def __getattr__(self, name: str) -> object:
+            return {
+                "entry_id": "ghost-entry",
+                "options": {},
+                "runtime_data": SimpleNamespace(),
+            }[name]
+
+    hass = MagicMock()
+    hass.config_entries.async_entries.return_value = [
+        ProbeOnlyEntry(),
+        SimpleNamespace(
+            entry_id="entry-1",
+            options={},
+            runtime_data=SimpleNamespace(
+                devices={"d1": object()},
+                last_update_success=True,
+                mqtt_service=SimpleNamespace(connected=True),
+            ),
+        ),
+    ]
+
+    result = await system_health_info(hass)
+
+    assert result["logged_accounts"] == 1
+    assert result["total_devices"] == 1
+    assert result["mqtt_connected_entries"] == 1
+
+
+def test_runtime_access_rejects_partial_foreign_entry() -> None:
+    """Runtime access should ignore foreign objects lacking formal entry shape."""
+    from custom_components.lipro.control.runtime_access import (
+        get_entry_runtime_coordinator,
+        is_debug_mode_enabled_for_entry,
+    )
+
+    coordinator = SimpleNamespace(devices={}, last_update_success=True)
+    entry = SimpleNamespace(runtime_data=coordinator)
+
+    assert get_entry_runtime_coordinator(entry) is None
+    assert is_debug_mode_enabled_for_entry(entry) is False
+    assert not hasattr(entry, "entry_id")
+    assert not hasattr(entry, "options")
+
+
+def test_runtime_access_rejects_magicmock_runtime_ghost() -> None:
+    """Runtime access should ignore implicit MagicMock runtime_data ghosts."""
+    entry = MagicMock()
+    entry.entry_id = "entry-1"
+    entry.options = {}
+
+    assert get_entry_runtime_coordinator(entry) is None

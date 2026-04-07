@@ -1,0 +1,3 @@
+- `.planning/baseline/VERIFICATION_MATRIX.md` 已把 current archived-only truth、Phase 102 latest archived closeout 与 historical phase closeout reference 明确分层。
+- `docs/README.md`、`docs/TROUBLESHOOTING.md`、`docs/MAINTAINER_RELEASE_RUNBOOK.md` 与 `CHANGELOG.md` 现共享 docs-first / access-mode-aware / pull-only evidence wording。
+- `.planning/codebase/README.md` 已刷新 snapshot / freshness 注记，避免派生协作图谱继续漂移成假 current truth。

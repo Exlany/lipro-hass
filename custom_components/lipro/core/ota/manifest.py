@@ -5,7 +5,10 @@ from __future__ import annotations
 from collections.abc import Callable, Collection, Mapping, Sequence
 import json
 from pathlib import Path
-from typing import Any
+
+type OtaRow = dict[str, object]
+type OtaCommandProperty = dict[str, str]
+type OtaCommandProperties = list[OtaCommandProperty]
 
 DEFAULT_OTA_VERSION_KEYS: tuple[str, ...] = (
     "latestVersion",
@@ -21,9 +24,9 @@ MANIFEST_TYPE_KEY_PRIORITY: tuple[tuple[str, ...], ...] = (
 )
 
 
-def first_text(data: dict[str, Any] | None, keys: tuple[str, ...]) -> str | None:
+def first_text(data: Mapping[str, object] | None, keys: tuple[str, ...]) -> str | None:
     """Return first non-empty text value for any key."""
-    if not isinstance(data, dict):
+    if data is None or not isinstance(data, Mapping):
         return None
     for key in keys:
         value = data.get(key)
@@ -35,7 +38,7 @@ def first_text(data: dict[str, Any] | None, keys: tuple[str, ...]) -> str | None
     return None
 
 
-def parse_ota_boollike(value: Any) -> bool | None:
+def parse_ota_boollike(value: object) -> bool | None:
     """Parse OTA bool-like values or return ``None`` when unknown."""
     if isinstance(value, bool):
         return value
@@ -52,9 +55,9 @@ def parse_ota_boollike(value: Any) -> bool | None:
     return None
 
 
-def first_bool(data: dict[str, Any] | None, keys: tuple[str, ...]) -> bool | None:
+def first_bool(data: Mapping[str, object] | None, keys: tuple[str, ...]) -> bool | None:
     """Return first bool-like field value from payload."""
-    if not isinstance(data, dict):
+    if data is None or not isinstance(data, Mapping):
         return None
     for key in keys:
         normalized = parse_ota_boollike(data.get(key))
@@ -73,7 +76,7 @@ def append_unique_normalized(target: list[str], value: str | None) -> None:
 
 
 def build_manifest_type_candidates(
-    row: dict[str, Any] | None,
+    row: Mapping[str, object] | None,
     *,
     device_iot_name: str | None,
     iot_name_keys: tuple[str, ...] = MANIFEST_TYPE_KEY_PRIORITY[1],
@@ -99,14 +102,14 @@ def build_manifest_type_candidates(
     return candidates
 
 
-def normalize_version_list(value: Any) -> frozenset[str]:
+def normalize_version_list(value: object) -> frozenset[str]:
     """Normalize one firmware-version list field."""
     if not isinstance(value, list):
         return frozenset()
     return frozenset(text for item in value if (text := str(item).strip()))
 
 
-def normalize_versions_by_type(value: Any) -> dict[str, frozenset[str]]:
+def normalize_versions_by_type(value: object) -> dict[str, frozenset[str]]:
     """Normalize version map by device type from manifest payload."""
     if not isinstance(value, dict):
         return {}
@@ -125,9 +128,9 @@ def normalize_versions_by_type(value: Any) -> dict[str, frozenset[str]]:
 
 
 def parse_verified_firmware_manifest_payload(
-    payload: Any,
+    payload: object,
 ) -> tuple[frozenset[str], dict[str, frozenset[str]]]:
-    """Parse firmware support manifest payload."""
+    """Parse verified firmware trust-root/advisory payload."""
     if isinstance(payload, list):
         return normalize_version_list(payload), {}
 
@@ -145,7 +148,7 @@ def parse_verified_firmware_manifest_payload(
 
 
 def _derive_verified_versions_from_firmware_list(
-    rows: list[Any],
+    rows: Sequence[object],
 ) -> tuple[frozenset[str], dict[str, frozenset[str]]]:
     """Derive verified version sets from firmware_list rows."""
     derived_versions: set[str] = set()
@@ -170,7 +173,6 @@ def _derive_verified_versions_from_firmware_list(
             normalized = candidate.strip().lower()
             if normalized:
                 derived_by_type.setdefault(normalized, set()).add(version)
-                # Lock rule: controller uses bleName first.
                 if key_group == MANIFEST_TYPE_KEY_PRIORITY[0]:
                     break
 
@@ -184,7 +186,7 @@ def load_verified_firmware_manifest_file(
     *,
     on_error: Callable[[Path, OSError | json.JSONDecodeError], None],
 ) -> tuple[frozenset[str], dict[str, frozenset[str]]]:
-    """Load and parse one firmware support manifest file."""
+    """Load and parse one verified firmware trust-root file."""
     try:
         content = json.loads(manifest_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as err:
@@ -195,11 +197,11 @@ def load_verified_firmware_manifest_file(
 
 
 def extract_version_set(
-    data: dict[str, Any] | None,
+    data: Mapping[str, object] | None,
     keys: tuple[str, ...],
 ) -> set[str]:
     """Extract firmware versions from arbitrary list fields."""
-    if not isinstance(data, dict):
+    if data is None or not isinstance(data, Mapping):
         return set()
 
     versions: set[str] = set()
@@ -219,12 +221,9 @@ def matches_certified_versions(
     if not certified_versions:
         return False
 
-    # Keep exact-target match for deterministic OTA payloads.
     if latest and latest in certified_versions:
         return True
 
-    # Relaxed rule: any certified version newer than current firmware
-    # means this device generation is considered certified for upgrade.
     if installed is None:
         return False
     return any(
@@ -267,20 +266,23 @@ def matches_manifest_certification(
     )
 
 
-def _coerce_property_pair(raw_key: Any, raw_value: Any) -> dict[str, str] | None:
+def _coerce_property_pair(
+    raw_key: object,
+    raw_value: object,
+) -> OtaCommandProperty | None:
     """Build one normalized command property pair."""
     if raw_key is None or raw_value is None:
         return None
     return {"key": str(raw_key), "value": str(raw_value)}
 
 
-def coerce_command_properties(value: Any) -> list[dict[str, str]] | None:
+def coerce_command_properties(value: object) -> OtaCommandProperties | None:
     """Coerce a command properties payload to a key/value list."""
     if value is None:
         return None
 
     if isinstance(value, dict):
-        properties: list[dict[str, str]] = []
+        properties: OtaCommandProperties = []
         for key, item in value.items():
             property_item = _coerce_property_pair(key, item)
             if property_item is not None:
@@ -290,7 +292,7 @@ def coerce_command_properties(value: Any) -> list[dict[str, str]] | None:
     if not isinstance(value, list):
         return None
 
-    result: list[dict[str, str]] = []
+    result: OtaCommandProperties = []
     for item in value:
         if not isinstance(item, dict):
             continue
@@ -301,10 +303,10 @@ def coerce_command_properties(value: Any) -> list[dict[str, str]] | None:
 
 
 def normalize_command_properties(
-    payload: dict[str, Any],
+    payload: Mapping[str, object],
     *,
     properties_keys: tuple[str, ...],
-) -> list[dict[str, str]] | None:
+) -> OtaCommandProperties | None:
     """Normalize command properties payload to key/value list."""
     for key in properties_keys:
         normalized = coerce_command_properties(payload.get(key))
@@ -314,11 +316,11 @@ def normalize_command_properties(
 
 
 def parse_install_command_payload(
-    payload: Any,
+    payload: object,
     *,
     command_keys: tuple[str, ...],
     properties_keys: tuple[str, ...],
-) -> tuple[str, list[dict[str, str]] | None] | None:
+) -> tuple[str, OtaCommandProperties | None] | None:
     """Parse install command payload from nested or top-level OTA fields."""
     if isinstance(payload, str):
         command_text = payload.strip()
@@ -338,14 +340,14 @@ def parse_install_command_payload(
 
 
 def extract_install_command(
-    row: dict[str, Any] | None,
+    row: Mapping[str, object] | None,
     *,
     container_keys: tuple[str, ...],
     command_keys: tuple[str, ...],
     properties_keys: tuple[str, ...],
-) -> tuple[str, list[dict[str, str]] | None] | None:
+) -> tuple[str, OtaCommandProperties | None] | None:
     """Extract install command payload from OTA row."""
-    if not isinstance(row, dict):
+    if row is None or not isinstance(row, Mapping):
         return None
 
     for key in container_keys:
@@ -362,26 +364,3 @@ def extract_install_command(
         command_keys=command_keys,
         properties_keys=properties_keys,
     )
-
-
-def extract_ota_versions(
-    rows: Any,
-    *,
-    version_keys: tuple[str, ...] = DEFAULT_OTA_VERSION_KEYS,
-) -> set[str]:
-    """Extract normalized firmware versions from OTA rows."""
-    if not isinstance(rows, list):
-        return set()
-
-    versions: set[str] = set()
-    for row in rows:
-        if not isinstance(row, dict):
-            continue
-        for key in version_keys:
-            value = row.get(key)
-            if value is None:
-                continue
-            text = str(value).strip()
-            if text:
-                versions.add(text)
-    return versions

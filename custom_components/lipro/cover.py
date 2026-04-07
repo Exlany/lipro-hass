@@ -22,7 +22,11 @@ from .const.properties import (
     PROP_POSITION,
 )
 from .entities.base import LiproEntity
-from .helpers.platform import create_platform_entities
+from .helpers.platform import (
+    add_entry_entities,
+    create_platform_entities,
+    device_supports_platform,
+)
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -40,12 +44,15 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Lipro covers."""
-    entities = create_platform_entities(
-        entry.runtime_data,
-        device_filter=lambda d: d.is_curtain,
-        entity_factory=LiproCover,
+    add_entry_entities(
+        entry,
+        async_add_entities,
+        entity_builder=lambda coordinator: create_platform_entities(
+            coordinator,
+            device_filter=lambda d: device_supports_platform(d, "cover"),
+            entity_factory=LiproCover,
+        ),
     )
-    async_add_entities(entities)
 
 
 class LiproCover(LiproEntity, CoverEntity):
@@ -71,7 +78,7 @@ class LiproCover(LiproEntity, CoverEntity):
         """
         if PROP_POSITION not in self.device.properties:
             return None
-        return self.device.position
+        return self.device.state.position
 
     @property
     def is_closed(self) -> bool | None:
@@ -81,17 +88,17 @@ class LiproCover(LiproEntity, CoverEntity):
         """
         if PROP_POSITION not in self.device.properties:
             return None
-        return self.device.position == 0
+        return self.device.state.position == 0
 
     @property
     def is_opening(self) -> bool:
         """Return if the cover is opening."""
-        return self.device.is_moving and self.device.direction == "opening"
+        return self.device.state.is_moving and self.device.state.direction == "opening"
 
     @property
     def is_closing(self) -> bool:
         """Return if the cover is closing."""
-        return self.device.is_moving and self.device.direction == "closing"
+        return self.device.state.is_moving and self.device.state.direction == "closing"
 
     async def async_open_cover(self, **kwargs: Any) -> None:
         """Open the cover."""

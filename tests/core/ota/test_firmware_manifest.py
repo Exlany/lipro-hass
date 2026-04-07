@@ -50,6 +50,83 @@ def _reset_remote_manifest_state() -> Generator[None]:
     firmware_manifest._REMOTE_MANIFEST_LOCK = asyncio.Lock()
 
 
+
+def test_parse_remote_manifest_payload_ignores_summary_wrapper() -> None:
+    """Remote payload should ignore stale summary and use firmware_list only."""
+    versions, versions_by_type = firmware_manifest.parse_verified_firmware_manifest_payload(
+        {
+            "updated_at": "2026-02-27T00:00:00Z",
+            "summary": {
+                "verified_versions": ["7.10.9"],
+                "verified_versions_by_type": {"ff000001": ["7.10.9"]},
+            },
+            "firmware_list": [
+                {
+                    "firmwareVersion": "7.10.8",
+                    "certified": True,
+                    "deviceType": "ff000001",
+                    "iotName": "21P3",
+                    "physicalModel": "light",
+                }
+            ],
+        }
+    )
+
+    assert versions == frozenset({"7.10.8"})
+    assert versions_by_type["21p3"] == frozenset({"7.10.8"})
+
+
+def test_parse_remote_manifest_payload_derives_from_firmware_list() -> None:
+    """Remote payload should fallback to firmware_list when summary is missing."""
+    versions, versions_by_type = firmware_manifest.parse_verified_firmware_manifest_payload(
+        {
+            "firmware_list": [
+                {
+                    "firmwareVersion": "7.10.9",
+                    "certified": True,
+                    "deviceType": "ff000001",
+                    "iotName": "21P3",
+                    "physicalModel": "light",
+                },
+                {
+                    "version": "9.9.9",
+                    "certified": True,
+                },
+                {
+                    "version": "7.10.8",
+                    "certified": False,
+                },
+                {
+                    "version": "7.10.7",
+                },
+            ]
+        }
+    )
+
+    assert versions == frozenset({"7.10.9", "9.9.9"})
+    assert versions_by_type["21p3"] == frozenset({"7.10.9"})
+
+
+def test_parse_remote_manifest_payload_derives_type_keys_without_certification_key() -> None:
+    """Rows without certification_key/source should still derive type keys from metadata."""
+    versions, versions_by_type = firmware_manifest.parse_verified_firmware_manifest_payload(
+        {
+            "firmware_list": [
+                {
+                    "version": "7.10.9",
+                    "certified": True,
+                    "deviceType": "ff000001",
+                    "iotName": "21P3",
+                    "physicalModel": "light",
+                }
+            ]
+        }
+    )
+
+    assert versions == frozenset({"7.10.9"})
+    assert versions_by_type["21p3"] == frozenset({"7.10.9"})
+
+
 def test_load_verified_firmware_manifest_uses_lru_cache() -> None:
     expected = (frozenset({"8.0.0"}), {"light": frozenset({"8.0.0"})})
 
@@ -169,6 +246,50 @@ async def test_async_load_remote_manifest_updates_cache_on_remote_success() -> N
 
 
 @pytest.mark.asyncio
+async def test_async_load_remote_manifest_falls_back_after_malformed_payload() -> None:
+    now = datetime(2026, 1, 1, 0, 0, tzinfo=UTC)
+    cached_data = (frozenset({"6.0.0"}), {"curtain": frozenset({"6.0.0"})})
+    parsed_data = (frozenset({"8.0.0"}), {"21p3": frozenset({"8.0.0"})})
+    firmware_manifest._REMOTE_MANIFEST_STATE.time = now - timedelta(hours=2)
+    firmware_manifest._REMOTE_MANIFEST_STATE.data = cached_data
+
+    session = MagicMock()
+    session.get = MagicMock(
+        side_effect=[
+            _response_context(
+                _response(status=200, payload={"verified_versions": ["broken"]})
+            ),
+            _response_context(
+                _response(status=200, payload={"verified_versions": ["8.0.0"]})
+            ),
+        ]
+    )
+
+    with (
+        patch(
+            "custom_components.lipro.firmware_manifest.dt_util.utcnow", return_value=now
+        ),
+        patch(
+            "custom_components.lipro.firmware_manifest.async_get_clientsession",
+            return_value=session,
+        ),
+        patch(
+            "custom_components.lipro.firmware_manifest.parse_verified_firmware_manifest_payload",
+            side_effect=[ValueError("malformed"), parsed_data],
+        ) as parse_payload,
+    ):
+        result = await firmware_manifest.async_load_remote_firmware_manifest(
+            MagicMock()
+        )
+
+    assert result == parsed_data
+    assert firmware_manifest._REMOTE_MANIFEST_STATE.data == parsed_data
+    assert firmware_manifest._REMOTE_MANIFEST_STATE.time == now
+    assert session.get.call_count == 2
+    assert parse_payload.call_count == 2
+
+
+@pytest.mark.asyncio
 async def test_async_load_remote_manifest_returns_cached_data_on_remote_errors() -> (
     None
 ):
@@ -197,6 +318,49 @@ async def test_async_load_remote_manifest_returns_cached_data_on_remote_errors()
     assert firmware_manifest._REMOTE_MANIFEST_STATE.data == cached_data
     assert firmware_manifest._REMOTE_MANIFEST_STATE.time == now
     assert session.get.call_count == 2
+
+
+@pytest.mark.asyncio
+async def test_async_load_remote_manifest_returns_cached_data_on_malformed_payload() -> (
+    None
+):
+    now = datetime(2026, 1, 1, 0, 0, tzinfo=UTC)
+    cached_data = (frozenset({"6.1.0"}), {"fan": frozenset({"6.1.0"})})
+    firmware_manifest._REMOTE_MANIFEST_STATE.time = now - timedelta(hours=2)
+    firmware_manifest._REMOTE_MANIFEST_STATE.data = cached_data
+
+    session = MagicMock()
+    session.get = MagicMock(
+        side_effect=[
+            _response_context(
+                _response(status=200, payload={"verified_versions": ["broken"]})
+            ),
+            _response_context(_response(status=503)),
+        ]
+    )
+
+    with (
+        patch(
+            "custom_components.lipro.firmware_manifest.dt_util.utcnow", return_value=now
+        ),
+        patch(
+            "custom_components.lipro.firmware_manifest.async_get_clientsession",
+            return_value=session,
+        ),
+        patch(
+            "custom_components.lipro.firmware_manifest.parse_verified_firmware_manifest_payload",
+            side_effect=ValueError("malformed"),
+        ) as parse_payload,
+    ):
+        result = await firmware_manifest.async_load_remote_firmware_manifest(
+            MagicMock()
+        )
+
+    assert result == cached_data
+    assert firmware_manifest._REMOTE_MANIFEST_STATE.data == cached_data
+    assert firmware_manifest._REMOTE_MANIFEST_STATE.time == now
+    assert session.get.call_count == 2
+    parse_payload.assert_called_once_with({"verified_versions": ["broken"]})
 
 
 @pytest.mark.asyncio
@@ -237,3 +401,40 @@ async def test_async_load_remote_manifest_keeps_cached_data_when_payload_empty()
     assert firmware_manifest._REMOTE_MANIFEST_STATE.data == cached_data
     assert firmware_manifest._REMOTE_MANIFEST_STATE.time == now
     parse_payload.assert_called_once_with({"verified_versions": []})
+
+
+def test_remote_advisory_fixture_family_matches_current_parser() -> None:
+    from tests.helpers.external_boundary_fixtures import load_external_boundary_fixture
+
+    versions, by_type = firmware_manifest.parse_verified_firmware_manifest_payload(
+        load_external_boundary_fixture(
+            "firmware",
+            "remote_advisory.verified_versions.json",
+        )
+    )
+
+    assert versions == frozenset({"8.0.0"})
+    assert by_type == {"21p3": frozenset({"8.0.0"})}
+
+
+def test_remote_firmware_list_fixture_derives_versions() -> None:
+    from tests.helpers.external_boundary_fixtures import load_external_boundary_fixture
+
+    versions, by_type = firmware_manifest.parse_verified_firmware_manifest_payload(
+        load_external_boundary_fixture(
+            "firmware",
+            "remote_advisory.firmware_list.json",
+        )
+    )
+
+    assert versions == frozenset({"8.0.0", "2.6.43"})
+    assert by_type == {
+        "21p3": frozenset({"8.0.0"}),
+        "t21jc": frozenset({"2.6.43"}),
+    }
+
+
+def test_local_trust_root_path_points_to_repo_asset() -> None:
+    assert firmware_manifest.LOCAL_FIRMWARE_TRUST_ROOT_PATH.name == (
+        firmware_manifest.LOCAL_FIRMWARE_TRUST_ROOT_FILENAME
+    )

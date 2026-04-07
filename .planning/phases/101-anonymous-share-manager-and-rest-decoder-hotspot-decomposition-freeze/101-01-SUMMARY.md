@@ -1,0 +1,3 @@
+- `custom_components/lipro/core/anonymous_share/manager.py` 继续保留 `AnonymousShareManager` 作为 formal anonymous-share manager home，但已删掉 registry accessor re-export、aggregate outcome/client drift 与无语义 double wrappers，当前收窄为 `435` 行更诚实的 formal home。
+- `custom_components/lipro/core/anonymous_share/manager_submission.py` 与 `manager_support.py` 现分别承担 aggregate child traversal / neutral disabled-scope submit 语义，以及 scope-state / cache lifecycle / pending-report helpers，没有反向长成第二条 manager story。
+- focused anonymous-share suites 与 `ruff` 已通过，证明 aggregate submit semantics、cache invalidation、primary-scope routing 与 observability truth 已同步收口。

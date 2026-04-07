@@ -53,11 +53,11 @@ config/*
 home-assistant_v2.db*
 home-assistant.log*
 
-# Claude Code
+# AI agent tooling
 .claude/
 .specstory/
 .specify/
-CLAUDE.md
+agent.md
 
 # Secrets
 secrets.yaml
@@ -78,5 +78,28 @@ CODE_REVIEW_PLAN.md
 # Assets (extracted from APK, not for distribution)
 assets/
 
-# gsd
-.planning/
+# gsd / governance truth
+.planning/*
+!.planning/STATE.md
+!.planning/ROADMAP.md
+!.planning/PROJECT.md
+!.planning/REQUIREMENTS.md
+!.planning/MILESTONES.md
+!.planning/v*-MILESTONE-AUDIT.md
+!.planning/milestones/
+.planning/milestones/*
+!.planning/milestones/*.md
+!.planning/baseline/
+!.planning/baseline/*.md
+!.planning/codebase/
+!.planning/codebase/*.md
+!.planning/reviews/
+!.planning/reviews/*.md
+!.planning/codebase/
+!.planning/codebase/*.md
+!.planning/phases/
+!.planning/phases/*/
+!.planning/phases/*/*.md
+# Benchmarks (generated)
+.benchmarks/
+benchmark_results.json

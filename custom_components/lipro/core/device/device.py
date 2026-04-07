@@ -1,95 +1,47 @@
-"""Device abstraction for Lipro integration."""
+"""Thin composable device facade for the Lipro integration."""
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping
 from dataclasses import dataclass, field
-import json
-import logging
-from typing import Any
 
 from ...const.api import DEFAULT_MAX_FAN_GEAR
-from ...const.categories import (
-    DeviceCategory,
-    get_device_category,
-    get_platforms_for_category,
-)
-from ...const.device_types import (
-    DEVICE_TYPE_MAP,
-    IOT_NAME_TO_DEFAULT_MAX_FAN_GEAR,
-    IOT_NAME_TO_PHYSICAL_MODEL,
-    PHYSICAL_MODEL_TO_DEVICE_TYPE,
-)
-from ...const.properties import (
-    DEFAULT_COLOR_TEMP_PERCENT,
-    DIRECTION_CLOSING,
-    DIRECTION_OPENING,
-    MAX_COLOR_TEMP_KELVIN,
-    MIN_COLOR_TEMP_KELVIN,
-    PROP_ACTIVATED,
-    PROP_AERATION_GEAR,
-    PROP_BATTERY,
-    PROP_BLE_MAC,
-    PROP_BODY_REACTIVE,
-    PROP_BRIGHTNESS,
-    PROP_CHARGING,
-    PROP_CONNECT_STATE,
-    PROP_DARK,
-    PROP_DIRECTION,
-    PROP_DOOR_OPEN,
-    PROP_FADE_STATE,
-    PROP_FAN_GEAR,
-    PROP_FAN_MODE,
-    PROP_FAN_ONOFF,
-    PROP_FOCUS_MODE,
-    PROP_GEAR_LIST,
-    PROP_HEATER_MODE,
-    PROP_HEATER_SWITCH,
-    PROP_IP,
-    PROP_LAST_GEAR_INDEX,
-    PROP_LATEST_SYNC_TIMESTAMP,
-    PROP_LIGHT_MODE,
-    PROP_LOW_BATTERY,
-    PROP_MAC,
-    PROP_MESH_ADDRESS,
-    PROP_MESH_GATEWAY,
-    PROP_MESH_TYPE,
-    PROP_MOVING,
-    PROP_NET_TYPE,
-    PROP_POSITION,
-    PROP_POWER_STATE,
-    PROP_SLEEP_AID_ENABLE,
-    PROP_TEMPERATURE,
-    PROP_VERSION,
-    PROP_WAKE_UP_ENABLE,
-    PROP_WIFI_RSSI,
-    PROP_WIFI_SSID,
-    PROP_WIND_DIRECTION_MODE,
-    PROP_WIND_GEAR,
-    kelvin_to_percent,
-    percent_to_kelvin,
-)
-from ..utils.coerce import coerce_boollike
-from ..utils.identifiers import is_valid_iot_device_id, is_valid_mesh_group_id
-from ..utils.property_normalization import normalize_properties
+from ...const.properties import MAX_COLOR_TEMP_KELVIN, MIN_COLOR_TEMP_KELVIN
+from . import device_runtime, device_views
+from .device_factory import build_device_from_api_data
+from .extras import DeviceExtras
+from .state import DeviceState
 
-_LOGGER = logging.getLogger(__name__)
+type DevicePropertyMap = dict[str, object]
+type DeviceExtraDataMap = dict[str, object]
+type OutletPowerInfo = dict[str, object]
 
 
-def _coerce_api_bool(value: Any) -> bool:
-    """Normalize API boolean-like values.
+def _component_property(component_name: str, attr_name: str) -> property:
+    """Create one explicit facade property backed by a composed helper."""
 
-    Handles backend variants such as bool, int(1/0), and strings.
-    """
-    return coerce_boollike(value, logger=_LOGGER, context="API")
+    def _getter(self: LiproDevice) -> object:
+        return getattr(getattr(self, component_name), attr_name)
+
+    return property(_getter)
 
 
-@dataclass
+def _component_method(component_name: str, method_name: str):
+    """Create one explicit facade method backed by a composed helper."""
+
+    def _method(self: LiproDevice, *args: object, **kwargs: object) -> object:
+        return getattr(getattr(self, component_name), method_name)(*args, **kwargs)
+
+    _method.__name__ = method_name
+    return _method
+
+
+@dataclass(slots=True)
 class LiproDevice:
-    """Represents a Lipro device."""
+    """Thin device facade backed by focused components."""
 
-    device_number: int  # API "deviceId" (numeric), NOT a unique identifier
-    serial: str  # "03ab"+MAC for devices, "mesh_group_xxxxx" for groups
+    device_number: int
+    serial: str
     name: str
     device_type: int
     iot_name: str
@@ -98,653 +50,171 @@ class LiproDevice:
     is_group: bool = False
     product_id: int | None = None
     physical_model: str | None = None
-    properties: dict[str, Any] = field(default_factory=dict)
-    extra_data: dict[str, Any] = field(default_factory=dict)  # For power info, etc.
+    properties: DevicePropertyMap = field(default_factory=dict)
+    extra_data: DeviceExtraDataMap = field(default_factory=dict)
     available: bool = True
-    # Color temperature range from product config (Kelvin)
-    # 0 means single color temperature (no adjustment supported)
     min_color_temp_kelvin: int = MIN_COLOR_TEMP_KELVIN
     max_color_temp_kelvin: int = MAX_COLOR_TEMP_KELVIN
-    # Fan gear range (from product config or default)
     default_max_fan_gear_in_model: int = DEFAULT_MAX_FAN_GEAR
     max_fan_gear: int = DEFAULT_MAX_FAN_GEAR
-    # Flag that physical_model exists but is not recognized by integration tables.
     has_unknown_physical_model: bool = False
-    # Cache for parsed gear_list (cleared on property update)
-    _gear_list_cache: list[Any] | None = field(default=None, repr=False, compare=False)
+    _state_cache: DeviceState | None = field(
+        default=None, init=False, repr=False, compare=False
+    )
+    _extras_cache: DeviceExtras | None = field(
+        default=None, init=False, repr=False, compare=False
+    )
+    _last_mqtt_update_at: float = field(
+        default=0.0, init=False, repr=False, compare=False
+    )
+    _outlet_power_info: OutletPowerInfo | None = field(
+        default=None, init=False, repr=False, compare=False
+    )
+
+    identity = property(device_views.identity)
+    capabilities = property(device_views.capabilities)
+    network_info = property(device_views.network_info)
+    device_type_hex = property(device_views.device_type_hex)
+    category = property(device_views.category)
+    unique_id = property(device_views.unique_id)
+    iot_device_id = property(device_views.iot_device_id)
+    has_valid_iot_id = property(device_views.has_valid_iot_id_property)
+    panel_type = property(device_views.panel_type)
+    fan_speed_range = property(device_views.fan_speed_range)
+
+    is_light = _component_property("capabilities", "is_light")
+    is_fan_light = _component_property("capabilities", "is_fan_light")
+    is_curtain = _component_property("capabilities", "is_curtain")
+    is_switch = _component_property("capabilities", "is_switch")
+    is_outlet = _component_property("capabilities", "is_outlet")
+    is_heater = _component_property("capabilities", "is_heater")
+    is_sensor = _component_property("capabilities", "is_sensor")
+    is_body_sensor = _component_property("capabilities", "is_body_sensor")
+    is_door_sensor = _component_property("capabilities", "is_door_sensor")
+    is_gateway = _component_property("capabilities", "is_gateway")
+
+    is_on = _component_property("state", "is_on")
+    fade_state = _component_property("state", "fade_state")
+    sleep_aid_enabled = _component_property("state", "sleep_aid_enabled")
+    wake_up_enabled = _component_property("state", "wake_up_enabled")
+    focus_mode_enabled = _component_property("state", "focus_mode_enabled")
+    body_reactive_enabled = _component_property("state", "body_reactive_enabled")
+    panel_led_enabled = _component_property("state", "panel_led_enabled")
+    panel_memory_enabled = _component_property("state", "panel_memory_enabled")
+    panel_pair_key_full = _component_property("state", "panel_pair_key_full")
+    ir_switch_enabled = _component_property("state", "ir_switch_enabled")
+    is_charging = _component_property("state", "is_charging")
+    is_moving = _component_property("state", "is_moving")
+    fan_is_on = _component_property("state", "fan_is_on")
+    heater_is_on = _component_property("state", "heater_is_on")
+    door_is_open = _component_property("state", "door_is_open")
+    is_activated = _component_property("state", "is_activated")
+    is_dark = _component_property("state", "is_dark")
+    low_battery = _component_property("state", "low_battery")
+    brightness = _component_property("state", "brightness")
+    fan_mode = _component_property("state", "fan_mode")
+    heater_mode = _component_property("state", "heater_mode")
+    wind_gear = _component_property("state", "wind_gear")
+    light_mode = _component_property("state", "light_mode")
+    wind_direction_mode = _component_property("state", "wind_direction_mode")
+    aeration_gear = _component_property("state", "aeration_gear")
+    supports_color_temp = _component_property("state", "supports_color_temp")
+    is_connected = _component_property("state", "is_connected")
+    color_temp = _component_property("state", "color_temp")
+    battery_level = _component_property("state", "battery_level")
+    has_battery = _component_property("state", "has_battery")
+    position = _component_property("state", "position")
+    direction = _component_property("state", "direction")
+    fan_gear = _component_property("state", "fan_gear")
+    aeration_is_on = _component_property("state", "aeration_is_on")
+    get_property = _component_method("state", "get_property")
+    get_bool_property = _component_method("state", "get_bool_property")
+    get_int_property = _component_method("state", "get_int_property")
+    get_float_property = _component_method("state", "get_float_property")
+    get_optional_int_property = _component_method("state", "get_optional_int_property")
+    get_str_property = _component_method("state", "get_str_property")
+    percent_to_kelvin_for_device = _component_method(
+        "state", "percent_to_kelvin_for_device"
+    )
+    kelvin_to_percent_for_device = _component_method(
+        "state", "kelvin_to_percent_for_device"
+    )
+
+    ip_address = _component_property("network_info", "ip_address")
+    wifi_ssid = _component_property("network_info", "wifi_ssid")
+    wifi_rssi = _component_property("network_info", "wifi_rssi")
+    net_type = _component_property("network_info", "net_type")
+    mac_address = _component_property("network_info", "mac_address")
+    firmware_version = _component_property("network_info", "firmware_version")
+    latest_sync_timestamp = _component_property("network_info", "latest_sync_timestamp")
+    mesh_address = _component_property("network_info", "mesh_address")
+    mesh_type = _component_property("network_info", "mesh_type")
+    is_mesh_gateway = _component_property("network_info", "is_mesh_gateway")
+    ble_mac = _component_property("network_info", "ble_mac")
+    connection_quality = _component_property("network_info", "connection_quality")
+
+    gear_list = _component_property("extras", "gear_list")
+    last_gear_index = _component_property("extras", "last_gear_index")
+    has_gear_presets = _component_property("extras", "has_gear_presets")
+    has_sleep_wake_features = _component_property("extras", "has_sleep_wake_features")
+    has_floor_lamp_features = _component_property("extras", "has_floor_lamp_features")
+    panel_info = _component_property("extras", "panel_info")
+    is_ir_remote_device = _component_property("extras", "is_ir_remote_device")
+    ir_remote_gateway_device_id = _component_property(
+        "extras", "ir_remote_gateway_device_id"
+    )
+    mesh_gateway_device_id = _component_property("extras", "mesh_gateway_device_id")
+    mesh_group_member_ids = _component_property("extras", "mesh_group_member_ids")
+    rc_list = _component_property("extras", "rc_list")
+    supports_ir_switch = _component_property("extras", "supports_ir_switch")
 
     def __post_init__(self) -> None:
-        """Normalize payload variants into canonical internal state."""
-        self.properties = normalize_properties(self.properties)
-        self.has_unknown_physical_model = bool(
-            self.physical_model
-            and not PHYSICAL_MODEL_TO_DEVICE_TYPE.get(self.physical_model)
-        )
-        if PROP_CONNECT_STATE in self.properties:
-            self.available = self.is_connected
+        """Normalize incoming device properties after dataclass initialization."""
+        device_runtime.initialize_device(self)
 
     @property
-    def device_type_hex(self) -> str:
-        """Get device type as hex string.
-
-        Priority:
-        1. physical_model - The ONLY reliable source for device category
-        2. iot_name -> built-in model table (from App's device_models.txt)
-        3. device_type (type field) - Fallback only, often inaccurate
-
-        IMPORTANT: The 'type' field from API is Mesh protocol classification,
-        NOT device function type! Real API examples:
-        - type=6 with physicalModel="light" -> Light strip (NOT outlet!)
-        - type=9 with physicalModel="fanLight" -> Fan light (NOT desk lamp!)
-        - Always trust physicalModel over type field
-        """
-        # Priority 1: Use physical_model (the only reliable source)
-        if self.physical_model:
-            device_type = PHYSICAL_MODEL_TO_DEVICE_TYPE.get(self.physical_model)
-            if device_type:
-                return device_type
-            _LOGGER.warning(
-                "Unknown physicalModel '%s' for device %s, falling back to type field",
-                self.physical_model,
-                self.name,
-            )
-
-        # Priority 2: Look up iotName in built-in model table
-        if self.iot_name:
-            phy_model = IOT_NAME_TO_PHYSICAL_MODEL.get(
-                self.iot_name
-            ) or IOT_NAME_TO_PHYSICAL_MODEL.get(self.iot_name.lower())
-            if phy_model:
-                device_type = PHYSICAL_MODEL_TO_DEVICE_TYPE.get(phy_model)
-                if device_type:
-                    _LOGGER.debug(
-                        "Device %s: resolved type via iotName=%s -> %s",
-                        self.name,
-                        self.iot_name,
-                        phy_model,
-                    )
-                    return device_type
-
-        # Priority 3: Fall back to type field (may be inaccurate)
-        return DEVICE_TYPE_MAP.get(self.device_type, f"ff{self.device_type:06x}")
+    def state(self) -> DeviceState:
+        """Return the mutable state view bound to this device."""
+        return device_runtime.get_device_state(self)
 
     @property
-    def platforms(self) -> list[str]:
-        """Get HA platforms for this device."""
-        return get_platforms_for_category(self.category)
+    def extras(self) -> DeviceExtras:
+        """Return device-specific structured extras and cached payloads."""
+        return device_runtime.get_device_extras(self)
 
     @property
-    def unique_id(self) -> str:
-        """Get unique ID for this device."""
-        return f"lipro_{self.serial}"
+    def outlet_power_info(self) -> OutletPowerInfo | None:
+        """Return the formal outlet-power primitive."""
+        return device_runtime.get_outlet_power_info(self)
+
+    @outlet_power_info.setter
+    def outlet_power_info(self, value: OutletPowerInfo | None) -> None:
+        """Persist the formal outlet-power primitive and clear legacy side-car state."""
+        device_runtime.set_outlet_power_info(self, value)
 
     @property
-    def iot_device_id(self) -> str:
-        """Get IoT device ID for API calls.
+    def is_online(self) -> bool:
+        """Return whether the device is currently connected."""
+        return self.state.is_connected
 
-        This is an alias for `serial`. The IoT device ID format is:
-        "03ab" + BLE_MAC.lower().replace(":", "")
+    def mark_mqtt_update(self, *, timestamp: float | None = None) -> None:
+        """Record that the device received an MQTT property update."""
+        device_runtime.mark_device_mqtt_update(self, timestamp=timestamp)
 
-        Example: BLE MAC "5C:CD:7C:XX:XX:XX" -> IoT ID "03ab5ccd7cxxxxxx"
-
-        The "03ab" prefix is Lipro/Meizu manufacturer ID (939 in decimal).
-        """
-        return self.serial
-
-    @property
-    def has_valid_iot_id(self) -> bool:
-        """Check if device has a valid IoT device ID format.
-
-        Returns:
-            True if serial matches IoT device ID format or Mesh group ID format.
-
-        """
-        if self.is_group:
-            return is_valid_mesh_group_id(self.serial)
-        return is_valid_iot_device_id(self.serial)
-
-    # =========================================================================
-    # Device Category Properties
-    # =========================================================================
-
-    @property
-    def category(self) -> DeviceCategory:
-        """Get the device category based on device type."""
-        return get_device_category(self.device_type_hex)
-
-    @property
-    def is_light(self) -> bool:
-        """Check if device is a light (not including fan lights)."""
-        return self.category == DeviceCategory.LIGHT
-
-    @property
-    def is_fan_light(self) -> bool:
-        """Check if device is a fan light."""
-        return self.category == DeviceCategory.FAN_LIGHT
-
-    @property
-    def is_curtain(self) -> bool:
-        """Check if device is a curtain."""
-        return self.category == DeviceCategory.CURTAIN
-
-    @property
-    def is_switch(self) -> bool:
-        """Check if device is a switch or outlet."""
-        return self.category in (DeviceCategory.SWITCH, DeviceCategory.OUTLET)
-
-    @property
-    def is_outlet(self) -> bool:
-        """Check if device is an outlet."""
-        return self.category == DeviceCategory.OUTLET
-
-    @property
-    def is_heater(self) -> bool:
-        """Check if device is a heater."""
-        return self.category == DeviceCategory.HEATER
-
-    @property
-    def is_sensor(self) -> bool:
-        """Check if device is a sensor."""
-        return self.category in (DeviceCategory.BODY_SENSOR, DeviceCategory.DOOR_SENSOR)
-
-    @property
-    def is_body_sensor(self) -> bool:
-        """Check if device is a body/motion sensor."""
-        return self.category == DeviceCategory.BODY_SENSOR
-
-    @property
-    def is_door_sensor(self) -> bool:
-        """Check if device is a door/window sensor."""
-        return self.category == DeviceCategory.DOOR_SENSOR
-
-    @property
-    def is_gateway(self) -> bool:
-        """Check if device is a gateway."""
-        return self.category == DeviceCategory.GATEWAY
-
-    @property
-    def supports_color_temp(self) -> bool:
-        """Check if device supports color temperature adjustment.
-
-        Returns False if maxTemperature is 0 (single color temperature device).
-        """
-        return self.max_color_temp_kelvin > 0 and self.min_color_temp_kelvin > 0
-
-    # =========================================================================
-    # Property Getters with Type Conversion
-    # =========================================================================
-
-    def get_property(self, key: str, default: Any = None) -> Any:
-        """Get a property value."""
-        return self.properties.get(key, default)
-
-    @staticmethod
-    def _coerce_int(value: Any) -> int | None:
-        """Convert a value to int, returning None on failure."""
-        try:
-            return int(value)
-        except (TypeError, ValueError):
-            return None
-
-    @staticmethod
-    def _coerce_float(value: Any) -> float | None:
-        """Convert a value to float, returning None on failure."""
-        try:
-            return float(value)
-        except (TypeError, ValueError):
-            return None
-
-    def get_bool_property(self, key: str, default: bool = False) -> bool:
-        """Get a boolean property value.
-
-        Handles various API response formats:
-        - Boolean: True/False
-        - String: "1"/"0", "true"/"false", "True"/"False"
-        - Integer: 1/0
-        """
-        value = self.properties.get(key)
-        if value is None:
-            return default
-        if isinstance(value, (bool, int, float, str)):
-            return _coerce_api_bool(value)
-        return bool(value)
-
-    def get_int_property(self, key: str, default: int = 0) -> int:
-        """Get an integer property value."""
-        value = self._coerce_int(self.properties.get(key))
-        if value is None:
-            return default
-        return value
-
-    def get_float_property(self, key: str, default: float = 0.0) -> float:
-        """Get a float property value."""
-        value = self._coerce_float(self.properties.get(key))
-        if value is None:
-            return default
-        return value
-
-    def get_optional_int_property(self, key: str) -> int | None:
-        """Get an optional integer property value (returns None if missing)."""
-        return self._coerce_int(self.properties.get(key))
-
-    def get_str_property(self, key: str) -> str | None:
-        """Get a string property value, or None if missing."""
-        value = self.properties.get(key)
-        if value is None:
-            return None
-        return str(value)
-
-    # Common state properties
-    @property
-    def is_on(self) -> bool:
-        """Check if device is on."""
-        return self.get_bool_property(PROP_POWER_STATE)
-
-    @property
-    def is_connected(self) -> bool:
-        """Check if device is connected."""
-        return self.get_bool_property(PROP_CONNECT_STATE, True)
-
-    @property
-    def brightness(self) -> int:
-        """Get brightness (0-100)."""
-        return self.get_int_property(PROP_BRIGHTNESS, 100)
-
-    @property
-    def color_temp(self) -> int:
-        """Get color temperature in Kelvin.
-
-        API stores temperature as percentage (0=warmest, 100=coolest).
-        Uses device-specific color temp range if available.
-        """
-        percent = self.get_int_property(PROP_TEMPERATURE, DEFAULT_COLOR_TEMP_PERCENT)
-        return self.percent_to_kelvin_for_device(percent)
-
-    def percent_to_kelvin_for_device(self, percent: int) -> int:
-        """Convert API temperature percentage to Kelvin using device-specific range.
-
-        Args:
-            percent: Temperature percentage (0-100).
-
-        Returns:
-            Color temperature in Kelvin.
-
-        """
-        percent = max(0, min(100, percent))
-        if self.supports_color_temp:
-            temp_range = self.max_color_temp_kelvin - self.min_color_temp_kelvin
-            if temp_range <= 0:
-                return self.min_color_temp_kelvin
-            return self.min_color_temp_kelvin + int(percent * temp_range / 100)
-        # Fallback to global defaults (2700-6500K)
-        return percent_to_kelvin(percent)
-
-    def kelvin_to_percent_for_device(self, kelvin: int) -> int:
-        """Convert Kelvin to API temperature percentage using device-specific range.
-
-        Args:
-            kelvin: Color temperature in Kelvin.
-
-        Returns:
-            Temperature percentage (0-100), clamped.
-
-        """
-        if self.supports_color_temp:
-            min_temp = self.min_color_temp_kelvin
-            max_temp = self.max_color_temp_kelvin
-            temp_range = max_temp - min_temp
-            if temp_range <= 0:
-                return 50
-            kelvin = max(min_temp, min(max_temp, kelvin))
-            return max(0, min(100, round((kelvin - min_temp) * 100 / temp_range)))
-        # Fallback to global defaults
-        return kelvin_to_percent(kelvin)
-
-    @property
-    def fade_state(self) -> bool:
-        """Get fade/transition state for light."""
-        return self.get_bool_property(PROP_FADE_STATE)
-
-    @property
-    def gear_list(self) -> list[Any]:
-        """Get light gear presets.
-
-        Returns:
-            List of gear presets, each with 'temperature' (0-100%)
-            and 'brightness' (0-100). Empty list if not available.
-
-        """
-        # Return cached value if available
-        if self._gear_list_cache is not None:
-            return self._gear_list_cache
-
-        value = self.properties.get(PROP_GEAR_LIST)
-        if not value:
-            return []
-        try:
-            if isinstance(value, str):
-                stripped = value.lstrip()
-                if not stripped or stripped[0] not in "{[":
-                    return []
-                result = json.loads(value)
-            else:
-                result = value
-            if not isinstance(result, list):
-                return []
-            # Cache the parsed result
-            self._gear_list_cache = result
-            return result
-        except (json.JSONDecodeError, TypeError):
-            return []
-
-    @property
-    def last_gear_index(self) -> int:
-        """Get last used gear index (0-based)."""
-        return self.get_int_property(PROP_LAST_GEAR_INDEX, -1)
-
-    @property
-    def has_gear_presets(self) -> bool:
-        """Check if device has gear presets."""
-        return len(self.gear_list) > 0
-
-    # Natural Light properties (自然光灯)
-    @property
-    def sleep_aid_enabled(self) -> bool:
-        """Check if sleep aid mode is enabled."""
-        return self.get_bool_property(PROP_SLEEP_AID_ENABLE)
-
-    @property
-    def wake_up_enabled(self) -> bool:
-        """Check if wake up mode is enabled."""
-        return self.get_bool_property(PROP_WAKE_UP_ENABLE)
-
-    @property
-    def has_sleep_wake_features(self) -> bool:
-        """Check if device has sleep/wake features (Natural Light)."""
-        return (
-            PROP_SLEEP_AID_ENABLE in self.properties
-            or PROP_WAKE_UP_ENABLE in self.properties
+    def has_recent_mqtt_update(self, *, stale_window_seconds: float = 180.0) -> bool:
+        """Return True when an MQTT update arrived within the stale window."""
+        return device_runtime.has_recent_device_mqtt_update(
+            self, stale_window_seconds=stale_window_seconds
         )
 
-    # Floor Lamp properties (落地灯)
-    @property
-    def focus_mode_enabled(self) -> bool:
-        """Check if focus mode is enabled."""
-        return self.get_bool_property(PROP_FOCUS_MODE)
-
-    @property
-    def body_reactive_enabled(self) -> bool:
-        """Check if body reactive (motion sensing) is enabled."""
-        return self.get_bool_property(PROP_BODY_REACTIVE)
-
-    @property
-    def has_floor_lamp_features(self) -> bool:
-        """Check if device has floor lamp features."""
-        return (
-            PROP_FOCUS_MODE in self.properties or PROP_BODY_REACTIVE in self.properties
-        )
-
-    # Bedside Light properties (床头灯)
-    @property
-    def battery_level(self) -> int | None:
-        """Get battery level (0-100), or None if not a battery device."""
-        if PROP_BATTERY not in self.properties:
-            return None
-        return self.get_int_property(PROP_BATTERY, 0)
-
-    @property
-    def is_charging(self) -> bool:
-        """Check if device is charging."""
-        return self.get_bool_property(PROP_CHARGING)
-
-    @property
-    def has_battery(self) -> bool:
-        """Check if device has battery."""
-        return PROP_BATTERY in self.properties
-
-    # Curtain properties
-    @property
-    def position(self) -> int:
-        """Get curtain position (0-100)."""
-        position = self.get_int_property(PROP_POSITION, 0)
-        return max(0, min(100, position))
-
-    @property
-    def is_moving(self) -> bool:
-        """Check if curtain is moving."""
-        return self.get_bool_property(PROP_MOVING)
-
-    @property
-    def direction(self) -> str | None:
-        """Get curtain movement direction."""
-        direction = self.get_property(PROP_DIRECTION)
-        if direction == DIRECTION_OPENING:
-            return "opening"
-        if direction == DIRECTION_CLOSING:
-            return "closing"
-        return None
-
-    # Fan properties
-    @property
-    def fan_is_on(self) -> bool:
-        """Check if fan is on."""
-        return self.get_bool_property(PROP_FAN_ONOFF)
-
-    @property
-    def fan_speed_range(self) -> tuple[int, int]:
-        """Get fan speed range (min_gear, max_gear)."""
-        return (1, self.max_fan_gear)
-
-    @property
-    def fan_gear(self) -> int:
-        """Get fan gear/speed, clamped to device range."""
-        gear = self.get_int_property(PROP_FAN_GEAR, 1)
-        return max(1, min(self.max_fan_gear, gear))
-
-    @property
-    def fan_mode(self) -> int:
-        """Get fan mode (0=direct, 1=natural, 2=cycle, 3=gentle_wind)."""
-        return self.get_int_property(PROP_FAN_MODE, 0)
-
-    # Heater properties
-    @property
-    def heater_is_on(self) -> bool:
-        """Check if heater is on."""
-        return self.get_bool_property(PROP_HEATER_SWITCH)
-
-    @property
-    def heater_mode(self) -> int:
-        """Get heater mode."""
-        return self.get_int_property(PROP_HEATER_MODE, 0)
-
-    @property
-    def wind_gear(self) -> int:
-        """Get wind gear."""
-        return self.get_int_property(PROP_WIND_GEAR, 0)
-
-    @property
-    def light_mode(self) -> int:
-        """Get light mode for heater."""
-        return self.get_int_property(PROP_LIGHT_MODE, 0)
-
-    @property
-    def wind_direction_mode(self) -> int:
-        """Get wind direction mode (1=auto, 2=fixed)."""
-        return self.get_int_property(PROP_WIND_DIRECTION_MODE, 1)
-
-    @property
-    def aeration_gear(self) -> int:
-        """Get aeration/ventilation gear (0=off, 1=strong, 2=weak)."""
-        return self.get_int_property(PROP_AERATION_GEAR, 0)
-
-    @property
-    def aeration_is_on(self) -> bool:
-        """Check if aeration/ventilation is on."""
-        return self.aeration_gear > 0
-
-    # Sensor properties
-    @property
-    def door_is_open(self) -> bool:
-        """Check if door is open (door sensor)."""
-        return self.get_bool_property(PROP_DOOR_OPEN)
-
-    @property
-    def is_activated(self) -> bool:
-        """Check if motion detected (body sensor)."""
-        return self.get_bool_property(PROP_ACTIVATED)
-
-    @property
-    def is_dark(self) -> bool:
-        """Check if environment is dark."""
-        return self.get_bool_property(PROP_DARK)
-
-    @property
-    def low_battery(self) -> bool:
-        """Check if battery is low."""
-        return self.get_bool_property(PROP_LOW_BATTERY)
-
-    # =========================================================================
-    # Network/Device Info Properties (诊断信息)
-    # =========================================================================
-
-    @property
-    def ip_address(self) -> str | None:
-        """Get device IP address."""
-        return self.get_str_property(PROP_IP)
-
-    @property
-    def wifi_ssid(self) -> str | None:
-        """Get connected WiFi SSID."""
-        return self.get_str_property(PROP_WIFI_SSID)
-
-    @property
-    def wifi_rssi(self) -> int | None:
-        """Get WiFi signal strength (RSSI in dBm)."""
-        return self.get_optional_int_property(PROP_WIFI_RSSI)
-
-    @property
-    def net_type(self) -> str | None:
-        """Get network type (e.g., 'wifi')."""
-        return self.get_str_property(PROP_NET_TYPE)
-
-    @property
-    def mac_address(self) -> str | None:
-        """Get device MAC address."""
-        return self.get_str_property(PROP_MAC)
-
-    @property
-    def firmware_version(self) -> str | None:
-        """Get device firmware version."""
-        return self.get_str_property(PROP_VERSION)
-
-    @property
-    def latest_sync_timestamp(self) -> int | None:
-        """Get latest sync timestamp (milliseconds)."""
-        return self.get_optional_int_property(PROP_LATEST_SYNC_TIMESTAMP)
-
-    # =========================================================================
-    # Mesh Network Properties (Mesh 网络拓扑)
-    # =========================================================================
-
-    @property
-    def mesh_address(self) -> int | None:
-        """Get Mesh network address."""
-        return self.get_optional_int_property(PROP_MESH_ADDRESS)
-
-    @property
-    def mesh_type(self) -> int | None:
-        """Get Mesh device type (1=standard)."""
-        return self.get_optional_int_property(PROP_MESH_TYPE)
-
-    @property
-    def is_mesh_gateway(self) -> bool:
-        """Check if device is a Mesh gateway."""
-        return self.get_bool_property(PROP_MESH_GATEWAY)
-
-    @property
-    def ble_mac(self) -> str | None:
-        """Get BLE MAC address."""
-        return self.get_str_property(PROP_BLE_MAC)
-
-    def update_properties(self, properties: dict[str, Any]) -> None:
-        """Update device properties.
-
-        Args:
-            properties: New properties to merge.
-
-        """
-        normalized = normalize_properties(properties)
-
-        # Clear gear_list cache if gearList property is being updated
-        if PROP_GEAR_LIST in normalized:
-            self._gear_list_cache = None
-
-        self.properties.update(normalized)
-        # Update availability based on connection state
-        if PROP_CONNECT_STATE in normalized:
-            self.available = self.is_connected
+    def update_properties(self, properties: Mapping[str, object]) -> None:
+        """Merge normalized properties into the live facade state."""
+        device_runtime.update_device_properties(self, properties)
 
     @classmethod
-    def from_api_data(cls, data: dict[str, Any]) -> LiproDevice:
-        """Create a device from API response data.
-
-        Args:
-            data: Device data from API.
-
-        Returns:
-            LiproDevice instance.
-
-        """
-        iot_name = data.get("iotName", "")
-        default_max_fan_gear_in_model = DEFAULT_MAX_FAN_GEAR
-        if isinstance(iot_name, str):
-            model_default_max_fan_gear = IOT_NAME_TO_DEFAULT_MAX_FAN_GEAR.get(
-                iot_name.lower()
-            )
-            if (
-                isinstance(model_default_max_fan_gear, int)
-                and model_default_max_fan_gear > 0
-            ):
-                default_max_fan_gear_in_model = model_default_max_fan_gear
-
-        return cls(
-            device_number=data.get("deviceId", 0),
-            serial=data.get("serial", ""),
-            name=data.get("deviceName", "Unknown"),
-            device_type=data.get("type", 1),
-            iot_name=iot_name,
-            room_id=data.get("roomId"),
-            room_name=data.get("roomName"),
-            is_group=_coerce_api_bool(data.get("isGroup", False))
-            or _coerce_api_bool(data.get("group", False)),
-            product_id=data.get("productId"),
-            physical_model=data.get("physicalModel"),
-            default_max_fan_gear_in_model=default_max_fan_gear_in_model,
-            max_fan_gear=default_max_fan_gear_in_model,
-        )
+    def from_api_data(cls, data: DevicePropertyMap) -> LiproDevice:
+        """Build a device facade from one raw API payload."""
+        return build_device_from_api_data(cls, data)
 
 
-def parse_properties_list(
-    properties_list: Sequence[object] | None,
-) -> dict[str, Any]:
-    """Parse properties list from API response.
-
-    Args:
-        properties_list: List of {key, value} dicts.
-
-    Returns:
-        Dictionary of property key-value pairs.
-
-    """
-    if not properties_list:
-        return {}
-
-    result: dict[str, Any] = {}
-    for prop in properties_list:
-        if not isinstance(prop, Mapping):
-            continue
-        key = prop.get("key")
-        value = prop.get("value")
-        if isinstance(key, str) and key:
-            result[key] = value
-    return normalize_properties(result)
+__all__ = ["LiproDevice"]

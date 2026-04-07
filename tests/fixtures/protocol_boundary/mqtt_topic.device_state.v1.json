@@ -1,0 +1,12 @@
+{
+  "family": "mqtt.topic",
+  "version": "v1",
+  "topic": "Topic_Device_State/lip_biz001/03ab5ccd7cxxxxxx",
+  "expected_biz_id": "biz001",
+  "canonical": {
+    "bizId": "biz001",
+    "deviceId": "03ab5ccd7cxxxxxx",
+    "topicFamily": "Topic_Device_State/*"
+  },
+  "fingerprint": "Topic_Device_State/3"
+}

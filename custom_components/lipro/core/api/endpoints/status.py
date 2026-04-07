@@ -1,4 +1,4 @@
-"""Status/query endpoints for LiproClient."""
+"""Status/query endpoints and collaborators for the REST facade."""
 
 from __future__ import annotations
 
@@ -30,16 +30,15 @@ from ..status_service import (
     query_device_status as query_device_status_service,
     query_mesh_group_status as query_mesh_group_status_service,
 )
+from ..types import ConnectStatusQueryResult, DeviceStatusItem
 from .connect_status import coerce_connect_status
-from .payloads import _ClientEndpointPayloadsMixin
+from .payloads import _EndpointAdapter
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 
-# Use the same logger instance as custom_components.lipro.core.api.client._LOGGER
-# so tests patching client._LOGGER.* still intercept logs here.
-_LOGGER = logging.getLogger("custom_components.lipro.core.api.client")
+_LOGGER = logging.getLogger("custom_components.lipro.core.api")
 
 _BATCH_FALLBACK_EXPECTED_OFFLINE_CODES = (
     ERROR_DEVICE_OFFLINE,
@@ -51,8 +50,8 @@ _BATCH_FALLBACK_EXPECTED_OFFLINE_CODES = (
 )
 
 
-class _ClientStatusEndpointsMixin(_ClientEndpointPayloadsMixin):
-    """Endpoints: status queries."""
+class StatusEndpoints(_EndpointAdapter):
+    """Status endpoint helpers for the formal REST facade."""
 
     @staticmethod
     def _is_retriable_device_error(err: Exception) -> bool:
@@ -75,14 +74,38 @@ class _ClientStatusEndpointsMixin(_ClientEndpointPayloadsMixin):
             ERROR_NO_PERMISSION_STR,
         )
 
+    @staticmethod
+    def is_retriable_device_error(err: Exception) -> bool:
+        """Return whether one device error should trigger fallback retries."""
+        return _response_safety.normalize_response_code(
+            getattr(err, "code", None)
+        ) in (
+            ERROR_DEVICE_OFFLINE,
+            ERROR_DEVICE_OFFLINE_STR,
+            ERROR_DEVICE_OFFLINE_LEGACY,
+            ERROR_DEVICE_OFFLINE_LEGACY_STR,
+            ERROR_DEVICE_NOT_CONNECTED,
+            ERROR_DEVICE_NOT_CONNECTED_STR,
+            ERROR_DEVICE_NOT_FOUND,
+            ERROR_DEVICE_NOT_FOUND_STR,
+            ERROR_DEVICE_UPDATING,
+            ERROR_DEVICE_UPDATING_STR,
+            ERROR_NO_PERMISSION,
+            ERROR_NO_PERMISSION_STR,
+        )
+
     async def query_device_status(
         self,
         device_ids: list[str],
         *,
         max_devices_per_query: int = MAX_DEVICES_PER_QUERY,
         on_batch_metric: Callable[[int, float, int], None] | None = None,
-    ) -> list[dict[str, Any]]:
-        """Query status of multiple devices."""
+    ) -> list[DeviceStatusItem]:
+        """Query status of multiple devices.
+
+        Returns:
+            List of device status items
+        """
         return await query_device_status_service(
             device_ids=device_ids,
             max_devices_per_query=max_devices_per_query,
@@ -113,7 +136,9 @@ class _ClientStatusEndpointsMixin(_ClientEndpointPayloadsMixin):
             path_query_mesh_group_status=PATH_QUERY_MESH_GROUP_STATUS,
         )
 
-    async def query_connect_status(self, device_ids: list[str]) -> dict[str, bool]:
+    async def query_connect_status(
+        self, device_ids: list[str]
+    ) -> ConnectStatusQueryResult:
         """Query real-time connection status for devices."""
         return await query_connect_status_service(
             device_ids=device_ids,
@@ -126,4 +151,4 @@ class _ClientStatusEndpointsMixin(_ClientEndpointPayloadsMixin):
         )
 
 
-__all__ = ["_ClientStatusEndpointsMixin"]
+__all__ = ["StatusEndpoints"]

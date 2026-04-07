@@ -3,27 +3,237 @@ name: Release
 on:
   push:
     tags:
-      - "v*"
+      - "v*.*.*"
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag (for example `v1.0.0`)
+        required: true
+        type: string
+      publish_assets:
+        description: Publish GitHub Release assets? `false` runs verify-only / non-publish rehearsal
+        required: true
+        default: false
+        type: boolean
+
+concurrency:
+  group: release-${{ github.event.inputs.tag || github.ref }}
+  cancel-in-progress: true
 
 permissions:
+  attestations: write
   contents: write
+  id-token: write
+  security-events: read
+
+env:
+  RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
 
 jobs:
-  build:
-    name: Build Release Assets
+  validate:
+    name: Reuse CI Gates
+    uses: ./.github/workflows/ci.yml
+    with:
+      ref: refs/tags/${{ env.RELEASE_TAG }}
+    secrets: inherit
+
+  security_gate:
+    name: Tagged Release Security Gate
     runs-on: ubuntu-latest
+    needs: validate
     timeout-minutes: 10
     steps:
-      - name: Checkout repository
+      - name: Checkout tagged release ref
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: refs/tags/${{ env.RELEASE_TAG }}
+          fetch-depth: 0
 
-      - name: Build zip and checksums
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: "3.14"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@0ca8f610542aa7f4acaf39e65cf4eb3c35091883
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen --extra dev
+
+      - name: Export runtime requirements
         shell: bash
         run: |
           set -euo pipefail
 
-          tag="${GITHUB_REF_NAME}"
+          uv run python - <<'PYTHON'
+          import tomllib
+          from pathlib import Path
+
+          data = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
+          dependencies = data["project"]["dependencies"]
+          Path("requirements-runtime.in").write_text(
+              "\n".join(dependencies) + "\n",
+              encoding="utf-8",
+          )
+          PYTHON
+
+          uv pip compile requirements-runtime.in \
+            --python-version 3.14 \
+            --output-file requirements-runtime.txt \
+            --no-header \
+            --no-annotate \
+            --upgrade
+
+      - name: Run pip-audit (runtime, tagged release)
+        run: uv run --extra dev pip-audit --progress-spinner off -r requirements-runtime.txt
+
+  code_scanning_gate:
+    name: Tagged Release Code Scanning Gate
+    runs-on: ubuntu-latest
+    needs: validate
+    timeout-minutes: 15
+    steps:
+      - name: Detect code scanning availability
+        id: code_scanning
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          err_file="$(mktemp)"
+          if gh api "repos/${{ github.repository }}/code-scanning/alerts?per_page=1" >/dev/null 2>"$err_file"; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "release code scanning availability: enabled" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          if grep -Eq "Code scanning is not enabled|Resource not accessible by integration|GitHub Code Security|GitHub Advanced Security" "$err_file"; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "release code scanning availability: disabled in GitHub for this repository; skipping tagged CodeQL gate" >> "$GITHUB_STEP_SUMMARY"
+            cat "$err_file" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          cat "$err_file" >&2
+          exit 1
+
+      - name: Checkout tagged release ref
+        if: steps.code_scanning.outputs.enabled == 'true'
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: refs/tags/${{ env.RELEASE_TAG }}
+          fetch-depth: 1
+
+      - name: Set up Python
+        if: steps.code_scanning.outputs.enabled == 'true'
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: "3.14"
+
+      - name: Wait for tagged CodeQL analysis
+        if: steps.code_scanning.outputs.enabled == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          release_ref="refs/tags/${RELEASE_TAG}"
+          encoded_ref="${release_ref//\//%2F}"
+          release_sha="$(git rev-parse HEAD)"
+          analysis_count="0"
+
+          for attempt in $(seq 1 30); do
+            analyses_json="$(gh api -H 'Accept: application/vnd.github+json'               "/repos/${{ github.repository }}/code-scanning/analyses?ref=${encoded_ref}&tool_name=CodeQL&per_page=100")"
+            analysis_count="$(printf '%s' "${analyses_json}" | jq --arg release_sha "${release_sha}" '[.[] | select(.commit_sha == $release_sha)] | length')"
+
+            if [[ "${analysis_count}" != "0" ]]; then
+              echo "Tagged CodeQL analyses found for ${release_ref}: ${analysis_count}" >> "$GITHUB_STEP_SUMMARY"
+              break
+            fi
+
+            if [[ "${attempt}" == "30" ]]; then
+              echo "No completed CodeQL analysis found for ${release_ref} (${release_sha})" >&2
+              exit 1
+            fi
+
+            sleep 20
+          done
+
+      - name: Fail on open CodeQL alerts for tagged ref
+        if: steps.code_scanning.outputs.enabled == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          release_ref="refs/tags/${RELEASE_TAG}"
+          encoded_ref="${release_ref//\//%2F}"
+          alerts_json="$(gh api -H 'Accept: application/vnd.github+json'             "/repos/${{ github.repository }}/code-scanning/alerts?ref=${encoded_ref}&state=open&tool_name=CodeQL&per_page=100")"
+          open_count="$(printf '%s' "${alerts_json}" | jq 'length')"
+
+          if [[ "${open_count}" != "0" ]]; then
+            echo "Open CodeQL alerts remain for ${release_ref}: ${open_count}" >&2
+            printf '%s' "${alerts_json}" | jq -r '.[:20][] | "\(.rule.id // "unknown-rule") @ \(.most_recent_instance.location.path // "unknown-path")"' >&2
+            exit 1
+          fi
+
+          echo "Tagged CodeQL gate: zero open alerts for ${release_ref}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record tagged CodeQL skip posture
+        if: steps.code_scanning.outputs.enabled != 'true'
+        run: |
+          echo "Tagged release skipped the CodeQL gate because GitHub code scanning is disabled for this repository" >> "$GITHUB_STEP_SUMMARY"
+
+  build:
+    name: Build Release Assets
+    runs-on: ubuntu-latest
+    needs:
+      - validate
+      - security_gate
+      - code_scanning_gate
+    timeout-minutes: 15
+    steps:
+      - name: Checkout tagged release ref
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: refs/tags/${{ env.RELEASE_TAG }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: "3.14"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@0ca8f610542aa7f4acaf39e65cf4eb3c35091883
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen --extra dev
+
+      - name: Verify tag matches project version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          project_version="$(uv run python -c 'import tomllib; from pathlib import Path; print(tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))["project"]["version"])')"
+          expected_tag="v${project_version}"
+
+          if [[ "${RELEASE_TAG}" != "${expected_tag}" ]]; then
+            echo "Release tag ${RELEASE_TAG} does not match project version ${project_version}" >&2
+            exit 1
+          fi
+
+      - name: Build zip, installer, and checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          tag="${RELEASE_TAG}"
           dist="dist"
           root="lipro-hass-${tag}"
 
@@ -31,6 +241,7 @@ jobs:
           mkdir -p "${dist}/${root}/custom_components"
 
           cp -r "custom_components/lipro" "${dist}/${root}/custom_components/"
+          cp "install.sh" "${dist}/install.sh"
 
           (
             cd "${dist}"
@@ -38,10 +249,159 @@ jobs:
             sha256sum "lipro-hass-${tag}.zip" > "SHA256SUMS"
           )
 
+      - name: Smoke-test release artifact install
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          smoke_root="$(mktemp -d)"
+          trap 'rm -rf "${smoke_root}"' EXIT
+
+          mkdir -p "${smoke_root}/.storage"
+          : > "${smoke_root}/configuration.yaml"
+
+          (
+            cd "${smoke_root}"
+            bash "${GITHUB_WORKSPACE}/dist/install.sh" \
+              --archive-file "${GITHUB_WORKSPACE}/dist/lipro-hass-${RELEASE_TAG}.zip" \
+              --checksum-file "${GITHUB_WORKSPACE}/dist/SHA256SUMS"
+          )
+
+          test -f "${smoke_root}/custom_components/lipro/manifest.json"
+          rm -rf "${smoke_root}/custom_components/lipro"
+          test ! -e "${smoke_root}/custom_components/lipro"
+
+      - name: Export SBOM
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          curl -fsSL \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${{ github.repository }}/dependency-graph/sbom" \
+            -o "dist/lipro-hass-${RELEASE_TAG}.spdx.json"
+
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32
+        with:
+          subject-path: |
+            dist/lipro-hass-${{ env.RELEASE_TAG }}.zip
+            dist/install.sh
+            dist/SHA256SUMS
+            dist/lipro-hass-${{ env.RELEASE_TAG }}.spdx.json
+
+      - name: Verify generated artifact attestations
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          gh attestation verify "dist/lipro-hass-${RELEASE_TAG}.zip" --repo "${{ github.repository }}"
+          gh attestation verify "dist/install.sh" --repo "${{ github.repository }}"
+          gh attestation verify "dist/SHA256SUMS" --repo "${{ github.repository }}"
+          gh attestation verify "dist/lipro-hass-${RELEASE_TAG}.spdx.json" --repo "${{ github.repository }}"
+
+      - name: Write release identity manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          manifest="dist/lipro-hass-${RELEASE_TAG}.release-identity.txt"
+          {
+            echo "release_tag=${RELEASE_TAG}"
+            echo "git_sha=${GITHUB_SHA}"
+            echo "ci_reuse=.github/workflows/ci.yml"
+            echo "release_security_gate=tagged runtime pip-audit"
+            echo "identity_evidence=SHA256SUMS"
+            echo "identity_evidence=SBOM"
+            echo "identity_evidence=GitHub artifact attestation"
+            echo "identity_evidence=cosign keyless signature bundle"
+            echo "provenance=GitHub artifact attestation"
+            echo "identity_verification=gh attestation verify"
+            echo "signing=cosign keyless sign-blob"
+            echo "signing_verification=cosign verify-blob --bundle"
+            echo "code_scanning=GitHub CodeQL hard gate"
+            echo "code_scanning_verification=tagged ref analysis required + zero open alerts"
+            echo "compatibility_preview_lane=ci.yml schedule/workflow_dispatch advisory"
+            echo "compatibility_preview_semantics=signal-only; stable release and support guarantees stay unchanged"
+            echo "deprecation_signal=DeprecationWarning/PendingDeprecationWarning promoted to errors in preview smoke"
+            echo "workflow_run=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          } > "${manifest}"
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad
+        with:
+          cosign-release: v3.0.5
+
+      - name: Sign release assets
+        shell: bash
+        env:
+          COSIGN_YES: "true"
+        run: |
+          set -euo pipefail
+
+          for artifact in \
+            "dist/lipro-hass-${RELEASE_TAG}.zip" \
+            "dist/install.sh" \
+            "dist/SHA256SUMS" \
+            "dist/lipro-hass-${RELEASE_TAG}.spdx.json" \
+            "dist/lipro-hass-${RELEASE_TAG}.release-identity.txt"; do
+            cosign sign-blob "${artifact}" --bundle "${artifact}.sigstore.json"
+          done
+
+      - name: Verify release signatures
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          identity_regex="^https://github.com/${GITHUB_REPOSITORY}/.github/workflows/release.yml@refs/tags/${RELEASE_TAG}$"
+
+          for artifact in \
+            "dist/lipro-hass-${RELEASE_TAG}.zip" \
+            "dist/install.sh" \
+            "dist/SHA256SUMS" \
+            "dist/lipro-hass-${RELEASE_TAG}.spdx.json" \
+            "dist/lipro-hass-${RELEASE_TAG}.release-identity.txt"; do
+            cosign verify-blob "${artifact}" \
+              --bundle "${artifact}.sigstore.json" \
+              --certificate-identity-regexp "${identity_regex}" \
+              --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
+          done
+
+      - name: Record release mode
+        shell: bash
+        env:
+          PUBLISH_ASSETS: ${{ github.event.inputs.publish_assets || 'false' }}
+        run: |
+          set -euo pipefail
+
+          if [[ "${GITHUB_EVENT_NAME}" == "push" || "${PUBLISH_ASSETS}" == "true" ]]; then
+            echo "release_mode=publish" >> "$GITHUB_STEP_SUMMARY"
+            echo "This run is allowed to publish public assets after all gates pass." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "release_mode=verify-only" >> "$GITHUB_STEP_SUMMARY"
+            echo "Non-publish rehearsal: all gates and build steps ran, but public assets will not be published." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Publish release assets
+        if: ${{ github.event_name == 'push' || github.event.inputs.publish_assets == 'true' }}
         uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b
         with:
+          tag_name: ${{ env.RELEASE_TAG }}
           files: |
-            dist/lipro-hass-${{ github.ref_name }}.zip
+            dist/lipro-hass-${{ env.RELEASE_TAG }}.zip
+            dist/lipro-hass-${{ env.RELEASE_TAG }}.zip.sigstore.json
+            dist/install.sh
+            dist/install.sh.sigstore.json
             dist/SHA256SUMS
+            dist/SHA256SUMS.sigstore.json
+            dist/lipro-hass-${{ env.RELEASE_TAG }}.spdx.json
+            dist/lipro-hass-${{ env.RELEASE_TAG }}.spdx.json.sigstore.json
+            dist/lipro-hass-${{ env.RELEASE_TAG }}.release-identity.txt
+            dist/lipro-hass-${{ env.RELEASE_TAG }}.release-identity.txt.sigstore.json
           generate_release_notes: true

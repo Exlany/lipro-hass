@@ -1,8 +1,4 @@
-"""Device category enumeration for Lipro integration.
-
-This module provides a clean way to categorize devices by their function,
-independent of the raw device type codes from the API.
-"""
+"""Host-neutral device category enumeration for Lipro integration."""
 
 from __future__ import annotations
 
@@ -10,40 +6,32 @@ from enum import Enum, auto
 from functools import cache
 
 __all__ = [
-    "CATEGORY_TO_PLATFORMS",
-    "DeviceCategory",
-    "get_device_category",
-    "get_platforms_for_category",
-    "is_light_category",
-    "is_sensor_category",
-    "is_switch_category",
+    'DeviceCategory',
+    'get_device_category',
+    'is_light_category',
+    'is_sensor_category',
+    'is_switch_category',
 ]
 
 
 class DeviceCategory(Enum):
-    """Device category enumeration.
+    """Device category enumeration derived from normalized device metadata."""
 
-    This provides a cleaner way to categorize devices than using raw type codes.
-    """
-
-    LIGHT = auto()  # Regular lights (LED, ceiling lamp, desk lamp)
-    FAN_LIGHT = auto()  # Fan with integrated light
-    CURTAIN = auto()  # Curtains and blinds
-    SWITCH = auto()  # Switch panels
-    OUTLET = auto()  # Power outlets
-    HEATER = auto()  # Heaters (bathroom heaters, etc.)
-    BODY_SENSOR = auto()  # Motion/body sensors
-    DOOR_SENSOR = auto()  # Door/window sensors
-    GATEWAY = auto()  # Mesh gateway devices
-    UNKNOWN = auto()  # Unknown device type
+    LIGHT = auto()
+    FAN_LIGHT = auto()
+    CURTAIN = auto()
+    SWITCH = auto()
+    OUTLET = auto()
+    HEATER = auto()
+    BODY_SENSOR = auto()
+    DOOR_SENSOR = auto()
+    GATEWAY = auto()
+    UNKNOWN = auto()
 
 
 @cache
 def _get_device_category_map() -> dict[str, DeviceCategory]:
-    """Build and cache the device type to category mapping.
-
-    Uses functools.cache for thread-safe lazy initialization.
-    """
+    """Build and cache the device type to category mapping."""
     from .device_types import (  # noqa: PLC0415
         DEVICE_TYPE_CEILING_LAMP,
         DEVICE_TYPE_CURTAIN,
@@ -74,15 +62,7 @@ def _get_device_category_map() -> dict[str, DeviceCategory]:
 
 
 def get_device_category(device_type_hex: str) -> DeviceCategory:
-    """Get the device category for a given device type hex code.
-
-    Args:
-        device_type_hex: Device type as hex string (e.g., "ff000001").
-
-    Returns:
-        DeviceCategory for the device type.
-
-    """
+    """Return the normalized host-neutral category for one device type hex."""
     return _get_device_category_map().get(device_type_hex, DeviceCategory.UNKNOWN)
 
 
@@ -99,23 +79,3 @@ def is_sensor_category(category: DeviceCategory) -> bool:
 def is_switch_category(category: DeviceCategory) -> bool:
     """Check if category is switch or outlet."""
     return category in (DeviceCategory.SWITCH, DeviceCategory.OUTLET)
-
-
-# Mapping from DeviceCategory to Home Assistant platforms
-CATEGORY_TO_PLATFORMS: dict[DeviceCategory, list[str]] = {
-    DeviceCategory.LIGHT: ["light"],
-    DeviceCategory.FAN_LIGHT: ["light", "fan"],
-    DeviceCategory.CURTAIN: ["cover"],
-    DeviceCategory.SWITCH: ["switch"],
-    DeviceCategory.OUTLET: ["switch"],
-    DeviceCategory.HEATER: ["climate"],
-    DeviceCategory.BODY_SENSOR: ["binary_sensor"],
-    DeviceCategory.DOOR_SENSOR: ["binary_sensor"],
-    DeviceCategory.GATEWAY: [],
-    DeviceCategory.UNKNOWN: [],
-}
-
-
-def get_platforms_for_category(category: DeviceCategory) -> list[str]:
-    """Get the Home Assistant platforms for a device category."""
-    return CATEGORY_TO_PLATFORMS.get(category, [])

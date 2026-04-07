@@ -68,9 +68,10 @@ def test_build_mesh_schedule_bodies() -> None:
     assert build_mesh_schedule_add_body(
         "03ab0000000000a1",
         schedule_json='{"days":[1],"time":[3600],"evt":[0]}',
+        schedule_id=3,
     ) == {
         "deviceId": "03ab0000000000a1",
-        "id": 0,
+        "id": 3,
         "scheduleJson": '{"days":[1],"time":[3600],"evt":[0]}',
         "active": True,
     }

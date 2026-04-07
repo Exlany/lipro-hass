@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any, cast
 
 from custom_components.lipro.core.utils.property_normalization import (
     normalize_properties,
@@ -19,7 +18,7 @@ def test_normalize_properties_skips_non_string_and_empty_keys() -> None:
         123: "skip-int",
         "wifiSsid": "Home WiFi",
     }
-    normalized = normalize_properties(cast(Mapping[str, Any], raw))
+    normalized = normalize_properties(raw)
 
     assert normalized == {
         "fanOnoff": 0,

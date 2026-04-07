@@ -1,9 +1,74 @@
 #!/usr/bin/env bash
-# Run linting and formatting checks
+# Run local static/security checks, with an optional full CI-like matrix.
 
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
+
+usage() {
+    cat <<'USAGE'
+Usage: ./scripts/lint [--full]
+
+Default mode:
+  Runs local static + translation + docs-route + shell + runtime security checks.
+  It may also run focused pytest/governance assurance when matching changed surfaces are touched.
+
+--full:
+  Extends the default checks with governance guards, full test coverage,
+  total + changed-surface coverage validation, and refactor coverage validation.
+USAGE
+}
+
+resolve_changed_coverage_surface() {
+    local output_path
+    output_path="$1"
+
+    if ! command -v git >/dev/null 2>&1 || ! git rev-parse --verify HEAD >/dev/null 2>&1; then
+        : > "$output_path"
+        return 0
+    fi
+
+    local current_ref
+    current_ref="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")"
+
+    if { [ "${GITHUB_REF_NAME:-}" = "main" ] || [ "$current_ref" = "main" ] || [ "${GITHUB_EVENT_NAME:-}" = "schedule" ] || [ "${GITHUB_EVENT_NAME:-}" = "workflow_dispatch" ] || [ "${GITHUB_EVENT_NAME:-}" = "workflow_call" ]; } \
+        && git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+        git diff --name-only --diff-filter=AMRT HEAD^...HEAD > "$output_path"
+        return 0
+    fi
+
+    if git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+        git diff --name-only --diff-filter=AMRT HEAD^...HEAD > "$output_path"
+        return 0
+    fi
+
+    if git rev-parse --verify origin/main >/dev/null 2>&1; then
+        local merge_base
+        merge_base="$(git merge-base origin/main HEAD)"
+        git diff --name-only --diff-filter=AMRT "${merge_base}...HEAD" > "$output_path"
+        return 0
+    fi
+
+    : > "$output_path"
+}
+
+full_mode=0
+case "${1:-}" in
+    "")
+        ;;
+    --full)
+        full_mode=1
+        ;;
+    -h|--help)
+        usage
+        exit 0
+        ;;
+    *)
+        echo "Unknown argument: $1" >&2
+        usage >&2
+        exit 1
+        ;;
+esac
 
 if ! command -v uv >/dev/null 2>&1; then
     echo "uv is required but was not found in PATH" >&2
@@ -16,6 +81,85 @@ if [ ! -d ".venv" ]; then
     ./scripts/setup
 fi
 
+governance_guard_tests=(
+    tests/meta/test_dependency_guards.py
+    tests/meta/test_public_surface_guards.py
+    tests/meta/test_governance*.py
+    tests/meta/test_toolchain_truth.py
+    tests/meta/test_version_sync.py
+)
+
+changed_surface_submit_pattern='^(custom_components/lipro/core/anonymous_share/share_client_submit(_attempts|_outcomes)?\.py|tests/core/test_share_client_submit\.py)$'
+changed_surface_result_pattern='^(custom_components/lipro/core/command/result(_support)?\.py|tests/core/test_command_result\.py)$'
+changed_surface_assurance_guard_pattern='^(tests/meta/test_changed_surface_assurance_guards\.py|\.planning/codebase/TESTING\.md|\.planning/baseline/VERIFICATION_MATRIX\.md|\.planning/reviews/FILE_MATRIX\.md|\.planning/reviews/RESIDUAL_LEDGER\.md|\.planning/reviews/KILL_LIST\.md)$'
+changed_surface_docs_contract_surface_pattern='^(scripts/lint|CONTRIBUTING\.md|\.planning/codebase/TESTING\.md|tests/meta/toolchain_truth_ci_contract\.py)$'
+changed_surface_governance_surface_pattern='^(\.planning/PROJECT\.md|\.planning/ROADMAP\.md|\.planning/REQUIREMENTS\.md|\.planning/STATE\.md|\.planning/MILESTONES\.md|tests/meta/governance_current_truth\.py|tests/meta/test_governance_route_handoff_smoke\.py|tests/meta/governance_followup_route_current_milestones\.py)$'
+
+run_default_changed_surface_assurance() {
+    local surface_file="$1"
+
+    if [ "$full_mode" = "1" ] || [ ! -s "$surface_file" ]; then
+        return 0
+    fi
+
+    local ran_any=0
+
+    if grep -Eq "$changed_surface_submit_pattern" "$surface_file"; then
+        echo ""
+        echo "Running submit changed-surface assurance..."
+        uv run pytest -q tests/core/test_share_client_submit.py tests/meta/test_changed_surface_assurance_guards.py
+        ran_any=1
+    fi
+
+    if grep -Eq "$changed_surface_result_pattern" "$surface_file"; then
+        echo ""
+        echo "Running command-result changed-surface assurance..."
+        uv run pytest -q tests/core/test_command_result.py tests/meta/test_changed_surface_assurance_guards.py
+        ran_any=1
+    fi
+
+    if grep -Eq "$changed_surface_assurance_guard_pattern" "$surface_file"; then
+        echo ""
+        echo "Running changed-surface assurance guards..."
+        uv run pytest -q tests/meta/test_changed_surface_assurance_guards.py
+        ran_any=1
+    fi
+
+    if grep -Eq "$changed_surface_docs_contract_surface_pattern" "$surface_file"; then
+        echo ""
+        echo "Running docs/toolchain changed-surface assurance..."
+        uv run pytest -q tests/meta/toolchain_truth_ci_contract.py tests/meta/test_governance_release_docs.py tests/meta/toolchain_truth_docs_fast_path.py
+        ran_any=1
+    fi
+
+    if grep -Eq "$changed_surface_governance_surface_pattern" "$surface_file"; then
+        echo ""
+        echo "Running governance current-route changed-surface assurance..."
+        uv run pytest -q tests/meta/test_governance_route_handoff_smoke.py tests/meta/governance_followup_route_current_milestones.py
+        ran_any=1
+    fi
+
+    if [ "$ran_any" = "1" ]; then
+        echo ""
+        echo "Focused changed-surface assurance finished."
+    fi
+}
+
+tmp_changed_coverage_surface="$(mktemp)"
+resolve_changed_coverage_surface "$tmp_changed_coverage_surface"
+
+if [ "$full_mode" = "0" ]; then
+    run_default_changed_surface_assurance "$tmp_changed_coverage_surface"
+fi
+
+if [ "$full_mode" = "1" ]; then
+    echo "Running lint in full mode (static + governance + tests)..."
+else
+    echo "Running scripts/lint in default mode with focused changed-surface assurance when matching touched surfaces are detected..."
+    echo "Tip: use ./scripts/lint --full for governance + pytest + total/changed-surface coverage."
+fi
+
+echo ""
 echo "Running ruff check..."
 uv run ruff check .
 
@@ -24,12 +168,30 @@ echo "Running ruff format check..."
 uv run ruff format --check .
 
 echo ""
-echo "Running mypy..."
-uv run mypy
+echo "Running focused mypy contract..."
+uv run mypy --follow-imports=silent \
+    custom_components/lipro/core/coordinator/runtime/device_runtime.py \
+    scripts/check_file_matrix.py \
+    tests/core/test_device_refresh_runtime.py \
+    tests/core/test_log_safety.py \
+    tests/meta/test_governance_guards.py \
+    tests/meta/test_governance_phase_history_runtime.py \
+    tests/meta/governance_milestone_archives_assets.py \
+    tests/meta/governance_phase_history_archive_execution.py
 
 echo ""
 echo "Checking translations..."
 uv run python scripts/check_translations.py
+
+echo ""
+echo "Checking markdown docs links..."
+uv run python scripts/check_markdown_links.py
+
+if command -v shellcheck >/dev/null 2>&1; then
+    echo ""
+    echo "Running shellcheck..."
+    shellcheck install.sh scripts/develop scripts/lint scripts/setup
+fi
 
 echo ""
 echo "Running pip-audit..."
@@ -38,17 +200,28 @@ echo "Running pip-audit..."
 # - mixing dev-only dependencies (e.g. HA) into runtime security checks
 tmp_requirements_runtime="$(mktemp)"
 tmp_requirements_dev=""
-trap 'rm -f "$tmp_requirements_runtime" "${tmp_requirements_dev:-}"' EXIT
+tmp_pip_audit_cache=""
+tmp_requirements_input="$(mktemp)"
+trap 'rm -f "$tmp_requirements_runtime" "$tmp_requirements_input" "${tmp_requirements_dev:-}" "${tmp_changed_coverage_surface:-}"; if [ -n "${tmp_pip_audit_cache:-}" ]; then rm -rf "$tmp_pip_audit_cache"; fi' EXIT
 
-uv export \
-    --format requirements.txt \
-    --frozen \
+TMP_REQUIREMENTS_INPUT="$tmp_requirements_input" uv run python - <<'PYTHON'
+import os
+import tomllib
+from pathlib import Path
+
+data = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
+Path(os.environ["TMP_REQUIREMENTS_INPUT"]).write_text(
+    "\n".join(data["project"]["dependencies"]) + "\n",
+    encoding="utf-8",
+)
+PYTHON
+
+uv pip compile "$tmp_requirements_input" \
+    --python-version 3.14 \
+    --output-file "$tmp_requirements_runtime" \
     --no-header \
     --no-annotate \
-    --no-hashes \
-    --no-emit-project \
-    --no-dev \
-    -o "$tmp_requirements_runtime"
+    --upgrade
 
 pip_audit_common_args=(--progress-spinner off)
 uv run --extra dev pip-audit "${pip_audit_common_args[@]}" -r "$tmp_requirements_runtime"
@@ -58,6 +231,7 @@ if [[ "${PIP_AUDIT_INCLUDE_DEV:-}" == "1" || "${PIP_AUDIT_INCLUDE_DEV:-}" == "tr
     echo "Running pip-audit (dev dependencies)..."
 
     tmp_requirements_dev="$(mktemp)"
+    tmp_pip_audit_cache="$(mktemp -d)"
     uv export \
         --format requirements.txt \
         --frozen \
@@ -67,7 +241,59 @@ if [[ "${PIP_AUDIT_INCLUDE_DEV:-}" == "1" || "${PIP_AUDIT_INCLUDE_DEV:-}" == "tr
         --no-emit-project \
         --extra dev \
         -o "$tmp_requirements_dev"
-    uv run --extra dev pip-audit "${pip_audit_common_args[@]}" -r "$tmp_requirements_dev"
+    # Dev overrides may intentionally outrun upstream metadata for security fixes,
+    # so audit the installed environment instead of re-resolving exported requirements.
+    uv run --extra dev pip-audit \
+        "${pip_audit_common_args[@]}" \
+        --local \
+        --skip-editable \
+        --cache-dir "$tmp_pip_audit_cache"
+fi
+
+if [ "$full_mode" = "1" ]; then
+    echo ""
+    echo "Checking architecture policy..."
+    uv run python scripts/check_architecture_policy.py --check
+
+    echo ""
+    echo "Checking file matrix..."
+    uv run python scripts/check_file_matrix.py --check
+
+    echo ""
+    echo "Running governance guards..."
+    uv run pytest -q -x "${governance_guard_tests[@]}"
+
+    echo ""
+    echo "Running full test suite..."
+    uv run pytest tests/ -v --ignore=tests/benchmarks \
+        --cov=custom_components/lipro \
+        --cov-fail-under=95 \
+        --cov-report=json \
+        --cov-report=xml \
+        --cov-report=term-missing
+
+    echo ""
+    echo "Resolved changed coverage surface..."
+    if [ -s "$tmp_changed_coverage_surface" ]; then
+        sed 's/^/  - /' "$tmp_changed_coverage_surface"
+    else
+        echo "  (none detected)"
+    fi
+
+    echo ""
+    echo "Checking total + changed-surface coverage gates..."
+    coverage_diff_args=(coverage.json --minimum 95 --changed-files "$tmp_changed_coverage_surface" --changed-minimum 95)
+    if [ -n "${COVERAGE_BASELINE_JSON:-}" ]; then
+        echo "Using local coverage baseline mirror: $COVERAGE_BASELINE_JSON"
+        coverage_diff_args+=(--baseline "$COVERAGE_BASELINE_JSON" --fail-on-changed-regression)
+    else
+        echo "Local coverage baseline mirror: skipped (set COVERAGE_BASELINE_JSON to mirror CI baseline compare)"
+    fi
+    uv run python scripts/coverage_diff.py "${coverage_diff_args[@]}"
+
+    echo ""
+    echo "Checking refactor coverage floor..."
+    uv run python scripts/refactor_tools.py --coverage-json coverage.json --minimum-coverage 95
 fi
 
 echo ""

@@ -1,0 +1,3 @@
+- `RuntimeOrchestrator` now builds runtimes via smaller helper methods and explicit ports
+- `status_service` binary-split fallback now runs through context/accumulator helpers
+- MQTT setup failure cleanup now converges through one teardown helper and runtime internals use clearer `protocol` terminology

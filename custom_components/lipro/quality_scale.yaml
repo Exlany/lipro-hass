@@ -17,7 +17,7 @@ rules:
     comment: UI-based config flow with user step, reauth, reconfigure, and options flow.
   config-flow-test-coverage:
     status: done
-    comment: tests/test_config_flow.py now has 100% coverage for user/reauth/reconfigure/options flows, including error-recovery paths and unique ID mismatch guard.
+    comment: tests/flows/test_flow_schemas.py + tests/flows/test_config_flow_user.py + tests/flows/test_config_flow_reauth.py + tests/flows/test_config_flow_reconfigure.py + tests/flows/test_options_flow.py cover user/reauth/reconfigure/options flows, including error-recovery paths and unique ID mismatch guard.
   dependency-transparency:
     status: done
     comment: manifest.json declares aiomqtt and pycryptodome as requirements.
@@ -79,7 +79,7 @@ rules:
     comment: DataUpdateCoordinator logs UpdateFailed; MQTT disconnect logged with warning level.
   parallel-updates:
     status: done
-    comment: PARALLEL_UPDATES set in all platforms (1 for writable, 0 for read-only sensors).
+    comment: PARALLEL_UPDATES is explicitly set on the coordinator-backed binary_sensor/climate/cover/fan/light/select/sensor/switch platforms; update.py currently relies on Home Assistant platform defaults.
   reauthentication-flow:
     status: done
     comment: async_step_reauth + async_step_reauth_confirm implemented in config_flow.py.
@@ -108,7 +108,7 @@ rules:
     comment: README provides 3 automation examples (sunset lighting, motion-activated, scheduled curtain).
   docs-known-limitations:
     status: done
-    comment: README documents 5 known limitations (cloud-only, no discovery, no gateway, API limits, sensor battery).
+    comment: README documents 6 known limitations, including the configurable brightness/color-temperature behavior while off.
   docs-supported-devices:
     status: done
     comment: README includes tested devices table with status (tested/untested/not supported).
@@ -135,7 +135,7 @@ rules:
     comment: Connectivity sensor, light level sensor, and WiFi signal sensor disabled by default.
   entity-translations:
     status: done
-    comment: All entities use translation_key; translations/* provides translations for all entity types.
+    comment: Translated entity names/state labels are provided via translation_key where the entity exposes a translated secondary/config surface; primary device-named entities may intentionally keep _attr_name = None (for example the main light entity).
   exception-translations:
     status: done
     comment: All exceptions use translation_domain and translation_key for translatable messages.

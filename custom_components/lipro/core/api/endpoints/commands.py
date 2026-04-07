@@ -1,16 +1,18 @@
-"""Command endpoints for LiproClient."""
+"""Command endpoints and collaborators for the REST facade."""
 
 from __future__ import annotations
 
 from typing import Any
 
 from ....const.api import PATH_SEND_COMMAND, PATH_SEND_GROUP_COMMAND
-from ..client_base import _ClientBase
-from ..command_service import send_command_to_target as send_command_to_target_service
+from ..command_api_service import (
+    send_command_to_target as send_command_to_target_service,
+)
+from .payloads import _EndpointAdapter
 
 
-class _ClientCommandEndpointsMixin(_ClientBase):
-    """Endpoints: device/group commands."""
+class CommandEndpoints(_EndpointAdapter):
+    """Command endpoint helpers for the formal REST facade."""
 
     async def send_command(
         self,
@@ -54,4 +56,4 @@ class _ClientCommandEndpointsMixin(_ClientBase):
         )
 
 
-__all__ = ["_ClientCommandEndpointsMixin"]
+__all__ = ["CommandEndpoints"]

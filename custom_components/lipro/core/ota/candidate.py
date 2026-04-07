@@ -1,25 +1,27 @@
-"""OTA candidate normalization helpers (no Home Assistant imports)."""
+"""OTA candidate normalization and install-policy helpers."""
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 import logging
-from typing import Any
 
-from .manifest import (
-    build_manifest_type_candidates,
-    extract_install_command,
-    extract_version_set,
-    first_bool,
-    first_text,
-    matches_certified_versions,
-    matches_manifest_certification,
+from .candidate_support import (
+    OtaInstallEvaluation,
+    OtaManifestTruth,
+    build_manifest_truth,
+    consume_confirmation,
+    evaluate_install,
+    has_pending_confirmation,
+    resolve_certification,
+    resolve_inline_certification,
+    resolve_local_manifest_certification,
+    start_confirmation_window,
 )
+from .manifest import extract_install_command, first_bool, first_text
 
 _LOGGER = logging.getLogger(__name__)
 
-_IOT_NAME_KEYS = ("iotName", "fwIotName")
 _LATEST_VERSION_KEYS = (
     "latestVersion",
     "latestFirmwareVersion",
@@ -29,19 +31,6 @@ _LATEST_VERSION_KEYS = (
 _CURRENT_VERSION_KEYS = ("currentVersion", "currentFirmwareVersion")
 _COMMON_VERSION_KEYS = ("firmwareVersion", "version")
 _UPDATE_FLAG_KEYS = ("needUpgrade", "upgradeAvailable", "hasUpgrade", "hasUpdate")
-_CERTIFIED_FLAG_KEYS = (
-    "certified",
-    "isCertified",
-    "authPassed",
-    "isAuthPassed",
-    "approved",
-)
-_CERTIFIED_VERSION_KEYS = (
-    "certifiedVersions",
-    "certifiedVersionList",
-    "certificationList",
-    "authVersionList",
-)
 _RELEASE_SUMMARY_KEYS = ("releaseNotes", "releaseSummary", "description")
 _RELEASE_URL_KEYS = ("releaseUrl", "releaseNoteUrl", "changelogUrl")
 _COMMAND_CONTAINER_KEYS = (
@@ -53,14 +42,16 @@ _COMMAND_CONTAINER_KEYS = (
 _COMMAND_KEYS = ("command", "cmd", "name")
 _COMMAND_PROPERTIES_KEYS = ("properties", "params", "arguments", "payload")
 
+type OtaRow = dict[str, object]
+type OtaCommandProperty = dict[str, str]
+type FirmwareManifestVersions = tuple[frozenset[str], dict[str, frozenset[str]]]
 
 @dataclass(slots=True)
 class _InstallCommand:
     """Normalized install command payload."""
 
     command: str
-    properties: list[dict[str, str]] | None
-
+    properties: list[OtaCommandProperty] | None
 
 @dataclass(slots=True)
 class _OtaCandidate:
@@ -75,18 +66,26 @@ class _OtaCandidate:
     install_command: _InstallCommand | None
 
 
+@dataclass(frozen=True, slots=True)
+class OtaCandidateProjection:
+    """Projection payload consumed by the Home Assistant update entity."""
+
+    installed_version: str | None
+    latest_version: str | None
+    release_summary: str | None
+    release_url: str | None
+
+
 def build_candidate(
-    row: dict[str, Any] | None,
+    row: Mapping[str, object] | None,
     *,
     device_firmware_version: str | None,
     device_iot_name: str | None,
-    remote_verified_versions: frozenset[str],
-    remote_versions_by_type: dict[str, frozenset[str]],
-    local_verified_versions: frozenset[str],
-    local_versions_by_type: dict[str, frozenset[str]],
+    local_manifest: FirmwareManifestVersions,
     is_version_newer: Callable[[str, str], bool],
 ) -> _OtaCandidate:
     """Normalize one OTA row into update-entity candidate metadata."""
+    manifest_truth = build_manifest_truth(local_manifest)
     installed = device_firmware_version or first_text(row, _CURRENT_VERSION_KEYS)
     latest = resolve_latest_version(row, installed)
     update_available = resolve_update_available(
@@ -100,10 +99,7 @@ def build_candidate(
         installed=installed,
         latest=latest,
         device_iot_name=device_iot_name,
-        remote_verified_versions=remote_verified_versions,
-        remote_versions_by_type=remote_versions_by_type,
-        local_verified_versions=local_verified_versions,
-        local_versions_by_type=local_versions_by_type,
+        manifest_truth=manifest_truth,
         is_version_newer=is_version_newer,
     )
     install_payload = extract_install_command(
@@ -131,8 +127,33 @@ def build_candidate(
     )
 
 
+def project_candidate(
+    candidate: _OtaCandidate | None,
+    *,
+    current_installed_version: str | None,
+) -> OtaCandidateProjection:
+    """Project normalized OTA candidate metadata onto update-entity fields."""
+    installed = current_installed_version
+    latest = current_installed_version
+    release_summary = None
+    release_url = None
+
+    if candidate is not None:
+        installed = candidate.installed_version or current_installed_version
+        latest = candidate.latest_version or installed
+        release_summary = candidate.release_summary
+        release_url = candidate.release_url
+
+    return OtaCandidateProjection(
+        installed_version=installed,
+        latest_version=latest,
+        release_summary=release_summary,
+        release_url=release_url,
+    )
+
+
 def resolve_latest_version(
-    row: dict[str, Any] | None,
+    row: Mapping[str, object] | None,
     installed: str | None,
 ) -> str | None:
     """Resolve latest firmware version from OTA row."""
@@ -150,7 +171,7 @@ def resolve_latest_version(
 
 
 def resolve_update_available(
-    row: dict[str, Any] | None,
+    row: Mapping[str, object] | None,
     *,
     installed: str | None,
     latest: str | None,
@@ -170,102 +191,37 @@ def resolve_update_available(
 
     try:
         return bool(is_version_newer(latest, installed))
-    except Exception as err:  # noqa: BLE001
+    except (
+        AttributeError,
+        LookupError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ) as err:
         _LOGGER.debug(
             "Unable to compare firmware versions (%s -> %s): %s",
             installed,
             latest,
             err,
         )
-        # Be conservative on parse failures: avoid false positive upgrades.
         return False
 
 
-def resolve_certification(
-    row: dict[str, Any] | None,
-    *,
-    installed: str | None,
-    latest: str | None,
-    device_iot_name: str | None,
-    remote_verified_versions: frozenset[str],
-    remote_versions_by_type: dict[str, frozenset[str]],
-    local_verified_versions: frozenset[str],
-    local_versions_by_type: dict[str, frozenset[str]],
-    is_version_newer: Callable[[str, str], bool],
-) -> bool:
-    """Resolve certification state by flag and certification-version list."""
-    explicit_or_inline = resolve_inline_certification(
-        row,
-        installed=installed,
-        latest=latest,
-        is_version_newer=is_version_newer,
-    )
-    if explicit_or_inline is not None:
-        return explicit_or_inline
-
-    if latest is None:
-        return False
-
-    candidate_types = build_manifest_type_candidates(
-        row,
-        device_iot_name=device_iot_name,
-        iot_name_keys=_IOT_NAME_KEYS,
-    )
-    if matches_manifest_certification(
-        candidate_types,
-        remote_versions_by_type,
-        remote_verified_versions,
-        installed=installed,
-        latest=latest,
-        is_version_newer=is_version_newer,
-    ):
-        return True
-
-    return matches_manifest_certification(
-        candidate_types,
-        local_versions_by_type,
-        local_verified_versions,
-        installed=installed,
-        latest=latest,
-        is_version_newer=is_version_newer,
-    )
-
-
-def resolve_inline_certification(
-    row: dict[str, Any] | None,
-    *,
-    installed: str | None,
-    latest: str | None,
-    is_version_newer: Callable[[str, str], bool],
-) -> bool | None:
-    """Resolve explicit certification flags and inline certification lists."""
-    explicit_flag = first_bool(row, _CERTIFIED_FLAG_KEYS)
-    if explicit_flag is not None:
-        return explicit_flag
-
-    certified_versions = extract_version_set(row, _CERTIFIED_VERSION_KEYS)
-    if matches_certified_versions(
-        certified_versions,
-        installed=installed,
-        latest=latest,
-        is_version_newer=is_version_newer,
-    ):
-        return True
-
-    certification_node = row.get("certification") if isinstance(row, dict) else None
-    if not isinstance(certification_node, dict):
-        return None
-
-    node_flag = first_bool(certification_node, _CERTIFIED_FLAG_KEYS)
-    if node_flag is not None:
-        return node_flag
-
-    node_versions = extract_version_set(certification_node, _CERTIFIED_VERSION_KEYS)
-    if matches_certified_versions(
-        node_versions,
-        installed=installed,
-        latest=latest,
-        is_version_newer=is_version_newer,
-    ):
-        return True
-    return None
+__all__ = [
+    "OtaCandidateProjection",
+    "OtaInstallEvaluation",
+    "OtaManifestTruth",
+    "_InstallCommand",
+    "_OtaCandidate",
+    "build_candidate",
+    "consume_confirmation",
+    "evaluate_install",
+    "has_pending_confirmation",
+    "project_candidate",
+    "resolve_certification",
+    "resolve_inline_certification",
+    "resolve_latest_version",
+    "resolve_local_manifest_certification",
+    "resolve_update_available",
+    "start_confirmation_window",
+]

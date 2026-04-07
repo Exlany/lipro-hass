@@ -13,8 +13,6 @@ from homeassistant.components.light.const import ColorMode
 
 from .const.config import CONF_LIGHT_TURN_ON_ON_ADJUST, DEFAULT_LIGHT_TURN_ON_ON_ADJUST
 from .const.properties import (
-    CMD_POWER_OFF,
-    CMD_POWER_ON,
     MAX_BRIGHTNESS,
     MIN_BRIGHTNESS,
     PROP_BRIGHTNESS,
@@ -23,15 +21,21 @@ from .const.properties import (
 )
 from .core.utils.coerce import coerce_bool_option
 from .entities.base import LiproEntity
-from .helpers.platform import create_platform_entities
+from .entities.commands import PowerCommand
+from .entities.descriptors import ConditionalAttr, DeviceAttr, ScaledBrightness
+from .helpers.platform import (
+    add_entry_entities,
+    create_platform_entities,
+    device_supports_platform,
+)
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
     from . import LiproConfigEntry
-    from .core.coordinator import LiproDataUpdateCoordinator
     from .core.device import LiproDevice
+    from .runtime_types import LiproRuntimeCoordinator
 
 # Limit parallel updates to avoid overwhelming the API
 PARALLEL_UPDATES = 1
@@ -40,92 +44,92 @@ PARALLEL_UPDATES = 1
 _HA_BRIGHTNESS_SCALE: Final = 255
 
 
+def _light_is_on(entity: LiproEntity) -> object:
+    """Read light power state from the formal device view."""
+    return entity.device.state.is_on
+
+
+def _light_brightness(entity: LiproEntity) -> object:
+    """Read raw light brightness from the formal device view."""
+    return entity.device.state.brightness
+
+
+def _light_color_temp(entity: LiproEntity) -> object:
+    """Read raw color temperature from the formal device view."""
+    return entity.device.state.color_temp
+
+
+def _supports_color_temp(entity: LiproEntity) -> object:
+    """Return whether the current device supports color temperature."""
+    return entity.capabilities.supports_color_temp
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: LiproConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Lipro lights."""
-    entities = create_platform_entities(
-        entry.runtime_data,
-        device_filter=lambda d: d.is_light or d.is_fan_light,
-        entity_factory=LiproLight,
+    add_entry_entities(
+        entry,
+        async_add_entities,
+        entity_builder=lambda coordinator: create_platform_entities(
+            coordinator,
+            device_filter=lambda d: device_supports_platform(d, "light"),
+            entity_factory=LiproLight,
+        ),
     )
-    async_add_entities(entities)
 
 
 class LiproLight(LiproEntity, LightEntity):
     """Representation of a Lipro light."""
 
+    is_on = DeviceAttr[bool](_light_is_on)
+    brightness = ScaledBrightness(_light_brightness)
+    color_temp_kelvin = ConditionalAttr[int](
+        _light_color_temp,
+        capability=_supports_color_temp,
+    )
+
+    _power = PowerCommand()
+
     def __init__(
         self,
-        coordinator: LiproDataUpdateCoordinator,
+        coordinator: LiproRuntimeCoordinator,
         device: LiproDevice,
     ) -> None:
         """Initialize the light."""
-        # Use suffix for fan lights to distinguish from fan entity
-        suffix = "light" if device.is_fan_light else ""
+        suffix = "light" if device.capabilities.is_fan_light else ""
         super().__init__(coordinator, device, suffix)
 
-        if device.is_fan_light:
+        if device.capabilities.is_fan_light:
             self._attr_translation_key = "light"
         else:
-            self._attr_name = None  # Use device name
+            self._attr_name = None
 
     @property
     def supported_color_modes(self) -> set[ColorMode]:
-        """Return supported color modes based on device capability.
-
-        Dynamic property so it reflects product config changes after init.
-        """
-        if self.device.supports_color_temp:
+        """Return supported color modes based on device capability."""
+        if self.capabilities.supports_color_temp:
             return {ColorMode.COLOR_TEMP}
         return {ColorMode.BRIGHTNESS}
 
     @property
     def color_mode(self) -> ColorMode:
-        """Return the current color mode.
-
-        Dynamic property matching supported_color_modes.
-        """
-        if self.device.supports_color_temp:
+        """Return the current color mode."""
+        if self.capabilities.supports_color_temp:
             return ColorMode.COLOR_TEMP
         return ColorMode.BRIGHTNESS
 
     @property
     def min_color_temp_kelvin(self) -> int:
-        """Return the minimum color temperature in Kelvin.
-
-        Uses device-specific range from product config.
-        """
-        return self.device.min_color_temp_kelvin
+        """Return the minimum color temperature in Kelvin."""
+        return self.capabilities.min_color_temp_kelvin
 
     @property
     def max_color_temp_kelvin(self) -> int:
-        """Return the maximum color temperature in Kelvin.
-
-        Uses device-specific range from product config.
-        """
-        return self.device.max_color_temp_kelvin
-
-    @property
-    def is_on(self) -> bool:
-        """Return true if light is on."""
-        return self.device.is_on
-
-    @property
-    def brightness(self) -> int | None:
-        """Return the brightness of the light (0-255)."""
-        # Convert from 0-100 to 0-255
-        brightness_pct = max(0, min(100, self.device.brightness))
-        return round(brightness_pct * _HA_BRIGHTNESS_SCALE / 100)
-
-    @property
-    def color_temp_kelvin(self) -> int | None:
-        """Return the color temperature in Kelvin."""
-        if not self.device.supports_color_temp:
-            return None
-        return self.device.color_temp
+        """Return the maximum color temperature in Kelvin."""
+        return self.capabilities.max_color_temp_kelvin
 
     def _ha_brightness_to_device(self, brightness: int) -> int:
         """Convert HA brightness (0-255) to clamped device value (1-100)."""
@@ -135,28 +139,28 @@ class LiproLight(LiproEntity, LightEntity):
     def _kelvin_to_device_temp_percent(self, kelvin: int) -> int:
         """Convert Kelvin to clamped device temperature percent."""
         clamped_kelvin = max(
-            self.device.min_color_temp_kelvin,
-            min(self.device.max_color_temp_kelvin, kelvin),
+            self.capabilities.min_color_temp_kelvin,
+            min(self.capabilities.max_color_temp_kelvin, kelvin),
         )
-        return self.device.kelvin_to_percent_for_device(clamped_kelvin)
+        return self.device.state.kelvin_to_percent_for_device(clamped_kelvin)
 
     def _merge_slider_state(self, state_changes: dict[str, int]) -> dict[str, int]:
-        """Merge brightness/temperature into one payload when both are known.
-
-        Keeps brightness + color temperature paired for debounced light updates,
-        so rapid cross-slider operations do not drop the previous value.
-        """
+        """Merge brightness/temperature into one payload when both are known."""
         merged = dict(state_changes)
         has_brightness = PROP_BRIGHTNESS in merged
         has_temperature = PROP_TEMPERATURE in merged
 
-        if has_brightness and not has_temperature and self.device.supports_color_temp:
-            temperature = self.device.get_optional_int_property(PROP_TEMPERATURE)
+        if (
+            has_brightness
+            and not has_temperature
+            and self.capabilities.supports_color_temp
+        ):
+            temperature = self.device.state.get_optional_int_property(PROP_TEMPERATURE)
             if temperature is not None:
                 merged[PROP_TEMPERATURE] = max(0, min(100, temperature))
 
         if has_temperature and not has_brightness:
-            brightness = self.device.get_optional_int_property(PROP_BRIGHTNESS)
+            brightness = self.device.state.get_optional_int_property(PROP_BRIGHTNESS)
             if brightness is not None:
                 merged[PROP_BRIGHTNESS] = max(
                     MIN_BRIGHTNESS,
@@ -167,8 +171,8 @@ class LiproLight(LiproEntity, LightEntity):
 
     def _turn_on_when_adjusting_while_off(self) -> bool:
         """Return whether slider adjust should power on when light is off."""
-        config_entry = getattr(self.coordinator, "config_entry", None)
-        options = getattr(config_entry, "options", {})
+        config_entry = self.runtime_coordinator.config_entry
+        options = config_entry.options if config_entry is not None else {}
         raw_value = options.get(
             CONF_LIGHT_TURN_ON_ON_ADJUST,
             DEFAULT_LIGHT_TURN_ON_ON_ADJUST,
@@ -180,41 +184,43 @@ class LiproLight(LiproEntity, LightEntity):
         )
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        """Turn on the light."""
+        """Turn the light on."""
         state_changes: dict[str, int] = {}
-        optimistic: dict[str, int] = {}
 
-        # Handle brightness
-        if ATTR_BRIGHTNESS in kwargs:
-            brightness = self._ha_brightness_to_device(kwargs[ATTR_BRIGHTNESS])
-            state_changes[PROP_BRIGHTNESS] = brightness
-            optimistic[PROP_BRIGHTNESS] = brightness
+        if (brightness := kwargs.get(ATTR_BRIGHTNESS)) is not None:
+            state_changes[PROP_BRIGHTNESS] = self._ha_brightness_to_device(brightness)
+        if (kelvin := kwargs.get(ATTR_COLOR_TEMP_KELVIN)) is not None:
+            state_changes[PROP_TEMPERATURE] = self._kelvin_to_device_temp_percent(kelvin)
 
-        # Handle color temperature (only if device supports it)
-        if ATTR_COLOR_TEMP_KELVIN in kwargs and self.device.supports_color_temp:
-            temp_percent = self._kelvin_to_device_temp_percent(
-                int(kwargs[ATTR_COLOR_TEMP_KELVIN])
-            )
-            state_changes[PROP_TEMPERATURE] = temp_percent
-            optimistic[PROP_TEMPERATURE] = temp_percent
+        if not state_changes:
+            await self._power.turn_on(self)
+            return
 
-        # Use debounce for slider controls (brightness, color_temp)
-        # to avoid flooding API when user drags the slider.
-        if state_changes:
-            state_changes = self._merge_slider_state(state_changes)
-            optimistic = dict(state_changes)
-            if not self.is_on and self._turn_on_when_adjusting_while_off():
-                state_changes[PROP_POWER_STATE] = 1
-                optimistic[PROP_POWER_STATE] = 1
-            await self.async_change_state(
-                state_changes,
-                optimistic_state=optimistic,
-                debounced=True,
-            )
-        else:
-            # Just turn on (no debounce needed for simple on/off)
-            await self.async_send_command(CMD_POWER_ON, None, {PROP_POWER_STATE: "1"})
+        if not self.is_on and self._turn_on_when_adjusting_while_off():
+            state_changes[PROP_POWER_STATE] = 1
+
+        await self.async_change_state(
+            self._merge_slider_state(state_changes),
+            debounced=True,
+        )
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn off the light."""
-        await self.async_send_command(CMD_POWER_OFF, None, {PROP_POWER_STATE: "0"})
+        """Turn the light off."""
+        del kwargs
+        await self._power.turn_off(self)
+
+    async def async_set_brightness(self, brightness: int) -> None:
+        """Set the light brightness."""
+        state_changes = {PROP_BRIGHTNESS: self._ha_brightness_to_device(brightness)}
+        if not self.is_on and self._turn_on_when_adjusting_while_off():
+            state_changes[PROP_POWER_STATE] = 1
+        await self.async_change_state(self._merge_slider_state(state_changes), debounced=True)
+
+    async def async_set_color_temp_kelvin(self, color_temp_kelvin: int) -> None:
+        """Set the light color temperature."""
+        state_changes = {
+            PROP_TEMPERATURE: self._kelvin_to_device_temp_percent(color_temp_kelvin)
+        }
+        if not self.is_on and self._turn_on_when_adjusting_while_off():
+            state_changes[PROP_POWER_STATE] = 1
+        await self.async_change_state(self._merge_slider_state(state_changes), debounced=True)

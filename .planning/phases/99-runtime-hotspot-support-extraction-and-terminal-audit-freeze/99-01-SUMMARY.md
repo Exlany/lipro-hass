@@ -1,0 +1,3 @@
+- `custom_components/lipro/core/api/status_fallback.py` 已收窄为 `128` 行 outward public home，继续保留 `QueryPayload`、`_build_query_payload()`、`_resolve_device_status_batch_size()`、`_SMALL_SUBSET_BATCH_QUERY_THRESHOLD` 与 `query_with_fallback()` 这些 formal anchors。
+- binary-split recursion / small-subset batching / fallback logging mechanics 已 inward split 到 `custom_components/lipro/core/api/status_fallback_support.py`，避免 public home 继续承载全部 mechanics。
+- focused API 回归已通过：`uv run pytest -q tests/core/api/test_api_status_service_fallback.py tests/core/api/test_api_status_service_regressions.py`，证明 outward import home 与 monkeypatch-visible seam 未漂移。

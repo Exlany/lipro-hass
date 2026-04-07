@@ -1,0 +1,3 @@
+- `.planning/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md` 与 archive assets 已整体前推到 `no active milestone route / latest archived baseline = v1.28`。
+- `.planning/v1.28-MILESTONE-AUDIT.md`、`.planning/reviews/V1_28_EVIDENCE_INDEX.md` 与 archive snapshots 已共同冻结 `Phase 102` latest archived closeout bundle。
+- `v1.27` 已明确退回 previous archived baseline；`$gsd-next` 的 archived-only 后续动作重新稳定收口到 `$gsd-new-milestone`。

@@ -2,14 +2,21 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 import re
-from typing import Final
+from typing import Final, NotRequired, TypedDict, cast
 
 import voluptuous as vol
 
 from homeassistant.helpers import config_validation as cv
 
+from .. import service_types as _service_types
 from ..const.base import IOT_DEVICE_ID_PREFIX
+
+CommandFailureSummary = _service_types.CommandFailureSummary
+ServiceProperty = _service_types.ServiceProperty
+ServicePropertyList = _service_types.ServicePropertyList
+ServicePropertySummary = _service_types.ServicePropertySummary
 
 SERVICE_SEND_COMMAND: Final = "send_command"
 SERVICE_GET_SCHEDULES: Final = "get_schedules"
@@ -21,6 +28,7 @@ SERVICE_GET_DEVELOPER_REPORT: Final = "get_developer_report"
 SERVICE_SUBMIT_DEVELOPER_FEEDBACK: Final = "submit_developer_feedback"
 SERVICE_QUERY_COMMAND_RESULT: Final = "query_command_result"
 SERVICE_GET_CITY: Final = "get_city"
+SERVICE_QUERY_USER_CLOUD: Final = "query_user_cloud"
 SERVICE_FETCH_BODY_SENSOR_HISTORY: Final = "fetch_body_sensor_history"
 SERVICE_FETCH_DOOR_SENSOR_HISTORY: Final = "fetch_door_sensor_history"
 SERVICE_REFRESH_DEVICES: Final = "refresh_devices"
@@ -35,6 +43,8 @@ ATTR_EVENTS: Final = "events"
 ATTR_SCHEDULE_IDS: Final = "schedule_ids"
 ATTR_NOTE: Final = "note"
 ATTR_MSG_SN: Final = "msg_sn"
+ATTR_MAX_ATTEMPTS: Final = "max_attempts"
+ATTR_TIME_BUDGET_SECONDS: Final = "time_budget_seconds"
 ATTR_SENSOR_DEVICE_ID: Final = "sensor_device_id"
 ATTR_MESH_TYPE: Final = "mesh_type"
 
@@ -54,39 +64,60 @@ _MAX_SERVICE_LIST_ITEMS: Final = 64
 _MAX_ENTRY_ID_LEN: Final = 64
 _MAX_NOTE_LEN: Final = 500
 _MAX_MSG_SN_LEN: Final = 128
+_MAX_QUERY_COMMAND_RESULT_ATTEMPTS: Final = 10
+_MAX_QUERY_COMMAND_RESULT_TIME_BUDGET_SECONDS: Final = 15.0
 _MAX_SENSOR_DEVICE_ID_LEN: Final = 64
 _MAX_MESH_TYPE_LEN: Final = 16
 
+def _strict_string(value: object) -> str:
+    """Accept only already-string values without coercion."""
+    if not isinstance(value, str):
+        raise vol.Invalid("expected string")
+    return value
+
+
+def _strict_list(value: object) -> list[object]:
+    """Accept only list payloads without coercion."""
+    if not isinstance(value, list):
+        raise vol.Invalid("expected list")
+    return value
+
+
+_DEVICE_ID_VALIDATOR = vol.All(
+    _strict_string,
+    vol.Length(min=1, max=_MAX_DEVICE_ID_LEN),
+    vol.Match(_IDENTIFIER_PATTERN),
+)
+_COMMAND_VALIDATOR = vol.All(
+    _strict_string,
+    vol.Length(min=1, max=_MAX_COMMAND_LEN),
+    vol.Match(_COMMAND_PATTERN),
+)
+_PROPERTY_KEY_VALIDATOR = vol.All(
+    _strict_string,
+    vol.Length(min=1, max=_MAX_PROPERTY_KEY_LEN),
+    vol.Match(_IDENTIFIER_PATTERN),
+)
+_PROPERTY_VALUE_VALIDATOR = vol.All(
+    _strict_string,
+    vol.Length(max=_MAX_PROPERTY_VALUE_LEN),
+)
+_PROPERTY_ITEM_SCHEMA = vol.Schema(
+    {
+        vol.Required("key"): _PROPERTY_KEY_VALIDATOR,
+        vol.Required("value"): _PROPERTY_VALUE_VALIDATOR,
+    }
+)
+
+
 SERVICE_SEND_COMMAND_SCHEMA = vol.Schema(
     {
-        vol.Optional(ATTR_DEVICE_ID): vol.All(
-            cv.string,
-            vol.Length(min=1, max=_MAX_DEVICE_ID_LEN),
-            vol.Match(_IDENTIFIER_PATTERN),
-        ),
-        vol.Required(ATTR_COMMAND): vol.All(
-            cv.string,
-            vol.Length(min=1, max=_MAX_COMMAND_LEN),
-            vol.Match(_COMMAND_PATTERN),
-        ),
+        vol.Optional(ATTR_DEVICE_ID): _DEVICE_ID_VALIDATOR,
+        vol.Required(ATTR_COMMAND): _COMMAND_VALIDATOR,
         vol.Optional(ATTR_PROPERTIES): vol.All(
-            cv.ensure_list,
+            _strict_list,
             vol.Length(max=_MAX_SERVICE_LIST_ITEMS),
-            [
-                vol.Schema(
-                    {
-                        vol.Required("key"): vol.All(
-                            cv.string,
-                            vol.Length(min=1, max=_MAX_PROPERTY_KEY_LEN),
-                            vol.Match(_IDENTIFIER_PATTERN),
-                        ),
-                        vol.Required("value"): vol.All(
-                            cv.string,
-                            vol.Length(max=_MAX_PROPERTY_VALUE_LEN),
-                        ),
-                    },
-                ),
-            ],
+            [_PROPERTY_ITEM_SCHEMA],
         ),
     },
 )
@@ -194,6 +225,14 @@ SERVICE_QUERY_COMMAND_RESULT_SCHEMA = vol.Schema(
             vol.Length(min=1, max=_MAX_MSG_SN_LEN),
             vol.Match(_MSG_SN_PATTERN),
         ),
+        vol.Optional(ATTR_MAX_ATTEMPTS, default=6): vol.All(
+            vol.Coerce(int),
+            vol.Range(min=1, max=_MAX_QUERY_COMMAND_RESULT_ATTEMPTS),
+        ),
+        vol.Optional(ATTR_TIME_BUDGET_SECONDS, default=3.0): vol.All(
+            vol.Coerce(float),
+            vol.Range(min=0, max=_MAX_QUERY_COMMAND_RESULT_TIME_BUDGET_SECONDS),
+        ),
     },
 )
 
@@ -226,3 +265,117 @@ SERVICE_REFRESH_DEVICES_SCHEMA = vol.Schema(
         ),
     },
 )
+
+
+class GetSchedulesServiceData(TypedDict, total=False):
+    """Normalized payload accepted by the get_schedules service handler."""
+
+    device_id: str
+
+
+class AddScheduleServiceData(TypedDict, total=False):
+    """Normalized payload accepted by the add_schedule service handler."""
+
+    device_id: str
+    days: list[int]
+    times: list[int]
+    events: list[int]
+
+
+class DeleteSchedulesServiceData(TypedDict, total=False):
+    """Normalized payload accepted by the delete_schedules service handler."""
+
+    device_id: str
+    schedule_ids: list[int]
+
+
+class NormalizedScheduleRow(TypedDict):
+    """Normalized schedule row exposed by the schedule service surface."""
+
+    id: object
+    active: object
+    days: list[int]
+    times: list[str]
+    events: list[int]
+
+
+type NormalizedScheduleRows = list[NormalizedScheduleRow]
+
+
+class GetSchedulesResult(TypedDict):
+    """Structured response payload returned by get_schedules."""
+
+    serial: str
+    schedules: NormalizedScheduleRows
+
+
+class AddScheduleResult(TypedDict):
+    """Structured response payload returned by add_schedule."""
+
+    success: bool
+    serial: str
+    schedule_count: int
+
+
+class DeleteSchedulesResult(TypedDict):
+    """Structured response payload returned by delete_schedules."""
+
+    success: bool
+    serial: str
+    remaining_count: int
+
+
+class SendCommandServiceData(TypedDict, total=False):
+    """Normalized payload accepted by the send_command service handler."""
+
+    device_id: str
+    command: str
+    properties: ServicePropertyList
+
+
+class SendCommandResult(TypedDict):
+    """Structured response payload returned by send_command."""
+
+    success: bool
+    serial: str
+    requested_device_id: NotRequired[str]
+    resolved_device_id: NotRequired[str]
+
+
+class RefreshDevicesResult(TypedDict):
+    """Structured response payload returned by refresh_devices."""
+
+    success: bool
+    refreshed_entries: int
+    requested_entry_id: NotRequired[str]
+
+
+def normalize_get_schedules_payload(
+    payload: Mapping[str, object],
+) -> GetSchedulesServiceData:
+    """Validate and normalize one direct get_schedules payload."""
+    return cast(GetSchedulesServiceData, SERVICE_GET_SCHEDULES_SCHEMA(dict(payload)))
+
+
+def normalize_add_schedule_payload(
+    payload: Mapping[str, object],
+) -> AddScheduleServiceData:
+    """Validate and normalize one direct add_schedule payload."""
+    return cast(AddScheduleServiceData, SERVICE_ADD_SCHEDULE_SCHEMA(dict(payload)))
+
+
+def normalize_delete_schedules_payload(
+    payload: Mapping[str, object],
+) -> DeleteSchedulesServiceData:
+    """Validate and normalize one direct delete_schedules payload."""
+    return cast(
+        DeleteSchedulesServiceData,
+        SERVICE_DELETE_SCHEDULES_SCHEMA(dict(payload)),
+    )
+
+
+def normalize_send_command_payload(
+    payload: Mapping[str, object],
+) -> SendCommandServiceData:
+    """Validate and normalize one direct send_command payload."""
+    return cast(SendCommandServiceData, SERVICE_SEND_COMMAND_SCHEMA(dict(payload)))

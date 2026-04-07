@@ -1,0 +1,2 @@
+- governance truth sources、phase state 与 meta guards 已同步到 Phase 14 完成态。
+- `_ClientBase` / helper mixin family、`LiproMqttClient` residual ownership 与 assurance-only backflow 已纳入更强 policy/guard 约束。

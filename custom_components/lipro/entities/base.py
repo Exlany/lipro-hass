@@ -5,31 +5,38 @@ from __future__ import annotations
 from collections.abc import Mapping
 import logging
 from time import monotonic
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Final, cast
 
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+    DataUpdateCoordinator,
+)
 
 from ..const.base import DOMAIN, MANUFACTURER
 from ..const.properties import CMD_CHANGE_STATE
-from ..core.coordinator import LiproDataUpdateCoordinator
 from ..core.utils.debounce import Debouncer
+from ..runtime_types import LiproRuntimeCoordinator
 
 if TYPE_CHECKING:
+    from ..core.capability import CapabilitySnapshot
     from ..core.device import LiproDevice
 
 _LOGGER = logging.getLogger(__name__)
 
 # Time window (seconds) after debounced command during which
 # coordinator updates should not overwrite optimistic state
-DEBOUNCE_PROTECTION_WINDOW: Final = 2.0
+DEBOUNCE_PROTECTION_WINDOW: Final = 1.5
 
 # Small buffer (seconds) after command is sent before clearing protection,
 # allowing the cloud response to arrive
-_POST_COMMAND_PROTECTION_BUFFER: Final = 1.0
+_POST_COMMAND_PROTECTION_BUFFER: Final = 0.5
 
 
-class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
+type _EntityCoordinatorBridge = DataUpdateCoordinator[object]
+
+
+class LiproEntity(CoordinatorEntity[_EntityCoordinatorBridge]):
     """Base class for Lipro entities."""
 
     _attr_has_entity_name = True
@@ -37,7 +44,7 @@ class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
 
     def __init__(
         self,
-        coordinator: LiproDataUpdateCoordinator,
+        coordinator: LiproRuntimeCoordinator,
         device: LiproDevice,
         entity_suffix: str = "",
     ) -> None:
@@ -50,7 +57,7 @@ class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
                 Falls back to class attribute _entity_suffix if not provided.
 
         """
-        super().__init__(coordinator)
+        super().__init__(cast(_EntityCoordinatorBridge, coordinator))
         self._device = device
         self._entity_suffix = entity_suffix or getattr(type(self), "_entity_suffix", "")
         self._debouncer: Debouncer | None = None
@@ -74,8 +81,8 @@ class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
         )
         if not device.is_group and device.serial:
             device_info["serial_number"] = device.serial
-        if device.firmware_version:
-            device_info["sw_version"] = device.firmware_version
+        if device.network_info.firmware_version:
+            device_info["sw_version"] = device.network_info.firmware_version
         if device.iot_name:
             device_info["hw_version"] = device.iot_name
         self._attr_device_info = device_info
@@ -84,18 +91,28 @@ class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
     def device(self) -> LiproDevice:
         """Return the device."""
         # Get fresh device data from coordinator
-        return self.coordinator.get_device(self._device.serial) or self._device
+        return self.runtime_coordinator.get_device(self._device.serial) or self._device
+
+    @property
+    def runtime_coordinator(self) -> LiproRuntimeCoordinator:
+        """Return the typed runtime coordinator surface for entity interactions."""
+        return cast(LiproRuntimeCoordinator, self.coordinator)
+
+    @property
+    def capabilities(self) -> CapabilitySnapshot:
+        """Return the canonical capability snapshot for the current device."""
+        return self.device.capabilities
 
     @property
     def available(self) -> bool:
         """Return if entity is available."""
-        return self.coordinator.last_update_success and self.device.available
+        return self.runtime_coordinator.last_update_success and self.device.available
 
     async def async_added_to_hass(self) -> None:
         """When entity is added to hass."""
         await super().async_added_to_hass()
         # Register with coordinator for debounce protection tracking
-        self.coordinator.register_entity(self)
+        self.runtime_coordinator.register_entity(self)
 
     async def async_will_remove_from_hass(self) -> None:
         """When entity will be removed from hass."""
@@ -104,7 +121,7 @@ class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
             self._debouncer.cancel()
             self._debouncer = None
         # Unregister from coordinator
-        self.coordinator.unregister_entity(self)
+        self.runtime_coordinator.unregister_entity(self)
         await super().async_will_remove_from_hass()
 
     @property
@@ -133,7 +150,7 @@ class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
 
     @staticmethod
     def _normalize_property_map(
-        properties: Mapping[str, Any],
+        properties: Mapping[str, object],
     ) -> tuple[list[dict[str, str]], dict[str, str]]:
         """Convert a property mapping to API payload and optimistic state."""
         property_dict = {key: str(value) for key, value in properties.items()}
@@ -142,9 +159,9 @@ class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
 
     async def async_change_state(
         self,
-        properties: Mapping[str, Any],
+        properties: Mapping[str, object],
         *,
-        optimistic_state: Mapping[str, Any] | None = None,
+        optimistic_state: Mapping[str, object] | None = None,
         debounced: bool = False,
     ) -> bool | None:
         """Send a CHANGE_STATE command with normalized property payload.
@@ -160,8 +177,9 @@ class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
 
         """
         payload, default_optimistic = self._normalize_property_map(properties)
+        optimistic: dict[str, object]
         if optimistic_state is None:
-            optimistic = default_optimistic
+            optimistic = dict(default_optimistic)
         else:
             optimistic = {key: str(value) for key, value in optimistic_state.items()}
 
@@ -179,11 +197,34 @@ class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
             optimistic,
         )
 
+    async def _async_dispatch_runtime_command(
+        self,
+        command: str,
+        properties: list[dict[str, str]] | None = None,
+    ) -> bool:
+        """Dispatch one command through the formal runtime command surface."""
+        return await self.runtime_coordinator.async_send_command(
+            self.device,
+            command,
+            properties,
+        )
+
+    async def _async_apply_optimistic_state(
+        self,
+        optimistic_state: Mapping[str, object],
+    ) -> None:
+        """Apply optimistic state through the formal runtime state verb."""
+        await self.runtime_coordinator.async_apply_optimistic_state(
+            self.device,
+            optimistic_state,
+        )
+        self.async_write_ha_state()
+
     async def async_send_command(
         self,
         command: str,
         properties: list[dict[str, str]] | None = None,
-        optimistic_state: dict[str, Any] | None = None,
+        optimistic_state: dict[str, object] | None = None,
     ) -> bool:
         """Send a command to the device with optimistic state update.
 
@@ -205,18 +246,16 @@ class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
 
         # Apply optimistic state update immediately
         if optimistic_state:
-            self.device.update_properties(optimistic_state)
-            self.async_write_ha_state()
+            await self._async_apply_optimistic_state(optimistic_state)
 
-        success = await self.coordinator.async_send_command(
-            self.device,
+        success = await self._async_dispatch_runtime_command(
             command,
             properties,
         )
 
         # If command failed, request refresh to restore actual state
         if not success and optimistic_state:
-            await self.coordinator.async_request_refresh()
+            await self.runtime_coordinator.async_request_refresh()
 
         return success
 
@@ -224,7 +263,7 @@ class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
         self,
         command: str,
         properties: list[dict[str, str]] | None = None,
-        optimistic_state: dict[str, Any] | None = None,
+        optimistic_state: dict[str, object] | None = None,
     ) -> None:
         """Send a command with debouncing for slider controls.
 
@@ -248,8 +287,7 @@ class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
 
         # Apply optimistic state update immediately (no debounce for UI feedback)
         if optimistic_state:
-            self.device.update_properties(optimistic_state)
-            self.async_write_ha_state()
+            await self._async_apply_optimistic_state(optimistic_state)
 
             # Set protection window to prevent coordinator from overwriting
             # these properties during slider drag
@@ -269,7 +307,7 @@ class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
         self,
         command: str,
         properties: list[dict[str, str]] | None,
-        optimistic_state: dict[str, Any] | None,
+        optimistic_state: dict[str, object] | None,
     ) -> None:
         """Internal method to send command (called by debouncer).
 
@@ -279,8 +317,7 @@ class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
             optimistic_state: State that was optimistically set.
 
         """
-        success = await self.coordinator.async_send_command(
-            self.device,
+        success = await self._async_dispatch_runtime_command(
             command,
             properties,
         )
@@ -292,4 +329,15 @@ class LiproEntity(CoordinatorEntity[LiproDataUpdateCoordinator]):
         if not success and optimistic_state:
             self._debounce_protected_keys.clear()
             self._debounce_protected_until = 0
-            await self.coordinator.async_request_refresh()
+            await self.runtime_coordinator.async_request_refresh()
+
+    def _update_from_device(self) -> None:
+        """Update entity state from device data.
+
+        Subclasses should override this method to update their specific attributes
+        from the device state. This is called automatically when coordinator data
+        is updated.
+
+        The default implementation does nothing, allowing entities to opt-in to
+        state updates by overriding this method.
+        """

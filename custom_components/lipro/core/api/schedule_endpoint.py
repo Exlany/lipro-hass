@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 import json
 from typing import Any
 
 from ..utils.identifiers import is_mesh_group_id_prefix
+from .schedule_codec import build_mesh_schedule_json_payload
 
 
 def is_mesh_group_id(device_id: str) -> bool:
@@ -36,8 +37,18 @@ def resolve_mesh_schedule_candidate_ids(
     if isinstance(mesh_member_ids, list):
         for member_id in mesh_member_ids:
             _append_candidate(member_id)
-    _append_candidate(device_id)
     return candidates
+
+
+def validate_schedule_time_event_lengths(
+    times: Sequence[int],
+    events: Sequence[int],
+) -> None:
+    """Ensure schedule ``time`` and ``evt`` arrays stay aligned."""
+    if len(times) == len(events):
+        return
+    msg = "times and events must have same length"
+    raise ValueError(msg)
 
 
 def encode_mesh_schedule_json(
@@ -47,7 +58,7 @@ def encode_mesh_schedule_json(
 ) -> str:
     """Encode mesh schedule payload as compact JSON."""
     return json.dumps(
-        {"days": days, "time": times, "evt": events},
+        build_mesh_schedule_json_payload(days, times, events),
         separators=(",", ":"),
         ensure_ascii=False,
     )
@@ -65,11 +76,12 @@ def build_mesh_schedule_add_body(
     device_id: str,
     *,
     schedule_json: str,
+    schedule_id: int,
 ) -> dict[str, Any]:
     """Build BLE mesh schedule ADD request body."""
     return {
         "deviceId": device_id,
-        "id": 0,
+        "id": schedule_id,
         "scheduleJson": schedule_json,
         "active": True,
     }

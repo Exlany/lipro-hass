@@ -2,23 +2,15 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock
+from pathlib import Path
+from unittest.mock import AsyncMock
 
 import pytest
 
-from custom_components.lipro.core.api.command_service import (
+from custom_components.lipro.core.api.command_api_service import (
     build_command_request_body,
-    iot_request_with_busy_retry,
     send_command_to_target,
 )
-
-
-class DummyApiError(Exception):
-    """Test-only API error with a code attribute."""
-
-    def __init__(self, message: str, code: int | str | None = None) -> None:
-        super().__init__(message)
-        self.code = code
 
 
 class TestBuildCommandRequestBody:
@@ -49,14 +41,14 @@ class TestBuildCommandRequestBody:
             target_id="mesh_group_10001",
             command="CHANGE_STATE",
             device_type="ff000001",
-            properties=[{"key": "brightness", "value": "60"}],
-            iot_name="",
-            to_device_type_hex=lambda value: str(value),
+            properties=[{"key": "brightness", "value": "80"}],
+            iot_name="20X1",
+            to_device_type_hex=lambda _: "ff000001",
             group_id="mesh_group_10001",
         )
 
         assert body["groupId"] == "mesh_group_10001"
-        assert body["properties"] == [{"key": "brightness", "value": "60"}]
+        assert body["properties"] == [{"key": "brightness", "value": "80"}]
 
 
 class TestSendCommandToTarget:
@@ -71,7 +63,7 @@ class TestSendCommandToTarget:
             target_id="03ab5ccd7caaaaaa",
             command="POWER_ON",
             device_type=1,
-            properties=None,
+            properties=[{"key": "powerState", "value": "1"}],
             iot_name="20X1",
             to_device_type_hex=lambda _: "00000001",
             iot_request_with_busy_retry=busy_retry,
@@ -88,142 +80,14 @@ class TestSendCommandToTarget:
         assert call.kwargs["command"] == "POWER_ON"
 
 
-class TestIotRequestWithBusyRetry:
-    """Tests for iot_request_with_busy_retry helper."""
+def test_command_api_service_no_longer_owns_busy_retry_algorithm() -> None:
+    module_text = (
+        Path(__file__).resolve().parents[3]
+        / "custom_components"
+        / "lipro"
+        / "core"
+        / "api"
+        / "command_api_service.py"
+    ).read_text(encoding="utf-8")
 
-    @pytest.mark.asyncio
-    async def test_iot_request_with_busy_retry_returns_empty_for_non_mapping_success(
-        self,
-    ) -> None:
-        result = await iot_request_with_busy_retry(
-            path="/v2/device/send",
-            body_data={"command": "POWER_ON"},
-            target_id="03ab5ccd7caaaaaa",
-            command="POWER_ON",
-            attempt_limit=3,
-            base_delay_seconds=0.25,
-            iot_request=AsyncMock(return_value=[1, 2, 3]),
-            throttle_change_state=AsyncMock(),
-            record_change_state_success=AsyncMock(),
-            is_command_busy_error=lambda _: False,
-            lipro_api_error=DummyApiError,
-            record_change_state_busy=AsyncMock(return_value=(0.2, 0)),
-            sleep=AsyncMock(),
-            logger=MagicMock(),
-        )
-
-        assert result == {}
-
-    @pytest.mark.asyncio
-    async def test_iot_request_with_busy_retry_retries_then_succeeds(self) -> None:
-        iot_request = AsyncMock(
-            side_effect=[
-                DummyApiError("busy", 250001),
-                {"pushSuccess": True},
-            ]
-        )
-        sleep = AsyncMock()
-        logger = MagicMock()
-
-        result = await iot_request_with_busy_retry(
-            path="/v2/device/send",
-            body_data={"command": "CHANGE_STATE"},
-            target_id="mesh_group_10001",
-            command="CHANGE_STATE",
-            attempt_limit=3,
-            base_delay_seconds=0.25,
-            iot_request=iot_request,
-            throttle_change_state=AsyncMock(),
-            record_change_state_success=AsyncMock(),
-            is_command_busy_error=lambda _: True,
-            lipro_api_error=DummyApiError,
-            record_change_state_busy=AsyncMock(return_value=(0.32, 1)),
-            sleep=sleep,
-            logger=logger,
-        )
-
-        assert result == {"pushSuccess": True}
-        assert iot_request.await_count == 2
-        sleep.assert_awaited_once_with(0.25)
-        logger.debug.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_iot_request_with_busy_retry_non_busy_error_raises(self) -> None:
-        with pytest.raises(DummyApiError, match="offline"):
-            await iot_request_with_busy_retry(
-                path="/v2/device/send",
-                body_data={"command": "POWER_ON"},
-                target_id="03ab5ccd7caaaaaa",
-                command="POWER_ON",
-                attempt_limit=3,
-                base_delay_seconds=0.25,
-                iot_request=AsyncMock(side_effect=DummyApiError("offline", 140003)),
-                throttle_change_state=AsyncMock(),
-                record_change_state_success=AsyncMock(),
-                is_command_busy_error=lambda _: False,
-                lipro_api_error=DummyApiError,
-                record_change_state_busy=AsyncMock(return_value=(0.2, 0)),
-                sleep=AsyncMock(),
-                logger=MagicMock(),
-            )
-
-    @pytest.mark.asyncio
-    async def test_iot_request_with_busy_retry_exhausted_raises(self) -> None:
-        iot_request = AsyncMock(side_effect=DummyApiError("busy", 250001))
-
-        with pytest.raises(DummyApiError, match="busy"):
-            await iot_request_with_busy_retry(
-                path="/v2/device/send",
-                body_data={"command": "CHANGE_STATE"},
-                target_id="mesh_group_10001",
-                command="CHANGE_STATE",
-                attempt_limit=3,
-                base_delay_seconds=0.25,
-                iot_request=iot_request,
-                throttle_change_state=AsyncMock(),
-                record_change_state_success=AsyncMock(),
-                is_command_busy_error=lambda _: True,
-                lipro_api_error=DummyApiError,
-                record_change_state_busy=AsyncMock(return_value=(0.32, 1)),
-                sleep=AsyncMock(),
-                logger=MagicMock(),
-            )
-
-        assert iot_request.await_count == 4
-
-    @pytest.mark.asyncio
-    async def test_iot_request_with_busy_retry_negative_attempt_limit_returns_empty(
-        self,
-    ) -> None:
-        """Defensive fallback: negative attempt_limit yields no loop iterations."""
-        iot_request = AsyncMock(return_value={"pushSuccess": True})
-        throttle_change_state = AsyncMock()
-        record_change_state_success = AsyncMock()
-        record_change_state_busy = AsyncMock(return_value=(0.2, 0))
-        sleep = AsyncMock()
-        logger = MagicMock()
-
-        result = await iot_request_with_busy_retry(
-            path="/v2/device/send",
-            body_data={"command": "POWER_ON"},
-            target_id="03ab5ccd7caaaaaa",
-            command="POWER_ON",
-            attempt_limit=-1,
-            base_delay_seconds=0.25,
-            iot_request=iot_request,
-            throttle_change_state=throttle_change_state,
-            record_change_state_success=record_change_state_success,
-            is_command_busy_error=lambda _: True,
-            lipro_api_error=DummyApiError,
-            record_change_state_busy=record_change_state_busy,
-            sleep=sleep,
-            logger=logger,
-        )
-
-        assert result == {}
-        iot_request.assert_not_awaited()
-        throttle_change_state.assert_not_awaited()
-        record_change_state_success.assert_not_awaited()
-        record_change_state_busy.assert_not_awaited()
-        sleep.assert_not_awaited()
-        logger.debug.assert_not_called()
+    assert "async def iot_request_with_busy_retry(" not in module_text

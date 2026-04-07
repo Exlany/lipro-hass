@@ -20,8 +20,7 @@ async def test_cover_async_setup_entry_and_command(hass, mock_coordinator, make_
     from custom_components.lipro.cover import LiproCover, async_setup_entry
 
     curtain = make_device("curtain", serial="curtain_1", properties={"position": "40"})
-    mock_coordinator.devices = {curtain.serial: curtain}
-    mock_coordinator.get_device = MagicMock(side_effect=mock_coordinator.devices.get)
+    mock_coordinator.set_devices(curtain)
     async_add_entities = MagicMock()
 
     await async_setup_entry(
@@ -46,15 +45,14 @@ async def test_switch_async_setup_entry_builds_main_and_feature_switches(
 ):
     """Switch platform creates both main switch and feature switches."""
     from custom_components.lipro.switch import (
-        LiproFadeSwitch,
+        LiproPropertySwitch,
         LiproSwitch,
         async_setup_entry,
     )
 
     outlet = make_device("outlet", serial="outlet_1")
     light = make_device("light", serial="light_1", properties={"fadeState": "1"})
-    mock_coordinator.devices = {outlet.serial: outlet, light.serial: light}
-    mock_coordinator.get_device = MagicMock(side_effect=mock_coordinator.devices.get)
+    mock_coordinator.set_devices(outlet, light)
     async_add_entities = MagicMock()
 
     await async_setup_entry(
@@ -63,12 +61,31 @@ async def test_switch_async_setup_entry_builds_main_and_feature_switches(
     entities = async_add_entities.call_args[0][0]
 
     assert any(isinstance(entity, LiproSwitch) for entity in entities)
-    assert any(isinstance(entity, LiproFadeSwitch) for entity in entities)
+    assert any(isinstance(entity, LiproPropertySwitch) for entity in entities)
 
     main_switch = next(entity for entity in entities if isinstance(entity, LiproSwitch))
     patch.object(main_switch, "async_write_ha_state", new=MagicMock()).start()
     await main_switch.async_turn_on()
     mock_coordinator.async_send_command.assert_awaited_with(outlet, "POWER_ON", None)
+
+
+@pytest.mark.asyncio
+async def test_switch_async_setup_entry_skips_supplemental_switches_without_raw_properties(
+    hass, mock_coordinator, make_device
+):
+    """Switch platform should not mis-model supplemental switches from default accessors."""
+    from custom_components.lipro.switch import async_setup_entry
+
+    plain_light = make_device("light", serial="light_plain")
+    mock_coordinator.set_devices(plain_light)
+    async_add_entities = MagicMock()
+
+    await async_setup_entry(
+        hass, _entry_with_runtime(mock_coordinator), async_add_entities
+    )
+    entities = async_add_entities.call_args[0][0]
+
+    assert entities == []
 
 
 @pytest.mark.asyncio
@@ -80,8 +97,7 @@ async def test_climate_async_setup_entry_and_preset_command(
     from custom_components.lipro.const.properties import HEATER_MODE_DRY
 
     heater = make_device("heater", serial="heater_1", properties={"heaterMode": "1"})
-    mock_coordinator.devices = {heater.serial: heater}
-    mock_coordinator.get_device = MagicMock(side_effect=mock_coordinator.devices.get)
+    mock_coordinator.set_devices(heater)
     async_add_entities = MagicMock()
 
     await async_setup_entry(
@@ -113,8 +129,7 @@ async def test_binary_sensor_async_setup_entry_creates_composed_entities(
     )
 
     body_sensor = make_device("bodySensor", serial="body_1")
-    mock_coordinator.devices = {body_sensor.serial: body_sensor}
-    mock_coordinator.get_device = MagicMock(side_effect=mock_coordinator.devices.get)
+    mock_coordinator.set_devices(body_sensor)
     async_add_entities = MagicMock()
 
     await async_setup_entry(
@@ -144,13 +159,11 @@ async def test_sensor_and_select_platforms_entity_behavior(
     outlet = make_device(
         "outlet",
         serial="outlet_1",
-        extra_data={
-            "power_info": {
-                "nowPower": 18.2,
-                "energyList": [{"t": "20240101", "v": 1.1}],
-            }
-        },
     )
+    outlet.outlet_power_info = {
+        "nowPower": 18.2,
+        "energyList": [{"t": "20240101", "v": 1.1}],
+    }
     light = make_device(
         "light",
         serial="light_gear",
@@ -161,12 +174,7 @@ async def test_sensor_and_select_platforms_entity_behavior(
         serial="light_bat",
         properties={"battery": "88"},
     )
-    mock_coordinator.devices = {
-        outlet.serial: outlet,
-        light.serial: light,
-        battery_light.serial: battery_light,
-    }
-    mock_coordinator.get_device = MagicMock(side_effect=mock_coordinator.devices.get)
+    mock_coordinator.set_devices(outlet, light, battery_light)
 
     sensor_add = MagicMock()
     await setup_sensor(hass, _entry_with_runtime(mock_coordinator), sensor_add)
@@ -192,3 +200,41 @@ async def test_sensor_and_select_platforms_entity_behavior(
             {"key": "temperature", "value": "20"},
         ],
     )
+    mock_coordinator.async_request_refresh.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_switch_async_setup_entry_builds_panel_config_switches(
+    hass, mock_coordinator, make_device
+):
+    """Switch platform only adds panel config switches for panel devices."""
+    from custom_components.lipro.switch import (
+        LiproPanelPropertySwitch,
+        async_setup_entry,
+    )
+
+    panel = make_device(
+        "switch",
+        serial="panel_1",
+        properties={"led": "1", "memory": "0"},
+    )
+    outlet = make_device(
+        "outlet",
+        serial="outlet_1",
+        properties={"memory": "1"},
+    )
+    mock_coordinator.set_devices(panel, outlet)
+    async_add_entities = MagicMock()
+
+    await async_setup_entry(
+        hass, _entry_with_runtime(mock_coordinator), async_add_entities
+    )
+    entities = async_add_entities.call_args[0][0]
+
+    panel_switches = [
+        entity for entity in entities if isinstance(entity, LiproPanelPropertySwitch)
+    ]
+
+    # Should have 2 panel switches (LED + Memory) for panel device only
+    assert len(panel_switches) == 2
+    assert all(entity.device.serial == panel.serial for entity in panel_switches)

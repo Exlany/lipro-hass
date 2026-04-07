@@ -1,0 +1,19 @@
+{
+  "data": [
+    {
+      "id": " mesh_group_10001 ",
+      "gatewayDeviceId": " 03AB5CCD7C0000A1 ",
+      "devices": [
+        {"deviceId": " 03AB5CCD7C000001 "},
+        {"id": "03ab5ccd7c000002"},
+        {"deviceId": "03AB5CCD7C000001"}
+      ],
+      "powerState": "1"
+    },
+    {
+      "groupId": "mesh_group_10002",
+      "gatewayDeviceId": null,
+      "devices": []
+    }
+  ]
+}

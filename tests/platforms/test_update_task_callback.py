@@ -9,10 +9,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from custom_components.lipro.entities.firmware_update import LiproFirmwareUpdateEntity
+from custom_components.lipro.entities.firmware_update_support import (
+    resolve_refresh_task_outcome,
+)
 
 
 @pytest.mark.asyncio
-async def test_async_clear_refresh_task_ignores_cancelled_error() -> None:
+async def test_resolve_refresh_task_outcome_ignores_cancelled_error() -> None:
     async def _pending() -> None:
         await asyncio.sleep(1)
 
@@ -20,7 +23,13 @@ async def test_async_clear_refresh_task_ignores_cancelled_error() -> None:
     task.cancel()
     await asyncio.gather(task, return_exceptions=True)
 
-    LiproFirmwareUpdateEntity._async_clear_refresh_task(task)
+    outcome = resolve_refresh_task_outcome(
+        active_task=task,
+        completed_task=task,
+        logger=MagicMock(),
+    )
+    assert outcome.active_task is None
+    assert outcome.error is None
 
 
 @pytest.mark.asyncio
@@ -49,7 +58,7 @@ async def test_async_will_remove_from_hass_awaits_ota_refresh_cancel(
 
 
 @pytest.mark.asyncio
-async def test_async_finalize_refresh_task_sets_last_error_and_calls_hook(
+async def test_handle_refresh_task_done_sets_last_error_and_calls_hook(
     mock_coordinator, make_device
 ) -> None:
     """Background OTA task failures should become observable via state and hook."""
@@ -65,7 +74,7 @@ async def test_async_finalize_refresh_task_sets_last_error_and_calls_hook(
     await asyncio.gather(task, return_exceptions=True)
     entity._ota_refresh_task = cast(asyncio.Task[None] | None, task)
 
-    entity._async_finalize_refresh_task(task)
+    entity._handle_refresh_task_done(task)
 
     assert entity._ota_refresh_task is None
     assert isinstance(entity.last_error, RuntimeError)
@@ -74,7 +83,7 @@ async def test_async_finalize_refresh_task_sets_last_error_and_calls_hook(
 
 
 @pytest.mark.asyncio
-async def test_async_finalize_refresh_task_ignores_error_hook_exception(
+async def test_handle_refresh_task_done_ignores_error_hook_exception(
     mock_coordinator, make_device
 ) -> None:
     """Hook failures should be swallowed while preserving original task error."""
@@ -89,7 +98,7 @@ async def test_async_finalize_refresh_task_ignores_error_hook_exception(
     task = asyncio.create_task(_boom())
     await asyncio.gather(task, return_exceptions=True)
 
-    entity._async_finalize_refresh_task(task)
+    entity._handle_refresh_task_done(task)
 
     assert isinstance(entity.last_error, ValueError)
     on_error.assert_called_once()
@@ -105,8 +114,8 @@ async def test_async_update_success_clears_last_error(
         serial="03ab5ccd7c333333",
         properties={"version": "1.0.0"},
     )
-    mock_coordinator.client = MagicMock()
-    mock_coordinator.client.query_ota_info = AsyncMock(
+    mock_coordinator.protocol = MagicMock()
+    mock_coordinator.protocol.query_ota_info = AsyncMock(
         return_value=[
             {
                 "deviceType": device.device_type_hex,

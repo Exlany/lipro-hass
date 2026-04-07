@@ -3,13 +3,31 @@
 Thank you for your interest in contributing to the Lipro Smart Home integration!
 感谢您有兴趣为 Lipro 智能家居集成做出贡献！
 
+## First Hop / 首先看这里
+
+- Start with `docs/README.md` for the canonical docs map, bilingual boundary, and contributor routing.
+- Before changing protocol / runtime / control / external-boundary / governance surfaces, read `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md`.
+- For public troubleshooting use `docs/TROUBLESHOOTING.md` → `SUPPORT.md`; for private disclosure use `SECURITY.md`; for maintainer-only release/custody work use `docs/MAINTAINER_RELEASE_RUNBOOK.md`.
+- 先看 `docs/README.md`，获取 canonical docs map、双语边界与贡献入口矩阵。
+- 若要修改 protocol / runtime / control / external-boundary / governance，请先阅读 `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md`。
+- 公开排障请走 `docs/TROUBLESHOOTING.md` → `SUPPORT.md`，私密披露请走 `SECURITY.md`，维护者专用发版 / custody 事项请看 `docs/MAINTAINER_RELEASE_RUNBOOK.md`。
+
 ## Development Setup / 开发环境设置
 
 ### Prerequisites / 前置条件
 
-- Python 3.13.2+
+- Python 3.14.2+
 - uv (Astral)
 - Git
+
+### Version Truth / 版本真源
+
+- Canonical minimum supported Home Assistant version: `2026.3.1` from `hacs.json`, kept in sync with the `pyproject.toml` dev pin (`homeassistant==2026.3.1`).
+- Canonical Python toolchain truth: minimum Python `3.14.2` (the dependency floor enforced by `requires-python` and Home Assistant), with development / CI targeting the `3.14` family (`mypy`, `ruff`, `pre-commit`, devcontainer, and CI stay aligned at the minor-version contract while the floor stays patch-accurate).
+- 唯一 Python 工具链真相：最低 Python `3.14.2`（由 `requires-python` 与 Home Assistant 依赖底线共同约束），开发 / CI 继续对齐 `3.14` 次版本族（`mypy`、`ruff`、`pre-commit`、devcontainer 与 CI 保持 minor-version 契约，而最低支持版本仍需精确到 patch）。
+- 唯一最低支持 Home Assistant 版本基线来源于 `hacs.json`，并与 `pyproject.toml` 中的开发 pin `homeassistant==2026.3.1` 保持同步。
+- Private repository / fork note: CI skips HACS validation because HACS only supports public GitHub repositories.
+- 私有仓库 / fork 说明：CI 会跳过 HACS validation，因为 HACS 只支持公开 GitHub 仓库。
 
 ### Quick Start / 快速开始
 
@@ -18,6 +36,9 @@ Thank you for your interest in contributing to the Lipro Smart Home integration!
    git clone https://github.com/Exlany/lipro-hass.git
    cd lipro-hass
    ```
+
+   This clone route assumes your current access mode can already read the repository; if a future public mirror preserves the same contract, use that mirror instead of assuming this private-access checkout is universally reachable.
+   该克隆路径默认你当前已经具备仓库读取权限；若未来存在保持同一契约的 public mirror，请改用 mirror 路径，而不要假定当前 private-access 仓库对所有贡献者都天然可达。
 
 2. **Set up development environment / 设置开发环境**
    ```bash
@@ -31,8 +52,66 @@ Thank you for your interest in contributing to the Lipro Smart Home integration!
    ./scripts/develop
    ```
 
+   The development entrypoint keeps other `config/custom_components/*` integrations intact and only refreshes `config/custom_components/lipro` before starting Home Assistant with `uv run hass -c config`.
+   该开发入口会保留其他 `config/custom_components/*` 集成，仅刷新 `config/custom_components/lipro`，然后用 `uv run hass -c config` 启动 Home Assistant。
+
+   For a non-destructive smoke check, run:
+   如需执行非破坏性 smoke 验证，可运行：
+   ```bash
+   LIPRO_DEVELOP_SMOKE_ONLY=1 ./scripts/develop
+   ```
+
    Access Home Assistant at http://localhost:8123
    在 http://localhost:8123 访问 Home Assistant
+
+### 10-Minute Contribution Path / 10 分钟贡献路径
+
+For a focused contribution loop, use this order:
+如需走最短贡献闭环，建议按这个顺序执行：
+
+1. `./scripts/setup`
+2. `uv run pytest -q <targeted-tests>` for the files you changed / 针对改动文件先跑定向测试
+3. `uv run ruff check . && uv run mypy` before opening a PR / 提交 PR 前至少跑一次静态检查
+4. Run the full CI-equivalent suite only when the change touches shared runtime, protocol, governance, or release paths / 仅当改动触及共享 runtime、protocol、governance、release 路径时，再补全量验证
+
+Need routing help? Use `SUPPORT.md`. Need maintainer continuity or release custody context? Use `docs/MAINTAINER_RELEASE_RUNBOOK.md`.
+如需支持路由，请看 `SUPPORT.md`；如需维护者连续性或发版托管上下文，请看 `docs/MAINTAINER_RELEASE_RUNBOOK.md`。
+
+Need the full docs map or bilingual boundary? Start with `docs/README.md`. Public troubleshooting / support routing stays on `docs/TROUBLESHOOTING.md` → `SUPPORT.md`, while `docs/MAINTAINER_RELEASE_RUNBOOK.md` remains a maintainer-only appendix.
+如需文档总索引或双语边界，请先看 `docs/README.md`。公开排障 / 支持分流统一走 `docs/TROUBLESHOOTING.md` → `SUPPORT.md`，`docs/MAINTAINER_RELEASE_RUNBOOK.md` 则继续保持 maintainer-only appendix 身份。
+
+Retired compatibility stubs such as `scripts/agent_worker.py` and `scripts/orchestrator.py` remain unsupported fail-fast entrypoints only while maintained docs / automation still need those names as migration hints.
+`scripts/agent_worker.py` 与 `scripts/orchestrator.py` 之类退役兼容壳，仅在维护中的文档 / 自动化仍需要这些名称作为迁移提示时继续保留，且始终不是 supported workflow。
+
+## Navigation Boundaries / 导航边界
+
+### Public contributor path / 对外贡献主链
+
+- Public overview and first hop: `README.md`, `README_zh.md` → `docs/README.md`
+- Contributor workflow and PR contract: `CONTRIBUTING.md` → `.github/pull_request_template.md`
+- Architecture change boundaries and evidence map: `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md`
+- Troubleshooting and routing: `docs/TROUBLESHOOTING.md` → `SUPPORT.md`
+- Private vulnerability disclosure: `SECURITY.md`
+
+Current access-mode note: this repository is private-access. Treat the docs files in this checkout as the canonical first hop; GitHub issue / discussion / security UI routes only apply when your current access mode exposes them or when a future public mirror preserves the same contract.
+当前访问模式说明：本仓库当前是 private-access。请把当前 checkout 中的文档文件视为唯一正式 first hop；GitHub issue / discussion / security UI 路径只有在你当前访问模式可见，或未来 public mirror 保持同一契约时才成立。
+
+### Maintainer appendix / 维护者附录
+
+- Release / rehearsal / custody continuity: `docs/MAINTAINER_RELEASE_RUNBOOK.md` (maintainer-only, not a public first hop)
+- Registry-backed governance truth: `.planning/baseline/GOVERNANCE_REGISTRY.json`, projected into `CONTRIBUTING.md`, `docs/README.md`, and GitHub templates to reduce drift
+
+### Bilingual Boundary / 双语边界
+
+- `README.md` 与 `README_zh.md` 必须保持镜像的 public entry navigation / release-install contract。
+- `CONTRIBUTING.md`、`SUPPORT.md` 与 `SECURITY.md` 必须保持等价的 contributor/support/security guidance，即使具体实现为单文件双语结构。
+- `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md` 必须保持 contributor-facing 语义，不得泄露 active-route / archived-pointer / GSD internal workflow。
+- `docs/MAINTAINER_RELEASE_RUNBOOK.md` 与 `.planning/*` 可保持 maintainer-only；公开入口可按需显式链接过去，但不得取代 public first hop。
+
+- If you touch `README.md` / `README_zh.md` / `CONTRIBUTING.md` / `SUPPORT.md` / `SECURITY.md` / `.github/*` / release workflow, update `docs/README.md`, `docs/TROUBLESHOOTING.md`, `docs/MAINTAINER_RELEASE_RUNBOOK.md`, and `.planning/baseline/GOVERNANCE_REGISTRY.json` together, and do not leave silent defer behind.
+- Public bug reports should start with diagnostics; developer report / one-click feedback is an escalation path only when diagnostics are insufficient or a maintainer explicitly asks for deeper debugging.
+- Supported shell/manual install docs now start from verified release assets (`install.sh` + release zip + `SHA256SUMS`); `ARCHIVE_TAG=main` and mirror/branch fallback paths are preview-only and should not be documented as stable support routes.
+- Continuity / custody truth stays in `SUPPORT.md`, `SECURITY.md`, and `docs/MAINTAINER_RELEASE_RUNBOOK.md`; do not duplicate the full maintainer appendix in root overview docs.
 
 ## Code Standards / 代码规范
 
@@ -42,8 +121,11 @@ We use [Ruff](https://docs.astral.sh/ruff/) for linting and formatting:
 我们使用 [Ruff](https://docs.astral.sh/ruff/) 进行代码检查和格式化：
 
 ```bash
-# Run linting / 运行代码检查
+# Run local static/security checks / 运行本地静态+安全检查
 ./scripts/lint
+
+# Run the full CI-like local matrix / 运行接近 CI 的完整本地矩阵
+./scripts/lint --full
 
 # Auto-fix issues / 自动修复问题
 uv run ruff check . --fix
@@ -58,10 +140,14 @@ uv run mypy
 Notes:
 说明：
 
-- `./scripts/lint` runs `pip-audit` against exported runtime requirements by default.
-  `./scripts/lint` 默认仅对导出的 runtime 依赖运行 `pip-audit`。
-- To also audit dev dependencies locally (may be noisy), set `PIP_AUDIT_INCLUDE_DEV=1`.
-  如需在本地额外审计 dev 依赖（可能较吵），可设置 `PIP_AUDIT_INCLUDE_DEV=1`。
+- `./scripts/lint` 默认运行本地 static + translation + Markdown docs route + shell + runtime security smoke；当 changed surfaces 命中 Phase 113 hotspot / toolchain / governance-handoff 家族时，还会自动补跑对应 focused pytest，但它**不会**默认跑通用 governance 套件或完整 pytest 矩阵。
+  `./scripts/lint` runs local static + translation + Markdown docs route + shell + runtime security smoke by default; when changed surfaces hit the Phase 113 hotspot / toolchain / governance-handoff families, it also auto-runs the matching focused pytest commands, but it does **not** run the generic governance suite or the full pytest matrix by default.
+- `./scripts/lint --full` 会在默认检查之上补跑 architecture/file-matrix、governance guards、完整测试覆盖率门禁，以及 total + changed-surface coverage / refactor floor 校验。
+  `./scripts/lint --full` extends the default checks with architecture/file-matrix validation, governance guards, the full test coverage gate, plus total + changed-surface coverage and refactor floor validation.
+- To also audit dev dependencies locally (may be noisy), set `PIP_AUDIT_INCLUDE_DEV=1`; the dev audit checks the installed environment so security overrides are honored.
+  如需在本地额外审计 dev 依赖（可能较吵），可设置 `PIP_AUDIT_INCLUDE_DEV=1`；dev 审计会检查已安装环境，以便安全覆盖版本生效。
+- CI 的正式裁决仍以下面的显式 `uv run ...` 命令分组为准；`./scripts/lint` 只是维护者入口，不再暗示“默认已跑完整矩阵”。
+  The canonical CI contract remains the explicit grouped `uv run ...` commands below; `./scripts/lint` is only a maintainer entrypoint and no longer implies the full matrix by default.
 
 ### Testing / 测试
 
@@ -70,16 +156,59 @@ Run tests with `uv` (same as CI):
 
 ```bash
 # Full test suite (same as CI)
-uv run pytest tests/ -v --cov=custom_components/lipro --cov-fail-under=95 --cov-report=xml --cov-report=term-missing
+uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro --cov-fail-under=95 --cov-report=json --cov-report=xml --cov-report=term-missing
+
+# Snapshot coverage is already included above / snapshot 覆盖已包含在上面的命令中
+
+# Prepare the changed coverage surface (same contract as CI) / 生成与 CI 一致的 changed coverage surface
+git diff --name-only --diff-filter=AMRT HEAD^...HEAD > .coverage-changed-files
+
+# Total + changed-surface coverage gates (same as CI; set `COVERAGE_BASELINE_JSON=/path/to/baseline.json` to mirror baseline compare locally) / 总覆盖率 + changed-surface 覆盖率门禁（与 CI 一致；如需本地镜像 baseline compare，请设置 `COVERAGE_BASELINE_JSON=/path/to/baseline.json`）
+uv run python scripts/coverage_diff.py coverage.json --minimum 95 --changed-files .coverage-changed-files --changed-minimum 95
 
 # Quick local run (no coverage gate) / 本地快速跑（不含覆盖率门禁）
 uv run pytest tests/
 
-# Diagnostics focused tests (used by pre-push hook)
-uv run pytest tests/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics::test_collects_and_redacts_diagnostics
-uv run pytest tests/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics::test_handles_no_devices
-uv run pytest tests/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics::test_diagnostics_snapshot
+# Diagnostics focused tests (same target as pre-push hook)
+uv run pytest -q -x tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_collects_and_redacts_diagnostics
+uv run pytest -q -x tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_handles_no_devices
+uv run pytest -q -x tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_diagnostics_snapshot
+
+# Targeted protocol/auth/control public-surface regression / 定向 protocol/auth/control public-surface 回归
+uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/core/test_auth.py tests/flows/test_flow_schemas.py tests/flows/test_config_flow_user.py tests/flows/test_config_flow_reauth.py tests/flows/test_config_flow_reconfigure.py tests/flows/test_options_flow.py tests/meta/test_public_surface_guards.py tests/core/test_coordinator_entry.py
 ```
+
+Notes:
+说明：
+
+- Init / lifecycle / service-handler 改动建议优先跑 `tests/core/test_init*.py` 与 `tests/core/test_init_service_handlers*.py`，不要再把专题用例回灌到单一 mega-test 文件。
+- Phase-history / governance closeout 改动建议补跑 `tests/meta/test_governance_phase_history*.py`，以保持 topicized closeout guards 与实际 phase 证据一致。
+
+### CI Contract / CI 契约
+
+Use the same command groups as GitHub Actions:
+请与 GitHub Actions 使用同一组命令：
+
+- **lint**: `uv run ruff check .`、`uv run ruff format --check .`、`uv run mypy`、`uv run python scripts/check_translations.py`、`uv run python scripts/check_markdown_links.py`；translation truth 与 docs route truth 都属于 blocking lint lane，不再只是“改到文案时可选”
+- **governance**: `uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、`uv run pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py`
+- **pre-push**: `uv run --extra dev python scripts/check_translations.py`、`uv run --extra dev python scripts/check_markdown_links.py`、`uv run --extra dev python scripts/check_architecture_policy.py --check`、`uv run --extra dev python scripts/check_file_matrix.py --check`、`uv run --extra dev pytest -q -x tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_collects_and_redacts_diagnostics tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_handles_no_devices tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_diagnostics_snapshot`、`uv run --extra dev pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py`；pre-push 只保留 focused local mirrors，不再指向旧 diagnostics mega-file
+- **test**: `uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro --cov-fail-under=95 --cov-report=json --cov-report=xml --cov-report=term-missing`、`uv run python scripts/coverage_diff.py coverage.json --minimum 95 --changed-files .coverage-changed-files --changed-minimum 95`、`uv run python scripts/refactor_tools.py --coverage-json coverage.json --minimum-coverage 95`；total coverage 与 changed measured files 都是 blocking gate，若本地设置 `COVERAGE_BASELINE_JSON=/path/to/baseline.json`，`./scripts/lint --full` 会镜像 CI 的 `--baseline` compare 与 changed-file regression guard；snapshot coverage 已包含在 `tests/` 主阻塞 lane 中，不再单独重复执行
+- **security**: GitHub Actions 会在每个 PR 上运行 blocking runtime `pip-audit` 门禁；tag release 还会额外运行 tagged release security gate，并要求 tagged `CodeQL` analysis 已完成且 open alerts 为零。dev dependency audit 仅在 `schedule` / `workflow_dispatch` 作为 advisory、non-blocking 运行；GitHub artifact attestation / provenance 仍不是 signing，请不要把 attestation / pip-audit 混写成 artifact signing。
+- **benchmark**: PR / push / `workflow_call` 默认运行受 manifest 治理的 smoke subset：`uv run pytest -q tests/benchmarks/test_command_benchmark.py tests/benchmarks/test_mqtt_benchmark.py tests/benchmarks/test_device_refresh_benchmark.py --benchmark-only --benchmark-json=.benchmarks/benchmark-smoke.json` 与 `uv run python scripts/check_benchmark_baseline.py .benchmarks/benchmark-smoke.json --manifest tests/benchmarks/benchmark_baselines.json --benchmark-set smoke`；完整 benchmark 仍保留给 `schedule` / `workflow_dispatch` 的 full lane：`uv run pytest tests/benchmarks/ -v --benchmark-only --benchmark-json=.benchmarks/benchmark.json` 与 `uv run python scripts/check_benchmark_baseline.py .benchmarks/benchmark.json --manifest tests/benchmarks/benchmark_baselines.json`；threshold warning 只发维护者信号，failure threshold 才作为 no-regression gate
+- **preview**: `schedule` / `workflow_dispatch` 专用 compatibility preview lane 会升级 Home Assistant preview dependency set，并在 `DeprecationWarning` / `PendingDeprecationWarning` 提升为错误的条件下运行定向 smoke；它只提供 maintainer-facing advisory signal，不会改变 stable PR / release / support contract
+- **shellcheck**: 若修改 `install.sh` / `scripts/*` shell 脚本，请运行 `shellcheck install.sh scripts/develop scripts/lint scripts/setup`（CI 的 `lint` job 也会执行）
+- **validate**: GitHub Actions 会额外运行 `HACS` 与 `Hassfest` 校验；若仓库或 fork 为 private，CI 会跳过 HACS validation，因为 HACS 只支持公开 GitHub 仓库；本地通常不必手动复刻，但提交前应确保仓库元数据仍符合这些约束
+- **release**: tag release 先复用 `.github/workflows/ci.yml`，再由 `.github/workflows/release.yml` 在 `refs/tags/${RELEASE_TAG}` 上运行 tagged release security gate 与 tagged `CodeQL` gate，发布 `SHA256SUMS` / `SBOM` / GitHub artifact attestation / provenance / keyless `cosign` signature bundles，并写出 release identity manifest。attestation / provenance 是 release identity 证据，`cosign` bundle 才是 artifact signing；维护者操作手册见 `docs/MAINTAINER_RELEASE_RUNBOOK.md`。若本次属于 maintainer-only `break-glass verify-only` 或 `non-publish rehearsal`，必须显式记录为不发布资产的验证演练，不能旁路门禁直接发版
+
+### Minimal Validation by Change Type / 按变更类型最小验证
+
+Choose the smallest lane that still matches the changed surface; do not invent a shadow CI story.
+请选择仍能覆盖改动面的最小验证路径，不要再造一套影子 CI 故事线。
+
+- **docs-only**: `uv run pytest -q tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py`
+- **governance-only**: `uv run pytest -q tests/meta/test_governance_release_*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py`
+- **release-only**: `uv run pytest -q tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py`
+- **maintainer-only verify-only / non-publish rehearsal**: trigger `.github/workflows/release.yml` via `workflow_dispatch` with `tag=<existing-tag>` and `publish_assets=false`; this validates the release path without publishing public assets
 
 ### Type Hints / 类型提示
 
@@ -110,16 +239,42 @@ async def async_turn_on(self, **kwargs: Any) -> None:
 
 3. **Run linting and tests / 运行代码检查和测试**
    ```bash
-   ./scripts/lint
+   uv run ruff check .
+   uv run ruff format --check .
    uv run mypy
-   uv run pytest tests/ -v --cov=custom_components/lipro --cov-fail-under=95 --cov-report=xml --cov-report=term-missing
+   uv run python scripts/check_translations.py
+   uv run python scripts/check_markdown_links.py
+   uv run python scripts/check_architecture_policy.py --check
+   uv run python scripts/check_file_matrix.py --check
+   uv run pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py
+   uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro --cov-fail-under=95 --cov-report=json --cov-report=xml --cov-report=term-missing
+   git diff --name-only --diff-filter=AMRT HEAD^...HEAD > .coverage-changed-files
+   uv run python scripts/coverage_diff.py coverage.json --minimum 95 --changed-files .coverage-changed-files --changed-minimum 95  # total + changed-surface coverage; set COVERAGE_BASELINE_JSON and run ./scripts/lint --full to mirror CI baseline compare
+   uv run python scripts/refactor_tools.py --coverage-json coverage.json --minimum-coverage 95
+
+   # If shell scripts changed / 若改到 shell 脚本
+   shellcheck install.sh scripts/develop scripts/lint scripts/setup
    ```
+
+   For protocol/auth/control public-surface changes, prefer adding the targeted regression above before the full run; only run benchmarks when performance is part of the change.
+   对于 protocol/auth/control public-surface 变更，建议先运行上面的定向回归再做全量；只有性能相关改动才需要跑 benchmark。
 
 4. **Submit Pull Request / 提交 Pull Request**
    - Provide a clear description of the changes
    - 提供更改的清晰描述
+   - Cover the affected boundary family, impact/risk, and validation command or equivalent proof in the PR description
+   - 在 PR 描述中覆盖受影响的 boundary family、impact/risk，以及验证命令或等价证明
    - Reference any related issues
    - 引用任何相关问题
+
+### Review / Triage Expectations / Review / 分诊预期
+
+- This repository currently follows a single-maintainer review model; reviews and triage are asynchronous and best effort rather than queue-backed or SLA-backed.
+  本仓库当前采用 single-maintainer review model；review / triage 以异步、尽力而为为准，不承诺排队式或 SLA 式响应。
+- Review is evidence-first: use the PR template to explain boundary, impact, validation, and any support/security/doc follow-up needed for the change.
+  Review 采用 evidence-first：请按 PR 模板说明 boundary、impact、validation，以及这次改动是否需要 support/security/doc 跟进。
+- If the PR description or linked intake is missing the minimum evidence, maintainers may route it back to the template or the relevant support/security intake before deeper review.
+  若 PR 描述或关联 intake 缺少最小充分证据，维护者可能先引导你回到模板或对应的 support/security intake 补齐，再进入更深入的 review。
 
 ### Commit Message Format / 提交信息格式
 
@@ -161,10 +316,20 @@ When reporting bugs, please include:
 报告错误时，请包括：
 
 - Integration version / 集成版本
-- Home Assistant version / Home Assistant 版本
+- Home Assistant version / Home Assistant 版本（最低支持 `2026.3.1`）
 - Steps to reproduce / 复现步骤
 - Expected vs actual behavior / 预期与实际行为
 - Relevant logs (with debug logging enabled) / 相关日志（启用调试日志）
+
+### Security Reports / 安全问题报告
+
+Do not open a public issue for vulnerabilities.
+安全漏洞不要走公开 Issue。
+
+- Follow `SECURITY.md` and use the GitHub private vulnerability reporting path first.
+  请先遵循 `SECURITY.md`；只有当你当前访问模式可见时，才优先使用 GitHub 私密漏洞披露流程。
+- Only open a public issue after maintainers confirm the fix is ready to disclose.
+  仅在维护者确认可以公开后，再开启公开问题。
 
 ### Feature Requests / 功能请求
 
@@ -177,14 +342,18 @@ When requesting features:
 
 ## Code of Conduct / 行为准则
 
-- Be respectful and constructive / 保持尊重和建设性
-- Focus on what's best for the community / 专注于对社区最有利的事情
-- Accept constructive criticism gracefully / 优雅地接受建设性批评
+Please follow `CODE_OF_CONDUCT.md` for community expectations.
+请遵循 `CODE_OF_CONDUCT.md` 中的社区行为约定。
+
+## Support / 支持渠道
+
+See `docs/TROUBLESHOOTING.md` first, then `SUPPORT.md` for usage questions, bug triage expectations, support lifecycle, and security routing.
+如需排障请先看 `docs/TROUBLESHOOTING.md`，再通过 `SUPPORT.md` 获取使用问题、缺陷分流与安全披露路径。
 
 ## Questions? / 有问题？
 
-Feel free to open an issue for discussion!
-欢迎开启 Issue 进行讨论！
+Start with `docs/README.md` and `SUPPORT.md`. If your current access mode exposes GitHub Discussions (or a future public mirror preserves that route), use Discussions for early design discussion; use Issues for confirmed, trackable work when that route is actually reachable.
+请先从 `docs/README.md` 与 `SUPPORT.md` 开始。若你当前访问模式可见 GitHub Discussions（或未来 public mirror 保留该入口），可用它讨论早期设计；只有当 Issue 路径真实可达时，才用它承载已确认、可追踪的工作。
 
 ---
 

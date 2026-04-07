@@ -1,0 +1,3 @@
+- explicit `DeviceState` properties replaced dynamic state delegation
+- explicit `LiproDevice` façade properties/methods replaced device-level dynamic delegation
+- focused device/state tests now lock the no-`__getattr__` contract

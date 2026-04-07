@@ -3,23 +3,20 @@
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable, Mapping
-from inspect import isawaitable
-from typing import NoReturn, Protocol, TypeVar, cast
+from typing import NoReturn, Protocol, TypeVar
 
 from ..core import LiproApiError, LiproAuthError, LiproRefreshTokenExpiredError
 from ..core.utils.log_safety import safe_error_placeholder
+from ..runtime_types import (
+    LiproCoordinator,
+    RuntimeAuthServiceLike,
+    RuntimeReauthReason,
+)
 
 _ResultT = TypeVar("_ResultT")
 
-
-class AuthenticatedCoordinator(Protocol):
-    """Coordinator contract required by authenticated service calls."""
-
-    def _async_ensure_authenticated(self) -> Awaitable[None]:
-        """Validate the coordinator auth state before a service call."""
-
-    def _trigger_reauth(self, key: str, **placeholders: str) -> Awaitable[None]:
-        """Start the Home Assistant reauth flow for the config entry."""
+type CoordinatorAuthSurface = RuntimeAuthServiceLike
+type AuthenticatedCoordinator = LiproCoordinator
 
 
 class ServiceErrorRaiser(Protocol):
@@ -42,32 +39,38 @@ class LiproApiErrorHandler(Protocol):
         """Raise a service-layer error for one API failure."""
 
 
-async def _async_await_if_needed(result: object) -> None:
-    """Await async results while tolerating lightweight test doubles."""
-    if isawaitable(result):
-        await cast(Awaitable[object], result)
-
-
 async def _async_ensure_authenticated(
     coordinator: AuthenticatedCoordinator,
 ) -> None:
-    """Run coordinator authentication when available."""
-    ensure_authenticated = getattr(coordinator, "_async_ensure_authenticated", None)
-    if ensure_authenticated is None:
-        return
-    await _async_await_if_needed(ensure_authenticated())
+    """Run formal coordinator auth validation before a service call."""
+    await coordinator.auth_service.async_ensure_authenticated()
 
 
 async def _async_trigger_reauth(
     coordinator: AuthenticatedCoordinator,
-    key: str,
-    **placeholders: str,
+    reason: RuntimeReauthReason,
 ) -> None:
-    """Trigger coordinator reauth when available."""
-    trigger_reauth = getattr(coordinator, "_trigger_reauth", None)
-    if trigger_reauth is None:
-        return
-    await _async_await_if_needed(trigger_reauth(key, **placeholders))
+    """Trigger formal coordinator reauth flow for one auth failure."""
+    await coordinator.auth_service.async_trigger_reauth(reason)
+
+
+async def async_capture_coordinator_call(
+    coordinator: AuthenticatedCoordinator,
+    *,
+    call: Callable[[], Awaitable[_ResultT]],
+) -> tuple[bool, _ResultT | None, LiproApiError | None]:
+    """Execute one coordinator call and capture auth/API errors after reauth handling."""
+    try:
+        await _async_ensure_authenticated(coordinator)
+        return True, await call(), None
+    except LiproRefreshTokenExpiredError as err:
+        await _async_trigger_reauth(coordinator, RuntimeReauthReason.AUTH_EXPIRED)
+        return False, None, err
+    except LiproAuthError as err:
+        await _async_trigger_reauth(coordinator, RuntimeReauthReason.AUTH_ERROR)
+        return False, None, err
+    except LiproApiError as err:
+        return False, None, err
 
 
 async def async_execute_coordinator_call(
@@ -77,16 +80,16 @@ async def async_execute_coordinator_call(
     raise_service_error: ServiceErrorRaiser,
     handle_api_error: LiproApiErrorHandler | None = None,
 ) -> _ResultT:
-    """Execute one service call through a shared auth and error chain."""
+    """Execute one service call through the shared auth and error chain."""
     try:
         await _async_ensure_authenticated(coordinator)
         return await call()
     except LiproRefreshTokenExpiredError as err:
-        await _async_trigger_reauth(coordinator, "auth_expired")
+        await _async_trigger_reauth(coordinator, RuntimeReauthReason.AUTH_EXPIRED)
         raise_service_error("auth_expired", err=err)
     except LiproAuthError as err:
         safe_error = safe_error_placeholder(err)
-        await _async_trigger_reauth(coordinator, "auth_error", error=safe_error)
+        await _async_trigger_reauth(coordinator, RuntimeReauthReason.AUTH_ERROR)
         raise_service_error(
             "auth_error",
             err=err,
@@ -100,7 +103,9 @@ async def async_execute_coordinator_call(
 
 __all__ = [
     "AuthenticatedCoordinator",
+    "CoordinatorAuthSurface",
     "LiproApiErrorHandler",
     "ServiceErrorRaiser",
+    "async_capture_coordinator_call",
     "async_execute_coordinator_call",
 ]

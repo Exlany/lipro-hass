@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TypeVar
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -12,7 +12,12 @@ from .domain_data import ensure_domain_data, get_domain_data
 _DATA_OPTIONS_SNAPSHOTS = "options_snapshots"
 
 
-def store_entry_options_snapshot(hass: HomeAssistant, entry: ConfigEntry[Any]) -> None:
+ConfigEntryDataT = TypeVar("ConfigEntryDataT")
+type OptionsSnapshot = dict[str, object]
+type OptionsSnapshotStore = dict[str, OptionsSnapshot]
+
+
+def store_entry_options_snapshot(hass: HomeAssistant, entry: ConfigEntry[ConfigEntryDataT]) -> None:
     """Store a snapshot of config-entry options for update-listener diffing."""
     domain_data = ensure_domain_data(hass)
     if domain_data is None:
@@ -40,7 +45,7 @@ def remove_entry_options_snapshot(hass: HomeAssistant, entry_id: str) -> None:
 
 async def async_reload_entry_if_options_changed(
     hass: HomeAssistant,
-    entry: ConfigEntry[Any],
+    entry: ConfigEntry[ConfigEntryDataT],
 ) -> None:
     """Reload the config entry only when options changed."""
     domain_data = get_domain_data(hass)
@@ -48,13 +53,13 @@ async def async_reload_entry_if_options_changed(
         return
 
     snapshots = domain_data.get(_DATA_OPTIONS_SNAPSHOTS)
+    current: OptionsSnapshot = dict(entry.options)
+
     if not isinstance(snapshots, dict):
-        domain_data[_DATA_OPTIONS_SNAPSHOTS] = {entry.entry_id: dict(entry.options)}
+        domain_data[_DATA_OPTIONS_SNAPSHOTS] = {entry.entry_id: current}
         return
 
     previous = snapshots.get(entry.entry_id)
-    current = dict(entry.options)
-
     if isinstance(previous, dict) and previous == current:
         return
     if previous is None:

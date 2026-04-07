@@ -1,0 +1,210 @@
+{
+  "homeassistant": {
+    "minimum_version": "2026.3.1",
+    "source": "hacs.json",
+    "sync_source": "pyproject.toml"
+  },
+  "python": {
+    "minimum_version": "3.14.2",
+    "requires_python": ">=3.14.2"
+  },
+  "install": {
+    "remote_default_archive_tag": "latest",
+    "stable_paths": [
+      "verified_release_assets"
+    ],
+    "preview_paths": [
+      "ARCHIVE_TAG=main",
+      "branch_fallback",
+      "mirror_install"
+    ],
+    "private_repo_skips_hacs_validation": true,
+    "stable_shell_guidance": "verified GitHub Release assets",
+    "conditional_paths": [
+      "HACS"
+    ],
+    "conditional_reason": "requires public GitHub repository access or a future public mirror preserving the same contract"
+  },
+  "open_source_surface": {
+    "access_mode": "private-access",
+    "access_mode_entrypoint": "README.md",
+    "docs_first": true,
+    "github_surfaces_conditional": true,
+    "non_github_private_fallback_documented": false,
+    "developer_services_debug_mode_only": true,
+    "developer_report_redaction": "partial",
+    "anonymous_share_terms": [
+      "sanitized",
+      "pseudonymous"
+    ],
+    "schema_limited_projections": [
+      "pyproject.toml::project.urls",
+      "custom_components/lipro/manifest.json::documentation",
+      "custom_components/lipro/manifest.json::issue_tracker",
+      ".github/ISSUE_TEMPLATE/config.yml::contact_links"
+    ]
+  },
+  "support": {
+    "diagnostics_first": true,
+    "developer_report_optional": true,
+    "usage_route": "docs/TROUBLESHOOTING.md -> SUPPORT.md",
+    "bug_route": "docs/TROUBLESHOOTING.md -> SUPPORT.md -> GitHub Issues (conditional)",
+    "security_route": "SECURITY.md",
+    "maintainer_release_route": "docs/MAINTAINER_RELEASE_RUNBOOK.md",
+    "documentation_route": "docs/README.md",
+    "feature_route": "SUPPORT.md -> GitHub Discussions (conditional) / feature_request issue form"
+  },
+  "release": {
+    "identity_artifacts": [
+      "SHA256SUMS",
+      "SBOM",
+      "GitHub artifact attestation",
+      "provenance",
+      "cosign signature bundles",
+      "release identity manifest"
+    ],
+    "verification_commands": [
+      "gh attestation verify",
+      "cosign verify-blob --bundle"
+    ],
+    "blocking_gates": [
+      "runtime pip-audit",
+      "CodeQL zero-open-alerts",
+      "signature verification"
+    ],
+    "break_glass_verify_only_phrase": "break-glass verify-only",
+    "non_publish_rehearsal_phrase": "non-publish rehearsal"
+  },
+  "continuity": {
+    "maintainer_model": "single-maintainer",
+    "documented_delegate": false,
+    "freeze_phrase": "freeze new tagged releases and new release promises",
+    "restore_phrase": "restore custody only after",
+    "sync_sources": [
+      "SUPPORT.md",
+      "SECURITY.md",
+      "docs/MAINTAINER_RELEASE_RUNBOOK.md",
+      ".github/CODEOWNERS",
+      ".planning/baseline/GOVERNANCE_REGISTRY.json"
+    ],
+    "drill_name": "maintainer-unavailable drill",
+    "projection_targets": [
+      "CONTRIBUTING.md",
+      "docs/README.md",
+      ".github/ISSUE_TEMPLATE/config.yml",
+      ".github/pull_request_template.md"
+    ]
+  },
+  "community_health": {
+    "pr_sections": [
+      "Affected boundary / scope",
+      "Risk / impact",
+      "Validation commands"
+    ],
+    "bug_form_required_ids": [
+      "problem-type",
+      "device-type",
+      "affected-area",
+      "description",
+      "steps",
+      "impact-scope",
+      "ha-version",
+      "integration-version",
+      "install-method",
+      "troubleshooting-tried",
+      "logs"
+    ],
+    "feature_form_required_ids": [
+      "feature-type",
+      "device-type",
+      "affected-area",
+      "solution",
+      "use-case-impact",
+      "acceptance-signal"
+    ],
+    "security_intake_evidence": [
+      "affected version(s) and install path",
+      "integration version plus Home Assistant version",
+      "trigger, reproduction, or detection steps",
+      "impact and severity assessment",
+      "validation or detection signal",
+      "workaround, mitigation, or redacted evidence"
+    ],
+    "projection_targets": [
+      "CONTRIBUTING.md",
+      "SUPPORT.md",
+      "SECURITY.md",
+      "docs/README.md",
+      ".github/ISSUE_TEMPLATE/bug.yml",
+      ".github/ISSUE_TEMPLATE/feature_request.yml",
+      ".github/pull_request_template.md"
+    ]
+  },
+  "docs": {
+    "index_route": "docs/README.md",
+    "public_fast_path": [
+      "README.md",
+      "README_zh.md",
+      "CONTRIBUTING.md",
+      "docs/TROUBLESHOOTING.md",
+      "SUPPORT.md",
+      "SECURITY.md"
+    ],
+    "maintainer_appendix": "docs/MAINTAINER_RELEASE_RUNBOOK.md"
+  },
+  "tooling": {
+    "active_entrypoints": [
+      "./scripts/setup",
+      "./scripts/develop",
+      "./scripts/lint"
+    ],
+    "compatibility_stubs": [
+      "scripts/agent_worker.py",
+      "scripts/orchestrator.py"
+    ],
+    "retired_stub_exit_code": 2,
+    "compatibility_stub_role": "retired fail-fast migration hint only",
+    "compatibility_stub_delete_gate": "delete after maintained docs and automation no longer rely on the stub names as migration hints"
+  },
+  "planning_route": {
+    "contract_name": "governance-route",
+    "projection_targets": [
+      ".planning/PROJECT.md",
+      ".planning/ROADMAP.md",
+      ".planning/REQUIREMENTS.md",
+      ".planning/STATE.md",
+      ".planning/MILESTONES.md"
+    ],
+    "active_milestone": {
+      "version": "v1.44",
+      "name": "Governance Load Shedding & Sanctioned Hotspot Narrowing",
+      "status": "active / phase 143 planned; execution-ready (2026-04-04)",
+      "phase": "143",
+      "phase_title": "toolchain freshness hardening and route-projection automation",
+      "phase_dir": "143-toolchain-freshness-hardening-and-route-projection-automation",
+      "route_mode": "v1.44 active milestone route / Phase 143 planned / execution-ready / latest archived baseline = v1.43"
+    },
+    "latest_archived": {
+      "version": "v1.43",
+      "name": "Hotspot Second-Pass Slimming & Governance Load Shedding",
+      "status": "archived / evidence-ready (2026-04-04)",
+      "phase": "141",
+      "phase_title": "control/runtime hotspot narrowing and device aggregate hardening",
+      "phase_dir": "141-control-runtime-hotspot-narrowing-and-device-aggregate-hardening",
+      "audit_path": ".planning/v1.43-MILESTONE-AUDIT.md",
+      "evidence_path": ".planning/reviews/V1_43_EVIDENCE_INDEX.md",
+      "evidence_label": "latest archived evidence index"
+    },
+    "previous_archived": {
+      "version": "v1.42",
+      "name": "Hotspot Burn-Down, Observability Truth & Governance Cost Compression",
+      "evidence_path": ".planning/reviews/V1_42_EVIDENCE_INDEX.md"
+    },
+    "bootstrap": {
+      "current_route": "v1.44 active milestone route / Phase 143 planned / execution-ready / latest archived baseline = v1.43",
+      "default_next_command": "$gsd-execute-phase 143",
+      "latest_archived_evidence_pointer": ".planning/reviews/V1_43_EVIDENCE_INDEX.md"
+    },
+    "contract_version": 1
+  }
+}

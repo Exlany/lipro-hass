@@ -23,7 +23,7 @@ class BackgroundTaskManager:
 
     @property
     def tasks(self) -> set[asyncio.Task[Any]]:
-        """Expose tracked tasks for coordinator compatibility."""
+        """Expose tracked tasks for coordinator runtime inspection."""
         return self._tasks
 
     def create(
@@ -46,14 +46,14 @@ class BackgroundTaskManager:
     def on_done(self, task: asyncio.Task[Any]) -> None:
         """Finalize tracked task and consume terminal exceptions."""
         self._tasks.discard(task)
-        try:
-            task.result()
-        except asyncio.CancelledError:
+        if task.cancelled():
             return
-        except Exception as err:  # noqa: BLE001
+
+        error = task.exception()
+        if error is not None:
             self._logger.debug(
                 "Background task failed (%s)",
-                type(err).__name__,
+                type(error).__name__,
             )
 
     async def cancel_all(self) -> None:

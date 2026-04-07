@@ -4,7 +4,7 @@ This module provides pytest fixtures for testing the Lipro integration.
 Requires pytest-homeassistant-custom-component to be installed.
 
 To install:
-    pip install pytest-homeassistant-custom-component
+    uv add --dev pytest-homeassistant-custom-component
 
 Note: On Windows, this may require Microsoft C++ Build Tools.
 """
@@ -19,10 +19,20 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: F401
 
+from custom_components.lipro.core.api.types import (
+    ConnectStatusOutcome,
+    ConnectStatusQueryResult,
+)
+from tests import topicized_collection as _topicized_collection
+from tests.coordinator_double import _CoordinatorDouble
+
+pytest_ignore_collect = _topicized_collection.pytest_ignore_collect
+pytest_collection_modifyitems = _topicized_collection.pytest_collection_modifyitems
+
+
 # Domain constant
+
 DOMAIN = "lipro"
-
-
 # =========================================================================
 # Device type defaults for make_device fixture
 # =========================================================================
@@ -110,16 +120,8 @@ def make_device():
 
 @pytest.fixture
 def mock_coordinator():
-    """Create a mock LiproDataUpdateCoordinator for testing."""
-    coordinator = MagicMock()
-    coordinator.devices = {}
-    coordinator.last_update_success = True
-    coordinator.async_send_command = AsyncMock(return_value=True)
-    coordinator.async_request_refresh = AsyncMock()
-    coordinator.register_entity = MagicMock()
-    coordinator.unregister_entity = MagicMock()
-    coordinator.get_device = MagicMock(side_effect=coordinator.devices.get)
-    return coordinator
+    """Create a coordinator double for testing."""
+    return _CoordinatorDouble()
 
 
 @pytest.fixture(autouse=True)
@@ -155,9 +157,9 @@ def mock_setup_entry() -> Generator[AsyncMock]:
 
 @pytest.fixture
 def mock_lipro_client() -> Generator[MagicMock]:
-    """Create a mock LiproClient."""
+    """Create a mock Lipro protocol facade."""
     with patch(
-        "custom_components.lipro.config_flow.LiproClient",
+        "custom_components.lipro.config_flow.LiproProtocolFacade",
         autospec=True,
     ) as mock_client_class:
         mock_client = mock_client_class.return_value
@@ -175,22 +177,49 @@ def mock_lipro_client() -> Generator[MagicMock]:
 
 @pytest.fixture
 def mock_lipro_api_client():
-    """Create a mock LiproClient with common API responses for coordinator tests."""
+    """Create a mock Lipro protocol facade with common API responses for coordinator tests."""
+    from custom_components.lipro.core.protocol import CanonicalProtocolContracts
+
     client = AsyncMock()
-    client.get_devices = AsyncMock(return_value={"devices": []})
+    client.get_devices = AsyncMock(return_value={"devices": [], "total": 0})
     client.query_device_status = AsyncMock(return_value=[])
     client.query_mesh_group_status = AsyncMock(return_value=[])
-    client.query_connect_status = AsyncMock(return_value={})
+    client.query_connect_status = AsyncMock(
+        return_value=ConnectStatusQueryResult(
+            ConnectStatusOutcome.SUCCESS,
+            {},
+        )
+    )
     client.get_mqtt_config = AsyncMock(return_value={})
     client.get_product_configs = AsyncMock(return_value=[])
-    client.send_command = AsyncMock(return_value={"pushSuccess": True})
-    client.send_group_command = AsyncMock(return_value={"pushSuccess": True})
+    client.send_command = AsyncMock(
+        return_value={"pushSuccess": True, "msgSn": "test-msg-sn"}
+    )
+    client.send_group_command = AsyncMock(
+        return_value={"pushSuccess": True, "msgSn": "test-group-msg-sn"}
+    )
+    client.query_command_result = AsyncMock(
+        return_value={"code": "0000", "message": "success", "success": True}
+    )
     client.fetch_outlet_power_info = AsyncMock(return_value={})
     client.close = AsyncMock()
     client.access_token = "test_token"
     client.refresh_token = "test_refresh"
     client.user_id = 10001
     client.phone_id = "test_phone_id"
+    client.contracts = CanonicalProtocolContracts()
+
+    mock_mqtt_facade = MagicMock()
+    mock_mqtt_facade.start = AsyncMock()
+    mock_mqtt_facade.stop = AsyncMock()
+    mock_mqtt_facade.sync_subscriptions = AsyncMock()
+    mock_mqtt_facade.wait_until_connected = AsyncMock(return_value=True)
+    mock_mqtt_facade.is_connected = True
+    mock_mqtt_facade.subscribed_devices = set()
+    mock_mqtt_facade.subscribed_count = 0
+    mock_mqtt_facade.last_error = None
+    client.build_mqtt_facade = MagicMock(return_value=mock_mqtt_facade)
+    client.attach_mqtt_facade = MagicMock()
     return client
 
 
@@ -205,9 +234,9 @@ def mock_auth_manager():
 
 @pytest.fixture
 def mock_lipro_client_auth_error() -> Generator[MagicMock]:
-    """Create a mock LiproClient that raises auth error."""
+    """Create a mock protocol facade that raises auth error."""
     with patch(
-        "custom_components.lipro.config_flow.LiproClient",
+        "custom_components.lipro.config_flow.LiproProtocolFacade",
         autospec=True,
     ) as mock_client_class:
         from custom_components.lipro.core.api import LiproAuthError
@@ -219,9 +248,9 @@ def mock_lipro_client_auth_error() -> Generator[MagicMock]:
 
 @pytest.fixture
 def mock_lipro_client_connection_error() -> Generator[MagicMock]:
-    """Create a mock LiproClient that raises connection error."""
+    """Create a mock protocol facade that raises connection error."""
     with patch(
-        "custom_components.lipro.config_flow.LiproClient",
+        "custom_components.lipro.config_flow.LiproProtocolFacade",
         autospec=True,
     ) as mock_client_class:
         from custom_components.lipro.core.api import LiproConnectionError

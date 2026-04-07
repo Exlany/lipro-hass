@@ -1,0 +1,62 @@
+# serializer version: 1
+# name: test_api_payload_snapshots
+  dict({
+    'command': dict({
+      'code': 0,
+      'message': 'ok',
+      'msgSn': 'abc123',
+      'success': True,
+    }),
+    'diagnostics': dict({
+      'code': 0,
+      'data': list([
+        dict({
+          'count': 2,
+          'event': 'connected',
+        }),
+      ]),
+      'success': True,
+    }),
+    'schedule': dict({
+      'data': list([
+        dict({
+          'enable': True,
+          'hour': 8,
+          'id': '1',
+          'minute': 30,
+        }),
+      ]),
+      'success': True,
+    }),
+  })
+# ---
+# name: test_protocol_contract_baseline_snapshots
+  dict({
+    'get_city': dict({
+      'city': '江门市',
+      'province': '广东省',
+      'zone': '蓬江区',
+    }),
+    'mqtt_config': dict({
+      'accepted_input_shapes': list([
+        'direct',
+        'wrapped',
+      ]),
+      'canonical_output': dict({
+        'accessKey': 'ak-direct',
+        'clientId': 'cid-direct',
+        'endpoint': 'tcp://mqtt.example.com:1883',
+        'secretKey': 'sk-direct',
+      }),
+    }),
+    'query_user_cloud': dict({
+      'data': list([
+        dict({
+          'appName': 'assistant',
+          'enabled': True,
+        }),
+      ]),
+      'success': True,
+    }),
+  })
+# ---

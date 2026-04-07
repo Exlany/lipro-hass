@@ -1,12 +1,29 @@
 # Lipro Smart Home for Home Assistant
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
-[![GitHub Release](https://img.shields.io/github/v/release/Exlany/lipro-hass?style=flat-square)](https://github.com/Exlany/lipro-hass/releases)
+[![CI](https://github.com/Exlany/lipro-hass/actions/workflows/ci.yml/badge.svg)](https://github.com/Exlany/lipro-hass/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/Exlany/lipro-hass/actions/workflows/codeql.yml/badge.svg)](https://github.com/Exlany/lipro-hass/actions/workflows/codeql.yml)
 [![License](https://img.shields.io/github/license/Exlany/lipro-hass?style=flat-square)](LICENSE)
 
 [中文文档](README_zh.md) | English | [更新日志](CHANGELOG.md)
 
 Home Assistant integration for controlling Lipro Smart Home devices.
+
+Release trust signals: blocking CI + architecture/governance guards, CodeQL, SBOM/attestation/cosign-backed release pipeline, and explicit security/support fast paths.
+
+Docs first hop: start with `docs/README.md`, then route distribution / install guidance through the docs map, bug triage through `docs/TROUBLESHOOTING.md` → `SUPPORT.md`, and private disclosure through `SECURITY.md`.
+
+Access-mode note: this repository is currently private-access. GitHub Issues / Discussions / Releases / Security UI are conditional follow-up surfaces rather than the guaranteed first hop, so only use them when your current access mode exposes them or when a future public mirror preserves the same contract.
+
+## Start Here
+
+| Role | Start here | Why |
+| --- | --- | --- |
+| User / evaluator | `docs/README.md` | Canonical docs map, bilingual boundary, and the shortest route to install / troubleshooting / support surfaces |
+| Contributor | `CONTRIBUTING.md` | Development setup, CI contract, PR expectations, and contributor workflow |
+| Architecture contributor | `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md` | Allowed change families, do-not-cross boundaries, evidence destinations, and focused validation guidance |
+| Support / bug reporter | `docs/TROUBLESHOOTING.md` → `SUPPORT.md` | Diagnostics-first troubleshooting, then issue intake only when the route is actually visible |
+| Security reporter | `SECURITY.md` | Private disclosure route and security support contract |
+| Maintainer | `docs/MAINTAINER_RELEASE_RUNBOOK.md` | Maintainer-only release / rehearsal / custody appendix; not part of the public first hop |
 
 ## Features
 
@@ -18,6 +35,7 @@ Home Assistant integration for controlling Lipro Smart Home devices.
 - 🔁 Exponential backoff reconnection for stability
 - 🌐 Bilingual support (Chinese & English)
 - 🔧 Diagnostics support for troubleshooting
+- 🏗️ Modern architecture with composition-based design (refactored 2026-03)
 
 ## Supported Platforms & Entities
 
@@ -35,22 +53,29 @@ Home Assistant integration for controlling Lipro Smart Home devices.
 
 ## Services
 
+Core services:
+
 - `lipro.send_command` - Send raw command to device
-- `lipro.get_schedules` - Get device schedules
-- `lipro.add_schedule` - Add or update schedule
-- `lipro.delete_schedules` - Delete schedules by IDs
-- `lipro.submit_anonymous_share` - Submit anonymous share report manually
-- `lipro.get_anonymous_share_report` - Preview anonymous share report
-- `lipro.get_developer_report` - Export sanitized runtime diagnostics report (all entries or one `entry_id`)
-- `lipro.submit_developer_feedback` - One-click submit developer diagnostics report (all entries or one `entry_id`)
-- `lipro.query_command_result` - Query command delivery result by message serial number (developer capability)
-- `lipro.get_city` - Query cloud city metadata contract (developer capability)
-- `lipro.fetch_body_sensor_history` - Fetch body sensor history payload for debugging (developer capability)
-- `lipro.fetch_door_sensor_history` - Fetch door sensor history payload for debugging (developer capability)
+- `lipro.get_schedules` - Get recurring weekly schedules; weekdays use `1=Monday` to `7=Sunday`. For mesh groups, reads use BLE/gateway-member candidates as the source of truth. On tested mesh BLE schedules, standard `schedule/get.do` may return empty success, so do not assume a reliable read fallback
+- `lipro.add_schedule` - Add a recurring weekly schedule; no absolute-date schedule mode is exposed. Mesh groups write through BLE/gateway-member candidates only, because tested standard `schedule/addOrUpdate.do` is not a reliable fallback
+- `lipro.delete_schedules` - Delete schedules by IDs; mesh groups delete through BLE/gateway-member candidates only, because tested standard `schedule/delete.do` may report success without deleting the target schedule
+- `lipro.submit_anonymous_share` - Submit the opt-in sanitized share report manually
+- `lipro.get_anonymous_share_report` - Preview the sanitized/pseudonymous share payload before upload
 - `lipro.refresh_devices` - Force a full device list refresh (all entries or one `entry_id`)
 
+Debug-mode-only escalation services:
+
+- Use these only after standard diagnostics are not enough, or when a maintainer asks for deeper debugging.
+- `lipro.get_developer_report` - Debug-mode-only local diagnostics export; partially redacted, but still keeps vendor diagnosis identifiers such as `iotName` plus local labels so you can identify the device under test (all entries or one `entry_id`)
+- `lipro.submit_developer_feedback` - Debug-mode-only developer diagnostics upload; keeps `iotName` but sanitizes user-defined labels such as device/room/panel/IR names (all entries or one `entry_id`)
+- `lipro.query_command_result` - Debug-mode-only protocol probe. Query cloud-reported command status by message serial number with bounded polling
+- `lipro.get_city` - Debug-mode-only protocol probe. Query cloud city metadata using the verified empty-object payload contract
+- `lipro.query_user_cloud` - Debug-mode-only protocol probe. Query user cloud metadata using the verified raw empty-body contract (`-d ''`); tested responses may contain only top-level `data` without a `code` wrapper
+- `lipro.fetch_body_sensor_history` - Debug-mode-only protocol probe. Fetch body sensor history payload for deeper debugging
+- `lipro.fetch_door_sensor_history` - Debug-mode-only protocol probe. Fetch door sensor history payload for deeper debugging
+
 Firmware validation list:
-- Certified firmware versions: `custom_components/lipro/firmware_support_manifest.json`
+- Certified firmware trust-root asset: `custom_components/lipro/firmware_support_manifest.json`
 - OTA update entities show available firmware (uncertified firmware may require confirmation)
 
 ## Data Update Mechanism
@@ -58,6 +83,8 @@ Firmware validation list:
 This integration uses a **hybrid mode** to fetch device status:
 
 - **MQTT Real-time Push**: Instant push when device state changes
+- **MQTT Topic Format**: Subscriptions use `Topic_Device_State/{bizId}/{deviceId}` with the bare `bizId` (any stored `lip_` prefix is removed before subscribing)
+- **MQTT Config Payload**: `get_mqtt_config` may return top-level `accessKey` / `secretKey`, and the integration consumes that direct payload without requiring a wrapped `data` object
 - **Polling Fallback**: Default 30s polling to ensure state sync
 - **Configurable Range**: 10-300 seconds
 - **Batch Query Fallback**: Cloud status requests are chunked; when a batch fails with device-level errors (offline/not connected/etc.), the integration retries with smaller batches down to per-device queries
@@ -67,52 +94,82 @@ This integration uses a **hybrid mode** to fetch device status:
 
 ## Installation
 
-### HACS (Recommended)
+Minimum supported Home Assistant version: `2026.3.1` (install metadata: `hacs.json`; kept in sync with `pyproject.toml`).
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Exlany&repository=lipro-hass&category=integration)
+Current access-mode truth: this repository is private-access. HACS only works with public GitHub repositories, so the current repo does not promise a universally reachable HACS entry today. Public GitHub Releases, Issues, Discussions, and Security Advisory pages are likewise access-mode dependent. Treat the docs files in this checkout as the canonical first hop.
 
-1. Click the button above, or add custom repository in HACS
-2. Search for "Lipro" and install
-3. Restart Home Assistant
-4. Add integration: Settings → Devices & Services → Add Integration → Lipro
+If `install.sh` runs in remote mode without a pinned archive/tag, it resolves the latest tagged release by default. Stable installation guidance currently prefers verified release assets that you can already reach. If the maintainer later enables a public mirror or release surface, it should follow the same tagged-release contract described here.
 
-### Shell (via SSH / Terminal & SSH Add-on)
+### HACS (Future Public Mirror Only)
+
+HACS requires a public GitHub repository. The current private-access repo therefore cannot promise a working HACS route today. If a future public mirror exposes the same tagged release set, use that mirror's HACS instructions instead of assuming this repo is already reachable there.
+
+### Shell (Verified Release Assets; Access Required)
 
 ```shell
-wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | ARCHIVE_TAG=latest bash -
+# Download these release assets from a release surface you can already reach first.
+# Replace <release-tag> with the actual tag you downloaded (for example vX.Y.Z):
+#   - install.sh
+#   - lipro-hass-<release-tag>.zip
+#   - SHA256SUMS
+# Optional signature bundles for local verification:
+#   - lipro-hass-<release-tag>.zip.sigstore.json
+#   - install.sh.sigstore.json
+#   - SHA256SUMS.sigstore.json
 
-# Install a specific tag/branch (e.g. v1.0.0)
-# Tip: pin the installer itself by downloading it from the tag too.
-wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/v1.0.0/install.sh | ARCHIVE_TAG=v1.0.0 bash -
+# Optional local verification (the installer also verifies with Python/hashlib)
+cosign verify-blob ./lipro-hass-<release-tag>.zip \
+  --bundle ./lipro-hass-<release-tag>.zip.sigstore.json \
+  --certificate-identity-regexp "^https://github.com/Exlany/lipro-hass/.github/workflows/release\.yml@refs/tags/<release-tag>$" \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+sha256sum -c SHA256SUMS --ignore-missing
 
-# Install the bleeding-edge branch explicitly
-wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | ARCHIVE_TAG=main bash -
-
-# Use a GitHub archive mirror (DANGEROUS; only if you trust the mirror)
-wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | LIPRO_ALLOW_MIRROR=1 HUB_DOMAIN=ghfast.top ARCHIVE_TAG=v1.0.0 bash -
+# Supported shell install path once you already have the verified assets locally
+bash ./install.sh --archive-file ./lipro-hass-<release-tag>.zip --checksum-file ./SHA256SUMS
 ```
 
-Note: `ARCHIVE_TAG` selects what to install (tag/branch). `latest` resolves to the latest GitHub Release tag; if resolution fails the installer will exit with an error. Pin a tag (e.g. `v1.0.0`) for reproducible installs, or use `ARCHIVE_TAG=main` explicitly for the bleeding-edge version.
+Note: the supported shell installer path now starts from verified release assets that are already available to your current access mode. The installer verifies the archive checksum itself and fails closed when the zip or `SHA256SUMS` is missing or mismatched.
 
-Note: `HUB_DOMAIN` only affects where the installer fetches release metadata and source archives from. It does not change how `install.sh` itself is downloaded (still `raw.githubusercontent.com`).
+### Advanced Preview Path (Unsupported)
+
+```shell
+# Explicitly opt into the bleeding-edge branch
+ARCHIVE_TAG=main bash ./install.sh
+
+# Mirror + preview path (DANGEROUS; only if you trust the mirror)
+ARCHIVE_TAG=main LIPRO_ALLOW_MIRROR=1 HUB_DOMAIN=ghfast.top bash ./install.sh
+```
+
+Note: `ARCHIVE_TAG=main`, branch fallback, and mirror installs are preview / unsupported paths for maintainers and advanced testers. Prefer verified release assets for production installs.
+
+### Release Asset Trust
+
+- Stable install trust starts from verified release assets plus `SHA256SUMS`; if a future public mirror exposes verified GitHub Release assets, they must follow the same contract.
+- Current release trust evidence also publishes an `SBOM`, GitHub artifact `attestation` / `provenance` (`gh attestation verify`), and keyless `cosign` signature bundles (`cosign verify-blob --bundle ...`).
+- GitHub artifact attestation / provenance proves how release assets were produced; `cosign` signature bundles prove artifact signing. They are complementary, not interchangeable.
+- Tagged releases now fail closed on the release-trust stack: blocking runtime `pip-audit`, required tagged `CodeQL` analysis with zero open alerts, and signature verification must all pass before assets publish.
 
 ### shell_command Service
 
-1. Add the following to your `configuration.yaml`:
+1. Download `install.sh`, `lipro-hass-<release-tag>.zip`, and `SHA256SUMS` from a release surface you can already access into a stable local directory first (for example `/config/lipro-release/`).
+2. Add the following to your `configuration.yaml`:
     ```yaml
     shell_command:
-      update_lipro: |-
-        wget -O - https://raw.githubusercontent.com/Exlany/lipro-hass/main/install.sh | ARCHIVE_TAG=latest bash -
+      update_lipro: >-
+        bash /config/lipro-release/install.sh
+        --archive-file /config/lipro-release/lipro-hass-<release-tag>.zip
+        --checksum-file /config/lipro-release/SHA256SUMS
     ```
-2. Restart Home Assistant
-3. Call `service: shell_command.update_lipro` in Developer Tools
-4. Restart Home Assistant again
+3. Restart Home Assistant
+4. Call `service: shell_command.update_lipro` in Developer Tools
+5. Restart Home Assistant again
 
 ### Manual Installation
 
-1. Download the latest release from [Releases](https://github.com/Exlany/lipro-hass/releases)
-2. Copy `custom_components/lipro` folder to your `config/custom_components/` directory
-3. Restart Home Assistant
+1. Download `lipro-hass-<release-tag>.zip` from a release surface you can already access (for example the current private-access repository or a future public mirror)
+2. Verify it against `SHA256SUMS`
+3. Extract the archive and copy `custom_components/lipro` to your `config/custom_components/` directory
+4. Restart Home Assistant
 
 ## Configuration
 
@@ -120,7 +177,7 @@ When adding the integration, enter your Lipro account credentials:
 
 - **Phone**: Phone number registered with Lipro
 - **Password**: Lipro account password
-- **Remember password**: Store the password MD5 hash locally to allow automatic re-login when refresh tokens expire. Disable to reduce local exposure; you may need to re-authenticate later.
+- **Remember password**: Store the password MD5 hash locally as a credential-equivalent secret for hashed login when refresh tokens expire. Disable to reduce local exposure; you may need to re-authenticate later.
 
 ### Reconfiguration
 
@@ -142,7 +199,7 @@ To modify account information, click "Configure" on the integration page to reco
 | Desk Lamp | - | ⚠️ Untested |
 | Gateway | - | ❌ Not Supported |
 
-> 💡 **Feedback Welcome!** If you have other Lipro devices, please report in [Issues](https://github.com/Exlany/lipro-hass/issues) to help us improve device support.
+> 💡 **Feedback Welcome!** If you have other Lipro devices, start with `docs/TROUBLESHOOTING.md` → `SUPPORT.md`. If your current access mode exposes GitHub issue templates (or a future public mirror preserves them), use that route to share the device details.
 
 ## Use Cases
 
@@ -250,15 +307,15 @@ Available options in integration settings:
 - **Enable MQTT Real-time Updates**: Use MQTT push updates (recommended)
 - **Enable Power Monitoring**: Query outlet power metrics
 - **Anonymous Share Device Info**: Opt-in device capability sharing
-- **Anonymous Share Error Reports**: Opt-in anonymized error reports
+- **Anonymous Share Error Reports**: Opt-in sanitized/pseudonymous error reports (the payload still keeps stable installation/diagnostic identifiers)
 - **Advanced Options**:
-  - **Power Query Interval**: Outlet power query frequency (30-300 seconds)
+  - **Power Query Interval**: Outlet power query frequency (default 300 seconds / ~5 minutes, range 30-300 seconds)
   - **Request Timeout**: API request timeout (10-60 seconds)
-  - **Debug Mode (Diagnostics)**: Capture runtime diagnostics (mesh topology + command traces). For verbose logs, configure Home Assistant logger settings.
+  - **Debug Mode (Diagnostics)**: Capture runtime diagnostics (mesh topology + command traces) and enable debug-mode-only developer services. For verbose logs, configure Home Assistant logger settings.
   - **Auto Turn On When Adjusting While Off**: When enabled, adjusting brightness/color temperature while off will also turn on the light (disable to keep Lipro behavior)
   - **Force Cloud Room → HA Area**: Always overwrite Home Assistant area with cloud room assignment (use with caution)
-  - **Verify Command Delivery Result**: Query delivery result by `msgSn` after sending commands (troubleshooting)
-  - **Device Filtering (home/model/WiFi SSID/device ID)**: `off/include/exclude` + list (supports comma/semicolon/newline separators)
+  - **Check Command Result Status**: Default on (recommended). Poll cloud-reported command result status by `msgSn` after sending commands for a safer control loop. This does not guarantee delivery or device execution
+  - **Device Filtering (home/model/WiFi SSID/device ID)**: `off/include/exclude` + list (supports comma/semicolon/newline separators; matching is case-insensitive)
 
 ## Known Limitations
 
@@ -275,7 +332,7 @@ Available options in integration settings:
    - Frequent operations may trigger API rate limiting
 
 5. **Sensor Battery**
-   - Sensors only provide low battery warning, not specific battery percentage
+   - Battery reporting varies by model: some battery-powered devices expose a battery percentage sensor, while some sensors also expose a low-battery warning binary sensor
 
 6. **Brightness Slider While Off (Tip)**
    - Default behavior is configurable. When **Auto Turn On When Adjusting While Off** is enabled, adjusting brightness/color temperature while off will also turn on the light
@@ -283,59 +340,83 @@ Available options in integration settings:
 
 ## Troubleshooting
 
-### Authentication Failed
+Canonical troubleshooting guide: `docs/TROUBLESHOOTING.md`.
 
-- Ensure phone number and password are correct
-- Check if Lipro official app can login normally
-- If password changed, use reconfigure to update
+### Quick Checks
 
-### Device Unavailable
+#### Authentication Failed
 
-- Check if device is online
-- Try operating device in Lipro App
-- Reload the integration
-- Check network connection
+- Ensure the phone number and password still work in the Lipro app.
+- If the password changed, use reconfigure/update credentials instead of deleting the integration.
+- For repeated reauth failures, start with diagnostics; add a local-only partially redacted developer report only when diagnostics still do not explain the failure or when a maintainer asks for deeper debugging.
+- If available, also include `failure_summary` / `failure_entries` from diagnostics, system health, or developer-report exports.
 
-### State Update Delay
+#### Device Unavailable / Not Showing
 
-- This is normal for cloud polling integrations
-- You can reduce update interval in options (minimum 10 seconds)
-- Optimistic update happens immediately after action
+- Confirm the device already exists in the Lipro app.
+- Reload the integration or run `lipro.refresh_devices` after adding hardware.
+- Gateway devices only act as bridges and do not create Home Assistant entities by themselves.
 
-### Device Not Showing
+#### State Update Delay / MQTT Drift
 
-- Ensure device is paired in Lipro App
-- Reload integration to sync new devices
-- Check logs for error messages
+- MQTT push is best effort; polling remains the safety net.
+- Reduce the polling interval in options if needed (minimum 10 seconds).
+- When drift persists, mention whether the issue is cloud polling, MQTT push, or entity projection.
+- If the affected path exposes `failure_summary` or aggregated `failure_entries`, include those fields in the report as well.
 
-### Diagnostics
+### Diagnostics & Safe Sharing
 
-To submit an issue report, please download diagnostics:
-
-1. Go to Settings → Devices & Services → Lipro
-2. Click three-dot menu → Download diagnostics
-3. Diagnostics are automatically redacted, safe to share
+1. Go to Settings → Devices & Services → Lipro.
+2. Click the three-dot menu → Download diagnostics.
+3. Diagnostics are automatically redacted and safe to share.
 
 Redaction includes account credentials/tokens (`phone`, `password`, `access_token`, `refresh_token`), cloud/device identifiers (`userId`/`bizId`, `serial`/`deviceId`/`iotDeviceId`), and network identifiers (WiFi SSID/MAC/IP).
 
-For opt-in sharing/reporting, you can preview the payloads first:
-- `lipro.get_developer_report` - sanitized runtime report (mesh snapshot + recent command traces, scoped by optional `entry_id`)
-- `lipro.get_anonymous_share_report` - sanitized anonymous-share payload
+If diagnostics are not enough, or a maintainer asks for deeper debugging, you can preview or submit the opt-in payloads first:
+- `lipro.get_developer_report` - debug-mode-only local diagnostics export; partially redacted, but still keeps vendor diagnosis identifiers such as `iotName` plus local labels so you can recognize the device under test
+- `lipro.submit_developer_feedback` - debug-mode-only upload contract; keeps `iotName` but sanitizes user-defined labels such as device/room/panel/IR names before upload
+- `lipro.query_command_result`, `lipro.get_city`, `lipro.query_user_cloud`, `lipro.fetch_body_sensor_history`, `lipro.fetch_door_sensor_history` - narrower debug-mode-only protocol probes for deeper escalation, not part of normal day-to-day control flow
+- When available, include `failure_summary` / `failure_entries` alongside diagnostics so maintainers can classify the failure path faster
+- `lipro.get_anonymous_share_report` - sanitized/pseudonymous share-worker payload (still includes stable installation/diagnostic identifiers)
+
+See also: `SUPPORT.md` for public routing and `SECURITY.md` for private vulnerability disclosure. `docs/MAINTAINER_RELEASE_RUNBOOK.md` stays maintainer-only for release / rehearsal / custody work.
 
 ## Disclaimer
 
 This integration is implemented by reverse engineering the Lipro cloud API and is not officially supported. Use at your own risk.
 
+## Support Model
+
+- Stable support targets: the latest tagged release installed from verified assets reachable in your current access mode; if a future public mirror exists, that same contract may also appear as a matching HACS install or verified GitHub Release assets for that tag
+- Preview paths (`ARCHIVE_TAG=main`, branch fallback, mirror installs): best effort only
+- Public routing stays on one path: `docs/README.md` → `CONTRIBUTING.md` / `docs/TROUBLESHOOTING.md` / `SUPPORT.md` / `SECURITY.md`
+- Maintainer continuity and release custody stay in `docs/MAINTAINER_RELEASE_RUNBOOK.md`, not in the root public first hop
+
+## Contributor Fast Path
+
+- Start with `docs/README.md` for the canonical docs map and bilingual boundary
+- Use `CONTRIBUTING.md` for setup, targeted tests, CI command groups, and PR expectations
+- Read `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md` before changing protocol / runtime / control / external-boundary / governance surfaces
+- Use `docs/TROUBLESHOOTING.md` → `SUPPORT.md` for public troubleshooting / routing, and `SECURITY.md` for private disclosure
+- Use `docs/MAINTAINER_RELEASE_RUNBOOK.md` only for maintainer-only release / rehearsal / custody work
+
 ## Contributing
 
-Pull Requests and Issues are welcome!
+- Bug reports and pull requests: start with `CONTRIBUTING.md`; for bugs, go `docs/TROUBLESHOOTING.md` → `SUPPORT.md` first, then use the GitHub bug form only when your current access mode exposes it
+- Usage questions and idea discussion: start with `SUPPORT.md`; use GitHub Discussions only when that route is visible in your current access mode or a future public mirror preserves it
+- Security issues: follow `SECURITY.md`; use the private GitHub advisory UI first only when it is reachable in your current access mode
+- Community expectations: `CODE_OF_CONDUCT.md`
 
-For internal package layout, see `docs/developer_architecture.md`.
+## Documentation
 
-## License
-
-MIT License
-
----
-
-**If this project helps you, please give it a ⭐ Star!**
+- `docs/README.md` - canonical docs map, public fast path, and bilingual boundary
+- `CONTRIBUTING.md` - contributor workflow, CI contract, and review expectations
+- `docs/TROUBLESHOOTING.md` - troubleshooting, diagnostics, and safe-sharing path
+- `SUPPORT.md` - support routing, triage expectations, and question handling
+- `SECURITY.md` - private vulnerability disclosure policy
+- `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md` - contributor-facing change boundaries, evidence destinations, and focused validation map
+- `docs/NORTH_STAR_TARGET_ARCHITECTURE.md` / `docs/developer_architecture.md` - authority baseline and current package layout
+- `docs/adr/README.md` - long-lived architecture decisions and trade-offs
+- `docs/MAINTAINER_RELEASE_RUNBOOK.md` - maintainer-only release / rehearsal / custody appendix
+- Release hygiene: public GitHub docs stay on the files above; local caches / coverage / benchmark outputs / scratch artifacts are not part of the release tree
+- `CODE_OF_CONDUCT.md`, `.devcontainer.json`, `custom_components/lipro/quality_scale.yaml` - community expectations, dev environment, and quality-scale declaration

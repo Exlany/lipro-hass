@@ -11,8 +11,8 @@ send_command:
     device_id:
       name: Device ID (Optional)
       description: >-
-        The device serial number. If not provided, the device will be
-        determined from the target entity.
+        The device serial number or mesh group ID. If not provided, the
+        device will be determined from the target entity.
       required: false
       example: "03ab5ccd7c123456"
       selector:
@@ -50,8 +50,14 @@ send_command:
 get_schedules:
   name: Get Schedules
   description: >-
-    Get the list of timing schedules for a device. Schedules are stored on the
-    device and execute even when Home Assistant is offline.
+    Get the recurring weekly schedules for a device. Weekdays use 1=Monday
+    through 7=Sunday. Schedules are stored on the device and execute even
+    when Home Assistant is offline. For mesh groups,
+    the integration reads through BLE schedule queries with gateway/member
+    candidates only. Real-device tests show standard `schedule/get.do` on
+    the group ID may return empty success, while member-ID reads can expose
+    shadow rows with incompatible IDs; neither is treated as a reliable
+    mesh fallback.
   target:
     entity:
       integration: lipro
@@ -59,8 +65,8 @@ get_schedules:
     device_id:
       name: Device ID (Optional)
       description: >-
-        The device serial number. If not provided, the device will be
-        determined from the target entity.
+        The device serial number or mesh group ID. If not provided, the
+        device will be determined from the target entity.
       required: false
       example: "03ab5ccd7c123456"
       selector:
@@ -69,9 +75,14 @@ get_schedules:
 add_schedule:
   name: Add Schedule
   description: >-
-    Add or update a timing schedule for a device. The schedule is stored on the
-    device and will execute even when Home Assistant is offline. Each time entry
-    corresponds to an event (action) at that time.
+    Add a recurring weekly timing schedule for a device. No absolute-date
+    schedule mode is exposed. The schedule is stored on the device and will
+    execute even when Home Assistant is offline. Each time entry
+    corresponds to an event (action) at that time. For mesh groups, the
+    integration writes through BLE schedule calls with gateway/member
+    candidates only. Real-device tests show standard
+    `schedule/addOrUpdate.do` on member IoT IDs returns service errors and
+    is not a reliable mesh fallback.
   target:
     entity:
       integration: lipro
@@ -79,8 +90,8 @@ add_schedule:
     device_id:
       name: Device ID (Optional)
       description: >-
-        The device serial number. If not provided, the device will be
-        determined from the target entity.
+        The device serial number or mesh group ID. If not provided, the
+        device will be determined from the target entity.
       required: false
       example: "03ab5ccd7c123456"
       selector:
@@ -88,7 +99,7 @@ add_schedule:
     days:
       name: Days
       description: >-
-        List of weekdays when the schedule should run (1=Monday, 7=Sunday).
+        List of weekdays for the recurring schedule (1=Monday, 7=Sunday).
       required: true
       example: [1, 2, 3, 4, 5, 6, 7]
       selector:
@@ -112,8 +123,9 @@ add_schedule:
     times:
       name: Times
       description: >-
-        List of times in seconds from midnight (0-86399). For example, 28800 = 08:00,
-        61200 = 17:00. Each time corresponds to an event in the events list.
+        List of times in seconds from midnight (0-86399). For example, 28800 = 08:00
+        and 61200 = 17:00. This matches the app's 24-hour hour/minute UI. Each
+        time corresponds to an event in the events list.
       required: true
       example: [28800, 61200]
       selector:
@@ -133,7 +145,10 @@ delete_schedules:
   name: Delete Schedules
   description: >-
     Delete timing schedules from a device by their IDs. Use get_schedules first
-    to find the schedule IDs.
+    to find the schedule IDs. For mesh groups, the integration deletes through
+    BLE schedule calls with gateway/member candidates only. Real-device tests
+    show standard `schedule/delete.do` on member readback IDs can fail with
+    `140003` and does not reliably remove the target mesh schedule.
   target:
     entity:
       integration: lipro
@@ -141,8 +156,8 @@ delete_schedules:
     device_id:
       name: Device ID (Optional)
       description: >-
-        The device serial number. If not provided, the device will be
-        determined from the target entity.
+        The device serial number or mesh group ID. If not provided, the
+        device will be determined from the target entity.
       required: false
       example: "03ab5ccd7c123456"
       selector:
@@ -159,9 +174,10 @@ delete_schedules:
 submit_anonymous_share:
   name: Submit Anonymous Share Report
   description: >-
-    Manually submit the anonymous device share report. This sends anonymized device
-    information and error reports to help improve the integration. Anonymous share
-    must be enabled in the integration options.
+    Manually submit the sanitized/pseudonymous device share report. The payload still
+    keeps stable installation and diagnostic identifiers (for example installation_id and
+    iotName) while sanitizing other device/error details. Anonymous share must be enabled
+    in the integration options.
   fields:
     entry_id:
       name: Entry ID (Optional)
@@ -176,8 +192,9 @@ submit_anonymous_share:
 get_anonymous_share_report:
   name: Get Anonymous Share Report
   description: >-
-    Preview the anonymous share report data that would be submitted. Use this to
-    review what information will be shared before enabling anonymous share.
+    Preview the sanitized/pseudonymous share report data that would be submitted. Use
+    this to review which stable installation/diagnostic identifiers remain before enabling
+    anonymous share.
   fields:
     entry_id:
       name: Entry ID (Optional)
@@ -192,8 +209,11 @@ get_anonymous_share_report:
 get_developer_report:
   name: Get Developer Report
   description: >-
-    Export a sanitized runtime diagnostics report for real-device debugging.
-    Includes mesh topology snapshot, recent command traces, and runtime options.
+    Debug-mode-only capability after standard diagnostics. Export a partially redacted runtime diagnostics report for local real-device debugging. This local
+    view still keeps vendor diagnosis identifiers such as iotName and local labels so
+    you can identify the device under test. Includes mesh topology snapshot, panel
+    capability snapshot, IR remote inventory snapshot, recent command traces, and
+    runtime options.
   fields:
     entry_id:
       name: Entry ID (Optional)
@@ -208,8 +228,11 @@ get_developer_report:
 submit_developer_feedback:
   name: Submit Developer Feedback
   description: >-
-    One-click submit sanitized developer diagnostics to the share worker.
-    Optionally limit the upload to one config entry and include a note for easier triage.
+    Debug-mode-only capability after standard diagnostics. One-click submit
+    developer diagnostics to the share worker. Upload keeps vendor diagnosis
+    identifiers such as iotName, but sanitizes user-defined labels such as
+    device/room/panel/IR names. Optionally limit the upload to one config entry
+    and include a note for easier triage.
   fields:
     entry_id:
       name: Entry ID (Optional)
@@ -232,8 +255,11 @@ submit_developer_feedback:
 query_command_result:
   name: Query Command Result (Developer)
   description: >-
-    Developer-only optional capability. Query command delivery result by msgSn.
-    This does not alter normal control flow.
+    Debug-mode-only capability after standard diagnostics. Narrow protocol
+    probe that queries cloud-reported command result status by msgSn with bounded
+    polling inside the default retry budget. Actual attempts may be lower than
+    max_attempts because exponential backoff is clipped by the time budget. This
+    does not alter normal control flow.
   target:
     entity:
       integration: lipro
@@ -252,16 +278,51 @@ query_command_result:
       required: true
       selector:
         text:
+    max_attempts:
+      name: Max Attempts
+      description: >-
+        Maximum query attempts within the retry budget. Default 6; set to 1
+        for a single-shot check.
+      required: false
+      selector:
+        number:
+          min: 1
+          max: 10
+          step: 1
+          mode: box
+    time_budget_seconds:
+      name: Time Budget (Seconds)
+      description: >-
+        Total retry budget in seconds. Default 3.0; set to 0 to disable polling
+        and perform a single-shot query.
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 15
+          step: 0.1
+          mode: box
 
 get_city:
   name: Get City (Developer)
   description: >-
-    Developer-only optional capability. Query cloud city metadata (empty payload contract).
+    Debug-mode-only capability after standard diagnostics. Narrow protocol
+    probe that queries cloud city metadata using the verified empty-object ({})
+    payload contract.
+
+query_user_cloud:
+  name: Query User Cloud (Developer)
+  description: >-
+    Debug-mode-only capability after standard diagnostics. Narrow protocol
+    probe that queries user cloud metadata using the verified raw empty-body
+    contract (`-d ''`). Tested responses may contain only a top-level `data`
+    field without a `code` wrapper.
 
 fetch_body_sensor_history:
   name: Fetch Body Sensor History (Developer)
   description: >-
-    Developer-only optional capability. Fetch body sensor history payload for debugging.
+    Debug-mode-only capability after standard diagnostics. Narrow protocol
+    probe that fetches body sensor history payload for deeper debugging.
   target:
     entity:
       integration: lipro
@@ -296,7 +357,8 @@ fetch_body_sensor_history:
 fetch_door_sensor_history:
   name: Fetch Door Sensor History (Developer)
   description: >-
-    Developer-only optional capability. Fetch door sensor history payload for debugging.
+    Debug-mode-only capability after standard diagnostics. Narrow protocol
+    probe that fetches door sensor history payload for deeper debugging.
   target:
     entity:
       integration: lipro

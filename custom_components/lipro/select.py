@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Final
 
 from homeassistant.components.select import SelectEntity
 
@@ -19,22 +19,40 @@ from .const.properties import (
     WIND_DIRECTION_FIX,
 )
 from .entities.base import LiproEntity
-from .helpers.platform import build_device_entities_from_rules, create_device_entities
+from .helpers.platform import (
+    add_entry_entities,
+    build_device_entities_from_rules,
+    create_device_entities,
+    should_expose_light_gear_select,
+)
+from .select_internal.gear import (
+    GearPreset,
+    available_gear_options,
+    build_gear_attributes,
+    coerce_int_like,
+    extract_gear_preset,
+    iter_valid_gear_presets,
+    resolve_current_gear_option,
+    resolve_gear_option_index,
+)
+from .select_internal.mapped_property import (
+    MappedPropertySnapshot,
+    build_mapped_property_snapshot,
+    coerce_mapped_value,
+)
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
     from . import LiproConfigEntry
-    from .core.coordinator import LiproDataUpdateCoordinator
     from .core.device import LiproDevice
+    from .runtime_types import LiproRuntimeCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
-# Limit parallel updates to avoid overwhelming the API
 PARALLEL_UPDATES = 1
 
-# Wind direction mode options
 WIND_DIRECTION_OPTIONS: Final = ["auto", "fixed"]
 WIND_DIRECTION_TO_VALUE: Final = {
     "auto": WIND_DIRECTION_AUTO,
@@ -42,7 +60,6 @@ WIND_DIRECTION_TO_VALUE: Final = {
 }
 VALUE_TO_WIND_DIRECTION: Final = {v: k for k, v in WIND_DIRECTION_TO_VALUE.items()}
 
-# Light mode options for heater
 LIGHT_MODE_OPTIONS: Final = ["off", "main", "night"]
 LIGHT_MODE_TO_VALUE: Final = {
     "off": HEATER_LIGHT_OFF,
@@ -51,11 +68,8 @@ LIGHT_MODE_TO_VALUE: Final = {
 }
 VALUE_TO_LIGHT_MODE: Final = {v: k for k, v in LIGHT_MODE_TO_VALUE.items()}
 
-# Light gear preset options (max 3)
 _MAX_GEAR_COUNT: Final = 3
 GEAR_OPTIONS: Final = ["gear_1", "gear_2", "gear_3"]
-
-# Descriptive names for gear presets (used in extra_state_attributes)
 _GEAR_PRESET_NAMES: Final[tuple[str, ...]] = ("warm", "neutral", "cool")
 
 
@@ -65,13 +79,18 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Lipro select entities."""
-    coordinator = entry.runtime_data
-    entities = create_device_entities(coordinator, _build_device_select_entities)
-    async_add_entities(entities)
+    add_entry_entities(
+        entry,
+        async_add_entities,
+        entity_builder=lambda coordinator: create_device_entities(
+            coordinator,
+            _build_device_select_entities,
+        ),
+    )
 
 
 def _build_device_select_entities(
-    coordinator: LiproDataUpdateCoordinator,
+    coordinator: LiproRuntimeCoordinator,
     device: LiproDevice,
 ) -> list[SelectEntity]:
     """Build all select entities for one device."""
@@ -80,10 +99,10 @@ def _build_device_select_entities(
         device,
         rules=(
             (
-                lambda d: d.is_heater,
+                lambda d: d.capabilities.is_heater,
                 (LiproHeaterWindDirectionSelect, LiproHeaterLightModeSelect),
             ),
-            (lambda d: d.is_light and d.has_gear_presets, (LiproLightGearSelect,)),
+            (should_expose_light_gear_select, (LiproLightGearSelect,)),
         ),
     )
 
@@ -97,22 +116,71 @@ class LiproMappedPropertySelect(LiproSelect):
 
     _option_to_value: dict[str, int]
     _value_to_option: dict[int, str]
-    _default_option: str
     _property_key: str
-    _device_property: str
+    _last_unknown_value: object | None = None
+
+    @staticmethod
+    def _coerce_mapped_value(raw_value: object) -> int | None:
+        """Convert one raw property value into an integer enum value."""
+        return coerce_mapped_value(raw_value)
+
+    def _get_raw_property_value(self) -> object:
+        """Return the raw normalized property value for this select."""
+        return self.device.properties.get(self._property_key)
+
+    def _mapped_snapshot(self) -> MappedPropertySnapshot:
+        """Return the normalized mapped-property snapshot for this select."""
+        return build_mapped_property_snapshot(
+            self.device.properties,
+            property_key=self._property_key,
+            value_to_option=self._value_to_option,
+        )
+
+    def _log_unknown_mapped_value(self, raw_value: object) -> None:
+        """Log one unknown enum value once per distinct raw value."""
+        if raw_value == self._last_unknown_value:
+            return
+        self._last_unknown_value = raw_value
+        _LOGGER.warning(
+            "Unknown %s value %r for %s",
+            self._property_key,
+            raw_value,
+            self.device.name,
+        )
 
     @property
     def current_option(self) -> str | None:
-        """Return the current option from device property value."""
-        value = getattr(self.device, self._device_property)
-        return self._value_to_option.get(value, self._default_option)
+        """Return the current option from the raw property mapping."""
+        snapshot = self._mapped_snapshot()
+        if snapshot.raw_value is None:
+            self._last_unknown_value = None
+            return None
+
+        if snapshot.option is None:
+            self._log_unknown_mapped_value(snapshot.raw_value)
+            return None
+
+        self._last_unknown_value = None
+        return snapshot.option
+
+    @property
+    def extra_state_attributes(self) -> dict[str, object]:
+        """Expose raw enum state when the device reports an unknown value."""
+        return self._mapped_snapshot().build_unknown_attributes(
+            property_key=self._property_key,
+        )
 
     async def async_select_option(self, option: str) -> None:
         """Set the option by mapped property value."""
-        value = self._option_to_value.get(
-            option,
-            self._option_to_value[self._default_option],
-        )
+        value = self._option_to_value.get(option)
+        if value is None:
+            _LOGGER.warning(
+                "Ignoring unsupported %s option %r for %s",
+                self._property_key,
+                option,
+                self.device.name,
+            )
+            return
         await self.async_change_state({self._property_key: value})
 
 
@@ -124,9 +192,7 @@ class LiproHeaterWindDirectionSelect(LiproMappedPropertySelect):
     _entity_suffix = "wind_direction"
     _option_to_value = WIND_DIRECTION_TO_VALUE
     _value_to_option = VALUE_TO_WIND_DIRECTION
-    _default_option = "auto"
     _property_key = PROP_WIND_DIRECTION_MODE
-    _device_property = "wind_direction_mode"
 
 
 class LiproHeaterLightModeSelect(LiproMappedPropertySelect):
@@ -137,168 +203,134 @@ class LiproHeaterLightModeSelect(LiproMappedPropertySelect):
     _entity_suffix = "light_mode"
     _option_to_value = LIGHT_MODE_TO_VALUE
     _value_to_option = VALUE_TO_LIGHT_MODE
-    _default_option = "off"
     _property_key = PROP_LIGHT_MODE
-    _device_property = "light_mode"
 
 
 class LiproLightGearSelect(LiproSelect):
-    """Select entity for light gear presets.
-
-    Allows quick switching between predefined brightness/color temperature combinations.
-    The gear presets are stored on the device and synced via gearList property.
-
-    Note: The API does not return lastGearIndex, so we use exact matching of
-    brightness and temperature percentage values to determine the current gear.
-    """
+    """Select entity for light gear presets."""
 
     _attr_translation_key = "light_gear"
     _entity_suffix = "gear"
 
     @staticmethod
-    def _coerce_gear_int(value: Any) -> int | None:
-        """Convert one gear field value to int safely."""
-        try:
-            if value is None:
-                return None
-            return int(value)
-        except (TypeError, ValueError):
-            return None
+    def _coerce_int_like(value: object) -> int | None:
+        """Convert one int-like gear field value safely."""
+        return coerce_int_like(value)
 
     @classmethod
-    def _extract_gear_values(cls, gear: Any) -> tuple[int, int] | None:
+    def _extract_gear_values(cls, gear: object) -> tuple[int, int] | None:
         """Extract (brightness, temperature_percent) from one gear payload."""
-        if not isinstance(gear, dict):
+        preset = extract_gear_preset(0, gear)
+        if preset is None:
             return None
+        return preset.brightness, preset.temperature_percent
 
-        brightness = cls._coerce_gear_int(gear.get("brightness"))
-        temp_pct = cls._coerce_gear_int(gear.get("temperature"))
-        if brightness is None or temp_pct is None:
-            return None
-        return brightness, temp_pct
+    def _iter_valid_gear_presets(self) -> list[GearPreset]:
+        """Return valid gear presets while preserving the original gear index."""
+        return iter_valid_gear_presets(
+            self.device.extras.gear_list,
+            max_count=_MAX_GEAR_COUNT,
+        )
 
-    @property
-    def options(self) -> list[str]:
-        """Return gear options based on actual device gear count."""
-        count = len(self.device.gear_list)
-        if not count:
-            return []
-        if count < len(GEAR_OPTIONS):
-            return GEAR_OPTIONS[:count]
-        return GEAR_OPTIONS
+    def _resolve_current_gear_option(self) -> str | None:
+        """Resolve the current option by exact brightness/temperature match."""
+        return resolve_current_gear_option(
+            self.device.extras.gear_list,
+            current_brightness=self.device.state.brightness,
+            current_temperature_percent=self.device.state.get_int_property(
+                PROP_TEMPERATURE,
+                -1,
+            ),
+            max_count=_MAX_GEAR_COUNT,
+            options=GEAR_OPTIONS,
+        )
 
-    @property
-    def current_option(self) -> str | None:
-        """Return the current gear based on exact brightness and temperature match.
+    def _build_gear_attributes(self) -> dict[str, object]:
+        """Build extra-state attributes describing available gear presets."""
+        color_temp_range: tuple[int, int] | None = None
+        if self.capabilities.supports_color_temp:
+            color_temp_range = (
+                self.capabilities.min_color_temp_kelvin,
+                self.capabilities.max_color_temp_kelvin,
+            )
+        return build_gear_attributes(
+            self.device.extras.gear_list,
+            max_count=_MAX_GEAR_COUNT,
+            preset_names=_GEAR_PRESET_NAMES,
+            percent_to_kelvin=self.device.state.percent_to_kelvin_for_device,
+            color_temp_range=color_temp_range,
+        )
 
-        Uses exact matching of brightness and temperature percentage values.
-        Returns None if current values don't match any preset (custom state).
-        """
-        gear_list = self.device.gear_list
-        if not gear_list:
-            return None
-
-        # Get current values as percentages (same format as gearList)
-        current_brightness = self.device.brightness
-        current_temp_pct = self.device.get_int_property(PROP_TEMPERATURE, -1)
-
-        # Exact match: brightness and temperature percentage must match exactly
-        for i, gear in enumerate(gear_list[:_MAX_GEAR_COUNT]):
-            values = self._extract_gear_values(gear)
-            if values is None:
-                continue
-            gear_brightness, gear_temp_pct = values
-
-            # Exact match (no tolerance - API test confirmed this is correct)
-            if (
-                current_brightness == gear_brightness
-                and current_temp_pct == gear_temp_pct
-            ):
-                return GEAR_OPTIONS[i]
-
-        # No match - return None to indicate custom/unknown state
-        return None
-
-    @property
-    def extra_state_attributes(self) -> dict[str, Any]:
-        """Return extra state attributes showing gear details.
-
-        Shows brightness and color temperature (in Kelvin) for each preset.
-        """
-        attrs: dict[str, Any] = {}
-        gear_list = self.device.gear_list
-
-        for i, gear in enumerate(gear_list[:_MAX_GEAR_COUNT]):
-            values = self._extract_gear_values(gear)
-            if values is None:
-                continue
-            brightness, temp_pct = values
-
-            # Convert percentage to Kelvin using centralized device method
-            temp_k = self.device.percent_to_kelvin_for_device(temp_pct)
-
-            # Use descriptive names matching the translations
-            attrs[f"preset_{_GEAR_PRESET_NAMES[i]}"] = f"{brightness}% / {temp_k}K"
-
-        # Also show the device's color temp range
-        if self.device.supports_color_temp:
-            min_k = self.device.min_color_temp_kelvin
-            max_k = self.device.max_color_temp_kelvin
-            attrs["color_temp_range"] = f"{min_k}K - {max_k}K"
-
-        return attrs
-
-    async def async_select_option(self, option: str) -> None:
-        """Apply the selected gear preset."""
-        gear_list = self.device.gear_list
-        if not gear_list:
-            _LOGGER.warning("No gear presets available for %s", self.device.name)
-            return
-
-        # Get gear index from option
-        try:
-            gear_index = GEAR_OPTIONS.index(option)
-        except ValueError:
+    def _resolve_selected_gear(self, option: str) -> GearPreset | None:
+        """Resolve one selected option into the raw preset payload and values."""
+        gear_index = resolve_gear_option_index(option, option_names=GEAR_OPTIONS)
+        if gear_index is None:
             _LOGGER.warning("Invalid gear option: %s", option)
-            return
+            return None
 
+        gear_list = self.device.extras.gear_list
         if gear_index >= len(gear_list):
             _LOGGER.warning("Gear index %d out of range", gear_index)
-            return
+            return None
 
-        gear = gear_list[gear_index]
-        values = self._extract_gear_values(gear)
-        if values is None:
+        preset = extract_gear_preset(gear_index, gear_list[gear_index])
+        if preset is None:
             _LOGGER.warning(
                 "Invalid gear preset at index %d for %s: %r",
                 gear_index,
                 self.device.name,
-                gear,
+                gear_list[gear_index],
             )
+            return None
+        return preset
+
+    @property
+    def options(self) -> list[str]:
+        """Return gear options based on actual device gear count."""
+        return available_gear_options(
+            len(self.device.extras.gear_list),
+            max_count=_MAX_GEAR_COUNT,
+            option_names=GEAR_OPTIONS,
+        )
+
+    @property
+    def current_option(self) -> str | None:
+        """Return the current gear based on exact brightness and temperature match."""
+        if not self.device.extras.gear_list:
+            return None
+        return self._resolve_current_gear_option()
+
+    @property
+    def extra_state_attributes(self) -> dict[str, object]:
+        """Return extra state attributes showing gear details."""
+        return self._build_gear_attributes()
+
+    async def async_select_option(self, option: str) -> None:
+        """Apply the selected gear preset."""
+        if not self.device.extras.gear_list:
+            _LOGGER.warning("No gear presets available for %s", self.device.name)
             return
 
-        brightness, temp_pct = values
+        preset = self._resolve_selected_gear(option)
+        if preset is None:
+            return
 
         _LOGGER.debug(
             "Applying gear %d to %s: brightness=%d%%, temperature=%d%%(%dK)",
-            gear_index + 1,
+            preset.gear_index + 1,
             self.device.name,
-            brightness,
-            temp_pct,
-            self.device.percent_to_kelvin_for_device(temp_pct),
+            preset.brightness,
+            preset.temperature_percent,
+            self.device.state.percent_to_kelvin_for_device(
+                preset.temperature_percent,
+            ),
         )
 
-        optimistic = {PROP_BRIGHTNESS: brightness, PROP_TEMPERATURE: temp_pct}
-
-        # Use async_send_command for consistent optimistic update + error recovery.
-        await self.async_change_state(
+        success = await self.async_change_state(
             {
-                PROP_BRIGHTNESS: brightness,
-                PROP_TEMPERATURE: temp_pct,
-            },
-            optimistic_state=optimistic,
+                PROP_BRIGHTNESS: preset.brightness,
+                PROP_TEMPERATURE: preset.temperature_percent,
+            }
         )
-
-        # Notify other entities (e.g., light) sharing this device about the
-        # brightness/temperature change applied by optimistic state above.
-        self.coordinator.async_update_listeners()
+        if success:
+            await self.coordinator.async_request_refresh()

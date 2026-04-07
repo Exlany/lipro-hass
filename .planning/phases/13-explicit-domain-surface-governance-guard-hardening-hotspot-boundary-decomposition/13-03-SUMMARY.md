@@ -1,0 +1,3 @@
+- README / README_zh / CONTRIBUTING now expose support/security/conduct/quality-scale/devcontainer entrypoints
+- governance meta guards now check manifest ↔ CODEOWNERS, quality-scale ↔ README known limitations, and devcontainer interpreter truth
+- roadmap / requirements / state / project / baseline / review docs now record Phase 13 as complete

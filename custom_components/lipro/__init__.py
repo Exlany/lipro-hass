@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-import asyncio
-from functools import partial
+from collections.abc import Callable
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Protocol, cast
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
@@ -14,24 +13,28 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const.base import DOMAIN
-from .const.config import (
-    CONF_SCAN_INTERVAL,
-    DEFAULT_SCAN_INTERVAL,
-    MAX_SCAN_INTERVAL,
-    MIN_SCAN_INTERVAL,
-)
-from .core import LiproAuthManager, LiproClient, LiproDataUpdateCoordinator
-from .entry_auth import (
+from .control.entry_root_support import (
     async_authenticate_entry,
+    build_coordinator as _build_coordinator,
     build_entry_auth_context,
+    build_lipro_auth_manager as _build_lipro_auth_manager,
+    build_lipro_protocol_facade as _build_lipro_protocol_facade,
+    build_service_registry as _build_service_registry_impl,
     clear_entry_runtime_data,
     get_entry_int_option,
+    load_entry_lifecycle_controller_factory as _load_entry_lifecycle_controller_factory,
     persist_entry_tokens_if_changed,
 )
+from .control.entry_root_wiring import (
+    EntryLifecycleControllerDependencies as _EntryLifecycleControllerDependencies,
+    EntryLifecycleControllerLike as _EntryLifecycleControllerLike,
+    build_entry_lifecycle_controller as _build_entry_lifecycle_controller_impl,
+    build_entry_lifecycle_controller_dependencies as _build_entry_lifecycle_controller_dependencies_impl,
+)
 from .entry_options import (
-    async_reload_entry_if_options_changed,
+    async_reload_entry_if_options_changed as _async_reload_entry_if_options_changed_impl,
     remove_entry_options_snapshot,
-    store_entry_options_snapshot,
+    store_entry_options_snapshot as _store_entry_options_snapshot_impl,
 )
 from .runtime_infra import (
     async_ensure_runtime_infra,
@@ -40,16 +43,25 @@ from .runtime_infra import (
     remove_device_registry_listener,
     setup_device_registry_listener,
 )
-from .services.entrypoints import async_setup_services, remove_services
+from .runtime_types import LiproRuntimeCoordinator
 
 if TYPE_CHECKING:
     from homeassistant.helpers.typing import ConfigType
 
+    from .control.service_registry import ServiceRegistry
+    from .coordinator_entry import Coordinator as _CoordinatorType
+    from .core import (
+        LiproAuthManager as _LiproAuthManagerType,
+        LiproProtocolFacade as _LiproProtocolFacadeType,
+    )
+
+
+LiproProtocolFacade: Callable[..., object] = _build_lipro_protocol_facade
+LiproAuthManager: Callable[..., object] = _build_lipro_auth_manager
+Coordinator: Callable[..., object] = _build_coordinator
+
+
 _LOGGER = logging.getLogger(__name__)
-_SETUP_DEVICE_REGISTRY_LISTENER = partial(
-    setup_device_registry_listener,
-    logger=_LOGGER,
-)
 
 PLATFORMS: list[Platform] = [
     Platform.LIGHT,
@@ -63,116 +75,131 @@ PLATFORMS: list[Platform] = [
     Platform.UPDATE,
 ]
 
-type LiproConfigEntry = ConfigEntry[LiproDataUpdateCoordinator]
+type LiproRuntimeData = LiproRuntimeCoordinator | None
+type LiproConfigEntry = ConfigEntry[LiproRuntimeData]
+
+if TYPE_CHECKING:
+    from collections.abc import Awaitable
+
+    type ProtocolFactory = Callable[..., _LiproProtocolFacadeType]
+    type AuthManagerFactory = Callable[
+        [_LiproProtocolFacadeType], _LiproAuthManagerType
+    ]
+
+    class CoordinatorFactory(Protocol):
+        """Typed lazy coordinator constructor used only for local casts."""
+
+        def __call__(
+            self,
+            hass: HomeAssistant,
+            protocol: _LiproProtocolFacadeType,
+            auth_manager: _LiproAuthManagerType,
+            config_entry: LiproConfigEntry,
+            *,
+            update_interval: int = ...,
+        ) -> _CoordinatorType:
+            """Return one configured coordinator instance."""
+
+    type BuildEntryAuthContext = Callable[
+        ..., tuple[_LiproProtocolFacadeType, _LiproAuthManagerType]
+    ]
+    type AuthenticateEntry = Callable[[_LiproAuthManagerType], Awaitable[None]]
+    type PersistEntryTokens = Callable[
+        [HomeAssistant, LiproConfigEntry, _LiproAuthManagerType],
+        None,
+    ]
+    type StoreEntryOptionsSnapshot = Callable[[HomeAssistant, LiproConfigEntry], None]
+    type ReloadEntryIfOptionsChanged = Callable[
+        [HomeAssistant, LiproConfigEntry], Awaitable[None]
+    ]
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
+def _store_entry_options_snapshot(
+    hass: HomeAssistant,
+    entry: LiproConfigEntry,
+) -> None:
+    """Adapter wrapper for options snapshot storage."""
+    _store_entry_options_snapshot_impl(hass, entry)
+
+
+async def _async_reload_entry_if_options_changed(
+    hass: HomeAssistant,
+    entry: LiproConfigEntry,
+) -> None:
+    """Adapter wrapper for option-diff reloads."""
+    await _async_reload_entry_if_options_changed_impl(hass, entry)
+
+
+store_entry_options_snapshot = _store_entry_options_snapshot
+async_reload_entry_if_options_changed = _async_reload_entry_if_options_changed
+
+
+def _build_service_registry() -> ServiceRegistry:
+    return _build_service_registry_impl(
+        domain=DOMAIN,
+        get_runtime_infra_lock=get_runtime_infra_lock,
+    )
+
+
+def _build_entry_lifecycle_controller_dependencies() -> (
+    _EntryLifecycleControllerDependencies
+):
+    """Build the stable collaborator bundle for one lifecycle-controller instance."""
+    return _build_entry_lifecycle_controller_dependencies_impl(
+        logger=_LOGGER,
+        platforms=PLATFORMS,
+        protocol_factory=cast("ProtocolFactory", LiproProtocolFacade),
+        auth_manager_factory=cast("AuthManagerFactory", LiproAuthManager),
+        coordinator_factory=cast("CoordinatorFactory", Coordinator),
+        get_client_session=async_get_clientsession,
+        build_entry_auth_context=cast(
+            "BuildEntryAuthContext", build_entry_auth_context
+        ),
+        async_authenticate_entry=cast("AuthenticateEntry", async_authenticate_entry),
+        clear_entry_runtime_data=clear_entry_runtime_data,
+        get_entry_int_option=get_entry_int_option,
+        persist_entry_tokens_if_changed=cast(
+            "PersistEntryTokens", persist_entry_tokens_if_changed
+        ),
+        store_entry_options_snapshot=cast(
+            "StoreEntryOptionsSnapshot", store_entry_options_snapshot
+        ),
+        remove_entry_options_snapshot=remove_entry_options_snapshot,
+        async_reload_entry_if_options_changed=cast(
+            "ReloadEntryIfOptionsChanged", async_reload_entry_if_options_changed
+        ),
+        async_ensure_runtime_infra=async_ensure_runtime_infra,
+        setup_device_registry_listener=setup_device_registry_listener,
+        remove_device_registry_listener=remove_device_registry_listener,
+        has_other_runtime_entries=has_other_runtime_entries,
+        service_registry=_build_service_registry(),
+    )
+
+
+def _build_entry_lifecycle_controller() -> _EntryLifecycleControllerLike:
+    return _build_entry_lifecycle_controller_impl(
+        controller_factory=_load_entry_lifecycle_controller_factory(),
+        controller_dependencies=_build_entry_lifecycle_controller_dependencies(),
+    )
+
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the Lipro component."""
-    await async_ensure_runtime_infra(
-        hass,
-        setup_services=async_setup_services,
-        setup_device_registry_listener=_SETUP_DEVICE_REGISTRY_LISTENER,
-    )
-    return True
+    return await _build_entry_lifecycle_controller().async_setup_component(hass, config)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> bool:
     """Set up Lipro from a config entry."""
-    await async_ensure_runtime_infra(
-        hass,
-        setup_services=async_setup_services,
-        setup_device_registry_listener=_SETUP_DEVICE_REGISTRY_LISTENER,
-    )
-
-    client, auth_manager = build_entry_auth_context(
-        hass,
-        entry,
-        get_client_session=async_get_clientsession,
-        client_factory=LiproClient,
-        auth_manager_factory=LiproAuthManager,
-        logger=_LOGGER,
-    )
-    await async_authenticate_entry(auth_manager)
-
-    scan_interval = get_entry_int_option(
-        entry,
-        option_name=CONF_SCAN_INTERVAL,
-        default=DEFAULT_SCAN_INTERVAL,
-        min_value=MIN_SCAN_INTERVAL,
-        max_value=MAX_SCAN_INTERVAL,
-        logger=_LOGGER,
-    )
-    coordinator = LiproDataUpdateCoordinator(
-        hass,
-        client,
-        auth_manager,
-        entry,
-        update_interval=scan_interval,
-    )
-
-    try:
-        await coordinator.async_config_entry_first_refresh()
-    except Exception:
-        await coordinator.async_shutdown()
-        clear_entry_runtime_data(entry)
-        raise
-
-    entry.runtime_data = coordinator
-
-    try:
-        persist_entry_tokens_if_changed(hass, entry, auth_manager)
-        await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-    except Exception:
-        await coordinator.async_shutdown()
-        clear_entry_runtime_data(entry)
-        raise
-
-    store_entry_options_snapshot(hass, entry)
-    entry.async_on_unload(
-        entry.add_update_listener(async_reload_entry_if_options_changed)
-    )
-    return True
+    return await _build_entry_lifecycle_controller().async_setup_entry(hass, entry)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> bool:
     """Unload a config entry."""
-    result = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-    if result:
-        coordinator = getattr(entry, "runtime_data", None)
-        if coordinator is not None:
-            try:
-                await coordinator.async_shutdown()
-            except asyncio.CancelledError:
-                raise
-            except Exception as err:  # noqa: BLE001
-                _LOGGER.warning(
-                    "Coordinator shutdown failed during unload (%s)",
-                    type(err).__name__,
-                )
-        clear_entry_runtime_data(entry)
-        remove_entry_options_snapshot(hass, entry.entry_id)
-
-    if result:
-        lock = get_runtime_infra_lock(hass)
-        if lock is None:
-            if not has_other_runtime_entries(hass, exclude_entry_id=entry.entry_id):
-                remove_services(hass)
-                remove_device_registry_listener(hass)
-        else:
-            async with lock:
-                if not has_other_runtime_entries(
-                    hass,
-                    exclude_entry_id=entry.entry_id,
-                ):
-                    remove_services(hass)
-                    remove_device_registry_listener(hass)
-
-    return result
+    return await _build_entry_lifecycle_controller().async_unload_entry(hass, entry)
 
 
 async def async_reload_entry(hass: HomeAssistant, entry: LiproConfigEntry) -> None:
     """Reload config entry when options change."""
-    await hass.config_entries.async_reload(entry.entry_id)
+    await _build_entry_lifecycle_controller().async_reload_entry(hass, entry)

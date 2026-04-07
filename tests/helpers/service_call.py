@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
 
 from custom_components.lipro.const.base import DOMAIN
 from homeassistant.core import HomeAssistant, ServiceCall
@@ -21,7 +20,7 @@ class _ServiceCallWithTarget(ServiceCall):
 
 def service_call(
     hass: HomeAssistant,
-    data: dict[str, Any] | None = None,
+    data: dict[str, object] | None = None,
     *,
     target_entity_ids: list[str] | None = None,
     domain: str = DOMAIN,

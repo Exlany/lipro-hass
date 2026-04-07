@@ -1,0 +1,2 @@
+- `PROJECT.md` / `ROADMAP.md` / `STATE.md` / `REQUIREMENTS.md` 与 Phase 15 资产已同步到完成态，active source-path drift 由 `scripts/check_file_matrix.py` fail-fast 守卫。
+- `tests/meta/test_governance_guards.py` 现已锁定 Phase 15 完成态与治理台账一致性。

@@ -36,8 +36,14 @@
     "error": {
       "cannot_connect": "无法连接到 Lipro 服务器",
       "invalid_auth": "手机号或密码错误",
+      "invalid_phone": "手机号格式无效（必须是 6-20 位数字，可选 + 前缀）",
+      "invalid_password": "密码无效（必须是 6-128 个字符）",
       "reauth_user_mismatch": "该账号与当前集成条目不一致，请使用同一 Lipro 账号重新认证。",
-      "unknown": "发生未知错误"
+      "unknown": "发生未知错误",
+      "api_error": "Lipro API 请求失败",
+      "invalid_entry": "已保存的集成数据无效，请移除后重新添加该集成。",
+      "invalid_response": "Lipro 返回了无效响应",
+      "unexpected_error": "发生了意外的内部错误"
     },
     "abort": {
       "already_configured": "该账号已配置",
@@ -76,7 +82,7 @@
           "debug_mode": "启用调试模式（诊断）",
           "light_turn_on_on_adjust": "关灯时调亮度/色温自动开灯",
           "room_area_sync_force": "强制用云端房间覆盖 HA 区域",
-          "command_result_verify": "校验命令下发结果",
+          "command_result_verify": "检查命令结果状态",
           "device_filter_home_mode": "按家庭过滤（off/include/exclude）",
           "device_filter_home_list": "家庭过滤列表",
           "device_filter_model_mode": "按型号过滤（off/include/exclude）",
@@ -87,20 +93,20 @@
           "device_filter_did_list": "设备 ID 过滤列表"
         },
         "data_description": {
-          "power_query_interval": "查询插座功率数据的频率（30-300 秒）。仅在启用功率监测时生效。",
+          "power_query_interval": "默认 300 秒（约 5 分钟）。查询插座功率数据的频率（30-300 秒）。仅在启用功率监测时生效。",
           "request_timeout": "API 请求超时时间（10-60 秒）。网络较慢时可增加此值。",
           "debug_mode": "采集脱敏运行诊断报告（包含最近命令轨迹）。启用后也会开启更详细的日志。",
           "light_turn_on_on_adjust": "开启后，关灯状态下调节亮度或色温会自动开灯；关闭后，调节亮度或色温不会开灯。",
           "room_area_sync_force": "默认关闭（推荐）：保留用户手动设置的 HA 区域，仅把云端房间作为兜底。开启后将始终以云端房间覆盖 HA 区域。",
-          "command_result_verify": "默认关闭（推荐）：仅依据 pushSuccess，延迟更低。开启后会基于 msgSn 查询命令结果，云端未确认时返回更可解释的失败。",
+          "command_result_verify": "默认开启（推荐）：基于 msgSn 轮询云端命令结果状态，并在重试预算内未观察到明确成功态时返回更可解释的失败。关闭后仅依据 pushSuccess，延迟更低。",
           "device_filter_home_mode": "选择家庭过滤策略：off/include/exclude。",
-          "device_filter_home_list": "家庭名称或 ID，支持逗号、分号或换行分隔。",
+          "device_filter_home_list": "家庭或房间名称 / homeId，匹配大小写不敏感，支持逗号、分号或换行分隔。",
           "device_filter_model_mode": "选择型号过滤策略：off/include/exclude。",
-          "device_filter_model_list": "型号字段（physicalModel/iotName/model），支持逗号、分号或换行分隔。",
+          "device_filter_model_list": "型号字段（physicalModel/iotName/model/productModel），匹配大小写不敏感，支持逗号、分号或换行分隔。",
           "device_filter_ssid_mode": "选择 WiFi SSID 过滤策略：off/include/exclude。",
-          "device_filter_ssid_list": "WiFi SSID 值，支持逗号、分号或换行分隔。",
+          "device_filter_ssid_list": "WiFi SSID 值，匹配大小写不敏感，支持逗号、分号或换行分隔。",
           "device_filter_did_mode": "选择设备 ID 过滤策略：off/include/exclude。",
-          "device_filter_did_list": "设备标识（did/deviceId/serial），支持逗号、分号或换行分隔。"
+          "device_filter_did_list": "设备标识（did/deviceDid/deviceId/iotDeviceId/serial），匹配大小写不敏感，支持逗号、分号或换行分隔。"
         }
       }
     }
@@ -163,6 +169,12 @@
       },
       "body_reactive": {
         "name": "人体感应"
+      },
+      "panel_led": {
+        "name": "按键指示灯"
+      },
+      "panel_memory": {
+        "name": "断电记忆"
       }
     },
     "climate": {
@@ -249,7 +261,7 @@
       "fields": {
         "device_id": {
           "name": "设备 ID",
-          "description": "设备序列号。如果未提供，将从目标实体中确定设备。"
+          "description": "设备序列号或 mesh group ID。如果未提供，将从目标实体中确定设备。"
         },
         "command": {
           "name": "命令",
@@ -263,29 +275,29 @@
     },
     "get_schedules": {
       "name": "获取定时任务",
-      "description": "获取设备的定时任务列表。",
+      "description": "获取按周重复的定时任务列表，星期使用 1=周一 到 7=周日。对于 mesh group，读取仅使用 BLE/gateway-member 候选；实机复测表明标准 schedule/get.do 对 groupId 可能返回空成功，对 member IoT ID 也可能回显不可复用 ID 的影子结果，因此不能视为可靠 mesh 回退链路。",
       "fields": {
         "device_id": {
           "name": "设备 ID",
-          "description": "设备序列号。如果未提供，将从目标实体中确定设备。"
+          "description": "设备序列号或 mesh group ID。如果未提供，将从目标实体中确定设备。"
         }
       }
     },
     "add_schedule": {
       "name": "添加定时任务",
-      "description": "为设备添加或更新定时任务。",
+      "description": "为设备添加按周重复的定时任务，当前不暴露绝对日期定时模式。对于 mesh group，写入仅使用 BLE/gateway-member 候选；实机复测表明标准 schedule/addOrUpdate.do 对 member IoT ID 会返回服务异常，不是可靠 mesh 回退链路。",
       "fields": {
         "device_id": {
           "name": "设备 ID",
-          "description": "设备序列号。如果未提供，将从目标实体中确定设备。"
+          "description": "设备序列号或 mesh group ID。如果未提供，将从目标实体中确定设备。"
         },
         "days": {
           "name": "星期",
-          "description": "定时任务执行的星期几（1=周一，7=周日）。"
+          "description": "按周重复定时执行的星期几（1=周一，7=周日）。"
         },
         "times": {
           "name": "时间",
-          "description": "从午夜开始的秒数列表（0-86399）。"
+          "description": "从午夜开始的秒数列表（0-86399），与 App 的 24 小时制时/分 UI 对应。"
         },
         "events": {
           "name": "事件",
@@ -295,11 +307,11 @@
     },
     "delete_schedules": {
       "name": "删除定时任务",
-      "description": "通过 ID 删除设备的定时任务。",
+      "description": "通过 ID 删除设备的定时任务。对于 mesh group，删除仅使用 BLE/gateway-member 候选；实机复测表明标准 schedule/delete.do 对 member 读回 ID 可返回 140003，且不能可靠删除目标 mesh 定时任务。",
       "fields": {
         "device_id": {
           "name": "设备 ID",
-          "description": "设备序列号。如果未提供，将从目标实体中确定设备。"
+          "description": "设备序列号或 mesh group ID。如果未提供，将从目标实体中确定设备。"
         },
         "schedule_ids": {
           "name": "定时任务 ID",
@@ -329,7 +341,7 @@
     },
     "get_developer_report": {
       "name": "获取开发者报告",
-      "description": "导出脱敏运行诊断报告，用于真实设备调试。包含 mesh 拓扑快照、最近命令轨迹和运行选项。",
+      "description": "导出脱敏运行诊断报告，用于本地真实设备调试。该本地视图会保留 iotName 等供应商诊断标识与本地标签，方便识别正在测试的设备。",
       "fields": {
         "entry_id": {
           "name": "配置项 ID",
@@ -339,7 +351,7 @@
     },
     "submit_developer_feedback": {
       "name": "提交开发者反馈",
-      "description": "一键提交脱敏开发者诊断到 share worker，可附带备注便于排查。",
+      "description": "一键提交开发者诊断到 share worker。上传会保留 iotName 等供应商诊断标识，但会匿名化设备/房间/面板/红外资产名称等用户自定义标签；可附带备注便于排查。",
       "fields": {
         "entry_id": {
           "name": "配置项 ID",
@@ -353,7 +365,7 @@
     },
     "query_command_result": {
       "name": "查询命令结果",
-      "description": "（开发者）根据 msgSn 查询命令下发结果，不会改变正常控制流程。",
+      "description": "（开发者）根据 msgSn 查询云端命令结果状态，并在默认重试预算内执行有界轮询；实际尝试次数可能低于 max_attempts，因为指数退避会被时间预算截断。",
       "fields": {
         "device_id": {
           "name": "设备 ID",
@@ -362,12 +374,24 @@
         "msg_sn": {
           "name": "消息 SN",
           "description": "send_command 返回的命令消息序列号。"
+        },
+        "max_attempts": {
+          "name": "最大尝试次数",
+          "description": "重试预算内允许的最大查询次数。默认 6；设为 1 表示只查一次。"
+        },
+        "time_budget_seconds": {
+          "name": "时间预算（秒）",
+          "description": "总重试预算秒数。默认 3.0；设为 0 表示禁用轮询，仅执行单次查询。"
         }
       }
     },
     "get_city": {
       "name": "获取城市信息",
-      "description": "（开发者）查询云端城市元数据。"
+      "description": "（开发者）按已验证的空对象（{}）payload 契约查询云端城市元数据。"
+    },
+    "query_user_cloud": {
+      "name": "查询用户云端配置",
+      "description": "（开发者）按已验证的原始空 body 契约（`-d ''`）查询用户云端元数据。实测响应可能只有顶层 data，没有 code 包装。"
     },
     "fetch_body_sensor_history": {
       "name": "获取人体传感器历史",
@@ -435,6 +459,9 @@
     "command_failed": {
       "message": "向设备发送命令失败。"
     },
+    "invalid_command_request": {
+      "message": "send_command 服务载荷无效。"
+    },
     "command_device_not_connected": {
       "message": "设备未联网，请检查设备网络后重试。"
     },
@@ -456,6 +483,9 @@
     "schedule_delete_failed": {
       "message": "删除设备定时任务失败。"
     },
+    "invalid_schedule_request": {
+      "message": "定时任务请求无效，请检查 device_id、weekdays、times、events 与 schedule_ids。"
+    },
     "times_events_mismatch": {
       "message": "时间数量必须与事件数量匹配。"
     },
@@ -470,6 +500,9 @@
     },
     "entry_not_found": {
       "message": "未找到或未加载配置项：{entry_id}"
+    },
+    "developer_mode_not_enabled": {
+      "message": "当前未启用开发者诊断。请先开启 debug_mode。"
     },
     "optional_capability_failed": {
       "message": "可选能力 {capability} 调用失败（{error}）。"

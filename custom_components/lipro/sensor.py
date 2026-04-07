@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Final
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -17,17 +17,20 @@ from homeassistant.const import (
     UnitOfPower,
 )
 
-from .const.categories import DeviceCategory
 from .entities.base import LiproEntity
-from .helpers.platform import build_device_entities_from_rules, create_device_entities
+from .helpers.platform import (
+    add_entry_entities,
+    build_device_entities_from_rules,
+    create_device_entities,
+)
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
     from . import LiproConfigEntry
-    from .core.coordinator import LiproDataUpdateCoordinator
     from .core.device import LiproDevice
+    from .runtime_types import LiproRuntimeCoordinator
 
 # No parallel update limit needed for read-only sensors using coordinator
 PARALLEL_UPDATES = 0
@@ -45,12 +48,18 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Lipro sensors."""
-    entities = create_device_entities(entry.runtime_data, _build_device_sensors)
-    async_add_entities(entities)
+    add_entry_entities(
+        entry,
+        async_add_entities,
+        entity_builder=lambda coordinator: create_device_entities(
+            coordinator,
+            _build_device_sensors,
+        ),
+    )
 
 
 def _build_device_sensors(
-    coordinator: LiproDataUpdateCoordinator,
+    coordinator: LiproRuntimeCoordinator,
     device: LiproDevice,
 ) -> list[SensorEntity]:
     """Build all sensor entities for one device."""
@@ -59,11 +68,36 @@ def _build_device_sensors(
         device,
         rules=(
             (
-                lambda d: d.category == DeviceCategory.OUTLET,
-                (LiproOutletPowerSensor, LiproOutletEnergySensor),
+                lambda d: d.capabilities.is_outlet,
+                (
+                    lambda current_coordinator, current_device: LiproOutletPowerSensor(
+                        current_coordinator,
+                        current_device,
+                    ),
+                    lambda current_coordinator, current_device: LiproOutletEnergySensor(
+                        current_coordinator,
+                        current_device,
+                    ),
+                ),
             ),
-            (lambda d: d.has_battery, (LiproBatterySensor,)),
-            (lambda d: d.wifi_rssi is not None, (LiproWiFiSignalSensor,)),
+            (
+                lambda d: d.has_battery,
+                (
+                    lambda current_coordinator, current_device: LiproBatterySensor(
+                        current_coordinator,
+                        current_device,
+                    ),
+                ),
+            ),
+            (
+                lambda d: d.wifi_rssi is not None,
+                (
+                    lambda current_coordinator, current_device: LiproWiFiSignalSensor(
+                        current_coordinator,
+                        current_device,
+                    ),
+                ),
+            ),
         ),
     )
 
@@ -71,12 +105,28 @@ def _build_device_sensors(
 class LiproSensor(LiproEntity, SensorEntity):
     """Base class for Lipro sensors."""
 
-    def _get_power_info(self) -> dict[str, Any] | None:
-        """Get power info from device extra_data.
+    @staticmethod
+    def _coerce_float(value: object) -> float | None:
+        """Convert one scalar-like payload value into float safely."""
+        if value is None:
+            return None
+        if isinstance(value, bool):
+            return float(value)
+        if isinstance(value, (int, float)):
+            return float(value)
+        if isinstance(value, str):
+            normalized = value.strip()
+            if not normalized:
+                return None
+            try:
+                return float(normalized)
+            except ValueError:
+                return None
+        return None
 
-        Power info is stored by coordinator during outlet power queries.
-        """
-        return self.device.extra_data.get("power_info")
+    def _get_power_info(self) -> dict[str, object] | None:
+        """Get power info from the device's formal outlet-power primitive."""
+        return self.device.outlet_power_info
 
 
 class LiproOutletPowerSensor(LiproSensor):
@@ -95,7 +145,7 @@ class LiproOutletPowerSensor(LiproSensor):
         power_info = self._get_power_info()
         if power_info is None:
             return None
-        return power_info.get("nowPower")
+        return self._coerce_float(power_info.get("nowPower"))
 
 
 class LiproOutletEnergySensor(LiproSensor):
@@ -123,8 +173,8 @@ class LiproOutletEnergySensor(LiproSensor):
 
         # Sum up all energy values from energyList
         # API returns "v" for energy value (kWh), "t" for date (YYYYMMDD)
-        energy_list = power_info.get("energyList", [])
-        if not energy_list:
+        energy_list = power_info.get("energyList")
+        if not isinstance(energy_list, list) or not energy_list:
             return None
 
         return sum(
@@ -134,13 +184,24 @@ class LiproOutletEnergySensor(LiproSensor):
         )
 
     @staticmethod
-    def _safe_energy_value(item: dict[str, Any]) -> float:
+    def _safe_energy_value(item: dict[str, object]) -> float:
         """Extract energy value from an energy list item, returning 0.0 on failure."""
-        try:
-            value = item.get("v")
-            return float(value) if value is not None else 0.0
-        except (ValueError, TypeError):
+        value = item.get("v")
+        if value is None:
             return 0.0
+        if isinstance(value, bool):
+            return float(value)
+        if isinstance(value, (int, float)):
+            return float(value)
+        if isinstance(value, str):
+            normalized = value.strip()
+            if not normalized:
+                return 0.0
+            try:
+                return float(normalized)
+            except ValueError:
+                return 0.0
+        return 0.0
 
 
 class LiproBatterySensor(LiproSensor):
@@ -158,7 +219,7 @@ class LiproBatterySensor(LiproSensor):
     @property
     def native_value(self) -> int | None:
         """Return the battery level percentage."""
-        return self.device.battery_level
+        return self.device.state.battery_level
 
     @property
     def icon(self) -> str | None:
@@ -168,15 +229,15 @@ class LiproBatterySensor(LiproSensor):
         conditions (charging state is a separate device property, not the
         entity's own state value).
         """
-        if self.device.is_charging:
+        if self.device.state.is_charging:
             return "mdi:battery-charging"
         return None  # Let HA handle battery level icons via device_class
 
     @property
-    def extra_state_attributes(self) -> dict[str, Any]:
+    def extra_state_attributes(self) -> dict[str, object]:
         """Return extra state attributes."""
         return {
-            "charging": self.device.is_charging,
+            "charging": self.device.state.is_charging,
         }
 
 
@@ -197,7 +258,7 @@ class LiproWiFiSignalSensor(LiproSensor):
     @property
     def native_value(self) -> int | None:
         """Return the WiFi signal strength in dBm."""
-        return self.device.wifi_rssi
+        return self.device.network_info.wifi_rssi
 
     @property
     def icon(self) -> str:
@@ -206,7 +267,7 @@ class LiproWiFiSignalSensor(LiproSensor):
         Programmatic override: icons.json cannot express numeric-range
         thresholds on the entity's native value (dBm RSSI).
         """
-        rssi = self.device.wifi_rssi
+        rssi = self.device.network_info.wifi_rssi
         if rssi is None:
             return "mdi:wifi-off"
         if rssi >= _WIFI_RSSI_EXCELLENT:
@@ -220,9 +281,9 @@ class LiproWiFiSignalSensor(LiproSensor):
         return "mdi:wifi-strength-alert-outline"
 
     @property
-    def extra_state_attributes(self) -> dict[str, Any]:
+    def extra_state_attributes(self) -> dict[str, object]:
         """Return extra state attributes."""
-        attrs: dict[str, Any] = {}
-        if self.device.net_type:
-            attrs["network_type"] = self.device.net_type
+        attrs: dict[str, object] = {}
+        if self.device.network_info.net_type:
+            attrs["network_type"] = self.device.network_info.net_type
         return attrs

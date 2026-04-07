@@ -1,25 +1,43 @@
-"""Shared runtime infrastructure helpers for the Lipro integration."""
+"""Shared runtime infrastructure surface for the Lipro integration.
+
+`runtime_infra.py` remains the outward formal home; device-registry listener
+mechanics live in `runtime_infra_device_registry.py` as local support-only helpers.
+"""
 
 from __future__ import annotations
 
 import asyncio
-from typing import TYPE_CHECKING, Final
+from collections.abc import Awaitable, Callable
+import logging
+from typing import Final
 
 from homeassistant.config_entries import ConfigEntryState
-from homeassistant.core import HomeAssistant
+from homeassistant.core import CALLBACK_TYPE, HomeAssistant
 
 from .const.base import DOMAIN
 from .domain_data import ensure_domain_data, get_domain_data
-from .services.maintenance import (
-    async_setup_device_registry_listener as _async_setup_device_registry_listener_service,
+from .runtime_infra_device_registry import (
+    async_setup_device_registry_listener as _async_setup_device_registry_listener,
 )
-
-if TYPE_CHECKING:
-    from collections.abc import Awaitable, Callable
-    import logging
 
 _DATA_DEVICE_REGISTRY_LISTENER_UNSUB: Final = "device_registry_listener_unsub"
 _DATA_RUNTIME_INFRA_LOCK: Final = "runtime_infra_lock"
+
+
+def async_setup_device_registry_listener(
+    hass: HomeAssistant,
+    *,
+    domain: str,
+    logger: logging.Logger,
+    reload_entry: Callable[[str], Awaitable[object]],
+) -> CALLBACK_TYPE:
+    """Listen for Lipro device-registry disable/enable changes and reload entries."""
+    return _async_setup_device_registry_listener(
+        hass,
+        domain=domain,
+        logger=logger,
+        reload_entry=reload_entry,
+    )
 
 
 def setup_device_registry_listener(
@@ -35,7 +53,7 @@ def setup_device_registry_listener(
         return
 
     domain_data[_DATA_DEVICE_REGISTRY_LISTENER_UNSUB] = (
-        _async_setup_device_registry_listener_service(
+        async_setup_device_registry_listener(
             hass,
             domain=DOMAIN,
             logger=logger,
@@ -70,6 +88,17 @@ def get_runtime_infra_lock(hass: HomeAssistant) -> asyncio.Lock | None:
     return lock
 
 
+async def _async_setup_runtime_infra_unlocked(
+    hass: HomeAssistant,
+    *,
+    setup_services: Callable[[HomeAssistant], Awaitable[None]],
+    setup_device_registry_listener: Callable[[HomeAssistant], None],
+) -> None:
+    """Set up shared services and registry listener without lock orchestration."""
+    await setup_services(hass)
+    setup_device_registry_listener(hass)
+
+
 async def async_ensure_runtime_infra(
     hass: HomeAssistant,
     *,
@@ -79,13 +108,19 @@ async def async_ensure_runtime_infra(
     """Ensure shared runtime infra (services/listener) is ready."""
     lock = get_runtime_infra_lock(hass)
     if lock is None:
-        await setup_services(hass)
-        setup_device_registry_listener(hass)
+        await _async_setup_runtime_infra_unlocked(
+            hass,
+            setup_services=setup_services,
+            setup_device_registry_listener=setup_device_registry_listener,
+        )
         return
 
     async with lock:
-        await setup_services(hass)
-        setup_device_registry_listener(hass)
+        await _async_setup_runtime_infra_unlocked(
+            hass,
+            setup_services=setup_services,
+            setup_device_registry_listener=setup_device_registry_listener,
+        )
 
 
 def has_other_runtime_entries(

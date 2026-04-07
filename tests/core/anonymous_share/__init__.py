@@ -1,0 +1,1 @@
+"""Anonymous share topical tests."""

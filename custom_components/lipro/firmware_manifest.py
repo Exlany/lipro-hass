@@ -1,4 +1,4 @@
-"""Firmware support manifest loading for the update platform."""
+"""Firmware trust-root and advisory loading for the update platform."""
 
 from __future__ import annotations
 
@@ -23,21 +23,23 @@ from .core.ota.manifest import (
 _LOGGER = logging.getLogger(__name__)
 
 _TIME_MIN_UTC = datetime.min.replace(tzinfo=UTC)
-_FIRMWARE_SUPPORT_MANIFEST = "firmware_support_manifest.json"
-
-_REMOTE_MANIFEST_CACHE_TTL = timedelta(minutes=30)
-_REMOTE_MANIFEST_TIMEOUT_SECONDS = 5
-_REMOTE_FIRMWARE_SUPPORT_URLS = (
+LOCAL_FIRMWARE_TRUST_ROOT_FILENAME = "firmware_support_manifest.json"
+LOCAL_FIRMWARE_TRUST_ROOT_PATH = Path(__file__).with_name(
+    LOCAL_FIRMWARE_TRUST_ROOT_FILENAME
+)
+REMOTE_FIRMWARE_ADVISORY_URLS = (
     "https://lipro-share.lany.me/api/firmware-support",
     "https://lipro-share.lany.me/firmware_support_manifest.json",
 )
+_REMOTE_MANIFEST_CACHE_TTL = timedelta(minutes=30)
+_REMOTE_MANIFEST_TIMEOUT_SECONDS = 5
 
 type _RemoteManifestData = tuple[frozenset[str], dict[str, frozenset[str]]]
 
 
 @dataclass(slots=True)
 class _RemoteManifestState:
-    """Remote firmware manifest cache state."""
+    """Remote firmware advisory cache state."""
 
     time: datetime
     data: _RemoteManifestData
@@ -52,12 +54,11 @@ _REMOTE_MANIFEST_LOCK = asyncio.Lock()
 
 @functools.lru_cache(maxsize=1)
 def load_verified_firmware_manifest() -> _RemoteManifestData:
-    """Load optional local firmware certification manifest."""
-    manifest_path = Path(__file__).with_name(_FIRMWARE_SUPPORT_MANIFEST)
+    """Load the local firmware trust-root manifest bundled in the repo."""
     return load_verified_firmware_manifest_file(
-        manifest_path,
+        LOCAL_FIRMWARE_TRUST_ROOT_PATH,
         on_error=lambda path, err: _LOGGER.debug(
-            "Failed to load firmware support manifest %s: %s",
+            "Failed to load local firmware trust-root asset %s: %s",
             path,
             err,
         ),
@@ -67,7 +68,11 @@ def load_verified_firmware_manifest() -> _RemoteManifestData:
 async def async_load_remote_firmware_manifest(
     hass: HomeAssistant,
 ) -> _RemoteManifestData:
-    """Load firmware certification manifest from remote service with cache."""
+    """Load remote firmware advisory metadata with caching.
+
+    Remote payloads are advisory only. Certification truth remains bound to the
+    bundled local trust-root manifest consumed by the update entity.
+    """
     now = dt_util.utcnow()
     cached_time = _REMOTE_MANIFEST_STATE.time
     cached_data = _REMOTE_MANIFEST_STATE.data
@@ -83,21 +88,20 @@ async def async_load_remote_firmware_manifest(
 
         session = async_get_clientsession(hass)
         timeout = aiohttp.ClientTimeout(total=_REMOTE_MANIFEST_TIMEOUT_SECONDS)
-        for url in _REMOTE_FIRMWARE_SUPPORT_URLS:
+        for url in REMOTE_FIRMWARE_ADVISORY_URLS:
             try:
                 async with session.get(url, timeout=timeout) as response:
                     if response.status != 200:
                         continue
                     payload = await response.json(content_type=None)
-            except (aiohttp.ClientError, TimeoutError, ValueError) as err:
+                versions, versions_by_type = parse_verified_firmware_manifest_payload(
+                    payload
+                )
+            except (aiohttp.ClientError, TimeoutError, TypeError, ValueError) as err:
                 _LOGGER.debug(
                     "Remote firmware manifest fetch failed from %s: %s", url, err
                 )
                 continue
-
-            versions, versions_by_type = parse_verified_firmware_manifest_payload(
-                payload
-            )
             if versions or versions_by_type:
                 _REMOTE_MANIFEST_STATE.data = (versions, versions_by_type)
                 _REMOTE_MANIFEST_STATE.time = now
@@ -105,3 +109,13 @@ async def async_load_remote_firmware_manifest(
 
         _REMOTE_MANIFEST_STATE.time = now
         return cached_data
+
+
+__all__ = [
+    "LOCAL_FIRMWARE_TRUST_ROOT_FILENAME",
+    "LOCAL_FIRMWARE_TRUST_ROOT_PATH",
+    "REMOTE_FIRMWARE_ADVISORY_URLS",
+    "async_load_remote_firmware_manifest",
+    "load_verified_firmware_manifest",
+    "parse_verified_firmware_manifest_payload",
+]

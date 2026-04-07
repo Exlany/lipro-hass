@@ -8,31 +8,31 @@ version = "1.0.0"
 description = "Home Assistant integration for Lipro Smart Home devices"
 readme = "README.md"
 license = "MIT"
-requires-python = ">=3.13.2"
+requires-python = ">=3.14.2"
 authors = [
     {name = "Exlany"},
 ]
 keywords = ["homeassistant", "lipro", "smart-home", "home-automation"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Home Automation",
 ]
 
 dependencies = [
-    "aiohttp>=3.12.0",
-    "aiomqtt>=2.0.0",
-    "pycryptodome>=3.19.0",
-    "voluptuous>=0.15.2",
+    "aiohttp>=3.12.0,<4.0.0",
+    "aiomqtt>=2.0.0,<3.0.0",
+    "pycryptodome>=3.19.0,<4.0.0",
+    "voluptuous>=0.15.2,<1.0.0",
 ]
 
 [project.optional-dependencies]
 dev = [
     "colorlog==6.10.1",
-    "homeassistant==2026.2.3",
+    "homeassistant==2026.3.1",
     "pip>=21.3.1",
     "pip-audit>=2.9.0",
     "pre-commit>=3.7.0",
@@ -41,6 +41,8 @@ dev = [
     "pytest-asyncio>=0.21.0",
     "pytest-cov>=4.0.0",
     "pytest-homeassistant-custom-component>=0.13.0",
+    "pytest-benchmark>=5.1.0",
+    "syrupy>=5.0.0",
     "mypy>=1.0.0",
     "types-PyYAML>=6.0.12.0",
     "aiodns>=3.3.0",
@@ -50,8 +52,11 @@ dev = [
 [project.urls]
 Homepage = "https://github.com/Exlany/lipro-hass"
 Repository = "https://github.com/Exlany/lipro-hass"
-Issues = "https://github.com/Exlany/lipro-hass/issues"
-Changelog = "https://github.com/Exlany/lipro-hass/blob/main/CHANGELOG.md"
+Documentation = "https://github.com/Exlany/lipro-hass/blob/v1.0.0/docs/README.md"
+"Access Mode" = "https://github.com/Exlany/lipro-hass/blob/v1.0.0/README.md"
+Support = "https://github.com/Exlany/lipro-hass/blob/v1.0.0/SUPPORT.md"
+Security = "https://github.com/Exlany/lipro-hass/blob/v1.0.0/SECURITY.md"
+Changelog = "https://github.com/Exlany/lipro-hass/blob/v1.0.0/CHANGELOG.md"
 
 [tool.setuptools]
 include-package-data = true
@@ -66,10 +71,9 @@ testpaths = ["tests"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 pythonpath = ["."]
+addopts = "--strict-markers"
 markers = [
-    "github: tests specifically for GitHub Actions CI",
-    "integration: tests requiring external services or full HA environment",
-    "slow: tests that take longer to run",
+    "benchmark: governed benchmark contract and PR smoke performance checks",
 ]
 filterwarnings = [
     # Suppress DeprecationWarnings from third-party dependencies only;
@@ -82,10 +86,10 @@ filterwarnings = [
 ]
 
 [tool.uv]
-override-dependencies = ["pillow==12.1.1"]
+override-dependencies = ["pillow==12.1.1", "orjson==3.11.6", "pyjwt==2.12.0"]
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.14"
 files = ["custom_components/lipro", "tests"]
 
 # Home Assistant custom components live under a namespace package layout:
@@ -111,7 +115,7 @@ disable_error_code = ["no-untyped-def", "no-untyped-call"]
 # Based on https://github.com/ludeeus/integration_blueprint
 # and https://github.com/home-assistant/core
 required-version = ">=0.15.0"
-target-version = "py313"
+target-version = "py314"
 
 [tool.ruff.lint]
 select = ["ALL"]
@@ -271,4 +275,7 @@ max-statements = 50
 "custom_components/**/*.py" = [
     "TID252",  # relative-imports (standard for HA integrations)
     "PTH",     # flake8-use-pathlib (HA patterns)
+]
+"custom_components/lipro/flow/step_handlers.py" = [
+    "SLF001",  # intentional internal private-helper seam to config_flow root adapter
 ]
