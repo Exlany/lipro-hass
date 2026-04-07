@@ -35,6 +35,9 @@ class StatusScheduler:
         Returns:
             True if power query interval has elapsed
         """
+        if self._last_power_query_at == 0.0:
+            return True
+
         now = monotonic()
         elapsed = now - self._last_power_query_at
         return elapsed >= self._power_query_interval

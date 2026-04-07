@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import Protocol, cast
 
 from custom_components.lipro.core.utils.log_safety import (
     mask_ip_addresses,
@@ -56,25 +56,35 @@ class TestSummarizePropertiesForLog:
         assert summary == {"count": 1, "keys": ["powerState"]}
 
 
+class _SupportsCode(Protocol):
+    """Typed view for exceptions that expose a dynamic ``code`` attribute."""
+
+    code: object
+
+
 class TestSafeErrorPlaceholder:
     """Tests for safe_error_placeholder."""
 
     def test_bool_code_does_not_render_code(self) -> None:
-        err = cast(Any, RuntimeError("token=secret"))
-        err.code = True
+        err = RuntimeError("token=secret")
+        coded_err = cast(_SupportsCode, err)
+        coded_err.code = True
         assert safe_error_placeholder(err) == "RuntimeError"
 
     def test_int_code_renders_marker(self) -> None:
-        err = cast(Any, RuntimeError("boom"))
-        err.code = 401
+        err = RuntimeError("boom")
+        coded_err = cast(_SupportsCode, err)
+        coded_err.code = 401
         assert safe_error_placeholder(err) == "RuntimeError(code=401)"
 
     def test_str_code_renders_trimmed(self) -> None:
-        err = cast(Any, RuntimeError("boom"))
-        err.code = " 401 "
+        err = RuntimeError("boom")
+        coded_err = cast(_SupportsCode, err)
+        coded_err.code = " 401 "
         assert safe_error_placeholder(err) == "RuntimeError(code=401)"
 
     def test_empty_code_falls_back_to_name(self) -> None:
-        err = cast(Any, RuntimeError("boom"))
-        err.code = " "
+        err = RuntimeError("boom")
+        coded_err = cast(_SupportsCode, err)
+        coded_err.code = " "
         assert safe_error_placeholder(err) == "RuntimeError"

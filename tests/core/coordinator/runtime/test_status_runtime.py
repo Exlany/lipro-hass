@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -64,7 +64,11 @@ class TestStatusScheduler:
     @pytest.mark.asyncio
     async def test_should_query_power_initial(self, status_runtime: StatusRuntime) -> None:
         """Test power query should run initially."""
-        assert status_runtime.should_query_power() is True
+        with patch(
+            "custom_components.lipro.core.coordinator.runtime.status.scheduler.monotonic",
+            return_value=120.0,
+        ):
+            assert status_runtime.should_query_power() is True
 
     @pytest.mark.asyncio
     async def test_mark_power_query_complete(self, status_runtime: StatusRuntime) -> None:
@@ -91,9 +95,13 @@ class TestStatusScheduler:
     @pytest.mark.asyncio
     async def test_reset_power_query_state(self, status_runtime: StatusRuntime) -> None:
         """Test resetting power query state."""
-        status_runtime.mark_power_query_complete()
-        status_runtime.reset_power_query_state()
-        assert status_runtime.should_query_power() is True
+        with patch(
+            "custom_components.lipro.core.coordinator.runtime.status.scheduler.monotonic",
+            return_value=120.0,
+        ):
+            status_runtime.mark_power_query_complete()
+            status_runtime.reset_power_query_state()
+            assert status_runtime.should_query_power() is True
 
     def test_get_outlet_power_query_slice_returns_empty_for_empty_input(self) -> None:
         scheduler = StatusScheduler(power_query_interval=300, outlet_power_cycle_size=2)
