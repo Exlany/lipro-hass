@@ -216,7 +216,7 @@ class DeviceRuntime:
         Returns:
             True if refresh is needed
         """
-        return self._refresh_strategy.should_refresh()
+        return self._last_snapshot is None or self._refresh_strategy.should_refresh()
 
     def reset(self) -> None:
         """Reset runtime state (for testing or coordinator restart)."""

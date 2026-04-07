@@ -321,3 +321,80 @@ contract_version: 1
 **Current phase handoff:** `Milestone closeout complete；Phase 129 -> 131 的 requirement coverage、summary / verification / audit / evidence index 已冻结为 archived evidence frozen。`
 
 ## Historical Archived Milestone (v1.35)
+
+
+## Historical archive requirement anchors
+
+| Requirement | Phase | Status |
+| --- | --- | --- |
+| GOV-06 | Phase 7.5 | Complete |
+| GOV-07 | Phase 7.5 | Complete |
+| AID-01 | Phase 8 | Complete |
+| AID-02 | Phase 8 | Complete |
+| SPT-01 | Phase 15 | Complete |
+| GOV-13 | Phase 15 | Complete |
+| DOC-01 | Phase 15 | Complete |
+| HOT-03 | Phase 15 | Complete |
+| QLT-01 | Phase 15 | Complete |
+| TYP-03 | Phase 15 | Complete |
+| RES-01 | Phase 15 | Complete |
+| SIM-04 | Phase 21 | Complete |
+| ERR-02 | Phase 21 | Complete |
+| OBS-03 | Phase 22 | Complete |
+| GOV-16 | Phase 23 | Complete |
+| GOV-17 | Phase 23 | Complete |
+| GOV-18 | Phase 24 | Complete |
+
+## Historical phase-history requirement anchors
+
+- [x] **SIM-03**: boundary-family completion closeout remains archived and machine-checkable.
+- [x] **SIM-05**: remaining boundary-family continuity stays fulfilled in archive-only form.
+
+| Requirement | Phase | Status |
+| --- | --- | --- |
+| RSC-01 | Phase 9 | Complete |
+| RSC-04 | Phase 9 | Complete |
+| ISO-01 | Phase 10 | Complete |
+| ISO-04 | Phase 10 | Complete |
+| SURF-01 | Phase 11 | Complete |
+| CTRL-04 | Phase 11 | Complete |
+| RUN-01 | Phase 11 | Complete |
+| ENT-01 | Phase 11 | Complete |
+| ENT-02 | Phase 11 | Complete |
+| GOV-08 | Phase 11 | Complete |
+| TYP-01 | Phase 12 | Complete |
+| GOV-10 | Phase 12 | Complete |
+| DOM-01 | Phase 13 | Complete |
+| GOV-11 | Phase 13 | Complete |
+| RUN-04 | Phase 14 | Complete |
+| GOV-12 | Phase 14 | Complete |
+| SIM-03 | Phase 20 | Complete |
+| SIM-05 | Phase 20 | Complete |
+| GOV-35 | Phase 44 | Completed |
+| RES-11 | Phase 44 | Completed |
+| DOC-04 | Phase 44 | Completed |
+| HOT-11 | Phase 45 | Completed |
+| ERR-11 | Phase 45 | Completed |
+| TYP-10 | Phase 45 | Completed |
+| QLT-15 | Phase 45 | Completed |
+| GOV-38 | Phase 51 | Complete |
+| GOV-39 | Phase 51 | Complete |
+| QLT-18 | Phase 51 | Complete |
+| ARC-08 | Phase 52 | Complete |
+| HOT-12 | Phase 53 | Complete |
+| HOT-13 | Phase 54 | Complete |
+| TST-10 | Phase 55 | Complete |
+| TYP-13 | Phase 55 | Complete |
+| RES-13 | Phase 56 | Complete |
+| ARC-09 | Phase 56 | Complete |
+| GOV-40 | Phase 56 | Complete |
+| ERR-12 | Phase 57 | Complete |
+| TYP-14 | Phase 57 | Complete |
+| GOV-41 | Phase 57 | Complete |
+| AUD-03 | Phase 58 | Complete |
+| ARC-10 | Phase 58 | Complete |
+| OSS-06 | Phase 58 | Complete |
+| GOV-42 | Phase 58 | Complete |
+| TST-11 | Phase 59 | Complete |
+| QLT-19 | Phase 59 | Complete |
+| GOV-43 | Phase 59 | Complete |

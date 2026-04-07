@@ -1,9 +1,10 @@
 """Topicized ShareWorkerClient token-refresh tests."""
-# ruff: noqa: F403, F405, I001
+# ruff: noqa: F403, F405
 
 from __future__ import annotations
 
 from .test_share_client_support import *
+
 
 @pytest.mark.asyncio
 async def test_refresh_install_token_short_circuits_for_missing_token_or_backoff() -> (
@@ -23,6 +24,7 @@ async def test_refresh_install_token_short_circuits_for_missing_token_or_backoff
     ):
         assert await client.refresh_install_token(session) is False
     session.post.assert_not_called()
+
 
 @pytest.mark.asyncio
 async def test_refresh_install_token_success_updates_state() -> None:
@@ -46,6 +48,7 @@ async def test_refresh_install_token_success_updates_state() -> None:
     assert client.install_token == "tok-new"
     assert client.token_expires_at == 999
     assert client.token_refresh_after == 888
+
 
 @pytest.mark.asyncio
 async def test_refresh_install_token_handles_401_and_429() -> None:
@@ -103,6 +106,7 @@ async def test_refresh_install_token_handles_transport_exceptions(
     session.post = MagicMock(side_effect=exc)
     assert await client.refresh_install_token(session) is False
 
+
 @pytest.mark.asyncio
 async def test_refresh_install_token_with_outcome_exposes_reason_codes() -> None:
     client = ShareWorkerClient()
@@ -126,8 +130,11 @@ async def test_refresh_install_token_with_outcome_exposes_reason_codes() -> None
     assert invalid_token.http_status == 401
     assert invalid_token.failure_summary["failure_category"] == "auth"
 
+
 @pytest.mark.asyncio
-async def test_refresh_install_token_with_outcome_reports_invalid_refresh_payload() -> None:
+async def test_refresh_install_token_with_outcome_reports_invalid_refresh_payload() -> (
+    None
+):
     client = ShareWorkerClient()
     client.install_token = "tok-old"
     session = MagicMock()

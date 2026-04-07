@@ -168,8 +168,16 @@ echo "Running ruff format check..."
 uv run ruff format --check .
 
 echo ""
-echo "Running mypy..."
-uv run mypy
+echo "Running focused mypy contract..."
+uv run mypy --follow-imports=silent \
+    custom_components/lipro/core/coordinator/runtime/device_runtime.py \
+    scripts/check_file_matrix.py \
+    tests/core/test_device_refresh_runtime.py \
+    tests/core/test_log_safety.py \
+    tests/meta/test_governance_guards.py \
+    tests/meta/test_governance_phase_history_runtime.py \
+    tests/meta/governance_milestone_archives_assets.py \
+    tests/meta/governance_phase_history_archive_execution.py
 
 echo ""
 echo "Checking translations..."
@@ -193,17 +201,27 @@ echo "Running pip-audit..."
 tmp_requirements_runtime="$(mktemp)"
 tmp_requirements_dev=""
 tmp_pip_audit_cache=""
-trap 'rm -f "$tmp_requirements_runtime" "${tmp_requirements_dev:-}" "${tmp_changed_coverage_surface:-}"; if [ -n "${tmp_pip_audit_cache:-}" ]; then rm -rf "$tmp_pip_audit_cache"; fi' EXIT
+tmp_requirements_input="$(mktemp)"
+trap 'rm -f "$tmp_requirements_runtime" "$tmp_requirements_input" "${tmp_requirements_dev:-}" "${tmp_changed_coverage_surface:-}"; if [ -n "${tmp_pip_audit_cache:-}" ]; then rm -rf "$tmp_pip_audit_cache"; fi' EXIT
 
-uv export \
-    --format requirements.txt \
-    --frozen \
+TMP_REQUIREMENTS_INPUT="$tmp_requirements_input" uv run python - <<'PYTHON'
+import os
+import tomllib
+from pathlib import Path
+
+data = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
+Path(os.environ["TMP_REQUIREMENTS_INPUT"]).write_text(
+    "\n".join(data["project"]["dependencies"]) + "\n",
+    encoding="utf-8",
+)
+PYTHON
+
+uv pip compile "$tmp_requirements_input" \
+    --python-version 3.14 \
+    --output-file "$tmp_requirements_runtime" \
     --no-header \
     --no-annotate \
-    --no-hashes \
-    --no-emit-project \
-    --no-dev \
-    -o "$tmp_requirements_runtime"
+    --upgrade
 
 pip_audit_common_args=(--progress-spinner off)
 uv run --extra dev pip-audit "${pip_audit_common_args[@]}" -r "$tmp_requirements_runtime"

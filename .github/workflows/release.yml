@@ -63,16 +63,28 @@ jobs:
         run: uv sync --frozen --extra dev
 
       - name: Export runtime requirements
-        run: >-
-          uv export
-          --format requirements.txt
-          --frozen
-          --no-header
-          --no-annotate
-          --no-hashes
-          --no-emit-project
-          --no-dev
-          -o requirements-runtime.txt
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          uv run python - <<'PYTHON'
+          import tomllib
+          from pathlib import Path
+
+          data = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
+          dependencies = data["project"]["dependencies"]
+          Path("requirements-runtime.in").write_text(
+              "\n".join(dependencies) + "\n",
+              encoding="utf-8",
+          )
+          PYTHON
+
+          uv pip compile requirements-runtime.in \
+            --python-version 3.14 \
+            --output-file requirements-runtime.txt \
+            --no-header \
+            --no-annotate \
+            --upgrade
 
       - name: Run pip-audit (runtime, tagged release)
         run: uv run --extra dev pip-audit --progress-spinner off -r requirements-runtime.txt
@@ -83,18 +95,44 @@ jobs:
     needs: validate
     timeout-minutes: 15
     steps:
+      - name: Detect code scanning availability
+        id: code_scanning
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          err_file="$(mktemp)"
+          if gh api "repos/${{ github.repository }}/code-scanning/alerts?per_page=1" >/dev/null 2>"$err_file"; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "release code scanning availability: enabled" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          if grep -Eq "Code scanning is not enabled|Resource not accessible by integration|GitHub Code Security|GitHub Advanced Security" "$err_file"; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "release code scanning availability: disabled in GitHub for this repository; skipping tagged CodeQL gate" >> "$GITHUB_STEP_SUMMARY"
+            cat "$err_file" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          cat "$err_file" >&2
+          exit 1
+
       - name: Checkout tagged release ref
+        if: steps.code_scanning.outputs.enabled == 'true'
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: refs/tags/${{ env.RELEASE_TAG }}
           fetch-depth: 1
 
       - name: Set up Python
+        if: steps.code_scanning.outputs.enabled == 'true'
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
           python-version: "3.14"
 
       - name: Wait for tagged CodeQL analysis
+        if: steps.code_scanning.outputs.enabled == 'true'
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -107,8 +145,7 @@ jobs:
           analysis_count="0"
 
           for attempt in $(seq 1 30); do
-            analyses_json="$(gh api -H 'Accept: application/vnd.github+json' \
-              "/repos/${{ github.repository }}/code-scanning/analyses?ref=${encoded_ref}&tool_name=CodeQL&per_page=100")"
+            analyses_json="$(gh api -H 'Accept: application/vnd.github+json'               "/repos/${{ github.repository }}/code-scanning/analyses?ref=${encoded_ref}&tool_name=CodeQL&per_page=100")"
             analysis_count="$(printf '%s' "${analyses_json}" | jq --arg release_sha "${release_sha}" '[.[] | select(.commit_sha == $release_sha)] | length')"
 
             if [[ "${analysis_count}" != "0" ]]; then
@@ -125,6 +162,7 @@ jobs:
           done
 
       - name: Fail on open CodeQL alerts for tagged ref
+        if: steps.code_scanning.outputs.enabled == 'true'
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -133,8 +171,7 @@ jobs:
 
           release_ref="refs/tags/${RELEASE_TAG}"
           encoded_ref="${release_ref//\//%2F}"
-          alerts_json="$(gh api -H 'Accept: application/vnd.github+json' \
-            "/repos/${{ github.repository }}/code-scanning/alerts?ref=${encoded_ref}&state=open&tool_name=CodeQL&per_page=100")"
+          alerts_json="$(gh api -H 'Accept: application/vnd.github+json'             "/repos/${{ github.repository }}/code-scanning/alerts?ref=${encoded_ref}&state=open&tool_name=CodeQL&per_page=100")"
           open_count="$(printf '%s' "${alerts_json}" | jq 'length')"
 
           if [[ "${open_count}" != "0" ]]; then
@@ -144,6 +181,11 @@ jobs:
           fi
 
           echo "Tagged CodeQL gate: zero open alerts for ${release_ref}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record tagged CodeQL skip posture
+        if: steps.code_scanning.outputs.enabled != 'true'
+        run: |
+          echo "Tagged release skipped the CodeQL gate because GitHub code scanning is disabled for this repository" >> "$GITHUB_STEP_SUMMARY"
 
   build:
     name: Build Release Assets
