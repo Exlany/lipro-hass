@@ -41,7 +41,9 @@ async def status_runtime(mock_device: LiproDevice) -> StatusRuntime:
     async def mock_query_status(device_ids: list[str]) -> dict[str, dict[str, str]]:
         return {device_id: {"brightness": "100"} for device_id in device_ids}
 
-    async def mock_apply_update(device: LiproDevice, props: dict[str, str], source: str) -> bool:
+    async def mock_apply_update(
+        device: LiproDevice, props: dict[str, str], source: str
+    ) -> bool:
         return True
 
     def mock_get_device(device_id: str) -> LiproDevice | None:
@@ -62,7 +64,9 @@ class TestStatusScheduler:
     """Test StatusScheduler functionality."""
 
     @pytest.mark.asyncio
-    async def test_should_query_power_initial(self, status_runtime: StatusRuntime) -> None:
+    async def test_should_query_power_initial(
+        self, status_runtime: StatusRuntime
+    ) -> None:
         """Test power query should run initially."""
         with patch(
             "custom_components.lipro.core.coordinator.runtime.status.scheduler.monotonic",
@@ -71,20 +75,26 @@ class TestStatusScheduler:
             assert status_runtime.should_query_power() is True
 
     @pytest.mark.asyncio
-    async def test_mark_power_query_complete(self, status_runtime: StatusRuntime) -> None:
+    async def test_mark_power_query_complete(
+        self, status_runtime: StatusRuntime
+    ) -> None:
         """Test marking power query as complete."""
         status_runtime.mark_power_query_complete()
         assert status_runtime.should_query_power() is False
 
     @pytest.mark.asyncio
-    async def test_get_outlet_power_query_slice(self, status_runtime: StatusRuntime) -> None:
+    async def test_get_outlet_power_query_slice(
+        self, status_runtime: StatusRuntime
+    ) -> None:
         """Test getting outlet power query slice."""
         outlet_ids = [f"outlet{i}" for i in range(25)]
         slice_ids = status_runtime.get_outlet_power_query_slice(outlet_ids)
         assert len(slice_ids) == 10
 
     @pytest.mark.asyncio
-    async def test_advance_outlet_power_cycle(self, status_runtime: StatusRuntime) -> None:
+    async def test_advance_outlet_power_cycle(
+        self, status_runtime: StatusRuntime
+    ) -> None:
         """Test advancing outlet power cycle."""
         outlet_ids = [f"outlet{i}" for i in range(25)]
         first_slice = status_runtime.get_outlet_power_query_slice(outlet_ids)
@@ -108,7 +118,9 @@ class TestStatusScheduler:
 
         assert scheduler.get_outlet_power_query_slice([]) == []
 
-    def test_get_outlet_power_query_slice_returns_all_when_within_cycle_size(self) -> None:
+    def test_get_outlet_power_query_slice_returns_all_when_within_cycle_size(
+        self,
+    ) -> None:
         scheduler = StatusScheduler(power_query_interval=300, outlet_power_cycle_size=5)
         outlet_ids = ["outlet1", "outlet2"]
 
@@ -152,7 +164,9 @@ class TestStatusStrategy:
         mock_device: LiproDevice,
     ) -> None:
         """Test should query device when MQTT is disconnected."""
-        should_query = status_runtime.should_query_device(mock_device, mqtt_connected=False)
+        should_query = status_runtime.should_query_device(
+            mock_device, mqtt_connected=False
+        )
         assert should_query is True
 
     @pytest.mark.asyncio
@@ -163,7 +177,9 @@ class TestStatusStrategy:
     ) -> None:
         """Test should query offline device."""
         mock_device.update_properties({"connectState": "0"})
-        should_query = status_runtime.should_query_device(mock_device, mqtt_connected=True)
+        should_query = status_runtime.should_query_device(
+            mock_device, mqtt_connected=True
+        )
         assert should_query is True
 
     @pytest.mark.asyncio
@@ -210,17 +226,20 @@ class TestStatusExecutor:
         assert result["duration"] >= 0
 
     @pytest.mark.asyncio
-    async def test_execute_status_query_empty(self, status_runtime: StatusRuntime) -> None:
+    async def test_execute_status_query_empty(
+        self, status_runtime: StatusRuntime
+    ) -> None:
         """Test executing status query with empty list."""
         result = await status_runtime.execute_status_query([])
         assert result["device_count"] == 0
         assert result["updated_count"] == 0
 
-
     @pytest.mark.asyncio
     async def test_status_executor_skips_unknown_devices(self) -> None:
         executor = StatusExecutor(
-            query_device_status=AsyncMock(return_value={"missing": {"brightness": 100}}),
+            query_device_status=AsyncMock(
+                return_value={"missing": {"brightness": 100}}
+            ),
             apply_properties_update=AsyncMock(return_value=True),
             get_device_by_id=lambda _device_id: None,
         )
@@ -262,7 +281,10 @@ class TestStatusExecutor:
                 }
             ),
             apply_properties_update=AsyncMock(side_effect=_apply),
-            get_device_by_id=lambda device_id: {"device1": first, "device2": second}.get(device_id),
+            get_device_by_id=lambda device_id: {
+                "device1": first,
+                "device2": second,
+            }.get(device_id),
         )
 
         result = await executor.execute_status_query(["device1", "device2"])
