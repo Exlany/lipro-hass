@@ -384,3 +384,99 @@ contract_version: 1
 - `v1.27-REQUIREMENTS.md`
 - `v1.28-ROADMAP.md`
 - `v1.28-REQUIREMENTS.md`
+
+
+## Historical phase-history anchors
+
+| Phase | Milestone | Plans | Status | Date |
+| --- | --- | --- | --- | --- |
+| 7.5 Governance & Verification | v1.1 | 2/2 | Complete | 2026-03-13 |
+| 8 AI Debug Evidence Pack | v1.1 | 2/2 | Complete | 2026-03-13 |
+| 10 API Drift Isolation & Core Boundary Prep | v1.1 | 4/4 | Complete | 2026-03-14 |
+| 11 Control Router Formalization & Wiring Residual Demotion | v1.1 | 8/8 | Complete | 2026-03-14 |
+| 12 Type Contract Alignment, Residual Cleanup & Governance Hygiene | v1.1 | 5/5 | Complete | 2026-03-14 |
+| 13 Explicit Domain Surface, Governance Guard Hardening & Hotspot Boundary Decomposition | v1.1 | 3/3 | Complete | 2026-03-14 |
+| 14 Legacy Stack Final Closure, API Spine Demolition & Governance Truth Consolidation | v1.1 | 4/4 | Complete | 2026-03-15 |
+| 15 Support Feedback Contract Hardening, Governance Truth Repair & Maintainability Follow-Through | v1.1 | 5/5 | Complete | 2026-03-15 |
+
+### Phase 21: Replay Coverage & Exception Taxonomy Hardening
+**Status**: Complete (`2026-03-16`)
+
+### Phase 22: Observability Surface Convergence & Signal Exposure
+**Status**: Complete (`2026-03-16`)
+
+### Phase 23: Governance convergence, contributor docs and release evidence closure
+**Status**: Complete (`2026-03-16`)
+
+### Phase 24: Final milestone audit, archive readiness and v1.3 handoff prep
+**Status**: Complete (`2026-03-17`, revalidated after reopen)
+**Plans**: 5/5 complete
+**Requirements**: [SPT-01, GOV-13, DOC-01, HOT-03, QLT-01, TYP-03, RES-01]
+
+- [x] 09-01: 收窄 protocol root surface 与 compat exports
+
+### Phase 20: Remaining Boundary Family Completion
+**Status**: Complete (`2026-03-16`)
+**Plans**: 3/3 complete
+
+### Phase 12: Type Contract Alignment, Residual Cleanup & Governance Hygiene
+**Requirements**: TYP-01, TYP-02, CMP-01, CMP-02, HOT-01, GOV-09, GOV-10
+
+### Phase 14: Legacy Stack Final Closure, API Spine Demolition & Governance Truth Consolidation
+**Requirements**: RUN-04, HOT-02, CTRL-05, RUN-05, GOV-12
+
+
+### Phase 44: Governance asset pruning and terminology convergence
+**Status**: Complete (`2026-03-20`)
+**Plans**: 4/4 complete
+**Promoted closeout package**: `44-SUMMARY.md`, `44-VERIFICATION.md`
+
+### Phase 45: Hotspot decomposition and typed failure semantics
+**Status**: Complete (`2026-03-20`)
+**Plans**: 4/4 complete
+**Promoted closeout package**: `45-SUMMARY.md`, `45-VERIFICATION.md`
+
+### Phase 51: Continuity automation, governance-registry projection, and release rehearsal hardening
+**Status**: Complete (`2026-03-21`)
+**Plans**: 3/3 complete
+**Promoted closeout package**: `51-SUMMARY.md`, `51-VERIFICATION.md`
+
+### Phase 52: Protocol-root second-round slimming and request-policy isolation
+**Status**: Complete (`2026-03-21`)
+**Plans**: 3/3 complete
+**Promoted closeout package**: `52-SUMMARY.md`, `52-VERIFICATION.md`
+
+### Phase 53: Runtime and entry-root second-round throttling
+**Status**: Complete (`2026-03-21`)
+**Plans**: 3/3 complete
+**Promoted closeout package**: `53-SUMMARY.md`, `53-VERIFICATION.md`
+
+### Phase 54: Helper-hotspot formalization for anonymous-share and diagnostics helper families
+**Status**: Complete (`2026-03-21`)
+**Plans**: 4/4 complete
+**Promoted closeout package**: `54-SUMMARY.md`, `54-VERIFICATION.md`
+
+### Phase 55: Mega-test topicization round 2 and repo-wide typing-metric stratification
+**Status**: Complete (`2026-03-21`)
+**Plans**: 5/5 complete
+**Promoted closeout package**: `55-SUMMARY.md`, `55-VERIFICATION.md`
+
+### Phase 56: Shared backoff neutralization and cross-plane retry hygiene
+**Status**: Complete (`2026-03-22`)
+**Plans**: 3/3 complete
+**Promoted closeout package**: `56-SUMMARY.md`, `56-VERIFICATION.md`
+
+### Phase 57: Command-result typed outcome and reason-code hardening
+**Status**: Complete (`2026-03-22`)
+**Plans**: 3/3 complete
+**Promoted closeout package**: `57-SUMMARY.md`, `57-VERIFICATION.md`
+
+### Phase 58: Repository audit refresh and next-wave routing
+**Status**: Complete (`2026-03-22`)
+**Plans**: 3/3 complete
+**Promoted closeout package**: `58-SUMMARY.md`, `58-VERIFICATION.md`
+
+### Phase 59: Verification localization and governance guard topicization
+**Status**: Complete (`2026-03-22`)
+**Plans**: 3/3 complete
+**Promoted closeout package**: `59-SUMMARY.md`, `59-VERIFICATION.md`

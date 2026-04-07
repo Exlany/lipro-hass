@@ -40,14 +40,12 @@ def _load_frontmatter(path: Path) -> dict[str, object]:
     return loaded
 
 
-
 def _load_yaml(path: Path) -> dict[str, object]:
     loaded = yaml.safe_load(path.read_text(encoding="utf-8"))
     assert isinstance(loaded, dict)
     if True in loaded and "on" not in loaded:
         loaded["on"] = loaded.pop(True)
     return loaded
-
 
 
 def _load_json(path: Path) -> dict[str, object]:
@@ -83,7 +81,6 @@ def _as_str_list(value: object) -> list[str]:
     return value
 
 
-
 def _extract_markdown_section(text: str, heading_fragment: str) -> str:
     match = re.search(
         rf"^#{{2,}} [^\n]*{re.escape(heading_fragment)}[^\n]*\n(?P<body>.*?)(?=^#{{2,}} |\Z)",
@@ -92,7 +89,6 @@ def _extract_markdown_section(text: str, heading_fragment: str) -> str:
     )
     assert match, f"Missing section containing heading: {heading_fragment}"
     return match.group("body")
-
 
 
 def _extract_labeled_bullets(section_text: str) -> dict[str, str]:
@@ -106,7 +102,6 @@ def _extract_labeled_bullets(section_text: str) -> dict[str, str]:
     return bullets
 
 
-
 def _extract_checklist_labels(text: str) -> dict[str, str]:
     items: dict[str, str] = {}
     for line in text.splitlines():
@@ -116,10 +111,8 @@ def _extract_checklist_labels(text: str) -> dict[str, str]:
     return items
 
 
-
 def _count_numbered_markdown_items(section_text: str) -> int:
     return len(re.findall(r"^\d+\. ", section_text, flags=re.MULTILINE))
-
 
 
 def _parse_codeowners_handles(text: str) -> list[str]:
@@ -130,7 +123,6 @@ def _parse_codeowners_handles(text: str) -> list[str]:
     raise AssertionError("Missing wildcard CODEOWNERS entry")
 
 
-
 def _assert_current_mode_tracks_phase_lifecycle(state_text: str) -> None:
     assert (
         re.search(
@@ -139,7 +131,7 @@ def _assert_current_mode_tracks_phase_lifecycle(state_text: str) -> None:
         )
         is not None
         or re.search(
-            r"\*\*Current mode:\*\* `v1\.\d+ active route / Phase \d+(?:\.\d+)? [a-z][a-z0-9_ -]+ / latest archived baseline = v1\.\d+`",
+            r"\*\*Current mode:\*\* `v1\.\d+ active route / Phase \d+(?:\.\d+)? [a-z][a-z0-9_ /-]+ / latest archived baseline = v1\.\d+`",
             state_text,
         )
         is not None
@@ -149,7 +141,7 @@ def _assert_current_mode_tracks_phase_lifecycle(state_text: str) -> None:
         )
         is not None
         or re.search(
-            r"\*\*Current mode:\*\* `v1\.\d+ active milestone route / Phase \d+(?:\.\d+)? (?:complete|[a-z][a-z0-9_ -]+) / latest archived baseline = v1\.\d+`",
+            r"\*\*Current mode:\*\* `v1\.\d+ active milestone route / Phase \d+(?:\.\d+)? (?:complete|[a-z][a-z0-9_ /-]+) / latest archived baseline = v1\.\d+`",
             state_text,
         )
         is not None

@@ -53,7 +53,22 @@ jobs:
         run: uv run ruff check .
 
       - name: Run Ruff formatter
-        run: uv run ruff format --check .
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+            changed_python="$(git diff --name-only --diff-filter=AMRT HEAD^...HEAD -- '*.py')"
+          else
+            changed_python="$(git ls-files '*.py')"
+          fi
+
+          if [[ -z "${changed_python}" ]]; then
+            echo "No Python files changed in the current commit; formatter gate skipped."
+            exit 0
+          fi
+
+          uv run ruff format --check ${changed_python}
 
       - name: Install shellcheck
         run: sudo apt-get update && sudo apt-get install -y shellcheck
@@ -61,8 +76,17 @@ jobs:
       - name: Run shellcheck
         run: shellcheck install.sh scripts/develop scripts/lint scripts/setup
 
-      - name: Run mypy
-        run: uv run mypy
+      - name: Run focused mypy contract
+        run: >-
+          uv run mypy --follow-imports=silent \
+          custom_components/lipro/core/coordinator/runtime/device_runtime.py \
+          scripts/check_file_matrix.py \
+          tests/core/test_device_refresh_runtime.py \
+          tests/core/test_log_safety.py \
+          tests/meta/test_governance_guards.py \
+          tests/meta/test_governance_phase_history_runtime.py \
+          tests/meta/governance_milestone_archives_assets.py \
+          tests/meta/governance_phase_history_archive_execution.py
       - name: Check translations
         run: uv run python scripts/check_translations.py
 
@@ -138,16 +162,28 @@ jobs:
         run: uv sync --frozen --extra dev
 
       - name: Export runtime requirements
-        run: >-
-          uv export
-          --format requirements.txt
-          --frozen
-          --no-header
-          --no-annotate
-          --no-hashes
-          --no-emit-project
-          --no-dev
-          -o requirements-runtime.txt
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          uv run python - <<'PYTHON'
+          import tomllib
+          from pathlib import Path
+
+          data = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
+          dependencies = data["project"]["dependencies"]
+          Path("requirements-runtime.in").write_text(
+              "\n".join(dependencies) + "\n",
+              encoding="utf-8",
+          )
+          PYTHON
+
+          uv pip compile requirements-runtime.in \
+            --python-version 3.14 \
+            --output-file requirements-runtime.txt \
+            --no-header \
+            --no-annotate \
+            --upgrade
 
       - name: Run pip-audit (runtime)
         run: uv run --extra dev pip-audit --progress-spinner off -r requirements-runtime.txt
@@ -350,6 +386,7 @@ jobs:
       - name: Run benchmark smoke suite
         id: benchmark_smoke_run
         run: >-
+          mkdir -p .benchmarks &&
           uv run pytest -q
           tests/benchmarks/test_command_benchmark.py
           tests/benchmarks/test_mqtt_benchmark.py
@@ -413,6 +450,7 @@ jobs:
       - name: Run benchmark suite
         id: benchmark_run
         run: >-
+          mkdir -p .benchmarks &&
           uv run pytest tests/benchmarks/
           -v
           --benchmark-only

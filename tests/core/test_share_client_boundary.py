@@ -1,9 +1,10 @@
 """Topicized ShareWorkerClient external-boundary proof."""
-# ruff: noqa: F403, I001
+# ruff: noqa: F403
 
 from __future__ import annotations
 
 from .test_share_client_support import *
+
 
 def test_build_lite_report_matches_external_boundary_fixture() -> None:
     from custom_components.lipro.core.anonymous_share.report_builder import (

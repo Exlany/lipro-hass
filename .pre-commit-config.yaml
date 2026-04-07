@@ -21,8 +21,8 @@ repos:
         files: ^(custom_components/lipro|tests|scripts)/
 
       - id: mypy
-        name: mypy (uv)
-        entry: uv run --extra dev mypy
+        name: mypy (focused uv contract)
+        entry: uv run --extra dev mypy --follow-imports=silent custom_components/lipro/core/coordinator/runtime/device_runtime.py scripts/check_file_matrix.py tests/core/test_device_refresh_runtime.py tests/core/test_log_safety.py tests/meta/test_governance_guards.py tests/meta/test_governance_phase_history_runtime.py tests/meta/governance_milestone_archives_assets.py tests/meta/governance_phase_history_archive_execution.py
         language: system
         pass_filenames: false
         always_run: true

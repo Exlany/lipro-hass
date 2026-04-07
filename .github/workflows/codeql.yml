@@ -28,28 +28,63 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      - name: Detect code scanning availability
+        id: code_scanning
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          err_file="$(mktemp)"
+          if gh api "repos/${GITHUB_REPOSITORY}/code-scanning/alerts?per_page=1" >/dev/null 2>"$err_file"; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "code scanning availability: enabled" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          if grep -Eq "Code scanning is not enabled|Resource not accessible by integration|GitHub Code Security|GitHub Advanced Security" "$err_file"; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "code scanning availability: disabled in GitHub for this repository; skipping CodeQL upload so CI stays truthful instead of red" >> "$GITHUB_STEP_SUMMARY"
+            cat "$err_file" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          cat "$err_file" >&2
+          exit 1
+
       - name: Checkout repository
+        if: steps.code_scanning.outputs.enabled == 'true'
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
       - name: Initialize CodeQL
+        if: steps.code_scanning.outputs.enabled == 'true'
         uses: github/codeql-action/init@603b797f8b14b413fe025cd935a91c16c4782713
         with:
           languages: python
 
       - name: Set up Python
+        if: steps.code_scanning.outputs.enabled == 'true'
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
           python-version: "3.14"
 
       - name: Set up uv
+        if: steps.code_scanning.outputs.enabled == 'true'
         uses: astral-sh/setup-uv@0ca8f610542aa7f4acaf39e65cf4eb3c35091883
         with:
           enable-cache: true
 
       - name: Install dependencies
+        if: steps.code_scanning.outputs.enabled == 'true'
         run: uv sync --frozen --extra dev
 
       - name: Perform CodeQL Analysis
+        if: steps.code_scanning.outputs.enabled == 'true'
         uses: github/codeql-action/analyze@603b797f8b14b413fe025cd935a91c16c4782713
         with:
           category: "/language:python"
+
+      - name: Record skip posture
+        if: steps.code_scanning.outputs.enabled != 'true'
+        run: |
+          echo "code scanning remained disabled in GitHub for this private repository" >> "$GITHUB_STEP_SUMMARY"
+          echo "CodeQL workflow intentionally skipped upload instead of failing the PR" >> "$GITHUB_STEP_SUMMARY"

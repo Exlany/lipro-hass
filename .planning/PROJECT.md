@@ -263,3 +263,51 @@ contract_version: 1
 - 当前 latest archived baseline 是什么？
 - milestone audit 与 evidence index 是否已经成对落盘？
 - 下一步是否应该进入 `$gsd-new-milestone`，而不是继续修改已归档路线？
+
+
+## Historical archive assets
+
+**Historical archive assets:** `.planning/milestones/{v1.1,v1.2}.md` lineage remains pull-only context for early closeout truth and preserves archive-ready / handoff-ready anchors.
+
+### 10. Phase 15 支持反馈契约 / 治理真源修补 / 可维护性跟进已完成
+
+- Archive notes for `v1.1` remain reference-only; current route must preserve their promoted evidence without reactivating the archived plan bundle.
+
+
+### 7. Phase 12 Type / Residual / Governance 收口已完成
+
+- Historical continuity note: `Phase 12` closeout remains preserved as archived topology truth.
+
+## Archived Milestone (v1.6)
+
+- Evidence index: `.planning/reviews/V1_6_EVIDENCE_INDEX.md`
+- Archive delivery snapshot: `16/16` promoted closeout checkpoints preserved for follow-up continuity.
+
+
+### 8. Phase 13 显式领域表面 / 治理守卫 / 热点边界收口已完成
+
+- Historical continuity note: `Phase 13` domain/governance closeout remains preserved as archived topology truth.
+
+### 9. Phase 14 旧 API Spine 终局收口与治理真源归一已完成
+
+- Historical continuity note: `Phase 14` governance truth remains pull-only and must not be replanned.
+
+## Planned Milestone (v1.8)
+
+- Historical promoted closeout references: `51-SUMMARY.md`, `52-SUMMARY.md`, `53-SUMMARY.md`, `54-SUMMARY.md`, `55-SUMMARY.md`
+
+## Planned Milestone (v1.9)
+
+- Historical promoted closeout references: `56-SUMMARY.md`
+
+## Planned Milestone (v1.10)
+
+- Historical promoted closeout references: `57-SUMMARY.md`
+
+## Planned Milestone (v1.11)
+
+- Historical promoted closeout references: `58-SUMMARY.md`
+
+## Archived Milestone (v1.12)
+
+- Historical promoted closeout references: `59-SUMMARY.md`

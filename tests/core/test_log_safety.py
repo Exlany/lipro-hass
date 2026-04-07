@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any, cast
+
 from custom_components.lipro.core.utils.log_safety import (
     mask_ip_addresses,
     safe_error_placeholder,
@@ -58,22 +60,21 @@ class TestSafeErrorPlaceholder:
     """Tests for safe_error_placeholder."""
 
     def test_bool_code_does_not_render_code(self) -> None:
-        err = RuntimeError("token=secret")
+        err = cast(Any, RuntimeError("token=secret"))
         err.code = True
         assert safe_error_placeholder(err) == "RuntimeError"
 
     def test_int_code_renders_marker(self) -> None:
-        err = RuntimeError("boom")
+        err = cast(Any, RuntimeError("boom"))
         err.code = 401
         assert safe_error_placeholder(err) == "RuntimeError(code=401)"
 
     def test_str_code_renders_trimmed(self) -> None:
-        err = RuntimeError("boom")
+        err = cast(Any, RuntimeError("boom"))
         err.code = " 401 "
         assert safe_error_placeholder(err) == "RuntimeError(code=401)"
 
     def test_empty_code_falls_back_to_name(self) -> None:
-        err = RuntimeError("boom")
+        err = cast(Any, RuntimeError("boom"))
         err.code = " "
         assert safe_error_placeholder(err) == "RuntimeError"
-

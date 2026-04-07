@@ -88,6 +88,7 @@ contract_version: 1
 - Residual posture ledger: `.planning/reviews/RESIDUAL_LEDGER.md`
 - Latest archived evidence pointer: `.planning/reviews/V1_43_EVIDENCE_INDEX.md`
 - Latest archived milestone audit: `.planning/v1.43-MILESTONE-AUDIT.md`
+- Historical archive audit anchor: `.planning/v1.16-MILESTONE-AUDIT.md`
 - Promoted phase evidence allowlist: `.planning/reviews/PROMOTED_PHASE_ASSETS.md`
 - North-star authority: `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`
 
@@ -95,6 +96,9 @@ contract_version: 1
 
 ### Decisions
 
+- `v1.1` 已完成全部计划执行：`15 phases / 58 plans` 全绿落表；其 milestone closeout 只保留为历史锚点，不再反向接管当前 route。
+- `Phase 17` 已完成：final residual retirement / typed-contract tightening / milestone closeout 已归档，后续路线只能 pull-only 引用该 closeout truth。
+- `Phase 24` 已完成并于 2026-03-17 重新验证，archive-ready / handoff-ready history 继续由 current route pull-only 引用。
 - `v1.44` 已作为新的 active milestone 显式开启；它不是对 `141` archived bundle 的隐式重用，而是单独注册的 follow-up route。
 - `v1.43` 继续只承担 latest archived baseline / pull-only evidence chain 身份；后续任何变更都必须通过 `v1.44` selector family 承认。
 - Phase 142 已完成治理减负 / derived-truth audit bundle；Phase 143 现已拥有 143-01 ~ 143-03 plan bundle，并作为 execution-ready current phase 接管 route。
@@ -117,8 +121,8 @@ contract_version: 1
 
 ## Session Continuity
 
-- **Workspace root:** `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass`
-- **Current phase context:** `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/.planning/phases/143-toolchain-freshness-hardening-and-route-projection-automation/143-CONTEXT.md`
-- **Latest archived evidence index:** `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/.planning/reviews/V1_43_EVIDENCE_INDEX.md`
-- **Latest archived milestone audit:** `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/.planning/v1.43-MILESTONE-AUDIT.md`
-- **Read next:** `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/.planning/phases/143-toolchain-freshness-hardening-and-route-projection-automation/143-CONTEXT.md` → `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/.planning/phases/143-toolchain-freshness-hardening-and-route-projection-automation/143-RESEARCH.md` → `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/.planning/phases/143-toolchain-freshness-hardening-and-route-projection-automation/143-01-PLAN.md` → `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/.planning/phases/143-toolchain-freshness-hardening-and-route-projection-automation/143-02-PLAN.md` → `/var/tmp/coolvibe/worktrees/edf26778937a-/lipro-hass/.planning/phases/143-toolchain-freshness-hardening-and-route-projection-automation/143-03-PLAN.md`
+- **Workspace root:** `.`
+- **Current phase context:** `.planning/phases/143-toolchain-freshness-hardening-and-route-projection-automation/143-CONTEXT.md`
+- **Latest archived evidence index:** `.planning/reviews/V1_43_EVIDENCE_INDEX.md`
+- **Latest archived milestone audit:** `.planning/v1.43-MILESTONE-AUDIT.md`
+- **Read next:** `.planning/phases/143-toolchain-freshness-hardening-and-route-projection-automation/143-CONTEXT.md` → `.planning/phases/143-toolchain-freshness-hardening-and-route-projection-automation/143-RESEARCH.md` → `.planning/phases/143-toolchain-freshness-hardening-and-route-projection-automation/143-01-PLAN.md` → `.planning/phases/143-toolchain-freshness-hardening-and-route-projection-automation/143-02-PLAN.md` → `.planning/phases/143-toolchain-freshness-hardening-and-route-projection-automation/143-03-PLAN.md`
