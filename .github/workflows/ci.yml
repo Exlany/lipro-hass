@@ -83,16 +83,16 @@ jobs:
         run: shellcheck install.sh scripts/develop scripts/lint scripts/setup
 
       - name: Run focused mypy contract
-        run: >-
+        run: |
           uv run mypy --follow-imports=silent \
-          custom_components/lipro/core/coordinator/runtime/device_runtime.py \
-          scripts/check_file_matrix.py \
-          tests/core/test_device_refresh_runtime.py \
-          tests/core/test_log_safety.py \
-          tests/meta/test_governance_guards.py \
-          tests/meta/test_governance_phase_history_runtime.py \
-          tests/meta/governance_milestone_archives_assets.py \
-          tests/meta/governance_phase_history_archive_execution.py
+            custom_components/lipro/core/coordinator/runtime/device_runtime.py \
+            scripts/check_file_matrix.py \
+            tests/core/test_device_refresh_runtime.py \
+            tests/core/test_log_safety.py \
+            tests/meta/test_governance_guards.py \
+            tests/meta/test_governance_phase_history_runtime.py \
+            tests/meta/governance_milestone_archives_assets.py \
+            tests/meta/governance_phase_history_archive_execution.py
       - name: Check translations
         run: uv run python scripts/check_translations.py
 
