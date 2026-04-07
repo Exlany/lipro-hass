@@ -32,6 +32,14 @@ resolve_changed_coverage_surface() {
     current_ref="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")"
 
     if { [ "${GITHUB_REF_NAME:-}" = "main" ] || [ "$current_ref" = "main" ] || [ "${GITHUB_EVENT_NAME:-}" = "schedule" ] || [ "${GITHUB_EVENT_NAME:-}" = "workflow_dispatch" ] || [ "${GITHUB_EVENT_NAME:-}" = "workflow_call" ]; } \
+        && git rev-parse --verify HEAD^2 >/dev/null 2>&1; then
+        if git rev-parse --verify HEAD^2^ >/dev/null 2>&1; then
+            git diff --name-only --diff-filter=AMRT HEAD^2^..HEAD^2 > "$output_path"
+            return 0
+        fi
+    fi
+
+    if { [ "${GITHUB_REF_NAME:-}" = "main" ] || [ "$current_ref" = "main" ] || [ "${GITHUB_EVENT_NAME:-}" = "schedule" ] || [ "${GITHUB_EVENT_NAME:-}" = "workflow_dispatch" ] || [ "${GITHUB_EVENT_NAME:-}" = "workflow_call" ]; } \
         && git rev-parse --verify HEAD^ >/dev/null 2>&1; then
         git diff --name-only --diff-filter=AMRT HEAD^...HEAD > "$output_path"
         return 0

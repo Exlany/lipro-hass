@@ -137,6 +137,24 @@ def test_ci_lint_lane_runs_docs_route_checker() -> None:
     lint_job = _as_mapping(ci_jobs["lint"])
     lint_steps = _as_mapping_list(lint_job["steps"])
 
+    checkout_step = next(
+        step for step in lint_steps if step.get("name") == "Checkout repository"
+    )
+    checkout_with = _as_mapping(checkout_step["with"])
+    assert _as_str(checkout_with["fetch-depth"]) == "0"
+
+    formatter_step = next(
+        step for step in lint_steps if step.get("name") == "Run Ruff formatter"
+    )
+    formatter_run = _as_str(formatter_step["run"])
+    assert "pull/${PR_NUMBER}/head:pr-head" in formatter_run
+    assert "pr-head^..pr-head -- '*.py'" in formatter_run
+    assert (
+        '[[ "${GITHUB_EVENT_NAME}" == "push" ]] && git rev-parse --verify HEAD^2 >/dev/null 2>&1'
+        in formatter_run
+    )
+    assert "HEAD^2^..HEAD^2 -- '*.py'" in formatter_run
+
     markdown_step = next(
         step for step in lint_steps if step.get("name") == "Check markdown docs links"
     )
@@ -167,6 +185,14 @@ def test_ci_test_and_benchmark_lanes_keep_one_snapshot_story() -> None:
         "git diff --name-only --diff-filter=AMRT pr-head^..pr-head > .coverage-changed-files"
         in resolve_run
     )
+    assert (
+        '[[ "${GITHUB_EVENT_NAME}" == "push" ]] && git rev-parse --verify HEAD^2 >/dev/null 2>&1'
+        in resolve_run
+    )
+    assert (
+        "git diff --name-only --diff-filter=AMRT HEAD^2^..HEAD^2 > .coverage-changed-files"
+        in resolve_run
+    )
 
     baseline_step = next(
         step
@@ -175,6 +201,11 @@ def test_ci_test_and_benchmark_lanes_keep_one_snapshot_story() -> None:
     )
     baseline_run = _as_str(baseline_step["run"])
     assert 'baseline_ref="$(git rev-parse pr-head^)"' in baseline_run
+    assert (
+        '[[ "${GITHUB_EVENT_NAME}" == "push" ]] && git rev-parse --verify HEAD^2 >/dev/null 2>&1'
+        in baseline_run
+    )
+    assert 'baseline_ref="$(git rev-parse HEAD^2^)"' in baseline_run
 
     contract_step = next(
         step for step in test_steps if step.get("name") == "Record test lane contract"
@@ -301,6 +332,14 @@ def test_scripts_lint_full_mode_matches_ci_coverage_contract() -> None:
     _assert_tokens(lint_text, _GOVERNANCE_GUARD_TESTS)
     assert "total + changed-surface coverage" in lint_text
     assert "resolve_changed_coverage_surface" in lint_text
+    assert (
+        'git diff --name-only --diff-filter=AMRT HEAD^2^..HEAD^2 > "$output_path"'
+        in lint_text
+    )
+    assert (
+        'git diff --name-only --diff-filter=AMRT HEAD^...HEAD > "$output_path"'
+        in lint_text
+    )
     assert '--changed-files "$tmp_changed_coverage_surface"' in lint_text
     assert "--changed-minimum 95" in lint_text
     assert "COVERAGE_BASELINE_JSON" in lint_text
