@@ -253,17 +253,29 @@ jobs:
 
       - name: Resolve changed coverage surface
         shell: bash
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           set -euo pipefail
 
-          if { [ "${GITHUB_REF_NAME}" = "main" ] || [ "${GITHUB_EVENT_NAME}" = "schedule" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_call" ]; } \
+          if [[ "${GITHUB_EVENT_NAME}" == "pull_request" && -n "${PR_NUMBER}" ]]; then
+            git fetch --no-tags --depth=2 origin "pull/${PR_NUMBER}/head:pr-head"
+            if git rev-parse --verify pr-head^ >/dev/null 2>&1; then
+              git diff --name-only --diff-filter=AMRT pr-head^..pr-head > .coverage-changed-files
+            elif git rev-parse --verify origin/main >/dev/null 2>&1; then
+              merge_base="$(git merge-base origin/main pr-head)"
+              git diff --name-only --diff-filter=AMRT "${merge_base}...pr-head" > .coverage-changed-files
+            else
+              : > .coverage-changed-files
+            fi
+          elif { [ "${GITHUB_REF_NAME}" = "main" ] || [ "${GITHUB_EVENT_NAME}" = "schedule" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_call" ]; } \
             && git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+            git diff --name-only --diff-filter=AMRT HEAD^...HEAD > .coverage-changed-files
+          elif git rev-parse --verify HEAD^ >/dev/null 2>&1; then
             git diff --name-only --diff-filter=AMRT HEAD^...HEAD > .coverage-changed-files
           elif git rev-parse --verify origin/main >/dev/null 2>&1; then
             merge_base="$(git merge-base origin/main HEAD)"
             git diff --name-only --diff-filter=AMRT "${merge_base}...HEAD" > .coverage-changed-files
-          elif git rev-parse --verify HEAD^ >/dev/null 2>&1; then
-            git diff --name-only --diff-filter=AMRT HEAD^...HEAD > .coverage-changed-files
           else
             : > .coverage-changed-files
           fi
@@ -279,18 +291,25 @@ jobs:
 
       - name: Generate coverage baseline evidence
         shell: bash
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           set -euo pipefail
 
           baseline_ref=""
-          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ] && git rev-parse --verify origin/main >/dev/null 2>&1; then
-            baseline_ref="$(git merge-base origin/main HEAD)"
+          if [[ "${GITHUB_EVENT_NAME}" == "pull_request" && -n "${PR_NUMBER}" ]]; then
+            git fetch --no-tags --depth=2 origin "pull/${PR_NUMBER}/head:pr-head"
+            if git rev-parse --verify pr-head^ >/dev/null 2>&1; then
+              baseline_ref="$(git rev-parse pr-head^)"
+            elif git rev-parse --verify origin/main >/dev/null 2>&1; then
+              baseline_ref="$(git merge-base origin/main pr-head)"
+            fi
           elif { [ "${GITHUB_REF_NAME}" = "main" ] || [ "${GITHUB_EVENT_NAME}" = "schedule" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_call" ]; }             && git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+            baseline_ref="$(git rev-parse HEAD^)"
+          elif git rev-parse --verify HEAD^ >/dev/null 2>&1; then
             baseline_ref="$(git rev-parse HEAD^)"
           elif git rev-parse --verify origin/main >/dev/null 2>&1; then
             baseline_ref="$(git merge-base origin/main HEAD)"
-          elif git rev-parse --verify HEAD^ >/dev/null 2>&1; then
-            baseline_ref="$(git rev-parse HEAD^)"
           fi
 
           if [[ -z "$baseline_ref" ]]; then

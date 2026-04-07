@@ -31,11 +31,9 @@ _DIAGNOSTICS_PRE_PUSH_TESTS = (
     "tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_diagnostics_snapshot",
 )
 _CHANGED_SURFACE_COMMAND = (
-    'git diff --name-only --diff-filter=AMRT "$(git merge-base origin/main HEAD)...HEAD" > .coverage-changed-files'
+    "git diff --name-only --diff-filter=AMRT HEAD^...HEAD > .coverage-changed-files"
 )
-_COVERAGE_GATES_COMMAND = (
-    "uv run python scripts/coverage_diff.py coverage.json --minimum 95 --changed-files .coverage-changed-files --changed-minimum 95"
-)
+_COVERAGE_GATES_COMMAND = "uv run python scripts/coverage_diff.py coverage.json --minimum 95 --changed-files .coverage-changed-files --changed-minimum 95"
 _BENCHMARK_SMOKE_TESTS = (
     "tests/benchmarks/test_command_benchmark.py",
     "tests/benchmarks/test_mqtt_benchmark.py",
@@ -47,11 +45,9 @@ def _load_pyproject() -> dict[str, object]:
     return tomllib.loads(_PYPROJECT.read_text(encoding="utf-8"))
 
 
-
 def _assert_tokens(text: str, tokens: tuple[str, ...]) -> None:
     for token in tokens:
         assert token in text
-
 
 
 def test_pre_push_contract_runs_translation_and_governance_truth_early() -> None:
@@ -88,7 +84,6 @@ def test_pre_push_contract_runs_translation_and_governance_truth_early() -> None
     _assert_tokens(governance_entry, _GOVERNANCE_GUARD_TESTS)
 
 
-
 def test_ci_governance_lane_records_same_focused_truths() -> None:
     """CI governance lane should publish the same checker and pytest story local flows mirror."""
     ci = _load_yaml(_CI_WORKFLOW)
@@ -97,16 +92,24 @@ def test_ci_governance_lane_records_same_focused_truths() -> None:
     governance_steps = _as_mapping_list(governance_job["steps"])
 
     architecture_step = next(
-        step for step in governance_steps if step.get("name") == "Check architecture policy"
+        step
+        for step in governance_steps
+        if step.get("name") == "Check architecture policy"
     )
-    assert _as_str(architecture_step["run"]) == "uv run python scripts/check_architecture_policy.py --check"
+    assert (
+        _as_str(architecture_step["run"])
+        == "uv run python scripts/check_architecture_policy.py --check"
+    )
 
     file_matrix_step = next(
         step
         for step in governance_steps
         if step.get("name") == "Check file matrix and active authority docs"
     )
-    assert _as_str(file_matrix_step["run"]) == "uv run python scripts/check_file_matrix.py --check"
+    assert (
+        _as_str(file_matrix_step["run"])
+        == "uv run python scripts/check_file_matrix.py --check"
+    )
 
     governance_pytest_step = next(
         step
@@ -118,13 +121,14 @@ def test_ci_governance_lane_records_same_focused_truths() -> None:
     _assert_tokens(governance_pytest_run, _GOVERNANCE_GUARD_TESTS)
 
     contract_step = next(
-        step for step in governance_steps if step.get("name") == "Record governance lane contract"
+        step
+        for step in governance_steps
+        if step.get("name") == "Record governance lane contract"
     )
     contract_run = _as_str(contract_step["run"])
     assert "governance checker roots:" in contract_run
     assert "governance pytest suite:" in contract_run
     assert "./scripts/lint --full reuses the same focused guard list" in contract_run
-
 
 
 def test_ci_lint_lane_runs_docs_route_checker() -> None:
@@ -136,7 +140,9 @@ def test_ci_lint_lane_runs_docs_route_checker() -> None:
     markdown_step = next(
         step for step in lint_steps if step.get("name") == "Check markdown docs links"
     )
-    assert _as_str(markdown_step["run"]) == "uv run python scripts/check_markdown_links.py"
+    assert (
+        _as_str(markdown_step["run"]) == "uv run python scripts/check_markdown_links.py"
+    )
 
 
 def test_ci_test_and_benchmark_lanes_keep_one_snapshot_story() -> None:
@@ -150,6 +156,26 @@ def test_ci_test_and_benchmark_lanes_keep_one_snapshot_story() -> None:
     assert "Run snapshot tests" not in test_step_names
     assert "Resolve changed coverage surface" in test_step_names
     assert "Generate coverage baseline evidence" in test_step_names
+    resolve_step = next(
+        step
+        for step in test_steps
+        if step.get("name") == "Resolve changed coverage surface"
+    )
+    resolve_run = _as_str(resolve_step["run"])
+    assert "pull/${PR_NUMBER}/head:pr-head" in resolve_run
+    assert (
+        "git diff --name-only --diff-filter=AMRT pr-head^..pr-head > .coverage-changed-files"
+        in resolve_run
+    )
+
+    baseline_step = next(
+        step
+        for step in test_steps
+        if step.get("name") == "Generate coverage baseline evidence"
+    )
+    baseline_run = _as_str(baseline_step["run"])
+    assert 'baseline_ref="$(git rev-parse pr-head^)"' in baseline_run
+
     contract_step = next(
         step for step in test_steps if step.get("name") == "Record test lane contract"
     )
@@ -202,12 +228,15 @@ def test_ci_test_and_benchmark_lanes_keep_one_snapshot_story() -> None:
     benchmark_smoke_run_text = _as_str(benchmark_smoke_run["run"])
     for token in _BENCHMARK_SMOKE_TESTS:
         assert token in benchmark_smoke_run_text
-    assert "--benchmark-json=.benchmarks/benchmark-smoke.json" in benchmark_smoke_run_text
+    assert (
+        "--benchmark-json=.benchmarks/benchmark-smoke.json" in benchmark_smoke_run_text
+    )
 
     benchmark_smoke_compare = next(
         step
         for step in benchmark_smoke_steps
-        if step.get("name") == "Compare benchmark smoke against baseline manifest subset"
+        if step.get("name")
+        == "Compare benchmark smoke against baseline manifest subset"
     )
     benchmark_smoke_compare_run = _as_str(benchmark_smoke_compare["run"])
     assert "--benchmark-set smoke" in benchmark_smoke_compare_run
@@ -215,13 +244,13 @@ def test_ci_test_and_benchmark_lanes_keep_one_snapshot_story() -> None:
     benchmark_job = _as_mapping(ci_jobs["benchmark"])
     benchmark_steps = _as_mapping_list(benchmark_job["steps"])
     benchmark_run = next(
-        step
-        for step in benchmark_steps
-        if step.get("name") == "Run benchmark suite"
+        step for step in benchmark_steps if step.get("name") == "Run benchmark suite"
     )
     assert benchmark_run.get("continue-on-error") in (None, False)
     assert _as_str(benchmark_run["id"]) == "benchmark_run"
-    assert "--benchmark-json=.benchmarks/benchmark.json" in _as_str(benchmark_run["run"])
+    assert "--benchmark-json=.benchmarks/benchmark.json" in _as_str(
+        benchmark_run["run"]
+    )
 
     upload_step = next(
         step
@@ -251,7 +280,10 @@ def test_ci_test_and_benchmark_lanes_keep_one_snapshot_story() -> None:
     assert "no-regression gate" in summary_run
     assert "steps.benchmark_run.outcome" in summary_run
     assert "steps.benchmark_contract.outcome" in summary_run
-    assert "benchmark smoke lane remains the PR/push/workflow_call subset feedback path" in summary_run
+    assert (
+        "benchmark smoke lane remains the PR/push/workflow_call subset feedback path"
+        in summary_run
+    )
 
     benchmark_script = (_ROOT / "scripts" / "check_benchmark_baseline.py").read_text(
         encoding="utf-8"
@@ -259,7 +291,6 @@ def test_ci_test_and_benchmark_lanes_keep_one_snapshot_story() -> None:
     assert "Benchmark contract: warnings only" in benchmark_script
     assert "blocking regression" in benchmark_script
     assert "--benchmark-set" in benchmark_script
-
 
 
 def test_scripts_lint_full_mode_matches_ci_coverage_contract() -> None:
@@ -276,12 +307,13 @@ def test_scripts_lint_full_mode_matches_ci_coverage_contract() -> None:
     assert "--fail-on-changed-regression" in lint_text
 
 
-
 def test_scripts_lint_preserves_changed_surface_manifest_for_full_mode() -> None:
     lint_text = _LINT_SCRIPT.read_text(encoding="utf-8")
 
     assert 'tmp_changed_coverage_surface="$(mktemp)"' in lint_text
-    assert 'resolve_changed_coverage_surface "$tmp_changed_coverage_surface"' in lint_text
+    assert (
+        'resolve_changed_coverage_surface "$tmp_changed_coverage_surface"' in lint_text
+    )
     assert 'tmp_changed_coverage_surface=""' not in lint_text
 
 
@@ -292,12 +324,20 @@ def test_contributing_docs_keep_command_manifest_in_sync() -> None:
     assert "uv run python scripts/check_markdown_links.py" in docs_text
     assert "uv run --extra dev python scripts/check_markdown_links.py" in docs_text
     assert "uv run --extra dev python scripts/check_file_matrix.py --check" in docs_text
-    assert "uv run --extra dev pytest -q -x tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_collects_and_redacts_diagnostics" in docs_text
-    assert "uv run --extra dev pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py" in docs_text
+    assert (
+        "uv run --extra dev pytest -q -x tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_collects_and_redacts_diagnostics"
+        in docs_text
+    )
+    assert (
+        "uv run --extra dev pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py"
+        in docs_text
+    )
     assert _CHANGED_SURFACE_COMMAND in docs_text
     assert _COVERAGE_GATES_COMMAND in docs_text
-    assert "tests/core/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics" not in docs_text
-
+    assert (
+        "tests/core/test_diagnostics.py::TestAsyncGetConfigEntryDiagnostics"
+        not in docs_text
+    )
 
 
 def test_pytest_marker_contract_has_no_dead_declarations() -> None:
@@ -312,4 +352,6 @@ def test_pytest_marker_contract_has_no_dead_declarations() -> None:
     assert _as_str(pytest_options["addopts"]) == "--strict-markers"
     markers = pytest_options["markers"]
     assert isinstance(markers, list)
-    assert markers == ["benchmark: governed benchmark contract and PR smoke performance checks"]
+    assert markers == [
+        "benchmark: governed benchmark contract and PR smoke performance checks"
+    ]

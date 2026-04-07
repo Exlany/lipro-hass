@@ -161,7 +161,7 @@ uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro 
 # Snapshot coverage is already included above / snapshot 覆盖已包含在上面的命令中
 
 # Prepare the changed coverage surface (same contract as CI) / 生成与 CI 一致的 changed coverage surface
-git diff --name-only --diff-filter=AMRT "$(git merge-base origin/main HEAD)...HEAD" > .coverage-changed-files
+git diff --name-only --diff-filter=AMRT HEAD^...HEAD > .coverage-changed-files
 
 # Total + changed-surface coverage gates (same as CI; set `COVERAGE_BASELINE_JSON=/path/to/baseline.json` to mirror baseline compare locally) / 总覆盖率 + changed-surface 覆盖率门禁（与 CI 一致；如需本地镜像 baseline compare，请设置 `COVERAGE_BASELINE_JSON=/path/to/baseline.json`）
 uv run python scripts/coverage_diff.py coverage.json --minimum 95 --changed-files .coverage-changed-files --changed-minimum 95
@@ -248,7 +248,7 @@ async def async_turn_on(self, **kwargs: Any) -> None:
    uv run python scripts/check_file_matrix.py --check
    uv run pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py
    uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro --cov-fail-under=95 --cov-report=json --cov-report=xml --cov-report=term-missing
-   git diff --name-only --diff-filter=AMRT "$(git merge-base origin/main HEAD)...HEAD" > .coverage-changed-files
+   git diff --name-only --diff-filter=AMRT HEAD^...HEAD > .coverage-changed-files
    uv run python scripts/coverage_diff.py coverage.json --minimum 95 --changed-files .coverage-changed-files --changed-minimum 95  # total + changed-surface coverage; set COVERAGE_BASELINE_JSON and run ./scripts/lint --full to mirror CI baseline compare
    uv run python scripts/refactor_tools.py --coverage-json coverage.json --minimum-coverage 95
 

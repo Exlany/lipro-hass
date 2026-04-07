@@ -37,15 +37,15 @@ resolve_changed_coverage_surface() {
         return 0
     fi
 
+    if git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+        git diff --name-only --diff-filter=AMRT HEAD^...HEAD > "$output_path"
+        return 0
+    fi
+
     if git rev-parse --verify origin/main >/dev/null 2>&1; then
         local merge_base
         merge_base="$(git merge-base origin/main HEAD)"
         git diff --name-only --diff-filter=AMRT "${merge_base}...HEAD" > "$output_path"
-        return 0
-    fi
-
-    if git rev-parse --verify HEAD^ >/dev/null 2>&1; then
-        git diff --name-only --diff-filter=AMRT HEAD^...HEAD > "$output_path"
         return 0
     fi
 
