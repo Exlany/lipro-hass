@@ -36,7 +36,7 @@ dev = [
     "pip>=21.3.1",
     "pip-audit>=2.9.0",
     "pre-commit>=3.7.0",
-    "ruff==0.15.4",
+    "ruff==0.15.10",
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0",
     "pytest-cov>=4.0.0",
