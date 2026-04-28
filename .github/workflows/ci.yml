@@ -341,7 +341,7 @@ jobs:
 
       - name: Upload coverage artifact
         if: always() && hashFiles('coverage.json', 'coverage.xml') != ''
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: coverage-artifacts-${{ github.run_id }}
           path: |
@@ -398,7 +398,7 @@ jobs:
 
       - name: Upload benchmark smoke artifact
         if: always() && hashFiles('.benchmarks/benchmark-smoke.json') != ''
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: benchmark-smoke-json-${{ github.run_id }}
           path: .benchmarks/benchmark-smoke.json
@@ -460,7 +460,7 @@ jobs:
 
       - name: Upload benchmark artifact
         if: always() && hashFiles('.benchmarks/benchmark.json') != ''
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: benchmark-json-${{ github.run_id }}
           path: .benchmarks/benchmark.json
