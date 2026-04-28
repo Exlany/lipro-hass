@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lipro-smart-home"
-version = "1.0.0"
+version = "1.0.2"
 description = "Home Assistant integration for Lipro Smart Home devices"
 readme = "README.md"
 license = "MIT"

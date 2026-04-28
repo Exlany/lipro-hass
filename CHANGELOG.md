@@ -1,11 +1,10 @@
 # 更新日志
 
-本项目的重要变更都会记录在本文件中。
-
-格式参考 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)，并遵循
-[语义化版本](https://semver.org/spec/v2.0.0.html)。
-
 ## [Unreleased]（未发布）
+
+暂无。
+
+## [1.0.2] - 2026-04-28
 
 ### 变更（Changed）
 
@@ -13,12 +12,15 @@
 - 完善了设备定时相关调用链的一致性，补齐 mesh / standard schedule 之间的参数透传行为。
 - 同步收紧了开发者架构文档、维护者发布手册与治理基线之间的当前路线说明，降低后续维护时的定位成本。
 - 持续压缩内部实现热点，保持对外导入入口与正式根对象不变。
+- 同步项目版本、Home Assistant manifest 与锁文件版本到 `1.0.2`。
 
 ### 修复（Fixed）
 
 - 修复了 schedule `group_id` 在部分 REST/protocol forwarding 链路中的透传缺口。
 - 修复了当前治理/验证文档仍引用过期路线状态与旧测试路径的若干漂移项。
 - 修复了维护者发布语义与 private-access / mirror reachability 条件之间的不一致表述。
+- 放宽 MQTT benchmark 的阻断阈值，避免 GitHub runner 微基准波动误杀 release/CI 流程，同时保留 warning 信号。
+- 修复私有仓库未启用 CodeQL code scanning 时 release gate 误失败的问题。
 
 ## [1.0.0] - 2026-02-08
 

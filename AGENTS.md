@@ -56,7 +56,13 @@
   - `uv run python scripts/check_markdown_links.py`
   - `uv run python scripts/check_translations.py`
 
-## 7. 禁止事项
+## 7. 发布与 Tag 约束
+
+- 每次创建或移动版本 tag 前，必须先更新 `CHANGELOG.md`，并确保目标 tag 对应提交包含该 changelog 变更。
+- 打 tag 前必须确认项目版本文件与 tag 一致，至少检查 `pyproject.toml`、`custom_components/lipro/manifest.json` 与 `uv.lock`。
+- 打 tag 前优先运行与发布改动匹配的最小充分校验；文档变更至少运行 `uv run python scripts/check_markdown_links.py`。
+
+## 8. 禁止事项
 
 - 不要提交敏感信息、调试垃圾或临时文件。
 - 不要把本地 scratch / governance 目录重新纳入发布树。
