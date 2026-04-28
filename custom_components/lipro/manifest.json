@@ -8,5 +8,5 @@
     "iot_class": "cloud_push",
     "issue_tracker": "https://github.com/Exlany/lipro-hass/blob/main/SUPPORT.md",
     "requirements": ["aiomqtt>=2.0.0,<3.0.0", "pycryptodome>=3.19.0,<4.0.0"],
-    "version": "1.0.0"
+    "version": "1.0.1"
 }
