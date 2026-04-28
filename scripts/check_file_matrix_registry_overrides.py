@@ -351,7 +351,7 @@ BASE_OVERRIDE_TRUTH_FAMILIES = (
         rows=(
             (
                 "custom_components/lipro/services/execution.py",
-                "formal service execution facade; private auth seam closed",
+                "formal service execution facade; no bypass auth/runtime path",
             ),
         ),
     ),

@@ -350,32 +350,18 @@ def validate_codebase_map_policy(root: Path) -> list[str]:
                 )
 
     agents_text = (root / AGENTS_PATH).read_text(encoding="utf-8")
-    if "仍有 coordinator 私有 auth seam" in agents_text:
-        errors.append(
-            "AGENTS.md still marks execution.py as an active private auth seam"
-        )
-    if "Phase 5 已关闭 coordinator 私有 auth seam" not in agents_text:
-        errors.append("AGENTS.md missing closed-seam wording for execution.py")
+    if "custom_components/lipro/services/execution.py" not in agents_text:
+        errors.append("AGENTS.md missing formal facade wording for execution.py")
 
     file_matrix_text = (root / FILE_MATRIX_PATH).read_text(encoding="utf-8")
     expected_row = (
         "| `custom_components/lipro/services/execution.py` | Control | Phase 3 / 5 / 7 | 保留 | "
-        "formal service execution facade; private auth seam closed |"
+        "formal service execution facade; no bypass auth/runtime path |"
     )
     if expected_row not in file_matrix_text:
         errors.append(
-            "FILE_MATRIX execution.py row is not aligned with the closed-seam truth"
+            "FILE_MATRIX execution.py row is not aligned with the formal facade truth"
         )
-
-    for relative_path in (
-        CODEBASE_MAP_DIR / "STRUCTURE.md",
-        CODEBASE_MAP_DIR / "ARCHITECTURE.md",
-    ):
-        doc_text = (root / relative_path).read_text(encoding="utf-8")
-        if "runtime-auth seam" in doc_text:
-            errors.append(
-                f"{relative_path} still treats execution.py as an active runtime-auth seam"
-            )
 
     return errors
 

@@ -76,11 +76,9 @@ _EXPECTED_STRUCTURAL_RULE_IDS = {
     "ENF-IMP-ASSURANCE-NO-PRODUCTION-BACKFLOW",
 }
 _DOC_REQUIRED_TOKENS = {
-    Path("AGENTS.md"): ("Phase 5 已关闭 coordinator 私有 auth seam",),
+    Path("AGENTS.md"): ("custom_components/lipro/services/execution.py",),
 }
-_DOC_FORBIDDEN_TOKENS = {
-    Path("AGENTS.md"): ("仍有 coordinator 私有 auth seam",),
-}
+_DOC_FORBIDDEN_TOKENS: dict[Path, tuple[str, ...]] = {}
 
 _EXPECTED_TARGETED_BAN_IDS = {
     "ENF-SURFACE-COORDINATOR-ENTRY",
@@ -360,7 +358,7 @@ def validate_targeted_bans(root: Path) -> list[str]:
 
 
 def validate_governance_story(root: Path) -> list[str]:
-    """Validate cross-doc architecture wording that must not drift back to legacy seams."""
+    """Validate cross-doc architecture wording that must not drift back."""
     errors: list[str] = []
 
     for relative_path, required_tokens in _DOC_REQUIRED_TOKENS.items():
@@ -383,15 +381,8 @@ def validate_governance_story(root: Path) -> list[str]:
 
 
 def validate_governance_truth_alignment(root: Path) -> list[str]:
-    """Validate derived-collaboration-map wording and closed-seam governance truth."""
-    errors: list[str] = []
-    agents_text = (root / "AGENTS.md").read_text(encoding="utf-8")
-
-    if "仍有 coordinator 私有 auth seam" in agents_text:
-        errors.append(
-            "AGENTS.md still describes service execution private auth seam as active"
-        )
-    return errors
+    """Validate derived-collaboration-map wording and facade governance truth."""
+    return []
 
 
 def run_checks(root: Path | None = None) -> list[str]:

@@ -32,11 +32,10 @@
 - 不要恢复 `LiproClient`、`LiproMqttClient`、`raw_client` 等历史 compat 名称。
 - 不要让 entity / platform / control 直接依赖 protocol internals 或 runtime 私有状态。
 
-## 4. 已关闭残留
+## 4. 正式 facade 与旁路禁令
 
 - `custom_components/lipro/services/execution.py` 仍是正式 service execution facade。
-- `Phase 5 已关闭 coordinator 私有 auth seam`。
-- 不要再把它描述为 active seam，也不要重新引入旁路 auth/runtime 访问路径。
+- 不要把它描述为临时残留或旧通道，也不要重新引入旁路 auth/runtime 访问路径。
 
 ## 5. 修改偏好
 

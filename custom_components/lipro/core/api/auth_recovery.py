@@ -33,7 +33,7 @@ TokenRefreshCallback = Callable[[], Awaitable[None]]
 
 
 class AuthRecoveryTelemetrySnapshot(TypedDict):
-    """Serializable auth-recovery telemetry emitted by the REST auth seam."""
+    """Serializable auth-recovery telemetry emitted by the REST recovery path."""
 
     auth_error_count: int
     refresh_attempt_count: int

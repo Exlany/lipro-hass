@@ -61,7 +61,7 @@
 - Do not restore `LiproClient`, `LiproMqttClient`, `raw_client`, or similar legacy compat names.
 - Do not let platform/entity code reach protocol internals or runtime private state directly.
 - Do not turn root Home Assistant modules into business-logic homes.
-- `custom_components/lipro/services/execution.py` remains a formal service execution facade; `Phase 5 已关闭 coordinator 私有 auth seam`.
+- `custom_components/lipro/services/execution.py` remains a formal service execution facade; do not reintroduce bypass auth/runtime access paths.
 
 ## Suggested Validation
 
