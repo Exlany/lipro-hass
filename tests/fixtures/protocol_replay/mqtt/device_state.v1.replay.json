@@ -1,0 +1,12 @@
+{
+  "scenario_id": "mqtt.device_state.v1",
+  "channel": "mqtt",
+  "family": "mqtt.properties",
+  "version": "v1",
+  "operation": "protocol.boundary.decode_mqtt_properties",
+  "authority_path": "tests/fixtures/protocol_boundary/mqtt_properties.device_state.v1.json",
+  "seed": 740103,
+  "clock_baseline": "2026-03-13T00:00:02Z",
+  "assertion_families": ["canonical", "drift", "telemetry"],
+  "notes": "Representative MQTT boundary replay for device-state properties decoding."
+}

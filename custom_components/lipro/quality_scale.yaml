@@ -1,0 +1,164 @@
+rules:
+  # Bronze
+  action-setup:
+    status: done
+    comment: Services registered in async_setup() via _async_setup_services().
+  appropriate-polling:
+    status: done
+    comment: Configurable scan_interval (10-300s, default 30s). MQTT provides real-time push; polling is fallback.
+  brands:
+    status: done
+    comment: brand/icon.png and brand/logo.png provided in integration directory.
+  common-modules:
+    status: done
+    comment: Shared base entity (entities/base.py), helpers module, core module with coordinator/api/auth/mqtt.
+  config-flow:
+    status: done
+    comment: UI-based config flow with user step, reauth, reconfigure, and options flow.
+  config-flow-test-coverage:
+    status: done
+    comment: tests/flows/test_flow_schemas.py + tests/flows/test_config_flow_user.py + tests/flows/test_config_flow_reauth.py + tests/flows/test_config_flow_reconfigure.py + tests/flows/test_options_flow.py cover user/reauth/reconfigure/options flows, including error-recovery paths and unique ID mismatch guard.
+  dependency-transparency:
+    status: done
+    comment: manifest.json declares aiomqtt and pycryptodome as requirements.
+  docs-actions:
+    status: done
+    comment: services.yaml defines the service schemas; translations/* provide names and descriptions.
+  docs-high-level-description:
+    status: done
+    comment: README.md provides integration overview, features, and supported platforms.
+  docs-installation-instructions:
+    status: done
+    comment: README.md covers HACS and manual installation with step-by-step instructions.
+  docs-removal-instructions:
+    status: done
+    comment: Standard HA integration removal via Settings > Devices & Services.
+  entity-event-setup:
+    status: done
+    comment: Event subscriptions in async_added_to_hass/async_will_remove_from_hass in base entity.
+  entity-unique-id:
+    status: done
+    comment: All entities get unique_id from device.unique_id (+ optional suffix) in base entity __init__.
+  has-entity-name:
+    status: done
+    comment: _attr_has_entity_name = True set in LiproEntity base class.
+  runtime-data:
+    status: done
+    comment: entry.runtime_data = coordinator in async_setup_entry.
+  test-before-configure:
+    status: done
+    comment: Config flow performs login validation before creating entry.
+  test-before-setup:
+    status: done
+    comment: async_setup_entry validates auth token and raises ConfigEntryAuthFailed/ConfigEntryNotReady.
+  unique-config-entry:
+    status: done
+    comment: async_set_unique_id + _abort_if_unique_id_configured prevents duplicate entries.
+
+  # Silver
+  action-exceptions:
+    status: done
+    comment: Service handlers raise HomeAssistantError and ServiceValidationError with translation keys.
+  config-entry-unloading:
+    status: done
+    comment: async_unload_entry unloads platforms, explicitly shuts down coordinator runtime resources, and removes services when last entry unloaded.
+  docs-configuration-parameters:
+    status: done
+    comment: Options flow documented in translations/* with data_description for all parameters.
+  docs-installation-parameters:
+    status: done
+    comment: Config flow step descriptions in translations/*; README documents phone/password fields.
+  entity-unavailable:
+    status: done
+    comment: Base entity available property checks coordinator.last_update_success and device.available.
+  integration-owner:
+    status: done
+    comment: codeowners set to @Exlany in manifest.json.
+  log-when-unavailable:
+    status: done
+    comment: DataUpdateCoordinator logs UpdateFailed; MQTT disconnect logged with warning level.
+  parallel-updates:
+    status: done
+    comment: PARALLEL_UPDATES is explicitly set on the coordinator-backed binary_sensor/climate/cover/fan/light/select/sensor/switch platforms; update.py currently relies on Home Assistant platform defaults.
+  reauthentication-flow:
+    status: done
+    comment: async_step_reauth + async_step_reauth_confirm implemented in config_flow.py.
+  test-coverage:
+    status: done
+    comment: CI enforces >=95% test coverage via pytest --cov.
+
+  # Gold
+  devices:
+    status: done
+    comment: DeviceInfo with identifiers, name, manufacturer, model, serial_number, sw_version in base entity.
+  diagnostics:
+    status: done
+    comment: diagnostics.py implements both config-entry and device diagnostics with sensitive data redaction; tests include explicit redaction assertions and snapshot coverage.
+  discovery:
+    status: exempt
+    comment: Cloud-based integration (iot_class cloud_push). Devices require Lipro App pairing first; no local discovery protocol available.
+  discovery-update-info:
+    status: exempt
+    comment: Cloud-based integration with no local network discovery. Connection info managed via cloud API tokens.
+  docs-data-update:
+    status: done
+    comment: README documents hybrid MQTT + polling mechanism with configurable intervals.
+  docs-examples:
+    status: done
+    comment: README provides 3 automation examples (sunset lighting, motion-activated, scheduled curtain).
+  docs-known-limitations:
+    status: done
+    comment: README documents 6 known limitations, including the configurable brightness/color-temperature behavior while off.
+  docs-supported-devices:
+    status: done
+    comment: README includes tested devices table with status (tested/untested/not supported).
+  docs-supported-functions:
+    status: done
+    comment: README details supported platforms table with entity types and functions.
+  docs-troubleshooting:
+    status: done
+    comment: README covers auth failures, device unavailable, state delay, missing devices, and diagnostics download.
+  docs-use-cases:
+    status: done
+    comment: README provides practical use cases with YAML automation examples.
+  dynamic-devices:
+    status: done
+    comment: Coordinator fetches device list from cloud API; new devices appear on refresh cycle.
+  entity-category:
+    status: done
+    comment: EntityCategory.DIAGNOSTIC for connectivity/battery/wifi sensors; EntityCategory.CONFIG for feature switches.
+  entity-device-class:
+    status: done
+    comment: Device classes used throughout (BinarySensorDeviceClass, SensorDeviceClass, SwitchDeviceClass, CoverDeviceClass).
+  entity-disabled-by-default:
+    status: done
+    comment: Connectivity sensor, light level sensor, and WiFi signal sensor disabled by default.
+  entity-translations:
+    status: done
+    comment: Translated entity names/state labels are provided via translation_key where the entity exposes a translated secondary/config surface; primary device-named entities may intentionally keep _attr_name = None (for example the main light entity).
+  exception-translations:
+    status: done
+    comment: All exceptions use translation_domain and translation_key for translatable messages.
+  icon-translations:
+    status: done
+    comment: icons.json provides state-based icon translations for all entity types and services.
+  reconfiguration-flow:
+    status: done
+    comment: async_step_reconfigure in config_flow.py allows account credential updates.
+  repair-issues:
+    status: done
+    comment: auth_expired/auth_error/mqtt_disconnected issues are created when needed and auth issues are cleared automatically after successful authentication.
+  stale-devices:
+    status: done
+    comment: _async_remove_stale_devices in coordinator removes devices no longer present in cloud.
+
+  # Platinum
+  async-dependency:
+    status: done
+    comment: Uses aiomqtt (async) and aiohttp (async). pycryptodome sync calls wrapped with asyncio.to_thread.
+  inject-websession:
+    status: done
+    comment: Uses async_get_clientsession(hass) for aiohttp session injection.
+  strict-typing:
+    status: done
+    comment: py.typed marker present; mypy strict mode configured in pyproject.toml.

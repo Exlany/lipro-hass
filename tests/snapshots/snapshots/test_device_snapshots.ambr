@@ -1,0 +1,23 @@
+# serializer version: 1
+# name: test_light_device_snapshot
+  dict({
+    'category': 1,
+    'identity': dict({
+      'device_number': 1,
+      'name': 'Desk Light',
+      'room_name': 'Office',
+      'serial': '03ab5ccd7caaaaaa',
+    }),
+    'network': dict({
+      'connection_quality': 'good',
+      'ip_address': '192.168.1.88',
+      'wifi_rssi': -65,
+    }),
+    'state': dict({
+      'brightness': 66,
+      'color_temp': 4600,
+      'is_connected': True,
+      'is_on': True,
+    }),
+  })
+# ---

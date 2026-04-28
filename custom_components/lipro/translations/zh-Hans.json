@@ -1,0 +1,552 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Lipro 账号",
+        "description": "请输入您的 Lipro 账号信息。",
+        "data": {
+          "phone": "手机号",
+          "password": "密码",
+          "remember_password_hash": "记住密码"
+        },
+        "data_description": {
+          "remember_password_hash": "启用后会在本地存储密码的 MD5 哈希值，用于 refresh token 过期时自动重新登录。关闭可减少本地泄露面，但后续可能需要手动重新认证。"
+        }
+      },
+      "reauth_confirm": {
+        "title": "重新认证",
+        "description": "请输入 {phone} 的密码。",
+        "data": {
+          "password": "密码"
+        }
+      },
+      "reconfigure": {
+        "title": "重新配置 Lipro",
+        "description": "更新您的 Lipro 账号信息。",
+        "data": {
+          "phone": "手机号",
+          "password": "密码",
+          "remember_password_hash": "记住密码"
+        },
+        "data_description": {
+          "remember_password_hash": "启用后会在本地存储密码的 MD5 哈希值，用于 refresh token 过期时自动重新登录。关闭可减少本地泄露面，但后续可能需要手动重新认证。"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "无法连接到 Lipro 服务器",
+      "invalid_auth": "手机号或密码错误",
+      "invalid_phone": "手机号格式无效（必须是 6-20 位数字，可选 + 前缀）",
+      "invalid_password": "密码无效（必须是 6-128 个字符）",
+      "reauth_user_mismatch": "该账号与当前集成条目不一致，请使用同一 Lipro 账号重新认证。",
+      "unknown": "发生未知错误",
+      "api_error": "Lipro API 请求失败",
+      "invalid_entry": "已保存的集成数据无效，请移除后重新添加该集成。",
+      "invalid_response": "Lipro 返回了无效响应",
+      "unexpected_error": "发生了意外的内部错误"
+    },
+    "abort": {
+      "already_configured": "该账号已配置",
+      "reauth_successful": "重新认证成功",
+      "reconfigure_successful": "重新配置成功"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Lipro 选项",
+        "description": "配置 Lipro 集成设置。",
+        "data": {
+          "scan_interval": "更新间隔（秒）",
+          "mqtt_enabled": "启用 MQTT 实时更新",
+          "enable_power_monitoring": "启用功率监测（插座）",
+          "anonymous_share_enabled": "匿名分享设备信息（帮助改进支持）",
+          "anonymous_share_errors": "匿名分享错误报告",
+          "show_advanced": "显示高级设置"
+        },
+        "data_description": {
+          "scan_interval": "从云端轮询设备状态的频率（10-300 秒）。",
+          "mqtt_enabled": "使用 MQTT 获取即时设备状态更新。如遇连接问题可禁用。",
+          "enable_power_monitoring": "查询插座设备的功耗。禁用可减少 API 调用。",
+          "anonymous_share_enabled": "匿名分享设备信息，帮助开发者支持更多设备类型。",
+          "anonymous_share_errors": "匿名分享错误报告，帮助更快修复问题。",
+          "show_advanced": "配置高级设置，如超时、查询间隔和调试日志。"
+        }
+      },
+      "advanced": {
+        "title": "高级设置",
+        "description": "这些设置适用于高级用户。默认值适用于大多数场景。",
+        "data": {
+          "power_query_interval": "功率查询间隔（秒）",
+          "request_timeout": "API 请求超时（秒）",
+          "debug_mode": "启用调试模式（诊断）",
+          "light_turn_on_on_adjust": "关灯时调亮度/色温自动开灯",
+          "room_area_sync_force": "强制用云端房间覆盖 HA 区域",
+          "command_result_verify": "检查命令结果状态",
+          "device_filter_home_mode": "按家庭过滤（off/include/exclude）",
+          "device_filter_home_list": "家庭过滤列表",
+          "device_filter_model_mode": "按型号过滤（off/include/exclude）",
+          "device_filter_model_list": "型号过滤列表",
+          "device_filter_ssid_mode": "按 WiFi SSID 过滤（off/include/exclude）",
+          "device_filter_ssid_list": "WiFi SSID 过滤列表",
+          "device_filter_did_mode": "按设备 ID 过滤（off/include/exclude）",
+          "device_filter_did_list": "设备 ID 过滤列表"
+        },
+        "data_description": {
+          "power_query_interval": "默认 300 秒（约 5 分钟）。查询插座功率数据的频率（30-300 秒）。仅在启用功率监测时生效。",
+          "request_timeout": "API 请求超时时间（10-60 秒）。网络较慢时可增加此值。",
+          "debug_mode": "采集脱敏运行诊断报告（包含最近命令轨迹）。启用后也会开启更详细的日志。",
+          "light_turn_on_on_adjust": "开启后，关灯状态下调节亮度或色温会自动开灯；关闭后，调节亮度或色温不会开灯。",
+          "room_area_sync_force": "默认关闭（推荐）：保留用户手动设置的 HA 区域，仅把云端房间作为兜底。开启后将始终以云端房间覆盖 HA 区域。",
+          "command_result_verify": "默认开启（推荐）：基于 msgSn 轮询云端命令结果状态，并在重试预算内未观察到明确成功态时返回更可解释的失败。关闭后仅依据 pushSuccess，延迟更低。",
+          "device_filter_home_mode": "选择家庭过滤策略：off/include/exclude。",
+          "device_filter_home_list": "家庭或房间名称 / homeId，匹配大小写不敏感，支持逗号、分号或换行分隔。",
+          "device_filter_model_mode": "选择型号过滤策略：off/include/exclude。",
+          "device_filter_model_list": "型号字段（physicalModel/iotName/model/productModel），匹配大小写不敏感，支持逗号、分号或换行分隔。",
+          "device_filter_ssid_mode": "选择 WiFi SSID 过滤策略：off/include/exclude。",
+          "device_filter_ssid_list": "WiFi SSID 值，匹配大小写不敏感，支持逗号、分号或换行分隔。",
+          "device_filter_did_mode": "选择设备 ID 过滤策略：off/include/exclude。",
+          "device_filter_did_list": "设备标识（did/deviceDid/deviceId/iotDeviceId/serial），匹配大小写不敏感，支持逗号、分号或换行分隔。"
+        }
+      }
+    }
+  },
+  "entity": {
+    "light": {
+      "light": {
+        "name": "灯"
+      }
+    },
+    "fan": {
+      "fan": {
+        "name": "风扇",
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "direct": "直吹风",
+              "natural": "自然风",
+              "cycle": "循环风",
+              "gentle_wind": "柔风"
+            }
+          }
+        }
+      },
+      "ventilation_fan": {
+        "name": "换气扇",
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "strong": "强风",
+              "weak": "弱风"
+            }
+          }
+        }
+      }
+    },
+    "cover": {
+      "curtain": {
+        "name": "窗帘"
+      }
+    },
+    "switch": {
+      "switch": {
+        "name": "开关"
+      },
+      "outlet": {
+        "name": "插座"
+      },
+      "fade": {
+        "name": "渐变效果"
+      },
+      "sleep_aid": {
+        "name": "助眠"
+      },
+      "wake_up": {
+        "name": "唤醒"
+      },
+      "focus_mode": {
+        "name": "专注模式"
+      },
+      "body_reactive": {
+        "name": "人体感应"
+      },
+      "panel_led": {
+        "name": "按键指示灯"
+      },
+      "panel_memory": {
+        "name": "断电记忆"
+      }
+    },
+    "climate": {
+      "heater": {
+        "name": "取暖器",
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "default": "默认",
+              "demist": "除雾",
+              "dry": "干燥",
+              "gentle_wind": "柔风"
+            }
+          }
+        }
+      }
+    },
+    "binary_sensor": {
+      "connectivity": {
+        "name": "连接状态"
+      },
+      "motion": {
+        "name": "人体感应"
+      },
+      "door": {
+        "name": "门窗"
+      },
+      "light": {
+        "name": "光照"
+      },
+      "battery": {
+        "name": "电池"
+      }
+    },
+    "sensor": {
+      "power": {
+        "name": "功率"
+      },
+      "energy": {
+        "name": "用电量"
+      },
+      "battery": {
+        "name": "电量"
+      },
+      "wifi_signal": {
+        "name": "WiFi 信号"
+      }
+    },
+    "select": {
+      "wind_direction": {
+        "name": "风向",
+        "state": {
+          "auto": "自动",
+          "fixed": "固定"
+        }
+      },
+      "heater_light": {
+        "name": "浴霸灯",
+        "state": {
+          "off": "关闭",
+          "main": "主灯",
+          "night": "夜灯"
+        }
+      },
+      "light_gear": {
+        "name": "色温预设",
+        "state": {
+          "gear_1": "暖白光",
+          "gear_2": "中性光",
+          "gear_3": "冷白光"
+        }
+      }
+    },
+    "update": {
+      "firmware": {
+        "name": "固件"
+      }
+    }
+  },
+  "services": {
+    "send_command": {
+      "name": "发送命令",
+      "description": "向 Lipro 设备发送原始命令。这是一个高级服务，供高级用户测试新命令或访问集成尚未支持的功能。",
+      "fields": {
+        "device_id": {
+          "name": "设备 ID",
+          "description": "设备序列号或 mesh group ID。如果未提供，将从目标实体中确定设备。"
+        },
+        "command": {
+          "name": "命令",
+          "description": "要发送到设备的命令。"
+        },
+        "properties": {
+          "name": "属性",
+          "description": "可选的属性键值对列表，与命令一起发送。"
+        }
+      }
+    },
+    "get_schedules": {
+      "name": "获取定时任务",
+      "description": "获取按周重复的定时任务列表，星期使用 1=周一 到 7=周日。对于 mesh group，读取仅使用 BLE/gateway-member 候选；实机复测表明标准 schedule/get.do 对 groupId 可能返回空成功，对 member IoT ID 也可能回显不可复用 ID 的影子结果，因此不能视为可靠 mesh 回退链路。",
+      "fields": {
+        "device_id": {
+          "name": "设备 ID",
+          "description": "设备序列号或 mesh group ID。如果未提供，将从目标实体中确定设备。"
+        }
+      }
+    },
+    "add_schedule": {
+      "name": "添加定时任务",
+      "description": "为设备添加按周重复的定时任务，当前不暴露绝对日期定时模式。对于 mesh group，写入仅使用 BLE/gateway-member 候选；实机复测表明标准 schedule/addOrUpdate.do 对 member IoT ID 会返回服务异常，不是可靠 mesh 回退链路。",
+      "fields": {
+        "device_id": {
+          "name": "设备 ID",
+          "description": "设备序列号或 mesh group ID。如果未提供，将从目标实体中确定设备。"
+        },
+        "days": {
+          "name": "星期",
+          "description": "按周重复定时执行的星期几（1=周一，7=周日）。"
+        },
+        "times": {
+          "name": "时间",
+          "description": "从午夜开始的秒数列表（0-86399），与 App 的 24 小时制时/分 UI 对应。"
+        },
+        "events": {
+          "name": "事件",
+          "description": "与每个时间对应的事件代码列表。"
+        }
+      }
+    },
+    "delete_schedules": {
+      "name": "删除定时任务",
+      "description": "通过 ID 删除设备的定时任务。对于 mesh group，删除仅使用 BLE/gateway-member 候选；实机复测表明标准 schedule/delete.do 对 member 读回 ID 可返回 140003，且不能可靠删除目标 mesh 定时任务。",
+      "fields": {
+        "device_id": {
+          "name": "设备 ID",
+          "description": "设备序列号或 mesh group ID。如果未提供，将从目标实体中确定设备。"
+        },
+        "schedule_ids": {
+          "name": "定时任务 ID",
+          "description": "要删除的定时任务 ID 列表。"
+        }
+      }
+    },
+    "submit_anonymous_share": {
+      "name": "提交匿名分享报告",
+      "description": "手动提交匿名设备分享报告。这会发送匿名的设备信息和错误报告，以帮助改进集成。",
+      "fields": {
+        "entry_id": {
+          "name": "配置项 ID",
+          "description": "可选的配置项 ID，用于只提交该配置项范围内的匿名分享数据。"
+        }
+      }
+    },
+    "get_anonymous_share_report": {
+      "name": "获取匿名分享报告",
+      "description": "预览将要提交的匿名分享报告数据。使用此功能查看将分享哪些信息。",
+      "fields": {
+        "entry_id": {
+          "name": "配置项 ID",
+          "description": "可选的配置项 ID，用于只预览该配置项范围内的匿名分享报告。"
+        }
+      }
+    },
+    "get_developer_report": {
+      "name": "获取开发者报告",
+      "description": "导出脱敏运行诊断报告，用于本地真实设备调试。该本地视图会保留 iotName 等供应商诊断标识与本地标签，方便识别正在测试的设备。",
+      "fields": {
+        "entry_id": {
+          "name": "配置项 ID",
+          "description": "可选的配置项 ID，用于只导出该配置项范围内的开发者报告。"
+        }
+      }
+    },
+    "submit_developer_feedback": {
+      "name": "提交开发者反馈",
+      "description": "一键提交开发者诊断到 share worker。上传会保留 iotName 等供应商诊断标识，但会匿名化设备/房间/面板/红外资产名称等用户自定义标签；可附带备注便于排查。",
+      "fields": {
+        "entry_id": {
+          "name": "配置项 ID",
+          "description": "可选的配置项 ID，用于只提交该配置项范围内的开发者诊断反馈。"
+        },
+        "note": {
+          "name": "备注",
+          "description": "补充你在实测中观察到的现象。"
+        }
+      }
+    },
+    "query_command_result": {
+      "name": "查询命令结果",
+      "description": "（开发者）根据 msgSn 查询云端命令结果状态，并在默认重试预算内执行有界轮询；实际尝试次数可能低于 max_attempts，因为指数退避会被时间预算截断。",
+      "fields": {
+        "device_id": {
+          "name": "设备 ID",
+          "description": "设备 serial/group ID。不填则使用目标实体。"
+        },
+        "msg_sn": {
+          "name": "消息 SN",
+          "description": "send_command 返回的命令消息序列号。"
+        },
+        "max_attempts": {
+          "name": "最大尝试次数",
+          "description": "重试预算内允许的最大查询次数。默认 6；设为 1 表示只查一次。"
+        },
+        "time_budget_seconds": {
+          "name": "时间预算（秒）",
+          "description": "总重试预算秒数。默认 3.0；设为 0 表示禁用轮询，仅执行单次查询。"
+        }
+      }
+    },
+    "get_city": {
+      "name": "获取城市信息",
+      "description": "（开发者）按已验证的空对象（{}）payload 契约查询云端城市元数据。"
+    },
+    "query_user_cloud": {
+      "name": "查询用户云端配置",
+      "description": "（开发者）按已验证的原始空 body 契约（`-d ''`）查询用户云端元数据。实测响应可能只有顶层 data，没有 code 包装。"
+    },
+    "fetch_body_sensor_history": {
+      "name": "获取人体传感器历史",
+      "description": "（开发者）拉取人体传感器历史 payload，便于调试。",
+      "fields": {
+        "device_id": {
+          "name": "设备 ID",
+          "description": "网关/组设备 ID。不填则使用目标实体。"
+        },
+        "sensor_device_id": {
+          "name": "传感器设备 ID",
+          "description": "传感器 IoT device ID。"
+        },
+        "mesh_type": {
+          "name": "Mesh 类型",
+          "description": "API 合约期望的 meshType 值，默认 \"2\"。"
+        }
+      }
+    },
+    "fetch_door_sensor_history": {
+      "name": "获取门窗传感器历史",
+      "description": "（开发者）拉取门窗传感器历史 payload，便于调试。",
+      "fields": {
+        "device_id": {
+          "name": "设备 ID",
+          "description": "网关/组设备 ID。不填则使用目标实体。"
+        },
+        "sensor_device_id": {
+          "name": "传感器设备 ID",
+          "description": "传感器 IoT device ID。"
+        },
+        "mesh_type": {
+          "name": "Mesh 类型",
+          "description": "API 合约期望的 meshType 值，默认 \"2\"。"
+        }
+      }
+    },
+    "refresh_devices": {
+      "name": "刷新设备列表",
+      "description": "强制刷新所有已加载 Lipro 配置项，或仅刷新指定配置项的完整设备列表。",
+      "fields": {
+        "entry_id": {
+          "name": "配置项 ID",
+          "description": "仅刷新指定的 Lipro 配置项；不填则刷新全部已加载的 Lipro 配置项。"
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "auth_expired": {
+      "message": "您的 Lipro 会话已过期，请重新认证。"
+    },
+    "auth_error": {
+      "message": "Lipro 认证失败：{error}"
+    },
+    "no_device_specified": {
+      "message": "未指定设备 ID 或目标实体。"
+    },
+    "cannot_determine_device": {
+      "message": "无法从目标实体确定设备。"
+    },
+    "device_not_found": {
+      "message": "未找到设备：{device_id}"
+    },
+    "command_failed": {
+      "message": "向设备发送命令失败。"
+    },
+    "invalid_command_request": {
+      "message": "send_command 服务载荷无效。"
+    },
+    "command_device_not_connected": {
+      "message": "设备未联网，请检查设备网络后重试。"
+    },
+    "command_device_busy": {
+      "message": "设备忙碌中，请稍后重试。"
+    },
+    "command_device_offline": {
+      "message": "设备离线或不可用，请先刷新设备状态。"
+    },
+    "command_push_failed": {
+      "message": "云端已接收命令，但下发推送失败。"
+    },
+    "schedule_fetch_failed": {
+      "message": "获取设备定时任务失败。"
+    },
+    "schedule_add_failed": {
+      "message": "添加设备定时任务失败。"
+    },
+    "schedule_delete_failed": {
+      "message": "删除设备定时任务失败。"
+    },
+    "invalid_schedule_request": {
+      "message": "定时任务请求无效，请检查 device_id、weekdays、times、events 与 schedule_ids。"
+    },
+    "times_events_mismatch": {
+      "message": "时间数量必须与事件数量匹配。"
+    },
+    "anonymous_share_not_enabled": {
+      "message": "匿名分享功能未启用。请先在集成选项中启用。"
+    },
+    "anonymous_share_submit_failed": {
+      "message": "提交匿名分享报告失败。"
+    },
+    "developer_feedback_submit_failed": {
+      "message": "提交开发者反馈报告失败。"
+    },
+    "entry_not_found": {
+      "message": "未找到或未加载配置项：{entry_id}"
+    },
+    "developer_mode_not_enabled": {
+      "message": "当前未启用开发者诊断。请先开启 debug_mode。"
+    },
+    "optional_capability_failed": {
+      "message": "可选能力 {capability} 调用失败（{error}）。"
+    },
+    "firmware_no_update": {
+      "message": "当前设备暂无可用固件更新。"
+    },
+    "firmware_version_mismatch": {
+      "message": "请求的固件版本 {version} 当前不可用。"
+    },
+    "firmware_unverified_confirm_required": {
+      "message": "该固件未通过认证。请在 {seconds} 秒内再次点击安装以确认升级。"
+    },
+    "firmware_install_unsupported": {
+      "message": "云端未返回该固件包的安装命令。"
+    },
+    "firmware_install_failed": {
+      "message": "触发固件安装失败。"
+    },
+    "mqtt_disconnected": {
+      "message": "MQTT 已断开连接 {minutes} 分钟，实时更新不可用，已回退到轮询模式。"
+    }
+  },
+  "system_health": {
+    "info": {
+      "component_version": "组件版本",
+      "can_reach_server": "可连接服务器",
+      "logged_accounts": "已登录账号数",
+      "total_devices": "设备总数",
+      "mqtt_connected_entries": "MQTT 已连接账号数"
+    }
+  },
+  "issues": {
+    "auth_expired": {
+      "title": "Lipro 认证已过期",
+      "description": "您的 Lipro 会话已过期，请重新认证。"
+    },
+    "auth_error": {
+      "title": "Lipro 认证错误",
+      "description": "Lipro 认证失败：{error}"
+    },
+    "mqtt_disconnected": {
+      "title": "Lipro MQTT 连接已断开",
+      "description": "MQTT 已断开连接 {minutes} 分钟，实时更新不可用，已回退到轮询模式。"
+    }
+  }
+}

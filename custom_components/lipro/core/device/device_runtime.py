@@ -1,0 +1,124 @@
+# ruff: noqa: SLF001
+"""Runtime helpers bound to the thin ``LiproDevice`` facade."""
+
+from __future__ import annotations
+
+from collections.abc import Mapping
+from time import monotonic
+from typing import TYPE_CHECKING
+
+from ...const.properties import PROP_CONNECT_STATE, PROP_GEAR_LIST
+from ..utils.property_normalization import normalize_properties
+from .device_factory import has_unknown_physical_model
+from .extras import DeviceExtras
+from .state import DeviceState
+
+if TYPE_CHECKING:
+    from .device import LiproDevice, OutletPowerInfo
+
+
+def get_device_state(device: LiproDevice) -> DeviceState:
+    """Return the cached mutable state view for one device."""
+    if device._state_cache is None:
+        device._state_cache = DeviceState(
+            device.properties,
+            device.min_color_temp_kelvin,
+            device.max_color_temp_kelvin,
+            device.max_fan_gear,
+            device.capabilities.supports_color_temp,
+        )
+    return device._state_cache
+
+
+def build_device_extras(device: LiproDevice) -> DeviceExtras:
+    """Build structured extras bound to one device facade."""
+    return DeviceExtras(
+        device.properties,
+        device.extra_data,
+        serial=device.serial,
+        iot_name=device.iot_name,
+        physical_model=device.physical_model,
+    )
+
+
+def get_device_extras(device: LiproDevice) -> DeviceExtras:
+    """Return cached structured extras and rebuild when bindings change."""
+    if device._extras_cache is None or not device._extras_cache.is_bound_to(
+        device.properties,
+        device.extra_data,
+    ):
+        device._extras_cache = build_device_extras(device)
+    return device._extras_cache
+
+
+def get_outlet_power_info(device: LiproDevice) -> OutletPowerInfo | None:
+    """Return a defensive snapshot of the formal outlet-power primitive."""
+    outlet_power_info = device._outlet_power_info
+    if outlet_power_info is None:
+        return None
+    return dict(outlet_power_info)
+
+
+def set_outlet_power_info(
+    device: LiproDevice,
+    value: OutletPowerInfo | None,
+) -> None:
+    """Persist the formal outlet-power primitive and clear legacy side-car state."""
+    device._outlet_power_info = None if value is None else dict(value)
+    device.extra_data.pop("power_info", None)
+
+
+def mark_device_mqtt_update(
+    device: LiproDevice,
+    *,
+    timestamp: float | None = None,
+) -> None:
+    """Record that the device received an MQTT property update."""
+    device._last_mqtt_update_at = monotonic() if timestamp is None else timestamp
+
+
+def has_recent_device_mqtt_update(
+    device: LiproDevice,
+    *,
+    stale_window_seconds: float = 180.0,
+) -> bool:
+    """Return True when an MQTT update arrived within the stale window."""
+    if device._last_mqtt_update_at <= 0.0:
+        return False
+    return monotonic() - device._last_mqtt_update_at <= stale_window_seconds
+
+
+def initialize_device(device: LiproDevice) -> None:
+    """Normalize raw device properties and derive stable flags."""
+    device.properties = normalize_properties(device.properties)
+    device.has_unknown_physical_model = has_unknown_physical_model(
+        device.physical_model
+    )
+    if PROP_CONNECT_STATE in device.properties:
+        device.available = get_device_state(device).is_connected
+
+
+def update_device_properties(
+    device: LiproDevice,
+    properties: Mapping[str, object],
+) -> None:
+    """Merge normalized properties into the live device facade."""
+    normalized = normalize_properties(properties)
+    device.properties.update(normalized)
+    if PROP_GEAR_LIST in normalized and device._extras_cache is not None:
+        device._extras_cache.clear_caches()
+    if PROP_CONNECT_STATE in normalized:
+        device.available = get_device_state(device).is_connected
+
+
+__all__ = [
+    "build_device_extras",
+    "get_device_extras",
+    "get_device_state",
+    "get_outlet_power_info",
+    "has_recent_device_mqtt_update",
+    "initialize_device",
+    "mark_device_mqtt_update",
+    "set_outlet_power_info",
+    "update_device_properties",
+]

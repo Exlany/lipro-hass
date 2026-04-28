@@ -1,0 +1,49 @@
+{
+  "source": "home_assistant_service",
+  "service": "lipro.submit_developer_feedback",
+  "generated_at": "<generated_at>",
+  "entry_count": 1,
+  "note": "manual run",
+  "reports": [
+    {
+      "name": "[user_label]",
+      "iotName": "lipro_gateway",
+      "deviceName": "[user_device_label]",
+      "roomName": "[user_room_label]",
+      "productName": "[user_product_label]",
+      "panel_capability_snapshot": {
+        "panels": [
+          {
+            "name": "[user_label]",
+            "iot_name": "21JD",
+            "panel_info": [
+              {
+                "keyName": "[user_panel_key_label]"
+              }
+            ]
+          }
+        ]
+      },
+      "ir_remote_inventory_snapshot": {
+        "gateways": [
+          {
+            "name": "[user_label]",
+            "rc_list": [
+              {
+                "name": "[user_label]",
+                "address": "masked-remote-address"
+              }
+            ]
+          }
+        ],
+        "ir_remote_devices": [
+          {
+            "name": "[user_label]",
+            "gateway_device_id": "masked-gateway-id"
+          }
+        ]
+      }
+    }
+  ],
+  "requested_entry_id": "entry-2"
+}

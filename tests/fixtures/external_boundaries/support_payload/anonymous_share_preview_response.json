@@ -1,0 +1,12 @@
+{
+  "has_data": true,
+  "device_count": 1,
+  "error_count": 0,
+  "devices": [
+    {
+      "iot_name": "lipro_light"
+    }
+  ],
+  "errors": [],
+  "requested_entry_id": "entry-9"
+}

@@ -1,0 +1,115 @@
+"""Diagnostics support thin adapter for the Lipro integration."""
+
+from __future__ import annotations
+
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, cast
+
+from homeassistant.components.diagnostics import async_redact_data
+
+from .const.base import DOMAIN
+from .control.diagnostics_surface import (
+    AnonymousShareManagerFactory,
+    DiagnosticsPayload as ControlDiagnosticsPayload,
+    async_get_config_entry_diagnostics as _async_get_config_entry_diagnostics_surface,
+    async_get_device_diagnostics as _async_get_device_diagnostics_surface,
+    build_device_diagnostics as _build_device_diagnostics_surface,
+    extract_device_serial as _extract_device_serial_surface,
+)
+from .control.redaction import (
+    OPTIONS_TO_REDACT as _OPTIONS_TO_REDACT,
+    PROPERTY_KEYS_TO_REDACT as _PROPERTY_KEYS_TO_REDACT,
+    TO_REDACT as _TO_REDACT,
+    redact_device_properties as _redact_device_properties_surface,
+    redact_entry_title as _redact_entry_title_surface,
+)
+from .core.anonymous_share import AnonymousShareManager, get_anonymous_share_manager
+
+if TYPE_CHECKING:
+    from homeassistant.core import HomeAssistant
+    from homeassistant.helpers.device_registry import DeviceEntry
+
+    from . import LiproConfigEntry
+    from .core.device import LiproDevice
+
+
+type DiagnosticsPayload = ControlDiagnosticsPayload
+
+
+PROPERTY_KEYS_TO_REDACT = _PROPERTY_KEYS_TO_REDACT
+TO_REDACT = _TO_REDACT
+OPTIONS_TO_REDACT = _OPTIONS_TO_REDACT
+
+
+def _redact_entry_title(title: object) -> str:
+    """Redact sensitive identifiers from config-entry title."""
+    return _redact_entry_title_surface(title)
+
+
+def _redact_device_properties(properties: object) -> DiagnosticsPayload:
+    """Redact sensitive keys from device properties."""
+    if not isinstance(properties, Mapping):
+        return {}
+    return cast(DiagnosticsPayload, _redact_device_properties_surface(dict(properties)))
+
+
+def _get_anonymous_share_manager_for_diagnostics(
+    hass: HomeAssistant,
+    *,
+    entry_id: str | None = None,
+) -> AnonymousShareManager:
+    """Resolve the anonymous-share manager for diagnostics surfaces."""
+    return get_anonymous_share_manager(hass, entry_id=entry_id)
+
+
+def _build_device_diagnostics(device: LiproDevice) -> DiagnosticsPayload:
+    """Build redacted diagnostics payload for a single device."""
+    return _build_device_diagnostics_surface(
+        device,
+        redact_device_properties=_redact_device_properties,
+    )
+
+
+def _extract_device_serial(device: DeviceEntry) -> str | None:
+    """Extract Lipro serial from device identifiers."""
+    return _extract_device_serial_surface(device, domain=DOMAIN)
+
+
+async def async_get_config_entry_diagnostics(
+    hass: HomeAssistant,
+    entry: LiproConfigEntry,
+) -> DiagnosticsPayload:
+    """Return diagnostics for a config entry."""
+    return await _async_get_config_entry_diagnostics_surface(
+        hass,
+        entry,
+        get_anonymous_share_manager=cast(
+            AnonymousShareManagerFactory,
+            _get_anonymous_share_manager_for_diagnostics,
+        ),
+        async_redact_data=async_redact_data,
+        redact_entry_title=_redact_entry_title,
+        build_device_diagnostics_fn=_build_device_diagnostics,
+        to_redact=TO_REDACT,
+        options_to_redact=OPTIONS_TO_REDACT,
+    )
+
+
+async def async_get_device_diagnostics(
+    hass: HomeAssistant,
+    entry: LiproConfigEntry,
+    device: DeviceEntry,
+) -> DiagnosticsPayload:
+    """Return diagnostics for a single device entry."""
+    return await _async_get_device_diagnostics_surface(
+        hass,
+        entry,
+        device,
+        domain=DOMAIN,
+        async_redact_data=async_redact_data,
+        redact_entry_title=_redact_entry_title,
+        build_device_diagnostics_fn=_build_device_diagnostics,
+        extract_device_serial_fn=_extract_device_serial,
+        to_redact=TO_REDACT,
+        options_to_redact=OPTIONS_TO_REDACT,
+    )

@@ -1,0 +1,40 @@
+{
+  "name": "Lipro Home Assistant Development",
+  "image": "mcr.microsoft.com/devcontainers/python:3.14",
+  "postCreateCommand": "scripts/setup",
+  "forwardPorts": [
+    8123
+  ],
+  "portsAttributes": {
+    "8123": {
+      "label": "Home Assistant",
+      "onAutoForward": "notify"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+        "redhat.vscode-yaml"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/workspaces/lipro-hass/.venv/bin/python",
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.fixAll": "always",
+          "source.organizeImports": "always"
+        },
+        "files.associations": {
+          "*.yaml": "home-assistant"
+        }
+      }
+    }
+  },
+  "remoteUser": "vscode",
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {}
+  }
+}

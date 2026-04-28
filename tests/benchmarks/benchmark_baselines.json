@@ -1,0 +1,80 @@
+{
+  "schema_version": "benchmark-baselines.v1",
+  "policy": {
+    "lane_policy": "pull_request/push/workflow_call smoke subset + schedule/workflow_dispatch full benchmark contract",
+    "warning_semantics": "mean_seconds above baseline * warning_ratio emits a warning but does not fail",
+    "failure_semantics": "mean_seconds above baseline * failure_ratio fails the benchmark contract lane as a no-regression gate",
+    "default_warning_ratio": 2.0,
+    "default_failure_ratio": 4.0,
+    "smoke_benchmarks": [
+      "tests/benchmarks/test_command_benchmark.py::test_command_result_classifier_benchmark",
+      "tests/benchmarks/test_mqtt_benchmark.py::test_mqtt_message_processing_benchmark",
+      "tests/benchmarks/test_device_refresh_benchmark.py::test_device_update_properties_benchmark"
+    ]
+  },
+  "benchmarks": {
+    "tests/benchmarks/test_command_benchmark.py::test_command_result_classifier_benchmark": {
+      "label": "command result classifier",
+      "group": "command",
+      "baseline_mean_seconds": 4.4836691280602126e-07,
+      "warning_ratio": 2.0,
+      "failure_ratio": 4.0
+    },
+    "tests/benchmarks/test_mqtt_benchmark.py::test_mqtt_message_processing_benchmark": {
+      "label": "mqtt message processing",
+      "group": "mqtt",
+      "baseline_mean_seconds": 1.3964052406412645e-05,
+      "warning_ratio": 2.0,
+      "failure_ratio": 4.0
+    },
+    "tests/benchmarks/test_device_refresh_benchmark.py::test_device_update_properties_benchmark": {
+      "label": "device.update_properties",
+      "group": "device-refresh",
+      "baseline_mean_seconds": 7.318287250113085e-07,
+      "warning_ratio": 2.0,
+      "failure_ratio": 4.0
+    },
+    "tests/benchmarks/test_coordinator_performance.py::test_device_identity_index_registration": {
+      "label": "device identity index registration",
+      "group": "coordinator-performance",
+      "baseline_mean_seconds": 2.538604412171409e-07,
+      "warning_ratio": 2.0,
+      "failure_ratio": 4.0
+    },
+    "tests/benchmarks/test_coordinator_performance.py::test_device_identity_index_lookup": {
+      "label": "device identity index lookup",
+      "group": "coordinator-performance",
+      "baseline_mean_seconds": 2.3607568795687423e-07,
+      "warning_ratio": 2.0,
+      "failure_ratio": 4.0
+    },
+    "tests/benchmarks/test_coordinator_performance.py::test_device_runtime_refresh_check": {
+      "label": "device runtime refresh decision",
+      "group": "coordinator-performance",
+      "baseline_mean_seconds": 1.606869481318087e-07,
+      "warning_ratio": 2.0,
+      "failure_ratio": 4.0
+    },
+    "tests/benchmarks/test_coordinator_performance.py::test_normalize_device_key_performance": {
+      "label": "normalize device key",
+      "group": "coordinator-performance",
+      "baseline_mean_seconds": 1.326803502949529e-07,
+      "warning_ratio": 2.0,
+      "failure_ratio": 4.0
+    },
+    "tests/benchmarks/test_coordinator_performance.py::test_device_identity_index_bulk_registration": {
+      "label": "device identity index bulk registration",
+      "group": "coordinator-performance",
+      "baseline_mean_seconds": 9.98708549099445e-06,
+      "warning_ratio": 2.0,
+      "failure_ratio": 4.0
+    },
+    "tests/benchmarks/test_coordinator_performance.py::test_device_identity_index_bulk_lookup": {
+      "label": "device identity index bulk lookup",
+      "group": "coordinator-performance",
+      "baseline_mean_seconds": 2.40412368380032e-06,
+      "warning_ratio": 2.0,
+      "failure_ratio": 4.0
+    }
+  }
+}

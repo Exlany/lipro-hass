@@ -1,0 +1,194 @@
+{
+  "entity": {
+    "binary_sensor": {
+      "connectivity": {
+        "default": "mdi:lan-connect",
+        "state": {
+          "off": "mdi:lan-disconnect"
+        }
+      },
+      "motion": {
+        "default": "mdi:motion-sensor",
+        "state": {
+          "off": "mdi:motion-sensor-off"
+        }
+      },
+      "door": {
+        "default": "mdi:door",
+        "state": {
+          "on": "mdi:door-open",
+          "off": "mdi:door-closed"
+        }
+      },
+      "light": {
+        "default": "mdi:brightness-6",
+        "state": {
+          "on": "mdi:brightness-7",
+          "off": "mdi:brightness-3"
+        }
+      },
+      "battery": {
+        "default": "mdi:battery",
+        "state": {
+          "on": "mdi:battery-alert"
+        }
+      }
+    },
+    "light": {
+      "light": {
+        "default": "mdi:ceiling-light",
+        "state": {
+          "off": "mdi:ceiling-light-outline"
+        }
+      }
+    },
+    "fan": {
+      "fan": {
+        "default": "mdi:fan",
+        "state": {
+          "off": "mdi:fan-off"
+        }
+      },
+      "ventilation_fan": {
+        "default": "mdi:fan",
+        "state": {
+          "off": "mdi:fan-off"
+        }
+      }
+    },
+    "cover": {
+      "curtain": {
+        "default": "mdi:curtains",
+        "state": {
+          "closed": "mdi:curtains-closed",
+          "closing": "mdi:curtains-closed"
+        }
+      }
+    },
+    "climate": {
+      "heater": {
+        "default": "mdi:heat-wave",
+        "state": {
+          "off": "mdi:hvac-off"
+        },
+        "state_attributes": {
+          "preset_mode": {
+            "default": "mdi:heat-wave",
+            "state": {
+              "demist": "mdi:weather-fog",
+              "dry": "mdi:water-off",
+              "gentle_wind": "mdi:weather-windy"
+            }
+          }
+        }
+      }
+    },
+    "switch": {
+      "switch": {
+        "default": "mdi:light-switch",
+        "state": {
+          "off": "mdi:light-switch-off"
+        }
+      },
+      "outlet": {
+        "default": "mdi:power-socket-eu",
+        "state": {
+          "on": "mdi:power-plug",
+          "off": "mdi:power-plug-off"
+        }
+      },
+      "fade": {
+        "default": "mdi:transition",
+        "state": {
+          "off": "mdi:transition-masked"
+        }
+      },
+      "sleep_aid": {
+        "default": "mdi:sleep",
+        "state": {
+          "off": "mdi:sleep-off"
+        }
+      },
+      "wake_up": {
+        "default": "mdi:weather-sunny",
+        "state": {
+          "off": "mdi:weather-sunny-off"
+        }
+      },
+      "focus_mode": {
+        "default": "mdi:head-lightbulb",
+        "state": {
+          "off": "mdi:head-lightbulb-outline"
+        }
+      },
+      "body_reactive": {
+        "default": "mdi:motion-sensor",
+        "state": {
+          "off": "mdi:motion-sensor-off"
+        }
+      },
+      "panel_led": {
+        "default": "mdi:lightbulb",
+        "state": {
+          "off": "mdi:lightbulb-off"
+        }
+      },
+      "panel_memory": {
+        "default": "mdi:history"
+      }
+    },
+    "select": {
+      "wind_direction": {
+        "default": "mdi:rotate-3d-variant",
+        "state": {
+          "fixed": "mdi:arrow-down"
+        }
+      },
+      "heater_light": {
+        "default": "mdi:lightbulb-off",
+        "state": {
+          "main": "mdi:lightbulb",
+          "night": "mdi:lightbulb-night"
+        }
+      },
+      "light_gear": {
+        "default": "mdi:tune-variant"
+      }
+    },
+    "sensor": {
+      "power": {
+        "default": "mdi:flash"
+      },
+      "energy": {
+        "default": "mdi:lightning-bolt"
+      },
+      "battery": {
+        "default": "mdi:battery"
+      },
+      "wifi_signal": {
+        "default": "mdi:wifi"
+      }
+    },
+    "update": {
+      "firmware": {
+        "default": "mdi:chip"
+      }
+    }
+  },
+  "services": {
+    "send_command": {"service": "mdi:console"},
+    "get_schedules": {"service": "mdi:calendar-clock"},
+    "add_schedule": {"service": "mdi:calendar-plus"},
+    "delete_schedules": {"service": "mdi:calendar-remove"},
+    "submit_anonymous_share": {"service": "mdi:upload"},
+    "get_anonymous_share_report": {"service": "mdi:file-document-outline"},
+    "get_developer_report": {"service": "mdi:clipboard-text-outline"},
+    "submit_developer_feedback": {"service": "mdi:bug-outline"},
+    "query_command_result": {"service": "mdi:message-text-outline"},
+    "get_city": {"service": "mdi:city"},
+    "query_user_cloud": {"service": "mdi:cloud-search-outline"},
+    "fetch_body_sensor_history": {"service": "mdi:history"},
+    "fetch_door_sensor_history": {"service": "mdi:history"},
+    "refresh_devices": {"service": "mdi:refresh"}
+  }
+}

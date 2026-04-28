@@ -1,0 +1,24 @@
+name: Hassfest Validation
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  hassfest:
+    name: Hassfest
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: Run Hassfest validation
+        uses: home-assistant/actions/hassfest@dce0e860c68256ef2902ece06afa5401eb4674e1

@@ -1,0 +1,235 @@
+---
+name: 🐛 Bug Report / 错误报告
+description: Report a bug with the Lipro integration / 报告 Lipro 集成的错误
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢你提交 Bug 报告！先走 docs-first 首跳：`docs/README.md` → `docs/TROUBLESHOOTING.md` → `SUPPORT.md`。这个表单只是后续的 issue intake，只有在你当前访问模式已经暴露仓库访问权限时才成立；若未来 public mirror 出现，也必须沿同一条 docs-first 路由。
+        Thanks for taking the time to fill out this bug report! Start with the docs-first first hop: `docs/README.md` → `docs/TROUBLESHOOTING.md` → `SUPPORT.md`. This form is only the follow-up issue-intake step when your current access mode already exposes repository access; any future public mirror must preserve the same docs-first route.
+
+        若你要报告的是安全漏洞，请不要使用此公开表单；请改走 `SECURITY.md` 中的私密披露路径。
+        If you are reporting a security vulnerability, do not use this public form; follow the private disclosure path in `SECURITY.md`.
+
+        最低支持的 Home Assistant 版本真源为 `hacs.json` 中的 `2026.3.1`，`pyproject.toml` 只同步开发 pin。若当前仓库或 fork 为私有，CI 会跳过 HACS validation。HACS only supports public GitHub repositories，因此它不是当前 private-access 仓库对所有读者都保证存在的默认入口。
+        The canonical minimum supported Home Assistant version is `2026.3.1` from `hacs.json`; `pyproject.toml` only mirrors the development pin. If this repository or fork is private, CI skips HACS validation. HACS only supports public GitHub repositories, so it is not a guaranteed default route for every reader of the current private-access repository.
+
+        若安装脚本以 remote 模式运行且未显式指定 archive/tag，则默认会解析最新 tagged release（`latest`）；若你使用了 `ARCHIVE_TAG=main` / branch fallback / mirror 之类预览路径，请在报告里明确写出。若你还没开始系统排障，请先从 `docs/README.md` 进入文档总索引，再阅读 `docs/TROUBLESHOOTING.md`；若问题涉及发版/打包，请维护者参考 `docs/MAINTAINER_RELEASE_RUNBOOK.md`。
+        If the installer runs in remote mode without a pinned archive/tag, it resolves the latest tagged release (`latest`) by default; if you used `ARCHIVE_TAG=main`, branch fallback, or a mirror-backed preview path, say so explicitly. If you have not started structured troubleshooting yet, enter through the `docs/README.md` documentation index first, then read `docs/TROUBLESHOOTING.md`; maintainer-only release/package issues belong in `docs/MAINTAINER_RELEASE_RUNBOOK.md`.
+
+        公开 Bug、Discussion、diagnostics 升级与 developer report 只会增加排障证据，不会自动转移 release custody，也不代表存在未公开的 delegate（undocumented delegate）。本仓库当前仍采用 single-maintainer 模式；维护者不可用演练（maintainer-unavailable drill）要求在维护者暂不可用时 freeze new tagged releases and new release promises，但公开 bug intake 与私密安全披露路径仍保持诚实可见。
+        Public bugs, Discussions, diagnostics escalations, and developer reports increase debugging evidence only; they do not transfer release custody or imply an undocumented delegate. This repository still follows a single-maintainer model; the maintainer-unavailable drill says to freeze new tagged releases and new release promises when the maintainer is unavailable, while keeping public bug intake and the private security path visibly honest.
+
+        对大多数公开 Bug 报告，diagnostics 就是第一优先证据；developer report / 一键反馈是升级排障路径，而不是硬门槛。为了把问题尽快路由到正确边界，请尽量补齐最小充分证据：受影响区域、影响范围，以及你已经尝试过的排障或验证；若暂时不确定，可以明确写“不确定”。
+        For most public bug reports, diagnostics are the first-line evidence; developer report / one-click feedback is an escalation path, not a hard gate. To route the issue quickly, please include the minimum-sufficient evidence: affected area, impact scope, and troubleshooting or validation already tried; if you are unsure, say so explicitly.
+
+  - type: checkboxes
+    attributes:
+      label: Checklist / 检查清单
+      options:
+        - label: I have searched existing issues and this is not a duplicate. / 我已搜索现有问题，确认这不是重复的。
+          required: true
+        - label: I am using the latest version of this integration. / 我正在使用此集成的最新版本。
+          required: true
+        - label: I have enabled debug logging. / 我已启用调试日志。
+          required: true
+        - label: If diagnostics were not enough, I also provided a developer report (or submitted one-click feedback). / 若 diagnostics 不足，我也已补充开发者报告（或已一键提交反馈）。
+          required: false
+
+  - type: dropdown
+    id: problem-type
+    attributes:
+      label: Problem Type / 问题类型
+      description: What kind of problem are you experiencing? / 你遇到了什么类型的问题？
+      options:
+        - "Login/Authentication failed / 登录认证失败"
+        - "Device not discovered / 设备未发现"
+        - "Device state not syncing / 设备状态不同步"
+        - "Control command not working / 控制命令无效"
+        - "MQTT connection issue / MQTT 连接问题"
+        - "Integration setup failed / 集成配置失败"
+        - "Other / 其他"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: device-type
+    attributes:
+      label: Affected Device Type / 受影响的设备类型
+      description: Which device type is affected? / 哪种设备类型受影响？
+      options:
+        - "Light (灯具: 筒灯/吸顶灯/灯带/台灯)"
+        - "Fan Light (风扇灯)"
+        - "Curtain (窗帘)"
+        - "Switch Panel (开关面板)"
+        - "Outlet (插座)"
+        - "Heater (浴霸/暖风机)"
+        - "Motion Sensor (人体传感器)"
+        - "Door Sensor (门窗传感器)"
+        - "All devices / 所有设备"
+        - "Not device specific / 与设备无关"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: affected-area
+    attributes:
+      label: Affected Area / Boundary Family / 受影响区域 / 边界家族
+      description: Route this bug to the closest boundary family; choose "Not sure" if you cannot tell yet. / 请把问题先路由到最接近的边界家族；若暂时无法判断，请选择“不确定”。
+      options:
+        - "Protocol / 协议面 (API / MQTT / auth / discovery)"
+        - "Runtime / 运行面 (coordinator / state sync)"
+        - "Control / 控制面 (config flow / services / diagnostics)"
+        - "External boundary / 外部边界 (installer / firmware metadata / release asset)"
+        - "Docs / governance / 文档或治理入口"
+        - "Not sure / 不确定"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Problem Description / 问题描述
+      description: A clear and concise description of what the bug is. / 清晰简洁地描述问题。
+      placeholder: |
+        例如：开灯后 Home Assistant 中的状态没有同步更新，需要手动刷新...
+        Example: After turning on the light, the state in Home Assistant doesn't sync...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce / 复现步骤
+      description: How can we reproduce this issue? / 如何复现这个问题？
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: impact-scope
+    attributes:
+      label: Impact Scope / 影响范围
+      description: How wide is the impact when this bug happens? / 这个问题发生时，影响范围有多大？
+      options:
+        - "Single device / 单个设备"
+        - "One device family / 单一设备家族"
+        - "One Home Assistant instance / 单个 Home Assistant 实例"
+        - "Install or update path only / 仅安装或升级路径"
+        - "Multiple homes or users / 多个家庭或用户"
+        - "Most or all devices in the integration / 集成内大多数或全部设备"
+        - "Not sure / 不确定"
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior / 期望行为
+      description: What did you expect to happen? / 你期望发生什么？
+    validations:
+      required: false
+
+  - type: input
+    id: ha-version
+    attributes:
+      label: Home Assistant Version / Home Assistant 版本
+      description: "Minimum supported: 2026.3.1 / 最低支持版本：2026.3.1"
+      placeholder: "e.g., 2026.3.1"
+    validations:
+      required: true
+
+  - type: input
+    id: integration-version
+    attributes:
+      label: Lipro Integration Version / Lipro 集成版本
+      placeholder: "e.g., 1.0.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install-method
+    attributes:
+      label: Installation Method / 安装方式
+      description: "HACS (future public mirror only) / Shell / shell_command / Manual；private repos or forks skip CI HACS validation. / HACS（仅未来 public mirror）/ Shell / shell_command / Manual；私有仓库或 fork 会跳过 CI HACS validation。"
+      options:
+        - "HACS (future public mirror only) / HACS（仅未来 public mirror）"
+        - "Shell / SSH installer / SSH 安装脚本"
+        - "shell_command"
+        - "Manual / 手动安装"
+    validations:
+      required: true
+
+  - type: input
+    id: install-source-path
+    attributes:
+      label: Install / Source Path Details / 安装 / 来源路径细节
+      description: Optional but useful when the bug depends on the install route; mention tagged release, `latest`, `ARCHIVE_TAG=main`, manual zip, mirror, or fork if relevant. / 若问题与安装路径有关，这里请补充 tagged release、`latest`、`ARCHIVE_TAG=main`、手动 zip、mirror 或 fork 等细节。
+      placeholder: "e.g., Release v1.22.0 / latest / ARCHIVE_TAG=main / manual zip / fork commit"
+    validations:
+      required: false
+
+  - type: textarea
+    id: troubleshooting-tried
+    attributes:
+      label: Troubleshooting or Validation Tried / 已尝试的排障或验证
+      description: Tell us which docs, commands, reloads, or comparisons you already tried, and what each attempt showed. / 请说明你已尝试过哪些文档步骤、命令、重载或对比动作，以及每一步看到的结果。
+      placeholder: |
+        - Read `docs/TROUBLESHOOTING.md` / 已阅读 `docs/TROUBLESHOOTING.md`
+        - Reloaded the integration or restarted Home Assistant / 已重载集成或重启 Home Assistant
+        - Ran a command or service / 执行过的命令或服务：
+        - What changed or did not change / 结果与未变化之处：
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Debug Logs / 调试日志
+      description: |
+        Enable debug logging by adding this to configuration.yaml:
+        在 configuration.yaml 中添加以下内容启用调试日志：
+        ```yaml
+        logger:
+          default: info
+          logs:
+            custom_components.lipro: debug
+        ```
+      render: text
+    validations:
+      required: true
+
+  - type: dropdown
+    id: developer-feedback-method
+    attributes:
+      label: Developer Feedback Method / 开发者反馈方式
+      description: How did you provide the developer diagnostics? / 你通过哪种方式提供开发者诊断信息？
+      options:
+        - "Submitted via lipro.submit_developer_feedback / 已通过服务一键提交"
+        - "Pasted JSON from lipro.get_developer_report / 已粘贴 get_developer_report 导出"
+        - "Not available / 暂无"
+    validations:
+      required: true
+
+  - type: textarea
+    id: developer-report
+    attributes:
+      label: Developer Report JSON / 开发者报告 JSON
+      description: |
+        Optional unless diagnostics still cannot explain the issue or a maintainer asked for deeper debugging. Paste output from `lipro.get_developer_report` (or key parts), or mention submission time if you used one-click feedback. If available, also keep `failure_summary` / `failure_entries`.
+        仅当 diagnostics 仍不足以解释问题，或维护者要求更深层排查时才必须提供。请粘贴 `lipro.get_developer_report` 输出（或关键片段）；若使用一键反馈请注明提交时间；若可获取，也请保留 `failure_summary` / `failure_entries`。
+      render: json
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context / 其他信息
+      description: Any other context, screenshots, or device info. / 任何其他上下文、截图或设备信息。
+    validations:
+      required: false

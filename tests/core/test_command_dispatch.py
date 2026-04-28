@@ -1,0 +1,445 @@
+"""Unit tests for command dispatch helpers."""
+
+from __future__ import annotations
+
+from typing import Any, cast
+from unittest.mock import AsyncMock, patch
+
+import pytest
+
+from custom_components.lipro.core.api import LiproApiError
+from custom_components.lipro.core.command.dispatch import (
+    CommandDispatchPlan,
+    CommandRoute,
+    execute_command_dispatch,
+    execute_command_plan_with_trace,
+    normalize_group_power_command,
+    plan_command_dispatch,
+    resolve_group_fallback_member_id,
+)
+from custom_components.lipro.core.device import LiproDevice
+
+
+def _make_device(
+    serial: str = "03ab5ccd7c000001",
+    is_group: bool = False,
+    *,
+    device_type: int = 1,
+    iot_name: str = "lipro_led",
+    physical_model: str = "light",
+    extra_data: dict[str, Any] | None = None,
+) -> LiproDevice:
+    """Create a minimal LiproDevice instance for helper tests."""
+    return LiproDevice(
+        device_number=1,
+        serial=serial,
+        name="Test Device",
+        device_type=device_type,
+        iot_name=iot_name,
+        physical_model=physical_model,
+        is_group=is_group,
+        extra_data=extra_data or {},
+    )
+
+
+def test_command_dispatch_plan_coerces_route_to_enum() -> None:
+    plan = CommandDispatchPlan(
+        route="group_direct",
+        command="POWER_ON",
+        properties=None,
+        member_fallback_id=None,
+    )
+
+    assert plan.route is CommandRoute.GROUP_DIRECT
+
+
+def test_normalize_group_power_command_non_string_key_keeps_original() -> None:
+    """Non-string property keys should preserve CHANGE_STATE payload."""
+    properties: list[dict[str, object]] = [{"key": 1, "value": "1"}]
+    command, resolved_properties = normalize_group_power_command(
+        "CHANGE_STATE",
+        cast(list[dict[str, str]] | None, properties),
+    )
+
+    assert command == "CHANGE_STATE"
+    assert resolved_properties == properties
+
+
+def test_normalize_group_power_command_unknown_power_value_keeps_original() -> None:
+    """Unknown power values should not collapse to POWER_ON/OFF."""
+    properties = [{"key": "powerState", "value": "unexpected"}]
+    command, resolved_properties = normalize_group_power_command(
+        "CHANGE_STATE",
+        properties,
+    )
+
+    assert command == "CHANGE_STATE"
+    assert resolved_properties == properties
+
+
+def test_normalize_group_power_command_returns_original_for_non_change_state() -> None:
+    properties = [{"key": "powerState", "value": "1"}]
+
+    command, resolved_properties = normalize_group_power_command("POWER_ON", properties)
+
+    assert command == "POWER_ON"
+    assert resolved_properties == properties
+
+
+def test_normalize_group_power_command_keeps_mixed_property_payloads() -> None:
+    properties = [
+        {"key": "powerState", "value": "1"},
+        {"key": "brightness", "value": "50"},
+    ]
+
+    command, resolved_properties = normalize_group_power_command(
+        "CHANGE_STATE",
+        properties,
+    )
+
+    assert command == "CHANGE_STATE"
+    assert resolved_properties == properties
+
+
+@pytest.mark.parametrize(
+    ("raw_value", "expected_command"),
+    [("1", "POWER_ON"), ("true", "POWER_ON"), ("off", "POWER_OFF")],
+)
+def test_normalize_group_power_command_collapses_power_only_payloads(
+    raw_value: str,
+    expected_command: str,
+) -> None:
+    command, resolved_properties = normalize_group_power_command(
+        "CHANGE_STATE",
+        [{"key": "powerState", "value": raw_value}],
+    )
+
+    assert command == expected_command
+    assert resolved_properties is None
+
+
+def test_resolve_group_fallback_member_id_non_string_member_returns_none() -> None:
+    """Fallback is invalid when the single member id is not a string."""
+    device = _make_device(
+        serial="mesh_group_10001",
+        is_group=True,
+        extra_data={"group_member_ids": [123]},
+    )
+
+    result = resolve_group_fallback_member_id(device, "03ab111111111111")
+
+    assert result is None
+
+
+def test_resolve_group_fallback_member_id_invalid_member_format_returns_none() -> None:
+    """Fallback is rejected when group member id is not a valid IoT id."""
+    device = _make_device(
+        serial="mesh_group_10001",
+        is_group=True,
+        extra_data={"group_member_ids": ["mesh_group_20001"]},
+    )
+
+    result = resolve_group_fallback_member_id(device, "03ab111111111111")
+
+    assert result is None
+
+
+def test_resolve_group_fallback_member_id_requires_candidate_to_match_only_member() -> (
+    None
+):
+    """Fallback should be rejected when candidate is not the sole group member."""
+    device = _make_device(
+        serial="mesh_group_10001",
+        is_group=True,
+        extra_data={"group_member_ids": ["03ab111111111111"]},
+    )
+
+    assert resolve_group_fallback_member_id(device, "03ab222222222222") is None
+
+
+def test_resolve_group_fallback_member_id_returns_none_for_invalid_candidate() -> None:
+    device = _make_device(
+        serial="mesh_group_10001",
+        is_group=True,
+        extra_data={"group_member_ids": ["03ab111111111111"]},
+    )
+
+    assert resolve_group_fallback_member_id(device, "mesh_group_20001") is None
+
+
+def test_resolve_group_fallback_member_id_returns_normalized_member_when_valid() -> (
+    None
+):
+    device = _make_device(
+        serial="mesh_group_10001",
+        is_group=True,
+        extra_data={"group_member_ids": ["03ab111111111111"]},
+    )
+
+    assert (
+        resolve_group_fallback_member_id(device, " 03AB111111111111 ")
+        == "03ab111111111111"
+    )
+
+
+def test_plan_command_dispatch_normalizes_group_power_and_ignores_invalid_fallback() -> (
+    None
+):
+    device = _make_device(
+        serial="mesh_group_10001",
+        is_group=True,
+        extra_data={"group_member_ids": ["03ab111111111111", "03ab222222222222"]},
+    )
+
+    plan = plan_command_dispatch(
+        device,
+        "CHANGE_STATE",
+        [{"key": "powerState", "value": "on"}],
+        "03ab111111111111",
+    )
+
+    assert plan.route is CommandRoute.GROUP_DIRECT
+    assert plan.command == "POWER_ON"
+    assert plan.properties is None
+    assert plan.member_fallback_id is None
+
+
+@pytest.mark.asyncio
+async def test_execute_command_dispatch_device_direct_route() -> None:
+    """Non-group devices should call send_command directly."""
+    device = _make_device(is_group=False)
+    client = AsyncMock()
+    client.send_command = AsyncMock(return_value={"pushSuccess": True})
+
+    result, route = await execute_command_dispatch(
+        client,
+        device=device,
+        plan=CommandDispatchPlan(
+            route="device_direct",
+            command="POWER_ON",
+            properties=None,
+            member_fallback_id=None,
+        ),
+    )
+
+    assert result == {"pushSuccess": True}
+    assert route == "device_direct"
+    client.send_command.assert_awaited_once()
+    client.send_group_command.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_execute_command_dispatch_group_error_fallback_to_member() -> None:
+    """Group API errors should fallback to member when fallback id is present."""
+    device = _make_device(serial="mesh_group_10001", is_group=True)
+    client = AsyncMock()
+    client.send_group_command = AsyncMock(side_effect=LiproApiError("boom", 500))
+    client.send_command = AsyncMock(return_value={"pushSuccess": True, "source": "m"})
+
+    result, route = await execute_command_dispatch(
+        client,
+        device=device,
+        plan=CommandDispatchPlan(
+            route="group_direct",
+            command="POWER_ON",
+            properties=None,
+            member_fallback_id="03ab111111111111",
+        ),
+    )
+
+    assert result == {"pushSuccess": True, "source": "m"}
+    assert route == "group_error_fallback_member"
+    client.send_group_command.assert_awaited_once()
+    client.send_command.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("push_success", [False, 0, "0", "false"])
+async def test_execute_command_dispatch_group_push_fail_fallback_to_member(
+    push_success: object,
+) -> None:
+    """Bool-like push failure values should fallback to member when configured."""
+    device = _make_device(serial="mesh_group_10001", is_group=True)
+    client = AsyncMock()
+    client.send_group_command = AsyncMock(return_value={"pushSuccess": push_success})
+    client.send_command = AsyncMock(return_value={"pushSuccess": True, "source": "m"})
+
+    result, route = await execute_command_dispatch(
+        client,
+        device=device,
+        plan=CommandDispatchPlan(
+            route="group_direct",
+            command="POWER_ON",
+            properties=None,
+            member_fallback_id="03ab111111111111",
+        ),
+    )
+
+    assert result == {"pushSuccess": True, "source": "m"}
+    assert route == "group_push_fail_fallback_member"
+    client.send_group_command.assert_awaited_once()
+    client.send_command.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_execute_command_dispatch_group_error_without_fallback_raises() -> None:
+    """Group API error should bubble up when fallback id is absent."""
+    device = _make_device(serial="mesh_group_10001", is_group=True)
+    client = AsyncMock()
+    client.send_group_command = AsyncMock(side_effect=LiproApiError("boom", 500))
+    client.send_command = AsyncMock()
+
+    with pytest.raises(LiproApiError, match="boom"):
+        await execute_command_dispatch(
+            client,
+            device=device,
+            plan=CommandDispatchPlan(
+                route="group_direct",
+                command="POWER_ON",
+                properties=None,
+                member_fallback_id=None,
+            ),
+        )
+
+    client.send_command.assert_not_called()
+
+
+def test_plan_command_dispatch_routes_panel_commands_via_group_endpoint() -> None:
+    """Panel commands should use the mesh-group endpoint even for one device."""
+    device = _make_device(device_type=3, iot_name="21J8", physical_model="switch")
+
+    plan = plan_command_dispatch(
+        device,
+        "PANEL_CHANGE_STATE",
+        [{"key": "led", "value": "1"}],
+        None,
+    )
+
+    assert plan.route is CommandRoute.PANEL_DIRECT
+
+
+@pytest.mark.asyncio
+async def test_execute_command_dispatch_panel_route_uses_group_endpoint() -> None:
+    """Panel config commands should hit send_group_command with device id."""
+    device = _make_device(device_type=3, iot_name="21J8", physical_model="switch")
+    client = AsyncMock()
+    client.send_group_command = AsyncMock(return_value={"pushSuccess": True})
+
+    result, route = await execute_command_dispatch(
+        client,
+        device=device,
+        plan=CommandDispatchPlan(
+            route="panel_direct_via_group_endpoint",
+            command="PANEL_CHANGE_STATE",
+            properties=[{"key": "led", "value": "1"}],
+            member_fallback_id=None,
+        ),
+    )
+
+    assert result == {"pushSuccess": True}
+    assert route == "panel_direct_via_group_endpoint"
+    client.send_group_command.assert_awaited_once_with(
+        device.serial,
+        "PANEL_CHANGE_STATE",
+        device.device_type_hex,
+        [{"key": "led", "value": "1"}],
+        device.iot_name,
+    )
+    client.send_command.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_execute_command_plan_with_trace_updates_resolved_request_and_response() -> (
+    None
+):
+    device = _make_device(is_group=False)
+    client = AsyncMock()
+    client.send_command = AsyncMock(
+        return_value={
+            "pushSuccess": True,
+            "code": 0,
+            "message": "ok",
+            "msgSn": "12345",
+        }
+    )
+    trace: dict[str, Any] = {}
+
+    plan, result, route = await execute_command_plan_with_trace(
+        client,
+        device=device,
+        command="CHANGE_STATE",
+        properties=[{"key": "powerState", "value": "1"}],
+        fallback_device_id="03ab111111111111",
+        trace=trace,
+        redact_identifier=lambda value: (
+            f"redacted:{value}" if value is not None else None
+        ),
+    )
+
+    assert plan.command == "CHANGE_STATE"
+    assert result["pushSuccess"] is True
+    assert route == "device_direct"
+    assert trace["effective_fallback_device_id"] is None
+    assert trace["resolved_property_keys"] == ["powerState"]
+    assert trace["push_success"] is True
+    assert trace["response_msg_sn"] == "12345"
+
+
+@pytest.mark.asyncio
+async def test_execute_command_dispatch_group_error_fallback_does_not_retry_member() -> (
+    None
+):
+    """Member fallback triggered by group error should execute only once."""
+    device = _make_device(serial="mesh_group_10001", is_group=True)
+    client = AsyncMock()
+    client.send_group_command = AsyncMock(side_effect=LiproApiError("boom", 500))
+    client.send_command = AsyncMock(return_value={"pushSuccess": False, "source": "m"})
+
+    result, route = await execute_command_dispatch(
+        client,
+        device=device,
+        plan=CommandDispatchPlan(
+            route="group_direct",
+            command="POWER_ON",
+            properties=None,
+            member_fallback_id="03ab111111111111",
+        ),
+    )
+
+    assert result == {"pushSuccess": False, "source": "m"}
+    assert route is CommandRoute.GROUP_ERROR_FALLBACK
+    assert client.send_command.await_count == 1
+
+
+@pytest.mark.asyncio
+async def test_execute_command_dispatch_group_error_fallback_logs_redacted_details() -> (
+    None
+):
+    """Fallback warnings should avoid raw identifiers and raw error text."""
+    device = _make_device(serial="mesh_group_10001", is_group=True)
+    client = AsyncMock()
+    client.send_group_command = AsyncMock(
+        side_effect=LiproApiError("token=secret mesh_group_10001", 500)
+    )
+    client.send_command = AsyncMock(return_value={"pushSuccess": True})
+
+    with patch("custom_components.lipro.core.command.dispatch._LOGGER") as logger:
+        await execute_command_dispatch(
+            client,
+            device=device,
+            plan=CommandDispatchPlan(
+                route="group_direct",
+                command="POWER_ON",
+                properties=None,
+                member_fallback_id="03ab111111111111",
+            ),
+        )
+
+    logger.warning.assert_called_once()
+    assert logger.warning.call_args.args == (
+        "Group command %s to %s failed (%s), fallback to member %s",
+        "POWER_ON",
+        "mesh***0001",
+        "LiproApiError(code=500)",
+        "03ab***1111",
+    )
