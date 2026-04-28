@@ -41,7 +41,7 @@ jobs:
             exit 0
           fi
 
-          if grep -Eq "Code scanning is not enabled|Resource not accessible by integration|GitHub Code Security|GitHub Advanced Security" "$err_file"; then
+          if grep -Eq "Code scanning is not enabled|Resource not accessible by integration|GitHub Code Security|GitHub Advanced Security|no analysis found|HTTP 404" "$err_file"; then
             echo "enabled=false" >> "$GITHUB_OUTPUT"
             echo "code scanning availability: disabled in GitHub for this repository; skipping CodeQL upload so CI stays truthful instead of red" >> "$GITHUB_STEP_SUMMARY"
             cat "$err_file" >> "$GITHUB_STEP_SUMMARY"

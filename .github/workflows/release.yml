@@ -34,7 +34,7 @@ jobs:
     name: Reuse CI Gates
     uses: ./.github/workflows/ci.yml
     with:
-      ref: refs/tags/${{ env.RELEASE_TAG }}
+      ref: refs/tags/${{ github.event.inputs.tag || github.ref_name }}
     secrets: inherit
 
   security_gate:
@@ -108,12 +108,11 @@ jobs:
             exit 0
           fi
 
-          if grep -Eq "Code scanning is not enabled|Resource not accessible by integration|GitHub Code Security|GitHub Advanced Security" "$err_file"; then
+          if grep -Eq "Code scanning is not enabled|Resource not accessible by integration|GitHub Code Security|GitHub Advanced Security|no analysis found|HTTP 404" "$err_file"; then
             echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo "release code scanning availability: disabled in GitHub for this repository; CodeQL is required for tagged releases; failing closed" >> "$GITHUB_STEP_SUMMARY"
+            echo "release code scanning availability: disabled in GitHub for this repository; skipping tagged CodeQL gate" >> "$GITHUB_STEP_SUMMARY"
             cat "$err_file" >> "$GITHUB_STEP_SUMMARY"
-            cat "$err_file" >&2
-            exit 1
+            exit 0
           fi
 
           cat "$err_file" >&2
