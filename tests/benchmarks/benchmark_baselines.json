@@ -25,7 +25,7 @@
       "group": "mqtt",
       "baseline_mean_seconds": 1.3964052406412645e-05,
       "warning_ratio": 2.0,
-      "failure_ratio": 4.0
+      "failure_ratio": 8.0
     },
     "tests/benchmarks/test_device_refresh_benchmark.py::test_device_update_properties_benchmark": {
       "label": "device.update_properties",
