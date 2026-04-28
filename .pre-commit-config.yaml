@@ -1,0 +1,87 @@
+minimum_pre_commit_version: "3.7.0"
+
+default_language_version:
+  python: python3.14
+
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-format
+        name: ruff format (uv)
+        entry: uv run --extra dev ruff format
+        language: system
+        types_or: [python, pyi]
+        files: ^(custom_components/lipro|tests|scripts)/
+
+      - id: ruff-check
+        name: ruff check (uv)
+        entry: uv run --extra dev ruff check --fix --exit-non-zero-on-fix
+        language: system
+        types_or: [python, pyi]
+        files: ^(custom_components/lipro|tests|scripts)/
+
+      - id: mypy
+        name: mypy (focused uv contract)
+        entry: uv run --extra dev mypy --follow-imports=silent custom_components/lipro/core/coordinator/runtime/device_runtime.py scripts/check_file_matrix.py tests/core/test_device_refresh_runtime.py tests/core/test_log_safety.py tests/meta/test_governance_guards.py tests/meta/test_governance_phase_history_runtime.py tests/meta/governance_milestone_archives_assets.py tests/meta/governance_phase_history_archive_execution.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
+
+      - id: translations-truth
+        name: translations truth gate (uv)
+        entry: uv run --extra dev python scripts/check_translations.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
+
+      - id: markdown-links
+        name: markdown docs links (uv)
+        entry: uv run --extra dev python scripts/check_markdown_links.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
+
+      - id: architecture-policy
+        name: architecture policy gate (uv)
+        entry: uv run --extra dev python scripts/check_architecture_policy.py --check
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
+
+      - id: file-matrix
+        name: file matrix gate (uv)
+        entry: uv run --extra dev python scripts/check_file_matrix.py --check
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
+
+      - id: pytest-gate
+        name: pytest diagnostics gate (uv)
+        entry: >-
+          uv run --extra dev pytest -q -x
+          tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_collects_and_redacts_diagnostics
+          tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_handles_no_devices
+          tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_diagnostics_snapshot
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
+
+      - id: pytest-governance-gate
+        name: pytest governance gate (uv)
+        entry: >-
+          uv run --extra dev pytest -q -x
+          tests/meta/test_dependency_guards.py
+          tests/meta/test_public_surface_guards.py
+          tests/meta/test_governance*.py
+          tests/meta/test_toolchain_truth.py
+          tests/meta/test_version_sync.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]

@@ -1,0 +1,568 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
+      - ".github/ISSUE_TEMPLATE/**"
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
+      - ".github/ISSUE_TEMPLATE/**"
+  workflow_call:
+    inputs:
+      ref:
+        description: Optional checkout ref for reusable CI runs
+        required: false
+        default: ""
+        type: string
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+          fetch-depth: "0"
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: "3.14"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@0ca8f610542aa7f4acaf39e65cf4eb3c35091883
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen --extra dev
+
+      - name: Run Ruff linter
+        run: uv run ruff check .
+
+      - name: Run Ruff formatter
+        shell: bash
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          changed_python=""
+          if [[ "${GITHUB_EVENT_NAME}" == "pull_request" && -n "${PR_NUMBER}" ]]; then
+            git fetch --no-tags --depth=2 origin "pull/${PR_NUMBER}/head:pr-head"
+            changed_python="$(git diff --name-only --diff-filter=AMRT pr-head^..pr-head -- '*.py')"
+          elif [[ "${GITHUB_EVENT_NAME}" == "push" ]] && git rev-parse --verify HEAD^2 >/dev/null 2>&1; then
+            if git rev-parse --verify HEAD^2^ >/dev/null 2>&1; then
+              changed_python="$(git diff --name-only --diff-filter=AMRT HEAD^2^..HEAD^2 -- '*.py')"
+            else
+              changed_python="$(git diff --name-only --diff-filter=AMRT HEAD^..HEAD -- '*.py')"
+            fi
+          elif git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+            changed_python="$(git diff --name-only --diff-filter=AMRT HEAD^..HEAD -- '*.py')"
+          else
+            changed_python="$(git ls-files '*.py')"
+          fi
+
+          if [[ -z "${changed_python}" ]]; then
+            echo "No Python files changed in the current commit; formatter gate skipped."
+            exit 0
+          fi
+
+          uv run ruff format --check ${changed_python}
+
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+
+      - name: Run shellcheck
+        run: shellcheck install.sh scripts/develop scripts/lint scripts/setup
+
+      - name: Run focused mypy contract
+        run: |
+          uv run mypy --follow-imports=silent \
+            custom_components/lipro/core/coordinator/runtime/device_runtime.py \
+            tests/core/test_device_refresh_runtime.py \
+            tests/core/test_log_safety.py
+      - name: Check translations
+        run: uv run python scripts/check_translations.py
+
+      - name: Check markdown docs links
+        run: uv run python scripts/check_markdown_links.py
+
+  security:
+    name: Runtime Dependency Security Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: "3.14"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@0ca8f610542aa7f4acaf39e65cf4eb3c35091883
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen --extra dev
+
+      - name: Export runtime requirements
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          uv run python - <<'PYTHON'
+          import tomllib
+          from pathlib import Path
+
+          data = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
+          dependencies = data["project"]["dependencies"]
+          Path("requirements-runtime.in").write_text(
+              "\n".join(dependencies) + "\n",
+              encoding="utf-8",
+          )
+          PYTHON
+
+          uv pip compile requirements-runtime.in \
+            --python-version 3.14 \
+            --output-file requirements-runtime.txt \
+            --no-header \
+            --no-annotate \
+            --upgrade
+
+      - name: Run pip-audit (runtime)
+        run: uv run --extra dev pip-audit --progress-spinner off -r requirements-runtime.txt
+
+      - name: Run pip-audit (dev environment advisory only, non-blocking)
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        id: pip_audit_dev
+        continue-on-error: true
+        run: >-
+          uv run --extra dev pip-audit
+          --local
+          --skip-editable
+          --cache-dir "${RUNNER_TEMP}/pip-audit-dev-cache"
+          --progress-spinner off
+
+      - name: Record pip-audit (dev advisory) outcome
+        if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        run: >-
+          echo "pip-audit (dev) outcome: ${{ steps.pip_audit_dev.outcome }}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record runtime release-security posture
+        if: always()
+        run: |
+          echo "runtime security gate: blocking runtime pip-audit" >> "$GITHUB_STEP_SUMMARY"
+          echo "release path: must reuse ci.yml before tagged release packaging" >> "$GITHUB_STEP_SUMMARY"
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: "3.14"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@0ca8f610542aa7f4acaf39e65cf4eb3c35091883
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen --extra dev
+
+      - name: Run tests with coverage
+        run: >-
+          uv run pytest tests/
+          -v
+          --ignore=tests/benchmarks
+          --ignore=tests/meta
+          --cov=custom_components/lipro
+          --cov-fail-under=95
+          --cov-report=json
+          --cov-report=xml
+          --cov-report=term-missing
+
+      - name: Resolve changed coverage surface
+        shell: bash
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          if [[ "${GITHUB_EVENT_NAME}" == "pull_request" && -n "${PR_NUMBER}" ]]; then
+            git fetch --no-tags --depth=2 origin "pull/${PR_NUMBER}/head:pr-head"
+            if git rev-parse --verify pr-head^ >/dev/null 2>&1; then
+              git diff --name-only --diff-filter=AMRT pr-head^..pr-head > .coverage-changed-files
+            elif git rev-parse --verify origin/main >/dev/null 2>&1; then
+              merge_base="$(git merge-base origin/main pr-head)"
+              git diff --name-only --diff-filter=AMRT "${merge_base}...pr-head" > .coverage-changed-files
+            else
+              : > .coverage-changed-files
+            fi
+          elif [[ "${GITHUB_EVENT_NAME}" == "push" ]] && git rev-parse --verify HEAD^2 >/dev/null 2>&1; then
+            if git rev-parse --verify HEAD^2^ >/dev/null 2>&1; then
+              git diff --name-only --diff-filter=AMRT HEAD^2^..HEAD^2 > .coverage-changed-files
+            else
+              git diff --name-only --diff-filter=AMRT HEAD^...HEAD > .coverage-changed-files
+            fi
+          elif { [ "${GITHUB_REF_NAME}" = "main" ] || [ "${GITHUB_EVENT_NAME}" = "schedule" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_call" ]; } \
+            && git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+            git diff --name-only --diff-filter=AMRT HEAD^...HEAD > .coverage-changed-files
+          elif git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+            git diff --name-only --diff-filter=AMRT HEAD^...HEAD > .coverage-changed-files
+          elif git rev-parse --verify origin/main >/dev/null 2>&1; then
+            merge_base="$(git merge-base origin/main HEAD)"
+            git diff --name-only --diff-filter=AMRT "${merge_base}...HEAD" > .coverage-changed-files
+          else
+            : > .coverage-changed-files
+          fi
+
+          sed -i '/^$/d' .coverage-changed-files
+          echo "changed coverage surface file: .coverage-changed-files" >> "$GITHUB_STEP_SUMMARY"
+          if [[ -s .coverage-changed-files ]]; then
+            echo "changed coverage surface:" >> "$GITHUB_STEP_SUMMARY"
+            sed 's/^/- /' .coverage-changed-files >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "changed coverage surface: none detected" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Generate coverage baseline evidence
+        shell: bash
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          baseline_ref=""
+          if [[ "${GITHUB_EVENT_NAME}" == "pull_request" && -n "${PR_NUMBER}" ]]; then
+            git fetch --no-tags --depth=2 origin "pull/${PR_NUMBER}/head:pr-head"
+            if git rev-parse --verify pr-head^ >/dev/null 2>&1; then
+              baseline_ref="$(git rev-parse pr-head^)"
+            elif git rev-parse --verify origin/main >/dev/null 2>&1; then
+              baseline_ref="$(git merge-base origin/main pr-head)"
+            fi
+          elif [[ "${GITHUB_EVENT_NAME}" == "push" ]] && git rev-parse --verify HEAD^2 >/dev/null 2>&1; then
+            if git rev-parse --verify HEAD^2^ >/dev/null 2>&1; then
+              baseline_ref="$(git rev-parse HEAD^2^)"
+            else
+              baseline_ref="$(git rev-parse HEAD^)"
+            fi
+          elif { [ "${GITHUB_REF_NAME}" = "main" ] || [ "${GITHUB_EVENT_NAME}" = "schedule" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_call" ]; }             && git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+            baseline_ref="$(git rev-parse HEAD^)"
+          elif git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+            baseline_ref="$(git rev-parse HEAD^)"
+          elif git rev-parse --verify origin/main >/dev/null 2>&1; then
+            baseline_ref="$(git merge-base origin/main HEAD)"
+          fi
+
+          if [[ -z "$baseline_ref" ]]; then
+            echo "coverage baseline: unavailable (no merge-base / previous commit found)" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          baseline_worktree="$(mktemp -d)"
+          cleanup() {
+            git worktree remove --force "$baseline_worktree" >/dev/null 2>&1 || true
+            rm -rf "$baseline_worktree"
+          }
+          trap cleanup EXIT
+
+          git worktree add --detach "$baseline_worktree" "$baseline_ref"
+          (
+            cd "$baseline_worktree"
+            uv sync --frozen --extra dev
+            uv run pytest tests/               -q               --ignore=tests/benchmarks               --cov=custom_components/lipro               --cov-fail-under=0               --cov-report=json:coverage-baseline.json
+          )
+          cp "$baseline_worktree/coverage-baseline.json" .coverage-baseline.json
+          echo "coverage baseline ref: $baseline_ref" >> "$GITHUB_STEP_SUMMARY"
+          echo "coverage baseline artifact: .coverage-baseline.json" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record test lane contract
+        if: always()
+        run: |
+          echo "snapshot coverage: included in the main tests/ lane; no separate snapshot rerun" >> "$GITHUB_STEP_SUMMARY"
+          echo "benchmark coverage: excluded from the blocking test lane and handled by the benchmark smoke lane plus the schedule/manual full benchmark contract lane" >> "$GITHUB_STEP_SUMMARY"
+          echo "coverage gates: total floor is blocking; changed measured files must meet the changed-surface floor; merge-base/previous-commit baseline compare blocks regressions when baseline evidence is available" >> "$GITHUB_STEP_SUMMARY"
+          echo "coverage artifacts: coverage.json + coverage.xml + changed-surface file list are uploaded for audit/debug parity" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Check total + changed-surface coverage gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          coverage_args=(
+            coverage.json
+            --minimum 95
+            --changed-files .coverage-changed-files
+            --changed-minimum 95
+          )
+          if [[ -f .coverage-baseline.json ]]; then
+            coverage_args+=(
+              --baseline .coverage-baseline.json
+              --fail-on-changed-regression
+            )
+          fi
+          uv run python scripts/coverage_diff.py "${coverage_args[@]}"
+
+      - name: Run refactor tool smoke check
+        run: uv run python scripts/refactor_tools.py --coverage-json coverage.json --minimum-coverage 95
+
+      - name: Upload coverage artifact
+        if: always() && hashFiles('coverage.json', 'coverage.xml') != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: coverage-artifacts-${{ github.run_id }}
+          path: |
+            coverage.json
+            coverage.xml
+            .coverage-changed-files
+            .coverage-baseline.json
+          if-no-files-found: error
+
+      - name: Upload coverage to Codecov
+        if: github.event_name == 'push'
+        continue-on-error: true
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de
+        with:
+          files: ./coverage.xml
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  benchmark_smoke:
+    name: Benchmark Smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_call'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: "3.14"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@0ca8f610542aa7f4acaf39e65cf4eb3c35091883
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen --extra dev
+
+      - name: Run benchmark smoke suite
+        id: benchmark_smoke_run
+        run: >-
+          mkdir -p .benchmarks &&
+          uv run pytest -q
+          tests/benchmarks/test_command_benchmark.py
+          tests/benchmarks/test_mqtt_benchmark.py
+          tests/benchmarks/test_device_refresh_benchmark.py
+          --benchmark-only
+          --benchmark-json=.benchmarks/benchmark-smoke.json
+
+      - name: Upload benchmark smoke artifact
+        if: always() && hashFiles('.benchmarks/benchmark-smoke.json') != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: benchmark-smoke-json-${{ github.run_id }}
+          path: .benchmarks/benchmark-smoke.json
+          if-no-files-found: error
+
+      - name: Compare benchmark smoke against baseline manifest subset
+        id: benchmark_smoke_contract
+        if: always() && hashFiles('.benchmarks/benchmark-smoke.json') != ''
+        run: >-
+          uv run python scripts/check_benchmark_baseline.py .benchmarks/benchmark-smoke.json
+          --manifest tests/benchmarks/benchmark_baselines.json
+          --benchmark-set smoke
+
+      - name: Record benchmark smoke posture
+        if: always()
+        run: |
+          echo "benchmark smoke lane: PR/push/workflow_call governed subset from benchmark manifest" >> "$GITHUB_STEP_SUMMARY"
+          echo "benchmark smoke run outcome: ${{ steps.benchmark_smoke_run.outcome }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "benchmark smoke contract outcome: ${{ steps.benchmark_smoke_contract.outcome }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "benchmark smoke manifest set: smoke" >> "$GITHUB_STEP_SUMMARY"
+          if [[ -f .benchmarks/benchmark-smoke.json ]]; then
+            echo "benchmark smoke artifact: .benchmarks/benchmark-smoke.json" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "benchmark smoke artifact: missing" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  benchmark:
+    name: Benchmark
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: "3.14"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@0ca8f610542aa7f4acaf39e65cf4eb3c35091883
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen --extra dev
+
+      - name: Run benchmark suite
+        id: benchmark_run
+        run: >-
+          mkdir -p .benchmarks &&
+          uv run pytest tests/benchmarks/
+          -v
+          --benchmark-only
+          --benchmark-json=.benchmarks/benchmark.json
+
+      - name: Upload benchmark artifact
+        if: always() && hashFiles('.benchmarks/benchmark.json') != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: benchmark-json-${{ github.run_id }}
+          path: .benchmarks/benchmark.json
+          if-no-files-found: error
+
+      - name: Compare benchmark results against baseline manifest
+        id: benchmark_contract
+        if: always() && hashFiles('.benchmarks/benchmark.json') != ''
+        run: >-
+          uv run python scripts/check_benchmark_baseline.py .benchmarks/benchmark.json
+          --manifest tests/benchmarks/benchmark_baselines.json
+
+      - name: Record benchmark governed posture
+        if: always()
+        run: |
+          echo "benchmark lane: full manifest compare + threshold warning + no-regression gate; schedule/workflow_dispatch only" >> "$GITHUB_STEP_SUMMARY"
+          echo "benchmark smoke lane remains the PR/push/workflow_call subset feedback path" >> "$GITHUB_STEP_SUMMARY"
+          echo "benchmark run outcome: ${{ steps.benchmark_run.outcome }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "benchmark contract outcome: ${{ steps.benchmark_contract.outcome }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "benchmark manifest: tests/benchmarks/benchmark_baselines.json" >> "$GITHUB_STEP_SUMMARY"
+          if [[ -f .benchmarks/benchmark.json ]]; then
+            echo "benchmark artifact: .benchmarks/benchmark.json" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "benchmark artifact: missing" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  compatibility_preview:
+    name: Compatibility Preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: "3.14"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@0ca8f610542aa7f4acaf39e65cf4eb3c35091883
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen --extra dev
+
+      - name: Upgrade Home Assistant preview dependency set
+        id: ha_preview_upgrade
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          uv run python -m pip install --upgrade --pre "homeassistant>=2026.3.1"
+          uv run python -c "import homeassistant; print(homeassistant.__version__)"
+
+      - name: Run compatibility preview smoke
+        id: compatibility_preview_smoke
+        if: steps.ha_preview_upgrade.outcome == 'success'
+        continue-on-error: true
+        env:
+          PYTHONWARNINGS: error::DeprecationWarning,error::PendingDeprecationWarning
+        run: >-
+          uv run pytest -q
+          tests/core/test_init.py
+          tests/core/test_diagnostics.py
+          tests/core/test_system_health.py
+          tests/services/test_services_registry.py
+
+      - name: Record compatibility preview posture
+        if: always()
+        run: |
+          echo "compatibility preview lane: advisory only; schedule/workflow_dispatch only; stable PR + release contract unchanged" >> "$GITHUB_STEP_SUMMARY"
+          echo "preview upgrade outcome: ${{ steps.ha_preview_upgrade.outcome }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "preview smoke outcome: ${{ steps.compatibility_preview_smoke.outcome || 'skipped' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "preview warning posture: DeprecationWarning/PendingDeprecationWarning promoted to errors" >> "$GITHUB_STEP_SUMMARY"
+
+
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Note skipped HACS validation for private repository
+        if: github.event.repository.private
+        run: >-
+          echo "Skipping HACS Validation because HACS only supports public GitHub repositories."
+          >> "$GITHUB_STEP_SUMMARY"
+
+      - name: HACS Validation
+        if: ${{ !github.event.repository.private }}
+        uses: hacs/action@dcb30e72781db3f207d5236b861172774ab0b485
+        with:
+          category: integration
+          ignore: brands
+
+      - name: Hassfest Validation
+        uses: home-assistant/actions/hassfest@dce0e860c68256ef2902ece06afa5401eb4674e1

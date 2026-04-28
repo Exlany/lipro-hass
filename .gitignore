@@ -1,0 +1,85 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Virtual Environment
+.venv/
+venv/
+
+# Testing & Coverage
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+coverage.xml
+coverage.json
+.hypothesis/
+.tox/
+.nox/
+.cache/
+*.py,cover
+nosetests.xml
+
+# Type Checking
+.mypy_cache/
+.pyre/
+.pytype/
+.dmypy.json
+dmypy.json
+
+# Linting
+.ruff_cache/
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+NUL
+
+# Home Assistant Development
+config/*
+!config/configuration.yaml
+home-assistant_v2.db*
+home-assistant.log*
+
+# AI agent tooling
+.claude/
+.specstory/
+.specify/
+agent.md
+
+# Secrets
+secrets.yaml
+secrets.json
+*.key
+.env
+
+# Temporary
+*.tmp
+*.bak
+*.swp
+*~
+
+# Generated Reports
+CODE_REVIEW_REPORT.md
+CODE_REVIEW_PLAN.md
+
+# Assets (extracted from APK, not for distribution)
+assets/
+
+# local planning scratch
+.planning/
+# Benchmarks (generated)
+.benchmarks/
+benchmark_results.json

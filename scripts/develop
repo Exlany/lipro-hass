@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# Start Home Assistant with the Lipro integration for local development.
+
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+if ! command -v uv >/dev/null 2>&1; then
+    echo "uv is required but was not found in PATH" >&2
+    exit 1
+fi
+
+if [ ! -d ".venv" ]; then
+    echo ".venv not found. Running setup first..."
+    ./scripts/setup
+fi
+
+source_component_dir="custom_components/lipro"
+config_dir="${LIPRO_DEVELOP_CONFIG_DIR:-config}"
+custom_components_dir="$config_dir/custom_components"
+target_component_dir="$custom_components_dir/lipro"
+
+if [ ! -d "$source_component_dir" ]; then
+    echo "Missing $source_component_dir; run this script from the repository root." >&2
+    exit 1
+fi
+
+mkdir -p "$custom_components_dir"
+
+echo "Refreshing Lipro integration in $target_component_dir"
+rm -rf "$target_component_dir"
+cp -r "$source_component_dir" "$custom_components_dir/"
+echo "Preserved other custom integrations in $custom_components_dir"
+
+if [ "${LIPRO_DEVELOP_SMOKE_ONLY:-0}" = "1" ]; then
+    echo "Smoke-only mode: copied the Lipro integration without starting Home Assistant."
+    exit 0
+fi
+
+echo "Starting Home Assistant..."
+echo ""
+echo "Access the UI at: http://localhost:8123"
+echo "Config directory: $config_dir"
+echo ""
+
+cd "$config_dir"
+uv run hass -c .

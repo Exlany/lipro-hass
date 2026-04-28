@@ -1,0 +1,53 @@
+{
+  "report_version": "1.2",
+  "integration_version": "__INTEGRATION_VERSION__",
+  "ha_version": "2026.3.0",
+  "generated_at": "<generated_at>",
+  "installation_id": "install-001",
+  "device_count": 0,
+  "error_count": 0,
+  "devices": [],
+  "errors": [],
+  "developer_feedback": {
+    "note": "manual run",
+    "reports": [
+      {
+        "name": "[user_label]",
+        "iotName": "lipro_gateway",
+        "productName": "[user_product_label]",
+        "panel_capability_snapshot": {
+          "panels": [
+            {
+              "name": "[user_label]",
+              "iot_name": "21JD",
+              "panel_info": [
+                {
+                  "keyName": {}
+                }
+              ]
+            }
+          ]
+        },
+        "ir_remote_inventory_snapshot": {
+          "gateways": [
+            {
+              "name": "[user_label]",
+              "rc_list": [
+                {
+                  "name": {},
+                  "address": {}
+                }
+              ]
+            }
+          ],
+          "ir_remote_devices": [
+            {
+              "name": "[user_label]"
+            }
+          ]
+        }
+      }
+    ],
+    "requested_entry_id": "entry-2"
+  }
+}

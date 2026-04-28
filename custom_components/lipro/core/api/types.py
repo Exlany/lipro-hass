@@ -1,0 +1,211 @@
+"""Typed API payload contracts used by Lipro client helpers."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from enum import StrEnum
+from typing import TypedDict
+
+type JsonScalar = str | int | float | bool | None
+type JsonValue = JsonScalar | list[JsonValue] | dict[str, JsonValue]
+type JsonObject = dict[str, JsonValue]
+type ResponseHeaders = dict[str, str]
+type SanctionedBoundaryPayload = object
+type SanctionedRawMappingResult = tuple[
+    int,
+    SanctionedBoundaryPayload,
+    ResponseHeaders,
+    str | None,
+]
+type ValidatedMappingResult = tuple[int, JsonObject, str | None]
+
+type ApiResponseData = JsonValue | list[JsonObject] | JsonObject
+type DevicePropertyMap = dict[str, JsonValue]
+type DeviceStatusItem = dict[str, JsonValue]
+
+
+class ConnectStatusOutcome(StrEnum):
+    """Explicit parse outcomes for connect-status queries."""
+
+    SUCCESS = "success"
+    EMPTY_INPUT = "empty_input"
+    EMPTY_SANITIZED = "empty_sanitized"
+    NON_MAPPING = "non_mapping"
+    WRAPPED_NON_MAPPING = "wrapped_non_mapping"
+    EMPTY_MAPPING = "empty_mapping"
+    API_ERROR = "api_error"
+
+
+@dataclass(frozen=True, slots=True)
+class ConnectStatusQueryResult:
+    """Projected connect-status map plus the explicit parse outcome."""
+
+    outcome: ConnectStatusOutcome
+    statuses: dict[str, bool]
+
+
+class ApiResponse(TypedDict, total=False):
+    """Base API response structure."""
+
+    code: int
+    msg: str
+    data: ApiResponseData
+
+
+class LoginResponse(TypedDict):
+    """Login API response data."""
+
+    access_token: str
+    refresh_token: str
+    expires_in: int
+    user_id: int
+    biz_id: str | None
+
+
+class DeviceListItem(TypedDict, total=False):
+    """Device list item structure."""
+
+    serial: str
+    deviceId: str
+    iotDeviceId: str
+    name: str
+    deviceType: int
+    online: bool
+    properties: DevicePropertyMap
+
+
+class DeviceListResponse(TypedDict):
+    """Device list API response data."""
+
+    devices: list[DeviceListItem]
+    total: int
+
+
+class MqttConfigResponse(TypedDict, total=False):
+    """MQTT config API response data."""
+
+    accessKey: str
+    secretKey: str
+    endpoint: str
+    port: int
+
+
+class DevicePropertyRow(TypedDict, total=False):
+    """One raw property item returned by device APIs."""
+
+    key: str
+    value: JsonValue
+
+
+class DeviceApiResponse(TypedDict, total=False):
+    """Normalized device payload returned by device-list endpoints."""
+
+    deviceId: str | int
+    serial: str
+    deviceName: str
+    type: int | str
+    iotName: str
+    roomId: str | int
+    roomName: str
+    productId: str | int
+    physicalModel: str
+    properties: list[DevicePropertyRow]
+
+
+class CommandResultApiResponse(TypedDict, total=False):
+    """Normalized payload returned by command-result endpoints."""
+
+    code: str | int
+    message: str
+    success: bool
+    msgSn: str
+    pushSuccess: bool
+    pushTimestamp: str | int
+
+
+class SchedulePayload(TypedDict, total=False):
+    """Normalized schedule payload arrays used by schedule rows."""
+
+    days: list[int]
+    time: list[int]
+    evt: list[int]
+
+
+class ScheduleTimingRow(TypedDict, total=False):
+    """One normalized schedule timing row."""
+
+    id: str | int
+    timingId: str | int
+    hour: int
+    minute: int
+    enable: bool | int | str
+    repeat: str
+    actionType: str | int
+    actionData: str
+    deviceId: str
+    scheduleJson: str
+    schedule: SchedulePayload
+    active: bool
+
+
+class ScheduleApiResponse(TypedDict, total=False):
+    """Normalized schedule payload."""
+
+    code: str | int
+    message: str
+    success: bool
+    data: list[ScheduleTimingRow]
+
+
+class OtaInfoRow(TypedDict, total=False):
+    """One normalized OTA metadata row."""
+
+    deviceId: str
+    iotId: str
+    deviceType: str
+    bleName: str
+    productName: str
+    latestVersion: str
+    firmwareVersion: str
+    version: str
+    firmwareUrl: str
+    url: str
+    md5: str
+
+
+class DiagnosticsApiResponse(TypedDict, total=False):
+    """Common response payload for diagnostics/history queries."""
+
+    code: str | int
+    message: str
+    success: bool
+    data: list[JsonObject] | JsonObject
+
+
+__all__ = [
+    "ApiResponse",
+    "ApiResponseData",
+    "CommandResultApiResponse",
+    "ConnectStatusOutcome",
+    "ConnectStatusQueryResult",
+    "DeviceApiResponse",
+    "DeviceListItem",
+    "DeviceListResponse",
+    "DevicePropertyMap",
+    "DevicePropertyRow",
+    "DeviceStatusItem",
+    "DiagnosticsApiResponse",
+    "JsonObject",
+    "JsonScalar",
+    "JsonValue",
+    "LoginResponse",
+    "MqttConfigResponse",
+    "OtaInfoRow",
+    "ResponseHeaders",
+    "SanctionedBoundaryPayload",
+    "SanctionedRawMappingResult",
+    "ScheduleApiResponse",
+    "SchedulePayload",
+    "ScheduleTimingRow",
+    "ValidatedMappingResult",
+]

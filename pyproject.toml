@@ -1,0 +1,286 @@
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lipro-smart-home"
+version = "1.0.0"
+description = "Home Assistant integration for Lipro Smart Home devices"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.14.2"
+authors = [
+    {name = "Exlany"},
+]
+keywords = ["homeassistant", "lipro", "smart-home", "home-automation"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Home Automation",
+]
+
+dependencies = [
+    "aiohttp>=3.12.0,<4.0.0",
+    "aiomqtt>=2.0.0,<3.0.0",
+    "pycryptodome>=3.19.0,<4.0.0",
+    "voluptuous>=0.15.2,<1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "colorlog==6.10.1",
+    "homeassistant==2026.3.1",
+    "pip>=21.3.1",
+    "pip-audit>=2.9.0",
+    "pre-commit>=3.7.0",
+    "ruff==0.15.4",
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "pytest-homeassistant-custom-component>=0.13.0",
+    "pytest-benchmark>=5.1.0",
+    "syrupy>=5.0.0",
+    "mypy>=1.0.0",
+    "types-PyYAML>=6.0.12.0",
+    "aiodns>=3.3.0",
+    "pycares<6.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/Exlany/lipro-hass"
+Repository = "https://github.com/Exlany/lipro-hass"
+Documentation = "https://github.com/Exlany/lipro-hass/blob/main/docs/README.md"
+"Access Mode" = "https://github.com/Exlany/lipro-hass/blob/main/README.md"
+Support = "https://github.com/Exlany/lipro-hass/blob/main/SUPPORT.md"
+Security = "https://github.com/Exlany/lipro-hass/blob/main/SECURITY.md"
+Changelog = "https://github.com/Exlany/lipro-hass/blob/main/CHANGELOG.md"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["custom_components*"]
+namespaces = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+pythonpath = ["."]
+addopts = "--strict-markers"
+markers = [
+    "benchmark: governed benchmark contract and PR smoke performance checks",
+]
+filterwarnings = [
+    # Suppress DeprecationWarnings from third-party dependencies only;
+    # our own code should not trigger deprecation warnings.
+    "ignore::DeprecationWarning:homeassistant",
+    "ignore::DeprecationWarning:aiohttp",
+    "ignore::DeprecationWarning:aiomqtt",
+    "ignore::DeprecationWarning:voluptuous",
+    "ignore::DeprecationWarning:pytest_homeassistant_custom_component",
+]
+
+[tool.uv]
+override-dependencies = [
+    "aiohttp==3.13.4",
+    "pillow==12.2.0",
+    "orjson==3.11.6",
+    "pyjwt==2.12.0",
+]
+
+[tool.mypy]
+python_version = "3.14"
+files = ["custom_components/lipro", "tests"]
+
+# Home Assistant custom components live under a namespace package layout:
+# `custom_components/<domain>/...` (no `custom_components/__init__.py`).
+namespace_packages = true
+explicit_package_bases = true
+
+strict = true
+warn_no_return = true
+warn_unreachable = true
+show_error_codes = true
+enable_error_code = ["ignore-without-code"]
+
+[[tool.mypy.overrides]]
+module = ["pytest_homeassistant_custom_component.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["tests.*"]
+disable_error_code = ["no-untyped-def", "no-untyped-call"]
+
+[tool.ruff]
+# Based on https://github.com/ludeeus/integration_blueprint
+# and https://github.com/home-assistant/core
+required-version = ">=0.15.0"
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    # Annotations (not enforced by HA Core, too noisy for integration)
+    "ANN",     # flake8-annotations (missing type annotations)
+
+    # Arguments (HA callback signatures require specific args)
+    "ARG",     # flake8-unused-arguments (HA platform callbacks require hass, entry, etc.)
+
+    # Boolean traps (common in HA entity patterns)
+    "FBT",     # flake8-boolean-trap
+
+    # Commented-out code (false positives on Chinese comments in device mappings)
+    "ERA001",  # Found commented-out code
+
+    # Exception messages (too strict for integration code)
+    "EM101",   # Exception must not use a string literal
+
+    # Security false positives (config key names contain "token"/"password")
+    "S105",    # Possible hardcoded password assigned to variable
+    "S106",    # Possible hardcoded password assigned to argument
+
+    # Async (HA patterns)
+    "ASYNC109",  # Async function definition with a `timeout` parameter
+    "ASYNC110",  # Use `asyncio.Event` instead of awaiting `asyncio.sleep` in a `while` loop
+
+    # Docstring style (incompatible with formatter / Google convention)
+    "D202",    # No blank lines allowed after function docstring
+    "D203",    # 1 blank line required before class docstring
+    "D212",    # Multi-line docstring summary should start at the second line (blueprint)
+    "D213",    # Multi-line docstring summary should start at the second line
+    "D406",    # Section name should end with a newline
+    "D407",    # Section name underlining
+    "D417",    # Missing argument descriptions in docstring
+
+    # Line length (handled by formatter)
+    "E501",    # line too long
+
+    # Formatter conflicts
+    "COM812",  # missing-trailing-comma
+    "COM819",  # prohibited-trailing-comma
+    "ISC001",  # incompatible with formatter
+    "Q",       # flake8-quotes
+    "W191",    # tab-indentation
+    "E111",    # indentation-with-invalid-multiple
+    "E114",    # indentation-with-invalid-multiple-comment
+    "E117",    # over-indented
+    "D206",    # indent-with-spaces
+    "D300",    # triple-single-quotes
+
+    # Pylint complexity (reasonable for integrations)
+    "PLC1901",  # can be simplified as an empty string is falsey
+    "PLR0911",  # Too many return statements
+    "PLR0912",  # Too many branches
+    "PLR0913",  # Too many arguments to function call
+    "PLR0915",  # Too many statements
+    "PLR2004",  # Magic value used in comparison
+    "PLW0108",  # Unnecessary lambda wrapping a function call
+    "PLW1641",  # __eq__ without __hash__
+    "PLW2901",  # Outer variable overwritten by inner target
+
+    # Pytest style
+    "PT011",   # pytest.raises is too broad
+    "PT018",   # Assertion should be broken down into multiple parts
+
+    # Ruff specific
+    "RUF001",  # String contains ambiguous unicode character
+    "RUF002",  # Docstring contains ambiguous unicode character
+    "RUF003",  # Comment contains ambiguous unicode character
+    "RUF015",  # Prefer next(...) over single element slice
+
+    # Simplify (sometimes reduces readability)
+    "SIM102",  # Use a single if statement instead of nested if statements
+    "SIM103",  # Return the condition directly
+    "SIM108",  # Use ternary operator instead of if-else-block
+    "SIM115",  # Use context handler for opening files
+
+    # Type-checking imports can mess with pytest.patch()
+    "TC001",   # Move application import into a type-checking block
+    "TC002",   # Move third-party import into a type-checking block
+    "TC003",   # Move standard library import into a type-checking block
+    "TC006",   # Add quotes to type expression in typing.cast()
+
+    # Tryceratops (per HA)
+    "TRY003",  # Avoid specifying long messages outside the exception class
+    "TRY300",  # Consider moving statement to an `else` block
+    "TRY301",  # Abstract `raise` to an inner function
+    "TRY400",  # Use `logging.exception` instead of `logging.error`
+    "TRY401",  # Redundant exception object in `logging.exception` call
+
+    # Performance (explicit loops are clearer)
+    "PERF401", # Use a list comprehension to create a transformed list
+
+    # Pyupgrade
+    "UP046",   # Non PEP 695 generic class
+    "UP047",   # Non PEP 695 generic function
+    "UP049",   # Avoid private type parameter names
+
+    # Ruff internal
+    "PLE0605", # invalid-all-format (ruff doesn't understand generated __all__)
+    "FURB116", # f-string-number-format
+
+    # Project-specific
+    "S324",    # hashlib-insecure-hash-function (MD5 required by Lipro API)
+]
+
+[tool.ruff.lint.flake8-import-conventions.extend-aliases]
+voluptuous = "vol"
+"homeassistant.helpers.area_registry" = "ar"
+"homeassistant.helpers.config_validation" = "cv"
+"homeassistant.helpers.device_registry" = "dr"
+"homeassistant.helpers.entity_registry" = "er"
+"homeassistant.util.dt" = "dt_util"
+
+[tool.ruff.lint.flake8-pytest-style]
+fixture-parentheses = false
+mark-parentheses = false
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"async_timeout".msg = "use asyncio.timeout instead"
+"pytz".msg = "use zoneinfo instead"
+
+[tool.ruff.lint.isort]
+force-sort-within-sections = true
+known-first-party = ["homeassistant", "custom_components.lipro"]
+combine-as-imports = true
+split-on-trailing-comma = false
+
+[tool.ruff.lint.mccabe]
+max-complexity = 25
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.pyupgrade]
+keep-runtime-typing = true
+
+[tool.ruff.lint.pylint]
+max-args = 10
+max-branches = 25
+max-returns = 10
+max-statements = 50
+
+[tool.ruff.lint.per-file-ignores]
+# Test files have different requirements
+"tests/**/*.py" = [
+    "S101",    # assert (required for pytest)
+    "D",       # pydocstyle (tests don't need full docstrings)
+    "SLF001",  # private-member-access
+    "PLR2004", # magic-value-comparison
+    "PLC0415", # import-outside-top-level
+    "E402",    # module-level-import-not-at-top
+    "N806",    # variable-in-function-should-be-lowercase
+]
+# Custom components use relative imports (standard for HA integrations)
+"custom_components/**/*.py" = [
+    "TID252",  # relative-imports (standard for HA integrations)
+    "PTH",     # flake8-use-pathlib (HA patterns)
+]
+"custom_components/lipro/flow/step_handlers.py" = [
+    "SLF001",  # intentional internal private-helper seam to config_flow root adapter
+]

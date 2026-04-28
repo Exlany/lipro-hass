@@ -1,0 +1,12 @@
+{
+  "scenario_id": "rest-query-mesh-group-status-topology",
+  "channel": "rest",
+  "family": "rest.mesh-group-status",
+  "version": "v1",
+  "operation": "protocol.contracts.normalize_mesh_group_status_rows",
+  "authority_path": "tests/fixtures/api_contracts/query_mesh_group_status.topology.json",
+  "assertion_families": ["canonical", "drift", "telemetry"],
+  "seed": 7403,
+  "clock_baseline": "2026-03-14T00:00:00Z",
+  "notes": "mesh group topology must stabilize before snapshot enrichment"
+}

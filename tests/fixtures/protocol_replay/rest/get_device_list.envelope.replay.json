@@ -1,0 +1,16 @@
+{
+  "scenario_id": "rest-get-device-list-envelope",
+  "channel": "rest",
+  "family": "rest.list-envelope",
+  "version": "v1",
+  "operation": "protocol.contracts.normalize_list_envelope",
+  "authority_path": "tests/fixtures/api_contracts/get_device_list.envelope.json",
+  "assertion_families": [
+    "canonical",
+    "drift",
+    "telemetry"
+  ],
+  "seed": 7402,
+  "clock_baseline": "2026-03-14T00:00:00Z",
+  "notes": "generic list envelope truth must stay formal and replay-visible"
+}

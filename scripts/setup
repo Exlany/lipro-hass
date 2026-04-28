@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Setup development environment for Lipro integration
+
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+echo "Setting up Lipro development environment..."
+
+if ! command -v uv >/dev/null 2>&1; then
+    echo "uv is required but was not found in PATH" >&2
+    exit 1
+fi
+
+echo "Syncing dependencies with uv..."
+# Use the lockfile for reproducibility. If it fails, update it with: `uv lock`.
+uv sync --frozen --extra dev
+
+# Install pre-commit hooks if .pre-commit-config.yaml exists
+if [ -f ".pre-commit-config.yaml" ]; then
+    echo "Installing pre-commit hooks..."
+    uv run pre-commit install
+    uv run pre-commit install --hook-type pre-push
+fi
+
+echo "Setup complete!"

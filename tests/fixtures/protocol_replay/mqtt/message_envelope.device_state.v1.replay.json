@@ -1,0 +1,12 @@
+{
+  "scenario_id": "mqtt.message_envelope.device_state.v1",
+  "channel": "mqtt",
+  "family": "mqtt.message-envelope",
+  "version": "v1",
+  "operation": "protocol.boundary.decode_mqtt_message_envelope",
+  "authority_path": "tests/fixtures/protocol_boundary/mqtt_message_envelope.device_state.v1.json",
+  "seed": 740105,
+  "clock_baseline": "2026-03-16T00:00:01Z",
+  "assertion_families": ["canonical", "drift", "telemetry"],
+  "notes": "Formal MQTT message-envelope replay before properties canonicalization."
+}

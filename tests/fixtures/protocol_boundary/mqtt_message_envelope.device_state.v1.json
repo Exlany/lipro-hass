@@ -1,0 +1,15 @@
+{
+  "family": "mqtt.message-envelope",
+  "version": "v1",
+  "payload": "{\"payload\":{\"common\":{\"connectState\":\"1\"},\"light\":{\"powerState\":\"1\",\"brightness\":\"50\"}}}",
+  "canonical": {
+    "common": {
+      "connectState": "1"
+    },
+    "light": {
+      "powerState": "1",
+      "brightness": "50"
+    }
+  },
+  "fingerprint": "payload:common|light"
+}

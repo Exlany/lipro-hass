@@ -1,0 +1,57 @@
+blueprint:
+  name: Lipro - Device Offline Alert
+  description: Send a notification when selected entities stay unavailable.
+  domain: automation
+  source_url: https://github.com/Exlany/lipro-hass/blob/main/blueprints/automation/lipro/device_offline_alert.yaml
+  input:
+    monitored_entities:
+      name: Monitored entities
+      description: Lipro entities that should stay online.
+      selector:
+        entity:
+          multiple: true
+    offline_for:
+      name: Offline delay (seconds)
+      description: Send alert only after this unavailable duration.
+      default: 300
+      selector:
+        number:
+          min: 10
+          max: 3600
+          mode: box
+          unit_of_measurement: seconds
+    notify_service:
+      name: Notification service
+      description: "Example: notify.notify or notify.mobile_app_your_phone."
+      default: notify.notify
+      selector:
+        text:
+    title:
+      name: Notification title
+      default: Lipro device offline
+      selector:
+        text:
+    message:
+      name: Notification message
+      description: Supports templates such as {{ trigger.to_state.name }}.
+      default: "{{ trigger.to_state.name or trigger.entity_id }} is offline."
+      selector:
+        text:
+
+mode: queued
+max: 10
+
+trigger:
+  - platform: state
+    entity_id: !input monitored_entities
+    to: "unavailable"
+    for:
+      seconds: !input offline_for
+
+condition: []
+
+action:
+  - service: !input notify_service
+    data:
+      title: !input title
+      message: !input message
