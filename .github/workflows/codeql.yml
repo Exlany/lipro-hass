@@ -57,7 +57,7 @@ jobs:
 
       - name: Initialize CodeQL
         if: steps.code_scanning.outputs.enabled == 'true'
-        uses: github/codeql-action/init@603b797f8b14b413fe025cd935a91c16c4782713
+        uses: github/codeql-action/init@e46ed2cbd01164d986452f91f178727624ae40d7
         with:
           languages: python
 
@@ -79,7 +79,7 @@ jobs:
 
       - name: Perform CodeQL Analysis
         if: steps.code_scanning.outputs.enabled == 'true'
-        uses: github/codeql-action/analyze@603b797f8b14b413fe025cd935a91c16c4782713
+        uses: github/codeql-action/analyze@e46ed2cbd01164d986452f91f178727624ae40d7
         with:
           category: "/language:python"
 
