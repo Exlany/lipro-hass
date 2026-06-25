@@ -23,7 +23,7 @@ from .core.ota.manifest import (
 _LOGGER = logging.getLogger(__name__)
 
 _TIME_MIN_UTC = datetime.min.replace(tzinfo=UTC)
-LOCAL_FIRMWARE_TRUST_ROOT_FILENAME = "firmware_support_manifest.json"
+LOCAL_FIRMWARE_TRUST_ROOT_FILENAME = "firmware_support.json"
 LOCAL_FIRMWARE_TRUST_ROOT_PATH = Path(__file__).with_name(
     LOCAL_FIRMWARE_TRUST_ROOT_FILENAME
 )

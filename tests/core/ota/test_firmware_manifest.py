@@ -145,7 +145,7 @@ def test_load_verified_firmware_manifest_uses_lru_cache() -> None:
         assert firmware_manifest.load_verified_firmware_manifest() == expected
 
     loader.assert_called_once()
-    assert loader.call_args.args[0].name == "firmware_support_manifest.json"
+    assert loader.call_args.args[0].name == "firmware_support.json"
     assert callable(loader.call_args.kwargs["on_error"])
 
 

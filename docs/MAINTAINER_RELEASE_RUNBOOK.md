@@ -19,7 +19,7 @@ This repository currently follows a single-maintainer release model. Every tagge
 - Canonical local GSD fast-path proof: `tests/meta/test_governance_route_handoff_smoke.py` uses an isolated `--cwd` repo root when nested worktrees would otherwise drift; direct-cwd mismatch remains tooling fallback only, not route authority.
 - Canonical latest archived evidence index: `.governance/reviews/V1_43_EVIDENCE_INDEX.md`
 - Canonical latest archived milestone audit: `.governance/v1.43-MILESTONE-AUDIT.md` (pull-only evidence verdict, not current route truth)
-- Canonical firmware certification trust-root asset: `custom_components/lipro/firmware_support_manifest.json` (historical filename retained)
+- Canonical firmware certification trust-root asset: `custom_components/lipro/firmware_support.json`
 
 Private repositories and forks skip CI HACS validation because HACS only supports public GitHub repositories; do not treat a skipped HACS job as a release blocker in that case.
 
