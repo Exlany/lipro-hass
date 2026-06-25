@@ -18,7 +18,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
       - name: Note skipped HACS validation for private repository
         if: github.event.repository.private
@@ -28,6 +28,6 @@ jobs:
 
       - name: Run HACS validation
         if: ${{ !github.event.repository.private }}
-        uses: hacs/action@dcb30e72781db3f207d5236b861172774ab0b485
+        uses: hacs/action@1ebf01c408f29afcb6406bd431bc98fd8cbb15aa
         with:
           category: integration
