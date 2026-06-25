@@ -105,7 +105,7 @@ def parse_mesh_schedule_json(
             return empty
         try:
             payload = json.loads(raw)
-        except json.JSONDecodeError, TypeError:
+        except (json.JSONDecodeError, TypeError):
             _LOGGER.debug(
                 "Invalid mesh scheduleJson payload (type=%s): %s",
                 type(payload).__name__,

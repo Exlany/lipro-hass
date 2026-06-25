@@ -101,7 +101,7 @@ class TransportCore:
         charset = response.charset or "utf-8"
         try:
             return preview_bytes.decode(charset, errors="replace")
-        except LookupError, TypeError:
+        except (LookupError, TypeError):
             return preview_bytes.decode("utf-8", errors="replace")
 
     async def _raise_invalid_json_response(

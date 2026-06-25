@@ -134,14 +134,14 @@ def _coerce_message_mapping(payload: object) -> JsonObject | None:
             return None
         try:
             payload = json.loads(raw_bytes.decode("utf-8"))
-        except json.JSONDecodeError, UnicodeError:
+        except (json.JSONDecodeError, UnicodeError):
             return None
     elif isinstance(payload, str):
         if len(payload.encode("utf-8")) > _MAX_MQTT_PAYLOAD_BYTES:
             return None
         try:
             payload = json.loads(payload)
-        except json.JSONDecodeError, UnicodeError:
+        except (json.JSONDecodeError, UnicodeError):
             return None
 
     if not isinstance(payload, dict):

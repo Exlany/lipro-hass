@@ -32,7 +32,7 @@ def get_int_property(self: DeviceState, key: str, default: int = 0) -> int:
     """Return one integer property value."""
     try:
         return int(self.properties.get(key, default))
-    except TypeError, ValueError:
+    except (TypeError, ValueError):
         return default
 
 
@@ -40,7 +40,7 @@ def get_float_property(self: DeviceState, key: str, default: float = 0.0) -> flo
     """Return one float property value."""
     try:
         return float(self.properties.get(key, default))
-    except TypeError, ValueError:
+    except (TypeError, ValueError):
         return default
 
 
@@ -51,7 +51,7 @@ def get_optional_int_property(self: DeviceState, key: str) -> int | None:
         return None
     try:
         return int(value)
-    except TypeError, ValueError:
+    except (TypeError, ValueError):
         return None
 
 

@@ -27,7 +27,7 @@ def last_gear_index(self: DeviceExtras) -> int:
     """Return last selected preset index."""
     try:
         return int(self._properties.get(PROP_LAST_GEAR_INDEX, -1))
-    except TypeError, ValueError:
+    except (TypeError, ValueError):
         return -1
 
 

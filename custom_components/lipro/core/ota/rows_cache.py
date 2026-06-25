@@ -33,7 +33,7 @@ _OTA_ROWS_CACHE_LOCK = asyncio.Lock()
 def _coerce_cache_product_id(product_id: int | str | None) -> int:
     try:
         return int(product_id or 0)
-    except TypeError, ValueError:
+    except (TypeError, ValueError):
         return 0
 
 

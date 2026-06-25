@@ -186,7 +186,7 @@ def _collect_ssid_values(device_data: Mapping[str, object]) -> set[str]:
 
     try:
         decoded = json.loads(device_info)
-    except TypeError, ValueError:
+    except (TypeError, ValueError):
         return values
     if isinstance(decoded, Mapping):
         values.update(_collect_normalized_values(decoded, ssid_keys))

@@ -23,7 +23,7 @@ def parse_retry_after(headers: dict[str, str]) -> float | None:
             retry_dt = retry_dt.replace(tzinfo=UTC)
         delta = (retry_dt - datetime.now(tz=retry_dt.tzinfo)).total_seconds()
         return max(0.0, delta)
-    except ValueError, TypeError:
+    except (ValueError, TypeError):
         return None
 
 

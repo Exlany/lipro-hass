@@ -88,7 +88,7 @@ def _redact_json_container_string(value: str) -> str | None:
         return None
     try:
         parsed = json.loads(value)
-    except TypeError, ValueError:
+    except (TypeError, ValueError):
         return None
     redacted = redact_property_value(parsed)
     if isinstance(redacted, (dict, list)):

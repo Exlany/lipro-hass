@@ -89,7 +89,7 @@ def _sanitize_mqtt_log_value(value: Any, key: str | None = None) -> Any:
         if stripped and stripped[0] in "{[":
             try:
                 parsed = json.loads(value)
-            except TypeError, ValueError:
+            except (TypeError, ValueError):
                 pass
             else:
                 redacted = _sanitize_mqtt_log_value(parsed)

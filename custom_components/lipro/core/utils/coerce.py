@@ -20,7 +20,7 @@ def coerce_int_option(
     """Coerce an option value to int with safe fallback and optional clamp."""
     try:
         parsed = int(value)
-    except TypeError, ValueError:
+    except (TypeError, ValueError):
         if logger is not None:
             logger.warning(
                 "Invalid option %s=%r, using default %d",
