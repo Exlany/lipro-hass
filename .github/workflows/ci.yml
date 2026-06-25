@@ -304,7 +304,7 @@ jobs:
           (
             cd "$baseline_worktree"
             uv sync --frozen --extra dev
-            uv run pytest tests/               -q               --ignore=tests/benchmarks               --cov=custom_components/lipro               --cov-fail-under=0               --cov-report=json:coverage-baseline.json
+            uv run pytest tests/               -q               --snapshot-dirname=snapshots               --ignore=tests/benchmarks               --cov=custom_components/lipro               --cov-fail-under=0               --cov-report=json:coverage-baseline.json
           )
           cp "$baseline_worktree/coverage-baseline.json" .coverage-baseline.json
           echo "coverage baseline ref: $baseline_ref" >> "$GITHUB_STEP_SUMMARY"

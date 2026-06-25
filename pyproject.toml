@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lipro-smart-home"
-version = "1.0.2"
+version = "1.0.3"
 description = "Home Assistant integration for Lipro Smart Home devices"
 readme = "README.md"
 license = "MIT"
@@ -71,7 +71,7 @@ testpaths = ["tests"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 pythonpath = ["."]
-addopts = "--strict-markers"
+addopts = "--strict-markers --snapshot-dirname=snapshots"
 markers = [
     "benchmark: governed benchmark contract and PR smoke performance checks",
 ]

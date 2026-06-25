@@ -4,6 +4,21 @@
 
 暂无。
 
+## [1.0.3] - 2026-06-25
+
+### 变更（Changed）
+
+- 同步项目版本、Home Assistant manifest 与锁文件版本到 `1.0.3`。
+- 将 release 验证依赖与动作版本更新到当前锁定基线，并保持 Home Assistant 版本与 HACS 元数据一致。
+- 将运行时 `aiohttp` 下限提升到已修复安全问题的 `3.14.1`。
+
+### 修复（Fixed）
+
+- 将固件支持数据文件从 `firmware_support_manifest.json` 改名为 `firmware_support.json`，避免 HACS/default 的 manifest 搜索误识别。
+- 清理公开支持与文档元数据，移除残留架构归档文档，并统一 `manifest.json` 文档入口到仓库根 `README.md`。
+- 新增与 HACS/default Hassfest job 对齐的预检流程，提前发现 manifest 命名冲突。
+- 恢复 Python 3.14 语法重写后不兼容的异常处理写法，确保当前测试运行时可导入。
+
 ## [1.0.2] - 2026-04-28
 
 ### 变更（Changed）
