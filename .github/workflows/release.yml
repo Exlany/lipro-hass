@@ -44,13 +44,13 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout tagged release ref
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           ref: refs/tags/${{ env.RELEASE_TAG }}
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: "3.14"
 
@@ -120,14 +120,14 @@ jobs:
 
       - name: Checkout tagged release ref
         if: steps.code_scanning.outputs.enabled == 'true'
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           ref: refs/tags/${{ env.RELEASE_TAG }}
           fetch-depth: 1
 
       - name: Set up Python
         if: steps.code_scanning.outputs.enabled == 'true'
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: "3.14"
 
@@ -192,13 +192,13 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout tagged release ref
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           ref: refs/tags/${{ env.RELEASE_TAG }}
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: "3.14"
 
@@ -385,7 +385,7 @@ jobs:
 
       - name: Publish release assets
         if: ${{ github.event_name == 'push' || github.event.inputs.publish_assets == 'true' }}
-        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda
+        uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b
         with:
           tag_name: ${{ env.RELEASE_TAG }}
           files: |
