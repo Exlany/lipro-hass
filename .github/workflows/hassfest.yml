@@ -20,5 +20,32 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
+      - name: Resolve integration path like HACS
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mapfile -t manifests < <(find "${GITHUB_WORKSPACE}" -type f -name "*manifest.json" | sort)
+          if [[ "${#manifests[@]}" -ne 1 ]]; then
+            echo "Expected exactly one *manifest.json file, matching HACS/default Hassfest preflight." >&2
+            printf '%s\n' "${manifests[@]}" >&2
+            exit 1
+          fi
+
+          integration_path="$(dirname "${manifests[0]}")"
+          domain="$(jq -r '.domain // empty' "${manifests[0]}")"
+          if [[ -z "${domain}" ]]; then
+            echo "Integration manifest is missing the domain field: ${manifests[0]}" >&2
+            exit 1
+          fi
+
+          {
+            echo "integration_path=${integration_path}"
+            echo "domain=${domain}"
+          } >> "${GITHUB_ENV}"
+
       - name: Run Hassfest validation
-        uses: home-assistant/actions/hassfest@dce0e860c68256ef2902ece06afa5401eb4674e1
+        run: >-
+          docker run --rm
+          -v "${integration_path}:/github/workspace/${domain}"
+          ghcr.io/home-assistant/hassfest:latest

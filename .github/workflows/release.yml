@@ -329,7 +329,7 @@ jobs:
           } > "${manifest}"
 
       - name: Install cosign
-        uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6
         with:
           cosign-release: v3.0.5
 
@@ -385,7 +385,7 @@ jobs:
 
       - name: Publish release assets
         if: ${{ github.event_name == 'push' || github.event.inputs.publish_assets == 'true' }}
-        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda
         with:
           tag_name: ${{ env.RELEASE_TAG }}
           files: |
