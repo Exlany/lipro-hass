@@ -30,7 +30,7 @@ accounts, actual HA upgrades and releases were not exercised.
 - Fix Hassfest's integration mount to `custom_components/lipro`.
 - Check lock freshness and full repository formatting in CI. Compare all PR
   commits against merge-base, rather than checking only the latest commit.
-- Fail closed when release code-scanning evidence cannot be read.
+- Fail closed when release or PR code-scanning evidence cannot be read.
 - Incorporate compatible dependency and pinned Action updates from PRs
   [62](https://github.com/Exlany/lipro-hass/pull/62),
   [66](https://github.com/Exlany/lipro-hass/pull/66),
@@ -48,19 +48,23 @@ Minimum supported HA remains **2026.3.1**, Python **3.14.2**.
 [HA's exact requirements](https://github.com/home-assistant/core/blob/2026.3.1/pyproject.toml)
 and the pinned
 [HA test plugin](https://github.com/MatthewFlamm/pytest-homeassistant-custom-component/releases/tag/0.13.317)
-constrain this environment. Existing aiohttp, Pillow, PyJWT and orjson overrides
-are preserved, not extended. [HA upgrade PR 69](https://github.com/Exlany/lipro-hass/pull/69)
+constrain this environment. The existing aiohttp 3.14 override is advanced from
+3.14.1 to the security patch 3.14.3; no new override is introduced. Pillow, PyJWT
+and orjson overrides are unchanged. [aiohttp's patch notes](https://docs.aiohttp.org/en/stable/changes.html)
+confirm redirect credential-header fixes. This patches the repository environment,
+not the HA-managed aiohttp installed on users' systems: `manifest.json` does not
+install aiohttp, and HA 2026.3.1 owns its native 3.13.3 dependency. [HA upgrade PR 69](https://github.com/Exlany/lipro-hass/pull/69)
 remains on hold: a passing unit suite alone does not authorize raising the
 supported HA floor.
 
 A full installed-environment pip-audit returned 15 affected packages / 102 raw
-advisory records before compatible updates, and 10 / 85 afterward. These are
+advisory records before compatible updates, and 9 / 79 after the aiohttp patch.
+The independently resolved runtime dependency audit now reports zero known vulnerabilities. These are
 **local dependency-audit records, not GitHub alert counts**; aliases can duplicate
 records. Remaining packages and currently reported fixed-version requirements:
 
 | Package | Locked | Upstream remediation / condition |
 |---|---|---|
-| aiohttp | 3.14.1 | 3.14.2–3.14.3; review existing override alongside HA native 3.13.3 |
 | cryptography | 46.0.5 | Reported fixes span 46.0.6 through 50.0.0; HA exact pin and pyOpenSSL `<47` prevent wholesale resolution |
 | homeassistant | 2026.3.1 | 2026.6.0 / 2026.7.0; requires approved supported-baseline change |
 | Pillow | 12.2.0 | 12.3.0; existing override differs from HA native 12.1.1 |
@@ -87,8 +91,14 @@ dismissed or suppressed and no dependency-security threshold was reduced.
   configuration conflict, not a successful scan. No repository security settings
   or scan workflows were disabled. Resolve the setup conflict through a separately
   authorized administrator action, then rerun the exact PR head.
-- Runtime dependency security remains blocking on the retained HA-related
-  vulnerabilities. No merge should bypass it.
+- Runtime dependency security passes after patching aiohttp. The full HA/dev
+  environment still has the retained findings above; runtime audit success does
+  not mean the HA host or GitHub alert backlog is clear.
+- Direct cloud CLI access to `repos/Exlany/lipro-hass/code-scanning/default-setup`
+  also returns `Forbidden`. The available connector exposes no settings mutation.
+  Retain advanced scanning (including tag/release coverage), have an authorized
+  administrator remove the duplicate default setup, then rerun exact-head analysis.
+  Do not remove the advanced workflow merely to make the check green.
 
 ## Local validation
 

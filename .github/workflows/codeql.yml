@@ -41,13 +41,7 @@ jobs:
             exit 0
           fi
 
-          if grep -Eq "Code scanning is not enabled|Resource not accessible by integration|GitHub Code Security|GitHub Advanced Security|no analysis found|HTTP 404" "$err_file"; then
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo "code scanning availability: disabled in GitHub for this repository; skipping CodeQL upload so CI stays truthful instead of red" >> "$GITHUB_STEP_SUMMARY"
-            cat "$err_file" >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
-
+          echo "Cannot verify code-scanning access; refusing to skip analysis" >> "$GITHUB_STEP_SUMMARY"
           cat "$err_file" >&2
           exit 1
 
@@ -82,9 +76,3 @@ jobs:
         uses: github/codeql-action/analyze@b96794f015dfd88f77b49b1c93e0fa7110f94c63
         with:
           category: "/language:python"
-
-      - name: Record skip posture
-        if: steps.code_scanning.outputs.enabled != 'true'
-        run: |
-          echo "code scanning remained disabled in GitHub for this private repository" >> "$GITHUB_STEP_SUMMARY"
-          echo "CodeQL workflow intentionally skipped upload instead of failing the PR" >> "$GITHUB_STEP_SUMMARY"
