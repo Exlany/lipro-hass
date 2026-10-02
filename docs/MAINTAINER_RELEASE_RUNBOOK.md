@@ -49,6 +49,30 @@ Still deferred beyond this phase (must stay recorded, not implied):
 
 GitHub artifact attestation / provenance proves how release assets were produced and can be verified; it does **not** replace artifact signing. `cosign` signing is a second, separate proof layer.
 
+## CodeQL configuration ownership
+
+The repository workflow scans both Python and GitHub Actions, using separate
+`/language:python` and `/language:actions` categories. Both successful analyses
+must match the exact release commit before the release gate can proceed; an
+Actions-only result cannot stand in for Python analysis.
+
+GitHub default setup and advanced workflow uploads cannot coexist. A failure
+containing `advanced configurations cannot be processed when the default setup
+is enabled` requires an administrative setup change, not `continue-on-error`,
+skipping upload, deleting scan jobs, or ignoring alerts.
+
+After explicit approval for this specific settings change, an administrator can
+turn off **default setup only**, leaving `.github/workflows/codeql.yml` enabled.
+Before doing so, verify the workflow includes Python and Actions and retains its
+PR, main push, weekly schedule, manual and version-tag triggers. Then rerun the
+exact PR/main head and verify both analysis jobs and SARIF uploads succeed.
+Do not disable code scanning as a whole, remove the release gate, or change alert
+policy. The current automation connector cannot access the setup settings API;
+its `Forbidden` response is a permissions blocker, not a successful change.
+
+[GitHub's explanation of this conflict](https://docs.github.com/en/code-security/reference/code-scanning/sarif-files/troubleshoot-sarif-uploads/default-setup-enabled)
+documents the required choice of setup owner.
+
 ## Preconditions
 
 Before creating or publishing a tag:

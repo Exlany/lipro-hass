@@ -136,19 +136,22 @@ jobs:
           release_ref="refs/tags/${RELEASE_TAG}"
           encoded_ref="${release_ref//\//%2F}"
           release_sha="$(git rev-parse HEAD)"
-          analysis_count="0"
+          missing_categories='["/language:python","/language:actions"]'
 
           for attempt in $(seq 1 30); do
             analyses_json="$(gh api -H 'Accept: application/vnd.github+json'               "/repos/${{ github.repository }}/code-scanning/analyses?ref=${encoded_ref}&tool_name=CodeQL&per_page=100")"
-            analysis_count="$(printf '%s' "${analyses_json}" | jq --arg release_sha "${release_sha}" '[.[] | select(.commit_sha == $release_sha)] | length')"
+            missing_categories="$(printf '%s' "${analyses_json}" | jq -c --arg release_sha "${release_sha}" '
+              ["/language:python", "/language:actions"] -
+              [.[] | select(.commit_sha == $release_sha and (.error // "") == "") | .category]
+            ')"
 
-            if [[ "${analysis_count}" != "0" ]]; then
-              echo "Tagged CodeQL analyses found for ${release_ref}: ${analysis_count}" >> "$GITHUB_STEP_SUMMARY"
+            if [[ "${missing_categories}" == "[]" ]]; then
+              echo "Tagged Python and Actions CodeQL analyses found for ${release_ref}" >> "$GITHUB_STEP_SUMMARY"
               break
             fi
 
             if [[ "${attempt}" == "30" ]]; then
-              echo "No completed CodeQL analysis found for ${release_ref} (${release_sha})" >&2
+              echo "Missing successful CodeQL categories for ${release_ref} (${release_sha}): ${missing_categories}" >&2
               exit 1
             fi
 
