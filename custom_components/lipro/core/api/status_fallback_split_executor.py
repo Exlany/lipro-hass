@@ -22,15 +22,32 @@ type IsRetriableDeviceError = Callable[[Exception], bool]
 
 
 class _BinarySplitQueryContextLike(Protocol):
-    path: str
-    body_key: str
-    item_name: str
-    iot_request: IoTRequest
-    extract_data_list: ExtractDataList
-    is_retriable_device_error: IsRetriableDeviceError
-    lipro_api_error: type[Exception]
-    normalize_response_code: NormalizeResponseCode
-    logger: logging.Logger
+    @property
+    def path(self) -> str: ...
+
+    @property
+    def body_key(self) -> str: ...
+
+    @property
+    def item_name(self) -> str: ...
+
+    @property
+    def iot_request(self) -> IoTRequest: ...
+
+    @property
+    def extract_data_list(self) -> ExtractDataList: ...
+
+    @property
+    def is_retriable_device_error(self) -> IsRetriableDeviceError: ...
+
+    @property
+    def lipro_api_error(self) -> type[Exception]: ...
+
+    @property
+    def normalize_response_code(self) -> NormalizeResponseCode: ...
+
+    @property
+    def logger(self) -> logging.Logger: ...
 
     async def query_rows(
         self,
@@ -62,8 +79,11 @@ class _BinarySplitAccumulatorLike(Protocol):
 
 
 class _BinarySplitQueryOptionsLike(Protocol):
-    small_subset_batch_query_threshold: int
-    small_subset_batch_size: int
+    @property
+    def small_subset_batch_query_threshold(self) -> int: ...
+
+    @property
+    def small_subset_batch_size(self) -> int: ...
 
 
 type AccumulatorFactory = Callable[[], _BinarySplitAccumulatorLike]

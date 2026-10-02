@@ -22,8 +22,8 @@ if TYPE_CHECKING:
     from .base import LiproEntity
 
 T = TypeVar("T")
-EntityResolver = Callable[[object], object]
-CapabilityResolver = Callable[[object], object]
+type EntityResolver = Callable[[LiproEntity], object]
+type CapabilityResolver = Callable[[LiproEntity], object]
 
 
 def _default_brightness_resolver(entity: LiproEntity) -> object:
@@ -158,7 +158,7 @@ class KelvinToPercent(DeviceAttr[int]):
             return self
 
         kelvin = super().__get__(obj, objtype)
-        return obj.device.state.kelvin_to_percent_for_device(cast(int, kelvin))
+        return obj.device.state.kelvin_to_percent_for_device(kelvin)
 
 
 __all__ = [

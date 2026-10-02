@@ -6,7 +6,7 @@ import asyncio
 from datetime import UTC, datetime, timedelta
 import logging
 from time import monotonic
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NoReturn
 
 from homeassistant.components.update import (
     UpdateDeviceClass,
@@ -173,7 +173,7 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         translation_key: str,
         *,
         placeholders: dict[str, str] | None = None,
-    ) -> None:
+    ) -> NoReturn:
         """Raise one translated install error after updating observable state."""
         if translation_key == "firmware_unverified_confirm_required":
             self.async_write_ha_state()

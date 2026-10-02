@@ -374,7 +374,7 @@ class LiproAuthManager:
             return
         async with self._refresh_lock:
             remaining = int(self._lease.expires_at - time.time())
-            if not self.is_authenticated:
+            if not bool(self.is_authenticated):
                 await self._login_with_stored_credentials()
                 return
             if self._lease.needs_refresh(now=time.time()):

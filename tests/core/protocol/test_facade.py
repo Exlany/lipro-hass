@@ -230,14 +230,16 @@ def test_protocol_rest_ports_bind_real_adapters_instead_of_rest_aliases() -> Non
     assert facade._rest_ports.auth is not facade.rest
     assert facade._rest_ports.inventory is not facade.rest
     assert facade._rest_ports.status is not facade.rest
-    assert facade._rest_ports.command is not facade.rest
+    assert id(facade._rest_ports.command) != id(facade.rest)
     assert facade._rest_ports.misc is not facade.rest
     assert facade._rest_ports.schedule is not facade.rest
     assert facade._rest_ports.diagnostics is not facade.rest
 
 
 @pytest.mark.asyncio
-async def test_protocol_query_connect_status_preserves_typed_result() -> None:
+async def test_protocol_query_connect_status_preserves_typed_result(
+    monkeypatch,
+) -> None:
     facade = LiproProtocolFacade(
         "test-phone-id",
         entry_id="entry-1",
@@ -247,7 +249,11 @@ async def test_protocol_query_connect_status_preserves_typed_result() -> None:
         ConnectStatusOutcome.SUCCESS,
         {"03ab5ccd7caaaaaa": True},
     )
-    facade._rest_ports.status.query_connect_status = AsyncMock(return_value=expected)
+    monkeypatch.setattr(
+        facade._rest_ports.status,
+        "query_connect_status",
+        AsyncMock(return_value=expected),
+    )
 
     result = await facade.query_connect_status(["03ab5ccd7caaaaaa"])
 
@@ -258,13 +264,15 @@ async def test_protocol_query_connect_status_preserves_typed_result() -> None:
 
 
 @pytest.mark.asyncio
-async def test_protocol_add_device_schedule_forwards_group_id() -> None:
+async def test_protocol_add_device_schedule_forwards_group_id(monkeypatch) -> None:
     facade = LiproProtocolFacade(
         "test-phone-id",
         entry_id="entry-1",
         rest_facade_factory=cast(type[LiproRestFacade], _FakeRestFacade),
     )
-    facade._rest_ports.schedule.add_device_schedule = AsyncMock(return_value=[])
+    monkeypatch.setattr(
+        facade._rest_ports.schedule, "add_device_schedule", AsyncMock(return_value=[])
+    )
 
     result = await facade.add_device_schedule(
         "03ab5ccd7caaaaaa",
@@ -289,13 +297,17 @@ async def test_protocol_add_device_schedule_forwards_group_id() -> None:
 
 
 @pytest.mark.asyncio
-async def test_protocol_delete_device_schedules_forwards_group_id() -> None:
+async def test_protocol_delete_device_schedules_forwards_group_id(monkeypatch) -> None:
     facade = LiproProtocolFacade(
         "test-phone-id",
         entry_id="entry-1",
         rest_facade_factory=cast(type[LiproRestFacade], _FakeRestFacade),
     )
-    facade._rest_ports.schedule.delete_device_schedules = AsyncMock(return_value=[])
+    monkeypatch.setattr(
+        facade._rest_ports.schedule,
+        "delete_device_schedules",
+        AsyncMock(return_value=[]),
+    )
 
     result = await facade.delete_device_schedules(
         "03ab5ccd7caaaaaa",

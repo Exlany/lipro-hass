@@ -10,8 +10,7 @@ from typing import TYPE_CHECKING, Protocol
 
 from homeassistant.core import CALLBACK_TYPE, callback
 
-from .core.api.types import JsonObject
-from .service_types import CommandFailureSummary, ServicePropertyList
+from .service_types import CommandFailureSummary
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -23,8 +22,8 @@ if TYPE_CHECKING:
     from .core.device import LiproDevice
 
 
-type CommandProperties = ServicePropertyList
-type ProtocolDiagnosticsSnapshot = JsonObject
+type CommandProperties = list[dict[str, str]] | None
+type ProtocolDiagnosticsSnapshot = dict[str, object]
 
 
 class RuntimeReauthReason(StrEnum):
@@ -172,9 +171,9 @@ class ProtocolServiceLike(Protocol):
         device_type: str | int,
     ) -> CommandResultPayload: ...
 
-    async def async_get_city(self) -> JsonObject: ...
+    async def async_get_city(self) -> dict[str, object]: ...
 
-    async def async_query_user_cloud(self) -> JsonObject: ...
+    async def async_query_user_cloud(self) -> dict[str, object]: ...
 
     async def async_fetch_body_sensor_history(
         self,
@@ -238,7 +237,13 @@ class RuntimeAuthServiceLike(Protocol):
 class ProtocolDiagnosticsContextLike(Protocol):
     """Minimal diagnostics-context surface consumed by telemetry bridges."""
 
-    def snapshot(self, **kwargs: object) -> ProtocolDiagnosticsSnapshot: ...
+    def snapshot(
+        self,
+        *,
+        mqtt_connected: bool | None = None,
+        subscribed_count: int | None = None,
+        auth_recovery: Mapping[str, object] | None = None,
+    ) -> ProtocolDiagnosticsSnapshot: ...
 
 
 class ProtocolTelemetryFacadeLike(Protocol):
@@ -279,7 +284,7 @@ class LiproRuntimeCoordinator(Protocol):
     async def async_apply_optimistic_state(
         self,
         device: LiproDevice,
-        properties: JsonObject,
+        properties: Mapping[str, object],
     ) -> None: ...
 
     async def async_query_device_ota_info(

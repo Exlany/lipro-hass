@@ -76,7 +76,11 @@ class _ProtocolFacadeTelemetrySource(ProtocolTelemetrySource):
         except AttributeError:
             diagnostics_context = None
         try:
-            context_snapshot = diagnostics_context.snapshot
+            context_snapshot = (
+                diagnostics_context.snapshot
+                if diagnostics_context is not None
+                else None
+            )
         except AttributeError:
             context_snapshot = None
         if callable(context_snapshot):
@@ -184,10 +188,19 @@ def _coerce_failure_summary(
     if telemetry_view is None:
         return normalized
 
-    for key in normalized:
-        value = telemetry_view["failure_summary"].get(key)
-        normalized[key] = value if isinstance(value, str) or value is None else None
-    return normalized
+    summary = telemetry_view["failure_summary"]
+
+    def text_or_none(value: object) -> str | None:
+        return value if isinstance(value, str) else None
+
+    category = summary.get("failure_category")
+    policy = summary.get("handling_policy")
+    return {
+        "failure_category": category if isinstance(category, str) else None,
+        "failure_origin": text_or_none(summary.get("failure_origin")),
+        "handling_policy": policy if isinstance(policy, str) else None,
+        "error_type": text_or_none(summary.get("error_type")),
+    }
 
 
 def build_runtime_snapshot_from_view_support(
@@ -252,7 +265,7 @@ def _build_runtime_telemetry_snapshot(
     except AttributeError:
         return {}
     if callable(build_snapshot):
-        snapshot = build_snapshot()
+        snapshot: object = build_snapshot()
         if isinstance(snapshot, Mapping):
             return dict(snapshot)
     return {}

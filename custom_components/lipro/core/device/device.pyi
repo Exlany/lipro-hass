@@ -31,6 +31,7 @@ class LiproDevice:
     default_max_fan_gear_in_model: int
     max_fan_gear: int
     has_unknown_physical_model: bool
+    _last_mqtt_update_at: float
     _state_cache: DeviceState | None
     _extras_cache: DeviceExtras | None
     _outlet_power_info: OutletPowerInfo | None

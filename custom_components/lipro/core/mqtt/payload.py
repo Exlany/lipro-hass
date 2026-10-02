@@ -11,6 +11,7 @@ from ..protocol.boundary.mqtt_decoder import (
     decode_mqtt_message_envelope_payload,
     decode_mqtt_properties_payload,
 )
+from ..utils.redaction import is_sensitive_key_name
 
 # Max payload preview length in debug logs.
 _MAX_MQTT_LOG_CHARS: Final[int] = 200
@@ -75,7 +76,7 @@ def _sanitize_mqtt_log_value(value: Any, key: str | None = None) -> Any:
     """Sanitize MQTT payload values before debug logging."""
     if key is not None:
         normalized_key = key.strip().lower().replace("_", "").replace("-", "")
-        if normalized_key in _MQTT_LOG_SENSITIVE_KEYS:
+        if normalized_key in _MQTT_LOG_SENSITIVE_KEYS or is_sensitive_key_name(key):
             return "***"
 
     if isinstance(value, dict):

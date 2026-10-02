@@ -155,7 +155,10 @@ class _BoundRestCommandPort:
         )
 
     async def fetch_outlet_power_info(self, device_id: str) -> OutletPowerInfoResult:
-        return await self.rest_facade.fetch_outlet_power_info(device_id)
+        result = await self.rest_facade.fetch_outlet_power_info(device_id)
+        if isinstance(result, list):
+            return [dict(row) for row in result]
+        return dict(result)
 
     async def query_command_result(
         self,

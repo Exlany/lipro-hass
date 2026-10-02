@@ -134,3 +134,18 @@ def test_parse_mqtt_payload_keeps_boundary_parity_for_text_and_binary_forms() ->
         payload_module.parse_mqtt_payload(memoryview(payload_json.encode("utf-8")))
         == canonical
     )
+
+
+def test_mqtt_log_uses_shared_sensitive_key_policy() -> None:
+    raw = {
+        "client_secret": "short-secret",
+        "passwordHash": "short-hash",
+        "phone": "12345678901",
+        "state": "on",
+    }
+    assert payload_module._sanitize_mqtt_log_value(raw) == {
+        "client_secret": "***",
+        "passwordHash": "***",
+        "phone": "***",
+        "state": "on",
+    }

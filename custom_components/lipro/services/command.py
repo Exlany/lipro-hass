@@ -135,7 +135,7 @@ def _build_send_command_request(
         attr_properties=attr_properties,
         attr_device_id=attr_device_id,
     )
-    command = cast(str, payload[attr_command])
+    command = cast(str, cast(Mapping[str, object], payload)[attr_command])
     properties = cast(CommandProperties | None, payload.get(attr_properties))
     requested_device_id = cast(str | None, payload.get(attr_device_id))
     return _SendCommandRequest(

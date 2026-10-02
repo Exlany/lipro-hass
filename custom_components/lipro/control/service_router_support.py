@@ -20,12 +20,12 @@ from ..core import (
     LiproDevice,
     get_anonymous_share_manager as _get_anonymous_share_manager,
 )
+from ..core.anonymous_share.manager import AnonymousShareManager
 from ..runtime_types import LiproCoordinator
 from ..services.command import SendCommandLogger
 from ..services.contracts import ServicePropertySummary
 from ..services.device_lookup import resolve_device_id_from_service_call
 from ..services.diagnostics.types import RuntimeCoordinatorIterator
-from ..services.share import AnonymousShareManager
 from .developer_router_support import (
     build_developer_runtime_coordinator_iterator as _build_developer_runtime_coordinator_iterator,
     get_developer_device_and_coordinator as _get_developer_device_and_coordinator_support,

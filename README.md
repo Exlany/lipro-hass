@@ -8,7 +8,7 @@
 
 `lipro-hass` lets Home Assistant control Lipro lights, curtains, fans, outlets, sensors, and other supported devices through the Lipro cloud service.
 
-Minimum supported Home Assistant version: `2026.3.1`
+Minimum supported Home Assistant version: `2026.9.4`
 
 ## ✨ What You Get
 

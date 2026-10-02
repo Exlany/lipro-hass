@@ -11,7 +11,7 @@ This repository currently follows a single-maintainer release model. Every tagge
 
 - Canonical package version: `pyproject.toml`, `custom_components/lipro/manifest.json`, `custom_components/lipro/const/base.py`
 - Canonical runtime dependency envelope: `pyproject.toml` (full runtime floor/bounds) + `custom_components/lipro/manifest.json` (Home Assistant-installed subset)
-- Canonical minimum supported Home Assistant version: `2026.3.1` from `hacs.json` (kept in sync with the `pyproject.toml` dev pin)
+- Canonical minimum supported Home Assistant version: `2026.9.4` from `hacs.json` (kept in sync with the `pyproject.toml` dev pin)
 - Canonical public support/security paths: `README.md`, `README_zh.md`, `CONTRIBUTING.md`, `SUPPORT.md`, `SECURITY.md`
 - Canonical troubleshooting path: `docs/TROUBLESHOOTING.md`
 - Canonical release-notes summary: `CHANGELOG.md` (maintainer-facing release posture summary, not a second runbook)

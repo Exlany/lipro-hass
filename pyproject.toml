@@ -23,7 +23,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "aiohttp>=3.14.1,<4.0.0",
+    "aiohttp>=3.14.3,<4.0.0",
     "aiomqtt>=2.0.0,<3.0.0",
     "pycryptodome>=3.19.0,<4.0.0",
     "voluptuous>=0.15.2,<1.0.0",
@@ -31,22 +31,21 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "colorlog==6.10.1",
-    "homeassistant==2026.3.1",
+    "colorlog==6.11.0",
+    "homeassistant==2026.9.4",
     "pip>=26.1",
     "pip-audit>=2.9.0",
     "pre-commit>=3.7.0",
-    "ruff==0.15.21",
+    "ruff==0.15.22",
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0",
     "pytest-cov>=4.0.0",
-    "pytest-homeassistant-custom-component>=0.13.0",
+    "pytest-homeassistant-custom-component==0.13.367",
     "pytest-benchmark>=5.1.0",
     "syrupy>=5.0.0",
     "mypy>=1.0.0",
     "types-PyYAML>=6.0.12.0",
     "aiodns>=3.3.0",
-    "pycares<6.0.0",
 ]
 
 [project.urls]
@@ -83,14 +82,6 @@ filterwarnings = [
     "ignore::DeprecationWarning:aiomqtt",
     "ignore::DeprecationWarning:voluptuous",
     "ignore::DeprecationWarning:pytest_homeassistant_custom_component",
-]
-
-[tool.uv]
-override-dependencies = [
-    "aiohttp==3.14.1",
-    "pillow==12.2.0",
-    "orjson==3.11.6",
-    "pyjwt==2.12.0",
 ]
 
 [tool.mypy]

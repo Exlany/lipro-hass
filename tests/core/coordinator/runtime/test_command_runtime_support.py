@@ -41,6 +41,7 @@ from custom_components.lipro.core.coordinator.runtime.command_runtime_support im
     _CommandRequest,
     _handle_command_dispatch_result,
 )
+from custom_components.lipro.core.coordinator.types import CommandFailureSummary
 from custom_components.lipro.core.device import LiproDevice
 
 
@@ -266,7 +267,7 @@ def test_build_failure_summary_marks_auth_failures() -> None:
 
 
 def test_build_runtime_metrics_shapes_failure_and_confirmation() -> None:
-    last_failure = {"reason": "push_failed"}
+    last_failure: CommandFailureSummary = {"reason": "push_failed"}
     confirmation_metrics = {"pending": 2}
 
     metrics = _build_runtime_metrics(

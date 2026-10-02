@@ -96,6 +96,7 @@ class DeveloperFeedbackShareManager(Protocol):
         self,
         session: ClientSession,
         payload: DeveloperFeedbackPayload,
+        /,
     ) -> bool:
         """Submit the serialized developer-feedback payload."""
 

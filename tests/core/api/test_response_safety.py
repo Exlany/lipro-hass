@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 from custom_components.lipro.core.api.response_safety import (
     _mask_phone_digits,
     mask_sensitive_data,
@@ -11,6 +13,21 @@ from custom_components.lipro.core.api.response_safety import (
 
 class TestMaskSensitiveData:
     """Tests for sensitive data masking."""
+
+    @pytest.mark.parametrize(
+        "data",
+        [
+            '{"password": "prefix\\"secret-tail"}',
+            '{"access_token": "secret-tail',
+            '{"access_token": "secret-tail\\',
+            '{"clientSecret": "secret-tail"}',
+            '{"API_KEY": "secret-tail"}',
+        ],
+    )
+    def test_masks_escaped_truncated_and_variant_secrets(self, data):
+        result = mask_sensitive_data(data)
+        assert "secret-tail" not in result
+        assert "***" in result
 
     def test_mask_access_token(self):
         """Test masking access token."""
