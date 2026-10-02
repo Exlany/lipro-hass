@@ -67,7 +67,7 @@ def collector_method(
     *,
     doc: str | None = None,
     inject_reported_device_keys: bool = False,
-):
+) -> Callable[..., object]:
     """Build one internal `AnonymousShareManager` method bound to `_share_collector`."""
 
     def _method(owner: object, *args: object, **kwargs: object) -> object:

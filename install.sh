@@ -104,6 +104,14 @@ while [ "$#" -gt 0 ]; do
     esac
 done
 
+# Resolve user-supplied files before entering the HA configuration directory.
+if [[ -n "$ARCHIVE_FILE" && "$ARCHIVE_FILE" != /* ]]; then
+    ARCHIVE_FILE="$PWD/$ARCHIVE_FILE"
+fi
+if [[ -n "$CHECKSUM_FILE" && "$CHECKSUM_FILE" != /* ]]; then
+    CHECKSUM_FILE="$PWD/$CHECKSUM_FILE"
+fi
+
 [ -z "$HUB_DOMAIN" ] && HUB_DOMAIN="github.com"
 if [ -n "$ARCHIVE_FILE" ]; then
     ARCHIVE_MODE="local"

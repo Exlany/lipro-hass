@@ -70,7 +70,7 @@ class FirmwareOtaQueryContext:
 class FirmwareRefreshProjection:
     """OTA candidate plus entity-facing projection fields."""
 
-    ota_candidate: _OtaCandidate
+    ota_candidate: FirmwareOtaCandidate
     installed_version: str | None
     latest_version: str | None
     release_summary: str | None

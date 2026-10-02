@@ -309,13 +309,15 @@ class TestStatusExecutor:
         assert await executor.execute_parallel_queries([]) == []
 
     @pytest.mark.asyncio
-    async def test_status_executor_parallel_queries_surfaces_batch_errors(self) -> None:
+    async def test_status_executor_parallel_queries_surfaces_batch_errors(
+        self, monkeypatch
+    ) -> None:
         executor = StatusExecutor(
             query_device_status=AsyncMock(return_value={}),
             apply_properties_update=AsyncMock(return_value=True),
             get_device_by_id=lambda _device_id: None,
         )
-        executor.execute_status_query = AsyncMock(
+        query = AsyncMock(
             side_effect=[
                 {
                     "duration": 0.1,
@@ -327,6 +329,7 @@ class TestStatusExecutor:
             ]
         )
 
+        monkeypatch.setattr(executor, "execute_status_query", query)
         results = await executor.execute_parallel_queries(
             [["device1"], ["device2"]],
             concurrency=2,

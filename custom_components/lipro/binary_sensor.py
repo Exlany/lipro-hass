@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from .core.device import LiproDevice
     from .runtime_types import LiproRuntimeCoordinator
 
-StateReader = Callable[[object], object]
+type StateReader = Callable[[LiproDevice], object]
 
 # No parallel update limit needed for read-only sensors using coordinator
 PARALLEL_UPDATES = 0
@@ -98,7 +98,7 @@ class LiproConnectivitySensor(LiproPropertyBinarySensor):
     _attr_entity_registry_enabled_default = False
     _attr_translation_key = "connectivity"
     _entity_suffix = "connectivity"
-    state_reader = _read_is_connected
+    state_reader = staticmethod(_read_is_connected)
 
     @property
     def available(self) -> bool:
@@ -112,7 +112,7 @@ class LiproMotionSensor(LiproPropertyBinarySensor):
     _attr_device_class = BinarySensorDeviceClass.MOTION
     _attr_translation_key = "motion"
     _entity_suffix = "motion"
-    state_reader = _read_is_activated
+    state_reader = staticmethod(_read_is_activated)
 
 
 class LiproDoorSensor(LiproPropertyBinarySensor):
@@ -121,7 +121,7 @@ class LiproDoorSensor(LiproPropertyBinarySensor):
     _attr_device_class = BinarySensorDeviceClass.DOOR
     _attr_translation_key = "door"
     _entity_suffix = "door"
-    state_reader = _read_door_is_open
+    state_reader = staticmethod(_read_door_is_open)
 
 
 class LiproLightLevelSensor(LiproPropertyBinarySensor):
@@ -131,7 +131,7 @@ class LiproLightLevelSensor(LiproPropertyBinarySensor):
     _attr_translation_key = "light"
     _attr_entity_registry_enabled_default = False
     _entity_suffix = "light"
-    state_reader = _read_is_dark
+    state_reader = staticmethod(_read_is_dark)
     _invert = True
 
 
@@ -142,7 +142,7 @@ class LiproBatteryLowSensor(LiproPropertyBinarySensor):
     _attr_translation_key = "battery"
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _entity_suffix = "battery_low"
-    state_reader = _read_low_battery
+    state_reader = staticmethod(_read_low_battery)
 
 
 def _build_device_binary_sensors(

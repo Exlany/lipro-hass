@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 import logging
 
 from .status_fallback_split_executor import (
+    _BinarySplitQueryContextLike,
     execute_batch_fallback_query,
     execute_binary_split_query,
     query_binary_split_root_impl,
@@ -69,7 +70,7 @@ class _BinarySplitAccumulator:
         self.max_fallback_depth = max(self.max_fallback_depth, depth)
 
     def record_single_failure(
-        self, *, context: _BinarySplitQueryContext, err: Exception, item_id: str
+        self, *, context: _BinarySplitQueryContextLike, err: Exception, item_id: str
     ) -> None:
         single_code = context.normalized_error_code(err)
         context.logger.debug(

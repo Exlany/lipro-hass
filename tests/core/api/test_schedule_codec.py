@@ -29,6 +29,20 @@ def test_parse_mesh_schedule_json_invalid_payload_returns_empty() -> None:
     assert parsed == {"days": [], "time": [], "evt": []}
 
 
+def test_schedule_preview_masks_before_truncating(caplog) -> None:
+    from custom_components.lipro.core.api.response_safety import mask_sensitive_data
+    from custom_components.lipro.core.protocol.boundary.rest_decoder_utility import (
+        _decode_schedule_json_canonical,
+    )
+
+    caplog.set_level("DEBUG")
+    raw = '{"password": "' + "secret-tail" * 30 + '" invalid}'
+    parse_mesh_schedule_json(raw, mask_sensitive_data=mask_sensitive_data)
+    _decode_schedule_json_canonical(raw)
+    assert "Invalid mesh scheduleJson" in caplog.text
+    assert "secret-tail" not in caplog.text
+
+
 def test_parse_mesh_schedule_json_accepts_verified_canonical_payload() -> None:
     parsed = parse_mesh_schedule_json(
         '{"days":[2],"time":[86340],"evt":[1]}',

@@ -48,7 +48,9 @@ from .manager_support import (
 )
 
 if TYPE_CHECKING:
+    from .collector import AnonymousShareCollector
     from .manager_support import _ScopeState
+    from .share_client import ShareWorkerClient
 
 _LOGGER = logging.getLogger(__package__ or __name__)
 _DEFAULT_SCOPE = "__default__"
@@ -136,11 +138,26 @@ class AnonymousShareManager:
             return self
         return self._scope_views.primary_manager(default_scope=_DEFAULT_SCOPE)
 
-    _share_collector = scope_state_property("collector")
+    @property
+    def _share_collector(self) -> AnonymousShareCollector:
+        return self._scope_state.collector
+
+    @_share_collector.setter
+    def _share_collector(self, value: AnonymousShareCollector) -> None:
+        self._scope_state.collector = value
+
     _last_upload_time = scope_state_property("last_upload_time")
     _installation_id = scope_state_property("installation_id")
     _ha_version = scope_state_property("ha_version")
-    _share_client = scope_state_property("share_client")
+
+    @property
+    def _share_client(self) -> ShareWorkerClient:
+        return self._scope_state.share_client
+
+    @_share_client.setter
+    def _share_client(self, value: ShareWorkerClient) -> None:
+        self._scope_state.share_client = value
+
     _reported_device_keys = scope_state_property("reported_device_keys")
     _storage_path = scope_state_property("storage_path")
     _cache_loaded = scope_state_property("cache_loaded")

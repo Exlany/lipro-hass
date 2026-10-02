@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping, Sequence
 from typing import TYPE_CHECKING, cast
 
+from ...api.response_safety import mask_sensitive_data
 from ...api.schedule_codec import parse_mesh_schedule_json
 from ...api.types import DevicePropertyMap, JsonObject
 from ...utils.identifiers import normalize_iot_device_id, normalize_mesh_group_id
@@ -139,7 +140,7 @@ def _extract_schedule_json_source(payload: object) -> object:
 def _decode_schedule_json_canonical(payload: object) -> CanonicalScheduleJson:
     parsed = parse_mesh_schedule_json(
         _extract_schedule_json_source(payload),
-        mask_sensitive_data=lambda value: value,
+        mask_sensitive_data=mask_sensitive_data,
     )
     return {
         "days": parsed["days"],

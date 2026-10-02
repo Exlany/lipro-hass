@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Mapping
 import logging
 from typing import cast
 
@@ -52,7 +52,7 @@ from .service_router_support import (
     DeviceAndCoordinatorGetter as RuntimeDeviceAndCoordinatorGetter,
 )
 
-type ScheduleHandler = Callable[..., Awaitable[dict[str, object]]]
+type ScheduleHandler = Callable[..., Awaitable[Mapping[str, object]]]
 
 
 async def async_handle_send_command(
@@ -93,7 +93,7 @@ async def _async_handle_schedule_request(
     **kwargs: object,
 ) -> dict[str, object]:
     """Run one schedule handler with the formal router collaborators."""
-    return await service_handler(
+    result = await service_handler(
         hass,
         call,
         get_device_and_coordinator=get_device_and_coordinator,
@@ -101,6 +101,7 @@ async def _async_handle_schedule_request(
         logger=logger,
         **kwargs,
     )
+    return dict(result)
 
 
 async def async_handle_get_schedules(

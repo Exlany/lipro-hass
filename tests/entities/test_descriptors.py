@@ -139,3 +139,11 @@ def test_kelvin_to_percent_uses_device_specific_conversion() -> None:
     entity = _make_probe(color_temp=3600)
 
     assert entity.color_temp_percent == 80
+
+
+def test_default_resolvers_and_class_access():
+    entity = _make_probe(brightness=50, color_temp=3000)
+    assert ScaledBrightness().__get__(entity) == 128
+    assert KelvinToPercent().__get__(entity) == 50
+    assert isinstance(_DescriptorProbe.color_temp, ConditionalAttr)
+    assert isinstance(_DescriptorProbe.color_temp_percent, KelvinToPercent)

@@ -38,13 +38,13 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: ${{ inputs.ref || github.ref }}
           fetch-depth: "0"
 
       - name: Set up Python
-        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: "3.14"
 
@@ -54,40 +54,16 @@ jobs:
           enable-cache: true
 
       - name: Install dependencies
-        run: uv sync --frozen --extra dev
+        # Frozen installation alone does not detect stale project metadata.
+        run: |
+          uv lock --check
+          uv sync --frozen --extra dev
 
       - name: Run Ruff linter
         run: uv run ruff check .
 
       - name: Run Ruff formatter
-        shell: bash
-        env:
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: |
-          set -euo pipefail
-
-          changed_python=""
-          if [[ "${GITHUB_EVENT_NAME}" == "pull_request" && -n "${PR_NUMBER}" ]]; then
-            git fetch --no-tags --depth=2 origin "pull/${PR_NUMBER}/head:pr-head"
-            changed_python="$(git diff --name-only --diff-filter=AMRT pr-head^..pr-head -- '*.py')"
-          elif [[ "${GITHUB_EVENT_NAME}" == "push" ]] && git rev-parse --verify HEAD^2 >/dev/null 2>&1; then
-            if git rev-parse --verify HEAD^2^ >/dev/null 2>&1; then
-              changed_python="$(git diff --name-only --diff-filter=AMRT HEAD^2^..HEAD^2 -- '*.py')"
-            else
-              changed_python="$(git diff --name-only --diff-filter=AMRT HEAD^..HEAD -- '*.py')"
-            fi
-          elif git rev-parse --verify HEAD^ >/dev/null 2>&1; then
-            changed_python="$(git diff --name-only --diff-filter=AMRT HEAD^..HEAD -- '*.py')"
-          else
-            changed_python="$(git ls-files '*.py')"
-          fi
-
-          if [[ -z "${changed_python}" ]]; then
-            echo "No Python files changed in the current commit; formatter gate skipped."
-            exit 0
-          fi
-
-          uv run ruff format --check ${changed_python}
+        run: uv run ruff format --check .
 
       - name: Install shellcheck
         run: sudo apt-get update && sudo apt-get install -y shellcheck
@@ -95,12 +71,8 @@ jobs:
       - name: Run shellcheck
         run: shellcheck install.sh scripts/develop scripts/lint scripts/setup
 
-      - name: Run focused mypy contract
-        run: |
-          uv run mypy --follow-imports=silent \
-            custom_components/lipro/core/coordinator/runtime/device_runtime.py \
-            tests/core/test_device_refresh_runtime.py \
-            tests/core/test_log_safety.py
+      - name: Run full mypy contract
+        run: uv run mypy
       - name: Check translations
         run: uv run python scripts/check_translations.py
 
@@ -113,12 +85,12 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: ${{ inputs.ref || github.ref }}
 
       - name: Set up Python
-        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: "3.14"
 
@@ -185,13 +157,13 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: ${{ inputs.ref || github.ref }}
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: "3.14"
 
@@ -223,21 +195,11 @@ jobs:
           set -euo pipefail
 
           if [[ "${GITHUB_EVENT_NAME}" == "pull_request" && -n "${PR_NUMBER}" ]]; then
-            git fetch --no-tags --depth=2 origin "pull/${PR_NUMBER}/head:pr-head"
-            if git rev-parse --verify pr-head^ >/dev/null 2>&1; then
-              git diff --name-only --diff-filter=AMRT pr-head^..pr-head > .coverage-changed-files
-            elif git rev-parse --verify origin/main >/dev/null 2>&1; then
-              merge_base="$(git merge-base origin/main pr-head)"
-              git diff --name-only --diff-filter=AMRT "${merge_base}...pr-head" > .coverage-changed-files
-            else
-              : > .coverage-changed-files
-            fi
+            git fetch --no-tags origin "pull/${PR_NUMBER}/head:pr-head"
+            merge_base="$(git merge-base origin/main pr-head)"
+            git diff --name-only --diff-filter=AMRT "${merge_base}...pr-head" > .coverage-changed-files
           elif [[ "${GITHUB_EVENT_NAME}" == "push" ]] && git rev-parse --verify HEAD^2 >/dev/null 2>&1; then
-            if git rev-parse --verify HEAD^2^ >/dev/null 2>&1; then
-              git diff --name-only --diff-filter=AMRT HEAD^2^..HEAD^2 > .coverage-changed-files
-            else
-              git diff --name-only --diff-filter=AMRT HEAD^...HEAD > .coverage-changed-files
-            fi
+            git diff --name-only --diff-filter=AMRT HEAD^...HEAD > .coverage-changed-files
           elif { [ "${GITHUB_REF_NAME}" = "main" ] || [ "${GITHUB_EVENT_NAME}" = "schedule" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_call" ]; } \
             && git rev-parse --verify HEAD^ >/dev/null 2>&1; then
             git diff --name-only --diff-filter=AMRT HEAD^...HEAD > .coverage-changed-files
@@ -268,18 +230,10 @@ jobs:
 
           baseline_ref=""
           if [[ "${GITHUB_EVENT_NAME}" == "pull_request" && -n "${PR_NUMBER}" ]]; then
-            git fetch --no-tags --depth=2 origin "pull/${PR_NUMBER}/head:pr-head"
-            if git rev-parse --verify pr-head^ >/dev/null 2>&1; then
-              baseline_ref="$(git rev-parse pr-head^)"
-            elif git rev-parse --verify origin/main >/dev/null 2>&1; then
-              baseline_ref="$(git merge-base origin/main pr-head)"
-            fi
+            git fetch --no-tags origin "pull/${PR_NUMBER}/head:pr-head"
+            baseline_ref="$(git merge-base origin/main pr-head)"
           elif [[ "${GITHUB_EVENT_NAME}" == "push" ]] && git rev-parse --verify HEAD^2 >/dev/null 2>&1; then
-            if git rev-parse --verify HEAD^2^ >/dev/null 2>&1; then
-              baseline_ref="$(git rev-parse HEAD^2^)"
-            else
-              baseline_ref="$(git rev-parse HEAD^)"
-            fi
+            baseline_ref="$(git rev-parse HEAD^)"
           elif { [ "${GITHUB_REF_NAME}" = "main" ] || [ "${GITHUB_EVENT_NAME}" = "schedule" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_call" ]; }             && git rev-parse --verify HEAD^ >/dev/null 2>&1; then
             baseline_ref="$(git rev-parse HEAD^)"
           elif git rev-parse --verify HEAD^ >/dev/null 2>&1; then
@@ -354,7 +308,7 @@ jobs:
       - name: Upload coverage to Codecov
         if: github.event_name == 'push'
         continue-on-error: true
-        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f
+        uses: codecov/codecov-action@0b35c9ecc4f0529d0eb674914510c22f85b196b4
         with:
           files: ./coverage.xml
           fail_ci_if_error: false
@@ -368,12 +322,12 @@ jobs:
     if: github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_call'
     steps:
       - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: ${{ inputs.ref || github.ref }}
 
       - name: Set up Python
-        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: "3.14"
 
@@ -432,12 +386,12 @@ jobs:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: ${{ inputs.ref || github.ref }}
 
       - name: Set up Python
-        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: "3.14"
 
@@ -494,12 +448,12 @@ jobs:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: ${{ inputs.ref || github.ref }}
 
       - name: Set up Python
-        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: "3.14"
 

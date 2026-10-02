@@ -144,11 +144,8 @@ echo "Running ruff format check..."
 uv run ruff format --check .
 
 echo ""
-echo "Running focused mypy contract..."
-uv run mypy --follow-imports=silent \
-    custom_components/lipro/core/coordinator/runtime/device_runtime.py \
-    tests/core/test_device_refresh_runtime.py \
-    tests/core/test_log_safety.py
+echo "Running full mypy contract..."
+uv run mypy
 
 echo ""
 echo "Checking translations..."

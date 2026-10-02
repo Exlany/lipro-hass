@@ -13,10 +13,17 @@ type NormalizeResponseCode = Callable[[object], str | int | None]
 
 
 class _BatchLoggingContext(Protocol):
-    item_name: str
-    path: str
-    logger: logging.Logger
-    normalize_response_code: NormalizeResponseCode
+    @property
+    def item_name(self) -> str: ...
+
+    @property
+    def path(self) -> str: ...
+
+    @property
+    def logger(self) -> logging.Logger: ...
+
+    @property
+    def normalize_response_code(self) -> NormalizeResponseCode: ...
 
 
 def log_batch_query_fallback(

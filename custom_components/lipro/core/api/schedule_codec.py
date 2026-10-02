@@ -109,7 +109,7 @@ def parse_mesh_schedule_json(
             _LOGGER.debug(
                 "Invalid mesh scheduleJson payload (type=%s): %s",
                 type(payload).__name__,
-                mask_sensitive_data(str(payload)[:_INVALID_JSON_PREVIEW_MAX_CHARS]),
+                mask_sensitive_data(str(payload))[:_INVALID_JSON_PREVIEW_MAX_CHARS],
             )
             return empty
 

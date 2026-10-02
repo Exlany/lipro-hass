@@ -28,10 +28,8 @@ from custom_components.lipro.services.contracts import (
     normalize_delete_schedules_payload,
     normalize_get_schedules_payload,
 )
-from custom_components.lipro.services.schedule import (
-    async_execute_schedule_operation,
-    normalize_schedule_row,
-)
+from custom_components.lipro.services.schedule import async_execute_schedule_operation
+from custom_components.lipro.services.schedule_support import normalize_schedule_row
 from tests.coordinator_double import _CoordinatorDouble
 
 

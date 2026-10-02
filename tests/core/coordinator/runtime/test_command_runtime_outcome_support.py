@@ -23,12 +23,9 @@ from custom_components.lipro.core.coordinator.runtime.command_runtime_support im
     _CommandRequest,
 )
 
-from . import test_command_runtime_support as _support_fixtures
+from .test_command_runtime_support import mock_device
 
-
-@pytest.fixture(name="mock_device")
-def _mock_device_fixture():
-    return _support_fixtures.mock_device.__wrapped__()
+__all__ = ["mock_device"]
 
 
 def test_record_command_result_failure_marks_trace_and_uses_runtime_callback(

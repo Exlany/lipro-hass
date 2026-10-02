@@ -44,7 +44,7 @@ def _make_device(
 
 def test_command_dispatch_plan_coerces_route_to_enum() -> None:
     plan = CommandDispatchPlan(
-        route="group_direct",
+        route=cast(CommandRoute, "group_direct"),
         command="POWER_ON",
         properties=None,
         member_fallback_id=None,
@@ -215,7 +215,7 @@ async def test_execute_command_dispatch_device_direct_route() -> None:
         client,
         device=device,
         plan=CommandDispatchPlan(
-            route="device_direct",
+            route=CommandRoute.DEVICE_DIRECT,
             command="POWER_ON",
             properties=None,
             member_fallback_id=None,
@@ -240,7 +240,7 @@ async def test_execute_command_dispatch_group_error_fallback_to_member() -> None
         client,
         device=device,
         plan=CommandDispatchPlan(
-            route="group_direct",
+            route=CommandRoute.GROUP_DIRECT,
             command="POWER_ON",
             properties=None,
             member_fallback_id="03ab111111111111",
@@ -268,7 +268,7 @@ async def test_execute_command_dispatch_group_push_fail_fallback_to_member(
         client,
         device=device,
         plan=CommandDispatchPlan(
-            route="group_direct",
+            route=CommandRoute.GROUP_DIRECT,
             command="POWER_ON",
             properties=None,
             member_fallback_id="03ab111111111111",
@@ -294,7 +294,7 @@ async def test_execute_command_dispatch_group_error_without_fallback_raises() ->
             client,
             device=device,
             plan=CommandDispatchPlan(
-                route="group_direct",
+                route=CommandRoute.GROUP_DIRECT,
                 command="POWER_ON",
                 properties=None,
                 member_fallback_id=None,
@@ -329,7 +329,7 @@ async def test_execute_command_dispatch_panel_route_uses_group_endpoint() -> Non
         client,
         device=device,
         plan=CommandDispatchPlan(
-            route="panel_direct_via_group_endpoint",
+            route=CommandRoute.PANEL_DIRECT,
             command="PANEL_CHANGE_STATE",
             properties=[{"key": "led", "value": "1"}],
             member_fallback_id=None,
@@ -399,7 +399,7 @@ async def test_execute_command_dispatch_group_error_fallback_does_not_retry_memb
         client,
         device=device,
         plan=CommandDispatchPlan(
-            route="group_direct",
+            route=CommandRoute.GROUP_DIRECT,
             command="POWER_ON",
             properties=None,
             member_fallback_id="03ab111111111111",
@@ -428,7 +428,7 @@ async def test_execute_command_dispatch_group_error_fallback_logs_redacted_detai
             client,
             device=device,
             plan=CommandDispatchPlan(
-                route="group_direct",
+                route=CommandRoute.GROUP_DIRECT,
                 command="POWER_ON",
                 properties=None,
                 member_fallback_id="03ab111111111111",

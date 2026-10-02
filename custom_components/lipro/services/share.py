@@ -59,8 +59,13 @@ class _AnonymousShareSubmitRequest:
 class AnonymousShareManager(Protocol):
     """Anonymous-share manager contract used by service handlers."""
 
-    is_enabled: bool
-    pending_count: tuple[int, int]
+    @property
+    def is_enabled(self) -> bool:
+        """Return the current sharing opt-in state."""
+
+    @property
+    def pending_count(self) -> tuple[int, int]:
+        """Return device and error queue sizes."""
 
     @property
     def last_submit_outcome(self) -> OperationOutcome | None:

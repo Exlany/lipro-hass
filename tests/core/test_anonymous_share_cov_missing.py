@@ -187,14 +187,16 @@ def test_aggregate_clear_and_enabled_state_reflect_scoped_collectors() -> None:
 
 
 @pytest.mark.asyncio
-async def test_aggregate_submit_report_combines_scoped_results() -> None:
+async def test_aggregate_submit_report_combines_scoped_results(monkeypatch) -> None:
     aggregate = AnonymousShareManager().aggregate_view()
     manager_one = aggregate.for_scope("entry-1")
     manager_two = aggregate.for_scope("entry-2")
     manager_one.set_enabled(True)
     manager_two.set_enabled(True)
-    manager_one.submit_report = AsyncMock(return_value=True)
-    manager_two.submit_report = AsyncMock(return_value=False)
+    mock_one = AsyncMock(return_value=True)
+    monkeypatch.setattr(manager_one, "submit_report", mock_one)
+    mock_two = AsyncMock(return_value=False)
+    monkeypatch.setattr(manager_two, "submit_report", mock_two)
 
     result = await aggregate.submit_report(
         MagicMock(spec=aiohttp.ClientSession), force=True
@@ -203,27 +205,29 @@ async def test_aggregate_submit_report_combines_scoped_results() -> None:
     assert result is False
     assert aggregate.last_submit_outcome is not None
     assert aggregate.last_submit_outcome.reason_code == "submit_failed"
-    manager_one.submit_report.assert_awaited_once()
-    manager_two.submit_report.assert_awaited_once()
+    mock_one.assert_awaited_once()
+    mock_two.assert_awaited_once()
 
 
 @pytest.mark.asyncio
-async def test_aggregate_submit_if_needed_combines_scoped_results() -> None:
+async def test_aggregate_submit_if_needed_combines_scoped_results(monkeypatch) -> None:
     aggregate = AnonymousShareManager().aggregate_view()
     manager_one = aggregate.for_scope("entry-1")
     manager_two = aggregate.for_scope("entry-2")
     manager_one.set_enabled(True)
     manager_two.set_enabled(True)
-    manager_one.submit_if_needed = AsyncMock(return_value=True)
-    manager_two.submit_if_needed = AsyncMock(return_value=False)
+    mock_one = AsyncMock(return_value=True)
+    monkeypatch.setattr(manager_one, "submit_if_needed", mock_one)
+    mock_two = AsyncMock(return_value=False)
+    monkeypatch.setattr(manager_two, "submit_if_needed", mock_two)
 
     result = await aggregate.submit_if_needed(MagicMock(spec=aiohttp.ClientSession))
 
     assert result is False
     assert aggregate.last_submit_outcome is not None
     assert aggregate.last_submit_outcome.reason_code == "submit_failed"
-    manager_one.submit_if_needed.assert_awaited_once()
-    manager_two.submit_if_needed.assert_awaited_once()
+    mock_one.assert_awaited_once()
+    mock_two.assert_awaited_once()
 
 
 def test_disabling_one_scope_clears_only_that_scope_pending_data() -> None:
@@ -241,3 +245,20 @@ def test_disabling_one_scope_clears_only_that_scope_pending_data() -> None:
     assert scope_one.pending_count == (0, 0)
     assert scope_two.pending_count == (0, 1)
     assert root_manager.aggregate_view().pending_count == (0, 1)
+
+
+def test_replacing_scope_clients_does_not_mutate_other_scopes():
+    """Typed collector/client setters must retain scope isolation."""
+    manager = AnonymousShareManager()
+    first = manager.for_scope("first")
+    second = manager.for_scope("second")
+    original_collector = second._share_collector
+    original_client = second._share_client
+    replacement_collector = AnonymousShareCollector()
+    replacement_client = ShareWorkerClient()
+    first._share_collector = replacement_collector
+    first._share_client = replacement_client
+    assert first._share_collector is replacement_collector
+    assert first._share_client is replacement_client
+    assert second._share_collector is original_collector
+    assert second._share_client is original_client

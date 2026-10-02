@@ -7,7 +7,8 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from . import test_command_runtime_support as _support_fixtures
+from custom_components.lipro.core.command.dispatch import CommandRoute
+
 from .test_command_runtime_support import (
     COMMAND_RESULT_STATE_FAILED,
     COMMAND_RESULT_STATE_PENDING,
@@ -16,32 +17,20 @@ from .test_command_runtime_support import (
     CommandSender,
     LiproApiError,
     LiproAuthError,
+    command_runtime,
+    confirmation_tracker,
+    mock_client,
+    mock_device,
+    runtime_deps,
 )
 
-
-@pytest.fixture(name="mock_client")
-def _mock_client_fixture():
-    return _support_fixtures.mock_client.__wrapped__()
-
-
-@pytest.fixture(name="mock_device")
-def _mock_device_fixture():
-    return _support_fixtures.mock_device.__wrapped__()
-
-
-@pytest.fixture(name="confirmation_tracker")
-def _confirmation_tracker_fixture():
-    return _support_fixtures.confirmation_tracker.__wrapped__()
-
-
-@pytest.fixture(name="runtime_deps")
-def _runtime_deps_fixture(mock_client, confirmation_tracker):
-    return _support_fixtures.runtime_deps.__wrapped__(mock_client, confirmation_tracker)
-
-
-@pytest.fixture(name="command_runtime")
-def _command_runtime_fixture(runtime_deps):
-    return _support_fixtures.command_runtime.__wrapped__(runtime_deps)
+__all__ = [
+    "command_runtime",
+    "confirmation_tracker",
+    "mock_client",
+    "mock_device",
+    "runtime_deps",
+]
 
 
 class TestCommandRuntime:
@@ -144,7 +133,7 @@ class TestCommandRuntime:
         """Test send_device_command with API error."""
         with patch.object(command_runtime._sender, "send_command") as mock_send:
             mock_send.side_effect = CommandDispatchApiError(
-                route="device_direct",
+                route=CommandRoute.DEVICE_DIRECT,
                 error=LiproApiError("API Error"),
             )
 
@@ -166,7 +155,7 @@ class TestCommandRuntime:
         """Route-aware sender failures should keep the planned route in failure summary."""
         with patch.object(command_runtime._sender, "send_command") as mock_send:
             mock_send.side_effect = CommandDispatchApiError(
-                route="group_direct",
+                route=CommandRoute.GROUP_DIRECT,
                 error=LiproApiError("routeful boom"),
             )
 
@@ -195,7 +184,7 @@ class TestCommandRuntime:
         """Test send_device_command with auth error triggers reauth."""
         with patch.object(command_runtime._sender, "send_command") as mock_send:
             mock_send.side_effect = CommandDispatchApiError(
-                route="device_direct",
+                route=CommandRoute.DEVICE_DIRECT,
                 error=LiproAuthError("Auth failed"),
             )
 
