@@ -282,6 +282,9 @@ class TestLiproEntityDebounce:
             entity._debounce_protected_until <= monotonic() + DEBOUNCE_PROTECTION_WINDOW
         )
 
+        await entity.async_will_remove_from_hass()
+        assert entity._debouncer is None
+
     async def test_send_command_debounced_skips_when_unavailable(
         self, mock_coordinator, make_device
     ):
@@ -320,6 +323,9 @@ class TestLiproEntityDebounce:
         protected = entity.get_protected_keys()
         assert "brightness" in protected
 
+        await entity.async_will_remove_from_hass()
+        assert entity._debouncer is None
+
     async def test_get_protected_keys_returns_copy_during_protection(
         self, mock_coordinator, make_device
     ):
@@ -338,6 +344,9 @@ class TestLiproEntityDebounce:
         protected.add("temperature")
 
         assert entity._debounce_protected_keys == {"brightness"}
+
+        await entity.async_will_remove_from_hass()
+        assert entity._debouncer is None
 
     async def test_debounce_protected_keys_replaced_on_new_call(
         self, mock_coordinator, make_device
@@ -359,6 +368,9 @@ class TestLiproEntityDebounce:
         )
 
         assert entity.get_protected_keys() == {"temperature"}
+
+        await entity.async_will_remove_from_hass()
+        assert entity._debouncer is None
 
     def test_get_protected_keys_clears_stale_keys_after_window(
         self, mock_coordinator, make_device

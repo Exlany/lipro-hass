@@ -470,7 +470,7 @@ jobs:
         continue-on-error: true
         run: |
           set -euo pipefail
-          uv run python -m pip install --upgrade --pre "homeassistant>=2026.3.1"
+          uv run python -m pip install --upgrade --pre "homeassistant>=2026.9.4"
           uv run python -c "import homeassistant; print(homeassistant.__version__)"
 
       - name: Run compatibility preview smoke

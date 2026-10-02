@@ -8,7 +8,7 @@
 
 `lipro-hass` 用于在 Home Assistant 中接入 Lipro 设备，支持灯光、窗帘、风扇、插座、传感器等常见设备，并通过 Lipro 云端完成控制与状态同步。
 
-最低支持的 Home Assistant 版本：`2026.3.1`
+最低支持的 Home Assistant 版本：`2026.9.4`
 
 ## ✨ 这是什么
 

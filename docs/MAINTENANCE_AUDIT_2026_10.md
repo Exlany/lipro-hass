@@ -42,44 +42,43 @@ accounts, actual HA upgrades and releases were not exercised.
   urllib3 2.8.0 and Pygments 2.21.0. Original PRs remain open until the
   consolidated changes can satisfy blocking checks and merge.
 
-## HA constraints and retained security findings
+## Latest stable HA baseline and retained upstream findings
 
-Minimum supported HA remains **2026.3.1**, Python **3.14.2**.
-[HA's exact requirements](https://github.com/home-assistant/core/blob/2026.3.1/pyproject.toml)
-and the pinned
-[HA test plugin](https://github.com/MatthewFlamm/pytest-homeassistant-custom-component/releases/tag/0.13.317)
-constrain this environment. The existing aiohttp 3.14 override is advanced from
-3.14.1 to the security patch 3.14.3; no new override is introduced. Pillow, PyJWT
-and orjson overrides are unchanged. [aiohttp's patch notes](https://docs.aiohttp.org/en/stable/changes.html)
-confirm redirect credential-header fixes. This patches the repository environment,
-not the HA-managed aiohttp installed on users' systems: `manifest.json` does not
-install aiohttp, and HA 2026.3.1 owns its native 3.13.3 dependency. [HA upgrade PR 69](https://github.com/Exlany/lipro-hass/pull/69)
-remains on hold: a passing unit suite alone does not authorize raising the
-supported HA floor.
+The authorized support baseline is now **Home Assistant 2026.9.4**, verified from
+[the official latest stable release](https://github.com/home-assistant/core/releases/tag/2026.9.4).
+Python remains **>=3.14.2**, exactly as required by the upstream release.
+The test plugin is pinned to **0.13.367**, whose package metadata requires HA
+2026.9.4. Plugin 0.13.368 targets 2026.10.0b0 and is intentionally not selected.
+HACS metadata, both READMEs, troubleshooting, bug templates and the development
+pin agree on the new minimum. This upgrades the repository, not a user's live HA.
 
-A full installed-environment pip-audit returned 15 affected packages / 102 raw
-advisory records before compatible updates, and 9 / 79 after the aiohttp patch.
-The independently resolved runtime dependency audit now reports zero known vulnerabilities. These are
-**local dependency-audit records, not GitHub alert counts**; aliases can duplicate
-records. Remaining packages and currently reported fixed-version requirements:
+All four old uv overrides (aiohttp, Pillow, PyJWT and orjson) and the old pycares
+cap are removed. The environment resolves against
+[HA's native exact requirements](https://github.com/home-assistant/core/blob/2026.9.4/pyproject.toml),
+including aiohttp 3.14.3, Pillow 12.3.0, orjson 3.11.9, pytest 9.0.3 via the matching
+test plugin, requests 2.34.2, uv 0.12.5 and zeroconf 0.151.1.
+`uv pip check` reports all installed packages compatible.
 
-| Package | Locked | Upstream remediation / condition |
+The full installed-environment audit improves from **15 affected packages / 102
+raw records** to **2 packages / 19 raw records**. These are local audit results,
+not GitHub alert counts; aliases can duplicate records. The separately resolved
+runtime dependency audit reports zero known vulnerabilities.
+
+| Package | Native HA pin | Remaining remediation constraints |
 |---|---|---|
-| cryptography | 46.0.5 | Reported fixes span 46.0.6 through 50.0.0; HA exact pin and pyOpenSSL `<47` prevent wholesale resolution |
-| homeassistant | 2026.3.1 | 2026.6.0 / 2026.7.0; requires approved supported-baseline change |
-| Pillow | 12.2.0 | 12.3.0; existing override differs from HA native 12.1.1 |
-| PyJWT | 2.12.0 | Reported fixes through 2.15.0; PYSEC-2026-4146 lists no fixed version |
-| pyOpenSSL | 25.3.0 | 26.0.0; HA exact pin |
-| pytest | 9.0.0 | 9.0.3; exact HA test-plugin pin |
-| requests | 2.32.5 | 2.33.0; HA exact pin |
-| uv | 0.10.6 | 0.11.6 / 0.11.15; HA exact pin |
-| zeroconf | 0.148.0 | Reported fixes through 0.149.16; HA exact pin |
+| cryptography | 48.0.1 | PYSEC-2026-3554 and -3553 require 49.0.0; -3552 requires 50.0.0 |
+| PyJWT | 2.13.0 | Reported fixes require 2.14.0 / 2.15.0; PYSEC-2026-4146 lists no fixed version |
 
-Resume when an approved HA/test-plugin baseline permits patched versions,
-regenerate the lock without new incompatible overrides, rerun compatibility and
-security checks, and verify actual GitHub alerts. For advisories with no fix,
-wait for published upstream remediation and reassess exposure. No advisory was
-dismissed or suppressed and no dependency-security threshold was reduced.
+Resume when a stable HA release permits these fixed versions, and when upstream
+publishes remediation for the no-fix advisory. Update the matched HA/test-plugin
+pair, regenerate the lock without incompatible overrides, run tests and audit,
+and verify GitHub alerts through an authorized connection. No advisory is
+suppressed or dismissed. [PR 69](https://github.com/Exlany/lipro-hass/pull/69)'s
+2026.7.0 proposal is superseded by the newer stable baseline once this change merges.
+
+The stricter HA test plugin detected four tests leaving debounce timers alive.
+They now execute the entity's normal removal lifecycle and assert the debouncer
+is released, preserving the upstream leak checks.
 
 ## External blockers
 
@@ -91,9 +90,8 @@ dismissed or suppressed and no dependency-security threshold was reduced.
   configuration conflict, not a successful scan. No repository security settings
   or scan workflows were disabled. Resolve the setup conflict through a separately
   authorized administrator action, then rerun the exact PR head.
-- Runtime dependency security passes after patching aiohttp. The full HA/dev
-  environment still has the retained findings above; runtime audit success does
-  not mean the HA host or GitHub alert backlog is clear.
+- Runtime dependency security passes; the full HA/dev environment still has the
+  two upstream packages above. Success does not mean the GitHub alert backlog is clear.
 - Direct cloud CLI access to `repos/Exlany/lipro-hass/code-scanning/default-setup`
   also returns `Forbidden`. The available connector exposes no settings mutation.
   Retain advanced scanning (including tag/release coverage), have an authorized
@@ -102,14 +100,16 @@ dismissed or suppressed and no dependency-security threshold was reduced.
 
 ## Local validation
 
-- 2533 tests passed; coverage 96.62% versus baseline 96.10%.
+- 2533 tests and 5 snapshots passed under HA 2026.9.4; coverage 96.62%
+  versus baseline 96.10%.
 - Every changed measured runtime file passes the 95% floor and non-regression.
 - Full mypy: 641 source files, zero errors (baseline: 95 errors in 32 files).
 - Ruff lint and formatting: pass (664 Python files formatted).
 - `uv lock --check`, translations and configured Markdown links: pass.
 - ShellCheck 0.11.0 and actionlint 1.7.7: pass.
 - Hassfest container: 1 integration, 0 invalid integrations.
-- Benchmark smoke: configured three-case manifest comparison passes.
+- Full benchmark suite: 9 cases pass, and all configured manifest thresholds pass
+  under HA 2026.9.4.
 
 GitHub CI must be evaluated separately on the submitted commit; local results do
 not imply GitHub checks or unavailable security APIs passed.
