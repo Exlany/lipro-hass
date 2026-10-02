@@ -24,9 +24,13 @@ concurrency:
 
 jobs:
   analyze:
-    name: Analyze (python)
+    name: Analyze (${{ matrix.language }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [python, actions]
     steps:
       - name: Detect code scanning availability
         id: code_scanning
@@ -53,26 +57,26 @@ jobs:
         if: steps.code_scanning.outputs.enabled == 'true'
         uses: github/codeql-action/init@b96794f015dfd88f77b49b1c93e0fa7110f94c63
         with:
-          languages: python
+          languages: ${{ matrix.language }}
 
       - name: Set up Python
-        if: steps.code_scanning.outputs.enabled == 'true'
+        if: steps.code_scanning.outputs.enabled == 'true' && matrix.language == 'python'
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: "3.14"
 
       - name: Set up uv
-        if: steps.code_scanning.outputs.enabled == 'true'
+        if: steps.code_scanning.outputs.enabled == 'true' && matrix.language == 'python'
         uses: astral-sh/setup-uv@0ca8f610542aa7f4acaf39e65cf4eb3c35091883
         with:
           enable-cache: true
 
       - name: Install dependencies
-        if: steps.code_scanning.outputs.enabled == 'true'
+        if: steps.code_scanning.outputs.enabled == 'true' && matrix.language == 'python'
         run: uv sync --frozen --extra dev
 
       - name: Perform CodeQL Analysis
         if: steps.code_scanning.outputs.enabled == 'true'
         uses: github/codeql-action/analyze@b96794f015dfd88f77b49b1c93e0fa7110f94c63
         with:
-          category: "/language:python"
+          category: "/language:${{ matrix.language }}"
