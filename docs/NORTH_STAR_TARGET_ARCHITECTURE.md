@@ -178,7 +178,7 @@ custom_components/lipro/
 
 ## 9. 治理产物
 
-- `tests/meta/` 与 `scripts/check_*.py`：自动化结构与边界守卫
+- `tests/` 与 `scripts/check_*.py`：现有测试与校验工具；当前检出不包含 `tests/meta/` 或 `.governance/`，治理清单辅助检查的跳过结果不构成架构验证证据
 - `CONTRIBUTING.md`、`docs/README.md`、`docs/developer_architecture.md`：当前公开协作入口与开发者说明
 - `docs/MAINTAINER_RELEASE_RUNBOOK.md`：维护者发版与连续性说明
 - `docs/adr/*.md`：长期保留的架构决策记录
