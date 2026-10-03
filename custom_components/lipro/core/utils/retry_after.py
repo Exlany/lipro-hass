@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
+import math
 
 
 def parse_retry_after(headers: dict[str, str]) -> float | None:
@@ -13,9 +14,11 @@ def parse_retry_after(headers: dict[str, str]) -> float | None:
         return None
 
     try:
-        return float(retry_after)
+        seconds = float(retry_after)
     except ValueError:
         pass
+    else:
+        return seconds if math.isfinite(seconds) else None
 
     try:
         retry_dt = parsedate_to_datetime(retry_after)
