@@ -97,7 +97,7 @@ def _raise_unexpected_update_failed(
 ) -> None:
     """Raise the canonical unexpected failure after recording telemetry."""
     telemetry_service.record_update_failure(err, stage="unexpected")
-    _LOGGER.exception("Unexpected update failure")
+    _LOGGER.error("Unexpected update failure", exc_info=err)
     raise UpdateFailed("Unexpected update failure") from err
 
 

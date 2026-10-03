@@ -150,9 +150,10 @@ class MqttConnectionManager:
         handle_disconnect: Callable[[str], None],
     ) -> None:
         """Log and normalize one unexpected-but-recoverable loop failure."""
-        _LOGGER.exception(
+        _LOGGER.error(
             "Unexpected MQTT loop error (%s)",
             type(err).__name__,
+            exc_info=err,
         )
         cls._record_connection_error(
             err,

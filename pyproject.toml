@@ -116,6 +116,9 @@ target-version = "py313"
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
+    # Ruff 0.16 stabilized this opt-in policy; licensing remains in LICENSE.
+    "CPY001",  # Do not invent per-file copyright ownership notices.
+
     # Annotations (not enforced by HA Core, too noisy for integration)
     "ANN",     # flake8-annotations (missing type annotations)
 
