@@ -87,3 +87,39 @@ async def test_safe_read_json_handles_missing_reader_and_reader_errors() -> None
 
     list_response = _response(status=200, payload=[1, 2, 3], async_json=False)
     assert await client.safe_read_json(list_response) is None
+
+
+@pytest.mark.parametrize("timestamp", [float("nan"), float("inf"), float("-inf")])
+def test_non_finite_token_timestamps_use_unknown_expiry(timestamp: float) -> None:
+    """Malformed numeric metadata must not abort token response normalization."""
+    client = ShareWorkerClient()
+    assert client.apply_token_payload(
+        {
+            "install_token": "test-token",
+            "token_expires_at": timestamp,
+            "token_refresh_after": timestamp,
+        }
+    )
+    assert client.install_token == "test-token"
+    assert client.token_expires_at == 0
+    assert client.token_refresh_after == 0
+
+
+@pytest.mark.parametrize(
+    ("timestamp", "expected"),
+    [(" 123 ", 123), (123.5, 123), (" ", 0), ([], 0), ({}, 0), (None, 0)],
+)
+def test_token_timestamp_normalization_preserves_valid_inputs(
+    timestamp: object, expected: int
+) -> None:
+    """Valid timestamps retain their meaning; malformed values stay unknown."""
+    client = ShareWorkerClient()
+    assert client.apply_token_payload(
+        {
+            "install_token": "test-token",
+            "token_expires_at": timestamp,
+            "token_refresh_after": timestamp,
+        }
+    )
+    assert client.token_expires_at == expected
+    assert client.token_refresh_after == expected

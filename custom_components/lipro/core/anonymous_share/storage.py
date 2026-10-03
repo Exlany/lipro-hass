@@ -40,6 +40,8 @@ def load_reported_device_keys(
             return False, set()
 
         data = json.loads(cache_file.read_text(encoding="utf-8"))
+        if not isinstance(data, dict):
+            return False, set()
         raw_devices = data.get("devices", [])
         if not isinstance(raw_devices, list):
             return False, set()
@@ -50,7 +52,7 @@ def load_reported_device_keys(
             len(keys),
         )
         return True, keys
-    except (OSError, json.JSONDecodeError, TypeError) as err:
+    except (OSError, UnicodeError, json.JSONDecodeError, TypeError) as err:
         logger.warning("Failed to load reported devices cache: %s", err)
         return False, set()
 
