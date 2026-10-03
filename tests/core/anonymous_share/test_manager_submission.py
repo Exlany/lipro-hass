@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import time
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import aiohttp
 import pytest
@@ -44,8 +44,7 @@ class TestSubmitLogic:
 
         # Last upload was long ago -> should trigger
         mgr._last_upload_time = 0
-        with patch.object(mgr, "_save_reported_devices"):
-            result = await mgr.submit_if_needed(session)
+        result = await mgr.submit_if_needed(session)
         assert result is True
 
     async def test_submit_if_needed_skips_when_too_soon(self):
