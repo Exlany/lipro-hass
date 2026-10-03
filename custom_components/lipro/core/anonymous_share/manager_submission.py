@@ -192,14 +192,14 @@ async def _submit_scoped_report(
     force: bool,
 ) -> bool:
     """Submit one scoped manager report when the current state requires it."""
-    if not manager.is_enabled:
-        return False
-    if not manager.has_pending_report_data():
-        return True
-    if manager.should_skip_report_submission(force=force):
-        return True
-
     async with manager.get_submit_state().upload_lock:
+        # Another submission or an options change may complete while we wait.
+        if not manager.is_enabled:
+            return False
+        if not manager.has_pending_report_data():
+            return True
+        if manager.should_skip_report_submission(force=force):
+            return True
         report = manager.build_report()
         outcome = await manager.async_submit_share_payload_with_outcome(
             session,
