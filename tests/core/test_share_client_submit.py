@@ -533,8 +533,8 @@ async def test_submit_share_payload_with_outcome_handles_exceptions(
             "custom_components.lipro.core.anonymous_share.share_client._LOGGER.warning"
         ) as warning,
         patch(
-            "custom_components.lipro.core.anonymous_share.share_client._LOGGER.exception"
-        ) as exception,
+            "custom_components.lipro.core.anonymous_share.share_client._LOGGER.error"
+        ) as error,
     ):
         outcome = await client.submit_share_payload_with_outcome(
             session,
@@ -558,4 +558,4 @@ async def test_submit_share_payload_with_outcome_handles_exceptions(
                 continue
             assert actual == expected_part
     else:
-        exception.assert_called_once_with(*expected)
+        error.assert_called_once_with(*expected, exc_info=exc)

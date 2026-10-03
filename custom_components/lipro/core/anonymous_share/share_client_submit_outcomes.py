@@ -90,7 +90,7 @@ def build_unexpected_submit_outcome(
     """Translate one unexpected submit exception after redacting its message."""
     with suppress(AttributeError, RuntimeError, TypeError, ValueError):
         err.args = (safe_error_placeholder(err),)
-    logger.exception("Unexpected error during %s upload", label.lower())
+    logger.error("Unexpected error during %s upload", label.lower(), exc_info=err)
     return build_operation_outcome_from_exception(
         err,
         kind="failed",

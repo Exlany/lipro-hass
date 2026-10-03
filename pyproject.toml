@@ -31,12 +31,12 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "colorlog==6.11.0",
+    "colorlog==6.12.0",
     "homeassistant==2026.9.4",
     "pip>=26.1",
     "pip-audit>=2.9.0",
     "pre-commit>=3.7.0",
-    "ruff==0.15.22",
+    "ruff==0.16.9",
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0",
     "pytest-cov>=4.0.0",
@@ -116,6 +116,9 @@ target-version = "py313"
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
+    # Ruff 0.16 stabilized this opt-in policy; licensing remains in LICENSE.
+    "CPY001",  # Do not invent per-file copyright ownership notices.
+
     # Annotations (not enforced by HA Core, too noisy for integration)
     "ANN",     # flake8-annotations (missing type annotations)
 

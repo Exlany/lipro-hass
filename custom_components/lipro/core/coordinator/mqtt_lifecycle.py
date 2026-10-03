@@ -296,7 +296,7 @@ async def _async_fail_mqtt_setup(
         mqtt_runtime=mqtt_runtime,
         mqtt_facade=mqtt_facade,
     )
-    _LOGGER.exception("Failed to setup MQTT")
+    _LOGGER.error("Failed to setup MQTT", exc_info=err)
 
 
 async def async_setup_mqtt(

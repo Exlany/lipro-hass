@@ -20,7 +20,7 @@ _HASHED_VALUE = "hashed-value"
 _UNSET = object()
 
 
-def _seed(*, password_hash: str | None | object = _UNSET) -> AuthBootstrapSeed:
+def _seed(*, password_hash: str | object | None = _UNSET) -> AuthBootstrapSeed:
     effective_password_hash: str | None
     if password_hash is _UNSET:
         effective_password_hash = _HASHED_VALUE

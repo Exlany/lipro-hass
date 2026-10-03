@@ -126,7 +126,7 @@ class ConditionalAttr(DeviceAttr[T | None]):
 
     def __get__(
         self, obj: LiproEntity | None, objtype: type | None = None
-    ) -> T | None | Self:
+    ) -> T | Self | None:
         """Get attribute value only if entity capability exists."""
         if obj is None:
             return self
