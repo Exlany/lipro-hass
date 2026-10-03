@@ -37,7 +37,8 @@ def test_apply_token_payload_and_clear_install_token() -> None:
     client = ShareWorkerClient()
 
     assert client.apply_token_payload({}) is False
-    assert client.install_token is None
+    initial_token = client.install_token
+    assert initial_token is None
 
     assert (
         client.apply_token_payload(
@@ -49,9 +50,12 @@ def test_apply_token_payload_and_clear_install_token() -> None:
         )
         is True
     )
-    assert client.install_token == "tok-2"
-    assert client.token_expires_at == 456
-    assert client.token_refresh_after == 123
+    token_state = (
+        client.install_token,
+        client.token_expires_at,
+        client.token_refresh_after,
+    )
+    assert token_state == ("tok-2", 456, 123)
 
     client.clear_install_token()
     assert client.install_token is None

@@ -135,7 +135,7 @@ def _extract_command_result_code(payload: CommandResultPayload | None) -> object
     if not isinstance(payload, dict):
         return None
     for key in ("errorCode", "code"):
-        value = payload.get(key)
+        value: object = payload.get(key)
         if value not in (None, ""):
             return value
     return None
