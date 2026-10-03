@@ -21,7 +21,7 @@ in PR 77 without claiming completion of the requested whole-repository review.
   [Exact CI](https://github.com/Exlany/lipro-hass/actions/runs/37089595670) and
   [default CodeQL](https://github.com/Exlany/lipro-hass/actions/runs/37089593878)
   succeed. Advanced upload remains blocked.
-- This patch: acknowledge a snapshot of delivered records on the event loop;
+- [PR 79](https://github.com/Exlany/lipro-hass/pull/79): acknowledge a snapshot of delivered records on the event loop;
   preserve newly collected devices/errors, replacement device records and records
   omitted from a lite report; pass a detached cache copy to the disk worker.
   The data-loss regression failed before the patch. 2548 tests and 5 snapshots
@@ -30,6 +30,9 @@ in PR 77 without claiming completion of the requested whole-repository review.
   Second-pass diff review checked identity retention, error-count subtraction,
   cancellation, lite-report limits, scope lock ownership and copied disk arguments.
   Final-commit GitHub checks must still be evaluated separately.
+  PR 79 includes the separately reviewed PR 78 ancestor and targets main so the
+  existing main-targeted CI/security workflows validate the complete change.
+  Merge the prerequisite first once all required gates are available and pass.
 
 ## Dependency PRs and blockers
 
