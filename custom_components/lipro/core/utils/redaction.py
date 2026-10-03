@@ -27,6 +27,14 @@ _SECRET_KV_RE: Final = re.compile(
     r'(\s*[:=]\s*)([^\s,;"\']+)'
 )
 
+# Invalid response previews can end inside a quoted value or escaped character.
+# Share this matcher with API logging so both sinks protect the same boundary.
+JSON_LOG_FIELD_PATTERN: Final = re.compile(
+    r'"(?P<key>[^"\\]+)"\s*:\s*'
+    r'(?P<value>"(?:\\.|[^"\\])*(?:"|\\?$)|-?\d+(?:\.\d+)?)'
+)
+JSON_LOG_SENSITIVE_KEYS: Final = frozenset({"username", "authorization"})
+
 SHARED_SENSITIVE_KEY_NAMES: Final[frozenset[str]] = frozenset(
     {
         "access_token",
@@ -339,9 +347,19 @@ def redact_sensitive_text(
     markers: RedactionMarkers,
 ) -> str:
     """Redact embedded sensitive fragments from one arbitrary string."""
+    result = JSON_LOG_FIELD_PATTERN.sub(
+        lambda match: (
+            f'"{match.group("key")}": "{markers.secret}"'
+            if is_sensitive_key_name(
+                match.group("key"), extra_keys=JSON_LOG_SENSITIVE_KEYS
+            )
+            else match.group(0)
+        ),
+        value,
+    )
     result = _AUTH_BEARER_RE.sub(
         lambda match: f"{match.group(1)}{markers.token}",
-        value,
+        result,
     )
     result = _SECRET_KV_RE.sub(
         lambda match: f"{match.group(1)}{match.group(2)}{markers.secret}",
@@ -364,6 +382,8 @@ def redact_sensitive_text(
 __all__ = [
     "DIAGNOSTICS_REDACTION_MARKERS",
     "EXPLICIT_SENSITIVE_KEY_VARIANTS",
+    "JSON_LOG_FIELD_PATTERN",
+    "JSON_LOG_SENSITIVE_KEYS",
     "PROPERTY_REDACTION_KEY_VARIANTS",
     "PROPERTY_SENSITIVE_KEY_NAMES",
     "SHARED_SENSITIVE_KEY_NAMES",
