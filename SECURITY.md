@@ -5,15 +5,15 @@
 | Version | Status |
 | --- | --- |
 | Latest tagged release / 最新标签版本 | Supported / 支持 |
-| Matching HACS install on a future public mirror / 未来 public mirror 上与最新标签一致的 HACS 安装 | Supported when that mirror exists / 仅在该 mirror 实际存在时支持 |
+| Matching HACS install from this public repository / 当前公开仓库中与最新标签一致的 HACS 安装 | Supported / 支持 |
 | Older tagged releases / 较早标签版本 | Best effort only / 尽力而为 |
 | `main` / preview installer path | Best effort only / 尽力而为，不承诺稳定支持 |
 
-The contributor guides and public troubleshooting paths assume a minimum supported Home Assistant version of `2026.3.1`.
-贡献文档与公开排障路径统一以 `2026.3.1` 作为最低支持的 Home Assistant 版本口径。
+The contributor guides and public troubleshooting paths assume a minimum supported Home Assistant version of `2026.9.4`.
+贡献文档与公开排障路径统一以 `2026.9.4` 作为最低支持的 Home Assistant 版本口径。
 
-The canonical source is `hacs.json` (`homeassistant`: `2026.3.1`); `pyproject.toml` only keeps the development pin in sync (`homeassistant==2026.3.1`).
-唯一真源是 `hacs.json` 中的 `homeassistant: 2026.3.1`；`pyproject.toml` 只负责同步开发 pin（`homeassistant==2026.3.1`）。
+The canonical source is `hacs.json` (`homeassistant`: `2026.9.4`); `pyproject.toml` only keeps the development pin in sync (`homeassistant==2026.9.4`).
+唯一真源是 `hacs.json` 中的 `homeassistant: 2026.9.4`；`pyproject.toml` 只负责同步开发 pin（`homeassistant==2026.9.4`）。
 
 The runtime dependency envelope is declared in `pyproject.toml` (full runtime floor/bounds) plus `custom_components/lipro/manifest.json` (Home Assistant-installed subset).
 运行时依赖边界以 `pyproject.toml`（完整 runtime floor/bounds）和 `custom_components/lipro/manifest.json`（Home Assistant 安装子集）共同为准。
@@ -21,11 +21,11 @@ The runtime dependency envelope is declared in `pyproject.toml` (full runtime fl
 Supported shell/manual installs should start from verified GitHub Release assets (`install.sh` + release zip + `SHA256SUMS`). Preview paths such as `ARCHIVE_TAG=main`, branch fallback, or mirror installs are best effort only. If the installer runs in remote mode without a pinned archive/tag, it resolves the latest tagged release by default, but that convenience does not weaken the verified-release support contract.
 默认支持的 shell / 手动安装路径应从经过校验的 GitHub Release 资产（`install.sh` + release zip + `SHA256SUMS`）开始；`ARCHIVE_TAG=main`、branch fallback 与 mirror 安装仅属于尽力而为的预览路径。若安装脚本以 remote 模式运行且未显式指定 archive/tag，则默认解析最新 tagged release（`latest`）；但这种便利性不会削弱经过校验的稳定安装契约。
 
-Access-mode note: this repository is currently private-access. The GitHub security policy page and private advisory UI below therefore only work when your current access mode exposes them or when a future public mirror preserves the same security contract.
+Access-mode note: the source repository is public. Private vulnerability reporting still depends on the GitHub reporting feature being available to your account; a public source repository is not permission to disclose a vulnerability publicly.
 
-If you are governance a non-security code change, start with `docs/README.md` and `CONTRIBUTING.md`; when the change touches protocol / runtime / control / external-boundary / governance boundaries, read `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md` before editing code or docs.
+If you are preparing a non-security code change, start with `docs/README.md` and `CONTRIBUTING.md`; when the change touches protocol / runtime / control / external-boundary / governance boundaries, read `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md` before editing code or docs.
 若你准备的是非安全类代码改动，请先阅读 `docs/README.md` 与 `CONTRIBUTING.md`；若改动涉及 protocol / runtime / control / external-boundary / governance 边界，请在修改代码或文档前先阅读 `docs/CONTRIBUTOR_ARCHITECTURE_CHANGE_MAP.md`。
-访问模式说明：当前仓库仍是 private-access。下文的 GitHub security policy 页面与私密 advisory UI 因此只有在你当前访问模式可见，或未来 public mirror 保持同一安全契约时才成立。
+访问模式说明：源码仓库当前公开。私密漏洞报告仍取决于你的账户能否使用 GitHub 相应入口；源码公开不代表可以公开披露漏洞。
 
 Current release trust evidence includes published `SHA256SUMS`, `SBOM`, GitHub artifact `attestation` / `provenance`, keyless `cosign` signature bundles, the tagged runtime `pip-audit` gate, and a fail-closed tagged `CodeQL` gate. Artifact attestation / provenance is still release-identity evidence; `cosign` bundles are the artifact-signing layer.
 当前 release trust 证据包括已发布的 `SHA256SUMS`、`SBOM`、GitHub artifact `attestation` / `provenance`、keyless `cosign` 签名 bundle、tagged runtime `pip-audit` 门禁，以及 fail-closed 的 tagged `CodeQL` 门禁。Artifact attestation / provenance 仍属于 release identity 证据；`cosign` bundle 才是 artifact signing 这一层。
@@ -46,8 +46,8 @@ Please do **not** open a public GitHub issue for security vulnerabilities.
 
 - Preferred private path when your current access mode exposes it / 当前访问模式可见时的首选私密路径：`https://github.com/Exlany/lipro-hass/security/advisories/new`
 - Policy landing page with the same access caveat / 带同样访问前提的安全策略入口：`https://github.com/Exlany/lipro-hass/security/policy`
-- If those GitHub security routes are not reachable in your current access mode, do not infer a public fallback from this private repository; no guaranteed non-GitHub private fallback is documented today. Keep the report private and return to this policy once a repository-access path is actually available.
-- 若这些 GitHub 安全入口在你当前访问模式下不可达，不要把当前 private repository 误读为已经提供公开替代路径；当前也没有已文档化、保证可达的非 GitHub 私密回报通道。请继续保持私密，并在真实可达的仓库访问路径出现后回到本策略执行。
+- If those GitHub security routes are not reachable in your current access mode, do not post the report in a public issue; no guaranteed non-GitHub private fallback is documented today. Keep the report private and return to this policy once a repository-access path is actually available.
+- 若这些 GitHub 安全入口在你当前访问模式下不可达，不要改为在公开 Issue 中披露；当前也没有已文档化、保证可达的非 GitHub 私密回报通道。请继续保持私密，并在真实可达的仓库访问路径出现后回到本策略执行。
 - Include / 请附带：
   - affected version(s) and install path / 受影响版本与安装路径（例如 tagged release、`latest`、`ARCHIVE_TAG=main`、manual zip、mirror、fork）
   - integration version plus Home Assistant version / 集成版本与 Home Assistant 版本

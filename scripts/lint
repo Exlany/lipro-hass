@@ -11,10 +11,10 @@ Usage: ./scripts/lint [--full]
 
 Default mode:
   Runs local static + translation + docs-route + shell + runtime security checks.
-  It may also run focused pytest/governance assurance when matching changed surfaces are touched.
+  It may also run focused pytest assurance when matching changed surfaces are touched.
 
 --full:
-  Extends the default checks with governance guards, full test coverage,
+  Extends the default checks with full test coverage,
   total + changed-surface coverage validation, and refactor coverage validation.
 USAGE
 }
@@ -129,10 +129,10 @@ if [ "$full_mode" = "0" ]; then
 fi
 
 if [ "$full_mode" = "1" ]; then
-    echo "Running lint in full mode (static + governance + tests)..."
+    echo "Running lint in full mode (static + tests)..."
 else
     echo "Running scripts/lint in default mode with focused changed-surface assurance when matching touched surfaces are detected..."
-    echo "Tip: use ./scripts/lint --full for governance + pytest + total/changed-surface coverage."
+    echo "Tip: use ./scripts/lint --full for pytest + total/changed-surface coverage."
 fi
 
 echo ""
