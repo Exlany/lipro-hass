@@ -47,6 +47,7 @@ def test_build_entry_auth_context_reuses_shared_headless_boot_contract(hass) -> 
     boot_context = MagicMock(name="boot_context")
     boot_context.protocol = MagicMock(name="protocol")
     boot_context.auth_manager = MagicMock(name="auth_manager")
+    register_callback = boot_context.auth_manager.set_tokens_updated_callback
 
     with patch(
         "custom_components.lipro.entry_auth.build_headless_boot_context",
@@ -64,7 +65,7 @@ def test_build_entry_auth_context_reuses_shared_headless_boot_contract(hass) -> 
     assert protocol is boot_context.protocol
     assert auth_manager is boot_context.auth_manager
     mock_build.assert_called_once()
-    boot_context.auth_manager.set_tokens_updated_callback.assert_called_once()
+    register_callback.assert_called_once()
 
 
 @pytest.mark.asyncio

@@ -67,7 +67,8 @@ class TestSelectMappedBehavior:
             "99",
         )
 
-        assert select.current_option is None
+        initial_option = select.current_option
+        assert initial_option is None
         assert select.extra_state_attributes == {
             "property_key": "lightMode",
             "raw_value": "99",
