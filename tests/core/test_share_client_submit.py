@@ -504,13 +504,13 @@ async def test_submit_share_payload_with_outcome_logs_failure_when_no_variant_su
         ),
         (
             OSError("io"),
-            ("Unexpected error during %s upload", "anonymous share"),
+            ("Unexpected error during %s upload: %s", "anonymous share", "OSError"),
             "os_error",
             "retry",
         ),
         (
             ValueError("bad"),
-            ("Unexpected error during %s upload", "anonymous share"),
+            ("Unexpected error during %s upload: %s", "anonymous share", "ValueError"),
             "value_error",
             "inspect",
         ),
@@ -558,4 +558,4 @@ async def test_submit_share_payload_with_outcome_handles_exceptions(
                 continue
             assert actual == expected_part
     else:
-        error.assert_called_once_with(*expected, exc_info=exc)
+        error.assert_called_once_with(*expected)
