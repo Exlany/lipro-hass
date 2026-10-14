@@ -295,7 +295,7 @@ jobs:
 
       - name: Upload coverage artifact
         if: always() && hashFiles('coverage.json', 'coverage.xml') != ''
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: coverage-artifacts-${{ github.run_id }}
           path: |
@@ -308,7 +308,7 @@ jobs:
       - name: Upload coverage to Codecov
         if: github.event_name == 'push'
         continue-on-error: true
-        uses: codecov/codecov-action@0b35c9ecc4f0529d0eb674914510c22f85b196b4
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5
         with:
           files: ./coverage.xml
           fail_ci_if_error: false
@@ -352,7 +352,7 @@ jobs:
 
       - name: Upload benchmark smoke artifact
         if: always() && hashFiles('.benchmarks/benchmark-smoke.json') != ''
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: benchmark-smoke-json-${{ github.run_id }}
           path: .benchmarks/benchmark-smoke.json
@@ -414,7 +414,7 @@ jobs:
 
       - name: Upload benchmark artifact
         if: always() && hashFiles('.benchmarks/benchmark.json') != ''
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: benchmark-json-${{ github.run_id }}
           path: .benchmarks/benchmark.json
