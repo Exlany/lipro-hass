@@ -7,6 +7,8 @@ import logging
 from typing import cast
 from unittest.mock import MagicMock
 
+import pytest
+
 from custom_components.lipro.core.anonymous_share.storage import (
     load_reported_device_keys,
     save_reported_device_keys,
@@ -78,3 +80,18 @@ def test_scoped_cache_keys_are_isolated_on_disk(tmp_path) -> None:
     assert keys_two == {"entry_two_switch"}
     assert (tmp_path / ".lipro_reported_devices.entry-1.json").exists()
     assert (tmp_path / ".lipro_reported_devices.entry-2.json").exists()
+
+
+@pytest.mark.parametrize(
+    "content", [b"[]", b"null", b"true", b"42", b'"model"', b"\xff"]
+)
+def test_invalid_cache_content_does_not_block_sharing(tmp_path, content: bytes) -> None:
+    """Unusable cache data is a miss and can be replaced by a valid save."""
+    logger = _make_logger()
+    cache_file = tmp_path / ".lipro_reported_devices.json"
+    cache_file.write_bytes(content)
+
+    assert load_reported_device_keys(str(tmp_path), logger=logger) == (False, set())
+
+    save_reported_device_keys(str(tmp_path), {"model"}, logger=logger)
+    assert load_reported_device_keys(str(tmp_path), logger=logger) == (True, {"model"})

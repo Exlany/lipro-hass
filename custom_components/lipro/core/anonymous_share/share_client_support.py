@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass
+import math
 from typing import Final, Protocol, TypedDict
 
 from ..telemetry.models import OperationOutcome, build_operation_outcome
@@ -45,7 +46,7 @@ def _coerce_int(value: object) -> int:
     if isinstance(value, int):
         return value
     if isinstance(value, float):
-        return int(value)
+        return int(value) if math.isfinite(value) else 0
     if isinstance(value, str):
         text = value.strip()
         if not text:
