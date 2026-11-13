@@ -9,11 +9,11 @@
 | Older tagged releases / 较早标签版本 | Best effort only / 尽力而为 |
 | `main` / preview installer path | Best effort only / 尽力而为，不承诺稳定支持 |
 
-The contributor guides and public troubleshooting paths assume a minimum supported Home Assistant version of `2026.9.4`.
-贡献文档与公开排障路径统一以 `2026.9.4` 作为最低支持的 Home Assistant 版本口径。
+The contributor guides and public troubleshooting paths assume a minimum supported Home Assistant version of `2026.10.4`.
+贡献文档与公开排障路径统一以 `2026.10.4` 作为最低支持的 Home Assistant 版本口径。
 
-The canonical source is `hacs.json` (`homeassistant`: `2026.9.4`); `pyproject.toml` only keeps the development pin in sync (`homeassistant==2026.9.4`).
-唯一真源是 `hacs.json` 中的 `homeassistant: 2026.9.4`；`pyproject.toml` 只负责同步开发 pin（`homeassistant==2026.9.4`）。
+The canonical source is `hacs.json` (`homeassistant`: `2026.10.4`); `pyproject.toml` only keeps the development pin in sync (`homeassistant==2026.10.4`).
+唯一真源是 `hacs.json` 中的 `homeassistant: 2026.10.4`；`pyproject.toml` 只负责同步开发 pin（`homeassistant==2026.10.4`）。
 
 The runtime dependency envelope is declared in `pyproject.toml` (full runtime floor/bounds) plus `custom_components/lipro/manifest.json` (Home Assistant-installed subset).
 运行时依赖边界以 `pyproject.toml`（完整 runtime floor/bounds）和 `custom_components/lipro/manifest.json`（Home Assistant 安装子集）共同为准。

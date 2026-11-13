@@ -22,10 +22,10 @@ Thank you for your interest in contributing to the Lipro Smart Home integration!
 
 ### Version Truth / 版本真源
 
-- Canonical minimum supported Home Assistant version: `2026.9.4` from `hacs.json`, kept in sync with the `pyproject.toml` dev pin (`homeassistant==2026.9.4`).
+- Canonical minimum supported Home Assistant version: `2026.10.4` from `hacs.json`, kept in sync with the `pyproject.toml` dev pin (`homeassistant==2026.10.4`).
 - Canonical Python toolchain truth: minimum Python `3.14.2` (the dependency floor enforced by `requires-python` and Home Assistant), with development / CI targeting the `3.14` family (`mypy`, `ruff`, `pre-commit`, devcontainer, and CI stay aligned at the minor-version contract while the floor stays patch-accurate).
 - 唯一 Python 工具链真相：最低 Python `3.14.2`（由 `requires-python` 与 Home Assistant 依赖底线共同约束），开发 / CI 继续对齐 `3.14` 次版本族（`mypy`、`ruff`、`pre-commit`、devcontainer 与 CI 保持 minor-version 契约，而最低支持版本仍需精确到 patch）。
-- 唯一最低支持 Home Assistant 版本基线来源于 `hacs.json`，并与 `pyproject.toml` 中的开发 pin `homeassistant==2026.9.4` 保持同步。
+- 唯一最低支持 Home Assistant 版本基线来源于 `hacs.json`，并与 `pyproject.toml` 中的开发 pin `homeassistant==2026.10.4` 保持同步。
 - Note: HACS validation only works for public GitHub repositories.
 - 私有仓库 / fork 说明：CI 会跳过 HACS validation，因为 HACS 只支持公开 GitHub 仓库。
 
@@ -316,7 +316,7 @@ When reporting bugs, please include:
 报告错误时，请包括：
 
 - Integration version / 集成版本
-- Home Assistant version / Home Assistant 版本（最低支持 `2026.9.4`）
+- Home Assistant version / Home Assistant 版本（最低支持 `2026.10.4`）
 - Steps to reproduce / 复现步骤
 - Expected vs actual behavior / 预期与实际行为
 - Relevant logs (with debug logging enabled) / 相关日志（启用调试日志）
