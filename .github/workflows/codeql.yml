@@ -55,19 +55,19 @@ jobs:
 
       - name: Initialize CodeQL
         if: steps.code_scanning.outputs.enabled == 'true'
-        uses: github/codeql-action/init@b96794f015dfd88f77b49b1c93e0fa7110f94c63
+        uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066
         with:
           languages: ${{ matrix.language }}
 
       - name: Set up Python
         if: steps.code_scanning.outputs.enabled == 'true' && matrix.language == 'python'
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
         with:
           python-version: "3.14"
 
       - name: Set up uv
         if: steps.code_scanning.outputs.enabled == 'true' && matrix.language == 'python'
-        uses: astral-sh/setup-uv@0ca8f610542aa7f4acaf39e65cf4eb3c35091883
+        uses: astral-sh/setup-uv@0a73d6eb01c0201c8fc84847d0f4425b704ad66d
         with:
           enable-cache: true
 
@@ -77,6 +77,6 @@ jobs:
 
       - name: Perform CodeQL Analysis
         if: steps.code_scanning.outputs.enabled == 'true'
-        uses: github/codeql-action/analyze@b96794f015dfd88f77b49b1c93e0fa7110f94c63
+        uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066
         with:
           category: "/language:${{ matrix.language }}"
