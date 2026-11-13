@@ -119,6 +119,15 @@ class StateIndexManager:
             device_serial,
         )
 
+    def entity_id_changed(
+        self, entity: LiproEntityProtocol, old_entity_id: str
+    ) -> None:
+        """Rekey only the active instance, preserving device subscriptions."""
+        if self._entities.get(old_entity_id) is not entity or not entity.entity_id:
+            return
+        self._entities.pop(old_entity_id)
+        self.register_entity(entity, entity.device.serial)
+
     def unregister_entity(self, entity_id: str) -> None:
         """Unregister the active entity instance for one entity ID.
 

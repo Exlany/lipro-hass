@@ -14,6 +14,7 @@ from homeassistant.components.update import (
     UpdateEntityFeature,
 )
 from homeassistant.const import EntityCategory
+from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.util import dt as dt_util
 
@@ -102,6 +103,11 @@ class LiproFirmwareUpdateEntity(LiproEntity, UpdateEntity):
         await super().async_added_to_hass()
         await asyncio.to_thread(firmware_manifest.load_verified_firmware_manifest)
         self._schedule_ota_refresh(force=True)
+
+    @callback
+    def async_entity_id_changed(self, old_entity_id: str) -> None:
+        """Opt in to in-place renames despite the firmware lifecycle hooks."""
+        super().async_entity_id_changed(old_entity_id)
 
     async def async_will_remove_from_hass(self) -> None:
         """Cancel OTA refresh task when entity is removed."""
