@@ -12,6 +12,7 @@ from .sanitize import sanitize_value
 
 GENERATED_AT_PLACEHOLDER = "<generated_at>"
 TIMESTAMP_PLACEHOLDER = "<timestamp>"
+LITE_REPORT_ITEM_LIMIT: Final = 10
 _CANONICAL_DYNAMIC_FIELDS = {
     "generated_at": GENERATED_AT_PLACEHOLDER,
     "timestamp": TIMESTAMP_PLACEHOLDER,
@@ -128,7 +129,7 @@ def build_lite_report(report: dict[str, Any]) -> dict[str, Any]:
     devices = report.get("devices")
     if isinstance(devices, list):
         compact_devices: list[dict[str, Any]] = []
-        for item in devices[:10]:
+        for item in devices[:LITE_REPORT_ITEM_LIMIT]:
             if not isinstance(item, dict):
                 continue
             compact_devices.append(
@@ -151,7 +152,11 @@ def build_lite_report(report: dict[str, Any]) -> dict[str, Any]:
 
     errors = report.get("errors")
     if isinstance(errors, list):
-        lite["errors"] = [error for error in errors[:10] if isinstance(error, dict)]
+        lite["errors"] = [
+            error
+            for error in errors[:LITE_REPORT_ITEM_LIMIT]
+            if isinstance(error, dict)
+        ]
 
     if "developer_feedback" in report:
         feedback = report.get("developer_feedback")
