@@ -20,44 +20,39 @@ USAGE
 }
 
 resolve_changed_coverage_surface() {
-    local output_path
-    output_path="$1"
+    local output_path="$1"
 
-    if ! command -v git >/dev/null 2>&1 || ! git rev-parse --verify HEAD >/dev/null 2>&1; then
+    if ! command -v git >/dev/null 2>&1 || ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
         : > "$output_path"
         return 0
     fi
 
-    local current_ref
-    current_ref="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")"
+    local current_ref baseline_ref=""
+    current_ref="$(git symbolic-ref --short -q HEAD || true)"
 
+    # A main merge includes the entire PR, relative to its first parent.
     if { [ "${GITHUB_REF_NAME:-}" = "main" ] || [ "$current_ref" = "main" ] || [ "${GITHUB_EVENT_NAME:-}" = "schedule" ] || [ "${GITHUB_EVENT_NAME:-}" = "workflow_dispatch" ] || [ "${GITHUB_EVENT_NAME:-}" = "workflow_call" ]; } \
-        && git rev-parse --verify HEAD^2 >/dev/null 2>&1; then
-        if git rev-parse --verify HEAD^2^ >/dev/null 2>&1; then
-            git diff --name-only --diff-filter=AMRT HEAD^2^..HEAD^2 > "$output_path"
-            return 0
+        && git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+        baseline_ref="$(git rev-parse HEAD^)"
+    elif git rev-parse --verify origin/main >/dev/null 2>&1; then
+        # Local feature branches can contain several commits, not just HEAD.
+        baseline_ref="$(git merge-base origin/main HEAD 2>/dev/null || true)"
+    fi
+
+    if [ -z "$baseline_ref" ]; then
+        if git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+            baseline_ref="$(git rev-parse HEAD^)"
+        else
+            baseline_ref="$(git hash-object -t tree /dev/null)"
         fi
     fi
 
-    if { [ "${GITHUB_REF_NAME:-}" = "main" ] || [ "$current_ref" = "main" ] || [ "${GITHUB_EVENT_NAME:-}" = "schedule" ] || [ "${GITHUB_EVENT_NAME:-}" = "workflow_dispatch" ] || [ "${GITHUB_EVENT_NAME:-}" = "workflow_call" ]; } \
-        && git rev-parse --verify HEAD^ >/dev/null 2>&1; then
-        git diff --name-only --diff-filter=AMRT HEAD^...HEAD > "$output_path"
-        return 0
-    fi
-
-    if git rev-parse --verify HEAD^ >/dev/null 2>&1; then
-        git diff --name-only --diff-filter=AMRT HEAD^...HEAD > "$output_path"
-        return 0
-    fi
-
-    if git rev-parse --verify origin/main >/dev/null 2>&1; then
-        local merge_base
-        merge_base="$(git merge-base origin/main HEAD)"
-        git diff --name-only --diff-filter=AMRT "${merge_base}...HEAD" > "$output_path"
-        return 0
-    fi
-
-    : > "$output_path"
+    # Compare the working tree as well as committed changes; new test/source
+    # files must participate before contributors stage or commit them.
+    {
+        git diff --name-only --diff-filter=AMRT "$baseline_ref" --
+        git ls-files --others --exclude-standard
+    } | sort -u > "$output_path"
 }
 
 full_mode=0
