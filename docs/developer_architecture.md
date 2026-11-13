@@ -73,6 +73,10 @@
 - `uv run python scripts/check_translations.py`
 - `uv run pytest -q`
 
+The architecture-policy and file-matrix helpers currently skip governance-backed
+checks because `.governance/` is absent. Record those skips; rely on actual tests
+and manual boundary review, not a successful exit code alone.
+
 ## Related Documents
 
 - `docs/NORTH_STAR_TARGET_ARCHITECTURE.md`

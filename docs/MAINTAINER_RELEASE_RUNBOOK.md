@@ -5,7 +5,7 @@
 This repository currently follows a single-maintainer release model. Every tagged release must reuse `.github/workflows/ci.yml`; `.github/workflows/release.yml` is only the tagged security / packaging / publishing tail of that same gate.
 
 > Continuity note / 连续性说明：this runbook defines the maintainer-unavailable drill. Do not imply hidden backup maintainers. No documented delegate exists today; if the maintainer is unavailable, freeze new tagged releases and freeze new release promises, keep `SUPPORT.md` / `SECURITY.md` / issue / PR template routing honest, and restore custody only after CODEOWNERS + runbook record the real successor or delegate.
-> Current route note / 当前路线说明：maintainer continuity now follows the stable selector family `.governance/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md`; today it resolves to `v1.44 active milestone route / Phase 143 planned / execution-ready / latest archived baseline = v1.43`, current status = `active / phase 143 planned; execution-ready (2026-04-04)`, default next command = `$gsd-execute-phase 143`. Latest archived evidence remains pull-only: `.governance/reviews/V1_43_EVIDENCE_INDEX.md` + `.governance/v1.43-MILESTONE-AUDIT.md`.
+> Review continuity: use the current PR, exact commit and CI evidence. The checkout has no `.governance/` or `tests/meta/`; retired milestone routes and GSD commands are not release prerequisites.
 
 ## Truth Sources
 
@@ -15,10 +15,6 @@ This repository currently follows a single-maintainer release model. Every tagge
 - Canonical public support/security paths: `README.md`, `README_zh.md`, `CONTRIBUTING.md`, `SUPPORT.md`, `SECURITY.md`
 - Canonical troubleshooting path: `docs/TROUBLESHOOTING.md`
 - Canonical release-notes summary: `CHANGELOG.md` (maintainer-facing release posture summary, not a second runbook)
-- Canonical route-selector family: `.governance/baseline/GOVERNANCE_REGISTRY.json::governance_route` → `.governance/{PROJECT,ROADMAP,REQUIREMENTS,STATE,MILESTONES}.md` (registry-owned current selector family; current resolution = `v1.44 active milestone route / Phase 143 planned / execution-ready / latest archived baseline = v1.43`; current status = `active / phase 143 planned; execution-ready (2026-04-04)`; default next = `$gsd-execute-phase 143`)
-- Canonical local GSD fast-path proof: `tests/meta/test_governance_route_handoff_smoke.py` uses an isolated `--cwd` repo root when nested worktrees would otherwise drift; direct-cwd mismatch remains tooling fallback only, not route authority.
-- Canonical latest archived evidence index: `.governance/reviews/V1_43_EVIDENCE_INDEX.md`
-- Canonical latest archived milestone audit: `.governance/v1.43-MILESTONE-AUDIT.md` (pull-only evidence verdict, not current route truth)
 - Canonical firmware certification trust-root asset: `custom_components/lipro/firmware_support.json`
 
 Private repositories and forks skip CI HACS validation because HACS only supports public GitHub repositories; do not treat a skipped HACS job as a release blocker in that case.
@@ -41,7 +37,7 @@ Currently enforced release hardening in this repository:
 - machine verification of that provenance evidence via `gh attestation verify`
 - keyless `cosign sign-blob` signatures for published assets plus machine verification via `cosign verify-blob --bundle`
 - published release identity manifest (`dist/lipro-hass-vX.Y.Z.release-identity.txt`)
-- scheduled / manually-runnable compatibility preview lane in `ci.yml` that upgrades preview Home Assistant dependencies, promotes deprecation warnings (`DeprecationWarning` / `PendingDeprecationWarning`) to errors, and records advisory-only outcomes without weakening the stable release contract
+- manually runnable compatibility preview lane in `ci.yml` that upgrades preview Home Assistant dependencies, promotes deprecation warnings (`DeprecationWarning` / `PendingDeprecationWarning`) to errors, and records advisory-only outcomes without weakening the stable release contract
 
 Still deferred beyond this phase (must stay recorded, not implied):
 
@@ -80,18 +76,24 @@ Before creating or publishing a tag:
 1. Working tree is clean and all intended docs/code changes are committed.
 2. Version truth is synchronized across `pyproject.toml`, `manifest.json`, and `const/base.py`.
 3. Public navigation is synchronized across `README.md` / `README_zh.md` / `CONTRIBUTING.md` / `SUPPORT.md` / `SECURITY.md` / troubleshooting docs.
-4. Residual/governance closeout tables, `CHANGELOG.md`, the latest archived evidence pointer, and the latest archived milestone audit are updated when the release carries architectural cleanup or release-route wording changes.
+4. Update `CHANGELOG.md`, affected architecture/support docs and the PR validation record. Explicitly record unresolved release blockers.
 5. Release custody, custody-restoration rules, freeze conditions, and rollback posture are reviewed before the tag is pushed; do not assume a delegate exists unless `.github/CODEOWNERS` and this runbook explicitly document one.
 6. The following commands pass locally whenever the change scope justifies a release:
 
 ```bash
 uv run ruff check .
+uv run ruff format --check .
 uv run mypy
+uv run python scripts/check_translations.py
+uv run python scripts/check_markdown_links.py
+uv run pytest -q --ignore=tests/benchmarks
 uv run python scripts/check_architecture_policy.py --check
 uv run python scripts/check_file_matrix.py --check
-uv run pytest -q tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py
-uv run pytest -q tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py
 ```
+
+The two local architecture inventory helpers explicitly skip governance-backed
+checks when `.governance/` is absent. Record this limitation; do not count a skip
+as release or architecture assurance.
 
 ## Release Freeze / Custody Truth
 
@@ -106,7 +108,7 @@ uv run pytest -q tests/meta/test_governance*.py tests/meta/test_toolchain_truth.
 - **`break-glass verify-only`**: maintainer-only path to rerun governance, security, signing, and identity verification on a tagged tree without publishing or republishing public assets.
 - **`non-publish rehearsal`**: maintainer-only dry run of the release sequence that proves CI reuse, security/code-scanning gates, artifact generation, and release-identity writing while stopping before public asset publication.
 - Manual `workflow_dispatch` runs of `.github/workflows/release.yml` default to verify-only / non-publish rehearsal; leave `publish_assets=false` to validate the full path without public publication, and set it to `true` only when intentionally publishing an already-existing tag after the same gates pass.
-- These modes never relax the stable install contract, support-routing truth, or release-trust gates; they only validate that the same gates would pass for a real tagged release. The separate compatibility preview lane in `ci.yml` remains `schedule` / `workflow_dispatch` only and advisory.
+- These modes never relax the stable install contract, support-routing truth, or release-trust gates; they only validate that the same gates would pass for a real tagged release. The separate compatibility preview lane in `ci.yml` remains `workflow_dispatch` only and advisory.
 - If a rehearsal or verify-only run discovers a blocker, record it explicitly; do not silently downgrade to preview paths or publish partially verified assets.
 
 ## Release Path
@@ -133,7 +135,7 @@ uv run pytest -q tests/meta/test_governance*.py tests/meta/test_toolchain_truth.
 - Spot-check one asset with `cosign verify-blob --bundle ...` and confirm the certificate identity matches `.github/workflows/release.yml` for the tagged release path only, even when the workflow was manually re-run for that same tag.
 - Spot-check README / README_zh / CONTRIBUTING / SUPPORT / SECURITY links on the rendered release page.
 - Review the workflow summary and confirm the release artifact install smoke passed against the temporary Home Assistant-style target tree before trusting the published zip/install pair.
-- If the release contains troubleshooting, public-entry, or runbook changes, ensure those docs still point at each other, at the stable current-selector family, at the latest archived evidence pointer, at the latest archived milestone audit, and at the canonical public entry points.
+- If the release changes troubleshooting or contributor guidance, verify the current cross-links and exact-commit validation evidence.
 
 ## Maintainer-Unavailable Drill / Continuity Drill Checklist
 
@@ -163,7 +165,7 @@ uv run pytest -q tests/meta/test_governance*.py tests/meta/test_toolchain_truth.
 
 ### Support Window / EOL Posture
 
-- The latest tagged release is the stable support target; a matching HACS install and verified GitHub Release assets built from that tag are stable support targets only when those release surfaces are reachable in the current access mode (for example, after a real public mirror or reachable GitHub Release surface exists).
+- The latest tagged release is the stable support target; a matching HACS install and verified GitHub Release assets built from that tag are stable support targets only when those release surfaces are reachable in the current access mode (the current source repository is public; verify each release asset exists).
 - Preview paths such as `ARCHIVE_TAG=main`, branch fallback, or mirror installs remain best effort only.
 
 ## No-Silent-Defer Rule

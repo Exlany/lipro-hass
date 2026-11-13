@@ -5,9 +5,9 @@
 - Canonical minimum supported Home Assistant version: `2026.9.4` (install metadata: `hacs.json`; kept in sync with `pyproject.toml`).
 - Continuity note / 连续性说明：support、security 与 release custody 仍是单维护者模型；当前没有已记录的 delegate。若维护者不可用，应 freeze new tagged releases 与 new release promises，同时保持 `SUPPORT.md` / `SECURITY.md` intake 有效，而不是假定存在隐藏冗余；只有当 `.github/CODEOWNERS` 与 `docs/MAINTAINER_RELEASE_RUNBOOK.md` 共同记录真实 successor / delegate 后，custody 才能恢复。
 - Private repositories and forks skip CI HACS validation because HACS only supports public GitHub repositories.
-- Current access mode: this repository is private-access. GitHub Issues / Discussions / Releases / Security UI therefore only apply when your current access mode exposes them or when a future public mirror preserves the same contract.
+- Current access mode: this source repository is public. Use Issues for normal support; Discussions is not currently enabled. Private vulnerability reporting remains subject to the available GitHub security UI; follow `SECURITY.md` and do not post private findings in Issues.
 - Security reports do **not** belong in public issues; follow `SECURITY.md` instead.
-- Maintainer-facing release, packaging, and pull-only archived-evidence steps live in `docs/MAINTAINER_RELEASE_RUNBOOK.md`.
+- Maintainer-facing release, packaging, and verification steps live in `docs/MAINTAINER_RELEASE_RUNBOOK.md`.
 - Supported shell installs should use verified release assets (`install.sh` + release zip + `SHA256SUMS`) that are reachable in your current access mode; `ARCHIVE_TAG=main` is preview-only. If `install.sh` runs in remote mode without a pinned archive/tag, it resolves the latest tagged release by default, but stable guidance still prefers verified release assets over preview paths.
 
 ## Before Opening an Issue

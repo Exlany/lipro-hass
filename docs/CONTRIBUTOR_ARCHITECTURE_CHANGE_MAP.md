@@ -28,11 +28,15 @@ Use this page when you already know **what kind of change** you want to make, bu
 
 | Change family | Start here | Typical scope | Must update evidence in | Focused validation |
 | --- | --- | --- | --- | --- |
-| Protocol | `custom_components/lipro/core/protocol/`, `custom_components/lipro/core/api/`, `custom_components/lipro/core/mqtt/` | façade contracts, request policy, transport normalization, auth recovery | `.governance/baseline/PUBLIC_SURFACES.md`, `.governance/baseline/DEPENDENCY_MATRIX.md`, `.governance/baseline/VERIFICATION_MATRIX.md` | `uv run pytest tests/core/api tests/core/mqtt tests/integration/test_mqtt_coordinator_integration.py -q` |
-| Runtime | `custom_components/lipro/core/coordinator/` | polling, command confirmation, snapshot refresh, MQTT lifecycle | `.governance/baseline/PUBLIC_SURFACES.md`, `.governance/baseline/VERIFICATION_MATRIX.md`, `.governance/reviews/FILE_MATRIX.md` | `uv run pytest tests/core/test_control_plane.py tests/core/test_init*.py tests/core/test_system_health.py -q` |
-| Control | `custom_components/lipro/control/`, `custom_components/lipro/services/` | service routing, lifecycle, runtime access, diagnostics, system health | `.governance/baseline/PUBLIC_SURFACES.md`, `.governance/baseline/DEPENDENCY_MATRIX.md`, `.governance/reviews/FILE_MATRIX.md` | `uv run pytest tests/core/test_control_plane.py tests/services/test_services_registry.py tests/core/test_diagnostics.py -q` |
-| External-boundary | protocol boundary + diagnostics/share/support surfaces | payload normalization, authority boundaries, report/export redaction, firmware/support truth | `.governance/baseline/AUTHORITY_MATRIX.md`, `.governance/baseline/VERIFICATION_MATRIX.md`, `.governance/reviews/RESIDUAL_LEDGER.md` | `uv run pytest tests/meta/test_external_boundary_authority.py tests/meta/test_external_boundary_fixtures.py tests/core/ota/test_firmware_manifest.py -q` |
-| Governance / docs | `README.md`, `README_zh.md`, `docs/README.md`, `.governance/baseline/*`, `.governance/reviews/*`, `tests/meta/` | public entry docs, contributor routing, guards, evidence ledgers | `.governance/baseline/PUBLIC_SURFACES.md`, `.governance/baseline/VERIFICATION_MATRIX.md`, `.governance/reviews/FILE_MATRIX.md`, `.governance/reviews/PROMOTED_PHASE_ASSETS.md` | `uv run python scripts/check_file_matrix.py --check` + `uv run pytest -q tests/meta/test_governance*.py tests/meta/test_version_sync.py` |
+| Protocol | `custom_components/lipro/core/protocol/`, `custom_components/lipro/core/api/`, `custom_components/lipro/core/mqtt/` | contracts, retry, transport and auth | `docs/developer_architecture.md`, relevant tests, PR validation results | `uv run pytest tests/core/api tests/core/mqtt tests/integration/test_mqtt_coordinator_integration.py -q` |
+| Runtime | `custom_components/lipro/core/coordinator/` | polling, confirmation, refresh, lifecycle | architecture docs, runtime regression tests, PR results | `uv run pytest tests/core/test_control_plane.py tests/core/test_init*.py tests/core/test_system_health.py -q` |
+| Control | `custom_components/lipro/control/`, `custom_components/lipro/services/` | service routing, lifecycle, diagnostics | affected contracts, service tests, PR results | `uv run pytest tests/core/test_control_plane.py tests/services/test_services_registry.py tests/core/test_diagnostics.py -q` |
+| External boundary | protocol, diagnostics, sharing and installer | validation, privacy, firmware and support | relevant tests, `SECURITY.md` or support docs when affected | `uv run pytest tests/core/api/test_response_safety.py tests/core/anonymous_share tests/core/ota/test_firmware_manifest.py tests/scripts -q` |
+| Docs / tooling | root docs, `docs/`, `.github/`, `scripts/` | contributor guidance and checks | paired docs, relevant tests, PR validation results | `uv run python scripts/check_markdown_links.py` plus affected script tests |
+
+The current checkout does not contain `.governance/` or `tests/meta/`. Historical
+paths into those directories are not required contribution inputs or evidence.
+当前检出不含这两个目录；其中的历史路径不再是贡献前置条件或验证证据。
 
 ## Change Family Rules / 各家族改动规则
 
@@ -111,13 +115,11 @@ Use this page when you already know **what kind of change** you want to make, bu
 Use these destinations when your change alters outward contracts or governance truth:
 当改动会影响对外契约或治理真相时，请回写这些位置：
 
-- Public surface changes / 对外 surface 变化：`.governance/baseline/PUBLIC_SURFACES.md`
-- Dependency direction / 依赖方向变化：`.governance/baseline/DEPENDENCY_MATRIX.md`
-- Authority or truth-source changes / authority 或真源变化：`.governance/baseline/AUTHORITY_MATRIX.md`
-- Verification obligations / 验证义务变化：`.governance/baseline/VERIFICATION_MATRIX.md`
-- File ownership or fate / 文件归属或命运变化：`.governance/reviews/FILE_MATRIX.md`
-- Residual or delete-gate updates / 残留或清退门禁变化：`.governance/reviews/RESIDUAL_LEDGER.md`, `.governance/reviews/KILL_LIST.md`
-- Promoted long-lived phase evidence / 提升为长期治理证据的 phase 资产：`.governance/reviews/PROMOTED_PHASE_ASSETS.md`
+- Current contracts and dependency directions / 当前契约与依赖方向：`docs/developer_architecture.md` and the affected public modules.
+- Long-lived architectural decisions / 长期架构决策：`docs/adr/`.
+- Regressions and boundary behavior / 回归与边界行为：the relevant existing files under `tests/`.
+- Commands, exact commit, results and remaining blockers / 命令、精确提交、结果与阻塞：the PR description and CI run links; add a dated review record under `docs/reviews/` when a substantial audit needs a durable ledger.
+- Keep local scratch or removed governance files out of the release tree. / 不把本地临时文件或已移除的治理产物重新加入发布树。
 
 ## Quick Decision Rules / 快速决策规则
 
@@ -132,10 +134,10 @@ Use these destinations when your change alters outward contracts or governance t
 After a non-trivial architecture or docs change, prefer this sequence:
 发生非平凡架构或文档改动后，优先按此顺序验证：
 
-1. `uv run python scripts/check_file_matrix.py --check`
-2. `uv run ruff check .`
-3. Run the focused pytest slice for the change family you touched.
-4. If public docs or governance wording changed, run `uv run pytest -q tests/meta/test_governance*.py tests/meta/test_version_sync.py`
+1. `uv run ruff check .` and `uv run mypy` for code changes.
+2. Run the existing pytest slice for the affected family.
+3. `uv run python scripts/check_markdown_links.py` for docs changes.
+4. Record any architecture-policy/file-matrix helper skips explicitly. With no `.governance/` inventory, these helpers do not establish complete architecture coverage.
 
 ## Keep the Story Single / 保持单一故事线
 

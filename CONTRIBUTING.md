@@ -22,10 +22,10 @@ Thank you for your interest in contributing to the Lipro Smart Home integration!
 
 ### Version Truth / 版本真源
 
-- Canonical minimum supported Home Assistant version: `2026.3.1` from `hacs.json`, kept in sync with the `pyproject.toml` dev pin (`homeassistant==2026.3.1`).
+- Canonical minimum supported Home Assistant version: `2026.9.4` from `hacs.json`, kept in sync with the `pyproject.toml` dev pin (`homeassistant==2026.9.4`).
 - Canonical Python toolchain truth: minimum Python `3.14.2` (the dependency floor enforced by `requires-python` and Home Assistant), with development / CI targeting the `3.14` family (`mypy`, `ruff`, `pre-commit`, devcontainer, and CI stay aligned at the minor-version contract while the floor stays patch-accurate).
 - 唯一 Python 工具链真相：最低 Python `3.14.2`（由 `requires-python` 与 Home Assistant 依赖底线共同约束），开发 / CI 继续对齐 `3.14` 次版本族（`mypy`、`ruff`、`pre-commit`、devcontainer 与 CI 保持 minor-version 契约，而最低支持版本仍需精确到 patch）。
-- 唯一最低支持 Home Assistant 版本基线来源于 `hacs.json`，并与 `pyproject.toml` 中的开发 pin `homeassistant==2026.3.1` 保持同步。
+- 唯一最低支持 Home Assistant 版本基线来源于 `hacs.json`，并与 `pyproject.toml` 中的开发 pin `homeassistant==2026.9.4` 保持同步。
 - Note: HACS validation only works for public GitHub repositories.
 - 私有仓库 / fork 说明：CI 会跳过 HACS validation，因为 HACS 只支持公开 GitHub 仓库。
 
@@ -140,10 +140,10 @@ uv run mypy
 Notes:
 说明：
 
-- `./scripts/lint` 默认运行本地 static + translation + Markdown docs route + shell + runtime security smoke；当 changed surfaces 命中 Phase 113 hotspot / toolchain / governance-handoff 家族时，还会自动补跑对应 focused pytest，但它**不会**默认跑通用 governance 套件或完整 pytest 矩阵。
-  `./scripts/lint` runs local static + translation + Markdown docs route + shell + runtime security smoke by default; when changed surfaces hit the Phase 113 hotspot / toolchain / governance-handoff families, it also auto-runs the matching focused pytest commands, but it does **not** run the generic governance suite or the full pytest matrix by default.
-- `./scripts/lint --full` 会在默认检查之上补跑 architecture/file-matrix、governance guards、完整测试覆盖率门禁，以及 total + changed-surface coverage / refactor floor 校验。
-  `./scripts/lint --full` extends the default checks with architecture/file-matrix validation, governance guards, the full test coverage gate, plus total + changed-surface coverage and refactor floor validation.
+- `./scripts/lint` runs static, translation, Markdown, available shell checks and runtime dependency auditing; matching submit/command-result changes also run focused tests.
+  `./scripts/lint` 执行静态、翻译、Markdown、可用的 shell 检查和运行时依赖审计；命中提交/命令结果模块时还会执行定向测试。
+- `./scripts/lint --full` adds application tests, total/changed-file coverage and the refactor coverage floor. Supply `COVERAGE_BASELINE_JSON` to check changed-file regressions against a prior run.
+  `./scripts/lint --full` 增加应用测试、总覆盖率/修改文件覆盖率和重构覆盖率检查；提供 `COVERAGE_BASELINE_JSON` 可核对修改文件的覆盖率回退。
 - To also audit dev dependencies locally (may be noisy), set `PIP_AUDIT_INCLUDE_DEV=1`; the dev audit checks the installed environment so security overrides are honored.
   如需在本地额外审计 dev 依赖（可能较吵），可设置 `PIP_AUDIT_INCLUDE_DEV=1`；dev 审计会检查已安装环境，以便安全覆盖版本生效。
 - CI 的正式裁决仍以下面的显式 `uv run ...` 命令分组为准；`./scripts/lint` 只是维护者入口，不再暗示“默认已跑完整矩阵”。
@@ -175,14 +175,14 @@ uv run pytest -q -x tests/core/test_diagnostics_config_entry.py::TestAsyncGetCon
 uv run pytest -q -x tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_diagnostics_snapshot
 
 # Targeted protocol/auth/control public-surface regression / 定向 protocol/auth/control public-surface 回归
-uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/core/test_auth.py tests/flows/test_flow_schemas.py tests/flows/test_config_flow_user.py tests/flows/test_config_flow_reauth.py tests/flows/test_config_flow_reconfigure.py tests/flows/test_options_flow.py tests/meta/test_public_surface_guards.py tests/core/test_coordinator_entry.py
+uv run pytest -q tests/core/api/test_protocol_contract_matrix.py tests/core/test_auth.py tests/flows/test_flow_schemas.py tests/flows/test_config_flow_user.py tests/flows/test_config_flow_reauth.py tests/flows/test_config_flow_reconfigure.py tests/flows/test_options_flow.py tests/core/test_coordinator_entry.py
 ```
 
 Notes:
 说明：
 
 - Init / lifecycle / service-handler 改动建议优先跑 `tests/core/test_init*.py` 与 `tests/core/test_init_service_handlers*.py`，不要再把专题用例回灌到单一 mega-test 文件。
-- Phase-history / governance closeout 改动建议补跑 `tests/meta/test_governance_phase_history*.py`，以保持 topicized closeout guards 与实际 phase 证据一致。
+- `tests/meta/` and `.governance/` are absent from the current checkout. Do not report their retired checks as executed. / 当前检出不包含这两个目录，不得把退役检查记为已执行。
 
 ### CI Contract / CI 契约
 
@@ -190,12 +190,12 @@ Use the same command groups as GitHub Actions:
 请与 GitHub Actions 使用同一组命令：
 
 - **lint**: `uv run ruff check .`、`uv run ruff format --check .`、`uv run mypy`、`uv run python scripts/check_translations.py`、`uv run python scripts/check_markdown_links.py`；translation truth 与 docs route truth 都属于 blocking lint lane，不再只是“改到文案时可选”
-- **governance**: `uv run python scripts/check_architecture_policy.py --check`、`uv run python scripts/check_file_matrix.py --check`、`uv run pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py`
-- **pre-push**: `uv run --extra dev python scripts/check_translations.py`、`uv run --extra dev python scripts/check_markdown_links.py`、`uv run --extra dev python scripts/check_architecture_policy.py --check`、`uv run --extra dev python scripts/check_file_matrix.py --check`、`uv run --extra dev pytest -q -x tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_collects_and_redacts_diagnostics tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_handles_no_devices tests/core/test_diagnostics_config_entry.py::TestAsyncGetConfigEntryDiagnostics::test_diagnostics_snapshot`、`uv run --extra dev pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py`；pre-push 只保留 focused local mirrors，不再指向旧 diagnostics mega-file
+- **local architecture inventory**: `uv run python scripts/check_architecture_policy.py --check` and `uv run python scripts/check_file_matrix.py --check` remain local helper commands; their governance-backed checks explicitly skip when `.governance/` is absent. A skip is not architecture coverage. / 两个本地工具在治理文件缺失时明确跳过相应检查，跳过不代表架构验证通过。
+- **pre-push**: `.pre-commit-config.yaml` runs full mypy, translations, Markdown links, local architecture/file-matrix helpers, focused diagnostics tests and the application test suite excluding benchmarks. / pre-push 按该配置执行完整类型检查、翻译、链接、本地架构辅助检查、诊断定向测试和非 benchmark 应用测试。
 - **test**: `uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro --cov-fail-under=95 --cov-report=json --cov-report=xml --cov-report=term-missing`、`uv run python scripts/coverage_diff.py coverage.json --minimum 95 --changed-files .coverage-changed-files --changed-minimum 95`、`uv run python scripts/refactor_tools.py --coverage-json coverage.json --minimum-coverage 95`；total coverage 与 changed measured files 都是 blocking gate，若本地设置 `COVERAGE_BASELINE_JSON=/path/to/baseline.json`，`./scripts/lint --full` 会镜像 CI 的 `--baseline` compare 与 changed-file regression guard；snapshot coverage 已包含在 `tests/` 主阻塞 lane 中，不再单独重复执行
-- **security**: GitHub Actions 会在每个 PR 上运行 blocking runtime `pip-audit` 门禁；tag release 还会额外运行 tagged release security gate，并要求 tagged `CodeQL` analysis 已完成且 open alerts 为零。dev dependency audit 仅在 `schedule` / `workflow_dispatch` 作为 advisory、non-blocking 运行；GitHub artifact attestation / provenance 仍不是 signing，请不要把 attestation / pip-audit 混写成 artifact signing。
-- **benchmark**: PR / push / `workflow_call` 默认运行受 manifest 治理的 smoke subset：`uv run pytest -q tests/benchmarks/test_command_benchmark.py tests/benchmarks/test_mqtt_benchmark.py tests/benchmarks/test_device_refresh_benchmark.py --benchmark-only --benchmark-json=.benchmarks/benchmark-smoke.json` 与 `uv run python scripts/check_benchmark_baseline.py .benchmarks/benchmark-smoke.json --manifest tests/benchmarks/benchmark_baselines.json --benchmark-set smoke`；完整 benchmark 仍保留给 `schedule` / `workflow_dispatch` 的 full lane：`uv run pytest tests/benchmarks/ -v --benchmark-only --benchmark-json=.benchmarks/benchmark.json` 与 `uv run python scripts/check_benchmark_baseline.py .benchmarks/benchmark.json --manifest tests/benchmarks/benchmark_baselines.json`；threshold warning 只发维护者信号，failure threshold 才作为 no-regression gate
-- **preview**: `schedule` / `workflow_dispatch` 专用 compatibility preview lane 会升级 Home Assistant preview dependency set，并在 `DeprecationWarning` / `PendingDeprecationWarning` 提升为错误的条件下运行定向 smoke；它只提供 maintainer-facing advisory signal，不会改变 stable PR / release / support contract
+- **security**: GitHub Actions 会在每个 PR 上运行 blocking runtime `pip-audit` 门禁；tag release 还会额外运行 tagged release security gate，并要求 tagged `CodeQL` analysis 已完成且 open alerts 为零。dev dependency audit 仅在 `workflow_dispatch` 作为 advisory、non-blocking 运行；GitHub artifact attestation / provenance 仍不是 signing，请不要把 attestation / pip-audit 混写成 artifact signing。
+- **benchmark**: PR / push / `workflow_call` 默认运行受 manifest 治理的 smoke subset：`uv run pytest -q tests/benchmarks/test_command_benchmark.py tests/benchmarks/test_mqtt_benchmark.py tests/benchmarks/test_device_refresh_benchmark.py --benchmark-only --benchmark-json=.benchmarks/benchmark-smoke.json` 与 `uv run python scripts/check_benchmark_baseline.py .benchmarks/benchmark-smoke.json --manifest tests/benchmarks/benchmark_baselines.json --benchmark-set smoke`；完整 benchmark 仍保留给 `workflow_dispatch` 的 full lane：`uv run pytest tests/benchmarks/ -v --benchmark-only --benchmark-json=.benchmarks/benchmark.json` 与 `uv run python scripts/check_benchmark_baseline.py .benchmarks/benchmark.json --manifest tests/benchmarks/benchmark_baselines.json`；threshold warning 只发维护者信号，failure threshold 才作为 no-regression gate
+- **preview**: `workflow_dispatch` 专用 compatibility preview lane 会升级 Home Assistant preview dependency set，并在 `DeprecationWarning` / `PendingDeprecationWarning` 提升为错误的条件下运行定向 smoke；它只提供 maintainer-facing advisory signal，不会改变 stable PR / release / support contract
 - **shellcheck**: 若修改 `install.sh` / `scripts/*` shell 脚本，请运行 `shellcheck install.sh scripts/develop scripts/lint scripts/setup`（CI 的 `lint` job 也会执行）
 - **validate**: GitHub Actions 会额外运行 `HACS` 与 `Hassfest` 校验；若仓库或 fork 为 private，CI 会跳过 HACS validation，因为 HACS 只支持公开 GitHub 仓库；本地通常不必手动复刻，但提交前应确保仓库元数据仍符合这些约束
 - **release**: tag release 先复用 `.github/workflows/ci.yml`，再由 `.github/workflows/release.yml` 在 `refs/tags/${RELEASE_TAG}` 上运行 tagged release security gate 与 tagged `CodeQL` gate，发布 `SHA256SUMS` / `SBOM` / GitHub artifact attestation / provenance / keyless `cosign` signature bundles，并写出 release identity manifest。attestation / provenance 是 release identity 证据，`cosign` bundle 才是 artifact signing；维护者操作手册见 `docs/MAINTAINER_RELEASE_RUNBOOK.md`。若本次属于 maintainer-only `break-glass verify-only` 或 `non-publish rehearsal`，必须显式记录为不发布资产的验证演练，不能旁路门禁直接发版
@@ -205,9 +205,9 @@ Use the same command groups as GitHub Actions:
 Choose the smallest lane that still matches the changed surface; do not invent a shadow CI story.
 请选择仍能覆盖改动面的最小验证路径，不要再造一套影子 CI 故事线。
 
-- **docs-only**: `uv run pytest -q tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py`
-- **governance-only**: `uv run pytest -q tests/meta/test_governance_release_*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py`
-- **release-only**: `uv run pytest -q tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py`
+- **docs-only**: `uv run python scripts/check_markdown_links.py`; verify each documented command and version against the tracked configuration. / 校验链接，并逐项核对文档命令与版本。
+- **architecture/tooling**: run the affected existing tests, Ruff and mypy; record any skipped inventory checks explicitly. / 执行实际存在的相关测试和静态检查，明确记录跳过项。
+- **release-only**: review `.github/workflows/release.yml`, run the application and installer tests, and verify tagged security gates before publication. / 检查发布工作流、应用与安装器测试，并在发布前核验标签安全门禁。
 - **maintainer-only verify-only / non-publish rehearsal**: trigger `.github/workflows/release.yml` via `workflow_dispatch` with `tag=<existing-tag>` and `publish_assets=false`; this validates the release path without publishing public assets
 
 ### Type Hints / 类型提示
@@ -246,7 +246,7 @@ async def async_turn_on(self, **kwargs: Any) -> None:
    uv run python scripts/check_markdown_links.py
    uv run python scripts/check_architecture_policy.py --check
    uv run python scripts/check_file_matrix.py --check
-   uv run pytest -q -x tests/meta/test_dependency_guards.py tests/meta/test_public_surface_guards.py tests/meta/test_governance*.py tests/meta/test_toolchain_truth.py tests/meta/test_version_sync.py
+
    uv run pytest tests/ -v --ignore=tests/benchmarks --cov=custom_components/lipro --cov-fail-under=95 --cov-report=json --cov-report=xml --cov-report=term-missing
    git diff --name-only --diff-filter=AMRT HEAD^...HEAD > .coverage-changed-files
    uv run python scripts/coverage_diff.py coverage.json --minimum 95 --changed-files .coverage-changed-files --changed-minimum 95  # total + changed-surface coverage; set COVERAGE_BASELINE_JSON and run ./scripts/lint --full to mirror CI baseline compare
@@ -316,7 +316,7 @@ When reporting bugs, please include:
 报告错误时，请包括：
 
 - Integration version / 集成版本
-- Home Assistant version / Home Assistant 版本（最低支持 `2026.3.1`）
+- Home Assistant version / Home Assistant 版本（最低支持 `2026.9.4`）
 - Steps to reproduce / 复现步骤
 - Expected vs actual behavior / 预期与实际行为
 - Relevant logs (with debug logging enabled) / 相关日志（启用调试日志）
@@ -352,8 +352,8 @@ See `docs/TROUBLESHOOTING.md` first, then `SUPPORT.md` for usage questions, bug 
 
 ## Questions? / 有问题？
 
-Start with `docs/README.md` and `SUPPORT.md`. Use Discussions for early design discussion and Issues for confirmed, trackable work.
-请先从 `docs/README.md` 与 `SUPPORT.md` 开始。早期设计讨论建议走 Discussions，已确认且可追踪的问题走 Issues。
+Start with `docs/README.md` and `SUPPORT.md`. Use Issues for confirmed work; use Discussions only if the repository enables it.
+请先从 `docs/README.md` 与 `SUPPORT.md` 开始。已确认且可追踪的问题走 Issues；仅在仓库启用 Discussions 后使用该讨论入口。
 
 ---
 
