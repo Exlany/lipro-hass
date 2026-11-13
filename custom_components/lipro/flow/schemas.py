@@ -1,8 +1,8 @@
-"""Voluptuous schemas for the Lipro config flow."""
+"""Schemas for the Lipro config flow."""
 
 from __future__ import annotations
 
-import voluptuous as vol
+import probatio as vol
 
 from homeassistant.const import CONF_PASSWORD
 from homeassistant.helpers import selector

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+import probatio as vol
 import pytest
-import voluptuous as vol
 
 from custom_components.lipro.flow.credentials import (
     mask_phone_for_title,

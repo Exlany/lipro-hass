@@ -10,6 +10,29 @@ import pytest
 class TestLiproLightEntityCommands:
     """Tests for LiproLight entity command methods."""
 
+    @pytest.mark.parametrize(
+        ("method", "value", "property_key"),
+        [
+            ("async_set_brightness", 128, "brightness"),
+            ("async_set_color_temp_kelvin", 4000, "temperature"),
+        ],
+    )
+    async def test_adjustment_turns_on_off_light(
+        self, mock_coordinator, make_device, method, value, property_key
+    ):
+        """Direct slider adjustments preserve the turn-on-when-off option."""
+        from custom_components.lipro.light import LiproLight
+
+        device = make_device("light", properties={"powerState": "0"})
+        mock_coordinator.get_device = MagicMock(return_value=device)
+        light = LiproLight(mock_coordinator, device)
+        with patch.object(light, "async_change_state", new_callable=AsyncMock) as send:
+            await getattr(light, method)(value)
+        changes = send.call_args.args[0]
+        assert changes["powerState"] == 1
+        assert isinstance(changes[property_key], int)
+        assert send.call_args.kwargs == {"debounced": True}
+
     @pytest.mark.asyncio
     async def test_turn_on(self, mock_coordinator, make_device):
         """Test async_turn_on sends POWER_ON command."""

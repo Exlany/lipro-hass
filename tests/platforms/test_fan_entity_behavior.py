@@ -107,7 +107,7 @@ class TestLiproFanEntityBehavior:
     ):
         """Non-cycle mode should still expose SET_SPEED."""
         from custom_components.lipro.fan import LiproFan
-        from homeassistant.components.fan import FanEntityFeature
+        from homeassistant.components.fan.const import FanEntityFeature
 
         device = make_device("fanLight", properties={"fanMode": "0"})
         mock_coordinator.get_device = MagicMock(return_value=device)
@@ -318,7 +318,7 @@ class TestLiproFanEntityBehavior:
     ):
         """Cycle mode should not expose SET_SPEED feature."""
         from custom_components.lipro.fan import LiproFan
-        from homeassistant.components.fan import FanEntityFeature
+        from homeassistant.components.fan.const import FanEntityFeature
 
         device = make_device("fanLight", properties={"fanMode": "2"})
         mock_coordinator.get_device = MagicMock(return_value=device)
@@ -332,7 +332,7 @@ class TestLiproFanEntityBehavior:
     ) -> None:
         """Unknown vendor modes should keep truthful feature/preset projection."""
         from custom_components.lipro.fan import LiproFan
-        from homeassistant.components.fan import FanEntityFeature
+        from homeassistant.components.fan.const import FanEntityFeature
 
         device = make_device("fanLight", properties={"fanMode": "99"})
         mock_coordinator.get_device = MagicMock(return_value=device)

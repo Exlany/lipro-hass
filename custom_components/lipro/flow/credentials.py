@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 
-import voluptuous as vol
+import probatio as vol
 
 _PHONE_INPUT_PATTERN = re.compile(r"^\+?\d{6,20}$")
 _MAX_PASSWORD_LEN: int = 128
