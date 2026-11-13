@@ -88,6 +88,15 @@ def test_resolve_reauth_expected_user_id_falls_back_to_unique_id() -> None:
     assert resolve_reauth_expected_user_id(entry) == 10001
 
 
+def test_reauth_rejects_missing_phone() -> None:
+    entry = MockConfigEntry(domain=DOMAIN, data={CONF_PHONE_ID: "phone-id"})
+    submission, errors = validate_reauth_submission(
+        entry, {"password": "testpassword"}, logger=_LOGGER
+    )
+    assert submission is None
+    assert errors == {"base": "invalid_entry"}
+
+
 def test_validate_reauth_submission_uses_entry_identity_and_defaults() -> None:
     entry = MockConfigEntry(
         domain=DOMAIN,

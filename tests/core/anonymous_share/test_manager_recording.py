@@ -304,7 +304,7 @@ class TestReportedDeviceCache:
         warn.assert_called_once()
         assert mgr._reported_device_keys == set()
 
-    def test_save_reported_devices_write_failure_logs_warning(self, tmp_path):
+    async def test_save_reported_devices_write_failure_logs_warning(self, tmp_path):
         mgr = AnonymousShareManager()
         mgr._storage_path = str(tmp_path)
         mgr._reported_device_keys = {"lipro_led"}
@@ -315,7 +315,7 @@ class TestReportedDeviceCache:
                 "custom_components.lipro.core.anonymous_share.manager._LOGGER.warning"
             ) as warn,
         ):
-            mgr._save_reported_devices()
+            await mgr.async_finalize_successful_submit(mgr.prepare_report_submission())
 
         warn.assert_called_once()
 
@@ -334,11 +334,11 @@ class TestReportedDeviceCache:
         assert to_thread.await_count == 1
         assert mgr._cache_loaded is True
 
-    def test_load_and_save_without_storage_path_noop(self):
+    async def test_load_and_save_without_storage_path_noop(self):
         mgr = AnonymousShareManager()
         mgr._storage_path = None
         mgr._load_reported_devices()
-        mgr._save_reported_devices()
+        await mgr.async_finalize_successful_submit(mgr.prepare_report_submission())
 
     def test_set_enabled_with_new_storage_path_clears_stale_reported_device_keys(
         self, tmp_path

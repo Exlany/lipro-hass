@@ -236,6 +236,7 @@ def persist_entry_tokens_if_changed(
     if (
         access_token == entry.data.get(CONF_ACCESS_TOKEN)
         and refresh_token == entry.data.get(CONF_REFRESH_TOKEN)
+        and expires_at == entry.data.get(CONF_EXPIRES_AT)
         and biz_id == entry.data.get(CONF_BIZ_ID)
     ):
         return

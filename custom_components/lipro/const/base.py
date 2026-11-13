@@ -15,7 +15,7 @@ MANUFACTURER: Final = "Lipro"
 IOT_DEVICE_ID_PREFIX: Final = "03ab"
 
 # Integration version (should match pyproject.toml and manifest.json)
-VERSION: Final = "1.0.0"
+VERSION: Final = "1.0.4"
 
 # API library version - increment when API changes are made
 # This helps track compatibility with Lipro cloud API

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-import voluptuous as vol
+import probatio as vol
 
 from homeassistant.config_entries import ConfigFlowResult, OptionsFlow
 
@@ -180,7 +180,7 @@ def _build_int_option_field(
     default: int,
     min_value: int,
     max_value: int,
-) -> tuple[vol.Marker, vol.All]:
+) -> tuple[vol.Marker, vol.All[int]]:
     """Build a required bounded integer option field for options schema."""
     return (
         vol.Required(

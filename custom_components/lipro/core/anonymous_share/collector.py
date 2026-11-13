@@ -165,7 +165,7 @@ class AnonymousShareCollector:
             prefix += f"{method} "
         self._add_error(
             error_type="api_error",
-            message=f"{prefix}{endpoint}: {message[:200]}",
+            message=f"{prefix}{endpoint}: {sanitize_string(message)[:200]}",
             endpoint=endpoint,
         )
 
@@ -180,7 +180,7 @@ class AnonymousShareCollector:
             return
 
         exc_type = type(exception).__name__
-        exc_msg = str(exception)[:200]
+        exc_msg = sanitize_string(str(exception))[:200]
         sample = ""
         if input_sample:
             sample = f" input_len={len(input_sample)}"
@@ -206,7 +206,7 @@ class AnonymousShareCollector:
         cmd = f"{command}({params})" if params else command
         self._add_error(
             error_type="command_error",
-            message=f"[{code}] {cmd}: {message[:200]}",
+            message=f"[{code}] {cmd}: {sanitize_string(message)[:200]}",
             device_type=device_type,
         )
 

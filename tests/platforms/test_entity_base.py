@@ -414,6 +414,18 @@ class TestLiproEntityDebounce:
 class TestLiproEntityLifecycle:
     """Tests for LiproEntity lifecycle hooks."""
 
+    def test_entity_id_changed_calls_parent_and_coordinator(
+        self, mock_coordinator, make_device
+    ):
+        """In-place renames propagate to both HA and the runtime index."""
+        entity = _make_entity(mock_coordinator, make_device("light"))
+        with patch.object(
+            CoordinatorEntity, "async_entity_id_changed", create=True
+        ) as parent_hook:
+            entity.async_entity_id_changed("light.old")
+        parent_hook.assert_called_once_with("light.old")
+        mock_coordinator.entity_id_changed.assert_called_once_with(entity, "light.old")
+
     async def test_async_added_to_hass_registers_entity(
         self, mock_coordinator, make_device
     ):

@@ -30,22 +30,24 @@ from .manager_submission import (
     submit_report as _submit_report_flow,
 )
 from .manager_support import (
+    ShareReportSnapshot,
     _AggregateViewState,
     _ScopeState,
     build_aggregate_report_payload,
     build_pending_report_payload,
     build_scope_report_payload,
+    build_scope_report_snapshot,
     clear_scope_collectors,
     collector_method,
     configure_scope_state,
     finalize_successful_submit_state,
     has_pending_report_data,
     load_reported_device_keys_for_state,
-    save_reported_device_keys_for_state,
     scope_state_property,
     should_skip_report_submission,
     should_submit_if_needed,
 )
+from .storage import save_reported_device_keys
 
 if TYPE_CHECKING:
     from .collector import AnonymousShareCollector
@@ -237,10 +239,6 @@ class AnonymousShareManager:
         )
         self._reported_device_keys = keys if loaded else set()
 
-    def _save_reported_devices(self) -> None:
-        """Save reported device keys to storage."""
-        save_reported_device_keys_for_state(self._scope_state, logger=_LOGGER)
-
     record_device = collector_method(
         "record_device",
         doc="Record device information for the current scope.",
@@ -337,16 +335,24 @@ class AnonymousShareManager:
             logger=_LOGGER,
         )
 
-    async def async_finalize_successful_submit(self) -> None:
-        """Finalize one successful current-scope anonymous-share submission."""
-        pending_count = self.pending_count
-        await asyncio.to_thread(
-            finalize_successful_submit_state,
-            self._scope_state,
-            pending_count=pending_count,
-            logger=_LOGGER,
-            save_reported_devices=self._save_reported_devices,
-        )
+    def prepare_report_submission(self) -> ShareReportSnapshot:
+        """Capture one scoped payload and its acknowledgement boundary."""
+        return build_scope_report_snapshot(self._scope_state)
+
+    async def async_finalize_successful_submit(
+        self, snapshot: ShareReportSnapshot, *, lite: bool = False
+    ) -> None:
+        """Acknowledge delivered data before persisting a detached cache copy."""
+        state = self._scope_state
+        finalize_successful_submit_state(state, snapshot, logger=_LOGGER, lite=lite)
+        if state.storage_path:
+            await asyncio.to_thread(
+                save_reported_device_keys,
+                state.storage_path,
+                set(state.reported_device_keys),
+                logger=_LOGGER,
+                cache_key=state.storage_key,
+            )
 
     def should_submit_if_needed(self) -> bool:
         """Return whether automatic submission thresholds are currently met."""

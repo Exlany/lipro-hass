@@ -6,7 +6,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 import logging
 
-import voluptuous as vol
+import probatio as vol
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD

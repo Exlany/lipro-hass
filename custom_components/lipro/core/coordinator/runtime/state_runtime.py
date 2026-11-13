@@ -134,6 +134,12 @@ class StateRuntime:
         """Register an entity for state update notifications."""
         self._index_manager.register_entity(entity, device_serial)
 
+    def entity_id_changed(
+        self, entity: LiproEntityProtocol, old_entity_id: str
+    ) -> None:
+        """Move an active entity registration to its new identifier."""
+        self._index_manager.entity_id_changed(entity, old_entity_id)
+
     def unregister_entity(self, entity_id: str) -> None:
         """Unregister the active entity for one entity ID."""
         self._index_manager.unregister_entity(entity_id)

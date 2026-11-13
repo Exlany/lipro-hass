@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from contextlib import suppress
 from typing import TYPE_CHECKING
 
 import aiohttp
@@ -87,10 +86,12 @@ def build_unexpected_submit_outcome(
     failure_category: str,
     handling_policy: str,
 ) -> OperationOutcome:
-    """Translate one unexpected submit exception after redacting its message."""
-    with suppress(AttributeError, RuntimeError, TypeError, ValueError):
-        err.args = (safe_error_placeholder(err),)
-    logger.error("Unexpected error during %s upload", label.lower(), exc_info=err)
+    """Translate an unexpected exception without formatting its private details."""
+    # Exception chains, notes and custom __str__ methods can contain secrets even
+    # when args are replaced. Keep the original exception intact for its caller.
+    logger.error(
+        "Unexpected error during %s upload: %s", label.lower(), type(err).__name__
+    )
     return build_operation_outcome_from_exception(
         err,
         kind="failed",

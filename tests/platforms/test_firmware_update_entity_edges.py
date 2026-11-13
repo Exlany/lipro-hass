@@ -10,6 +10,13 @@ from custom_components.lipro.entities.firmware_update_support import (
 )
 
 
+def test_firmware_entity_opts_into_in_place_renames(mock_coordinator, make_device):
+    """Firmware entities forward renames despite their own lifecycle hooks."""
+    entity = LiproFirmwareUpdateEntity(mock_coordinator, make_device("light"))
+    entity.async_entity_id_changed("update.old")
+    mock_coordinator.entity_id_changed.assert_called_once_with(entity, "update.old")
+
+
 def test_handle_coordinator_update_refreshes_installed_version_and_schedules(
     mock_coordinator, make_device
 ) -> None:

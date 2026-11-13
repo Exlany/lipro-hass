@@ -5,7 +5,11 @@ from __future__ import annotations
 import re
 from typing import Any, Final
 
-from ..utils.redaction import is_sensitive_key_name
+from ..utils.redaction import (
+    JSON_LOG_FIELD_PATTERN,
+    JSON_LOG_SENSITIVE_KEYS,
+    is_sensitive_key_name,
+)
 
 INVALID_JSON_MASK_INPUT_MAX_CHARS: Final = 2048
 INVALID_JSON_LOG_PREVIEW_MAX_CHARS: Final = 200
@@ -30,19 +34,12 @@ def _mask_phone_field(match: re.Match[str]) -> str:
     return f'"phone": "{prefix}{_mask_phone_digits(digits)}"'
 
 
-# Match complete or truncated JSON string values without treating escaped quotes
-# as terminators. Invalid responses can end in the middle of a secret.
-_JSON_FIELD = re.compile(
-    r'"(?P<key>[^"\\]+)"\s*:\s*'
-    r'(?P<value>"(?:\\.|[^"\\])*(?:"|\\?$)|-?\d+(?:\.\d+)?)'
-)
 _PHONE_VALUE = re.compile(r'"(?P<prefix>\+?)(?P<digits>\d{6,20})"')
-_ADDITIONAL_SENSITIVE_KEYS = frozenset({"username", "authorization"})
 
 
 def _mask_json_field(match: re.Match[str]) -> str:
     key = match.group("key")
-    if not is_sensitive_key_name(key, extra_keys=_ADDITIONAL_SENSITIVE_KEYS):
+    if not is_sensitive_key_name(key, extra_keys=JSON_LOG_SENSITIVE_KEYS):
         return match.group(0)
     value = match.group("value")
     if key == "phone" and (phone := _PHONE_VALUE.fullmatch(value)):
@@ -52,7 +49,7 @@ def _mask_json_field(match: re.Match[str]) -> str:
 
 def mask_sensitive_data(data: str) -> str:
     """Mask JSON fields using the shared policy, including incomplete values."""
-    return _JSON_FIELD.sub(_mask_json_field, data)
+    return JSON_LOG_FIELD_PATTERN.sub(_mask_json_field, data)
 
 
 def normalize_response_code(code: Any) -> int | str | None:

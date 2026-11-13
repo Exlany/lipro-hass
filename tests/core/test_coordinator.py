@@ -96,6 +96,31 @@ class TestCoordinatorServices:
 class TestCoordinatorEntityLifecycle:
     """Test public entity lifecycle behavior exposed by the coordinator."""
 
+    def test_entity_rename_then_removal(self, coordinator):
+        """Renaming preserves the subscription and removal clears the index."""
+        serial = "03ab5ccd7c000001"
+        entity = _Entity("light.old", MagicMock(serial=serial))
+        coordinator.register_entity(entity)
+        entity.entity_id = "light.new"
+        coordinator.entity_id_changed(entity, "light.old")
+        state = coordinator._runtimes.state
+        assert state.get_entity_count() == 1
+        assert state.get_entities_for_device(serial) == [entity]
+        coordinator.unregister_entity(entity)
+        assert state.get_entity_count() == 0
+        assert state.get_entities_for_device(serial) == []
+
+    def test_stale_entity_rename_does_not_replace_active_entity(self, coordinator):
+        """A stale instance cannot move another entity's registration."""
+        serial = "03ab5ccd7c000001"
+        active = _Entity("light.old", MagicMock(serial=serial))
+        stale = _Entity("light.new", MagicMock(serial=serial))
+        coordinator.register_entity(active)
+        coordinator.entity_id_changed(stale, "light.old")
+        assert coordinator._runtimes.state.get_entities_for_device(serial) == [active]
+        coordinator.unregister_entity(active)
+        assert coordinator._runtimes.state.get_entity_count() == 0
+
     @pytest.mark.asyncio
     async def test_register_entity_tracks_device_subscription_once(
         self,

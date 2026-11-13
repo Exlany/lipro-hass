@@ -17,9 +17,9 @@ from .const import (
     MIN_UPLOAD_INTERVAL,
 )
 from .models import SharedDevice, SharedError
-from .report_builder import build_anonymous_share_report
+from .report_builder import LITE_REPORT_ITEM_LIMIT, build_anonymous_share_report
 from .share_client import ShareWorkerClient
-from .storage import load_reported_device_keys, save_reported_device_keys
+from .storage import load_reported_device_keys
 
 _DEFAULT_SCOPE = "__default__"
 
@@ -46,6 +46,28 @@ class _AggregateViewState:
     """Shared aggregate-view state reused across manager views."""
 
     last_submit_outcome: OperationOutcome | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class ShareReportSnapshot:
+    """Capture the payload and identities/counts eligible for acknowledgement."""
+
+    payload: dict[str, object]
+    devices: tuple[tuple[str, SharedDevice], ...]
+    errors: tuple[tuple[SharedError, int], ...]
+    unknown_properties: frozenset[tuple[str, str]]
+    unknown_device_types: frozenset[tuple[str | None, int]]
+
+
+def build_scope_report_snapshot(state: _ScopeState) -> ShareReportSnapshot:
+    """Snapshot pending records synchronously before yielding to upload I/O."""
+    return ShareReportSnapshot(
+        payload=build_scope_report_payload(state),
+        devices=tuple(state.collector.devices.items()),
+        errors=tuple((error, error.count) for error in state.collector.errors),
+        unknown_properties=frozenset(state.collector.unknown_properties),
+        unknown_device_types=frozenset(state.collector.unknown_device_types),
+    )
 
 
 def scope_state_property(attr: str) -> property:
@@ -164,23 +186,6 @@ def load_reported_device_keys_for_state(
     )
 
 
-def save_reported_device_keys_for_state(
-    state: _ScopeState,
-    *,
-    logger: logging.Logger,
-) -> None:
-    """Persist one state's reported-device cache."""
-    storage_path = state.storage_path
-    if not storage_path:
-        return
-    save_reported_device_keys(
-        storage_path,
-        state.reported_device_keys,
-        logger=logger,
-        cache_key=state.storage_key,
-    )
-
-
 def build_scope_report_payload(state: _ScopeState) -> dict[str, object]:
     """Build a report payload for one scope."""
     return build_anonymous_share_report(
@@ -280,27 +285,39 @@ def should_submit_if_needed(
     )
 
 
-def mark_reported_devices(state: _ScopeState) -> None:
-    """Move current devices into the reported-device cache."""
-    for device in state.collector.devices.values():
-        state.reported_device_keys.add(device.iot_name)
-
-
 def finalize_successful_submit_state(
     state: _ScopeState,
+    snapshot: ShareReportSnapshot,
     *,
-    pending_count: tuple[int, int],
     logger: logging.Logger,
-    save_reported_devices: Callable[[], None],
+    lite: bool = False,
 ) -> None:
-    """Finalize one successful submit by updating scope state and cache."""
-    device_count, error_count = pending_count
+    """Acknowledge only delivered records on the collector's event loop."""
+    devices = snapshot.devices[:LITE_REPORT_ITEM_LIMIT] if lite else snapshot.devices
+    errors = snapshot.errors[:LITE_REPORT_ITEM_LIMIT] if lite else snapshot.errors
     logger.info(
         "Anonymous share report submitted: %d devices, %d errors",
-        device_count,
-        error_count,
+        len(devices),
+        len(errors),
     )
     state.last_upload_time = time.time()
-    mark_reported_devices(state)
-    save_reported_devices()
-    state.collector.clear()
+    for key, device in devices:
+        state.reported_device_keys.add(device.iot_name)
+        if state.collector.devices.get(key) is device:
+            del state.collector.devices[key]
+
+    delivered_counts = {id(error): count for error, count in errors}
+    remaining_errors = []
+    for error in state.collector.errors:
+        error.count -= delivered_counts.get(id(error), 0)
+        if error.count > 0:
+            remaining_errors.append(error)
+    state.collector.errors.clear()
+    state.collector.errors.extend(remaining_errors)
+    if not lite:
+        state.collector.unknown_properties.difference_update(
+            snapshot.unknown_properties
+        )
+        state.collector.unknown_device_types.difference_update(
+            snapshot.unknown_device_types
+        )

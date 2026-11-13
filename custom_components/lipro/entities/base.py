@@ -7,6 +7,7 @@ import logging
 from time import monotonic
 from typing import TYPE_CHECKING, Final, cast
 
+from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
@@ -123,6 +124,14 @@ class LiproEntity(CoordinatorEntity[_EntityCoordinatorBridge]):
         # Unregister from coordinator
         self.runtime_coordinator.unregister_entity(self)
         await super().async_will_remove_from_hass()
+
+    @callback
+    def async_entity_id_changed(self, old_entity_id: str) -> None:
+        """Move the runtime registration when Home Assistant renames the entity."""
+        parent_hook = getattr(super(), "async_entity_id_changed", None)
+        if parent_hook is not None:
+            parent_hook(old_entity_id)
+        self.runtime_coordinator.entity_id_changed(self, old_entity_id)
 
     @property
     def is_debouncing(self) -> bool:

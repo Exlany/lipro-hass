@@ -227,6 +227,12 @@ class Coordinator(DataUpdateCoordinator[dict[str, "LiproDevice"]]):
             device_serial=entity.device.serial,
         )
 
+    def entity_id_changed(
+        self, entity: LiproEntityProtocol, old_entity_id: str
+    ) -> None:
+        """Update the runtime index for an in-place entity rename."""
+        self._runtimes.state.entity_id_changed(entity, old_entity_id)
+
     def unregister_entity(self, entity: LiproEntityProtocol) -> None:
         """Unregister entity from debounce protection tracking."""
         if not entity.entity_id:

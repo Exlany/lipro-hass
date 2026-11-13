@@ -27,6 +27,7 @@ class _CoordinatorDouble:
         self.async_request_refresh: Any = AsyncMock()
         self.async_update_listeners: Any = MagicMock()
         self.register_entity: Any = MagicMock()
+        self.entity_id_changed: Any = MagicMock()
         self.unregister_entity: Any = MagicMock()
         self.async_add_listener: Any = MagicMock(return_value=lambda: None)
 

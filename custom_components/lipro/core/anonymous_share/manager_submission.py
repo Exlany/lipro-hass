@@ -10,6 +10,7 @@ from typing import Protocol
 import aiohttp
 
 from ..telemetry.models import OperationOutcome, build_operation_outcome
+from .manager_support import ShareReportSnapshot
 from .report_builder import build_developer_feedback_report
 from .share_client_support import SharePayload
 
@@ -57,8 +58,8 @@ class AnonymousShareSubmitManagerLike(Protocol):
     def should_submit_if_needed(self) -> bool:
         """Return whether threshold-driven submission should run."""
 
-    def build_report(self) -> SharePayload:
-        """Build the anonymous-share payload for this manager."""
+    def prepare_report_submission(self) -> ShareReportSnapshot:
+        """Capture a report and the records eligible for acknowledgement."""
 
     async def async_submit_share_payload_with_outcome(
         self,
@@ -69,7 +70,9 @@ class AnonymousShareSubmitManagerLike(Protocol):
     ) -> OperationOutcome:
         """Submit one payload and return the structured outcome."""
 
-    async def async_finalize_successful_submit(self) -> None:
+    async def async_finalize_successful_submit(
+        self, snapshot: ShareReportSnapshot, *, lite: bool = False
+    ) -> None:
         """Finalize one successful submit by updating manager state."""
 
     async def submit_report(
@@ -192,24 +195,26 @@ async def _submit_scoped_report(
     force: bool,
 ) -> bool:
     """Submit one scoped manager report when the current state requires it."""
-    if not manager.is_enabled:
-        return False
-    if not manager.has_pending_report_data():
-        return True
-    if manager.should_skip_report_submission(force=force):
-        return True
-
     async with manager.get_submit_state().upload_lock:
-        report = manager.build_report()
+        # Another submission or an options change may complete while we wait.
+        if not manager.is_enabled:
+            return False
+        if not manager.has_pending_report_data():
+            return True
+        if manager.should_skip_report_submission(force=force):
+            return True
+        snapshot = manager.prepare_report_submission()
         outcome = await manager.async_submit_share_payload_with_outcome(
             session,
-            report,
+            snapshot.payload,
             label="Anonymous share",
         )
         manager.set_last_submit_outcome(outcome)
         if not outcome.is_success:
             return False
-        await manager.async_finalize_successful_submit()
+        await manager.async_finalize_successful_submit(
+            snapshot, lite=outcome.reason_code == "submitted_lite_payload"
+        )
         return True
 
 

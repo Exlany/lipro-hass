@@ -8,8 +8,8 @@ Note: On Windows, this may require Microsoft C++ Build Tools.
 
 from __future__ import annotations
 
+import probatio as vol
 from pytest_homeassistant_custom_component.common import MockConfigEntry
-import voluptuous as vol
 
 from custom_components.lipro.const.base import DOMAIN
 from custom_components.lipro.const.config import (

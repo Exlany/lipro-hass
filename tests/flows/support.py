@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import voluptuous as vol
+import probatio as vol
 
 
 def _get_schema_field(schema: vol.Schema, key: str):
-    """Return field validator for a voluptuous schema key."""
+    """Return the validator for a schema key."""
     for field, validator in schema.schema.items():
         if isinstance(field, (vol.Required, vol.Optional)) and field.schema == key:
             return validator
@@ -14,7 +14,7 @@ def _get_schema_field(schema: vol.Schema, key: str):
 
 
 def _get_schema_marker(schema: vol.Schema, key: str):
-    """Return marker metadata (required/optional) for a voluptuous schema key."""
+    """Return marker metadata (required/optional) for a schema key."""
     for field in schema.schema:
         if isinstance(field, (vol.Required, vol.Optional)) and field.schema == key:
             return field

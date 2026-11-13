@@ -1,5 +1,8 @@
 # October 2026 maintenance audit
 
+This is historical evidence for the October audit. The current minimum supported
+Home Assistant version is documented in `hacs.json` and the main README.
+
 Baseline: `444ce7f75bad360597ab967989d2e1bbc8d1935f` (main).
 All execution used an isolated cloud checkout, with no live HA instance or device.
 
